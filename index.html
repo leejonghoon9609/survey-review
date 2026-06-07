@@ -139,7 +139,7 @@ var gMark=document.createElementNS(SVGNS,'g'); gMark.setAttribute('pointer-event
 cv.appendChild(gGeo); cv.appendChild(gMark);
 
 /* 상태 */
-var state={ projectId:null, projectName:null, points:[], lines:[], markups:[] };
+var state={ projectId:null, projectName:null, points:[], lines:[], markups:[], labelOff:{} };
 var mode='pan', status='ok';
 var LINECOL={"통신관로":{c:"#d92b2b",w:1.6},"압입구간":{c:"#1f6fd6",w:1.6,dash:"5 4"},"지거":{c:"#b59a00",w:1.2,dash:"3 3"},"주입상인출선":{c:"#999",w:1}};
 var MKCOL={ok:'#2e7d32',bad:'#d32f2f'};
@@ -161,12 +161,37 @@ function computeLabels(){
     if(grp.length===1){var p=pts[grp[0]];lay[grp[0]]={lx:p.x+0.7,ly:p.y,anchor:'start',leader:false};return;}
     var cx=0,cy=0;grp.forEach(function(g){cx+=pts[g].x;cy+=pts[g].y;});cx/=grp.length;cy/=grp.length;
     var rad=0;grp.forEach(function(g){rad=Math.max(rad,Math.hypot(pts[g].x-cx,pts[g].y-cy));});
-    var R=Math.max(rad+3.5,4.5);
+    var R=Math.max(rad+1.75,2.25);
     var order=grp.slice().sort(function(a,b){return Math.atan2(pts[a].y-cy,pts[a].x-cx)-Math.atan2(pts[b].y-cy,pts[b].x-cx);});
     var base=Math.atan2(pts[order[0]].y-cy,pts[order[0]].x-cx);
     order.forEach(function(g,idx){var ang=base+2*Math.PI*idx/order.length,lx=cx+R*Math.cos(ang),ly=cy+R*Math.sin(ang);lay[g]={lx:lx,ly:ly,anchor:Math.cos(ang)>=0?'start':'end',leader:true};});
   });
+  for(var ii=0;ii<n;ii++){var no=ptNum(pts[ii]);if(state.labelOff&&state.labelOff[no]){var o=state.labelOff[no];lay[ii]={lx:o[0],ly:o[1],anchor:(o[0]<pts[ii].x?'end':'start'),leader:true};}}
   return lay;
+}
+var labelDragging=false;
+function addLabelHandle(p,L,ls,nt,ct,ld){
+  var anchor=L.anchor,hw=4.6,hh=1.7;
+  var handle=el('rect',{x:anchor==='start'?(ls[0]-0.2):(ls[0]-hw+0.2),y:ls[1]-0.85,width:hw,height:hh,fill:'transparent',stroke:'#22cc00','stroke-width':0.8,'stroke-dasharray':'2 2','vector-effect':'non-scaling-stroke','pointer-events':'all'});
+  handle.style.cursor='move';
+  var lx=ls[0],ly=ls[1],dragging=false,gx=0,gy=0;
+  handle.addEventListener('pointerdown',function(ev){
+    if(mode!=='pan')return;ev.stopPropagation();ev.preventDefault();
+    dragging=true;labelDragging=true;var w=toWorld(ev.clientX,ev.clientY);gx=w[0]-lx;gy=w[1]-ly;
+    try{handle.setPointerCapture(ev.pointerId);}catch(e){}});
+  handle.addEventListener('pointermove',function(ev){
+    if(!dragging)return;ev.preventDefault();var w=toWorld(ev.clientX,ev.clientY);
+    lx=w[0]-gx;ly=w[1]-gy;var off=anchor==='start'?0.15:-0.15;
+    nt.setAttribute('x',lx+off);nt.setAttribute('y',ly-0.18);
+    ct.setAttribute('x',lx+off);ct.setAttribute('y',ly+0.55);
+    if(ld){ld.setAttribute('x2',lx);ld.setAttribute('y2',ly);}
+    handle.setAttribute('x',anchor==='start'?(lx-0.2):(lx-hw+0.2));handle.setAttribute('y',ly-0.85);});
+  function up(ev){if(!dragging)return;dragging=false;setTimeout(function(){labelDragging=false;},40);
+    state.labelOff[ptNum(p)]=[lx,-ly];
+    try{handle.releasePointerCapture(ev.pointerId);}catch(e){}
+    drawGeo();highlightSel();}
+  handle.addEventListener('pointerup',up);handle.addEventListener('pointercancel',up);
+  gGeo.appendChild(handle);
 }
 function drawGeo(){
   clearSvg(gGeo);
@@ -180,13 +205,14 @@ function drawGeo(){
   state.points.forEach(function(p,i){var s=S(p.x,p.y);
     gGeo.appendChild(el('rect',{x:s[0]-0.35,y:s[1]-0.35,width:0.7,height:0.7,fill:'#111'}));
     var hit=el('circle',{cx:s[0],cy:s[1],r:1.1,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
-    hit.addEventListener('click',function(ev){if(mode!=='pan')return;ev.stopPropagation();if(photoLink)selectPoint(ptNum(p));else{selNum=String(ptNum(p));highlightSel();}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
+    hit.addEventListener('click',function(ev){if(mode!=='pan'||labelDragging)return;ev.stopPropagation();if(photoLink)selectPoint(ptNum(p));else{selNum=String(ptNum(p));drawGeo();highlightSel();}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
     gGeo.appendChild(hit);
     if(/^\s*M/.test(p.code||''))gGeo.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.8,fill:'none',stroke:'#000','stroke-width':1.2,'vector-effect':'non-scaling-stroke'}));
     var L=lay[i],ls=S(L.lx,L.ly),off=L.anchor==='start'?0.15:-0.15;
-    if(L.leader)gGeo.appendChild(el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':0.9,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5'}));
+    var ld=null;if(L.leader){ld=el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':0.9,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5'});gGeo.appendChild(ld);}
     var nt=el('text',{x:ls[0]+off,y:ls[1]-0.18,'font-size':0.55,fill:'#1a7a3a','text-anchor':L.anchor});nt.textContent=p.no;gGeo.appendChild(nt);
     var ct=el('text',{x:ls[0]+off,y:ls[1]+0.55,'font-size':0.55,fill:'#0f7a86','text-anchor':L.anchor});ct.textContent=(p.code||'').trim();gGeo.appendChild(ct);
+    if(ptNum(p)===String(selNum))addLabelHandle(p,L,ls,nt,ct,ld);
   });
 }
 function drawMarks(){ clearSvg(gMark);
@@ -368,7 +394,7 @@ function refreshProjects(){ if(!online)return;
   });
 }
 function saveProject(){
-  var payload={points:state.points,lines:state.lines,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;})};
+  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;})};
   if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
   if(!state.projectName){toast('현장명을 먼저 정하세요(새 현장)');return;}
   var row={name:state.projectName,payload:payload,updated_at:new Date().toISOString()};
@@ -384,7 +410,7 @@ function loadProject(id){ if(!online||!id)return;
   sb.from('survey_projects').select('*').eq('id',id).single().then(function(res){
     if(res.error||!res.data){toast('불러오기 실패');return;}
     var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;
-    state.points=p.points||[];state.lines=p.lines||[];state.markups=(p.markups||[]);
+    state.points=p.points||[];state.lines=p.lines||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};
     selNum=null;clearSvg(gSel);drawGeo();drawMarks();fitView();updMeta();loadPhotos();toast('현장 불러옴: '+res.data.name);
   });
 }
@@ -407,12 +433,12 @@ bind('doneLine',finishDraw);
 bind('clearLine',clearLines);
 bind('delLine',function(){mode=(mode==='delline')?'pan':'delline';setModeUI();if(mode==='delline')toast('지울 선을 클릭하세요');});
 bind('save',saveProject);
-bind('newProj',function(){var n=prompt('새 현장명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;photoMap={};selNum=null;clearSvg(gSel);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 현장: '+n+' (CSV 업로드 후 저장)');});
+bind('newProj',function(){var n=prompt('새 현장명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 현장: '+n+' (CSV 업로드 후 저장)');});
 bind('loadCsv',function(){document.getElementById('fCsv').click();});
 bind('loadDxf',function(){document.getElementById('fDxf').click();});
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)loadProject(e.target.value);});
-document.getElementById('fCsv').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.projectId=null;state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};selNum=null;clearSvg(gSel);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();fitView();updMeta();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화 / 현장명: '+state.projectName+')');};rd.readAsArrayBuffer(f);e.target.value='';});
+document.getElementById('fCsv').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.projectId=null;state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();fitView();updMeta();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화 / 현장명: '+state.projectName+')');};rd.readAsArrayBuffer(f);e.target.value='';});
 document.getElementById('fDxf').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var ln=parseDxfLines(decodeBuf(rd.result));state.lines=state.lines.filter(function(l){return l.layer==='지거'||l.layer==='압입구간'||l.layer==='주입상인출선';}).concat(ln);drawGeo();fitView();updMeta();toast('DXF 라인 '+ln.length+'개 로드');}catch(err){toast('DXF 파싱 오류');}};rd.readAsArrayBuffer(f);e.target.value='';});
 
 /* ====== 샘플 데이터 (수원 권선동 1041-6) ====== */
@@ -434,7 +460,7 @@ function loadSample(){
     {layer:'통신관로',pts:[[202567.43,517213.98],[202566.94,517212.32],[202566.72,517211.58]]},
     {layer:'압입구간',pts:[[202566.72,517211.58],[202594.89,517294.72]]},
     {layer:'지거',pts:[[202567.43,517213.98],[202573.57,517233.15]]}];
-  state.markups=[];photoMap={};selNum=null;clearSvg(gSel);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();fitView();updMeta();toast('샘플 로드됨');
+  state.markups=[];photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();fitView();updMeta();toast('샘플 로드됨');
 }
 bind('sample',loadSample);
 
@@ -471,7 +497,7 @@ function refreshPhotoPanel(){
   var n1=up?ptNum(up):null,n2=down?ptNum(down):null;
   body.innerHTML=paneImg(selNum,'선택측점 사진',true)+'<div class="php-row">'+paneImg(n1,'위 측점',false)+paneImg(n2,'아래 측점',false)+'</div>';
 }
-function selectPoint(num){selNum=String(num);highlightSel();var sel=document.getElementById('photoSel');if(sel)sel.value=String(num);if(photoPanelOpen)refreshPhotoPanel();}
+function selectPoint(num){selNum=String(num);drawGeo();highlightSel();var sel=document.getElementById('photoSel');if(sel)sel.value=String(num);if(photoPanelOpen)refreshPhotoPanel();}
 function openPhotoPanel(o){photoPanelOpen=(o==null)?!photoPanelOpen:!!o;document.getElementById('photoPanel').classList.toggle('open',photoPanelOpen);if(photoPanelOpen)refreshPhotoPanel();setTimeout(fitView,30);}
 function loadPhotos(){photoMap={};if(!online||!state.projectId){if(photoPanelOpen)refreshPhotoPanel();return;}
   sb.from('survey_photos').select('point_no,url').eq('project_id',state.projectId).then(function(res){(res.data||[]).forEach(function(r){photoMap[r.point_no]=r.url;});if(photoPanelOpen)refreshPhotoPanel();});}
@@ -502,15 +528,15 @@ document.getElementById('photoClose').onclick=function(){openPhotoPanel(false);}
 document.getElementById('photoUp').onclick=function(){document.getElementById('fPhotos').click();};
 document.getElementById('photoLinkBtn').onclick=function(){photoLink=!photoLink;this.textContent=photoLink?'🔗 연동':'🔓 미연동';this.classList.toggle('linkon',photoLink);toast(photoLink?'도면↔사진 연동 ON (점 클릭=사진)':'연동 OFF (점 클릭해도 사진 고정)');};
 document.getElementById('fPhotos').addEventListener('change',function(e){uploadPhotos(e.target.files);e.target.value='';});
-document.getElementById('photoSel').addEventListener('change',function(e){if(e.target.value){selNum=e.target.value;highlightSel();refreshPhotoPanel();}else{selNum=null;clearSvg(gSel);refreshPhotoPanel();}});
+document.getElementById('photoSel').addEventListener('change',function(e){if(e.target.value){selNum=e.target.value;drawGeo();highlightSel();refreshPhotoPanel();}else{selNum=null;drawGeo();clearSvg(gSel);refreshPhotoPanel();}});
 /* 도면에서 점 클릭 → 선택 (이동 모드) */
 cv.addEventListener('click',function(e){
-  if(mode!=='pan')return;
+  if(mode!=='pan'||labelDragging)return;
   var w=toWorld(e.clientX,e.clientY),r=cv.getBoundingClientRect(),wpp=vb.w/r.width;
   var nr=nearestPointWorld(w[0],w[1]);
   if(nr.p&&nr.d<40*wpp){
     if(photoLink){selectPoint(ptNum(nr.p));}
-    else{selNum=String(ptNum(nr.p));highlightSel();}
+    else{selNum=String(ptNum(nr.p));drawGeo();highlightSel();}
     toast('측점 '+nr.p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));
   }
 });
