@@ -193,9 +193,9 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
 function addNoteHandle(L,t,ld,lx,ly){
   var bb;try{bb=t.getBBox();}catch(e){bb=null;}
   var pad=0.4,bw=bb?bb.width:String(L.note).length*0.42,bh=bb?bb.height:0.85,bx=bb?bb.x:lx+0.25,by=bb?bb.y:ly-0.45;
-  var h=el('rect',{x:bx-pad,y:by-pad,width:bw+2*pad,height:bh+2*pad,fill:'transparent','pointer-events':'all'});h.style.cursor='move';
+  var h=el('rect',{x:bx-pad,y:by-pad,width:bw+2*pad,height:bh+2*pad,rx:0.3,fill:'transparent',stroke:'#a07e00','stroke-width':0.7,'stroke-dasharray':'1.6 1.6','vector-effect':'non-scaling-stroke','pointer-events':'all'});h.style.cursor='move';
   var drag=false,moved=false,nx=lx,ny=ly;
-  h.addEventListener('pointerdown',function(ev){if(mode!=='pan')return;ev.stopPropagation();drag=true;moved=false;labelDragging=true;try{h.setPointerCapture(ev.pointerId);}catch(e){}});
+  h.addEventListener('pointerdown',function(ev){if(mode!=='pan')return;ev.stopPropagation();drag=true;moved=false;labelDragging=true;h.setAttribute('stroke','#7a5f00');h.setAttribute('stroke-width',1.1);h.setAttribute('stroke-dasharray','2.2 1.4');try{h.setPointerCapture(ev.pointerId);}catch(e){}});
   h.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();moved=true;var ww=toWorld(ev.clientX,ev.clientY);nx=ww[0];ny=ww[1];
     t.setAttribute('x',nx+0.25);t.setAttribute('y',ny+0.2);ld.setAttribute('x2',nx);ld.setAttribute('y2',ny);
     h.setAttribute('x',nx+0.25-pad);h.setAttribute('y',ny-0.45-pad);});
