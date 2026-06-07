@@ -7,7 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  :root{--line:#e3e3e0;--ink:#1c1c1a;--muted:#6b6b66;--bg:#fafaf8;--ok:#2e7d32;--bad:#d32f2f;--accent:#1f6fd6}
+  :root{--line:#e3e3e0;--ink:#1c1c1a;--muted:#6b6b66;--bg:#fafaf8;--ok:#2a9e50;--bad:#d32f2f;--accent:#1f6fd6}
   body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);background:var(--bg);height:100vh;display:flex;flex-direction:column;overflow:hidden}
   header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 14px;border-bottom:1px solid var(--line);background:#fff}
   header h1{font-size:14px;font-weight:600;margin-right:6px}
@@ -52,9 +52,9 @@
   .coordbox .cb-near{display:block;color:var(--muted);font-size:11px;margin-top:1px}
   .recclr{padding:2px 8px;font-size:11px;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer}
   .recclr:hover{color:var(--bad);border-color:var(--bad);background:#fbeeee}
-  .photoBtn{background:#eef6ef;border-color:#bcdcc0;color:#2e7d32;font-weight:600}
+  .photoBtn{background:#eef6ef;border-color:#bcdcc0;color:#2a9e50;font-weight:600}
   .photo-panel{width:37%;min-width:480px;max-width:44%;background:#fff;border-left:1px solid var(--line);display:none;flex-direction:column;flex:none}
-  .linkon{background:#eef6ef;border-color:#bcdcc0;color:#2e7d32;font-weight:600}
+  .linkon{background:#eef6ef;border-color:#bcdcc0;color:#2a9e50;font-weight:600}
   .photo-panel.open{display:flex}
   .php-head{display:flex;gap:8px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
   .php-head h3{font-size:13px;font-weight:600;margin-right:auto}
@@ -130,7 +130,7 @@ cv.appendChild(gGeo); cv.appendChild(gMark);
 var state={ projectId:null, projectName:null, points:[], lines:[], markups:[], labelOff:{} };
 var mode='pan', status='ok';
 var LINECOL={"통신관로":{c:"#d92b2b",w:1.6},"압입구간":{c:"#1f6fd6",w:1.6,dash:"5 4"},"지거":{c:"#b59a00",w:1.2,dash:"3 3"},"주입상인출선":{c:"#999",w:1}};
-var MKCOL={ok:'#2e7d32',bad:'#d32f2f'};
+var MKCOL={ok:'#2a9e50',bad:'#d32f2f'};
 
 function el(t,a){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);return e;}
 function S(x,y){return [x,-y];}                 // 화면좌표(북쪽 위)
@@ -405,28 +405,28 @@ function loadProject(id){ if(!online||!id)return;
 function bind(id,fn){document.getElementById(id).onclick=fn;}
 /* ====== 데이터 기반 툴바 (좌측 카테고리 + 상단 세부도구) ====== */
 var TB=[
-  {k:'data',label:'데이터',icon:'📁',c:{bg:'#eceef1',fg:'#3a3f45'},tools:[
+  {k:'data',label:'기초자료 업로드',icon:'📁',c:{bg:'#eceef1',fg:'#6e757f'},tools:[
     {t:'CSV 업로드',tone:'data',fn:function(){document.getElementById('fCsv').click();}},
     {t:'결선 DXF',tone:'data',fn:function(){document.getElementById('fDxf').click();}},
     {t:'샘플',tone:'data',fn:loadSample}]},
-  {k:'pan',label:'이동',icon:'✋',c:{bg:'#fdf1dd',fg:'#8a5a00'},setmode:'pan',hint:'측점 클릭=선택 · 라벨 끌어 이동 · 휠 확대 · 가운데버튼 화면이동',tools:[]},
-  {k:'conn',label:'결선',icon:'🔗',c:{bg:'#e7f3ea',fg:'#2e7d32'},tools:[
+  {k:'pan',label:'선택·이동',icon:'✋',c:{bg:'#fdf1dd',fg:'#d98200'},setmode:'pan',hint:'측점 클릭=선택 · 라벨 끌어 이동 · 휠 확대 · 가운데버튼 화면이동',tools:[]},
+  {k:'conn',label:'결선',icon:'🔗',c:{bg:'#e7f3ea',fg:'#2a9e50'},tools:[
     {t:'자동결선',tone:'draw',fn:autoConnect},
     {t:'결선지우기(선택)',tone:'del',mode:'delline',hint:'지울 결선을 클릭'},
     {t:'결선지우기(전체)',tone:'delall',fn:clearLines}]},
-  {k:'pipe',label:'관로선편집',icon:'✎',c:{bg:'#e6effb',fg:'#15539e'},tools:[
+  {k:'pipe',label:'관로선편집',icon:'✎',c:{bg:'#e6effb',fg:'#2f7fe0'},tools:[
     {t:'관로선 그리기',tone:'draw',fn:startDraw,activeMode:'line'},
     {t:'관로선 지우기',tone:'del',mode:'delline',hint:'지울 선을 클릭'},
     {t:'지거선 그리기',tone:'draw',soon:1},
     {t:'지거선 지우기',tone:'del',soon:1},
     {t:'전체삭제',tone:'delall',fn:clearLines}]},
-  {k:'mh',label:'맨홀편집',icon:'◎',c:{bg:'#efeafa',fg:'#5b3da8'},tools:[
+  {k:'mh',label:'맨홀편집',icon:'◎',c:{bg:'#efeafa',fg:'#7a52e0'},tools:[
     {t:'맨홀심벌(이중원)',tone:'draw',soon:1},
     {t:'인출선',tone:'draw',soon:1}]},
-  {k:'push',label:'압입구간편집',icon:'⇥',c:{bg:'#e3f4ef',fg:'#0d7a64'},tools:[
+  {k:'push',label:'압입구간편집',icon:'⇥',c:{bg:'#e3f4ef',fg:'#109a82'},tools:[
     {t:'그리기',tone:'draw',soon:1},
     {t:'지우기',tone:'del',soon:1}]},
-  {k:'insp',label:'검수',icon:'✓',c:{bg:'#fbe9e9',fg:'#b3261e'},tools:[
+  {k:'insp',label:'검수',icon:'✓',c:{bg:'#fbe9e9',fg:'#df524b'},tools:[
     {t:'측점선택',tone:'pick',setmode:'pan',hint:'측점을 클릭해 선택'},
     {t:'박스',tone:'shape',mode:'box'},
     {t:'써클',tone:'shape',mode:'circle'},
@@ -436,9 +436,9 @@ var TB=[
     {t:'맨홀',tone:'pt',soon:1},
     {t:'전주입상',tone:'pt',soon:1}]}
 ];
-var TONE={data:{bg:'#eceef1',fg:'#3a3f45'},draw:{bg:'#e7f3ea',fg:'#2e7d32'},del:{bg:'#fdf1dd',fg:'#8a5a00'},delall:{bg:'#fbe9e9',fg:'#b3261e'},pick:{bg:'#e6effb',fg:'#15539e'},shape:{bg:'#e6effb',fg:'#15539e'},ok:{bg:'#e7f3ea',fg:'#2e7d32'},bad:{bg:'#fbe9e9',fg:'#b3261e'},pt:{bg:'#efeafa',fg:'#5b3da8'}};
-function toneStyle(tone,active){var c=TONE[tone]||{bg:'#f3f3f0',fg:'#444'};return active?('background:'+c.fg+';color:#fff;border-color:'+c.fg+';font-weight:600;'):('background:'+c.bg+';color:'+c.fg+';border-color:'+c.bg+';');}
-function railStyle(col,active){col=col||{bg:'#f3f3f0',fg:'#444'};return active?('background:'+col.fg+';color:#fff;border-color:'+col.fg+';font-weight:600;'):('background:'+col.bg+';color:'+col.fg+';border-color:'+col.bg+';');}
+var TONE={data:{bg:'#eceef1',fg:'#6e757f'},draw:{bg:'#e7f3ea',fg:'#2a9e50'},del:{bg:'#fdf1dd',fg:'#d98200'},delall:{bg:'#fbe9e9',fg:'#df524b'},pick:{bg:'#e6effb',fg:'#2f7fe0'},shape:{bg:'#e6effb',fg:'#2f7fe0'},ok:{bg:'#e7f3ea',fg:'#2a9e50'},bad:{bg:'#fbe9e9',fg:'#df524b'},pt:{bg:'#efeafa',fg:'#7a52e0'}};
+function toneStyle(tone,active){var c=TONE[tone]||{bg:'#f3f3f0',fg:'#333'};return active?('background:'+c.fg+';color:#fff;border:1px solid '+c.fg+';border-left:4px solid '+c.fg+';border-radius:0 8px 8px 0;font-weight:700;'):('background:#fff;color:'+c.fg+';border:1px solid #e3e3df;border-left:4px solid '+c.fg+';border-radius:0 8px 8px 0;font-weight:600;');}
+function railStyle(col,active){col=col||{bg:'#f3f3f0',fg:'#333'};return active?('background:'+col.bg+';color:'+col.fg+';border:1px solid '+col.fg+';border-left:4px solid '+col.fg+';border-radius:0 8px 8px 0;font-weight:700;'):('background:#fff;color:'+col.fg+';border:1px solid #e3e3df;border-left:4px solid '+col.fg+';border-radius:0 8px 8px 0;font-weight:600;');}
 var activeCat='pan';
 function curCat(){for(var i=0;i<TB.length;i++)if(TB[i].k===activeCat)return TB[i];return TB[0];}
 function renderRail(){
