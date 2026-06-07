@@ -47,7 +47,7 @@
   .meta{font-size:12px;color:var(--muted);padding:8px 12px;border-top:1px solid var(--line);line-height:1.6}
   .toast{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);background:#1c1c1a;color:#fff;font-size:12px;padding:8px 14px;border-radius:8px;opacity:0;transition:.25s;pointer-events:none}
   .toast.show{opacity:.95}
-  .coordbox{position:absolute;right:10px;bottom:10px;z-index:6;background:rgba(255,255,255,.93);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:12px;color:var(--ink);font-variant-numeric:tabular-nums;pointer-events:none;box-shadow:0 1px 5px rgba(0,0,0,.07);line-height:1.5}
+  .coordbox{position:fixed;right:10px;bottom:10px;z-index:50;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:12px;color:var(--ink);font-variant-numeric:tabular-nums;pointer-events:none;box-shadow:0 1px 6px rgba(0,0,0,.12);line-height:1.5}
   .coordbox b{font-weight:600}
   .coordbox .cb-near{display:block;color:var(--muted);font-size:11px;margin-top:1px}
   .recclr{padding:2px 8px;font-size:11px;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer}
@@ -578,7 +578,7 @@ function refreshPhotoPanel(){
   setupZoom(document.getElementById('zoomImg'));
 }
 function selectPoint(num){selNum=String(num);drawGeo();highlightSel();var sel=document.getElementById('photoSel');if(sel)sel.value=String(num);if(photoPanelOpen)refreshPhotoPanel();}
-function openPhotoPanel(o){photoPanelOpen=(o==null)?!photoPanelOpen:!!o;document.getElementById('photoPanel').classList.toggle('open',photoPanelOpen);if(photoPanelOpen)refreshPhotoPanel();setTimeout(fitView,30);}
+function openPhotoPanel(o){photoPanelOpen=(o==null)?!photoPanelOpen:!!o;document.getElementById('photoPanel').classList.toggle('open',photoPanelOpen);if(photoPanelOpen)refreshPhotoPanel();setTimeout(function(){fitView();if(typeof placeCoord==='function')placeCoord();},30);}
 function loadPhotos(){photoMap={};if(!online||!state.projectId){if(photoPanelOpen)refreshPhotoPanel();return;}
   sb.from('survey_photos').select('point_no,url').eq('project_id',state.projectId).then(function(res){(res.data||[]).forEach(function(r){photoMap[r.point_no]=r.url;});if(photoPanelOpen)refreshPhotoPanel();});}
 function uploadPhotos(files){
@@ -625,8 +625,10 @@ cv.addEventListener('click',function(e){
 function fmtCoord(v){return v.toLocaleString('en-US',{minimumFractionDigits:3,maximumFractionDigits:3});}
 var coordBox=document.getElementById('coordBox');
 var cwrap=cv.parentElement;
-function coordReset(){coordBox.innerHTML='X <b>–</b>　Y <b>–</b>';if(gDraw)clearSvg(gDraw);}
+function placeCoord(){var r=cv.getBoundingClientRect();coordBox.style.right=(Math.max(2,window.innerWidth-r.right)+10)+'px';coordBox.style.bottom=(Math.max(2,window.innerHeight-r.bottom)+10)+'px';}
+function coordReset(){coordBox.innerHTML='X <b>–</b>　Y <b>–</b>';placeCoord();if(gDraw)clearSvg(gDraw);}
 cwrap.addEventListener('mousemove',function(e){
+  placeCoord();
   var w=toWorld(e.clientX,e.clientY); var X=-w[1], Y=w[0];   // X=북, Y=동
   var r=cv.getBoundingClientRect(), wpp=vb.w/r.width;
   var nr=nearestPointWorld(w[0],w[1]); var near='';
@@ -635,6 +637,7 @@ cwrap.addEventListener('mousemove',function(e){
   if(mode==='line')drawIndicators(w); else if(mode==='delline')delHoverHighlight(w); else if(gDraw.childNodes.length)clearSvg(gDraw);
 });
 cwrap.addEventListener('mouseleave',coordReset);
+window.addEventListener('resize',placeCoord);
 coordReset();
 window.addEventListener('keydown',function(e){
   if(mode!=='line')return;var tg=((e.target||{}).tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tg))return;
