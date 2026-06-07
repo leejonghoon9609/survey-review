@@ -222,6 +222,7 @@ function drawGeo(){
   });
   state.points.forEach(function(p,i){var s=S(p.x,p.y);
     gPts.appendChild(el('rect',{x:s[0]-0.35,y:s[1]-0.35,width:0.7,height:0.7,fill:isTpoint(p)?'#13803a':'#111','pointer-events':'none'}));
+    state.lines.forEach(function(L){var dc=LINECOL[L.layer]||{c:'#d92b2b',w:1.6};var pp=L.pts;for(var k=0;k<pp.length;k++){if(Math.abs(pp[k][0]-p.x)<0.06&&Math.abs(pp[k][1]-p.y)<0.06){[k-1,k+1].forEach(function(j){if(j>=0&&j<pp.length){var dx=pp[j][0]-p.x,dy=pp[j][1]-p.y,ln=Math.hypot(dx,dy)||1,L0=Math.min(1.0,ln*0.5);var b=S(p.x+dx/ln*L0,p.y+dy/ln*L0);gPts.appendChild(el('line',{x1:s[0],y1:s[1],x2:b[0],y2:b[1],stroke:dc.c,'stroke-width':dc.w,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));}});}}});
     var hit=el('circle',{cx:s[0],cy:s[1],r:1.1,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
     hit.addEventListener('click',function(ev){if(mode!=='pan'||labelDragging)return;ev.stopPropagation();if(photoLink)selectPoint(ptNum(p));else{selNum=String(ptNum(p));drawGeo();highlightSel();}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
     gPts.appendChild(hit);
@@ -278,8 +279,8 @@ function autoConnect(){
   var edges=[];
   function addE(p,q){if(p===q)return;for(var i=0;i<edges.length;i++){var e=edges[i];if((e[0]===p&&e[1]===q)||(e[0]===q&&e[1]===p))return;}edges.push([p,q]);}
 
-  // 1) 기본 결선: 맨홀 제외, 가장 가까운 점끼리 한 줄(nearest-neighbor)
-  var rem=pts.filter(function(p){return !isManhole(p);});
+  // 1) 기본 결선: 가장 가까운 점끼리 한 줄(nearest-neighbor) — 맨홀도 포함하여 연결
+  var rem=pts.slice();
   if(rem.length>=2){
     rem.sort(function(a,b){return a.x-b.x;});
     var cur=rem.shift();
