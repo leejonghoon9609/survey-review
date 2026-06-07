@@ -39,7 +39,12 @@
   .meta{font-size:12px;color:var(--muted);padding:8px 12px;border-top:1px solid var(--line);line-height:1.6}
   .toast{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);background:#1c1c1a;color:#fff;font-size:12px;padding:8px 14px;border-radius:8px;opacity:0;transition:.25s;pointer-events:none}
   .toast.show{opacity:.95}
-  @media(max-width:760px){.panel{width:170px}.glbl{display:none}}
+  .coordbox{position:absolute;right:10px;bottom:10px;background:rgba(255,255,255,.93);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:12px;color:var(--ink);font-variant-numeric:tabular-nums;pointer-events:none;box-shadow:0 1px 5px rgba(0,0,0,.07);line-height:1.5}
+  .coordbox b{font-weight:600}
+  .coordbox .cb-near{display:block;color:var(--muted);font-size:11px;margin-top:1px}
+  .recclr{padding:2px 8px;font-size:11px;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer}
+  .recclr:hover{color:var(--bad);border-color:var(--bad);background:#fbeeee}
+  @media(max-width:760px){.panel{width:170px}.glbl{display:none}.coordbox{font-size:11px;padding:5px 8px}}
 </style>
 </head>
 <body>
@@ -81,10 +86,11 @@
   <div class="stage">
     <div class="canvas-wrap">
       <svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div id="coordBox" class="coordbox">동(E) <b>–</b>　북(N) <b>–</b></div>
       <div id="toast" class="toast"></div>
     </div>
     <aside class="panel">
-      <h2><span>검수 기록</span><span id="recCount">0</span></h2>
+      <h2><span>검수 기록</span><span style="display:flex;gap:8px;align-items:center"><button id="recClear" class="recclr">전체삭제</button><span id="recCount">0</span></span></h2>
       <div class="recs" id="recs"><div class="empty">표시 없음</div></div>
       <div class="meta" id="meta">현장 미선택 · 측량점 0</div>
     </aside>
@@ -371,7 +377,7 @@ bind('loadCsv',function(){document.getElementById('fCsv').click();});
 bind('loadDxf',function(){document.getElementById('fDxf').click();});
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)loadProject(e.target.value);});
-document.getElementById('fCsv').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){state.points=parseCsv(decodeBuf(rd.result),f.name);drawGeo();drawMarks();fitView();updMeta();toast('측량점 '+state.points.length+'개 로드');};rd.readAsArrayBuffer(f);e.target.value='';});
+document.getElementById('fCsv').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.projectId=null;state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';drawGeo();drawMarks();fitView();updMeta();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화 / 현장명: '+state.projectName+')');};rd.readAsArrayBuffer(f);e.target.value='';});
 document.getElementById('fDxf').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var ln=parseDxfLines(decodeBuf(rd.result));state.lines=state.lines.filter(function(l){return l.layer==='지거'||l.layer==='압입구간'||l.layer==='주입상인출선';}).concat(ln);drawGeo();fitView();updMeta();toast('DXF 라인 '+ln.length+'개 로드');}catch(err){toast('DXF 파싱 오류');}};rd.readAsArrayBuffer(f);e.target.value='';});
 
 /* ====== 샘플 데이터 (수원 권선동 1041-6) ====== */
@@ -398,7 +404,21 @@ function loadSample(){
 bind('sample',loadSample);
 
 /* init */
-setModeUI();setStatusUI();initSb();loadSample();
+/* ====== 좌표 표시 (마우스 따라) ====== */
+function fmtCoord(v){return v.toLocaleString('en-US',{minimumFractionDigits:3,maximumFractionDigits:3});}
+var coordBox=document.getElementById('coordBox');
+function coordReset(){coordBox.innerHTML='동(E) <b>–</b>　북(N) <b>–</b>';}
+cv.addEventListener('mousemove',function(e){
+  var w=toWorld(e.clientX,e.clientY); var E=w[0], N=-w[1];
+  var r=cv.getBoundingClientRect(), wpp=vb.w/r.width;
+  var nr=nearestPointWorld(w[0],w[1]); var near='';
+  if(nr.p && nr.d < 22*wpp){ near='<span class="cb-near">'+nr.p.no+'  '+((nr.p.code||'').trim())+'</span>'; }
+  coordBox.innerHTML='동(E) <b>'+fmtCoord(E)+'</b>　북(N) <b>'+fmtCoord(N)+'</b>'+near;
+});
+cv.addEventListener('mouseleave',coordReset);
+document.getElementById('recClear').onclick=function(){if(!state.markups.length){toast('삭제할 검수 기록이 없습니다');return;}state.markups.forEach(function(r){if(r.el)r.el.remove();});state.markups=[];renderRecs();toast('검수 기록 전체 삭제');};
+
+setModeUI();setStatusUI();initSb();updMeta();toast('CSV 업로드 또는 상단에서 현장을 선택하세요');
 </script>
 </body>
 </html>
