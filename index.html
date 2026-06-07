@@ -280,7 +280,7 @@ cv.addEventListener('pointerdown',function(e){
     cur=el(mode==='box'?'rect':'ellipse',{fill:MKCOL[status],'fill-opacity':0.13,stroke:MKCOL[status],'stroke-width':2,'vector-effect':'non-scaling-stroke','pointer-events':'none'});
     if(mode==='box'){cur.setAttribute('x',sx);cur.setAttribute('y',sy);cur.setAttribute('width',0);cur.setAttribute('height',0);cur.setAttribute('rx',0.4);}else{cur.setAttribute('cx',sx);cur.setAttribute('cy',sy);cur.setAttribute('rx',0);cur.setAttribute('ry',0);}
     gMark.appendChild(cur);}
-  try{cv.setPointerCapture(e.pointerId);}catch(x){}
+  if(mode!=='pan')try{cv.setPointerCapture(e.pointerId);}catch(x){}
 });
 cv.addEventListener('pointermove',function(e){
   if(midPanning){var rr=cv.getBoundingClientRect();var ddx=(e.clientX-startC[0])/rr.width*startVB.w,ddy=(e.clientY-startC[1])/rr.height*startVB.h;vb.x=startVB.x-ddx;vb.y=startVB.y-ddy;applyVB();return;}
@@ -489,13 +489,16 @@ document.getElementById('photoUp').onclick=function(){document.getElementById('f
 document.getElementById('photoLinkBtn').onclick=function(){photoLink=!photoLink;this.textContent=photoLink?'🔗 연동':'🔓 미연동';this.classList.toggle('linkon',photoLink);toast(photoLink?'도면↔사진 연동 ON (점 클릭=사진)':'연동 OFF (점 클릭해도 사진 고정)');};
 document.getElementById('fPhotos').addEventListener('change',function(e){uploadPhotos(e.target.files);e.target.value='';});
 document.getElementById('photoSel').addEventListener('change',function(e){if(e.target.value){selNum=e.target.value;highlightSel();refreshPhotoPanel();}else{selNum=null;clearSvg(gSel);refreshPhotoPanel();}});
-/* 도면에서 점 탭 → 선택 (이동 모드, 드래그 아닐 때) */
-var _tapStart=null;
-cv.addEventListener('pointerdown',function(e){_tapStart=[e.clientX,e.clientY];});
-cv.addEventListener('pointerup',function(e){
-  if(mode!=='pan'||!_tapStart)return;var mv=Math.hypot(e.clientX-_tapStart[0],e.clientY-_tapStart[1]);_tapStart=null;
-  if(mv>14)return;var w=toWorld(e.clientX,e.clientY),r=cv.getBoundingClientRect(),wpp=vb.w/r.width;var nr=nearestPointWorld(w[0],w[1]);
-  if(photoLink&&nr.p&&nr.d<30*wpp)selectPoint(ptNum(nr.p));
+/* 도면에서 점 클릭 → 선택 (이동 모드) */
+cv.addEventListener('click',function(e){
+  if(mode!=='pan')return;
+  var w=toWorld(e.clientX,e.clientY),r=cv.getBoundingClientRect(),wpp=vb.w/r.width;
+  var nr=nearestPointWorld(w[0],w[1]);
+  if(nr.p&&nr.d<40*wpp){
+    if(photoLink){selectPoint(ptNum(nr.p));}
+    else{selNum=String(ptNum(nr.p));highlightSel();}
+    toast('측점 '+nr.p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));
+  }
 });
 
 /* ====== 좌표 표시 (마우스 따라) ====== */
