@@ -187,6 +187,19 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
   handle.addEventListener('pointerup',up);handle.addEventListener('pointercancel',up);
   gPts.appendChild(handle);
 }
+function addNoteHandle(L,t,ld,lx,ly){
+  var bb;try{bb=t.getBBox();}catch(e){bb=null;}
+  var pad=0.4,bw=bb?bb.width:String(L.note).length*0.42,bh=bb?bb.height:0.85,bx=bb?bb.x:lx+0.25,by=bb?bb.y:ly-0.45;
+  var h=el('rect',{x:bx-pad,y:by-pad,width:bw+2*pad,height:bh+2*pad,fill:'transparent','pointer-events':'all'});h.style.cursor='move';
+  var drag=false,moved=false,nx=lx,ny=ly;
+  h.addEventListener('pointerdown',function(ev){if(mode!=='pan')return;ev.stopPropagation();drag=true;moved=false;labelDragging=true;try{h.setPointerCapture(ev.pointerId);}catch(e){}});
+  h.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();moved=true;var ww=toWorld(ev.clientX,ev.clientY);nx=ww[0];ny=ww[1];
+    t.setAttribute('x',nx+0.25);t.setAttribute('y',ny+0.2);ld.setAttribute('x2',nx);ld.setAttribute('y2',ny);
+    h.setAttribute('x',nx+0.25-pad);h.setAttribute('y',ny-0.45-pad);});
+  function up(ev){if(!drag)return;drag=false;setTimeout(function(){labelDragging=false;},40);if(moved)L.noteOff=[nx,ny];try{h.releasePointerCapture(ev.pointerId);}catch(e){}drawGeo();}
+  h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
+  gPts.appendChild(h);
+}
 function drawGeo(){
   clearSvg(gGeo); clearSvg(gPts);
   state.lines.forEach(function(L){var def=LINECOL[L.layer]||{c:"#888",w:1.2};
@@ -198,10 +211,11 @@ function drawGeo(){
   var lay=computeLabels();
   state.lines.forEach(function(L){if(L.layer!=='지거'||!L.note)return;
     var cx=0,cy=0;L.pts.forEach(function(p){cx+=p[0];cy+=p[1];});cx/=L.pts.length;cy/=L.pts.length;
-    var s=S(cx,cy),lx=s[0]+3,ly=s[1]-2.2;
-    gPts.appendChild(el('line',{x1:s[0],y1:s[1],x2:lx,y2:ly,stroke:'#a07e00','stroke-width':0.8,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'}));
+    var s=S(cx,cy),lx=(L.noteOff?L.noteOff[0]:s[0]+3),ly=(L.noteOff?L.noteOff[1]:s[1]-2.2);
+    var ld=el('line',{x1:s[0],y1:s[1],x2:lx,y2:ly,stroke:'#a07e00','stroke-width':0.8,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);
     gPts.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.32,fill:'#a07e00','pointer-events':'none'}));
     var t=el('text',{x:lx+0.25,y:ly+0.2,'font-size':0.62,fill:'#7a5f00','font-weight':'600','text-anchor':'start','pointer-events':'none'});t.textContent=L.note;gPts.appendChild(t);
+    addNoteHandle(L,t,ld,lx,ly);
   });
   state.points.forEach(function(p,i){var s=S(p.x,p.y);
     gPts.appendChild(el('rect',{x:s[0]-0.35,y:s[1]-0.35,width:0.7,height:0.7,fill:'#111','pointer-events':'none'}));
@@ -256,7 +270,8 @@ function nearestPointWorld(wx,wy){var best=null,bd=1e18;state.points.forEach(fun
 function autoConnect(){
   if(state.points.length<2){toast('측량점을 먼저 올려주세요');return;}
   state.lines=state.lines.filter(function(l){return l.layer!=='통신관로';}); // 자동결선만 갱신
-  var rem=state.points.slice(), routes=[], THRESH=40;
+  // 규칙: 맨홀(M)은 분기점/단자이므로 결선 체인에서 제외(필요시 관로선 그리기로 수동 연결). T점은 분기점으로 결선에 포함되어 통과.
+  var rem=state.points.filter(function(p){return !/^\s*M/.test(p.code||'');}), routes=[], THRESH=40;
   rem.sort(function(a,b){return a.x-b.x;});
   var cur=rem.shift(), line=[[cur.x,cur.y]];
   while(rem.length){
@@ -540,11 +555,11 @@ function ptNum(p){return (p.no||'').toString().split('-').pop();}
 function pointByNum(n){for(var i=0;i<state.points.length;i++)if(ptNum(state.points[i])===String(n))return state.points[i];return null;}
 function sortedNums(){return state.points.map(ptNum).filter(function(v){return v!=='';}).sort(function(a,b){return (parseFloat(a)||0)-(parseFloat(b)||0);});}
 function pointAtCoord(x,y){for(var i=0;i<state.points.length;i++){var q=state.points[i];if(Math.abs(q.x-x)<0.06&&Math.abs(q.y-y)<0.06)return q;}return null;}
-function lineNeighbors(sel){var p=pointByNum(sel);if(!p)return [];var res=[];(state.lines||[]).forEach(function(l){if(l.layer!=='통신관로')return;var pts=l.pts;for(var i=0;i<pts.length;i++){if(Math.abs(pts[i][0]-p.x)<0.06&&Math.abs(pts[i][1]-p.y)<0.06){[i-1,i+1].forEach(function(j){if(j>=0&&j<pts.length){var q=pointAtCoord(pts[j][0],pts[j][1]);if(q&&ptNum(q)!==String(sel)&&res.indexOf(q)<0)res.push(q);}});}}});return res;}
+function lineNeighbors(sel){var p=pointByNum(sel);if(!p)return [];var res=[];(state.lines||[]).forEach(function(l){if(l.layer!=='통신관로')return;var pts=l.pts;for(var i=0;i<pts.length;i++){if(Math.abs(pts[i][0]-p.x)<0.06&&Math.abs(pts[i][1]-p.y)<0.06){[i-1,i+1].forEach(function(j){if(j>=0&&j<pts.length){var q=pointAtCoord(pts[j][0],pts[j][1]);if(q&&ptNum(q)!==String(sel)&&!/^\s*M/.test(q.code||'')&&res.indexOf(q)<0)res.push(q);}});}}});return res;}
 function neighborsOf(sel){var selP=pointByNum(sel),up=null,down=null;if(!selP)return {up:null,down:null};
   var nb=lineNeighbors(sel);
   if(nb.length){nb.forEach(function(q){if(q.y>selP.y){if(!up||q.y<up.y)up=q;}else{if(!down||q.y>down.y)down=q;}});}
-  else{var ups=[],downs=[];state.points.forEach(function(q){if(ptNum(q)===String(sel))return;var d=Math.hypot(q.x-selP.x,q.y-selP.y);(q.y>selP.y?ups:downs).push({q:q,d:d});});ups.sort(function(a,b){return a.d-b.d;});downs.sort(function(a,b){return a.d-b.d;});if(ups[0])up=ups[0].q;if(downs[0])down=downs[0].q;}
+  else{var ups=[],downs=[];state.points.forEach(function(q){if(ptNum(q)===String(sel)||/^\s*M/.test(q.code||''))return;var d=Math.hypot(q.x-selP.x,q.y-selP.y);(q.y>selP.y?ups:downs).push({q:q,d:d});});ups.sort(function(a,b){return a.d-b.d;});downs.sort(function(a,b){return a.d-b.d;});if(ups[0])up=ups[0].q;if(downs[0])down=downs[0].q;}
   return {up:up,down:down};}
 function highlightSel(){clearSvg(gSel);if(selNum==null)return;var p=pointByNum(selNum);if(!p)return;
   var nbs=neighborsOf(selNum);
