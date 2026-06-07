@@ -26,8 +26,7 @@
   button.pri{border-color:var(--accent);color:var(--accent)}
   .stage{flex:1;display:flex;min-height:0}
   .canvas-wrap{flex:1;position:relative;background:#fff;min-width:0}
-  svg#cv{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
-  svg#cv.draw{cursor:crosshair}
+  svg#cv{width:100%;height:100%;display:block;touch-action:none;cursor:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='80'%20height='80'%3E%3Cg%20stroke='%23000'%20stroke-width='1'%20fill='none'%3E%3Crect%20x='34'%20y='34'%20width='12'%20height='12'/%3E%3Cline%20x1='0'%20y1='40'%20x2='30'%20y2='40'/%3E%3Cline%20x1='50'%20y1='40'%20x2='80'%20y2='40'/%3E%3Cline%20x1='40'%20y1='0'%20x2='40'%20y2='30'/%3E%3Cline%20x1='40'%20y1='50'%20x2='40'%20y2='80'/%3E%3C/g%3E%3C/svg%3E") 40 40, crosshair}
   .panel{width:240px;border-left:1px solid var(--line);background:#fff;display:none;flex-direction:column}
   .panel h2{font-size:11px;font-weight:600;padding:9px 12px;border-bottom:1px solid var(--line);color:var(--muted);display:flex;justify-content:space-between}
   .recs{flex:1;overflow:auto;padding:8px;display:flex;flex-direction:column;gap:6px}
@@ -267,8 +266,9 @@ function setModeUI(){['m-pan','m-box','m-cir','delLine','drawLine'].forEach(func
 function setStatusUI(){document.getElementById('s-ok').classList.toggle('on-ok',status==='ok');document.getElementById('s-bad').classList.toggle('on-bad',status==='bad');}
 
 /* ====== 포인터 ====== */
-var dragging=false,startC=null,startVB=null,drawing=false,cur=null,sx=0,sy=0;
+var dragging=false,startC=null,startVB=null,drawing=false,cur=null,sx=0,sy=0,midPanning=false;
 cv.addEventListener('pointerdown',function(e){
+  if(e.button===1){e.preventDefault();midPanning=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};cv.style.cursor='grabbing';try{cv.setPointerCapture(e.pointerId);}catch(x){}return;}
   if(mode==='pan'){dragging=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};}
   else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);var np=nearestPointWorld(w[0],w[1]);
     var pt=(np.p&&np.d<vb.w*0.04)?[np.p.x,np.p.y]:[w[0],-w[1]];lineDraft.push(pt);
@@ -281,6 +281,7 @@ cv.addEventListener('pointerdown',function(e){
   try{cv.setPointerCapture(e.pointerId);}catch(x){}
 });
 cv.addEventListener('pointermove',function(e){
+  if(midPanning){var rr=cv.getBoundingClientRect();var ddx=(e.clientX-startC[0])/rr.width*startVB.w,ddy=(e.clientY-startC[1])/rr.height*startVB.h;vb.x=startVB.x-ddx;vb.y=startVB.y-ddy;applyVB();return;}
   if(dragging){var r=cv.getBoundingClientRect();var dx=(e.clientX-startC[0])/r.width*startVB.w,dy=(e.clientY-startC[1])/r.height*startVB.h;vb.x=startVB.x-dx;vb.y=startVB.y-dy;applyVB();}
   else if(mode==='line'&&lineDraft&&lineDraft.length){var w=toWorld(e.clientX,e.clientY);var last=S(lineDraft[lineDraft.length-1][0],lineDraft[lineDraft.length-1][1]);
     if(!previewLine){previewLine=el('line',{stroke:'#1f6fd6','stroke-width':1.4,'stroke-dasharray':'4 3','vector-effect':'non-scaling-stroke','pointer-events':'none'});gMark.appendChild(previewLine);}
@@ -290,6 +291,7 @@ cv.addEventListener('pointermove',function(e){
     else{cur.setAttribute('cx',(sx+x)/2);cur.setAttribute('cy',(sy+y)/2);cur.setAttribute('rx',Math.abs(x-sx)/2);cur.setAttribute('ry',Math.abs(y-sy)/2);}}
 });
 function endPtr(){
+  if(midPanning){midPanning=false;cv.style.cursor='';return;}
   if(dragging)dragging=false;
   if(drawing&&cur){drawing=false;
     var isBox=mode==='box';var w=isBox?+cur.getAttribute('width'):+cur.getAttribute('rx')*2;var h=isBox?+cur.getAttribute('height'):+cur.getAttribute('ry')*2;
@@ -300,6 +302,8 @@ function endPtr(){
     state.markups.push(rec);cur=null;renderRecs();}
 }
 cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endPtr);
+cv.addEventListener('mousedown',function(e){if(e.button===1)e.preventDefault();});
+cv.addEventListener('auxclick',function(e){if(e.button===1)e.preventDefault();});
 cv.addEventListener('wheel',function(e){e.preventDefault();zoomAt(e.deltaY>0?1.12:0.89,e.clientX,e.clientY);},{passive:false});
 
 /* ====== CSV / DXF 파싱 ====== */
