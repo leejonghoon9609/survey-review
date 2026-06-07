@@ -221,7 +221,7 @@ function drawGeo(){
     addNoteHandle(L,t,ld,lx,ly);
   });
   state.points.forEach(function(p,i){var s=S(p.x,p.y);
-    gPts.appendChild(el('rect',{x:s[0]-0.42,y:s[1]-0.42,width:0.84,height:0.84,fill:'none',stroke:isTpoint(p)?'#13803a':'#111','stroke-width':7.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    gPts.appendChild(el('rect',{x:s[0]-0.42,y:s[1]-0.42,width:0.84,height:0.84,fill:'none',stroke:isTpoint(p)?'#13803a':'#111','stroke-width':14.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     var hit=el('circle',{cx:s[0],cy:s[1],r:1.1,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
     hit.addEventListener('click',function(ev){if(mode!=='pan'||labelDragging)return;ev.stopPropagation();if(photoLink)selectPoint(ptNum(p));else{selNum=String(ptNum(p));drawGeo();highlightSel();}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
     gPts.appendChild(hit);
