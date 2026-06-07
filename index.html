@@ -494,8 +494,8 @@ var _tapStart=null;
 cv.addEventListener('pointerdown',function(e){_tapStart=[e.clientX,e.clientY];});
 cv.addEventListener('pointerup',function(e){
   if(mode!=='pan'||!_tapStart)return;var mv=Math.hypot(e.clientX-_tapStart[0],e.clientY-_tapStart[1]);_tapStart=null;
-  if(mv>5)return;var w=toWorld(e.clientX,e.clientY),r=cv.getBoundingClientRect(),wpp=vb.w/r.width;var nr=nearestPointWorld(w[0],w[1]);
-  if(photoLink&&nr.p&&nr.d<16*wpp)selectPoint(ptNum(nr.p));
+  if(mv>14)return;var w=toWorld(e.clientX,e.clientY),r=cv.getBoundingClientRect(),wpp=vb.w/r.width;var nr=nearestPointWorld(w[0],w[1]);
+  if(photoLink&&nr.p&&nr.d<30*wpp)selectPoint(ptNum(nr.p));
 });
 
 /* ====== 좌표 표시 (마우스 따라) ====== */
