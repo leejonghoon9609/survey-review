@@ -52,8 +52,8 @@
   .php-body{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:10px;min-height:0}
   .php-main,.php-sub{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fafaf8;display:flex;flex-direction:column}
   .php-main{flex:3;min-height:160px}
-  .php-main .cap,.php-sub .cap{font-size:11px;color:var(--muted);padding:5px 9px;border-bottom:1px solid var(--line);background:#fff;display:flex;justify-content:space-between;gap:6px;flex:none}
-  .php-main .cap span:first-child,.php-sub .cap span:first-child{color:var(--accent);font-weight:600}
+  .php-main .cap,.php-sub .cap{font-size:14px;color:var(--accent);font-weight:700;padding:7px 11px;border-bottom:1px solid var(--line);background:#fff;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .php-main .cap{font-size:15px}
   .php-main .ph{flex:1;width:100%;height:auto;min-height:0;object-fit:contain;background:#f3f3f0;display:block}
   .php-row{display:flex;gap:10px;flex:2;min-height:130px}
   .php-sub{flex:1;min-width:0}
@@ -179,6 +179,9 @@ function drawGeo(){
   var lay=computeLabels();
   state.points.forEach(function(p,i){var s=S(p.x,p.y);
     gGeo.appendChild(el('rect',{x:s[0]-0.35,y:s[1]-0.35,width:0.7,height:0.7,fill:'#111'}));
+    var hit=el('circle',{cx:s[0],cy:s[1],r:1.1,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
+    hit.addEventListener('click',function(ev){if(mode!=='pan')return;ev.stopPropagation();if(photoLink)selectPoint(ptNum(p));else{selNum=String(ptNum(p));highlightSel();}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
+    gGeo.appendChild(hit);
     if(/^\s*M/.test(p.code||''))gGeo.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.8,fill:'none',stroke:'#000','stroke-width':1.2,'vector-effect':'non-scaling-stroke'}));
     var L=lay[i],ls=S(L.lx,L.ly),off=L.anchor==='start'?0.15:-0.15;
     if(L.leader)gGeo.appendChild(el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':0.9,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5'}));
@@ -442,20 +445,30 @@ var gSel=document.createElementNS(SVGNS,'g'); gSel.setAttribute('pointer-events'
 function ptNum(p){return (p.no||'').toString().split('-').pop();}
 function pointByNum(n){for(var i=0;i<state.points.length;i++)if(ptNum(state.points[i])===String(n))return state.points[i];return null;}
 function sortedNums(){return state.points.map(ptNum).filter(function(v){return v!=='';}).sort(function(a,b){return (parseFloat(a)||0)-(parseFloat(b)||0);});}
+function pointAtCoord(x,y){for(var i=0;i<state.points.length;i++){var q=state.points[i];if(Math.abs(q.x-x)<0.06&&Math.abs(q.y-y)<0.06)return q;}return null;}
+function lineNeighbors(sel){var p=pointByNum(sel);if(!p)return [];var res=[];(state.lines||[]).forEach(function(l){if(l.layer!=='통신관로')return;var pts=l.pts;for(var i=0;i<pts.length;i++){if(Math.abs(pts[i][0]-p.x)<0.06&&Math.abs(pts[i][1]-p.y)<0.06){[i-1,i+1].forEach(function(j){if(j>=0&&j<pts.length){var q=pointAtCoord(pts[j][0],pts[j][1]);if(q&&ptNum(q)!==String(sel)&&res.indexOf(q)<0)res.push(q);}});}}});return res;}
 function highlightSel(){clearSvg(gSel);if(selNum==null)return;var p=pointByNum(selNum);if(!p)return;var s=S(p.x,p.y);gSel.appendChild(el('circle',{cx:s[0],cy:s[1],r:1.6,fill:'none',stroke:'#22cc00','stroke-width':2.2,'vector-effect':'non-scaling-stroke'}));}
 function compressImage(file,maxW,q){return new Promise(function(res,rej){var img=new Image(),u=URL.createObjectURL(file);img.onload=function(){URL.revokeObjectURL(u);var w=img.width,h=img.height;if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(function(b){b?res(b):rej(new Error('blob'));},'image/jpeg',q);};img.onerror=function(){rej(new Error('img'));};img.src=u;});}
-function paneImg(num,label,big){var url=num!=null?photoMap[num]:null;var p=num!=null?pointByNum(num):null;var sub=p?(p.no+'  '+((p.code||'').trim())):(num!=null?('번호 '+num):'-');
+function paneImg(num,label,big){var url=num!=null?photoMap[num]:null;var p=num!=null?pointByNum(num):null;var sub=p?(p.no+' '+((p.code||'').trim())):(num!=null?('번호 '+num):'');
+  var cap=sub?(label+' / '+sub):label;
   var inner=url?('<img class="ph" src="'+url+'" alt="">'):('<div class="ph php-none">'+(num!=null?'사진 없음':'-')+'</div>');
-  return '<div class="'+(big?'php-main':'php-sub')+'"><div class="cap"><span>'+label+'</span><span>'+sub+'</span></div>'+inner+'</div>';}
+  return '<div class="'+(big?'php-main':'php-sub')+'"><div class="cap"><span>'+cap+'</span></div>'+inner+'</div>';}
 function refreshPhotoPanel(){
   var sel=document.getElementById('photoSel'),nums=sortedNums();
   sel.innerHTML='<option value="">측점 선택…</option>'+nums.map(function(n){var p=pointByNum(n);return '<option value="'+n+'">'+(p?p.no:n)+'</option>';}).join('');
   if(selNum!=null)sel.value=String(selNum);
   var body=document.getElementById('photoBody');
   if(selNum==null){body.innerHTML='<div style="color:#999;font-size:12px;padding:14px;text-align:center;line-height:1.7">측점을 선택하세요.<br>(위 드롭다운 또는 도면에서 점 클릭)<br>또는 <b>사진 업로드</b>로 일괄 등록</div>';return;}
-  var selP=pointByNum(selNum),n1=null,n2=null;
-  if(selP){var others=state.points.filter(function(q){return ptNum(q)!==String(selNum);}).map(function(q){return {num:ptNum(q),d:Math.hypot(q.x-selP.x,q.y-selP.y)};}).sort(function(a,b){return a.d-b.d;});n1=others[0]?others[0].num:null;n2=others[1]?others[1].num:null;}
-  body.innerHTML=paneImg(selNum,'선택측점 사진',true)+'<div class="php-row">'+paneImg(n1,'근접 측점 ①',false)+paneImg(n2,'근접 측점 ②',false)+'</div>';
+  var selP=pointByNum(selNum),up=null,down=null;
+  var nb=lineNeighbors(selNum);
+  if(nb.length){
+    nb.forEach(function(q){if(q.y>selP.y){if(!up||q.y<up.y)up=q;}else{if(!down||q.y>down.y)down=q;}});
+  }else if(selP){
+    var others=state.points.filter(function(q){return ptNum(q)!==String(selNum);}).map(function(q){return {q:q,d:Math.hypot(q.x-selP.x,q.y-selP.y)};}).sort(function(a,b){return a.d-b.d;});
+    if(others[0])up=others[0].q;if(others[1])down=others[1].q;
+  }
+  var n1=up?ptNum(up):null,n2=down?ptNum(down):null;
+  body.innerHTML=paneImg(selNum,'선택측점 사진',true)+'<div class="php-row">'+paneImg(n1,'위 측점',false)+paneImg(n2,'아래 측점',false)+'</div>';
 }
 function selectPoint(num){selNum=String(num);highlightSel();var sel=document.getElementById('photoSel');if(sel)sel.value=String(num);if(photoPanelOpen)refreshPhotoPanel();}
 function openPhotoPanel(o){photoPanelOpen=(o==null)?!photoPanelOpen:!!o;document.getElementById('photoPanel').classList.toggle('open',photoPanelOpen);if(photoPanelOpen)refreshPhotoPanel();setTimeout(fitView,30);}
