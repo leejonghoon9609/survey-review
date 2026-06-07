@@ -33,7 +33,7 @@
   button.on-bad{border-color:var(--bad);color:var(--bad);background:#fbeeee;font-weight:600}
   button.pri{border-color:var(--accent);color:var(--accent)}
   .stage{flex:1;display:flex;min-height:0}
-  .maincol{flex:1;min-width:0;display:flex;flex-direction:column}
+  .maincol{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
   .canvas-wrap{flex:1;position:relative;background:#fff;min-width:0}
   svg#cv{width:100%;height:100%;display:block;touch-action:none;cursor:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='80'%20height='80'%3E%3Cg%20stroke='%23000'%20stroke-width='1'%20fill='none'%3E%3Crect%20x='34'%20y='34'%20width='12'%20height='12'/%3E%3Cline%20x1='0'%20y1='40'%20x2='30'%20y2='40'/%3E%3Cline%20x1='50'%20y1='40'%20x2='80'%20y2='40'/%3E%3Cline%20x1='40'%20y1='0'%20x2='40'%20y2='30'/%3E%3Cline%20x1='40'%20y1='50'%20x2='40'%20y2='80'/%3E%3C/g%3E%3C/svg%3E") 40 40, crosshair}
   .panel{width:240px;border-left:1px solid var(--line);background:#fff;display:none;flex-direction:column}
@@ -47,7 +47,7 @@
   .meta{font-size:12px;color:var(--muted);padding:8px 12px;border-top:1px solid var(--line);line-height:1.6}
   .toast{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);background:#1c1c1a;color:#fff;font-size:12px;padding:8px 14px;border-radius:8px;opacity:0;transition:.25s;pointer-events:none}
   .toast.show{opacity:.95}
-  .coordbox{position:absolute;right:10px;bottom:10px;background:rgba(255,255,255,.93);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:12px;color:var(--ink);font-variant-numeric:tabular-nums;pointer-events:none;box-shadow:0 1px 5px rgba(0,0,0,.07);line-height:1.5}
+  .coordbox{position:absolute;right:10px;bottom:10px;z-index:6;background:rgba(255,255,255,.93);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:12px;color:var(--ink);font-variant-numeric:tabular-nums;pointer-events:none;box-shadow:0 1px 5px rgba(0,0,0,.07);line-height:1.5}
   .coordbox b{font-weight:600}
   .coordbox .cb-near{display:block;color:var(--muted);font-size:11px;margin-top:1px}
   .recclr{padding:2px 8px;font-size:11px;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer}
@@ -131,7 +131,7 @@ cv.appendChild(gGeo); cv.appendChild(gMark); cv.appendChild(gDraft); cv.appendCh
 /* 상태 */
 var state={ projectId:null, projectName:null, points:[], lines:[], markups:[], labelOff:{} };
 var mode='pan', status='ok';
-var LINECOL={"통신관로":{c:"#d92b2b",w:1.6},"압입구간":{c:"#1f6fd6",w:1.6,dash:"5 4"},"지거":{c:"#b59a00",w:1.2,dash:"3 3"},"주입상인출선":{c:"#999",w:1}};
+var LINECOL={"통신관로":{c:"#d92b2b",w:1.6},"압입구간":{c:"#1f6fd6",w:1.6,dash:"5 4"},"지거":{c:"#f2b400",w:2.4},"주입상인출선":{c:"#999",w:1}};
 var MKCOL={ok:'#2a9e50',bad:'#d32f2f'};
 
 function el(t,a){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);return e;}
@@ -196,6 +196,13 @@ function drawGeo(){
     gGeo.appendChild(pl);
   });
   var lay=computeLabels();
+  state.lines.forEach(function(L){if(L.layer!=='지거'||!L.note)return;
+    var cx=0,cy=0;L.pts.forEach(function(p){cx+=p[0];cy+=p[1];});cx/=L.pts.length;cy/=L.pts.length;
+    var s=S(cx,cy),lx=s[0]+3,ly=s[1]-2.2;
+    gPts.appendChild(el('line',{x1:s[0],y1:s[1],x2:lx,y2:ly,stroke:'#a07e00','stroke-width':0.8,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'}));
+    gPts.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.32,fill:'#a07e00','pointer-events':'none'}));
+    var t=el('text',{x:lx+0.25,y:ly+0.2,'font-size':0.62,fill:'#7a5f00','font-weight':'600','text-anchor':'start','pointer-events':'none'});t.textContent=L.note;gPts.appendChild(t);
+  });
   state.points.forEach(function(p,i){var s=S(p.x,p.y);
     gPts.appendChild(el('rect',{x:s[0]-0.35,y:s[1]-0.35,width:0.7,height:0.7,fill:'#111','pointer-events':'none'}));
     var hit=el('circle',{cx:s[0],cy:s[1],r:1.1,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
@@ -262,26 +269,35 @@ function autoConnect(){
   routes.forEach(function(r){if(r.length>=2)state.lines.push({layer:'통신관로',pts:r});});
   drawGeo();updMeta();toast('자동 결선 '+routes.filter(function(r){return r.length>=2;}).length+'개 생성 (검수·수정하세요)');
 }
-var lineDraft=null, previewLine=null;
+var lineDraft=null, previewLine=null, drawLayer='통신관로', delLayer='통신관로';
 function renderDraft(){clearSvg(gDraft);previewLine=null;if(!lineDraft)return;
+  var col=(LINECOL[drawLayer]||{}).c||'#d92b2b', lw=(LINECOL[drawLayer]||{}).w||1.6;
   for(var i=1;i<lineDraft.length;i++){var a=S(lineDraft[i-1][0],lineDraft[i-1][1]),b=S(lineDraft[i][0],lineDraft[i][1]);
-    gDraft.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:'#d92b2b','stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}
-  lineDraft.forEach(function(p){var s=S(p[0],p[1]);gDraft.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.25,fill:'#1f6fd6','pointer-events':'none'}));});}
-function startDraw(){mode='line';setModeUI();lineDraft=[];clearSvg(gDraft);toast('점을 차례로 클릭 → 상단 "완료" (되돌리기로 한 점씩 취소)');}
-function finishDraw(){if(lineDraft&&lineDraft.length>=2)state.lines.push({layer:'통신관로',pts:lineDraft.slice()});lineDraft=null;previewLine=null;clearSvg(gDraft);mode='pan';setModeUI();drawGeo();updMeta();}
+    gDraft.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:col,'stroke-width':lw,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}
+  lineDraft.forEach(function(p){var s=S(p[0],p[1]);gDraft.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.25,fill:'#1f6fd6','pointer-events':'none'}));});
+  drawIndicators(null);}
+function drawIndicators(cw){clearSvg(gDraw);if(mode!=='line'||!lineDraft)return;
+  lineDraft.forEach(function(v){var q=pointAtCoord(v[0],v[1]);if(q){var s=S(q.x,q.y);gDraw.appendChild(el('rect',{x:s[0]-0.45,y:s[1]-0.45,width:0.9,height:0.9,fill:'#1f6fd6','pointer-events':'none'}));}});
+  if(cw){var nr=nearestPointWorld(cw[0],cw[1]);if(nr.p&&nr.d<vb.w*0.04){var s2=S(nr.p.x,nr.p.y);gDraw.appendChild(el('circle',{cx:s2[0],cy:s2[1],r:1.0,fill:'none',stroke:'#1f6fd6','stroke-width':2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}}}
+function delHoverHighlight(cw){clearSvg(gDraw);var best=null,bd=1e18;
+  state.lines.forEach(function(L){if(L.layer!==delLayer)return;for(var s=0;s<L.pts.length-1;s++){var a=S(L.pts[s][0],L.pts[s][1]),b=S(L.pts[s+1][0],L.pts[s+1][1]);var d=segDist(cw[0],cw[1],a[0],a[1],b[0],b[1]);if(d<bd){bd=d;best={a:a,b:b};}}});
+  if(best&&bd<vb.w*0.03){var col=(LINECOL[delLayer]||{}).c||'#d92b2b';gDraw.appendChild(el('line',{x1:best.a[0],y1:best.a[1],x2:best.b[0],y2:best.b[1],stroke:col,'stroke-width':6,'stroke-opacity':0.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));}}
+function startDraw(layer){drawLayer=layer||'통신관로';mode='line';setModeUI();lineDraft=[];clearSvg(gDraft);clearSvg(gDraw);toast((drawLayer==='지거'?'지거선':'관로선')+' 그리기: 점 클릭 → Enter/Space 또는 "완료" (되돌리기=한 점 취소)');}
+function finishDraw(){if(lineDraft&&lineDraft.length>=2){var rec={layer:drawLayer,pts:lineDraft.slice()};if(drawLayer==='지거'){var note=prompt('지거선 멘트(설명) 입력:','');if(note&&note.trim())rec.note=note.trim();}state.lines.push(rec);}lineDraft=null;previewLine=null;clearSvg(gDraft);clearSvg(gDraw);mode='pan';setModeUI();drawGeo();updMeta();}
 function clearLines(){state.lines=state.lines.filter(function(l){return l.layer!=='통신관로';});drawGeo();updMeta();toast('결선 모두 삭제');}
+function clearAllDraw(){state.lines=state.lines.filter(function(l){return l.layer!=='통신관로'&&l.layer!=='지거';});drawGeo();updMeta();toast('관로선·지거선 전체삭제');}
 function segDist(px,py,ax,ay,bx,by){var dx=bx-ax,dy=by-ay,L2=dx*dx+dy*dy,t=L2?((px-ax)*dx+(py-ay)*dy)/L2:0;t=Math.max(0,Math.min(1,t));var cx=ax+t*dx,cy=ay+t*dy;return Math.hypot(px-cx,py-cy);}
 function deleteSegmentAt(wx,wy){
   var best=null,bd=1e18;
-  state.lines.forEach(function(L,li){ if(L.layer!=='통신관로')return;
+  state.lines.forEach(function(L,li){ if(L.layer!==delLayer)return;
     for(var s=0;s<L.pts.length-1;s++){var a=S(L.pts[s][0],L.pts[s][1]),b=S(L.pts[s+1][0],L.pts[s+1][1]);
       var d=segDist(wx,wy,a[0],a[1],b[0],b[1]); if(d<bd){bd=d;best={li:li,si:s};}}});
   if(!best||bd>vb.w*0.03){toast('지울 선에 더 가까이 클릭하세요');return;}
   var L=state.lines[best.li],left=L.pts.slice(0,best.si+1),right=L.pts.slice(best.si+1),repl=[];
-  if(left.length>=2)repl.push({layer:'통신관로',pts:left});
-  if(right.length>=2)repl.push({layer:'통신관로',pts:right});
+  if(left.length>=2)repl.push({layer:L.layer,pts:left,note:L.note});
+  if(right.length>=2)repl.push({layer:L.layer,pts:right});
   state.lines.splice.apply(state.lines,[best.li,1].concat(repl));
-  drawGeo();updMeta();toast('선 1개 삭제');
+  clearSvg(gDraw);drawGeo();updMeta();toast('선 1개 삭제');
 }
 
 /* ====== 모드 UI ====== */
@@ -306,7 +322,7 @@ cv.addEventListener('pointermove',function(e){
   if(midPanning){var rr=cv.getBoundingClientRect();var ddx=(e.clientX-startC[0])/rr.width*startVB.w,ddy=(e.clientY-startC[1])/rr.height*startVB.h;vb.x=startVB.x-ddx;vb.y=startVB.y-ddy;applyVB();return;}
   if(dragging){var r=cv.getBoundingClientRect();var dx=(e.clientX-startC[0])/r.width*startVB.w,dy=(e.clientY-startC[1])/r.height*startVB.h;vb.x=startVB.x-dx;vb.y=startVB.y-dy;applyVB();}
   else if(mode==='line'&&lineDraft&&lineDraft.length){var w=toWorld(e.clientX,e.clientY);var last=S(lineDraft[lineDraft.length-1][0],lineDraft[lineDraft.length-1][1]);
-    if(!previewLine){previewLine=el('line',{stroke:'#d92b2b','stroke-width':1.2,'stroke-dasharray':'4 3','vector-effect':'non-scaling-stroke','pointer-events':'none'});gDraft.appendChild(previewLine);}
+    if(!previewLine){previewLine=el('line',{stroke:(LINECOL[drawLayer]||{}).c||'#d92b2b','stroke-width':1.2,'stroke-dasharray':'4 3','vector-effect':'non-scaling-stroke','pointer-events':'none'});gDraft.appendChild(previewLine);}
     previewLine.setAttribute('x1',last[0]);previewLine.setAttribute('y1',last[1]);previewLine.setAttribute('x2',w[0]);previewLine.setAttribute('y2',w[1]);}
   else if(drawing&&cur){var w=toWorld(e.clientX,e.clientY),x=w[0],y=w[1];
     if(mode==='box'){cur.setAttribute('x',Math.min(sx,x));cur.setAttribute('y',Math.min(sy,y));cur.setAttribute('width',Math.abs(x-sx));cur.setAttribute('height',Math.abs(y-sy));}
@@ -416,14 +432,14 @@ var TB=[
   {k:'pan',label:'선택·이동',icon:'✋',c:{bg:'#fdf1dd',fg:'#d98200'},setmode:'pan',hint:'측점 클릭=선택 · 라벨 끌어 이동 · 휠 확대 · 가운데버튼 화면이동',tools:[]},
   {k:'conn',label:'결선',icon:'🔗',c:{bg:'#e7f3ea',fg:'#2a9e50'},tools:[
     {t:'자동결선',tone:'draw',fn:autoConnect},
-    {t:'결선지우기(선택)',tone:'del',mode:'delline',hint:'지울 결선을 클릭'},
+    {t:'결선지우기(선택)',tone:'del',mode:'delline',delLayer:'통신관로',hint:'지울 결선을 클릭'},
     {t:'결선지우기(전체)',tone:'delall',fn:clearLines}]},
   {k:'pipe',label:'관로선편집',icon:'✎',c:{bg:'#e6effb',fg:'#2f7fe0'},tools:[
-    {t:'관로선 그리기',tone:'draw',fn:startDraw,activeMode:'line'},
-    {t:'관로선 지우기',tone:'del',mode:'delline',hint:'지울 선을 클릭'},
-    {t:'지거선 그리기',tone:'draw',soon:1},
-    {t:'지거선 지우기',tone:'del',soon:1},
-    {t:'전체삭제',tone:'delall',fn:clearLines}]},
+    {t:'관로선 그리기',tone:'draw',fn:function(){startDraw('통신관로');},activeMode:'line'},
+    {t:'관로선 지우기',tone:'del',mode:'delline',delLayer:'통신관로',hint:'지울 관로선 위에 마우스→두껍게 표시되면 클릭'},
+    {t:'지거선 그리기',tone:'draw',fn:function(){startDraw('지거');},activeMode:'line'},
+    {t:'지거선 지우기',tone:'del',mode:'delline',delLayer:'지거',hint:'지울 지거선 위에 마우스→클릭'},
+    {t:'전체삭제',tone:'delall',fn:clearAllDraw}]},
   {k:'mh',label:'맨홀편집',icon:'◎',c:{bg:'#efeafa',fg:'#7a52e0'},tools:[
     {t:'맨홀심벌(이중원)',tone:'draw',soon:1},
     {t:'인출선',tone:'draw',soon:1}]},
@@ -470,6 +486,7 @@ function renderSub(){
   s.innerHTML=html;
   c.tools.forEach(function(tool,i){if(tool.soon)return;var b=s.querySelector('button[data-i="'+i+'"]');if(!b)return;
     b.onclick=function(){
+      if(tool.delLayer)delLayer=tool.delLayer;
       if(tool.fn)tool.fn();
       if(tool.setmode){mode=tool.setmode;setModeUI();if(tool.hint)toast(tool.hint);}
       if(tool.mode){if(mode===tool.mode){mode='pan';}else{mode=tool.mode;if(tool.hint)toast(tool.hint);}setModeUI();}
@@ -518,6 +535,7 @@ function loadSample(){
 /* ====== 측점 사진 ====== */
 var photoMap={}, selNum=null, photoPanelOpen=false, photoLink=true;
 var gSel=document.createElementNS(SVGNS,'g'); gSel.setAttribute('pointer-events','none'); cv.appendChild(gSel);
+var gDraw=document.createElementNS(SVGNS,'g'); gDraw.setAttribute('pointer-events','none'); cv.appendChild(gDraw);
 function ptNum(p){return (p.no||'').toString().split('-').pop();}
 function pointByNum(n){for(var i=0;i<state.points.length;i++)if(ptNum(state.points[i])===String(n))return state.points[i];return null;}
 function sortedNums(){return state.points.map(ptNum).filter(function(v){return v!=='';}).sort(function(a,b){return (parseFloat(a)||0)-(parseFloat(b)||0);});}
@@ -606,15 +624,22 @@ cv.addEventListener('click',function(e){
 /* ====== 좌표 표시 (마우스 따라) ====== */
 function fmtCoord(v){return v.toLocaleString('en-US',{minimumFractionDigits:3,maximumFractionDigits:3});}
 var coordBox=document.getElementById('coordBox');
-function coordReset(){coordBox.innerHTML='X <b>–</b>　Y <b>–</b>';}
-cv.addEventListener('mousemove',function(e){
+var cwrap=cv.parentElement;
+function coordReset(){coordBox.innerHTML='X <b>–</b>　Y <b>–</b>';if(gDraw)clearSvg(gDraw);}
+cwrap.addEventListener('mousemove',function(e){
   var w=toWorld(e.clientX,e.clientY); var X=-w[1], Y=w[0];   // X=북, Y=동
   var r=cv.getBoundingClientRect(), wpp=vb.w/r.width;
   var nr=nearestPointWorld(w[0],w[1]); var near='';
   if(nr.p && nr.d < 22*wpp){ near='<span class="cb-near">'+nr.p.no+'  '+((nr.p.code||'').trim())+'</span>'; }
   coordBox.innerHTML='X <b>'+fmtCoord(X)+'</b>　Y <b>'+fmtCoord(Y)+'</b>'+near;
+  if(mode==='line')drawIndicators(w); else if(mode==='delline')delHoverHighlight(w); else if(gDraw.childNodes.length)clearSvg(gDraw);
 });
-cv.addEventListener('mouseleave',coordReset);
+cwrap.addEventListener('mouseleave',coordReset);
+coordReset();
+window.addEventListener('keydown',function(e){
+  if(mode!=='line')return;var tg=((e.target||{}).tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tg))return;
+  if(e.key==='Enter'||e.key===' '||e.code==='Space'){e.preventDefault();finishDraw();}
+});
 document.getElementById('recClear').onclick=function(){if(!state.markups.length){toast('삭제할 검수 기록이 없습니다');return;}state.markups.forEach(function(r){if(r.el)r.el.remove();});state.markups=[];renderRecs();toast('검수 기록 전체 삭제');};
 
 setModeUI();setStatusUI();initSb();updMeta();toast('CSV 업로드 또는 상단에서 현장을 선택하세요');
