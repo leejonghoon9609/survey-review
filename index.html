@@ -407,8 +407,7 @@ function bind(id,fn){document.getElementById(id).onclick=fn;}
 var TB=[
   {k:'data',label:'기초자료 업로드',icon:'📁',c:{bg:'#eceef1',fg:'#6e757f'},tools:[
     {t:'CSV 업로드',tone:'data',fn:function(){document.getElementById('fCsv').click();}},
-    {t:'결선 DXF',tone:'data',fn:function(){document.getElementById('fDxf').click();}},
-    {t:'샘플',tone:'data',fn:loadSample}]},
+    {t:'결선 DXF',tone:'data',fn:function(){document.getElementById('fDxf').click();}}]},
   {k:'pan',label:'선택·이동',icon:'✋',c:{bg:'#fdf1dd',fg:'#d98200'},setmode:'pan',hint:'측점 클릭=선택 · 라벨 끌어 이동 · 휠 확대 · 가운데버튼 화면이동',tools:[]},
   {k:'conn',label:'결선',icon:'🔗',c:{bg:'#e7f3ea',fg:'#2a9e50'},tools:[
     {t:'자동결선',tone:'draw',fn:autoConnect},
