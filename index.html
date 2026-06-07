@@ -447,7 +447,15 @@ function pointByNum(n){for(var i=0;i<state.points.length;i++)if(ptNum(state.poin
 function sortedNums(){return state.points.map(ptNum).filter(function(v){return v!=='';}).sort(function(a,b){return (parseFloat(a)||0)-(parseFloat(b)||0);});}
 function pointAtCoord(x,y){for(var i=0;i<state.points.length;i++){var q=state.points[i];if(Math.abs(q.x-x)<0.06&&Math.abs(q.y-y)<0.06)return q;}return null;}
 function lineNeighbors(sel){var p=pointByNum(sel);if(!p)return [];var res=[];(state.lines||[]).forEach(function(l){if(l.layer!=='통신관로')return;var pts=l.pts;for(var i=0;i<pts.length;i++){if(Math.abs(pts[i][0]-p.x)<0.06&&Math.abs(pts[i][1]-p.y)<0.06){[i-1,i+1].forEach(function(j){if(j>=0&&j<pts.length){var q=pointAtCoord(pts[j][0],pts[j][1]);if(q&&ptNum(q)!==String(sel)&&res.indexOf(q)<0)res.push(q);}});}}});return res;}
-function highlightSel(){clearSvg(gSel);if(selNum==null)return;var p=pointByNum(selNum);if(!p)return;var s=S(p.x,p.y);gSel.appendChild(el('circle',{cx:s[0],cy:s[1],r:1.6,fill:'none',stroke:'#22cc00','stroke-width':2.2,'vector-effect':'non-scaling-stroke'}));}
+function neighborsOf(sel){var selP=pointByNum(sel),up=null,down=null;if(!selP)return {up:null,down:null};
+  var nb=lineNeighbors(sel);
+  if(nb.length){nb.forEach(function(q){if(q.y>selP.y){if(!up||q.y<up.y)up=q;}else{if(!down||q.y>down.y)down=q;}});}
+  else{var ups=[],downs=[];state.points.forEach(function(q){if(ptNum(q)===String(sel))return;var d=Math.hypot(q.x-selP.x,q.y-selP.y);(q.y>selP.y?ups:downs).push({q:q,d:d});});ups.sort(function(a,b){return a.d-b.d;});downs.sort(function(a,b){return a.d-b.d;});if(ups[0])up=ups[0].q;if(downs[0])down=downs[0].q;}
+  return {up:up,down:down};}
+function highlightSel(){clearSvg(gSel);if(selNum==null)return;var p=pointByNum(selNum);if(!p)return;
+  var nbs=neighborsOf(selNum);
+  [nbs.up,nbs.down].forEach(function(q){if(q){var sy=S(q.x,q.y);gSel.appendChild(el('circle',{cx:sy[0],cy:sy[1],r:1.3,fill:'none',stroke:'#ffcc00','stroke-width':1.4,'vector-effect':'non-scaling-stroke'}));}});
+  var s=S(p.x,p.y);gSel.appendChild(el('circle',{cx:s[0],cy:s[1],r:1.6,fill:'none',stroke:'#22cc00','stroke-width':2.2,'vector-effect':'non-scaling-stroke'}));}
 function compressImage(file,maxW,q){return new Promise(function(res,rej){var img=new Image(),u=URL.createObjectURL(file);img.onload=function(){URL.revokeObjectURL(u);var w=img.width,h=img.height;if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(function(b){b?res(b):rej(new Error('blob'));},'image/jpeg',q);};img.onerror=function(){rej(new Error('img'));};img.src=u;});}
 function paneImg(num,label,big){var url=num!=null?photoMap[num]:null;var p=num!=null?pointByNum(num):null;var sub=p?(p.no+' '+((p.code||'').trim())):(num!=null?('번호 '+num):'');
   var cap=sub?(label+' / '+sub):label;
@@ -459,14 +467,7 @@ function refreshPhotoPanel(){
   if(selNum!=null)sel.value=String(selNum);
   var body=document.getElementById('photoBody');
   if(selNum==null){body.innerHTML='<div style="color:#999;font-size:12px;padding:14px;text-align:center;line-height:1.7">측점을 선택하세요.<br>(위 드롭다운 또는 도면에서 점 클릭)<br>또는 <b>사진 업로드</b>로 일괄 등록</div>';return;}
-  var selP=pointByNum(selNum),up=null,down=null;
-  var nb=lineNeighbors(selNum);
-  if(nb.length){
-    nb.forEach(function(q){if(q.y>selP.y){if(!up||q.y<up.y)up=q;}else{if(!down||q.y>down.y)down=q;}});
-  }else if(selP){
-    var others=state.points.filter(function(q){return ptNum(q)!==String(selNum);}).map(function(q){return {q:q,d:Math.hypot(q.x-selP.x,q.y-selP.y)};}).sort(function(a,b){return a.d-b.d;});
-    if(others[0])up=others[0].q;if(others[1])down=others[1].q;
-  }
+  var nbs=neighborsOf(selNum),up=nbs.up,down=nbs.down;
   var n1=up?ptNum(up):null,n2=down?ptNum(down):null;
   body.innerHTML=paneImg(selNum,'선택측점 사진',true)+'<div class="php-row">'+paneImg(n1,'위 측점',false)+paneImg(n2,'아래 측점',false)+'</div>';
 }
