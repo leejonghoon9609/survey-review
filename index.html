@@ -279,40 +279,31 @@ function autoConnect(){
   var edges=[];
   function addE(p,q){if(p===q)return;for(var i=0;i<edges.length;i++){var e=edges[i];if((e[0]===p&&e[1]===q)||(e[0]===q&&e[1]===p))return;}edges.push([p,q]);}
 
-  // 1) 기본 결선: 가장 가까운 점끼리 한 줄(nearest-neighbor) — 맨홀도 포함하여 연결
-  var rem=pts.slice();
-  if(rem.length>=2){
-    rem.sort(function(a,b){return a.x-b.x;});
-    var cur=rem.shift();
-    while(rem.length){
-      var bi=0,bd=1e18;for(var i=0;i<rem.length;i++){var d=D(rem[i],cur);if(d<bd){bd=d;bi=i;}}
-      var nx=rem.splice(bi,1)[0];
-      if(bd<=THRESH)addE(cur,nx); // 임계 초과면 끊고 새 구간
+  // A) 본선: 같은 관수끼리만 이어줌(관수별 nearest-neighbor 체인). 관수 다르면 잇지 않음 → 안 맞으면 그 점에서 끝.
+  var groups={};
+  pts.forEach(function(p){var c=pipeCount(p);var k=(c==null?'?':String(c));(groups[k]=groups[k]||[]).push(p);});
+  Object.keys(groups).forEach(function(k){
+    var g=groups[k].slice(); if(g.length<2)return;
+    g.sort(function(a,b){return a.x-b.x;});
+    var cur=g.shift();
+    while(g.length){
+      var bi=0,bd=1e18;for(var i=0;i<g.length;i++){var d=D(g[i],cur);if(d<bd){bd=d;bi=i;}}
+      var nx=g.splice(bi,1)[0];
+      if(bd<=THRESH)addE(cur,nx); // 같은 관수라도 너무 멀면 끊음(별개 구간)
       cur=nx;
     }
-  }
+  });
 
-  // 2) T점(분기점) 보정: 관수 합으로 합류 가닥 확정 (FC 100x5 → 주위 관수 합이 5가 되는 점들)
+  // B) T점(분기점) 합류: 주위에서 '더 작은 관수' 점들을 가까운 순으로, 합이 T관수가 될 때까지 연결
   pts.forEach(function(P){ if(!isTpoint(P))return; var Np=pipeCount(P); if(Np==null)return;
-    var near=pts.filter(function(q){return q!==P && !isManhole(q) && D(P,q)<=THRESH && pipeCount(q)!=null;})
+    var near=pts.filter(function(q){return q!==P && pipeCount(q)!=null && pipeCount(q)<Np && D(P,q)<=THRESH;})
                 .sort(function(a,b){return D(P,a)-D(P,b);});
     var acc=0;
     for(var i=0;i<near.length && acc<Np;i++){var c=pipeCount(near[i]); if(acc+c<=Np){addE(P,near[i]);acc+=c;}}
   });
 
-  // 3) 맨홀 연결: 맨홀(관수 Nm)을 같은 관수의 가장 가까운 점(보통 T점)에 본선으로 연결
-  pts.forEach(function(M){ if(!isManhole(M))return; var Nm=pipeCount(M);
-    var near=pts.filter(function(q){return q!==M && !isManhole(q) && D(M,q)<=THRESH;})
-                .sort(function(a,b){return D(M,a)-D(M,b);});
-    var trunk=null;
-    if(Nm!=null){for(var i=0;i<near.length;i++){if(pipeCount(near[i])===Nm){trunk=near[i];break;}}}
-    if(!trunk&&near.length)trunk=near[0];
-    if(trunk)addE(M,trunk);
-  });
-
-  // 4) 엣지를 2점 결선으로 등록
   edges.forEach(function(e){state.lines.push({layer:'통신관로',pts:[[e[0].x,e[0].y],[e[1].x,e[1].y]]});});
-  drawGeo();updMeta();toast('자동 결선 '+edges.length+'개 (T점 분기·관수 반영 / 검수·수정하세요)');
+  drawGeo();updMeta();toast('자동 결선 '+edges.length+'개 (관수 연속·T점 분기 / 검수·수정하세요)');
 }
 var lineDraft=null, previewLine=null, drawLayer='통신관로', delLayer='통신관로';
 function renderDraft(){clearSvg(gDraft);previewLine=null;if(!lineDraft)return;
