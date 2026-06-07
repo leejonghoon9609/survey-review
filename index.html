@@ -14,10 +14,17 @@
   select,input[type=text]{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink)}
   .conn{font-size:12px;padding:4px 8px;border-radius:6px;margin-left:auto}
   .conn.on{background:#eef6ef;color:var(--ok)} .conn.off{background:#f3f3f0;color:var(--muted)}
-  .toolbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:7px 14px;border-bottom:1px solid var(--line);background:#fff}
-  .grp{display:flex;gap:5px;align-items:center;padding:0 6px;border-right:1px solid var(--line)}
-  .grp:last-child{border-right:none}
-  .glbl{font-size:10px;color:var(--muted);margin-right:2px}
+  .subbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:7px 14px;border-bottom:1px solid var(--line);background:#fff;min-height:44px}
+  .subhint{font-size:12px;color:var(--muted)}
+  .rail{width:128px;flex:none;border-right:1px solid var(--line);background:#fafaf8;padding:8px;display:flex;flex-direction:column;gap:6px;overflow-y:auto}
+  .rail button{justify-content:flex-start;width:100%;padding:9px 10px}
+  .rail button.on{background:#eef6ef;border-color:var(--ok);color:var(--ok);font-weight:600}
+  .rail .sep{height:1px;background:var(--line);margin:3px 1px}
+  button.soon{color:#b0b0b0;border-style:dashed}
+  .viewgrp{margin-left:auto;display:flex;gap:6px;align-items:center}
+  .zoomwrap2{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+  .zoomwrap2 button{border:none;border-right:1px solid var(--line);border-radius:0}
+  .zoomwrap2 button:last-child{border-right:none}
   button{font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--line);background:#fff;border-radius:7px;cursor:pointer;color:var(--ink);display:inline-flex;align-items:center;gap:5px;transition:.12s;white-space:nowrap}
   button:hover{background:#f2f2ef}
   button.on{border-color:var(--ink);background:#f2f2ef;font-weight:600}
@@ -74,34 +81,10 @@
     <span id="conn" class="conn off">로컬 모드</span>
   </header>
 
-  <div class="toolbar">
-    <div class="grp"><span class="glbl">데이터</span>
-      <button id="loadCsv">CSV 업로드</button>
-      <button id="loadDxf">결선 DXF</button>
-      <button id="sample">샘플</button>
-    </div>
-    <div class="grp"><span class="glbl">결선</span>
-      <button id="autoLine">자동 결선</button>
-      <button id="drawLine">직접 그리기</button>
-      <button id="doneLine" style="display:none">완료</button>
-      <button id="delLine">선 지우기</button>
-      <button id="clearLine">모두 삭제</button>
-    </div>
-    <div class="grp"><span class="glbl">검수</span>
-      <button id="m-pan" class="on">✋ 이동</button>
-      <button id="m-box">▢ 박스</button>
-      <button id="m-cir">◯ 써클</button>
-      <button id="s-ok">✓ 확인</button>
-      <button id="s-bad">! 이상</button>
-      <button id="undo">되돌리기</button>
-      <button id="clearMk">표시 지우기</button>
-    </div>
-    <div class="grp"><span class="glbl">보기</span>
-      <button id="zin">＋</button><button id="zout">－</button><button id="fit">전체</button>
-    </div>
-  </div>
+  <div class="subbar" id="subbar"></div>
 
   <div class="stage">
+    <div class="rail" id="rail"></div>
     <div class="canvas-wrap">
       <svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg>
       <div id="coordBox" class="coordbox">X <b>–</b>　Y <b>–</b></div>
@@ -275,8 +258,8 @@ function autoConnect(){
   drawGeo();updMeta();toast('자동 결선 '+routes.filter(function(r){return r.length>=2;}).length+'개 생성 (검수·수정하세요)');
 }
 var lineDraft=null, previewLine=null;
-function startDraw(){mode='line';setModeUI();lineDraft=[];document.getElementById('doneLine').style.display='';toast('점을 차례로 클릭 → 완료');}
-function finishDraw(){if(lineDraft&&lineDraft.length>=2)state.lines.push({layer:'통신관로',pts:lineDraft.slice()});lineDraft=null;if(previewLine){previewLine.remove();previewLine=null;}document.getElementById('doneLine').style.display='none';mode='pan';setModeUI();drawGeo();updMeta();}
+function startDraw(){mode='line';setModeUI();lineDraft=[];toast('점을 차례로 클릭 → 상단 "완료"');}
+function finishDraw(){if(lineDraft&&lineDraft.length>=2)state.lines.push({layer:'통신관로',pts:lineDraft.slice()});lineDraft=null;if(previewLine){previewLine.remove();previewLine=null;}mode='pan';setModeUI();drawGeo();updMeta();}
 function clearLines(){state.lines=state.lines.filter(function(l){return l.layer!=='통신관로';});drawGeo();updMeta();toast('결선 모두 삭제');}
 function segDist(px,py,ax,ay,bx,by){var dx=bx-ax,dy=by-ay,L2=dx*dx+dy*dy,t=L2?((px-ax)*dx+(py-ay)*dy)/L2:0;t=Math.max(0,Math.min(1,t));var cx=ax+t*dx,cy=ay+t*dy;return Math.hypot(px-cx,py-cy);}
 function deleteSegmentAt(wx,wy){
@@ -293,14 +276,8 @@ function deleteSegmentAt(wx,wy){
 }
 
 /* ====== 모드 UI ====== */
-function setModeUI(){['m-pan','m-box','m-cir','delLine','drawLine'].forEach(function(id){var b=document.getElementById(id);if(b)b.classList.remove('on');});
-  if(mode==='pan')document.getElementById('m-pan').classList.add('on');
-  if(mode==='box')document.getElementById('m-box').classList.add('on');
-  if(mode==='circle')document.getElementById('m-cir').classList.add('on');
-  if(mode==='delline')document.getElementById('delLine').classList.add('on');
-  if(mode==='line')document.getElementById('drawLine').classList.add('on');
-  cv.classList.toggle('draw',mode!=='pan');}
-function setStatusUI(){document.getElementById('s-ok').classList.toggle('on-ok',status==='ok');document.getElementById('s-bad').classList.toggle('on-bad',status==='bad');}
+function setModeUI(){renderSub();cv.classList.toggle('draw',mode!=='pan');}
+function setStatusUI(){renderSub();}
 
 /* ====== 포인터 ====== */
 var dragging=false,startC=null,startVB=null,drawing=false,cur=null,sx=0,sy=0,midPanning=false;
@@ -423,25 +400,85 @@ function loadProject(id){ if(!online||!id)return;
 
 /* ====== 버튼 바인딩 ====== */
 function bind(id,fn){document.getElementById(id).onclick=fn;}
-bind('m-pan',function(){mode='pan';setModeUI();});
-bind('m-box',function(){mode='box';setModeUI();});
-bind('m-cir',function(){mode='circle';setModeUI();});
-bind('s-ok',function(){status='ok';setStatusUI();});
-bind('s-bad',function(){status='bad';setStatusUI();});
-bind('undo',function(){var r=state.markups.pop();if(r&&r.el)r.el.remove();renderRecs();});
-bind('clearMk',function(){state.markups.forEach(function(r){if(r.el)r.el.remove();});state.markups=[];renderRecs();});
-bind('zin',function(){var r=cv.getBoundingClientRect();zoomAt(0.8,r.left+r.width/2,r.top+r.height/2);});
-bind('zout',function(){var r=cv.getBoundingClientRect();zoomAt(1.25,r.left+r.width/2,r.top+r.height/2);});
-bind('fit',fitView);
-bind('autoLine',autoConnect);
-bind('drawLine',startDraw);
-bind('doneLine',finishDraw);
-bind('clearLine',clearLines);
-bind('delLine',function(){mode=(mode==='delline')?'pan':'delline';setModeUI();if(mode==='delline')toast('지울 선을 클릭하세요');});
+/* ====== 데이터 기반 툴바 (좌측 카테고리 + 상단 세부도구) ====== */
+var TB=[
+  {k:'data',label:'데이터',icon:'📁',tools:[
+    {t:'CSV 업로드',fn:function(){document.getElementById('fCsv').click();}},
+    {t:'결선 DXF',fn:function(){document.getElementById('fDxf').click();}},
+    {t:'샘플',fn:loadSample}]},
+  {k:'pan',label:'이동',icon:'✋',setmode:'pan',hint:'측점 클릭=선택 · 라벨 끌어 이동 · 휠 확대 · 가운데버튼 화면이동',tools:[]},
+  {k:'conn',label:'결선',icon:'🔗',tools:[
+    {t:'자동결선',fn:autoConnect},
+    {t:'결선지우기(선택)',mode:'delline',hint:'지울 결선을 클릭'},
+    {t:'결선지우기(전체)',fn:clearLines}]},
+  {k:'pipe',label:'관로선편집',icon:'✎',tools:[
+    {t:'관로선 그리기',fn:startDraw,activeMode:'line'},
+    {t:'관로선 지우기',mode:'delline',hint:'지울 선을 클릭'},
+    {t:'지거선 그리기',soon:1},
+    {t:'지거선 지우기',soon:1},
+    {t:'전체삭제',fn:clearLines}]},
+  {k:'mh',label:'맨홀편집',icon:'◎',tools:[
+    {t:'맨홀심벌(이중원)',soon:1},
+    {t:'인출선',soon:1}]},
+  {k:'push',label:'압입구간편집',icon:'⇥',tools:[
+    {t:'그리기',soon:1},
+    {t:'지우기',soon:1}]},
+  {k:'insp',label:'검수',icon:'✓',tools:[
+    {t:'측점선택',setmode:'pan',hint:'측점을 클릭해 선택'},
+    {t:'박스',mode:'box'},
+    {t:'써클',mode:'circle'},
+    {t:'확인',status:'ok'},
+    {t:'이상',status:'bad'},
+    {t:'T점',soon:1},
+    {t:'맨홀',soon:1},
+    {t:'전주입상',soon:1}]}
+];
+var activeCat='pan';
+function curCat(){for(var i=0;i<TB.length;i++)if(TB[i].k===activeCat)return TB[i];return TB[0];}
+function renderRail(){
+  var r=document.getElementById('rail'),html='';
+  TB.forEach(function(c){if(c.k==='pan')html+='<div class="sep"></div>';
+    html+='<button data-k="'+c.k+'" class="'+(c.k===activeCat?'on':'')+'">'+c.icon+' '+c.label+'</button>';});
+  r.innerHTML=html;
+  r.querySelectorAll('button').forEach(function(b){b.onclick=function(){
+    activeCat=b.getAttribute('data-k');var c=curCat();
+    if(c.setmode){mode=c.setmode;cv.classList.toggle('draw',mode!=='pan');}
+    renderRail();renderSub();if(c.hint&&!c.tools.length)toast(c.hint);};});
+}
+function mkBtn(tool,i){
+  if(tool.soon)return '<button class="soon">'+tool.t+'</button>';
+  var on='';
+  if((tool.mode&&mode===tool.mode)||(tool.activeMode&&mode===tool.activeMode))on=' on';
+  if(tool.status&&status===tool.status)on=(tool.status==='ok'?' on-ok':' on-bad');
+  return '<button data-i="'+i+'" class="'+on.trim()+'">'+tool.t+'</button>';
+}
+function renderSub(){
+  var c=curCat(),s=document.getElementById('subbar'),html='';
+  if(c.tools.length)html+=c.tools.map(mkBtn).join('');
+  else if(c.hint)html+='<span class="subhint">'+c.hint+'</span>';
+  if(mode==='line')html+='<button id="lineDone" class="on">완료</button>';
+  html+='<span class="viewgrp"><button data-g="undo">되돌리기</button><button data-g="clearMk">표시지우기</button>'
+      +'<span class="subhint">보기</span><span class="zoomwrap2"><button data-g="zout">－</button><button data-g="zin">＋</button><button data-g="fit">전체</button></span></span>';
+  s.innerHTML=html;
+  c.tools.forEach(function(tool,i){if(tool.soon)return;var b=s.querySelector('button[data-i="'+i+'"]');if(!b)return;
+    b.onclick=function(){
+      if(tool.fn)tool.fn();
+      if(tool.setmode){mode=tool.setmode;setModeUI();if(tool.hint)toast(tool.hint);}
+      if(tool.mode){if(mode===tool.mode){mode='pan';}else{mode=tool.mode;if(tool.hint)toast(tool.hint);}setModeUI();}
+      if(tool.status){status=tool.status;setStatusUI();}
+    };});
+  s.querySelectorAll('button.soon').forEach(function(b){b.onclick=function(){toast(b.textContent+' — 다음 단계에서 추가 예정');};});
+  var ld=document.getElementById('lineDone');if(ld)ld.onclick=finishDraw;
+  s.querySelectorAll('button[data-g]').forEach(function(b){b.onclick=function(){var g=b.getAttribute('data-g'),rr=cv.getBoundingClientRect();
+    if(g==='undo'){var rec=state.markups.pop();if(rec&&rec.el)rec.el.remove();renderRecs();}
+    else if(g==='clearMk'){state.markups.forEach(function(x){if(x.el)x.el.remove();});state.markups=[];renderRecs();}
+    else if(g==='zin')zoomAt(0.8,rr.left+rr.width/2,rr.top+rr.height/2);
+    else if(g==='zout')zoomAt(1.25,rr.left+rr.width/2,rr.top+rr.height/2);
+    else if(g==='fit')fitView();};});
+}
+renderRail();renderSub();
 bind('save',saveProject);
 bind('newProj',function(){var n=prompt('새 현장명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 현장: '+n+' (CSV 업로드 후 저장)');});
-bind('loadCsv',function(){document.getElementById('fCsv').click();});
-bind('loadDxf',function(){document.getElementById('fDxf').click();});
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)loadProject(e.target.value);});
 document.getElementById('fCsv').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.projectId=null;state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();fitView();updMeta();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화 / 현장명: '+state.projectName+')');};rd.readAsArrayBuffer(f);e.target.value='';});
@@ -468,7 +505,6 @@ function loadSample(){
     {layer:'지거',pts:[[202567.43,517213.98],[202573.57,517233.15]]}];
   state.markups=[];photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();fitView();updMeta();toast('샘플 로드됨');
 }
-bind('sample',loadSample);
 
 /* init */
 /* ====== 측점 사진 ====== */
