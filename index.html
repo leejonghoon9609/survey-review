@@ -45,8 +45,8 @@
   .recclr{padding:2px 8px;font-size:11px;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer}
   .recclr:hover{color:var(--bad);border-color:var(--bad);background:#fbeeee}
   .photoBtn{background:#eef6ef;border-color:#bcdcc0;color:#2e7d32;font-weight:600}
-  .photo-panel{position:absolute;top:0;right:0;bottom:0;width:44%;min-width:600px;max-width:97%;background:#fff;border-left:1px solid var(--line);box-shadow:-3px 0 14px rgba(0,0,0,.08);display:flex;flex-direction:column;transform:translateX(102%);transition:transform .2s;z-index:5}
-  .photo-panel.open{transform:none}
+  .photo-panel{width:44%;min-width:560px;max-width:56%;background:#fff;border-left:1px solid var(--line);display:none;flex-direction:column;flex:none}
+  .photo-panel.open{display:flex}
   .php-head{display:flex;gap:8px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
   .php-head h3{font-size:13px;font-weight:600;margin-right:auto}
   .php-body{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:10px;min-height:0}
@@ -104,16 +104,15 @@
       <svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg>
       <div id="coordBox" class="coordbox">X <b>–</b>　Y <b>–</b></div>
       <div id="toast" class="toast"></div>
-      <div id="photoPanel" class="photo-panel">
-        <div class="php-head">
-          <h3>측점 사진</h3>
-          <select id="photoSel"><option value="">측점 선택…</option></select>
-          <button id="photoUp">사진 업로드</button>
-          <button id="photoClose">✕</button>
-        </div>
-        <div class="php-body" id="photoBody"></div>
+    </div>
+    <div id="photoPanel" class="photo-panel">
+      <div class="php-head">
+        <h3>측점 사진</h3>
+        <select id="photoSel"><option value="">측점 선택…</option></select>
+        <button id="photoUp">사진 업로드</button>
+        <button id="photoClose">✕</button>
       </div>
-      <input type="file" id="fPhotos" accept="image/*" multiple style="display:none">
+      <div class="php-body" id="photoBody"></div>
     </div>
     <aside class="panel">
       <h2><span>검수 기록</span><span style="display:flex;gap:8px;align-items:center"><button id="recClear" class="recclr">전체삭제</button><span id="recCount">0</span></span></h2>
@@ -124,6 +123,7 @@
 
   <input type="file" id="fCsv" accept=".csv" style="display:none">
   <input type="file" id="fDxf" accept=".dxf" style="display:none">
+  <input type="file" id="fPhotos" accept="image/*" multiple style="display:none">
 
 <script>
 /* ====== 설정: 본인 Supabase 정보 입력 (비우면 로컬 모드) ====== */
@@ -451,7 +451,7 @@ function refreshPhotoPanel(){
   body.innerHTML=paneImg(selNum,'선택측점 사진',true)+'<div class="php-row">'+paneImg(prev,'이전점 사진',false)+paneImg(next,'이후점 사진',false)+'</div>';
 }
 function selectPoint(num){selNum=String(num);highlightSel();var sel=document.getElementById('photoSel');if(sel)sel.value=String(num);if(photoPanelOpen)refreshPhotoPanel();}
-function openPhotoPanel(o){photoPanelOpen=(o==null)?!photoPanelOpen:!!o;document.getElementById('photoPanel').classList.toggle('open',photoPanelOpen);if(photoPanelOpen)refreshPhotoPanel();}
+function openPhotoPanel(o){photoPanelOpen=(o==null)?!photoPanelOpen:!!o;document.getElementById('photoPanel').classList.toggle('open',photoPanelOpen);if(photoPanelOpen)refreshPhotoPanel();setTimeout(fitView,30);}
 function loadPhotos(){photoMap={};if(!online||!state.projectId){if(photoPanelOpen)refreshPhotoPanel();return;}
   sb.from('survey_photos').select('point_no,url').eq('project_id',state.projectId).then(function(res){(res.data||[]).forEach(function(r){photoMap[r.point_no]=r.url;});if(photoPanelOpen)refreshPhotoPanel();});}
 function uploadPhotos(files){
