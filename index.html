@@ -44,7 +44,8 @@
   .recclr{padding:2px 8px;font-size:11px;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer}
   .recclr:hover{color:var(--bad);border-color:var(--bad);background:#fbeeee}
   .photoBtn{background:#eef6ef;border-color:#bcdcc0;color:#2e7d32;font-weight:600}
-  .photo-panel{width:44%;min-width:560px;max-width:56%;background:#fff;border-left:1px solid var(--line);display:none;flex-direction:column;flex:none}
+  .photo-panel{width:37%;min-width:480px;max-width:44%;background:#fff;border-left:1px solid var(--line);display:none;flex-direction:column;flex:none}
+  .linkon{background:#eef6ef;border-color:#bcdcc0;color:#2e7d32;font-weight:600}
   .photo-panel.open{display:flex}
   .php-head{display:flex;gap:8px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
   .php-head h3{font-size:13px;font-weight:600;margin-right:auto}
@@ -108,6 +109,7 @@
       <div class="php-head">
         <h3>측점 사진</h3>
         <select id="photoSel"><option value="">측점 선택…</option></select>
+        <button id="photoLinkBtn" class="linkon">🔗 연동</button>
         <button id="photoUp">사진 업로드</button>
         <button id="photoClose">✕</button>
       </div>
@@ -176,7 +178,7 @@ function drawGeo(){
   });
   var lay=computeLabels();
   state.points.forEach(function(p,i){var s=S(p.x,p.y);
-    gGeo.appendChild(el('rect',{x:s[0]-0.35,y:s[1]-0.35,width:0.7,height:0.7,fill:'#e8112d'}));
+    gGeo.appendChild(el('rect',{x:s[0]-0.35,y:s[1]-0.35,width:0.7,height:0.7,fill:'#111'}));
     if(/^\s*M/.test(p.code||''))gGeo.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.8,fill:'none',stroke:'#000','stroke-width':1.2,'vector-effect':'non-scaling-stroke'}));
     var L=lay[i],ls=S(L.lx,L.ly),off=L.anchor==='start'?0.15:-0.15;
     if(L.leader)gGeo.appendChild(el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':0.9,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5'}));
@@ -269,7 +271,7 @@ function setStatusUI(){document.getElementById('s-ok').classList.toggle('on-ok',
 var dragging=false,startC=null,startVB=null,drawing=false,cur=null,sx=0,sy=0,midPanning=false;
 cv.addEventListener('pointerdown',function(e){
   if(e.button===1){e.preventDefault();midPanning=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};cv.style.cursor='grabbing';try{cv.setPointerCapture(e.pointerId);}catch(x){}return;}
-  if(mode==='pan'){dragging=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};}
+  if(mode==='pan'){/* 좌클릭=점 선택(pointerup에서), 화면이동은 휠(가운데) 버튼 */}
   else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);var np=nearestPointWorld(w[0],w[1]);
     var pt=(np.p&&np.d<vb.w*0.04)?[np.p.x,np.p.y]:[w[0],-w[1]];lineDraft.push(pt);
     var s=S(pt[0],pt[1]);gMark.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.5,fill:'#1f6fd6','pointer-events':'none'}));}
@@ -435,12 +437,12 @@ bind('sample',loadSample);
 
 /* init */
 /* ====== 측점 사진 ====== */
-var photoMap={}, selNum=null, photoPanelOpen=false;
+var photoMap={}, selNum=null, photoPanelOpen=false, photoLink=true;
 var gSel=document.createElementNS(SVGNS,'g'); gSel.setAttribute('pointer-events','none'); cv.appendChild(gSel);
 function ptNum(p){return (p.no||'').toString().split('-').pop();}
 function pointByNum(n){for(var i=0;i<state.points.length;i++)if(ptNum(state.points[i])===String(n))return state.points[i];return null;}
 function sortedNums(){return state.points.map(ptNum).filter(function(v){return v!=='';}).sort(function(a,b){return (parseFloat(a)||0)-(parseFloat(b)||0);});}
-function highlightSel(){clearSvg(gSel);if(selNum==null)return;var p=pointByNum(selNum);if(!p)return;var s=S(p.x,p.y);gSel.appendChild(el('circle',{cx:s[0],cy:s[1],r:1.6,fill:'none',stroke:'#1f6fd6','stroke-width':1.8,'vector-effect':'non-scaling-stroke'}));}
+function highlightSel(){clearSvg(gSel);if(selNum==null)return;var p=pointByNum(selNum);if(!p)return;var s=S(p.x,p.y);gSel.appendChild(el('circle',{cx:s[0],cy:s[1],r:1.6,fill:'none',stroke:'#22cc00','stroke-width':2.2,'vector-effect':'non-scaling-stroke'}));}
 function compressImage(file,maxW,q){return new Promise(function(res,rej){var img=new Image(),u=URL.createObjectURL(file);img.onload=function(){URL.revokeObjectURL(u);var w=img.width,h=img.height;if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(function(b){b?res(b):rej(new Error('blob'));},'image/jpeg',q);};img.onerror=function(){rej(new Error('img'));};img.src=u;});}
 function paneImg(num,label,big){var url=num!=null?photoMap[num]:null;var p=num!=null?pointByNum(num):null;var sub=p?(p.no+'  '+((p.code||'').trim())):(num!=null?('번호 '+num):'-');
   var inner=url?('<img class="ph" src="'+url+'" alt="">'):('<div class="ph php-none">'+(num!=null?'사진 없음':'-')+'</div>');
@@ -484,6 +486,7 @@ function uploadPhotos(files){
 bind('photoBtn',function(){openPhotoPanel();});
 document.getElementById('photoClose').onclick=function(){openPhotoPanel(false);};
 document.getElementById('photoUp').onclick=function(){document.getElementById('fPhotos').click();};
+document.getElementById('photoLinkBtn').onclick=function(){photoLink=!photoLink;this.textContent=photoLink?'🔗 연동':'🔓 미연동';this.classList.toggle('linkon',photoLink);toast(photoLink?'도면↔사진 연동 ON (점 클릭=사진)':'연동 OFF (점 클릭해도 사진 고정)');};
 document.getElementById('fPhotos').addEventListener('change',function(e){uploadPhotos(e.target.files);e.target.value='';});
 document.getElementById('photoSel').addEventListener('change',function(e){if(e.target.value){selNum=e.target.value;highlightSel();refreshPhotoPanel();}else{selNum=null;clearSvg(gSel);refreshPhotoPanel();}});
 /* 도면에서 점 탭 → 선택 (이동 모드, 드래그 아닐 때) */
@@ -492,7 +495,7 @@ cv.addEventListener('pointerdown',function(e){_tapStart=[e.clientX,e.clientY];})
 cv.addEventListener('pointerup',function(e){
   if(mode!=='pan'||!_tapStart)return;var mv=Math.hypot(e.clientX-_tapStart[0],e.clientY-_tapStart[1]);_tapStart=null;
   if(mv>5)return;var w=toWorld(e.clientX,e.clientY),r=cv.getBoundingClientRect(),wpp=vb.w/r.width;var nr=nearestPointWorld(w[0],w[1]);
-  if(nr.p&&nr.d<16*wpp)selectPoint(ptNum(nr.p));
+  if(photoLink&&nr.p&&nr.d<16*wpp)selectPoint(ptNum(nr.p));
 });
 
 /* ====== 좌표 표시 (마우스 따라) ====== */
