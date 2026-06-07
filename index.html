@@ -124,7 +124,9 @@ var SVGNS="http://www.w3.org/2000/svg";
 var cv=document.getElementById('cv');
 var gGeo=document.createElementNS(SVGNS,'g'); gGeo.setAttribute('pointer-events','none');
 var gMark=document.createElementNS(SVGNS,'g'); gMark.setAttribute('pointer-events','none');
-cv.appendChild(gGeo); cv.appendChild(gMark);
+var gDraft=document.createElementNS(SVGNS,'g'); gDraft.setAttribute('pointer-events','none');
+var gPts=document.createElementNS(SVGNS,'g');
+cv.appendChild(gGeo); cv.appendChild(gMark); cv.appendChild(gDraft); cv.appendChild(gPts);
 
 /* 상태 */
 var state={ projectId:null, projectName:null, points:[], lines:[], markups:[], labelOff:{} };
@@ -183,10 +185,10 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
     try{handle.releasePointerCapture(ev.pointerId);}catch(e){}
     drawGeo();highlightSel();}
   handle.addEventListener('pointerup',up);handle.addEventListener('pointercancel',up);
-  gGeo.appendChild(handle);
+  gPts.appendChild(handle);
 }
 function drawGeo(){
-  clearSvg(gGeo);
+  clearSvg(gGeo); clearSvg(gPts);
   state.lines.forEach(function(L){var def=LINECOL[L.layer]||{c:"#888",w:1.2};
     var pts=L.pts.map(function(p){var s=S(p[0],p[1]);return s[0]+','+s[1];}).join(' ');
     var pl=el('polyline',{points:pts,fill:'none',stroke:def.c,'stroke-width':def.w,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':'round'});
@@ -195,16 +197,16 @@ function drawGeo(){
   });
   var lay=computeLabels();
   state.points.forEach(function(p,i){var s=S(p.x,p.y);
-    gGeo.appendChild(el('rect',{x:s[0]-0.35,y:s[1]-0.35,width:0.7,height:0.7,fill:'#111'}));
+    gPts.appendChild(el('rect',{x:s[0]-0.35,y:s[1]-0.35,width:0.7,height:0.7,fill:'#111','pointer-events':'none'}));
     var hit=el('circle',{cx:s[0],cy:s[1],r:1.1,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
     hit.addEventListener('click',function(ev){if(mode!=='pan'||labelDragging)return;ev.stopPropagation();if(photoLink)selectPoint(ptNum(p));else{selNum=String(ptNum(p));drawGeo();highlightSel();}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
-    gGeo.appendChild(hit);
-    if(/^\s*M/.test(p.code||''))gGeo.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.8,fill:'none',stroke:'#000','stroke-width':1.2,'vector-effect':'non-scaling-stroke'}));
+    gPts.appendChild(hit);
+    if(/^\s*M/.test(p.code||''))gPts.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.8,fill:'none',stroke:'#000','stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     var L=lay[i],ls=S(L.lx,L.ly),off=L.anchor==='start'?0.15:-0.15;
-    var ld=null;if(L.leader){ld=el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':0.9,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5'});gGeo.appendChild(ld);}
-    var nt=el('text',{x:ls[0]+off,y:ls[1]-0.18,'font-size':0.55,fill:'#1a7a3a','text-anchor':L.anchor});nt.textContent=p.no;gGeo.appendChild(nt);
-    var ct=el('text',{x:ls[0]+off,y:ls[1]+0.55,'font-size':0.55,fill:'#0f7a86','text-anchor':L.anchor});ct.textContent=(p.code||'').trim();gGeo.appendChild(ct);
-    if(ptNum(p)===String(selNum))addLabelHandle(p,L,ls,nt,ct,ld,true);else addLabelHandle(p,L,ls,nt,ct,ld,false);
+    var ld=null;if(L.leader){ld=el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':0.9,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);}
+    var nt=el('text',{x:ls[0]+off,y:ls[1]-0.18,'font-size':0.55,fill:'#1a7a3a','text-anchor':L.anchor,'pointer-events':'none'});nt.textContent=p.no;gPts.appendChild(nt);
+    var ct=el('text',{x:ls[0]+off,y:ls[1]+0.55,'font-size':0.55,fill:'#0f7a86','text-anchor':L.anchor,'pointer-events':'none'});ct.textContent=(p.code||'').trim();gPts.appendChild(ct);
+    addLabelHandle(p,L,ls,nt,ct,ld,ptNum(p)===String(selNum));
   });
 }
 function drawMarks(){ clearSvg(gMark);
@@ -261,8 +263,12 @@ function autoConnect(){
   drawGeo();updMeta();toast('자동 결선 '+routes.filter(function(r){return r.length>=2;}).length+'개 생성 (검수·수정하세요)');
 }
 var lineDraft=null, previewLine=null;
-function startDraw(){mode='line';setModeUI();lineDraft=[];toast('점을 차례로 클릭 → 상단 "완료"');}
-function finishDraw(){if(lineDraft&&lineDraft.length>=2)state.lines.push({layer:'통신관로',pts:lineDraft.slice()});lineDraft=null;if(previewLine){previewLine.remove();previewLine=null;}mode='pan';setModeUI();drawGeo();updMeta();}
+function renderDraft(){clearSvg(gDraft);previewLine=null;if(!lineDraft)return;
+  for(var i=1;i<lineDraft.length;i++){var a=S(lineDraft[i-1][0],lineDraft[i-1][1]),b=S(lineDraft[i][0],lineDraft[i][1]);
+    gDraft.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:'#d92b2b','stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}
+  lineDraft.forEach(function(p){var s=S(p[0],p[1]);gDraft.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.25,fill:'#1f6fd6','pointer-events':'none'}));});}
+function startDraw(){mode='line';setModeUI();lineDraft=[];clearSvg(gDraft);toast('점을 차례로 클릭 → 상단 "완료" (되돌리기로 한 점씩 취소)');}
+function finishDraw(){if(lineDraft&&lineDraft.length>=2)state.lines.push({layer:'통신관로',pts:lineDraft.slice()});lineDraft=null;previewLine=null;clearSvg(gDraft);mode='pan';setModeUI();drawGeo();updMeta();}
 function clearLines(){state.lines=state.lines.filter(function(l){return l.layer!=='통신관로';});drawGeo();updMeta();toast('결선 모두 삭제');}
 function segDist(px,py,ax,ay,bx,by){var dx=bx-ax,dy=by-ay,L2=dx*dx+dy*dy,t=L2?((px-ax)*dx+(py-ay)*dy)/L2:0;t=Math.max(0,Math.min(1,t));var cx=ax+t*dx,cy=ay+t*dy;return Math.hypot(px-cx,py-cy);}
 function deleteSegmentAt(wx,wy){
@@ -288,8 +294,7 @@ cv.addEventListener('pointerdown',function(e){
   if(e.button===1){e.preventDefault();midPanning=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};cv.style.cursor='grabbing';try{cv.setPointerCapture(e.pointerId);}catch(x){}return;}
   if(mode==='pan'){/* 좌클릭=점 선택(pointerup에서), 화면이동은 휠(가운데) 버튼 */}
   else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);var np=nearestPointWorld(w[0],w[1]);
-    var pt=(np.p&&np.d<vb.w*0.04)?[np.p.x,np.p.y]:[w[0],-w[1]];lineDraft.push(pt);
-    var s=S(pt[0],pt[1]);gMark.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.5,fill:'#1f6fd6','pointer-events':'none'}));}
+    var pt=(np.p&&np.d<vb.w*0.04)?[np.p.x,np.p.y]:[w[0],-w[1]];lineDraft.push(pt);renderDraft();}
   else if(mode==='delline'){var wd=toWorld(e.clientX,e.clientY);deleteSegmentAt(wd[0],wd[1]);}
   else{drawing=true;var w2=toWorld(e.clientX,e.clientY);sx=w2[0];sy=w2[1];
     cur=el(mode==='box'?'rect':'ellipse',{fill:MKCOL[status],'fill-opacity':0.13,stroke:MKCOL[status],'stroke-width':2,'vector-effect':'non-scaling-stroke','pointer-events':'none'});
@@ -301,7 +306,7 @@ cv.addEventListener('pointermove',function(e){
   if(midPanning){var rr=cv.getBoundingClientRect();var ddx=(e.clientX-startC[0])/rr.width*startVB.w,ddy=(e.clientY-startC[1])/rr.height*startVB.h;vb.x=startVB.x-ddx;vb.y=startVB.y-ddy;applyVB();return;}
   if(dragging){var r=cv.getBoundingClientRect();var dx=(e.clientX-startC[0])/r.width*startVB.w,dy=(e.clientY-startC[1])/r.height*startVB.h;vb.x=startVB.x-dx;vb.y=startVB.y-dy;applyVB();}
   else if(mode==='line'&&lineDraft&&lineDraft.length){var w=toWorld(e.clientX,e.clientY);var last=S(lineDraft[lineDraft.length-1][0],lineDraft[lineDraft.length-1][1]);
-    if(!previewLine){previewLine=el('line',{stroke:'#1f6fd6','stroke-width':1.4,'stroke-dasharray':'4 3','vector-effect':'non-scaling-stroke','pointer-events':'none'});gMark.appendChild(previewLine);}
+    if(!previewLine){previewLine=el('line',{stroke:'#d92b2b','stroke-width':1.2,'stroke-dasharray':'4 3','vector-effect':'non-scaling-stroke','pointer-events':'none'});gDraft.appendChild(previewLine);}
     previewLine.setAttribute('x1',last[0]);previewLine.setAttribute('y1',last[1]);previewLine.setAttribute('x2',w[0]);previewLine.setAttribute('y2',w[1]);}
   else if(drawing&&cur){var w=toWorld(e.clientX,e.clientY),x=w[0],y=w[1];
     if(mode==='box'){cur.setAttribute('x',Math.min(sx,x));cur.setAttribute('y',Math.min(sy,y));cur.setAttribute('width',Math.abs(x-sx));cur.setAttribute('height',Math.abs(y-sy));}
@@ -460,7 +465,7 @@ function renderSub(){
   if(c.tools.length)html+=c.tools.map(mkBtn).join('');
   else if(c.hint)html+='<span class="subhint">'+c.hint+'</span>';
   if(mode==='line')html+='<button id="lineDone" class="on">완료</button>';
-  html+='<span class="viewgrp"><button data-g="undo">되돌리기</button><button data-g="clearMk">표시지우기</button>'
+  html+='<span class="viewgrp"><button data-g="undo">되돌리기</button><button data-g="clearMk">심벌지우기</button>'
       +'<span class="subhint">보기</span><span class="zoomwrap2"><button data-g="zout">－</button><button data-g="zin">＋</button><button data-g="fit">전체</button></span></span>';
   s.innerHTML=html;
   c.tools.forEach(function(tool,i){if(tool.soon)return;var b=s.querySelector('button[data-i="'+i+'"]');if(!b)return;
@@ -473,7 +478,7 @@ function renderSub(){
   s.querySelectorAll('button.soon').forEach(function(b){b.onclick=function(){toast(b.textContent+' — 다음 단계에서 추가 예정');};});
   var ld=document.getElementById('lineDone');if(ld)ld.onclick=finishDraw;
   s.querySelectorAll('button[data-g]').forEach(function(b){b.onclick=function(){var g=b.getAttribute('data-g'),rr=cv.getBoundingClientRect();
-    if(g==='undo'){var rec=state.markups.pop();if(rec&&rec.el)rec.el.remove();renderRecs();}
+    if(g==='undo'){if(mode==='line'&&lineDraft&&lineDraft.length){lineDraft.pop();renderDraft();toast('한 점 취소');}else{var rec=state.markups.pop();if(rec&&rec.el)rec.el.remove();renderRecs();}}
     else if(g==='clearMk'){state.markups.forEach(function(x){if(x.el)x.el.remove();});state.markups=[];renderRecs();}
     else if(g==='zin')zoomAt(0.8,rr.left+rr.width/2,rr.top+rr.height/2);
     else if(g==='zout')zoomAt(1.25,rr.left+rr.width/2,rr.top+rr.height/2);
