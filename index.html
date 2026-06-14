@@ -249,9 +249,9 @@ function drawManholes(){
     var mp=null,md=1e18;
     state.points.forEach(function(p){if(!isManhole(p))return;var d=Math.hypot(p.x-mh.wx,p.y-mh.wy);if(d<md){md=d;mp=p;}});
 
-    // 이중원(◎) — 속 빈 두꺼운 원 2개
-    gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.9,fill:'none',stroke:'#555','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-    gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.45,fill:'none',stroke:'#555','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    // 이중원(◎) — 측점 사각형과 비슷한 사이즈
+    gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.38,fill:'none',stroke:'#555','stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.18,fill:'none',stroke:'#555','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
 
     // 라벨 기본 위치: M측점 반대방향 위쪽
     var defOff=3.5;
@@ -285,8 +285,8 @@ function drawManholes(){
     txtEl.textContent=mh.label||'';
     gMH.appendChild(txtEl);
 
-    // 드래그 핸들 - 맨홀 중심(이중원)
-    var drag=el('circle',{cx:mx,cy:my,r:1.1,fill:'transparent','pointer-events':'all',cursor:'move'});
+    // 드래그 핸들 - 맨홀 중심(이중원) - 히트영역 크게
+    var drag=el('circle',{cx:mx,cy:my,r:1.8,fill:'transparent','pointer-events':'all',cursor:'move'});
     var mhDrag=false,mhGx=0,mhGy=0,mhMoved=false;
     drag.addEventListener('pointerdown',function(ev){
       if(mode!=='pan'&&mode!=='mhplace')return;ev.stopPropagation();ev.preventDefault();
@@ -294,7 +294,10 @@ function drawManholes(){
       try{drag.setPointerCapture(ev.pointerId);}catch(e){}});
     drag.addEventListener('pointermove',function(ev){
       if(!mhDrag)return;ev.preventDefault();mhMoved=true;var w=toWorld(ev.clientX,ev.clientY);
-      mh.wx=w[0]-mhGx;mh.wy=w[1]-mhGy;mh.lx=null;mh.ly=null;drawManholes();});
+      var newWx=w[0]-mhGx, newWy=w[1]-mhGy;
+      // 라벨 상대위치 유지
+      if(mh.lx!=null){mh.lx+=newWx-mh.wx;mh.ly+=newWy-mh.wy;}
+      mh.wx=newWx;mh.wy=newWy;drawManholes();});
     drag.addEventListener('pointerup',function(ev){if(!mhDrag)return;mhDrag=false;try{drag.releasePointerCapture(ev.pointerId);}catch(e){}drawManholes();});
     drag.addEventListener('pointercancel',function(ev){mhDrag=false;});
     // 더블클릭 → 인라인 라벨 편집 (팝업 없이 prompt 대신 간단히)
