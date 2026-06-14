@@ -254,7 +254,7 @@ function drawManholes(){
     gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.18,fill:'none',stroke:'#555','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
 
     // 라벨 기본 위치: 맨홀 기준 4방향 자동 (관로선/M측점 방향 반대)
-    var defOff=1.8;
+    var defOff=0.8;
     var defLx, defLy;
     if(mp){
       var dx=mh.wx-mp.x, dy=mh.wy-mp.y;
@@ -337,18 +337,16 @@ function drawManholes(){
     lbDrag.addEventListener('dblclick',function(ev){ev.stopPropagation();openLabelEdit();});
     gMH.appendChild(lbDrag);
 
-    // 지우기 모드: hover 빨간 표시 (이중원 + 라벨 둘 다)
-    if(mode==='delmh'){
-      function delMh(ev){
-        if(mode!=='delmh')return;ev.stopPropagation();
-        var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();toast('맨홀 삭제 (심벌+인출선+라벨)');}
-      drag.addEventListener('mouseenter',function(){drag.setAttribute('stroke','#d32f2f');drag.setAttribute('stroke-width',2);drag.setAttribute('fill','rgba(211,47,47,0.12)');});
-      drag.addEventListener('mouseleave',function(){drag.setAttribute('stroke','none');drag.setAttribute('fill','transparent');});
-      drag.addEventListener('click',delMh);
-      lbDrag.addEventListener('mouseenter',function(){lbDrag.setAttribute('stroke','#d32f2f');lbDrag.setAttribute('stroke-width',1.5);lbDrag.setAttribute('fill','rgba(211,47,47,0.08)');});
-      lbDrag.addEventListener('mouseleave',function(){lbDrag.setAttribute('stroke','none');lbDrag.setAttribute('fill','transparent');});
-      lbDrag.addEventListener('click',delMh);
-    }
+    // 지우기: 항상 핸들러 붙여두고 mode 체크
+    function delMh(ev){
+      if(mode!=='delmh')return;ev.stopPropagation();
+      var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();toast('맨홀 삭제 (심벌+인출선+라벨)');}
+    drag.addEventListener('mouseenter',function(){if(mode!=='delmh')return;drag.setAttribute('stroke','#d32f2f');drag.setAttribute('stroke-width',2);drag.setAttribute('fill','rgba(211,47,47,0.12)');});
+    drag.addEventListener('mouseleave',function(){drag.setAttribute('stroke','none');drag.setAttribute('fill','transparent');});
+    drag.addEventListener('click',delMh);
+    lbDrag.addEventListener('mouseenter',function(){if(mode!=='delmh')return;lbDrag.setAttribute('stroke','#d32f2f');lbDrag.setAttribute('stroke-width',1.5);lbDrag.setAttribute('fill','rgba(211,47,47,0.08)');});
+    lbDrag.addEventListener('mouseleave',function(){lbDrag.setAttribute('stroke','none');lbDrag.setAttribute('fill','transparent');});
+    lbDrag.addEventListener('click',delMh);
   });
 }
 var mhDragState=null; // {type:'center'|'label', mh, gx, gy} — gx,gy는 SVG 좌표 offset
