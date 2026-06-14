@@ -175,9 +175,12 @@ function worldToPx(svgX,svgY){var cvr=cv.getBoundingClientRect();return [(svgX-v
 function moveLabelDiv(d,svgX,svgY){d._sx=svgX;d._sy=svgY;placeLabelDiv(d);}
 function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
   var anchor=L.anchor;
-  var tw=Math.max((''+(p.no||'')).length,((p.code||'').trim()).length)*0.33+0.7,hh=1.55;
-  var hx=anchor==='start'?(ls[0]-0.15):(ls[0]-tw+0.15);
-  var handle=el('rect',{x:hx,y:ls[1]-0.8,width:tw,height:hh,fill:'transparent','pointer-events':'all'});
+  var Uh=vb.w/Math.max(cv.getBoundingClientRect().width,1); // 1px = Uh world
+  var maxChars=Math.max((''+(p.no||'')).length,((p.code||'').trim()).length);
+  var tw=maxChars*9*Uh+10*Uh;  // 글자폭(약 9px/자) + 여백, 화면 고정
+  var hh=34*Uh;                 // 두 줄 높이(약 34px), 화면 고정
+  var hx=anchor==='start'?(ls[0]-3*Uh):(ls[0]-tw+3*Uh);
+  var handle=el('rect',{x:hx,y:ls[1]-hh*0.5,width:tw,height:hh,fill:'transparent','pointer-events':'all'});
   if(isSel){handle.setAttribute('stroke','#22cc00');handle.setAttribute('stroke-width',0.8);handle.setAttribute('stroke-dasharray','2 2');handle.setAttribute('vector-effect','non-scaling-stroke');}
   handle.style.cursor='move';
   var lx=ls[0],ly=ls[1],dragging=false,moved=false,gx=0,gy=0;
@@ -192,7 +195,7 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
     moveLabelDiv(nt,lx+off,ly);
     moveLabelDiv(ct,lx+off,ly);
     if(ld){ld.setAttribute('x2',lx);ld.setAttribute('y2',ly);}
-    handle.setAttribute('x',anchor==='start'?(lx-0.15):(lx-tw+0.15));handle.setAttribute('y',ly-0.8);});
+    handle.setAttribute('x',anchor==='start'?(lx-3*Uh):(lx-tw+3*Uh));handle.setAttribute('y',ly-hh*0.5);});
   function up(ev){if(!dragging)return;dragging=false;setTimeout(function(){labelDragging=false;},40);
     if(moved)state.labelOff[ptNum(p)]=[lx,-ly];
     try{handle.releasePointerCapture(ev.pointerId);}catch(e){}
@@ -404,7 +407,7 @@ function drawManholes(){
     }
 
     // 라벨 텍스트 — 파란 밑줄 중앙 바로 위에 (글자가 밑줄을 덮지 않게 위로)
-    var mhLbl=mkLabel(txtCx, uly-EM*0.55, mh.label||'', {fill:'#333',weight:'600',anchor:'middle',grp:'mh',px:22});
+    var mhLbl=mkLabel(txtCx, uly-EM*0.75, mh.label||'', {fill:'#333',weight:'600',anchor:'middle',grp:'mh',px:22});
     // 라벨 div에 직접 더블클릭(수정) — 오버레이라 글자 위에서 바로 동작
     mhLbl.style.pointerEvents='auto';
     mhLbl.style.cursor='text';
@@ -423,9 +426,8 @@ function drawManholes(){
     drag.addEventListener('dblclick',function(ev){ev.stopPropagation();openLabelEdit();});
     gMH.appendChild(drag);
 
-    // 라벨 드래그 핸들 (글자 영역만 — 인출선/꺾임점은 안 덮음)
-    var lblHalf=labelW/2;
-    var lbDrag=el('rect',{x:txtCx-lblHalf-EM*0.1,y:uly-EM*1.15,width:labelW+EM*0.2,height:EM*1.0,rx:EM*0.1,fill:'transparent','pointer-events':'all',cursor:'move'});
+    // 라벨 드래그 핸들 (밑줄+글자 영역)
+    var lbDrag=el('rect',{x:txtLeft-EM*0.2,y:uly-EM*1.1,width:Math.max(underLen,labelW)+EM*0.4,height:EM*1.3,rx:EM*0.1,fill:'transparent','pointer-events':'all',cursor:'move'});
     lbDrag.addEventListener('pointerdown',function(ev){
       if(mode==='delmh'){ev.stopPropagation();ev.preventDefault();
         var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();toast('맨홀 삭제');return;}
