@@ -76,7 +76,7 @@
 <body>
   <header>
     <h1>후측량 검수 시스템</h1>
-    <span style="font-size:11px;color:#c0392b;font-weight:700;margin-right:6px">v.심벌고정</span>
+    <span id="vstamp" style="font-size:11px;color:#c0392b;font-weight:700;margin-right:6px">v.심벌고정</span>
     <select id="proj"><option value="">현장 선택…</option></select>
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
@@ -271,6 +271,7 @@ function drawGeo(){
     addNoteHandle(L,t,ld,lx,ly);
   });
   var Up=vb.w/Math.max(cv.getBoundingClientRect().width,1); // 1px = Up world
+  var _cvW=cv.getBoundingClientRect().width;var _vs=document.getElementById('vstamp');if(_vs)_vs.textContent='cvW='+_cvW.toFixed(0)+' px/m='+(1/Up).toFixed(1)+' box='+(12*Up/vb.w*_cvW).toFixed(1)+'px';
   var hitR=Math.min(0.45, 9*Up);   // 클릭 히트: 작은 줌에선 화면 고정, 큰 줌에선 월드 0.45 상한
   state.points.forEach(function(p,i){var s=S(p.x,p.y);
     var hbx=6*Up;gPts.appendChild(el('rect',{x:s[0]-hbx,y:s[1]-hbx,width:2*hbx,height:2*hbx,fill:'none',stroke:isTpoint(p)?'#13803a':'#111','stroke-width':2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
