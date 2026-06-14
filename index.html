@@ -380,6 +380,8 @@ function drawManholes(){
       var pm=lab.match(/^(.*?)M\s*\(([^)]*)\)/);
       var pre=pm?pm[1].trim():'';
       var inner=pm?pm[2].trim():'';
+      // 자동순번 잔재 제거: 앞이 숫자뿐이고 캐리어가 기본(SK 또는 빈칸)이면 숫자 떼고 시작
+      if(/^\d+$/.test(pre) && (inner==='SK'||inner===''))pre='';
       var wrap=document.createElement('div');
       wrap.style.cssText='position:fixed;z-index:999;display:flex;align-items:center;gap:1px;'
         +'left:'+sx+'px;top:'+(sy-36)+'px;background:#fffde7;border-bottom:2px solid #555;'
