@@ -242,7 +242,7 @@ function drawGeo(){
 function drawManholes(){
   clearSvg(gMH);
   // 줌 비율: 화면에서 일정 크기 유지하도록 vb.w 기반 스케일
-  var SC=vb.w/100; // 기준 vb.w=100일 때 1배
+  var SC=vb.w/45; // 화면에서 일정 크기 유지 (값 작을수록 크게 보임)
   (state.manholes||[]).forEach(function(mh){
     var s=S(mh.wx,mh.wy);
     var mx=s[0], my=s[1];
@@ -293,6 +293,8 @@ function drawManholes(){
     // 드래그 핸들 - 맨홀 중심(이중원)
     var drag=el('circle',{cx:mx,cy:my,r:0.6*SC,fill:'transparent','pointer-events':'all',cursor:'move'});
     drag.addEventListener('pointerdown',function(ev){
+      if(mode==='delmh'){ev.stopPropagation();ev.preventDefault();
+        var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();toast('맨홀 삭제');return;}
       if(mode!=='pan'&&mode!=='mhplace')return;
       ev.stopPropagation();ev.preventDefault();
       var w=toWorld(ev.clientX,ev.clientY);
@@ -321,24 +323,20 @@ function drawManholes(){
     // 라벨 드래그 핸들 (텍스트+밑줄 영역)
     var lbDrag=el('rect',{x:lbx-0.2*SC,y:lby-0.1*SC,width:labelW+0.4*SC,height:labelH+0.3*SC,rx:0.1*SC,fill:'transparent','pointer-events':'all',cursor:'move'});
     lbDrag.addEventListener('pointerdown',function(ev){
+      if(mode==='delmh'){ev.stopPropagation();ev.preventDefault();
+        var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();toast('맨홀 삭제');return;}
       if(mode!=='pan'&&mode!=='mhplace')return;
       ev.stopPropagation();ev.preventDefault();
       var w=toWorld(ev.clientX,ev.clientY);
-      // 클릭한 SVG점과 맨홀중심의 상대 offset 저장용
       mhDragState={type:'label',mh:mh,gx:w[0]-lbx,gy:w[1]-lby,SC:SC};});
     lbDrag.addEventListener('dblclick',function(ev){ev.stopPropagation();openLabelEdit();});
     gMH.appendChild(lbDrag);
 
-    // 지우기: 항상 핸들러 붙여두고 mode 체크
-    function delMh(ev){
-      if(mode!=='delmh')return;ev.stopPropagation();
-      var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();toast('맨홀 삭제 (심벌+인출선+라벨)');}
+    // 지우기 모드 hover 빨간 표시 (삭제는 위 pointerdown에서 처리)
     drag.addEventListener('mouseenter',function(){if(mode!=='delmh')return;drag.setAttribute('stroke','#d32f2f');drag.setAttribute('stroke-width',2);drag.setAttribute('vector-effect','non-scaling-stroke');drag.setAttribute('fill','rgba(211,47,47,0.25)');});
     drag.addEventListener('mouseleave',function(){drag.setAttribute('stroke','none');drag.setAttribute('fill','transparent');});
-    drag.addEventListener('click',delMh);
     lbDrag.addEventListener('mouseenter',function(){if(mode!=='delmh')return;lbDrag.setAttribute('stroke','#d32f2f');lbDrag.setAttribute('stroke-width',1.5);lbDrag.setAttribute('vector-effect','non-scaling-stroke');lbDrag.setAttribute('fill','rgba(211,47,47,0.15)');});
     lbDrag.addEventListener('mouseleave',function(){lbDrag.setAttribute('stroke','none');lbDrag.setAttribute('fill','transparent');});
-    lbDrag.addEventListener('click',delMh);
   });
 }
 var mhDragState=null; // {type:'center'|'label', mh, gx, gy, SC}
