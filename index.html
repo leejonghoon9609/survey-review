@@ -272,9 +272,13 @@ function drawManholes(){
     gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.28,fill:'none',stroke:'#555','stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.13,fill:'none',stroke:'#555','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
 
-    // 라벨 크기 (폰트 FT 기준)
-    var labelW=Math.max((mh.label||'').length*FT*0.62+0.3, 1.2);
-    var labelH=FT*1.25;
+    // 화면 px → 월드 단위 변환 (줌 무관 일정 화면크기용)
+    var U=vb.w/Math.max(cv.getBoundingClientRect().width,1); // 1px = U world
+    var EM=14*U; // 라벨 글자높이(14px) 만큼의 월드길이
+
+    // 라벨 크기 (화면 픽셀 기준 → 텍스트와 항상 정렬)
+    var labelW=Math.max((mh.label||'').length*EM*0.62+EM*0.4, EM*2);
+    var labelH=EM*1.15;
 
     // 라벨 기본 위치: 맨홀 기준 4방향 자동 (M측점 반대쪽)
     var defLx, defLy;
@@ -303,7 +307,7 @@ function drawManholes(){
     if(mp){var ms=S(mp.x,mp.y);gMH.appendChild(el('line',{x1:ms[0],y1:ms[1],x2:mx,y2:my,stroke:'#1f6fd6','stroke-width':1.0,'stroke-dasharray':'2 1.5','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}
 
     // 라벨 텍스트 (밑줄 위) — 줌-안전 mkLabel
-    gMH.appendChild(mkLabel(lbx+0.1, lby+labelH-FT*0.25, mh.label||'', {fill:'#333',weight:'600',anchor:'start'}));
+    gMH.appendChild(mkLabel(lbx+EM*0.15, lby+labelH-EM*0.28, mh.label||'', {fill:'#333',weight:'600',anchor:'start'}));
 
     // 드래그 핸들 - 맨홀 중심(이중원)
     var drag=el('circle',{cx:mx,cy:my,r:0.5,fill:'transparent','pointer-events':'all',cursor:'move'});
