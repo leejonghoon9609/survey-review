@@ -254,17 +254,15 @@ function drawManholes(){
     gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.18,fill:'none',stroke:'#555','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
 
     // 라벨 기본 위치: 맨홀 기준 4방향 자동 (관로선/M측점 방향 반대)
-    var defOff=4.0;
+    var defOff=1.8;
     var defLx, defLy;
     if(mp){
       var dx=mh.wx-mp.x, dy=mh.wy-mp.y;
       var dl=Math.hypot(dx,dy)||1;
-      // 좌/우 방향
       var goRight=(dx>=0);
-      // 위/아래 방향 (dy>0이면 맨홀이 M측점보다 북쪽=화면 위)
       var goUp=(dy>=0);
-      defLx = goRight ? mh.wx+defOff*0.7 : mh.wx-defOff*0.7-((mh.label||'').length*0.38+0.5);
-      defLy = goUp   ? mh.wy+defOff*0.5  : mh.wy-defOff*0.5;
+      defLx = goRight ? mh.wx+defOff*0.6 : mh.wx-defOff*0.6-((mh.label||'').length*0.38+0.5);
+      defLy = goUp   ? mh.wy+defOff*0.4  : mh.wy-defOff*0.4;
     } else {
       defLx=mh.wx+defOff; defLy=mh.wy+defOff;
     }
@@ -339,13 +337,17 @@ function drawManholes(){
     lbDrag.addEventListener('dblclick',function(ev){ev.stopPropagation();openLabelEdit();});
     gMH.appendChild(lbDrag);
 
-    // 지우기 모드: hover 빨간링
+    // 지우기 모드: hover 빨간 표시 (이중원 + 라벨 둘 다)
     if(mode==='delmh'){
+      function delMh(ev){
+        if(mode!=='delmh')return;ev.stopPropagation();
+        var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();toast('맨홀 삭제 (심벌+인출선+라벨)');}
       drag.addEventListener('mouseenter',function(){drag.setAttribute('stroke','#d32f2f');drag.setAttribute('stroke-width',2);drag.setAttribute('fill','rgba(211,47,47,0.12)');});
       drag.addEventListener('mouseleave',function(){drag.setAttribute('stroke','none');drag.setAttribute('fill','transparent');});
-      drag.addEventListener('click',function(ev){
-        if(mode!=='delmh')return;ev.stopPropagation();
-        var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();toast('맨홀 심벌 삭제');});
+      drag.addEventListener('click',delMh);
+      lbDrag.addEventListener('mouseenter',function(){lbDrag.setAttribute('stroke','#d32f2f');lbDrag.setAttribute('stroke-width',1.5);lbDrag.setAttribute('fill','rgba(211,47,47,0.08)');});
+      lbDrag.addEventListener('mouseleave',function(){lbDrag.setAttribute('stroke','none');lbDrag.setAttribute('fill','transparent');});
+      lbDrag.addEventListener('click',delMh);
     }
   });
 }
@@ -481,7 +483,7 @@ function deleteSegmentAt(wx,wy){
 }
 
 /* ====== 모드 UI ====== */
-function setModeUI(){renderSub();cv.classList.toggle('draw',mode!=='pan'&&mode!=='mhplace');if(mode==='mhplace'){cv.style.cursor='default';}else{cv.style.cursor='';}}
+function setModeUI(){renderSub();cv.classList.toggle('draw',mode!=='pan'&&mode!=='mhplace'&&mode!=='delmh');if(mode==='mhplace'||mode==='delmh'){cv.style.cursor='default';}else{cv.style.cursor='';}}
 function setStatusUI(){renderSub();}
 
 /* ====== 포인터 ====== */
@@ -622,7 +624,7 @@ var TB=[
     {t:'전체삭제',tone:'delall',fn:clearAllDraw}]},
   {k:'mh',label:'맨홀편집',icon:'◎',c:{bg:'#efeafa',fg:'#7a52e0'},tools:[
     {t:'맨홀심기',tone:'draw',mode:'mhplace',hint:'도면에서 맨홀 위치를 클릭하세요'},
-    {t:'인출선 지우기',tone:'del',mode:'delmh',hint:'지울 맨홀 이중원을 클릭하세요'}]},
+    {t:'맨홀/인출선 지우기',tone:'del',mode:'delmh',hint:'지울 맨홀을 클릭하세요 (맨홀+인출선+라벨 전부 삭제)'}]},
   {k:'push',label:'압입구간편집',icon:'⇥',c:{bg:'#e3f4ef',fg:'#109a82'},tools:[
     {t:'그리기',tone:'draw',soon:1},
     {t:'지우기',tone:'del',soon:1}]},
