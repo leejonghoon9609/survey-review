@@ -499,8 +499,8 @@ function renderRecs(){var box=document.getElementById('recs');document.getElemen
 function updMeta(){document.getElementById('meta').textContent=(state.projectName||'현장 미선택')+' · 측량점 '+state.points.length+' · 결선 '+state.lines.filter(function(l){return l.layer==='통신관로';}).length;}
 
 /* ====== 뷰박스 ====== */
-var vb={x:0,y:0,w:100,h:100}, vb0={x:0,y:0,w:100,h:100};
-function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);repositionLabels();}
+var vb={x:0,y:0,w:100,h:100}, vb0={x:0,y:0,w:100,h:100}, _vbwLast=null;
+function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);repositionLabels();if(vb.w!==_vbwLast){_vbwLast=vb.w;if(typeof drawGeo==='function'){drawGeo();drawManholes();highlightSel();}}}
 function fitView(){
   var xs=[],ys=[];function add(x,y){var s=S(x,y);xs.push(s[0]);ys.push(s[1]);}
   state.points.forEach(function(p){add(p.x,p.y);});
