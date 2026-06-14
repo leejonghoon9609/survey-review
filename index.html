@@ -297,33 +297,21 @@ function drawManholes(){
     gMH.appendChild(txtEl);
 
     // 드래그 핸들 - 맨홀 중심(이중원)
-    // r을 이중원 크기(0.38)에 맞게 작게 — stopPropagation 안 해서 뒤 측점 클릭 통과
     var drag=el('circle',{cx:mx,cy:my,r:0.6,fill:'transparent','pointer-events':'all',cursor:'move'});
-    var mhDrag=false,mhGx=0,mhGy=0,mhMoved=false;
     drag.addEventListener('pointerdown',function(ev){
       if(mode!=='pan'&&mode!=='mhplace')return;
-      // stopPropagation 안 함 → 측점 hit도 통과 가능
-      mhDrag=true;mhMoved=false;
-      var w=toWorld(ev.clientX,ev.clientY);mhGx=w[0]-mh.wx;mhGy=w[1]-mh.wy;
-      try{drag.setPointerCapture(ev.pointerId);}catch(e){}});
-    drag.addEventListener('pointermove',function(ev){
-      if(!mhDrag)return;ev.preventDefault();
-      if(!mhMoved){mhMoved=true;} // 움직임 확인 후 이동 처리
+      ev.stopPropagation();ev.preventDefault();
+      if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
       var w=toWorld(ev.clientX,ev.clientY);
-      var newWx=w[0]-mhGx, newWy=w[1]-mhGy;
-      if(mh.lx!=null){mh.lx+=newWx-mh.wx;mh.ly+=newWy-mh.wy;}
-      mh.wx=newWx;mh.wy=newWy;drawManholes();});
-    drag.addEventListener('pointerup',function(ev){
-      if(!mhDrag)return;mhDrag=false;
-      try{drag.releasePointerCapture(ev.pointerId);}catch(e){}
-      drawManholes();});
-    drag.addEventListener('pointercancel',function(ev){mhDrag=false;});
+      // SVG 좌표 기준 offset
+      mhDragState={type:'center',mh:mh,gx:w[0]-mx,gy:w[1]-my};});
     // 더블클릭 → 인라인 라벨 편집
     function openLabelEdit(){
       var r=cv.getBoundingClientRect();
       var scaleX=r.width/vb.w, scaleY=r.height/vb.h;
-      var sx=r.left+(lbx-vb.x)*scaleX;
-      var sy=r.top+(lby-vb.y)*scaleY;
+      var curLs=S(mh.lx!=null?mh.lx:lx, mh.ly!=null?mh.ly:ly);
+      var sx=r.left+(curLs[0]-vb.x)*scaleX;
+      var sy=r.top+(curLs[1]-vb.y)*scaleY;
       var pw=labelW*scaleX, ph=labelH*scaleY;
       var inp=document.createElement('input');
       inp.value=mh.label||'';
@@ -340,24 +328,14 @@ function drawManholes(){
     gMH.appendChild(drag);
 
     // 라벨 드래그 핸들 (텍스트+밑줄 영역)
-    var lbDrag=el('rect',{x:lbx,y:lby-labelH,width:labelW,height:labelH+0.4,rx:0.1,fill:'transparent','pointer-events':'all',cursor:'move'});
-    var lbDragging=false,lbGx=0,lbGy=0;
+    var lbDrag=el('rect',{x:lbx-0.2,y:lby-0.1,width:labelW+0.4,height:labelH+0.3,rx:0.1,fill:'transparent','pointer-events':'all',cursor:'move'});
     lbDrag.addEventListener('pointerdown',function(ev){
-      if(mode!=='pan'&&mode!=='mhplace')return;ev.stopPropagation();ev.preventDefault();
-      lbDragging=true;
-      var w=toWorld(ev.clientX,ev.clientY);
-      // mh.lx/ly가 null이면 현재 계산된 lx/ly로 초기화
+      if(mode!=='pan'&&mode!=='mhplace')return;
+      ev.stopPropagation();ev.preventDefault();
       if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
-      lbGx=w[0]-mh.lx; lbGy=w[1]-mh.ly;
-      try{lbDrag.setPointerCapture(ev.pointerId);}catch(e){}});
-    lbDrag.addEventListener('pointermove',function(ev){
-      if(!lbDragging)return;ev.preventDefault();
       var w=toWorld(ev.clientX,ev.clientY);
-      mh.lx=w[0]-lbGx; mh.ly=w[1]-lbGy;
-      drawManholes();});
-    lbDrag.addEventListener('pointerup',function(ev){
-      if(!lbDragging)return;lbDragging=false;
-      try{lbDrag.releasePointerCapture(ev.pointerId);}catch(e){}});
+      // SVG 좌표 기준 offset (lbx=SVG x of label)
+      mhDragState={type:'label',mh:mh,gx:w[0]-lbx,gy:w[1]-lby};});
     lbDrag.addEventListener('dblclick',function(ev){ev.stopPropagation();openLabelEdit();});
     gMH.appendChild(lbDrag);
 
@@ -371,6 +349,25 @@ function drawManholes(){
     }
   });
 }
+var mhDragState=null; // {type:'center'|'label', mh, gx, gy} — gx,gy는 SVG 좌표 offset
+window.addEventListener('pointermove',function(ev){
+  if(!mhDragState)return;ev.preventDefault();
+  var w=toWorld(ev.clientX,ev.clientY), mh=mhDragState.mh;
+  // SVG 좌표에서 새 위치
+  var newSx=w[0]-mhDragState.gx, newSy=w[1]-mhDragState.gy;
+  // SVG→World: wx=sx, wy=-sy
+  if(mhDragState.type==='center'){
+    var newWx=newSx, newWy=-newSy;
+    if(mh.lx!=null){mh.lx+=newWx-mh.wx;mh.ly+=newWy-mh.wy;}
+    mh.wx=newWx;mh.wy=newWy;
+  } else {
+    mh.lx=newSx; mh.ly=-newSy;
+  }
+  drawManholes();
+});
+window.addEventListener('pointerup',function(ev){
+  if(!mhDragState)return;mhDragState=null;drawManholes();
+});
 var mhIdSeq=1;
 function placeManholeAt(wx,wy){
   // 팝업 없이 기본라벨 M(SK )로 바로 심기, 더블클릭으로 수정
@@ -484,7 +481,7 @@ function deleteSegmentAt(wx,wy){
 }
 
 /* ====== 모드 UI ====== */
-function setModeUI(){renderSub();cv.classList.toggle('draw',mode!=='pan');}
+function setModeUI(){renderSub();cv.classList.toggle('draw',mode!=='pan'&&mode!=='mhplace');if(mode==='mhplace'){cv.style.cursor='default';}else{cv.style.cursor='';}}
 function setStatusUI(){renderSub();}
 
 /* ====== 포인터 ====== */
