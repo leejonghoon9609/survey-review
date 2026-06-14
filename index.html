@@ -253,11 +253,10 @@ function drawManholes(){
     gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.38,fill:'none',stroke:'#555','stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.18,fill:'none',stroke:'#555','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
 
-    // 라벨 기본 위치: M측점 반대방향 위쪽
-    var defOff=3.5;
+    // 라벨 기본 위치: M측점 반대방향
+    var defOff=4.0;
     var defLx, defLy;
     if(mp){
-      // M측점 → 맨홀 방향의 반대쪽으로 라벨 배치
       var dx=mh.wx-mp.x, dy=mh.wy-mp.y;
       var dl=Math.hypot(dx,dy)||1;
       defLx=mh.wx+(dx/dl)*defOff; defLy=mh.wy+(dy/dl)*defOff;
@@ -270,18 +269,25 @@ function drawManholes(){
 
     // 라벨 크기
     var labelW=Math.max((mh.label||'').length*0.38+0.5, 2.2);
-    var labelH=0.85;
+    var labelH=0.72;
 
-    // 인출선: 라벨 박스 중앙에서 맨홀까지 단순 직선
-    var lineSx=lbx+labelW/2, lineSy=lby+labelH/2;
-    gMH.appendChild(el('line',{x1:lineSx,y1:lineSy,x2:mx,y2:my,stroke:'#555','stroke-width':0.9,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    // 라벨이 맨홀 기준 오른쪽/왼쪽 판단
+    var isRight=(lbx+labelW/2) >= mx;
+    // 수평선 시작/끝: 라벨 아래에 밑줄처럼
+    var hLineX1=lbx, hLineX2=lbx+labelW, hLineY=lby+labelH;
+    // 꺾임점: 수평선 중 맨홀에 가까운 쪽 끝
+    var kinkX=isRight ? hLineX1 : hLineX2;
+    var kinkY=hLineY;
+    // 대각선: 꺾임점 → 맨홀중심
+    gMH.appendChild(el('line',{x1:kinkX,y1:kinkY,x2:mx,y2:my,stroke:'#555','stroke-width':0.9,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    // 수평 밑줄
+    gMH.appendChild(el('line',{x1:hLineX1,y1:hLineY,x2:hLineX2,y2:hLineY,stroke:'#555','stroke-width':0.9,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
 
-    // M측점 연결선 (있으면)
+    // M측점 연결선 (파란점선)
     if(mp){var ms=S(mp.x,mp.y);gMH.appendChild(el('line',{x1:ms[0],y1:ms[1],x2:mx,y2:my,stroke:'#1f6fd6','stroke-width':1.0,'stroke-dasharray':'2 1.5','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}
 
-    // 노란 라벨 박스
-    gMH.appendChild(el('rect',{x:lbx,y:lby,width:labelW,height:labelH,rx:0.1,fill:'#fffde7',stroke:'#f2b400','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-    var txtEl=el('text',{x:lbx+0.2,y:lby+0.62,'font-size':0.52,fill:'#333','font-weight':'700','text-anchor':'start','pointer-events':'none'});
+    // 라벨 텍스트 (박스 없이, 밑줄 위에)
+    var txtEl=el('text',{x:lbx+0.15,y:lby+labelH-0.1,'font-size':0.62,fill:'#333','font-weight':'600','text-anchor':'start','pointer-events':'none'});
     txtEl.textContent=mh.label||'';
     gMH.appendChild(txtEl);
 
@@ -317,9 +323,9 @@ function drawManholes(){
       var inp=document.createElement('input');
       inp.value=mh.label||'';
       inp.style.cssText='position:fixed;z-index:999;box-sizing:border-box;'
-        +'left:'+sx+'px;top:'+sy+'px;width:'+Math.max(pw,80)+'px;height:'+Math.max(ph,28)+'px;'
-        +'font-size:'+Math.max(ph*0.65,14)+'px;padding:0 8px;'
-        +'border:2px solid #f2b400;border-radius:6px;background:#fffde7;color:#333;font-weight:700;outline:none;';
+        +'left:'+sx+'px;top:'+sy+'px;width:'+Math.max(pw,80)+'px;height:'+Math.max(ph,24)+'px;'
+        +'font-size:'+Math.max(ph*0.75,13)+'px;padding:0 6px;'
+        +'border:none;border-bottom:2px solid #555;background:#fffde7;color:#333;font-weight:600;outline:none;';
       document.body.appendChild(inp);inp.focus();inp.select();
       var done=function(){if(inp.parentNode){mh.label=inp.value.trim()||mh.label;inp.remove();drawManholes();}};
       inp.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();});
@@ -329,7 +335,7 @@ function drawManholes(){
     gMH.appendChild(drag);
 
     // 라벨 박스 드래그 핸들
-    var lbDrag=el('rect',{x:lbx,y:lby,width:labelW,height:labelH,rx:0.1,fill:'transparent','pointer-events':'all',cursor:'move'});
+    var lbDrag=el('rect',{x:lbx,y:lby,width:labelW,height:labelH+0.3,rx:0.1,fill:'transparent','pointer-events':'all',cursor:'move'});
     var lbDragging=false,lbGx=0,lbGy=0;
     lbDrag.addEventListener('pointerdown',function(ev){
       if(mode!=='pan'&&mode!=='mhplace')return;ev.stopPropagation();ev.preventDefault();
