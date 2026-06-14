@@ -126,10 +126,15 @@ var gGeo=document.createElementNS(SVGNS,'g'); gGeo.setAttribute('pointer-events'
 var gMark=document.createElementNS(SVGNS,'g'); gMark.setAttribute('pointer-events','none');
 var gDraft=document.createElementNS(SVGNS,'g'); gDraft.setAttribute('pointer-events','none');
 var gPts=document.createElementNS(SVGNS,'g');
-cv.appendChild(gGeo); cv.appendChild(gMark); cv.appendChild(gDraft); cv.appendChild(gPts);
+var gMH=document.createElementNS(SVGNS,'g'); // 맨홀 심벌 레이어
+cv.appendChild(gGeo); cv.appendChild(gMark); cv.appendChild(gDraft); cv.appendChild(gPts); cv.appendChild(gMH);
 
 /* 상태 */
-var state={ projectId:null, projectName:null, points:[], lines:[], markups:[], labelOff:{} };
+var state={ projectId:null, projectName:null, points:[], lines:[], markups:[], labelOff:{}, manholes:[] };
+// manhole 구조: {id, wx, wy, label, lx, ly}
+// wx,wy = 맨홀 중심 세계좌표(x=동,y=북)
+// lx,ly = 라벨 앵커 세계좌표
+// label = '2M(SKB)' 등
 var mode='pan', status='ok';
 var LINECOL={"통신관로":{c:"#d92b2b",w:1.6},"압입구간":{c:"#1f6fd6",w:1.6,dash:"5 4"},"지거":{c:"#f2b400",w:2.4},"주입상인출선":{c:"#999",w:1}};
 function isTpoint(p){return /(^|\s)T(\s|$)/.test((p&&p.code)||'');}
@@ -233,7 +238,102 @@ function drawGeo(){
     addLabelHandle(p,L,ls,nt,ct,ld,ptNum(p)===String(selNum));
   });
 }
-function drawMarks(){ clearSvg(gMark);
+/* ====== 맨홀 심벌 렌더 ====== */
+function drawManholes(){
+  clearSvg(gMH);
+  (state.manholes||[]).forEach(function(mh){
+    var s=S(mh.wx,mh.wy);
+    var mx=s[0], my=s[1];
+
+    // 가장 가까운 M코드 측점과 연결선 (파란선)
+    var mp=null,md=1e18;
+    state.points.forEach(function(p){if(!isManhole(p))return;var d=Math.hypot(p.x-mh.wx,p.y-mh.wy);if(d<md){md=d;mp=p;}});
+    if(mp){var ms=S(mp.x,mp.y);gMH.appendChild(el('line',{x1:ms[0],y1:ms[1],x2:mx,y2:my,stroke:'#1f6fd6','stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}
+
+    // 이중원(◎)
+    gMH.appendChild(el('circle',{cx:mx,cy:my,r:1.2,fill:'#fff',stroke:'#333','stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.5,fill:'#333','pointer-events':'none'}));
+
+    // 라벨 위치
+    var lx=mh.lx!=null?mh.lx:mx, ly=mh.ly!=null?mh.ly:my-4;
+    var ls=S(lx,ly);
+    var lbx=ls[0], lby=ls[1];
+
+    // 빨간선(수평) - 라벨 오른쪽 끝 → 꺾임점
+    // 파란선은 꺾임점 → 맨홀중심 이미 위에서 그림 (M측점 연결)
+    // 별도 인출선: 라벨박스 끝에서 수평으로 나오다 맨홀까지 꺾이는 선
+    var labelW=Math.max((mh.label||'').length*0.55+0.8, 3.5);
+    var labelH=1.3;
+    // 꺾임점: 라벨 박스 오른쪽 수직중앙에서 맨홀까지
+    var kinkX=lbx+labelW, kinkY=lby+labelH/2;
+    // 빨간선: 라벨 오른쪽 → 꺾임점
+    gMH.appendChild(el('line',{x1:lbx+labelW,y1:lby+labelH/2,x2:kinkX,y2:kinkY,stroke:'#d92b2b','stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    // 파란선(인출): 꺾임점 → 맨홀중심
+    gMH.appendChild(el('line',{x1:kinkX,y1:kinkY,x2:mx,y2:my,stroke:'#1f6fd6','stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+
+    // 노란 라벨 박스
+    var boxEl=el('rect',{x:lbx,y:lby,width:labelW,height:labelH,rx:0.15,fill:'#fffde7',stroke:'#f2b400','stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'});
+    gMH.appendChild(boxEl);
+    var txtEl=el('text',{x:lbx+0.35,y:lby+0.95,'font-size':0.72,fill:'#333','font-weight':'700','text-anchor':'start','pointer-events':'none'});
+    txtEl.textContent=mh.label||'';
+    gMH.appendChild(txtEl);
+
+    // 드래그 핸들 - 맨홀 중심(이중원)
+    var drag=el('circle',{cx:mx,cy:my,r:1.5,fill:'transparent','pointer-events':'all',cursor:'move'});
+    var mhDrag=false,mhGx=0,mhGy=0;
+    drag.addEventListener('pointerdown',function(ev){
+      if(mode!=='pan')return;ev.stopPropagation();ev.preventDefault();
+      mhDrag=true;var w=toWorld(ev.clientX,ev.clientY);mhGx=w[0]-mh.wx;mhGy=w[1]-mh.wy;
+      try{drag.setPointerCapture(ev.pointerId);}catch(e){}});
+    drag.addEventListener('pointermove',function(ev){
+      if(!mhDrag)return;ev.preventDefault();var w=toWorld(ev.clientX,ev.clientY);
+      mh.wx=w[0]-mhGx;mh.wy=w[1]-mhGy;drawManholes();});
+    drag.addEventListener('pointerup',function(ev){if(!mhDrag)return;mhDrag=false;try{drag.releasePointerCapture(ev.pointerId);}catch(e){}drawManholes();});
+    drag.addEventListener('pointercancel',function(ev){mhDrag=false;});
+    gMH.appendChild(drag);
+
+    // 더블클릭 → 라벨 수정
+    drag.addEventListener('dblclick',function(ev){
+      ev.stopPropagation();var newLabel=prompt('맨홀 라벨 수정',mh.label||'');
+      if(newLabel!=null){mh.label=newLabel.trim();drawManholes();}});
+
+    // 라벨 박스 드래그 핸들
+    var lbDrag=el('rect',{x:lbx,y:lby,width:labelW,height:labelH,rx:0.15,fill:'transparent','pointer-events':'all',cursor:'move'});
+    var lbDragging=false,lbGx=0,lbGy=0;
+    lbDrag.addEventListener('pointerdown',function(ev){
+      if(mode!=='pan')return;ev.stopPropagation();ev.preventDefault();
+      lbDragging=true;var w=toWorld(ev.clientX,ev.clientY);lbGx=w[0]-lx;lbGy=w[1]-ly;
+      try{lbDrag.setPointerCapture(ev.pointerId);}catch(e){}});
+    lbDrag.addEventListener('pointermove',function(ev){
+      if(!lbDragging)return;ev.preventDefault();var w=toWorld(ev.clientX,ev.clientY);
+      mh.lx=w[0]-lbGx;mh.ly=w[1]-lbGy;drawManholes();});
+    lbDrag.addEventListener('pointerup',function(ev){if(!lbDragging)return;lbDragging=false;try{lbDrag.releasePointerCapture(ev.pointerId);}catch(e){}});
+    lbDrag.addEventListener('dblclick',function(ev){
+      ev.stopPropagation();var newLabel=prompt('맨홀 라벨 수정',mh.label||'');
+      if(newLabel!=null){mh.label=newLabel.trim();drawManholes();}});
+    gMH.appendChild(lbDrag);
+
+    // 지우기 모드: hover 빨간링
+    if(mode==='delmh'){
+      drag.addEventListener('mouseenter',function(){drag.setAttribute('stroke','#d32f2f');drag.setAttribute('stroke-width',2);drag.setAttribute('fill','rgba(211,47,47,0.12)');});
+      drag.addEventListener('mouseleave',function(){drag.setAttribute('stroke','none');drag.setAttribute('fill','transparent');});
+      drag.addEventListener('click',function(ev){
+        if(mode!=='delmh')return;ev.stopPropagation();
+        var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();toast('맨홀 심벌 삭제');});
+    }
+  });
+}
+var mhIdSeq=1;
+function placeManholeAt(wx,wy){
+  var label=prompt('맨홀 라벨 입력 (예: 2M(SKB))','');
+  if(label==null)return; // 취소
+  label=label.trim()||'맨홀';
+  // 기본 라벨 위치: 맨홀 중심 좌상단
+  state.manholes.push({id:mhIdSeq++, wx:wx, wy:wy, label:label, lx:wx+1, ly:wy+4});
+  drawManholes();
+  toast('맨홀 심기 완료: '+label);
+}
+
   state.markups.forEach(function(m){
     var sh=m.type==='cir'?el('ellipse',{cx:m.cx,cy:m.cy,rx:m.rx,ry:m.ry}):el('rect',{x:m.x,y:m.y,width:m.w,height:m.h,rx:0.4});
     sh.setAttribute('fill',MKCOL[m.status]);sh.setAttribute('fill-opacity',0.13);sh.setAttribute('stroke',MKCOL[m.status]);sh.setAttribute('stroke-width',2);sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');
@@ -344,6 +444,7 @@ var dragging=false,startC=null,startVB=null,drawing=false,cur=null,sx=0,sy=0,mid
 cv.addEventListener('pointerdown',function(e){
   if(e.button===1){e.preventDefault();midPanning=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};cv.style.cursor='grabbing';try{cv.setPointerCapture(e.pointerId);}catch(x){}return;}
   if(mode==='pan'){/* 좌클릭=점 선택(pointerup에서), 화면이동은 휠(가운데) 버튼 */}
+  else if(mode==='mhplace'){var wm=toWorld(e.clientX,e.clientY);placeManholeAt(wm[0],-wm[1]);return;}
   else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);var np=nearestPointWorld(w[0],w[1]);
     var pt=(np.p&&np.d<vb.w*0.04)?[np.p.x,np.p.y]:[w[0],-w[1]];lineDraft.push(pt);renderDraft();}
   else if(mode==='delline'){var wd=toWorld(e.clientX,e.clientY);deleteSegmentAt(wd[0],wd[1]);}
@@ -436,8 +537,7 @@ function refreshProjects(){ if(!online)return;
   });
 }
 function saveProject(){
-  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;})};
-  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
+  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
   if(!state.projectName){toast('현장명을 먼저 정하세요(새 현장)');return;}
   var row={name:state.projectName,payload:payload,updated_at:new Date().toISOString()};
   if(state.projectId)row.id=state.projectId;
@@ -452,8 +552,8 @@ function loadProject(id){ if(!online||!id)return;
   sb.from('survey_projects').select('*').eq('id',id).single().then(function(res){
     if(res.error||!res.data){toast('불러오기 실패');return;}
     var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;
-    state.points=p.points||[];state.lines=p.lines||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};
-    selNum=null;clearSvg(gSel);drawGeo();drawMarks();fitView();updMeta();loadPhotos();toast('현장 불러옴: '+res.data.name);
+    state.points=p.points||[];state.lines=p.lines||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];
+    selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();loadPhotos();toast('현장 불러옴: '+res.data.name);
   });
 }
 
@@ -476,8 +576,8 @@ var TB=[
     {t:'지거선 지우기',tone:'del',mode:'delline',delLayer:'지거',hint:'지울 지거선 위에 마우스→클릭'},
     {t:'전체삭제',tone:'delall',fn:clearAllDraw}]},
   {k:'mh',label:'맨홀편집',icon:'◎',c:{bg:'#efeafa',fg:'#7a52e0'},tools:[
-    {t:'맨홀심벌(이중원)',tone:'draw',soon:1},
-    {t:'인출선',tone:'draw',soon:1}]},
+    {t:'맨홀심기',tone:'draw',mode:'mhplace',hint:'도면에서 맨홀 위치를 클릭하세요'},
+    {t:'인출선 지우기',tone:'del',mode:'delmh',hint:'지울 맨홀 이중원을 클릭하세요'}]},
   {k:'push',label:'압입구간편집',icon:'⇥',c:{bg:'#e3f4ef',fg:'#109a82'},tools:[
     {t:'그리기',tone:'draw',soon:1},
     {t:'지우기',tone:'del',soon:1}]},
@@ -538,10 +638,10 @@ function renderSub(){
 }
 renderRail();renderSub();
 bind('save',saveProject);
-bind('newProj',function(){var n=prompt('새 현장명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 현장: '+n+' (CSV 업로드 후 저장)');});
+bind('newProj',function(){var n=prompt('새 현장명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.manholes=[];photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 현장: '+n+' (CSV 업로드 후 저장)');});
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)loadProject(e.target.value);});
-document.getElementById('fCsv').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.projectId=null;state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();fitView();updMeta();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화 / 현장명: '+state.projectName+')');};rd.readAsArrayBuffer(f);e.target.value='';});
+document.getElementById('fCsv').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.manholes=[];state.projectId=null;state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화 / 현장명: '+state.projectName+')');};rd.readAsArrayBuffer(f);e.target.value='';});
 document.getElementById('fDxf').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var ln=parseDxfLines(decodeBuf(rd.result));state.lines=state.lines.filter(function(l){return l.layer==='지거'||l.layer==='압입구간'||l.layer==='주입상인출선';}).concat(ln);drawGeo();fitView();updMeta();toast('DXF 라인 '+ln.length+'개 로드');}catch(err){toast('DXF 파싱 오류');}};rd.readAsArrayBuffer(f);e.target.value='';});
 
 /* ====== 샘플 데이터 (수원 권선동 1041-6) ====== */
@@ -563,7 +663,7 @@ function loadSample(){
     {layer:'통신관로',pts:[[202567.43,517213.98],[202566.94,517212.32],[202566.72,517211.58]]},
     {layer:'압입구간',pts:[[202566.72,517211.58],[202594.89,517294.72]]},
     {layer:'지거',pts:[[202567.43,517213.98],[202573.57,517233.15]]}];
-  state.markups=[];photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();fitView();updMeta();toast('샘플 로드됨');
+  state.markups=[];state.manholes=[];photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();toast('샘플 로드됨');
 }
 
 /* init */
