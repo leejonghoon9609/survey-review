@@ -295,6 +295,8 @@ function drawGeo(){
 function drawManholes(){
   clearSvg(gMH); clearLabels('mh');
   (state.manholes||[]).forEach(function(mh){
+    // 손 안 댄 자동순번 기본라벨(예 '2M (SK )')은 숫자 떼서 'M (SK )'로 정리
+    if(/^\d+M\s*\(\s*SK\s*\)$/.test(mh.label||''))mh.label='M (SK )';
     var s=S(mh.wx,mh.wy);
     var mx=s[0], my=s[1];
 
