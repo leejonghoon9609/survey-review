@@ -253,13 +253,18 @@ function drawManholes(){
     gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.38,fill:'none',stroke:'#555','stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.18,fill:'none',stroke:'#555','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
 
-    // 라벨 기본 위치: M측점 반대방향
+    // 라벨 기본 위치: 맨홀 기준 4방향 자동 (관로선/M측점 방향 반대)
     var defOff=4.0;
     var defLx, defLy;
     if(mp){
       var dx=mh.wx-mp.x, dy=mh.wy-mp.y;
       var dl=Math.hypot(dx,dy)||1;
-      defLx=mh.wx+(dx/dl)*defOff; defLy=mh.wy+(dy/dl)*defOff;
+      // 좌/우 방향
+      var goRight=(dx>=0);
+      // 위/아래 방향 (dy>0이면 맨홀이 M측점보다 북쪽=화면 위)
+      var goUp=(dy>=0);
+      defLx = goRight ? mh.wx+defOff*0.7 : mh.wx-defOff*0.7-((mh.label||'').length*0.38+0.5);
+      defLy = goUp   ? mh.wy+defOff*0.5  : mh.wy-defOff*0.5;
     } else {
       defLx=mh.wx+defOff; defLy=mh.wy+defOff;
     }
@@ -334,17 +339,25 @@ function drawManholes(){
     drag.addEventListener('dblclick',function(ev){ev.stopPropagation();openLabelEdit();});
     gMH.appendChild(drag);
 
-    // 라벨 박스 드래그 핸들
-    var lbDrag=el('rect',{x:lbx,y:lby,width:labelW,height:labelH+0.3,rx:0.1,fill:'transparent','pointer-events':'all',cursor:'move'});
+    // 라벨 드래그 핸들 (텍스트+밑줄 영역)
+    var lbDrag=el('rect',{x:lbx,y:lby-labelH,width:labelW,height:labelH+0.4,rx:0.1,fill:'transparent','pointer-events':'all',cursor:'move'});
     var lbDragging=false,lbGx=0,lbGy=0;
     lbDrag.addEventListener('pointerdown',function(ev){
       if(mode!=='pan'&&mode!=='mhplace')return;ev.stopPropagation();ev.preventDefault();
-      lbDragging=true;var w=toWorld(ev.clientX,ev.clientY);lbGx=w[0]-lx;lbGy=w[1]-ly;
+      lbDragging=true;
+      var w=toWorld(ev.clientX,ev.clientY);
+      // mh.lx/ly가 null이면 현재 계산된 lx/ly로 초기화
+      if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
+      lbGx=w[0]-mh.lx; lbGy=w[1]-mh.ly;
       try{lbDrag.setPointerCapture(ev.pointerId);}catch(e){}});
     lbDrag.addEventListener('pointermove',function(ev){
-      if(!lbDragging)return;ev.preventDefault();var w=toWorld(ev.clientX,ev.clientY);
-      mh.lx=w[0]-lbGx;mh.ly=w[1]-lbGy;drawManholes();});
-    lbDrag.addEventListener('pointerup',function(ev){if(!lbDragging)return;lbDragging=false;try{lbDrag.releasePointerCapture(ev.pointerId);}catch(e){}});
+      if(!lbDragging)return;ev.preventDefault();
+      var w=toWorld(ev.clientX,ev.clientY);
+      mh.lx=w[0]-lbGx; mh.ly=w[1]-lbGy;
+      drawManholes();});
+    lbDrag.addEventListener('pointerup',function(ev){
+      if(!lbDragging)return;lbDragging=false;
+      try{lbDrag.releasePointerCapture(ev.pointerId);}catch(e){}});
     lbDrag.addEventListener('dblclick',function(ev){ev.stopPropagation();openLabelEdit();});
     gMH.appendChild(lbDrag);
 
