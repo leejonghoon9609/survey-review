@@ -332,8 +332,17 @@ function drawManholes(){
     // 수평 밑줄
     gMH.appendChild(el('line',{x1:hLineX1,y1:hLineY,x2:hLineX2,y2:hLineY,stroke:'#555','stroke-width':0.9,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
 
-    // M측점 연결선 (파란점선)
-    if(mp){var ms=S(mp.x,mp.y);gMH.appendChild(el('line',{x1:ms[0],y1:ms[1],x2:mx,y2:my,stroke:'#1f6fd6','stroke-width':1.0,'stroke-dasharray':'2 1.5','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}
+    // M측점 연결선 (파란 실선) — 맨홀 앞 M점 + 그 점의 결선 이웃 중 M점들
+    if(mp){
+      // 연결할 M측점 목록: mp 자신 + mp의 결선 이웃 중 M코드인 것
+      var connectPts=[mp];
+      var nbrs=lineNeighbors(ptNum(mp));
+      nbrs.forEach(function(q){if(isManhole(q)&&connectPts.indexOf(q)<0)connectPts.push(q);});
+      connectPts.forEach(function(q){
+        var qs=S(q.x,q.y);
+        gMH.appendChild(el('line',{x1:qs[0],y1:qs[1],x2:mx,y2:my,stroke:'#1f6fd6','stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      });
+    }
 
     // 라벨 텍스트 (밑줄 위) — 오버레이 div (줌 무관, 절대 안 사라짐)
     var mhLbl=mkLabel(lbx+EM*0.15, lby+labelH*0.5, mh.label||'', {fill:'#333',weight:'600',anchor:'start',grp:'mh',px:13});
