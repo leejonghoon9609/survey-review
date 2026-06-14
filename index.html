@@ -278,13 +278,13 @@ function drawGeo(){
     gHit.appendChild(hit);
     if(/^\s*M/.test(p.code||''))gPts.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.28,fill:'none',stroke:'#000','stroke-width':0.8,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     var L=lay[i],ls=S(L.lx,L.ly),off=L.anchor==='start'?0.15:-0.15;
-    var ld=null;if(L.leader){ld=el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':0.9,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);}
-    var nt=mkLabel(ls[0]+off, ls[1], p.no, {fill:'#1a7a3a',anchor:L.anchor,grp:'pt',px:15});
+    var ld=null;if(L.leader){ld=el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':1.3,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);}
+    var nt=mkLabel(ls[0]+off, ls[1], p.no, {fill:'#1a7a3a',weight:'600',anchor:L.anchor,grp:'pt',px:22});
     // 코드는 번호 아래 줄로 같은 div에 추가
     if((p.code||'').trim()){
       var sub=document.createElement('div');
       sub.textContent=(p.code||'').trim();
-      sub.style.cssText='color:#0f7a86;font-weight:400;margin-top:2px;';
+      sub.style.cssText='color:#0f7a86;font-weight:600;margin-top:2px;';
       nt.appendChild(sub);
     }
     var ct=nt; // 핸들 호환
