@@ -253,6 +253,18 @@ function repositionLabels(){
   var ns=lblOverlay.children;
   for(var i=0;i<ns.length;i++){var d=ns[i];if(d._sx!=null)placeLabelDiv(d);}
 }
+// ★ 심벌(측점 사각·맨홀 이중원)을 라벨과 동일한 화면픽셀 오버레이로 그림
+//   크기가 CSS px로 고정 → 줌/팬/리사이즈에 계산 자체가 없어 절대 안 변함
+function mkSym(svgX,svgY,grp,css){
+  var d=document.createElement('div');
+  d.className='lbl-'+(grp||'pt');     // clearLabels/repositionLabels와 동일 그룹키 → 같이 청소·재배치
+  d._sx=svgX; d._sy=svgY;
+  d.style.cssText='position:absolute;box-sizing:border-box;pointer-events:none;'
+    +'transform:translate(-50%,-50%);'+css; // 중심 정렬
+  placeLabelDiv(d);
+  if(lblOverlay)lblOverlay.appendChild(d);
+  return d;
+}
 // ★ 화면 1px당 월드단위 — getScreenCTM으로 브라우저가 실제 적용한 스케일을 직접 측정
 //   (preserveAspectRatio/meet/종횡비/리사이즈/줌이 모두 반영된 실측값 → 추정 오차 없음)
 function pxToWorld(){
@@ -279,14 +291,15 @@ function drawGeo(){
     addNoteHandle(L,t,ld,lx,ly);
   });
   var Up=pxToWorld(); // ★실측: 브라우저가 실제 그린 스케일 기준 1px당 월드단위
-  var _vs=document.getElementById('vstamp');if(_vs)_vs.textContent='px/m='+(1/Up).toFixed(1)+' (고정v3-CTM)';
+  var _vs=document.getElementById('vstamp');if(_vs)_vs.textContent='심벌=화면고정 v4-overlay';
   var hitR=Math.min(0.45, 9*Up);   // 클릭 히트: 작은 줌에선 화면 고정, 큰 줌에선 월드 0.45 상한
   state.points.forEach(function(p,i){var s=S(p.x,p.y);
-    var hbx=6*Up;gPts.appendChild(el('rect',{x:s[0]-hbx,y:s[1]-hbx,width:2*hbx,height:2*hbx,fill:'none',stroke:isTpoint(p)?'#13803a':'#111','stroke-width':2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    // 측점 심벌(속빈 사각) — 화면픽셀 오버레이라 줌/팬/리사이즈에 절대 안 변함
+    mkSym(s[0],s[1],'pt','width:12px;height:12px;border:2.6px solid '+(isTpoint(p)?'#13803a':'#111')+';');
     var hit=el('circle',{cx:s[0],cy:s[1],r:hitR,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
     hit.addEventListener('click',function(ev){if(mode!=='pan'||labelDragging)return;ev.stopPropagation();if(photoLink)selectPoint(ptNum(p));else{selNum=String(ptNum(p));drawGeo();highlightSel();}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
     gHit.appendChild(hit);
-    if(/^\s*M/.test(p.code||''))gPts.appendChild(el('circle',{cx:s[0],cy:s[1],r:9*Up,fill:'none',stroke:'#000','stroke-width':0.8,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    if(/^\s*M/.test(p.code||''))mkSym(s[0],s[1],'pt','width:18px;height:18px;border:1.6px solid #000;border-radius:50%;');
     var L=lay[i],ls=S(L.lx,L.ly),off=L.anchor==='start'?0.15:-0.15;
     var ld=null;if(L.leader){ld=el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':1.3,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);}
     var nt=mkLabel(ls[0]+off, ls[1], p.no, {fill:'#1a7a3a',weight:'400',anchor:L.anchor,grp:'pt',px:22});
@@ -320,8 +333,9 @@ function drawManholes(){
     var EM=22*U; // 라벨 글자높이(22px) 만큼의 월드길이
 
     // 이중원(◎) — 원래 월드 고정 크기
-    gMH.appendChild(el('circle',{cx:mx,cy:my,r:11*U,fill:'none',stroke:'#555','stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-    gMH.appendChild(el('circle',{cx:mx,cy:my,r:5*U,fill:'none',stroke:'#555','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    // 이중원(◎) — 화면픽셀 오버레이라 줌/팬/리사이즈에 절대 안 변함
+    mkSym(mx,my,'mh','width:22px;height:22px;border:1.6px solid #555;border-radius:50%;');
+    mkSym(mx,my,'mh','width:10px;height:10px;border:1.2px solid #555;border-radius:50%;');
 
     // 라벨 글자 폭 (텍스트 길이 기준 월드값)
     var txtW=(mh.label||'').length*EM*0.6+EM*0.3;
