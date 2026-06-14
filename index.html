@@ -241,6 +241,8 @@ function drawGeo(){
 /* ====== 맨홀 심벌 렌더 ====== */
 function drawManholes(){
   clearSvg(gMH);
+  // 줌 비율: 화면에서 일정 크기 유지하도록 vb.w 기반 스케일
+  var SC=vb.w/100; // 기준 vb.w=100일 때 1배
   (state.manholes||[]).forEach(function(mh){
     var s=S(mh.wx,mh.wy);
     var mx=s[0], my=s[1];
@@ -249,36 +251,30 @@ function drawManholes(){
     var mp=null,md=1e18;
     state.points.forEach(function(p){if(!isManhole(p))return;var d=Math.hypot(p.x-mh.wx,p.y-mh.wy);if(d<md){md=d;mp=p;}});
 
-    // 이중원(◎) — 측점 사각형과 비슷한 사이즈
-    gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.38,fill:'none',stroke:'#555','stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-    gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.18,fill:'none',stroke:'#555','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    // 이중원(◎) — 줌 무관 고정크기
+    gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.38*SC,fill:'none',stroke:'#555','stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.18*SC,fill:'none',stroke:'#555','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
 
-    // 라벨 기본 위치: 맨홀 기준 4방향 자동 (관로선/M측점 방향 반대)
-    var defOff=0.8;
-    var defLx, defLy;
+    // 라벨 크기 (줌 무관 고정)
+    var labelW=Math.max((mh.label||'').length*0.38+0.5, 2.2)*SC;
+    var labelH=0.72*SC;
+
+    // 라벨 위치: 맨홀중심(mx,my) 기준 SVG 상대 offset 저장
+    // mh.loff=[ox,oy] (SVG px, SC 곱하기 전 기준값)
+    var defOx, defOy;
     if(mp){
       var dx=mh.wx-mp.x, dy=mh.wy-mp.y;
-      var dl=Math.hypot(dx,dy)||1;
       var goRight=(dx>=0);
-      var goUp=(dy>=0);
-      defLx = goRight ? mh.wx+defOff*0.6 : mh.wx-defOff*0.6-((mh.label||'').length*0.38+0.5);
-      defLy = goUp   ? mh.wy+defOff*0.4  : mh.wy-defOff*0.4;
-    } else {
-      defLx=mh.wx+defOff; defLy=mh.wy+defOff;
-    }
-    var lx=mh.lx!=null?mh.lx:defLx, ly=mh.ly!=null?mh.ly:defLy;
-    var ls=S(lx,ly);
-    var lbx=ls[0], lby=ls[1];
-
-    // 라벨 크기
-    var labelW=Math.max((mh.label||'').length*0.38+0.5, 2.2);
-    var labelH=0.72;
+      var goUp=(dy>=0); // 맨홀이 M보다 북쪽이면 화면 위
+      defOx = goRight ? 0.8 : -(0.8+(mh.label||'').length*0.38+0.5);
+      defOy = goUp ? -1.4 : 0.6; // 위면 라벨도 위(SVG y 작음)
+    } else { defOx=0.8; defOy=-1.4; }
+    var ox=mh.loff?mh.loff[0]:defOx, oy=mh.loff?mh.loff[1]:defOy;
+    var lbx=mx+ox*SC, lby=my+oy*SC;
 
     // 라벨이 맨홀 기준 오른쪽/왼쪽 판단
     var isRight=(lbx+labelW/2) >= mx;
-    // 수평선 시작/끝: 라벨 아래에 밑줄처럼
     var hLineX1=lbx, hLineX2=lbx+labelW, hLineY=lby+labelH;
-    // 꺾임점: 수평선 중 맨홀에 가까운 쪽 끝
     var kinkX=isRight ? hLineX1 : hLineX2;
     var kinkY=hLineY;
     // 대각선: 꺾임점 → 맨홀중심
@@ -289,27 +285,24 @@ function drawManholes(){
     // M측점 연결선 (파란점선)
     if(mp){var ms=S(mp.x,mp.y);gMH.appendChild(el('line',{x1:ms[0],y1:ms[1],x2:mx,y2:my,stroke:'#1f6fd6','stroke-width':1.0,'stroke-dasharray':'2 1.5','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}
 
-    // 라벨 텍스트 (박스 없이, 밑줄 위에)
-    var txtEl=el('text',{x:lbx+0.15,y:lby+labelH-0.1,'font-size':0.62,fill:'#333','font-weight':'600','text-anchor':'start','pointer-events':'none'});
+    // 라벨 텍스트 (밑줄 위에) — 화면 고정 폰트
+    var txtEl=el('text',{x:lbx+0.15*SC,y:lby+labelH-0.12*SC,'font-size':0.62*SC,fill:'#333','font-weight':'600','text-anchor':'start','pointer-events':'none'});
     txtEl.textContent=mh.label||'';
     gMH.appendChild(txtEl);
 
     // 드래그 핸들 - 맨홀 중심(이중원)
-    var drag=el('circle',{cx:mx,cy:my,r:0.6,fill:'transparent','pointer-events':'all',cursor:'move'});
+    var drag=el('circle',{cx:mx,cy:my,r:0.6*SC,fill:'transparent','pointer-events':'all',cursor:'move'});
     drag.addEventListener('pointerdown',function(ev){
       if(mode!=='pan'&&mode!=='mhplace')return;
       ev.stopPropagation();ev.preventDefault();
-      if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
       var w=toWorld(ev.clientX,ev.clientY);
-      // SVG 좌표 기준 offset
       mhDragState={type:'center',mh:mh,gx:w[0]-mx,gy:w[1]-my};});
     // 더블클릭 → 인라인 라벨 편집
     function openLabelEdit(){
       var r=cv.getBoundingClientRect();
       var scaleX=r.width/vb.w, scaleY=r.height/vb.h;
-      var curLs=S(mh.lx!=null?mh.lx:lx, mh.ly!=null?mh.ly:ly);
-      var sx=r.left+(curLs[0]-vb.x)*scaleX;
-      var sy=r.top+(curLs[1]-vb.y)*scaleY;
+      var sx=r.left+(lbx-vb.x)*scaleX;
+      var sy=r.top+(lby-vb.y)*scaleY;
       var pw=labelW*scaleX, ph=labelH*scaleY;
       var inp=document.createElement('input');
       inp.value=mh.label||'';
@@ -326,14 +319,13 @@ function drawManholes(){
     gMH.appendChild(drag);
 
     // 라벨 드래그 핸들 (텍스트+밑줄 영역)
-    var lbDrag=el('rect',{x:lbx-0.2,y:lby-0.1,width:labelW+0.4,height:labelH+0.3,rx:0.1,fill:'transparent','pointer-events':'all',cursor:'move'});
+    var lbDrag=el('rect',{x:lbx-0.2*SC,y:lby-0.1*SC,width:labelW+0.4*SC,height:labelH+0.3*SC,rx:0.1*SC,fill:'transparent','pointer-events':'all',cursor:'move'});
     lbDrag.addEventListener('pointerdown',function(ev){
       if(mode!=='pan'&&mode!=='mhplace')return;
       ev.stopPropagation();ev.preventDefault();
-      if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
       var w=toWorld(ev.clientX,ev.clientY);
-      // SVG 좌표 기준 offset (lbx=SVG x of label)
-      mhDragState={type:'label',mh:mh,gx:w[0]-lbx,gy:w[1]-lby};});
+      // 클릭한 SVG점과 맨홀중심의 상대 offset 저장용
+      mhDragState={type:'label',mh:mh,gx:w[0]-lbx,gy:w[1]-lby,SC:SC};});
     lbDrag.addEventListener('dblclick',function(ev){ev.stopPropagation();openLabelEdit();});
     gMH.appendChild(lbDrag);
 
@@ -341,27 +333,27 @@ function drawManholes(){
     function delMh(ev){
       if(mode!=='delmh')return;ev.stopPropagation();
       var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();toast('맨홀 삭제 (심벌+인출선+라벨)');}
-    drag.addEventListener('mouseenter',function(){if(mode!=='delmh')return;drag.setAttribute('stroke','#d32f2f');drag.setAttribute('stroke-width',2);drag.setAttribute('fill','rgba(211,47,47,0.12)');});
+    drag.addEventListener('mouseenter',function(){if(mode!=='delmh')return;drag.setAttribute('stroke','#d32f2f');drag.setAttribute('stroke-width',2);drag.setAttribute('vector-effect','non-scaling-stroke');drag.setAttribute('fill','rgba(211,47,47,0.25)');});
     drag.addEventListener('mouseleave',function(){drag.setAttribute('stroke','none');drag.setAttribute('fill','transparent');});
     drag.addEventListener('click',delMh);
-    lbDrag.addEventListener('mouseenter',function(){if(mode!=='delmh')return;lbDrag.setAttribute('stroke','#d32f2f');lbDrag.setAttribute('stroke-width',1.5);lbDrag.setAttribute('fill','rgba(211,47,47,0.08)');});
+    lbDrag.addEventListener('mouseenter',function(){if(mode!=='delmh')return;lbDrag.setAttribute('stroke','#d32f2f');lbDrag.setAttribute('stroke-width',1.5);lbDrag.setAttribute('vector-effect','non-scaling-stroke');lbDrag.setAttribute('fill','rgba(211,47,47,0.15)');});
     lbDrag.addEventListener('mouseleave',function(){lbDrag.setAttribute('stroke','none');lbDrag.setAttribute('fill','transparent');});
     lbDrag.addEventListener('click',delMh);
   });
 }
-var mhDragState=null; // {type:'center'|'label', mh, gx, gy} — gx,gy는 SVG 좌표 offset
+var mhDragState=null; // {type:'center'|'label', mh, gx, gy, SC}
 window.addEventListener('pointermove',function(ev){
   if(!mhDragState)return;ev.preventDefault();
   var w=toWorld(ev.clientX,ev.clientY), mh=mhDragState.mh;
-  // SVG 좌표에서 새 위치
   var newSx=w[0]-mhDragState.gx, newSy=w[1]-mhDragState.gy;
-  // SVG→World: wx=sx, wy=-sy
   if(mhDragState.type==='center'){
-    var newWx=newSx, newWy=-newSy;
-    if(mh.lx!=null){mh.lx+=newWx-mh.wx;mh.ly+=newWy-mh.wy;}
-    mh.wx=newWx;mh.wy=newWy;
+    // 맨홀중심 이동: world 좌표로 (라벨은 상대offset이라 자동 따라옴)
+    mh.wx=newSx; mh.wy=-newSy;
   } else {
-    mh.lx=newSx; mh.ly=-newSy;
+    // 라벨 이동: 새 SVG 위치 - 맨홀중심 SVG = 상대 offset / SC
+    var s=S(mh.wx,mh.wy);
+    var SC=mhDragState.SC||(vb.w/100);
+    mh.loff=[(newSx-s[0])/SC, (newSy-s[1])/SC];
   }
   drawManholes();
 });
@@ -372,7 +364,7 @@ var mhIdSeq=1;
 function placeManholeAt(wx,wy){
   // 팝업 없이 기본라벨 M(SK )로 바로 심기, 더블클릭으로 수정
   var label='M(SK )';
-  state.manholes.push({id:mhIdSeq++, wx:wx, wy:wy, label:label, lx:null, ly:null});
+  state.manholes.push({id:mhIdSeq++, wx:wx, wy:wy, label:label, loff:null});
   drawManholes();
   toast('맨홀 심기 완료 — 더블클릭으로 라벨 수정, Enter/Space로 종료');
   // 모드 유지 (계속 찍을 수 있게)
