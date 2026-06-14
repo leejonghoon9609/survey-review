@@ -168,8 +168,11 @@ function computeLabels(){
   return lay;
 }
 var labelDragging=false;
+function labelScale(){var cvr=cv.getBoundingClientRect();return vb.w/Math.max(cvr.width,1)*14/10;}
+function moveLabelG(g,x,y){var sc=labelScale();g.setAttribute('transform','translate('+x+','+y+') scale('+sc+')');}
 function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
   var anchor=L.anchor;
+  var FT=14*vb.w/Math.max(cv.getBoundingClientRect().width,1);
   var tw=Math.max((''+(p.no||'')).length,((p.code||'').trim()).length)*0.33+0.7,hh=1.55;
   var hx=anchor==='start'?(ls[0]-0.15):(ls[0]-tw+0.15);
   var handle=el('rect',{x:hx,y:ls[1]-0.8,width:tw,height:hh,fill:'transparent','pointer-events':'all'});
@@ -184,8 +187,8 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
   handle.addEventListener('pointermove',function(ev){
     if(!dragging)return;ev.preventDefault();moved=true;var w=toWorld(ev.clientX,ev.clientY);
     lx=w[0]-gx;ly=w[1]-gy;var off=anchor==='start'?0.15:-0.15;
-    nt.setAttribute('x',lx+off);nt.setAttribute('y',ly-0.18);
-    ct.setAttribute('x',lx+off);ct.setAttribute('y',ly+0.55);
+    moveLabelG(nt,lx+off,ly-0.18);
+    moveLabelG(ct,lx+off,ly+FT);
     if(ld){ld.setAttribute('x2',lx);ld.setAttribute('y2',ly);}
     handle.setAttribute('x',anchor==='start'?(lx-0.15):(lx-tw+0.15));handle.setAttribute('y',ly-0.8);});
   function up(ev){if(!dragging)return;dragging=false;setTimeout(function(){labelDragging=false;},40);
@@ -208,6 +211,20 @@ function addNoteHandle(L,t,ld,lx,ly){
   h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
   gPts.appendChild(h);
 }
+// 줌-안전 텍스트: 폰트는 viewBox 단위로 충분히 크게(10) 고정, transform scale로 화면크기 일정 유지
+// → 브라우저가 작은 폰트 렌더 스킵하는 버그 회피
+function mkLabel(x,y,text,opt){
+  opt=opt||{};
+  var cvr=cv.getBoundingClientRect();
+  var pxTarget=opt.px||14;                 // 목표 화면 픽셀
+  var sc=vb.w/Math.max(cvr.width,1)*pxTarget/10; // 폰트10(viewBox단위) 기준 스케일
+  var g=el('g',{transform:'translate('+x+','+y+') scale('+sc+')','pointer-events':'none'});
+  var t=el('text',{x:0,y:0,'font-size':10,fill:opt.fill||'#333','text-anchor':opt.anchor||'start','pointer-events':'none'});
+  if(opt.weight)t.setAttribute('font-weight',opt.weight);
+  t.textContent=text;
+  g.appendChild(t);
+  return g;
+}
 function drawGeo(){
   clearSvg(gGeo); clearSvg(gPts);
   state.lines.forEach(function(L){var def=LINECOL[L.layer]||{c:"#888",w:1.2};
@@ -225,7 +242,6 @@ function drawGeo(){
     var t=el('text',{x:lx+0.25,y:ly+0.2,'font-size':0.62,fill:'#7a5f00','font-weight':'600','text-anchor':'start','pointer-events':'none'});t.textContent=L.note;gPts.appendChild(t);
     addNoteHandle(L,t,ld,lx,ly);
   });
-  var _cvr=cv.getBoundingClientRect();var FT=14*vb.w/Math.max(_cvr.width,1); // 화면상 ~14px 고정
   state.points.forEach(function(p,i){var s=S(p.x,p.y);
     gPts.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:isTpoint(p)?'#13803a':'#111','stroke-width':2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     var hit=el('circle',{cx:s[0],cy:s[1],r:0.45,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
@@ -234,8 +250,9 @@ function drawGeo(){
     if(/^\s*M/.test(p.code||''))gPts.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.28,fill:'none',stroke:'#000','stroke-width':0.8,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     var L=lay[i],ls=S(L.lx,L.ly),off=L.anchor==='start'?0.15:-0.15;
     var ld=null;if(L.leader){ld=el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':0.9,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);}
-    var nt=el('text',{x:ls[0]+off,y:ls[1]-0.18,'font-size':FT,fill:'#1a7a3a','text-anchor':L.anchor,'pointer-events':'none'});nt.textContent=p.no;gPts.appendChild(nt);
-    var ct=el('text',{x:ls[0]+off,y:ls[1]+FT,'font-size':FT,fill:'#0f7a86','text-anchor':L.anchor,'pointer-events':'none'});ct.textContent=(p.code||'').trim();gPts.appendChild(ct);
+    var FT=14*vb.w/Math.max(cv.getBoundingClientRect().width,1);
+    var nt=mkLabel(ls[0]+off, ls[1]-0.18, p.no, {fill:'#1a7a3a',anchor:L.anchor});gPts.appendChild(nt);
+    var ct=mkLabel(ls[0]+off, ls[1]+FT, (p.code||'').trim(), {fill:'#0f7a86',anchor:L.anchor});gPts.appendChild(ct);
     addLabelHandle(p,L,ls,nt,ct,ld,ptNum(p)===String(selNum));
   });
 }
@@ -285,10 +302,8 @@ function drawManholes(){
     // M측점 연결선 (파란점선)
     if(mp){var ms=S(mp.x,mp.y);gMH.appendChild(el('line',{x1:ms[0],y1:ms[1],x2:mx,y2:my,stroke:'#1f6fd6','stroke-width':1.0,'stroke-dasharray':'2 1.5','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}
 
-    // 라벨 텍스트 (밑줄 위) — 측점 라벨과 동일 폰트
-    var txtEl=el('text',{x:lbx+0.1,y:lby+labelH-FT*0.25,'font-size':FT,fill:'#333','font-weight':'600','text-anchor':'start','pointer-events':'none'});
-    txtEl.textContent=mh.label||'';
-    gMH.appendChild(txtEl);
+    // 라벨 텍스트 (밑줄 위) — 줌-안전 mkLabel
+    gMH.appendChild(mkLabel(lbx+0.1, lby+labelH-FT*0.25, mh.label||'', {fill:'#333',weight:'600',anchor:'start'}));
 
     // 드래그 핸들 - 맨홀 중심(이중원)
     var drag=el('circle',{cx:mx,cy:my,r:0.5,fill:'transparent','pointer-events':'all',cursor:'move'});
