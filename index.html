@@ -334,6 +334,7 @@ function placeManholeAt(wx,wy){
   toast('맨홀 심기 완료: '+label);
 }
 
+function drawMarks(){ clearSvg(gMark);
   state.markups.forEach(function(m){
     var sh=m.type==='cir'?el('ellipse',{cx:m.cx,cy:m.cy,rx:m.rx,ry:m.ry}):el('rect',{x:m.x,y:m.y,width:m.w,height:m.h,rx:0.4});
     sh.setAttribute('fill',MKCOL[m.status]);sh.setAttribute('fill-opacity',0.13);sh.setAttribute('stroke',MKCOL[m.status]);sh.setAttribute('stroke-width',2);sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');
