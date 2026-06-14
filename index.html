@@ -172,7 +172,14 @@ function computeLabels(){
 }
 var labelDragging=false;
 // world(SVG)좌표 → 화면픽셀 (오버레이 div 배치용)
-function worldToPx(svgX,svgY){var cvr=cv.getBoundingClientRect();return [(svgX-vb.x)/vb.w*cvr.width,(svgY-vb.y)/vb.h*cvr.height];}
+// ★ SVG meet 렌더와 동일한 좌표변환의 기준값 (균일 스케일 + xMidYMid 여백)
+//   placeLabelDiv(표시)·toWorld(입력)가 이 하나를 공유 → SVG 점과 픽셀단위로 정확히 일치
+function vbScale(){
+  var r=cv.getBoundingClientRect();
+  var s=Math.min(r.width/vb.w, r.height/vb.h);            // meet: 가로·세로 같은 스케일
+  return {r:r, s:s, ox:(r.width-vb.w*s)/2, oy:(r.height-vb.h*s)/2}; // 레터박스 여백(중앙정렬)
+}
+function worldToPx(svgX,svgY){var m=vbScale();return [m.ox+(svgX-vb.x)*m.s, m.oy+(svgY-vb.y)*m.s];}
 function moveLabelDiv(d,svgX,svgY){d._sx=svgX;d._sy=svgY;placeLabelDiv(d);}
 function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
   var anchor=L.anchor;
@@ -243,10 +250,8 @@ function mkLabel(svgX,svgY,text,opt){
   return d;
 }
 function placeLabelDiv(d){
-  var cvr=cv.getBoundingClientRect();
-  var px=(d._sx-vb.x)/vb.w*cvr.width;
-  var py=(d._sy-vb.y)/vb.h*cvr.height;
-  d.style.left=px+'px'; d.style.top=py+'px';
+  var q=worldToPx(d._sx,d._sy);
+  d.style.left=q[0]+'px'; d.style.top=q[1]+'px';
 }
 function repositionLabels(){
   if(!lblOverlay)return;
@@ -534,7 +539,7 @@ function fitView(){
   vb0={x:minx-pad,y:miny-pad,w:(maxx-minx)+2*pad,h:(maxy-miny)+2*pad};
   vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};applyVB();drawGeo();drawManholes();highlightSel();
 }
-function toWorld(cx,cy){var r=cv.getBoundingClientRect();return [vb.x+(cx-r.left)/r.width*vb.w, vb.y+(cy-r.top)/r.height*vb.h];}
+function toWorld(cx,cy){var m=vbScale();return [vb.x+((cx-m.r.left)-m.ox)/m.s, vb.y+((cy-m.r.top)-m.oy)/m.s];}
 function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*=f;vb.h*=f;vb.x=w[0]-(cx-r.left)/r.width*vb.w;vb.y=w[1]-(cy-r.top)/r.height*vb.h;applyVB();drawGeo();drawManholes();highlightSel();}
 
 /* ====== 결선 ====== */
