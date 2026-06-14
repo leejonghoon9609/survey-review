@@ -272,11 +272,11 @@ function drawGeo(){
   var Up=vb.w/Math.max(cv.getBoundingClientRect().width,1); // 1px = Up world
   var hitR=Math.min(0.45, 9*Up);   // 클릭 히트: 작은 줌에선 화면 고정, 큰 줌에선 월드 0.45 상한
   state.points.forEach(function(p,i){var s=S(p.x,p.y);
-    gPts.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:isTpoint(p)?'#13803a':'#111','stroke-width':2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    var hbx=6*Up;gPts.appendChild(el('rect',{x:s[0]-hbx,y:s[1]-hbx,width:2*hbx,height:2*hbx,fill:'none',stroke:isTpoint(p)?'#13803a':'#111','stroke-width':2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     var hit=el('circle',{cx:s[0],cy:s[1],r:hitR,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
     hit.addEventListener('click',function(ev){if(mode!=='pan'||labelDragging)return;ev.stopPropagation();if(photoLink)selectPoint(ptNum(p));else{selNum=String(ptNum(p));drawGeo();highlightSel();}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
     gHit.appendChild(hit);
-    if(/^\s*M/.test(p.code||''))gPts.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.28,fill:'none',stroke:'#000','stroke-width':0.8,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    if(/^\s*M/.test(p.code||''))gPts.appendChild(el('circle',{cx:s[0],cy:s[1],r:9*Up,fill:'none',stroke:'#000','stroke-width':0.8,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     var L=lay[i],ls=S(L.lx,L.ly),off=L.anchor==='start'?0.15:-0.15;
     var ld=null;if(L.leader){ld=el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':1.3,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);}
     var nt=mkLabel(ls[0]+off, ls[1], p.no, {fill:'#1a7a3a',weight:'400',anchor:L.anchor,grp:'pt',px:22});
@@ -310,8 +310,8 @@ function drawManholes(){
     var EM=22*U; // 라벨 글자높이(22px=1.5배) 만큼의 월드길이
 
     // 이중원(◎) — 원래 월드 고정 크기
-    gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.28,fill:'none',stroke:'#555','stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-    gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.13,fill:'none',stroke:'#555','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    gMH.appendChild(el('circle',{cx:mx,cy:my,r:11*U,fill:'none',stroke:'#555','stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    gMH.appendChild(el('circle',{cx:mx,cy:my,r:5*U,fill:'none',stroke:'#555','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
 
     // 라벨 글자 폭 (텍스트 길이 기준 월드값)
     var txtW=(mh.label||'').length*EM*0.6+EM*0.3;
@@ -418,7 +418,7 @@ function drawManholes(){
     mhLbl.addEventListener('dblclick',function(ev){ev.stopPropagation();if(mode==='delmh')return;openLabelEdit();});
 
     // 드래그 핸들 - 맨홀 중심(이중원) — 히트영역 작게(측점 클릭 안 막게)
-    var drag=el('circle',{cx:mx,cy:my,r:0.35,fill:'transparent','pointer-events':'all',cursor:'move'});
+    var drag=el('circle',{cx:mx,cy:my,r:13*U,fill:'transparent','pointer-events':'all',cursor:'move'});
     drag.addEventListener('pointerdown',function(ev){
       if(mode==='delmh'){ev.stopPropagation();ev.preventDefault();
         var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();toast('맨홀 삭제');return;}
