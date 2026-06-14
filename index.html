@@ -225,6 +225,7 @@ function drawGeo(){
     var t=el('text',{x:lx+0.25,y:ly+0.2,'font-size':0.62,fill:'#7a5f00','font-weight':'600','text-anchor':'start','pointer-events':'none'});t.textContent=L.note;gPts.appendChild(t);
     addNoteHandle(L,t,ld,lx,ly);
   });
+  var _cvr=cv.getBoundingClientRect();var FT=14*vb.w/Math.max(_cvr.width,1); // 화면상 ~14px 고정
   state.points.forEach(function(p,i){var s=S(p.x,p.y);
     gPts.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:isTpoint(p)?'#13803a':'#111','stroke-width':2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     var hit=el('circle',{cx:s[0],cy:s[1],r:0.45,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
@@ -233,15 +234,15 @@ function drawGeo(){
     if(/^\s*M/.test(p.code||''))gPts.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.28,fill:'none',stroke:'#000','stroke-width':0.8,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     var L=lay[i],ls=S(L.lx,L.ly),off=L.anchor==='start'?0.15:-0.15;
     var ld=null;if(L.leader){ld=el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':0.9,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);}
-    var nt=el('text',{x:ls[0]+off,y:ls[1]-0.18,'font-size':0.55,fill:'#1a7a3a','text-anchor':L.anchor,'pointer-events':'none'});nt.textContent=p.no;gPts.appendChild(nt);
-    var ct=el('text',{x:ls[0]+off,y:ls[1]+0.55,'font-size':0.55,fill:'#0f7a86','text-anchor':L.anchor,'pointer-events':'none'});ct.textContent=(p.code||'').trim();gPts.appendChild(ct);
+    var nt=el('text',{x:ls[0]+off,y:ls[1]-0.18,'font-size':FT,fill:'#1a7a3a','text-anchor':L.anchor,'pointer-events':'none'});nt.textContent=p.no;gPts.appendChild(nt);
+    var ct=el('text',{x:ls[0]+off,y:ls[1]+FT,'font-size':FT,fill:'#0f7a86','text-anchor':L.anchor,'pointer-events':'none'});ct.textContent=(p.code||'').trim();gPts.appendChild(ct);
     addLabelHandle(p,L,ls,nt,ct,ld,ptNum(p)===String(selNum));
   });
 }
 /* ====== 맨홀 심벌 렌더 ====== */
 function drawManholes(){
   clearSvg(gMH);
-  // 측점 라벨과 동일하게 월드단위 고정값 사용 → 확대/축소 시 함께 스케일됨
+  var _cvr=cv.getBoundingClientRect();var FT=14*vb.w/Math.max(_cvr.width,1); // 화면상 ~14px 고정
   (state.manholes||[]).forEach(function(mh){
     var s=S(mh.wx,mh.wy);
     var mx=s[0], my=s[1];
@@ -250,23 +251,23 @@ function drawManholes(){
     var mp=null,md=1e18;
     state.points.forEach(function(p){if(!isManhole(p))return;var d=Math.hypot(p.x-mh.wx,p.y-mh.wy);if(d<md){md=d;mp=p;}});
 
-    // 이중원(◎) — 측점 라벨 스케일 기준
-    gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.5,fill:'none',stroke:'#555','stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-    gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.24,fill:'none',stroke:'#555','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    // 이중원(◎) — 측점 박스(0.294)와 비슷한 크기
+    gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.28,fill:'none',stroke:'#555','stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.13,fill:'none',stroke:'#555','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
 
-    // 라벨 크기 (월드단위 고정)
-    var labelW=Math.max((mh.label||'').length*0.42+0.4, 1.6);
-    var labelH=0.7;
+    // 라벨 크기 (폰트 FT 기준)
+    var labelW=Math.max((mh.label||'').length*FT*0.62+0.3, 1.2);
+    var labelH=FT*1.25;
 
     // 라벨 기본 위치: 맨홀 기준 4방향 자동 (M측점 반대쪽)
     var defLx, defLy;
     if(mp){
       var dx=mh.wx-mp.x, dy=mh.wy-mp.y;
       var goRight=(dx>=0);
-      var goUp=(dy>=0); // 맨홀이 M보다 북쪽
-      defLx = goRight ? mh.wx+1.0 : mh.wx-1.0-labelW;
-      defLy = goUp ? mh.wy+1.6 : mh.wy-1.0; // world y (북+)
-    } else { defLx=mh.wx+1.0; defLy=mh.wy+1.6; }
+      var goUp=(dy>=0);
+      defLx = goRight ? mh.wx+0.6 : mh.wx-0.6-labelW;
+      defLy = goUp ? mh.wy+1.0 : mh.wy-0.6;
+    } else { defLx=mh.wx+0.6; defLy=mh.wy+1.0; }
     var lx=mh.lx!=null?mh.lx:defLx, ly=mh.ly!=null?mh.ly:defLy;
     var ls=S(lx,ly);
     var lbx=ls[0], lby=ls[1];
@@ -284,13 +285,13 @@ function drawManholes(){
     // M측점 연결선 (파란점선)
     if(mp){var ms=S(mp.x,mp.y);gMH.appendChild(el('line',{x1:ms[0],y1:ms[1],x2:mx,y2:my,stroke:'#1f6fd6','stroke-width':1.0,'stroke-dasharray':'2 1.5','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}
 
-    // 라벨 텍스트 (밑줄 위) — 측점 라벨과 동일 스케일
-    var txtEl=el('text',{x:lbx+0.12,y:lby+labelH-0.12,'font-size':0.55,fill:'#333','font-weight':'600','text-anchor':'start','pointer-events':'none'});
+    // 라벨 텍스트 (밑줄 위) — 측점 라벨과 동일 폰트
+    var txtEl=el('text',{x:lbx+0.1,y:lby+labelH-FT*0.25,'font-size':FT,fill:'#333','font-weight':'600','text-anchor':'start','pointer-events':'none'});
     txtEl.textContent=mh.label||'';
     gMH.appendChild(txtEl);
 
     // 드래그 핸들 - 맨홀 중심(이중원)
-    var drag=el('circle',{cx:mx,cy:my,r:0.7,fill:'transparent','pointer-events':'all',cursor:'move'});
+    var drag=el('circle',{cx:mx,cy:my,r:0.5,fill:'transparent','pointer-events':'all',cursor:'move'});
     drag.addEventListener('pointerdown',function(ev){
       if(mode==='delmh'){ev.stopPropagation();ev.preventDefault();
         var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();toast('맨홀 삭제');return;}
@@ -321,7 +322,7 @@ function drawManholes(){
     gMH.appendChild(drag);
 
     // 라벨 드래그 핸들 (텍스트+밑줄 영역)
-    var lbDrag=el('rect',{x:lbx-0.15,y:lby-0.1,width:labelW+0.3,height:labelH+0.3,rx:0.1,fill:'transparent','pointer-events':'all',cursor:'move'});
+    var lbDrag=el('rect',{x:lbx-0.15,y:lby-0.1,width:labelW+0.3,height:labelH+0.3,rx:0.08,fill:'transparent','pointer-events':'all',cursor:'move'});
     lbDrag.addEventListener('pointerdown',function(ev){
       if(mode==='delmh'){ev.stopPropagation();ev.preventDefault();
         var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();toast('맨홀 삭제');return;}
@@ -401,7 +402,7 @@ function fitView(){
   vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};applyVB();
 }
 function toWorld(cx,cy){var r=cv.getBoundingClientRect();return [vb.x+(cx-r.left)/r.width*vb.w, vb.y+(cy-r.top)/r.height*vb.h];}
-function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*=f;vb.h*=f;vb.x=w[0]-(cx-r.left)/r.width*vb.w;vb.y=w[1]-(cy-r.top)/r.height*vb.h;applyVB();}
+function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*=f;vb.h*=f;vb.x=w[0]-(cx-r.left)/r.width*vb.w;vb.y=w[1]-(cy-r.top)/r.height*vb.h;applyVB();drawGeo();drawManholes();}
 
 /* ====== 결선 ====== */
 function nearestPointWorld(wx,wy){var best=null,bd=1e18;state.points.forEach(function(p){var s=S(p.x,p.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;best=p;}});return {p:best,d:Math.sqrt(bd)};}
@@ -669,7 +670,7 @@ function renderSub(){
     else if(g==='clearMk'){state.markups.forEach(function(x){if(x.el)x.el.remove();});state.markups=[];renderRecs();}
     else if(g==='zin')zoomAt(0.8,rr.left+rr.width/2,rr.top+rr.height/2);
     else if(g==='zout')zoomAt(1.25,rr.left+rr.width/2,rr.top+rr.height/2);
-    else if(g==='fit')fitView();};});
+    else if(g==='fit'){fitView();drawGeo();drawManholes();}};});
 }
 renderRail();renderSub();
 bind('save',saveProject);
