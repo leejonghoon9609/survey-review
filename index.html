@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 39</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 40</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -520,25 +520,7 @@ function drawManholes(){
     var txtCx=(ulx1+ulx2)/2; // 밑줄 중앙
     var txtLeft=Math.min(ulx1,ulx2);
 
-    // M측점 연결선 (검정 실선) — 맨홀 반경 안 가장 가까운 M점 + 맨홀 건너편 M점
-    // 결선 유무와 무관. 양쪽에 있으면 양쪽, 한쪽만이면 한쪽.
-    if(!isRiser){
-      var R_MH=2.5; // 연결 반경(m)
-      var cand=[];
-      state.points.forEach(function(p){if(!isManhole(p))return;var d=Math.hypot(p.x-mh.wx,p.y-mh.wy);if(d<=R_MH)cand.push({p:p,d:d});});
-      cand.sort(function(a,b){return a.d-b.d;});
-      var conn=[];
-      if(cand.length){
-        var A=cand[0].p; conn.push(A);
-        var ax=A.x-mh.wx, ay=A.y-mh.wy; // A의 맨홀기준 방향
-        for(var ci=1;ci<cand.length;ci++){var q=cand[ci].p;var dot=(q.x-mh.wx)*ax+(q.y-mh.wy)*ay;if(dot<0){conn.push(q);break;}} // 건너편(반대방향) 1개
-      }
-      conn.forEach(function(q){
-        var qs=S(q.x,q.y);
-        var RC2=(LINECOL['통신관로']||{}).c||'#d92b2b', RW2=(LINECOL['통신관로']||{}).w||1.6;
-        gMH.appendChild(el('line',{x1:qs[0],y1:qs[1],x2:mx,y2:my,stroke:RC2,'stroke-width':RW2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-      });
-    }
+    // (맨홀↔M측점 연결선은 결선 데이터(state.lines)로 통일 — drawGeo가 그림. 여기서 즉석으로 안 그림)
 
     // 더블클릭 → 'M' 과 '( )' 만 고정. 앞부분(숫자 등)과 괄호 안 둘 다 수정 가능
     // 형식: [pre]M ([inner])  예: 2M (SK T), 4M (LG U+)
@@ -608,7 +590,7 @@ function drawManholes(){
     var drag=el('circle',{cx:mx,cy:my,r:13*U,fill:'transparent','pointer-events':'all',cursor:'move'});
     drag.addEventListener('pointerdown',function(ev){
       if((mode==='delmh'&&!isRiser)||(mode==='delriser'&&isRiser)||mode==='delall2'){ev.stopPropagation();ev.preventDefault();pushHist();
-        var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();drawGeo();toast(isRiser?'입상주 삭제':'맨홀 삭제');return;}
+        var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);if(!isRiser)removeManholePassLines(mh);drawManholes();drawGeo();toast(isRiser?'입상주 삭제':'맨홀 삭제(통과결선 포함)');return;}
       if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace')return;
       ev.stopPropagation();ev.preventDefault();
       pushHist();
@@ -622,7 +604,7 @@ function drawManholes(){
     var lbDrag=el('rect',{x:txtLeft-EM*0.5,y:uly-EM*1.7,width:Math.max(underLen,labelW)+EM*1.0,height:EM*2.3,rx:EM*0.1,fill:'transparent','pointer-events':'all',cursor:'move'});
     lbDrag.addEventListener('pointerdown',function(ev){
       if((mode==='delmh'&&!isRiser)||(mode==='delriser'&&isRiser)||mode==='delall2'){ev.stopPropagation();ev.preventDefault();
-        var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();toast(isRiser?'입상주 삭제':'맨홀 삭제');return;}
+        var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);if(!isRiser)removeManholePassLines(mh);drawManholes();drawGeo();toast(isRiser?'입상주 삭제':'맨홀 삭제(통과결선 포함)');return;}
       if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace')return;
       ev.stopPropagation();ev.preventDefault();
       if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
@@ -664,10 +646,30 @@ function placeManholeAt(wx,wy,type){
   pushHist();
   // 팝업 없이 기본라벨로 바로 심기, 더블클릭으로 수정
   var label=(type==='riser')?'통신주입상':'M (SK )';
-  state.manholes.push({id:mhIdSeq++, wx:wx, wy:wy, label:label, lx:null, ly:null, type:type||'mh'});
-  drawManholes();
+  var mh={id:mhIdSeq++, wx:wx, wy:wy, label:label, lx:null, ly:null, type:type||'mh'};
+  state.manholes.push(mh);
+  if(type!=='riser')addManholePassLine(mh); // 맨홀 통과 결선을 결선 데이터에 추가
+  drawGeo();drawManholes();
   toast('맨홀 심기 완료 — 더블클릭으로 라벨 수정, Enter/Space로 종료');
   // 모드 유지 (계속 찍을 수 있게)
+}
+// 맨홀 통과 결선 1개 추가 (반경 안 가장 가까운 M점 + 건너편 M점 → A·맨홀·B)
+function addManholePassLine(mh){
+  var MHR=2.5;
+  var nr=state.points.filter(function(p){return isManhole(p)&&Math.hypot(p.x-mh.wx,p.y-mh.wy)<=MHR;})
+                     .map(function(p){return {p:p,d:Math.hypot(p.x-mh.wx,p.y-mh.wy)};}).sort(function(a,b){return a.d-b.d;});
+  if(!nr.length)return;
+  var A=nr[0].p, B=null, ax=A.x-mh.wx, ay=A.y-mh.wy;
+  for(var i=1;i<nr.length;i++){var q=nr[i].p;if((q.x-mh.wx)*ax+(q.y-mh.wy)*ay<0){B=q;break;}}
+  if(B)state.lines.push({layer:'통신관로',pts:[[A.x,A.y],[mh.wx,mh.wy],[B.x,B.y]],mhId:mh.id});
+  else state.lines.push({layer:'통신관로',pts:[[A.x,A.y],[mh.wx,mh.wy]],mhId:mh.id});
+}
+// 맨홀 삭제 시 그 맨홀을 지나는 통신관로 결선도 함께 제거 (맨홀좌표 포함 선)
+function removeManholePassLines(mh){
+  state.lines=state.lines.filter(function(L){
+    if(L.layer!=='통신관로'||!L.pts)return true;
+    return !L.pts.some(function(pt){return Math.abs(pt[0]-mh.wx)<1e-4&&Math.abs(pt[1]-mh.wy)<1e-4;});
+  });
 }
 
 function drawMarks(){ clearSvg(gMark);
