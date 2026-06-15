@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 16</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 17</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -250,7 +250,7 @@ function addAnchorHandle(L,ah,anc,ld){
   ah.style.cursor='move';
   var drag=false;
   ah.addEventListener('pointerdown',function(ev){if(mode!=='pan')return;ev.stopPropagation();drag=true;labelDragging=true;anc.setAttribute('r',0.46);try{ah.setPointerCapture(ev.pointerId);}catch(e){}});
-  ah.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();var ww=toWorld(ev.clientX,ev.clientY);var t=projToPoly(L.pts,ww[0],ww[1]);L.anchorT=t;var aw=ptOnPoly(L.pts,t),sp=S(aw[0],aw[1]);anc.setAttribute('cx',sp[0]);anc.setAttribute('cy',sp[1]);ah.setAttribute('cx',sp[0]);ah.setAttribute('cy',sp[1]);ld.setAttribute('x1',sp[0]);ld.setAttribute('y1',sp[1]);});
+  ah.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();var ww=toWorld(ev.clientX,ev.clientY);var t=projToPoly(L.pts.map(function(p){return S(p[0],p[1]);}),ww[0],ww[1]);L.anchorT=t;var aw=ptOnPoly(L.pts,t),sp=S(aw[0],aw[1]);anc.setAttribute('cx',sp[0]);anc.setAttribute('cy',sp[1]);ah.setAttribute('cx',sp[0]);ah.setAttribute('cy',sp[1]);ld.setAttribute('x1',sp[0]);ld.setAttribute('y1',sp[1]);});
   function up(ev){if(!drag)return;drag=false;setTimeout(function(){labelDragging=false;},40);try{ah.releasePointerCapture(ev.pointerId);}catch(e){}drawGeo();}
   ah.addEventListener('pointerup',up);ah.addEventListener('pointercancel',up);
 }
