@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 57</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 58</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -857,7 +857,7 @@ function exportDXF(){
   function N(n){return (Math.round(n*1000)/1000).toString();}
   function line(x1,y1,x2,y2,layer,col){ent(['0','LINE','8',layer,'62',col,'10',N(x1),'20',N(y1),'30','0','11',N(x2),'21',N(y2),'31','0']);}
   function circle(cx,cy,r,layer,col){ent(['0','CIRCLE','8',layer,'62',col,'10',N(cx),'20',N(cy),'30','0','40',N(r)]);}
-  function box(cx,cy,sz,layer,col){var h=sz/2;ent(['0','LWPOLYLINE','8',layer,'62',col,'90','4','70','1','10',N(cx-h),'20',N(cy-h),'10',N(cx+h),'20',N(cy-h),'10',N(cx+h),'20',N(cy+h),'10',N(cx-h),'20',N(cy+h)]);}
+  function box(cx,cy,sz,layer,col){var h=sz/2;line(cx-h,cy-h,cx+h,cy-h,layer,col);line(cx+h,cy-h,cx+h,cy+h,layer,col);line(cx+h,cy+h,cx-h,cy+h,layer,col);line(cx-h,cy+h,cx-h,cy-h,layer,col);}
   function text(x,y,h,s,layer,col,align){var a=['0','TEXT','8',layer,'62',col,'10',N(x),'20',N(y),'30','0','40',N(h),'1',s];if(align){a.push('72',String(align),'11',N(x),'21',N(y),'31','0');}ent(a);}
   // 측점: 사각 박스 + 인출선 + 번호/코드 (T점 초록3, 일반 검정7)
   var lay=computeLabels();
