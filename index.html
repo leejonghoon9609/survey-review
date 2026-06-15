@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 13</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 14</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -245,12 +245,12 @@ function addNoteHandle(L,t,ld,lx,ly){
   h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
   gPts.appendChild(h);
 }
-// 지거 멘트 앵커: 선을 따라 미끄러지게 드래그 (window 이벤트로 측점에 가로채이지 않고 반복 가능)
-function addAnchorHandle(L,anc,ld){
-  anc.style.cursor='move';
-  anc.addEventListener('pointerdown',function(ev){
+// 지거 멘트 앵커: 선을 따라 미끄러지게 드래그 (gAnc 최상위 + 큰 히트 + window 이벤트 → 측점에 안 가로채이고 반복 가능)
+function addAnchorHandle(L,ah,anc,ld){
+  ah.style.cursor='move';
+  ah.addEventListener('pointerdown',function(ev){
     if(mode!=='pan')return;ev.stopPropagation();ev.preventDefault();labelDragging=true;anc.setAttribute('r',0.46);
-    function mv(e){var ww=toWorld(e.clientX,e.clientY);var t=projToPoly(L.pts,ww[0],ww[1]);L.anchorT=t;var aw=ptOnPoly(L.pts,t),s=S(aw[0],aw[1]);anc.setAttribute('cx',s[0]);anc.setAttribute('cy',s[1]);ld.setAttribute('x1',s[0]);ld.setAttribute('y1',s[1]);}
+    function mv(e){var ww=toWorld(e.clientX,e.clientY);var t=projToPoly(L.pts,ww[0],ww[1]);L.anchorT=t;var aw=ptOnPoly(L.pts,t),s=S(aw[0],aw[1]);anc.setAttribute('cx',s[0]);anc.setAttribute('cy',s[1]);ah.setAttribute('cx',s[0]);ah.setAttribute('cy',s[1]);ld.setAttribute('x1',s[0]);ld.setAttribute('y1',s[1]);}
     function up(){window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);setTimeout(function(){labelDragging=false;},40);drawGeo();}
     window.addEventListener('pointermove',mv);window.addEventListener('pointerup',up);
   });
@@ -311,7 +311,7 @@ function pxToWorld(){
   return Math.max(vb.w/Math.max(r.width,1), vb.h/Math.max(r.height,1));
 }
 function drawGeo(){
-  clearSvg(gGeo); clearSvg(gPts); clearSvg(gHit); clearLabels('pt');
+  clearSvg(gGeo); clearSvg(gPts); clearSvg(gHit); clearSvg(gAnc); clearLabels('pt');
   state.lines.forEach(function(L){var def=LINECOL[L.layer]||{c:"#888",w:1.2};
     var pts=L.pts.map(function(p){var s=S(p[0],p[1]);return s[0]+','+s[1];}).join(' ');
     var pl=el('polyline',{points:pts,fill:'none',stroke:def.c,'stroke-width':def.w,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':'round'});
@@ -323,8 +323,9 @@ function drawGeo(){
     var aw=ptOnPoly(L.pts,polyAnchorT(L));      // 선 위 앵커(world)
     var s=S(aw[0],aw[1]),lx=(L.noteOff?L.noteOff[0]:s[0]+3),ly=(L.noteOff?L.noteOff[1]:s[1]-2.2);
     var ld=el('line',{x1:s[0],y1:s[1],x2:lx,y2:ly,stroke:'#a07e00','stroke-width':0.8,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);
-    var anc=el('circle',{cx:s[0],cy:s[1],r:0.32,fill:'#a07e00','pointer-events':'all'});anc.style.cursor='move';gPts.appendChild(anc);
-    addAnchorHandle(L,anc,ld);
+    var anc=el('circle',{cx:s[0],cy:s[1],r:0.32,fill:'#a07e00','pointer-events':'none'});gAnc.appendChild(anc); // 보이는 원
+    var ah=el('circle',{cx:s[0],cy:s[1],r:0.85,fill:'transparent','pointer-events':'all'});ah.style.cursor='move';gAnc.appendChild(ah); // 클릭 잡기용 큰 투명 원
+    addAnchorHandle(L,ah,anc,ld);
     var t=el('text',{x:lx+0.25,y:ly+0.2,'font-size':0.62,fill:'#7a5f00','font-weight':'600','text-anchor':'start','pointer-events':'none'});t.textContent=L.note;gPts.appendChild(t);
     addNoteHandle(L,t,ld,lx,ly);
   });
@@ -951,6 +952,7 @@ function loadSample(){
 var photoMap={}, selNum=null, photoPanelOpen=false, photoLink=true;
 var gSel=document.createElementNS(SVGNS,'g'); gSel.setAttribute('pointer-events','none'); cv.appendChild(gSel);
 var gDraw=document.createElementNS(SVGNS,'g'); gDraw.setAttribute('pointer-events','none'); cv.appendChild(gDraw);
+var gAnc=document.createElementNS(SVGNS,'g'); cv.appendChild(gAnc); // 지거 멘트 앵커 (최상위 — 측점보다 위에서 클릭 우선)
 function ptNum(p){return (p.no||'').toString().split('-').pop();}
 function pointByNum(n){for(var i=0;i<state.points.length;i++)if(ptNum(state.points[i])===String(n))return state.points[i];return null;}
 function sortedNums(){return state.points.map(ptNum).filter(function(v){return v!=='';}).sort(function(a,b){return (parseFloat(a)||0)-(parseFloat(b)||0);});}
