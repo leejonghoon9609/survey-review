@@ -259,8 +259,19 @@ function mkLabel(svgX,svgY,text,opt){
   return d;
 }
 function placeLabelDiv(d){
-  var q=worldToPx(d._sx,d._sy);
-  d.style.left=q[0]+'px'; d.style.top=q[1]+'px';
+  // div는 lblOverlay 안에 들어가므로 반드시 lblOverlay 기준으로 배치해야 정확
+  var host=lblOverlay?lblOverlay.getBoundingClientRect():cv.getBoundingClientRect(); // 호출이 곧 레이아웃 flush(CTM 최신화)
+  var ctm=cv.getScreenCTM?cv.getScreenCTM():null;
+  if(ctm){                                           // ★브라우저 실측: 점의 화면 절대위치
+    var pt=cv.createSVGPoint();pt.x=d._sx;pt.y=d._sy;
+    var p=pt.matrixTransform(ctm);
+    d.style.left=(p.x-host.left)+'px';               // 부모(lblOverlay) 기준 상대
+    d.style.top =(p.y-host.top )+'px';
+    return;
+  }
+  var m=vbScale();                                   // 폴백(meet 공식) + cv↔host 차이 보정
+  d.style.left=((m.r.left-host.left)+m.ox+(d._sx-vb.x)*m.s)+'px';
+  d.style.top =((m.r.top -host.top )+m.oy+(d._sy-vb.y)*m.s)+'px';
 }
 function repositionLabels(){
   if(!lblOverlay)return;
