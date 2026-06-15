@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 31</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 32</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -422,13 +422,13 @@ function drawManholes(){
     var EM=15*U;
 
     if(isRiser){
-      // 입상주 = 테이퍼 목주(전봇대): 밑동이 넓고 위로 갈수록 좁아짐. 중심점=밑동(mx,my)
-      var H=0.9, wB=0.16, wT=0.05, armW=0.27, armY=my-H*0.74;
-      gMH.appendChild(el('line',{x1:mx-wB,y1:my,x2:mx-wT,y2:my-H,stroke:'#111','stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-      gMH.appendChild(el('line',{x1:mx+wB,y1:my,x2:mx+wT,y2:my-H,stroke:'#111','stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-      gMH.appendChild(el('line',{x1:mx-armW,y1:armY,x2:mx+armW,y2:armY,stroke:'#111','stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-      gMH.appendChild(el('ellipse',{cx:mx,cy:my-H,rx:wT+0.05,ry:0.05,fill:'none',stroke:'#111','stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-      gMH.appendChild(el('line',{x1:mx,y1:my,x2:mx,y2:my,stroke:'#000','stroke-width':5,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // 밑동 중심점(화면고정)
+      // 입상주 = 테이퍼 목주(전봇대): 밑동이 넓고 위로 갈수록 좁아짐. 중심점=밑동(mx,my). 색=파랑
+      var H=0.9, wB=0.16, wT=0.05, armW=0.27, armY=my-H*0.74, RC='#1f6fd6';
+      gMH.appendChild(el('line',{x1:mx-wB,y1:my,x2:mx-wT,y2:my-H,stroke:RC,'stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gMH.appendChild(el('line',{x1:mx+wB,y1:my,x2:mx+wT,y2:my-H,stroke:RC,'stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gMH.appendChild(el('line',{x1:mx-armW,y1:armY,x2:mx+armW,y2:armY,stroke:RC,'stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gMH.appendChild(el('ellipse',{cx:mx,cy:my-H,rx:wT+0.05,ry:0.05,fill:'none',stroke:RC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gMH.appendChild(el('line',{x1:mx,y1:my,x2:mx,y2:my,stroke:RC,'stroke-width':5,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // 밑동 중심점(화면고정)
     } else {
       // 맨홀 = 이중원(◎) + 중심점
       gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.294,fill:'none',stroke:'#555','stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
@@ -469,10 +469,11 @@ function drawManholes(){
     else { ulx1=kinkX; ulx2=kinkX-underLen; }
     var uly=kinkY;
 
-    // 대각선 (맨홀중심 → 꺾임점) — 검정
-    gMH.appendChild(el('line',{x1:mx,y1:my,x2:kinkX,y2:kinkY,stroke:'#222','stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-    // 수평 밑줄 — 검정
-    gMH.appendChild(el('line',{x1:ulx1,y1:uly,x2:ulx2,y2:uly,stroke:'#222','stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    // 대각선 (맨홀중심 → 꺾임점) — 맨홀 검정, 입상주 파랑
+    var LDC=isRiser?'#1f6fd6':'#222';
+    gMH.appendChild(el('line',{x1:mx,y1:my,x2:kinkX,y2:kinkY,stroke:LDC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    // 수평 밑줄
+    gMH.appendChild(el('line',{x1:ulx1,y1:uly,x2:ulx2,y2:uly,stroke:LDC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
 
     // 라벨 텍스트 위치: 밑줄 중앙 위에 올라오게
     var labelW=txtW, labelH=EM*1.15;
@@ -549,7 +550,7 @@ function drawManholes(){
     }
 
     // 라벨 텍스트 — 파란 밑줄 중앙 바로 위에 (글자가 밑줄을 덮지 않게 위로)
-    var mhLbl=mkLabel(txtCx, uly-EM*0.75, mh.label||'', {fill:'#333',weight:'600',anchor:'middle',grp:'mh',px:15});
+    var mhLbl=mkLabel(txtCx, uly-EM*0.75, mh.label||'', {fill:isRiser?'#1f6fd6':'#333',weight:'600',anchor:'middle',grp:'mh',px:15});
     // 라벨 div에 직접 더블클릭(수정) — 오버레이라 글자 위에서 바로 동작
     mhLbl.style.pointerEvents='auto';
     mhLbl.style.cursor='text';
@@ -570,7 +571,7 @@ function drawManholes(){
     gMH.appendChild(drag);
 
     // 라벨 드래그 핸들 (밑줄+글자 영역)
-    var lbDrag=el('rect',{x:txtLeft-EM*0.2,y:uly-EM*1.1,width:Math.max(underLen,labelW)+EM*0.4,height:EM*1.3,rx:EM*0.1,fill:'transparent','pointer-events':'all',cursor:'move'});
+    var lbDrag=el('rect',{x:txtLeft-EM*0.5,y:uly-EM*1.7,width:Math.max(underLen,labelW)+EM*1.0,height:EM*2.3,rx:EM*0.1,fill:'transparent','pointer-events':'all',cursor:'move'});
     lbDrag.addEventListener('pointerdown',function(ev){
       if((mode==='delmh'&&!isRiser)||(mode==='delriser'&&isRiser)){ev.stopPropagation();ev.preventDefault();
         var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();toast(isRiser?'입상주 삭제':'맨홀 삭제');return;}
