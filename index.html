@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 53</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 54</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -232,8 +232,8 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
   var anchor=L.anchor;
   var Uh=vb.w/Math.max(cv.getBoundingClientRect().width,1); // 1px = Uh world
   var maxChars=Math.max((''+(p.no||'')).length,((p.code||'').trim()).length);
-  var tw=maxChars*9*Uh+10*Uh;  // 글자폭(약 9px/자) + 여백, 화면 고정
-  var hh=34*Uh;                 // 두 줄 높이(약 34px), 화면 고정
+  var tw=26*Uh;  // 이동/수정 핸들 폭 — 작게(인출선 닿는 라벨 앞부분만)
+  var hh=20*Uh;  // 핸들 높이 — 한 줄 정도
   var hx=anchor==='start'?(ls[0]-3*Uh):(ls[0]-tw+3*Uh);
   var handle=el('rect',{x:hx,y:ls[1]-hh*0.5,width:tw,height:hh,fill:'transparent','pointer-events':'all'});
   if(isSel){handle.setAttribute('stroke','#22cc00');handle.setAttribute('stroke-width',0.8);handle.setAttribute('stroke-dasharray','2 2');handle.setAttribute('vector-effect','non-scaling-stroke');}
@@ -857,7 +857,13 @@ function drawIndicators(cw){clearSvg(gDraw);if(mode!=='line'||!lineDraft)return;
   if(cw){var ns=nearestSnapWorld(cw[0],cw[1]);if(ns.pt&&ns.d<vb.w*0.04){var s2=S(ns.pt[0],ns.pt[1]);gDraw.appendChild(el('line',{x1:s2[0],y1:s2[1],x2:s2[0],y2:s2[1],stroke:'#1f6fd6','stroke-width':10,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}}}
 function delHoverHighlight(cw){clearSvg(gDraw);var best=null,bd=1e18;
   state.lines.forEach(function(L){if(mode!=='delall2'&&L.layer!==delLayer)return;for(var s=0;s<L.pts.length-1;s++){var a=S(L.pts[s][0],L.pts[s][1]),b=S(L.pts[s+1][0],L.pts[s+1][1]);var d=segDist(cw[0],cw[1],a[0],a[1],b[0],b[1]);if(d<bd){bd=d;best={a:a,b:b,layer:L.layer};}}});
-  if(best&&bd<vb.w*0.03){var col=(LINECOL[best.layer]||{}).c||'#d92b2b';gDraw.appendChild(el('line',{x1:best.a[0],y1:best.a[1],x2:best.b[0],y2:best.b[1],stroke:col,'stroke-width':6,'stroke-opacity':0.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));}}
+  if(best&&bd<vb.w*0.03){var col=(LINECOL[best.layer]||{}).c||'#d92b2b';gDraw.appendChild(el('line',{x1:best.a[0],y1:best.a[1],x2:best.b[0],y2:best.b[1],stroke:col,'stroke-width':6,'stroke-opacity':0.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));}
+  if(mode==='delall2'){ // 검수 써클·박스도 마우스가 위에 오면 두껍게
+    var mb=-1,mbd=1e18;
+    state.markups.forEach(function(m,i){var cx=m.type==='cir'?m.cx:(m.x+m.w/2),cy=m.type==='cir'?m.cy:(m.y+m.h/2);var rr=m.type==='cir'?Math.max(m.rx,m.ry):Math.max(m.w,m.h)/2;var d=Math.hypot(cw[0]-cx,cw[1]-cy);if(d<rr+vb.w*0.015&&d<mbd){mbd=d;mb=i;}});
+    if(mb>=0){var m=state.markups[mb];var sh=m.type==='cir'?el('ellipse',{cx:m.cx,cy:m.cy,rx:m.rx,ry:m.ry}):el('rect',{x:m.x,y:m.y,width:m.w,height:m.h,rx:0.4});sh.setAttribute('fill','none');sh.setAttribute('stroke',MKCOL[m.status]||'#d32f2f');sh.setAttribute('stroke-width',7);sh.setAttribute('stroke-opacity',0.55);sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');gDraw.appendChild(sh);}
+  }
+}
 function startDraw(layer){drawLayer=layer||'통신관로';mode='line';setModeUI();lineDraft=[];clearSvg(gDraft);clearSvg(gDraw);toast((drawLayer==='지거'?'지거선':(drawLayer==='압입구간'?'압입구간':'관로선'))+' 그리기: 점 클릭 → Enter/Space 또는 "완료" (되돌리기=한 점 취소)');}
 function finishDraw(){if(lineDraft&&lineDraft.length>=2){pushHist();var rec={layer:drawLayer,pts:lineDraft.slice()};if(drawLayer==='지거'){rec.note='점(번호 :  )';}else if(drawLayer==='압입구간'){rec.note='압입구간 ';}state.lines.push(rec);}lineDraft=null;previewLine=null;clearSvg(gDraft);clearSvg(gDraw);mode='pan';setModeUI();drawGeo();updMeta();}
 function clearLines(){pushHist();state.lines=state.lines.filter(function(l){return l.layer!=='통신관로';});drawGeo();updMeta();toast('결선 모두 삭제');}
