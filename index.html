@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 23</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 24</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -384,6 +384,7 @@ function drawGeo(){
   state.points.forEach(function(p,i){var s=S(p.x,p.y);
     // 측점 심벌(속빈 사각) — 월드고정 정사각: 줌하면 크기는 변하지만 절대 안 찌그러짐, 위치 정확
     gPts.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:isManhole(p)?'#0d47a1':(isTpoint(p)?'#13803a':'#111'),'stroke-width':isManhole(p)?3.8:2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    gPts.appendChild(el('rect',{x:s[0]-0.05,y:s[1]-0.05,width:0.1,height:0.1,fill:'#111','pointer-events':'none'})); // 중심 점(포인트 표시)
     var hit=el('circle',{cx:s[0],cy:s[1],r:hitR,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
     hit.addEventListener('click',function(ev){if(mode!=='pan'||labelDragging)return;ev.stopPropagation();if(photoLink)selectPoint(ptNum(p));else{selNum=String(ptNum(p));drawGeo();highlightSel();}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
     gHit.appendChild(hit);
@@ -422,6 +423,7 @@ function drawManholes(){
     // 이중원(◎) — 월드고정 정원: 줌하면 크기는 변하지만 절대 안 찌그러짐, 위치 정확
     gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.294,fill:'none',stroke:'#555','stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.133,fill:'none',stroke:'#555','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.06,fill:'#000','pointer-events':'none'})); // 중심 점(포인트 표시)
 
     // 라벨 글자 폭 (텍스트 길이 기준 월드값)
     var txtW=(mh.label||'').length*EM*0.6+EM*0.3;
@@ -567,16 +569,19 @@ window.addEventListener('pointermove',function(ev){
   var wx=w[0], wy=-w[1]; // world (x=동, y=북)
   if(mhDragState.type==='center'){
     var newWx=wx-mhDragState.gx, newWy=wy-mhDragState.gy;
+    var oldWx=mh.wx, oldWy=mh.wy;
+    // 이 맨홀을 통과하는 관로선의 맨홀좌표점도 같이 이동 (결선이 맨홀 중심에 붙어 따라옴)
+    state.lines.forEach(function(L){if(L.layer!=='통신관로'||!L.pts)return;L.pts.forEach(function(p){if(Math.abs(p[0]-oldWx)<1e-4&&Math.abs(p[1]-oldWy)<1e-4){p[0]=newWx;p[1]=newWy;}});});
     // 라벨도 같이 이동 (상대위치 유지)
     if(mh.lx!=null){mh.lx+=newWx-mh.wx;mh.ly+=newWy-mh.wy;}
     mh.wx=newWx;mh.wy=newWy;
   } else {
     mh.lx=wx-mhDragState.gx; mh.ly=wy-mhDragState.gy;
   }
-  drawManholes();
+  drawManholes();drawGeo();
 });
 window.addEventListener('pointerup',function(ev){
-  if(!mhDragState)return;mhDragState=null;drawManholes();
+  if(!mhDragState)return;mhDragState=null;drawManholes();drawGeo();
 });
 var mhIdSeq=1;
 function placeManholeAt(wx,wy){
