@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 9</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 10</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -316,7 +316,7 @@ function drawGeo(){
   var hitR=Math.min(0.45, 9*Up);   // 클릭 히트: 작은 줌에선 화면 고정, 큰 줌에선 월드 0.45 상한
   state.points.forEach(function(p,i){var s=S(p.x,p.y);
     // 측점 심벌(속빈 사각) — 월드고정 정사각: 줌하면 크기는 변하지만 절대 안 찌그러짐, 위치 정확
-    gPts.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:isManhole(p)?'#0d47a1':(isTpoint(p)?'#13803a':'#111'),'stroke-width':2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    gPts.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:isManhole(p)?'#0d47a1':(isTpoint(p)?'#13803a':'#111'),'stroke-width':isManhole(p)?3.8:2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     var hit=el('circle',{cx:s[0],cy:s[1],r:hitR,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
     hit.addEventListener('click',function(ev){if(mode!=='pan'||labelDragging)return;ev.stopPropagation();if(photoLink)selectPoint(ptNum(p));else{selNum=String(ptNum(p));drawGeo();highlightSel();}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
     gHit.appendChild(hit);
@@ -761,6 +761,9 @@ var TB=[
     {t:'CSV 업로드',tone:'data',fn:function(){document.getElementById('fCsv').click();}},
     {t:'결선 DXF',tone:'data',fn:function(){document.getElementById('fDxf').click();}}]},
   {k:'pan',label:'선택·이동',icon:'✋',c:{bg:'#fdf1dd',fg:'#d98200'},setmode:'pan',hint:'측점 클릭=선택 · 라벨 끌어 이동 · 휠 확대 · 가운데버튼 화면이동',tools:[]},
+  {k:'mh',label:'맨홀편집',icon:'◎',c:{bg:'#efeafa',fg:'#7a52e0'},tools:[
+    {t:'맨홀심기',tone:'draw',mode:'mhplace',hint:'도면에서 맨홀 위치를 클릭하세요'},
+    {t:'맨홀/인출선 지우기',tone:'del',mode:'delmh',hint:'지울 맨홀을 클릭하세요 (맨홀+인출선+라벨 전부 삭제)'}]},
   {k:'conn',label:'결선',icon:'🔗',c:{bg:'#e7f3ea',fg:'#2a9e50'},tools:[
     {t:'자동결선',tone:'draw',fn:autoConnect},
     {t:'결선지우기(선택)',tone:'del',mode:'delline',delLayer:'통신관로',hint:'지울 결선을 클릭'},
@@ -768,12 +771,10 @@ var TB=[
   {k:'pipe',label:'관로선편집',icon:'✎',c:{bg:'#e6effb',fg:'#2f7fe0'},tools:[
     {t:'관로선 그리기',tone:'draw',fn:function(){startDraw('통신관로');},activeMode:'line'},
     {t:'관로선 지우기',tone:'del',mode:'delline',delLayer:'통신관로',hint:'지울 관로선 위에 마우스→두껍게 표시되면 클릭'},
-    {t:'지거선 그리기',tone:'draw',fn:function(){startDraw('지거');},activeMode:'line'},
-    {t:'지거선 지우기',tone:'del',mode:'delline',delLayer:'지거',hint:'지울 지거선 위에 마우스→클릭'},
     {t:'전체삭제',tone:'delall',fn:clearAllDraw}]},
-  {k:'mh',label:'맨홀편집',icon:'◎',c:{bg:'#efeafa',fg:'#7a52e0'},tools:[
-    {t:'맨홀심기',tone:'draw',mode:'mhplace',hint:'도면에서 맨홀 위치를 클릭하세요'},
-    {t:'맨홀/인출선 지우기',tone:'del',mode:'delmh',hint:'지울 맨홀을 클릭하세요 (맨홀+인출선+라벨 전부 삭제)'}]},
+  {k:'jiger',label:'지거편집',icon:'〰',c:{bg:'#fdf7e3',fg:'#c9920a'},tools:[
+    {t:'지거선 그리기',tone:'draw',fn:function(){startDraw('지거');},activeMode:'line'},
+    {t:'지거선 지우기',tone:'del',mode:'delline',delLayer:'지거',hint:'지울 지거선 위에 마우스→클릭'}]},
   {k:'push',label:'압입구간편집',icon:'⇥',c:{bg:'#e3f4ef',fg:'#109a82'},tools:[
     {t:'그리기',tone:'draw',soon:1},
     {t:'지우기',tone:'del',soon:1}]},
