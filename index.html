@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 30</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 31</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -408,24 +408,33 @@ function drawGeo(){
 function drawManholes(){
   clearSvg(gMH); clearLabels('mh');
   (state.manholes||[]).forEach(function(mh){
-    // 손 안 댄 자동순번 기본라벨(예 '2M (SK )')은 숫자 떼서 'M (SK )'로 정리 (캐리어 입력한 건 보존)
-    if(/^\s*\d+\s*M\s*\(\s*SK\s*\)\s*$/.test(mh.label||''))mh.label='M (SK )';
+    var isRiser=(mh.type==='riser');
+    // 손 안 댄 자동순번 기본라벨(예 '2M (SK )')은 숫자 떼서 'M (SK )'로 정리 (맨홀만)
+    if(!isRiser && /^\s*\d+\s*M\s*\(\s*SK\s*\)\s*$/.test(mh.label||''))mh.label='M (SK )';
     var s=S(mh.wx,mh.wy);
     var mx=s[0], my=s[1];
 
-    // 가장 가까운 M코드 측점 찾기
+    // 가장 가까운 M코드 측점 찾기 (맨홀만 — 입상주는 M측점 연결 안 함)
     var mp=null,md=1e18;
-    state.points.forEach(function(p){if(!isManhole(p))return;var d=Math.hypot(p.x-mh.wx,p.y-mh.wy);if(d<md){md=d;mp=p;}});
+    if(!isRiser)state.points.forEach(function(p){if(!isManhole(p))return;var d=Math.hypot(p.x-mh.wx,p.y-mh.wy);if(d<md){md=d;mp=p;}});
 
-    // 이중원(◎) — 측점 박스(0.294)와 비슷한 크기
-    // 화면 px → 월드 단위 변환 (이중원·라벨 크기용) — ★실측
-    var U=pxToWorld(); // 브라우저가 실제 그린 스케일 기준 1px당 월드
-    var EM=15*U; // 라벨/인출선 스케일 (기존 22 → 30% 축소)
+    var U=pxToWorld(); // 1px당 월드
+    var EM=15*U;
 
-    // 이중원(◎) — 월드고정 정원: 줌하면 크기는 변하지만 절대 안 찌그러짐, 위치 정확
-    gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.294,fill:'none',stroke:'#555','stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-    gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.133,fill:'none',stroke:'#555','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-    gMH.appendChild(el('line',{x1:mx,y1:my,x2:mx,y2:my,stroke:'#000','stroke-width':4.5,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // 중심 점(이중원과 동일 vector-effect → 줌 고정)
+    if(isRiser){
+      // 입상주 = 테이퍼 목주(전봇대): 밑동이 넓고 위로 갈수록 좁아짐. 중심점=밑동(mx,my)
+      var H=0.9, wB=0.16, wT=0.05, armW=0.27, armY=my-H*0.74;
+      gMH.appendChild(el('line',{x1:mx-wB,y1:my,x2:mx-wT,y2:my-H,stroke:'#111','stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gMH.appendChild(el('line',{x1:mx+wB,y1:my,x2:mx+wT,y2:my-H,stroke:'#111','stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gMH.appendChild(el('line',{x1:mx-armW,y1:armY,x2:mx+armW,y2:armY,stroke:'#111','stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gMH.appendChild(el('ellipse',{cx:mx,cy:my-H,rx:wT+0.05,ry:0.05,fill:'none',stroke:'#111','stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gMH.appendChild(el('line',{x1:mx,y1:my,x2:mx,y2:my,stroke:'#000','stroke-width':5,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // 밑동 중심점(화면고정)
+    } else {
+      // 맨홀 = 이중원(◎) + 중심점
+      gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.294,fill:'none',stroke:'#555','stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.133,fill:'none',stroke:'#555','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gMH.appendChild(el('line',{x1:mx,y1:my,x2:mx,y2:my,stroke:'#000','stroke-width':4.5,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    }
 
     // 라벨 글자 폭 (텍스트 길이 기준 월드값)
     var txtW=(mh.label||'').length*EM*0.6+EM*0.3;
@@ -489,6 +498,20 @@ function drawManholes(){
       var scaleX=r.width/vb.w, scaleY=r.height/vb.h;
       var sx=r.left+(txtLeft-vb.x)*scaleX;
       var sy=r.top+(uly-vb.y)*scaleY;
+      if(isRiser){
+        // 입상주: 통째로 자유편집 (기본 '통신주입상', 뒤에 멘트 추가/수정 자유)
+        var wrapR=document.createElement('div');
+        wrapR.style.cssText='position:fixed;z-index:999;left:'+sx+'px;top:'+(sy-36)+'px;'
+          +'background:#fffde7;border-bottom:2px solid #555;padding:3px 6px;border-radius:4px;';
+        var inpR=document.createElement('input');
+        inpR.value=mh.label||'통신주입상'; inpR.placeholder='통신주입상';
+        inpR.style.cssText='font-size:18px;font-weight:600;color:#333;border:none;background:transparent;outline:none;width:200px;';
+        wrapR.appendChild(inpR);document.body.appendChild(wrapR);inpR.focus();inpR.select();
+        var doneR=function(){if(wrapR.parentNode){pushHist();mh.label=inpR.value.trim()||'통신주입상';wrapR.remove();drawManholes();}};
+        inpR.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();doneR();}else e.stopPropagation();});
+        inpR.addEventListener('blur',function(){setTimeout(doneR,120);});
+        return;
+      }
       // 현재 라벨 파싱: 앞부분 + M + (괄호안)
       var lab=mh.label||'';
       var pm=lab.match(/^(.*?)M\s*\(([^)]*)\)/);
@@ -530,14 +553,14 @@ function drawManholes(){
     // 라벨 div에 직접 더블클릭(수정) — 오버레이라 글자 위에서 바로 동작
     mhLbl.style.pointerEvents='auto';
     mhLbl.style.cursor='text';
-    mhLbl.addEventListener('dblclick',function(ev){ev.stopPropagation();if(mode==='delmh')return;openLabelEdit();});
+    mhLbl.addEventListener('dblclick',function(ev){ev.stopPropagation();if(mode==='delmh'||mode==='delriser')return;openLabelEdit();});
 
     // 드래그 핸들 - 맨홀 중심(이중원) — 히트영역 작게(측점 클릭 안 막게)
     var drag=el('circle',{cx:mx,cy:my,r:13*U,fill:'transparent','pointer-events':'all',cursor:'move'});
     drag.addEventListener('pointerdown',function(ev){
-      if(mode==='delmh'){ev.stopPropagation();ev.preventDefault();pushHist();
-        var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();drawGeo();toast('맨홀 삭제');return;}
-      if(mode!=='pan'&&mode!=='mhplace')return;
+      if((mode==='delmh'&&!isRiser)||(mode==='delriser'&&isRiser)){ev.stopPropagation();ev.preventDefault();pushHist();
+        var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();drawGeo();toast(isRiser?'입상주 삭제':'맨홀 삭제');return;}
+      if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace')return;
       ev.stopPropagation();ev.preventDefault();
       pushHist();
       if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
@@ -549,9 +572,9 @@ function drawManholes(){
     // 라벨 드래그 핸들 (밑줄+글자 영역)
     var lbDrag=el('rect',{x:txtLeft-EM*0.2,y:uly-EM*1.1,width:Math.max(underLen,labelW)+EM*0.4,height:EM*1.3,rx:EM*0.1,fill:'transparent','pointer-events':'all',cursor:'move'});
     lbDrag.addEventListener('pointerdown',function(ev){
-      if(mode==='delmh'){ev.stopPropagation();ev.preventDefault();
-        var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();toast('맨홀 삭제');return;}
-      if(mode!=='pan'&&mode!=='mhplace')return;
+      if((mode==='delmh'&&!isRiser)||(mode==='delriser'&&isRiser)){ev.stopPropagation();ev.preventDefault();
+        var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();toast(isRiser?'입상주 삭제':'맨홀 삭제');return;}
+      if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace')return;
       ev.stopPropagation();ev.preventDefault();
       if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
       var w=toWorld(ev.clientX,ev.clientY);
@@ -560,9 +583,9 @@ function drawManholes(){
     gMH.appendChild(lbDrag);
 
     // 지우기 모드 hover 빨간 표시
-    drag.addEventListener('mouseenter',function(){if(mode!=='delmh')return;drag.setAttribute('stroke','#d32f2f');drag.setAttribute('stroke-width',2);drag.setAttribute('vector-effect','non-scaling-stroke');drag.setAttribute('fill','rgba(211,47,47,0.25)');});
+    drag.addEventListener('mouseenter',function(){if(!((mode==='delmh'&&!isRiser)||(mode==='delriser'&&isRiser)))return;drag.setAttribute('stroke','#d32f2f');drag.setAttribute('stroke-width',2);drag.setAttribute('vector-effect','non-scaling-stroke');drag.setAttribute('fill','rgba(211,47,47,0.25)');});
     drag.addEventListener('mouseleave',function(){drag.setAttribute('stroke','none');drag.setAttribute('fill','transparent');});
-    lbDrag.addEventListener('mouseenter',function(){if(mode!=='delmh')return;lbDrag.setAttribute('stroke','#d32f2f');lbDrag.setAttribute('stroke-width',1.5);lbDrag.setAttribute('vector-effect','non-scaling-stroke');lbDrag.setAttribute('fill','rgba(211,47,47,0.15)');});
+    lbDrag.addEventListener('mouseenter',function(){if(!((mode==='delmh'&&!isRiser)||(mode==='delriser'&&isRiser)))return;lbDrag.setAttribute('stroke','#d32f2f');lbDrag.setAttribute('stroke-width',1.5);lbDrag.setAttribute('vector-effect','non-scaling-stroke');lbDrag.setAttribute('fill','rgba(211,47,47,0.15)');});
     lbDrag.addEventListener('mouseleave',function(){lbDrag.setAttribute('stroke','none');lbDrag.setAttribute('fill','transparent');});
   });
 }
@@ -588,11 +611,11 @@ window.addEventListener('pointerup',function(ev){
   if(!mhDragState)return;mhDragState=null;drawManholes();drawGeo();
 });
 var mhIdSeq=1;
-function placeManholeAt(wx,wy){
+function placeManholeAt(wx,wy,type){
   pushHist();
-  // 팝업 없이 기본라벨 M (SK )로 바로 심기, 더블클릭으로 수정
-  var label='M (SK )';
-  state.manholes.push({id:mhIdSeq++, wx:wx, wy:wy, label:label, lx:null, ly:null});
+  // 팝업 없이 기본라벨로 바로 심기, 더블클릭으로 수정
+  var label=(type==='riser')?'통신주입상':'M (SK )';
+  state.manholes.push({id:mhIdSeq++, wx:wx, wy:wy, label:label, lx:null, ly:null, type:type||'mh'});
   drawManholes();
   toast('맨홀 심기 완료 — 더블클릭으로 라벨 수정, Enter/Space로 종료');
   // 모드 유지 (계속 찍을 수 있게)
@@ -715,7 +738,7 @@ function deleteSegmentAt(wx,wy){
 }
 
 /* ====== 모드 UI ====== */
-function setModeUI(){if(mode!=='measure'){measurePts=[];if(typeof gMeasure!=='undefined'&&gMeasure)clearSvg(gMeasure);clearLabels('measure');}renderSub();cv.classList.toggle('draw',mode!=='pan'&&mode!=='mhplace'&&mode!=='delmh');if(mode==='mhplace'||mode==='delmh'){cv.style.cursor='default';}else{cv.style.cursor='';}}
+function setModeUI(){if(mode!=='measure'){measurePts=[];if(typeof gMeasure!=='undefined'&&gMeasure)clearSvg(gMeasure);clearLabels('measure');}renderSub();cv.classList.toggle('draw',mode!=='pan'&&mode!=='mhplace'&&mode!=='delmh'&&mode!=='riserplace'&&mode!=='delriser');if(mode==='mhplace'||mode==='delmh'||mode==='riserplace'||mode==='delriser'){cv.style.cursor='default';}else{cv.style.cursor='';}}
 function setStatusUI(){renderSub();}
 
 /* ====== 포인터 ====== */
@@ -724,6 +747,7 @@ cv.addEventListener('pointerdown',function(e){
   if(e.button===1){e.preventDefault();midPanning=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};cv.style.cursor='grabbing';try{cv.setPointerCapture(e.pointerId);}catch(x){}return;}
   if(mode==='pan'){/* 좌클릭=점 선택(pointerup에서), 화면이동은 휠(가운데) 버튼 */}
   else if(mode==='mhplace'){var wm=toWorld(e.clientX,e.clientY);placeManholeAt(wm[0],-wm[1]);mode='pan';setModeUI();return;}
+  else if(mode==='riserplace'){var wr=toWorld(e.clientX,e.clientY);placeManholeAt(wr[0],-wr[1],'riser');mode='pan';setModeUI();return;}
   else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);var ns=nearestSnapWorld(w[0],w[1]);
     var pt=(ns.pt&&ns.d<vb.w*0.04)?[ns.pt[0],ns.pt[1]]:[w[0],-w[1]];lineDraft.push(pt);renderDraft();}
   else if(mode==='delline'){var wd=toWorld(e.clientX,e.clientY);deleteSegmentAt(wd[0],wd[1]);}
@@ -849,6 +873,9 @@ var TB=[
   {k:'mh',label:'맨홀편집',icon:'◎',c:{bg:'#efeafa',fg:'#7a52e0'},tools:[
     {t:'맨홀심기',tone:'draw',mode:'mhplace',hint:'도면에서 맨홀 위치를 클릭하세요'},
     {t:'맨홀/인출선 지우기',tone:'del',mode:'delmh',hint:'지울 맨홀을 클릭하세요 (맨홀+인출선+라벨 전부 삭제)'}]},
+  {k:'riser',label:'입상주편집',icon:'🗼',c:{bg:'#f1efe3',fg:'#7a6a3a'},tools:[
+    {t:'입상주심기',tone:'draw',mode:'riserplace',hint:'도면에서 입상주(전봇대) 위치를 클릭하세요'},
+    {t:'입상주 지우기',tone:'del',mode:'delriser',hint:'지울 입상주를 클릭하세요'}]},
   {k:'conn',label:'결선',icon:'🔗',c:{bg:'#e7f3ea',fg:'#2a9e50'},tools:[
     {t:'자동결선',tone:'draw',fn:autoConnect},
     {t:'결선지우기(선택)',tone:'del',mode:'delline',delLayer:'통신관로',hint:'지울 결선을 클릭'},
@@ -889,6 +916,7 @@ function renderRail(){
     activeCat=b.getAttribute('data-k');var c=curCat();
     renderRail();renderSub();
     if(c.k==='mh'){mode='mhplace';setModeUI();toast('맨홀심기: 도면을 클릭해 심기 (한 번 심으면 종료, 다시 심으려면 맨홀심기 클릭)');}
+    else if(c.k==='riser'){mode='riserplace';setModeUI();toast('입상주심기: 도면을 클릭해 심기 (한 번 심으면 종료, 다시 심으려면 입상주심기 클릭)');}
     else if(c.k==='pipe'){startDraw('통신관로');}
     else if(c.k==='jiger'){startDraw('지거');}
     else if(c.k==='push'){startDraw('압입구간');}
@@ -1161,6 +1189,7 @@ window.addEventListener('keydown',function(e){
   var tg=((e.target||{}).tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tg))return;
   if(mode==='line'){if(e.key==='Enter'||e.key===' '||e.code==='Space'){e.preventDefault();finishDraw();}}
   else if(mode==='mhplace'){if(e.key==='Enter'||e.key===' '||e.code==='Space'){e.preventDefault();mode='pan';setModeUI();toast('맨홀심기 종료');}}
+  else if(mode==='riserplace'){if(e.key==='Enter'||e.key===' '||e.code==='Space'){e.preventDefault();mode='pan';setModeUI();toast('입상주심기 종료');}}
   else if(mode==='measure'){if(e.key==='Enter'||e.key===' '||e.code==='Space'){e.preventDefault();mode='pan';setModeUI();toast('거리산출 종료');}}
 });
 document.getElementById('recClear').onclick=function(){if(!state.markups.length){toast('삭제할 검수 기록이 없습니다');return;}state.markups.forEach(function(r){if(r.el)r.el.remove();});state.markups=[];renderRecs();toast('검수 기록 전체 삭제');};
