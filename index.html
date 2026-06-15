@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 55</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 56</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -773,10 +773,10 @@ function autoConnect(){
     for(var i=0;i<near.length && acc<Np;i++){var c=pipeCount(near[i]); if(acc+c<=Np){addE(P,near[i]);acc+=c;}}
   });
 
-  // C) 맨홀 통과 결선: 맨홀 2.5m 안 측점들을 맨홀 통과로 이어줌(관수 달라도 OK, 각도 무관)
+  // C) 맨홀 통과 결선: 맨홀 2.5m 안의 '맨홀앞 M측점'만 맨홀 통과로 이어줌(M점만, 관수·각도 무관)
   var MHR=2.5, mhCount=0;
   (state.manholes||[]).forEach(function(mh){
-    var nr=pts.map(function(p){return {p:p,d:Math.hypot(p.x-mh.wx,p.y-mh.wy)};}).filter(function(o){return o.d<=MHR;}).sort(function(a,b){return a.d-b.d;});
+    var nr=pts.filter(function(p){return isManhole(p);}).map(function(p){return {p:p,d:Math.hypot(p.x-mh.wx,p.y-mh.wy)};}).filter(function(o){return o.d<=MHR;}).sort(function(a,b){return a.d-b.d;});
     if(nr.length>=2){var A=nr[0].p,B=nr[1].p;edges=edges.filter(function(e){return !((e[0]===A&&e[1]===B)||(e[0]===B&&e[1]===A));});state.lines.push({layer:'통신관로',pts:[[A.x,A.y],[mh.wx,mh.wy],[B.x,B.y]]});mhCount++;}
     else if(nr.length===1){var A1=nr[0].p;state.lines.push({layer:'통신관로',pts:[[A1.x,A1.y],[mh.wx,mh.wy]]});mhCount++;}
   });
