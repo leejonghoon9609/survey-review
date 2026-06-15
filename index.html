@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 20</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 21</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -357,6 +357,10 @@ function drawGeo(){
     var ah=el('circle',{cx:s[0],cy:s[1],r:ahR,fill:'transparent','pointer-events':'all'});ah.style.cursor='move';gAnc.appendChild(ah); // 클릭 잡기용 큰 투명 원
     addAnchorHandle(L,ah,anc,ld);
     var t=el('text',{x:lx+0.25,y:ly+0.2,'font-size':0.62,fill:'#7a5f00','font-weight':'600','text-anchor':'start','pointer-events':'none'});t.textContent=L.note;gPts.appendChild(t);
+    // 인출선이 붙는 쪽: 앵커가 태그보다 오른쪽이면 태그 오른쪽 끝에서, 왼쪽이면 태그 왼쪽에서
+    var tbb;try{tbb=t.getBBox();}catch(e){tbb=null;}
+    var tw=tbb?tbb.width:(L.note||'').length*0.42;
+    ld.setAttribute('x2', s[0]>lx ? lx+0.25+tw : lx);
     addNoteHandle(L,t,ld,lx,ly);
   });
   var Up=pxToWorld();
