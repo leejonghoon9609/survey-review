@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 27</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 28</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -394,7 +394,9 @@ function drawGeo(){
     // 코드는 번호 아래 줄로 같은 div에 추가
     if((p.code||'').trim()){
       var sub=document.createElement('div');
-      sub.textContent=(p.code||'').trim();
+      var code=(p.code||'').trim();
+      if(isTpoint(p)){sub.innerHTML=code.replace(/(^|\s)(T)(?=\s|$)/,'$1<span style="color:#d32f2f;font-weight:700">T</span>');}
+      else{sub.textContent=code;}
       sub.style.cssText='color:#0f7a86;font-weight:400;margin-top:2px;';
       nt.appendChild(sub);
     }
@@ -900,7 +902,7 @@ function renderSub(){
   if(c.tools.length)html+=c.tools.map(mkBtn).join('');
   else if(c.hint)html+='<span class="subhint">'+c.hint+'</span>';
   if(mode==='line')html+='<button id="lineDone" class="on">완료</button>';
-  html+='<span class="viewgrp"><button data-g="undo">← 되돌리기</button><button data-g="redo">다시 실행 →</button><button data-g="measure">📏 거리산출</button>'
+  html+='<span class="viewgrp"><button data-g="measure" style="border:1px solid #d32f2f;color:#d32f2f;font-weight:700"><span style="color:#f2b400">📏</span> 거리산출</button><button data-g="undo">← 되돌리기</button><button data-g="redo">다시 실행 →</button>'
       +'<span class="subhint">보기</span><button data-g="fit">전체</button></span>';
   s.innerHTML=html;
   c.tools.forEach(function(tool,i){if(tool.soon)return;var b=s.querySelector('button[data-i="'+i+'"]');if(!b)return;
@@ -1146,6 +1148,7 @@ window.addEventListener('keydown',function(e){
   var tg=((e.target||{}).tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tg))return;
   if(mode==='line'){if(e.key==='Enter'||e.key===' '||e.code==='Space'){e.preventDefault();finishDraw();}}
   else if(mode==='mhplace'){if(e.key==='Enter'||e.key===' '||e.code==='Space'){e.preventDefault();mode='pan';setModeUI();toast('맨홀심기 종료');}}
+  else if(mode==='measure'){if(e.key==='Enter'||e.key===' '||e.code==='Space'){e.preventDefault();mode='pan';setModeUI();toast('거리산출 종료');}}
 });
 document.getElementById('recClear').onclick=function(){if(!state.markups.length){toast('삭제할 검수 기록이 없습니다');return;}state.markups.forEach(function(r){if(r.el)r.el.remove();});state.markups=[];renderRecs();toast('검수 기록 전체 삭제');};
 
