@@ -76,12 +76,12 @@
 <body>
   <header>
     <h1>후측량 검수 시스템</h1>
-    <span id="vstamp" style="font-size:11px;color:#c0392b;font-weight:700;margin-right:6px">v.심벌고정</span>
     <select id="proj"><option value="">현장 선택…</option></select>
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="conn" class="conn off">로컬 모드</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 1</span>
+    <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
   <div class="stage">
@@ -182,11 +182,10 @@ function vbScale(){
 function worldToPx(svgX,svgY){var cvr=cv.getBoundingClientRect();return [(svgX-vb.x)/vb.w*cvr.width,(svgY-vb.y)/vb.h*cvr.height];}
 // 심벌 크기 화면고정용: 화면 1px당 월드단위 [가로,세로]. 가로·세로 스케일을 각각 실측 → 어떤 경우든 화면상 정사각/정원
 function symScale(){
-  cv.getBoundingClientRect();                         // 레이아웃 flush(CTM 최신화)
-  var m=cv.getScreenCTM?cv.getScreenCTM():null;
-  if(m&&m.a)return [1/m.a, m.d?1/m.d:1/m.a];           // 가로=1/m.a, 세로=1/m.d (따로)
-  var r=cv.getBoundingClientRect(),s=Math.min(r.width/Math.max(vb.w,1e-9), r.height/Math.max(vb.h,1e-9));
-  return [1/s, 1/s];                                   // 폴백(meet 균일)
+  // viewBox 비율을 화면에 맞췄으므로 가로=세로 스케일. getBoundingClientRect+vb로 직접 계산(stale 없음)
+  var r=cv.getBoundingClientRect();
+  var s=r.width/Math.max(vb.w,1e-9);                   // 화면 1px당 월드(가로=세로)
+  return [1/s, 1/s];
 }
 function moveLabelDiv(d,svgX,svgY){d._sx=svgX;d._sy=svgY;placeLabelDiv(d);}
 function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
@@ -306,7 +305,6 @@ function drawGeo(){
   });
   var Up=pxToWorld();
   var sc=symScale(); // [가로,세로] 1px당 월드 — 심벌을 화면상 일정 px로 그리기 위함
-  var _vs=document.getElementById('vstamp');if(_vs)_vs.textContent='심벌=SVG·위치고정 v5';
   var hitR=Math.min(0.45, 9*Up);   // 클릭 히트: 작은 줌에선 화면 고정, 큰 줌에선 월드 0.45 상한
   state.points.forEach(function(p,i){var s=S(p.x,p.y);
     // 측점 심벌(속빈 사각) — SVG로 점 s 중심에 그려 위치 100% 정확, 크기만 화면 12px 고정
@@ -540,7 +538,17 @@ function updMeta(){document.getElementById('meta').textContent=(state.projectNam
 /* ====== 뷰박스 ====== */
 var vb={x:0,y:0,w:100,h:100}, vb0={x:0,y:0,w:100,h:100}, _vbwLast=null;
 function redrawSym(){if(typeof drawGeo==='function'){drawGeo();drawManholes();highlightSel();}}
-function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);repositionLabels();if(vb.w!==_vbwLast){_vbwLast=vb.w;redrawSym();requestAnimationFrame(redrawSym);}}
+// ★ viewBox 비율을 화면 비율에 맞춤 → SVG가 가로·세로를 똑같이 그림(균일) → 심벌 절대 안 찌그러짐
+//   측량 좌표는 그대로, 도면 주변 여백만 조정(중심 유지)
+function fixVbAspect(){
+  var r=cv.getBoundingClientRect();
+  if(r.width<1||r.height<1)return;
+  var scrA=r.width/r.height, vbA=vb.w/vb.h;
+  if(Math.abs(scrA-vbA)<1e-9)return;
+  if(scrA>vbA){var nw=vb.h*scrA; vb.x-=(nw-vb.w)/2; vb.w=nw;}   // 화면이 더 넓음 → vb 가로 확장
+  else        {var nh=vb.w/scrA; vb.y-=(nh-vb.h)/2; vb.h=nh;}   // 화면이 더 김  → vb 세로 확장
+}
+function applyVB(){fixVbAspect();cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);repositionLabels();if(vb.w!==_vbwLast){_vbwLast=vb.w;redrawSym();requestAnimationFrame(redrawSym);}}
 function fitView(){
   var xs=[],ys=[];function add(x,y){var s=S(x,y);xs.push(s[0]);ys.push(s[1]);}
   state.points.forEach(function(p){add(p.x,p.y);});
@@ -966,7 +974,7 @@ cwrap.addEventListener('mousemove',function(e){
   if(mode==='line')drawIndicators(w); else if(mode==='delline')delHoverHighlight(w); else if(gDraw.childNodes.length)clearSvg(gDraw);
 });
 cwrap.addEventListener('mouseleave',coordReset);
-window.addEventListener('resize',function(){placeCoord();if(typeof drawGeo==='function'){drawGeo();drawManholes();highlightSel();requestAnimationFrame(redrawSym);}});
+window.addEventListener('resize',function(){placeCoord();if(typeof drawGeo==='function'){applyVB();drawGeo();drawManholes();highlightSel();requestAnimationFrame(redrawSym);}});
 coordReset();
 window.addEventListener('keydown',function(e){
   var tg=((e.target||{}).tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tg))return;
