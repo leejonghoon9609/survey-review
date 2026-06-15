@@ -76,7 +76,6 @@
 <body>
   <header>
     <h1>후측량 검수 시스템</h1>
-    <span id="vstamp" style="font-size:11px;color:#c0392b;font-weight:700;margin-right:6px">v.심벌고정</span>
     <select id="proj"><option value="">현장 선택…</option></select>
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
@@ -90,7 +89,6 @@
       <div class="subbar" id="subbar"></div>
     <div class="canvas-wrap">
       <svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg>
-      <div id="lblOverlay" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:5"></div>
       <div id="coordBox" class="coordbox">X <b>–</b>　Y <b>–</b></div>
       <div id="toast" class="toast"></div>
     </div>
@@ -128,16 +126,10 @@ var gGeo=document.createElementNS(SVGNS,'g'); gGeo.setAttribute('pointer-events'
 var gMark=document.createElementNS(SVGNS,'g'); gMark.setAttribute('pointer-events','none');
 var gDraft=document.createElementNS(SVGNS,'g'); gDraft.setAttribute('pointer-events','none');
 var gPts=document.createElementNS(SVGNS,'g');
-var gMH=document.createElementNS(SVGNS,'g'); // 맨홀 심벌 레이어
-var gHit=document.createElementNS(SVGNS,'g'); // 측점 클릭 hit (최상위 — 항상 클릭 우선)
-cv.appendChild(gGeo); cv.appendChild(gMark); cv.appendChild(gDraft); cv.appendChild(gPts); cv.appendChild(gMH); cv.appendChild(gHit);
+cv.appendChild(gGeo); cv.appendChild(gMark); cv.appendChild(gDraft); cv.appendChild(gPts);
 
 /* 상태 */
-var state={ projectId:null, projectName:null, points:[], lines:[], markups:[], labelOff:{}, manholes:[] };
-// manhole 구조: {id, wx, wy, label, lx, ly}
-// wx,wy = 맨홀 중심 세계좌표(x=동,y=북)
-// lx,ly = 라벨 앵커 세계좌표
-// label = '2M(SKB)' 등
+var state={ projectId:null, projectName:null, points:[], lines:[], markups:[], labelOff:{} };
 var mode='pan', status='ok';
 var LINECOL={"통신관로":{c:"#d92b2b",w:1.6},"압입구간":{c:"#1f6fd6",w:1.6,dash:"5 4"},"지거":{c:"#f2b400",w:2.4},"주입상인출선":{c:"#999",w:1}};
 function isTpoint(p){return /(^|\s)T(\s|$)/.test((p&&p.code)||'');}
@@ -171,33 +163,11 @@ function computeLabels(){
   return lay;
 }
 var labelDragging=false;
-// world(SVG)좌표 → 화면픽셀 (오버레이 div 배치용)
-// ★ SVG meet 렌더와 동일한 좌표변환의 기준값 (균일 스케일 + xMidYMid 여백)
-//   placeLabelDiv(표시)·toWorld(입력)가 이 하나를 공유 → SVG 점과 픽셀단위로 정확히 일치
-function vbScale(){
-  var r=cv.getBoundingClientRect();
-  var s=Math.min(r.width/vb.w, r.height/vb.h);            // meet: 가로·세로 같은 스케일
-  return {r:r, s:s, ox:(r.width-vb.w*s)/2, oy:(r.height-vb.h*s)/2}; // 레터박스 여백(중앙정렬)
-}
-function worldToPx(svgX,svgY){
-  var r=cv.getBoundingClientRect();                 // 먼저 호출해 레이아웃 강제 갱신(CTM 최신화)
-  var ctm=cv.getScreenCTM?cv.getScreenCTM():null;
-  if(ctm){                                          // ★브라우저 실측: 점이 실제 찍힌 화면위치
-    var pt=cv.createSVGPoint();pt.x=svgX;pt.y=svgY;
-    var p=pt.matrixTransform(ctm);
-    return [p.x-r.left, p.y-r.top];                 // cv 요소 내부 상대 px
-  }
-  var m=vbScale();return [m.ox+(svgX-vb.x)*m.s, m.oy+(svgY-vb.y)*m.s]; // 폴백(meet 공식)
-}
-function moveLabelDiv(d,svgX,svgY){d._sx=svgX;d._sy=svgY;placeLabelDiv(d);}
 function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
   var anchor=L.anchor;
-  var Uh=vb.w/Math.max(cv.getBoundingClientRect().width,1); // 1px = Uh world
-  var maxChars=Math.max((''+(p.no||'')).length,((p.code||'').trim()).length);
-  var tw=maxChars*9*Uh+10*Uh;  // 글자폭(약 9px/자) + 여백, 화면 고정
-  var hh=34*Uh;                 // 두 줄 높이(약 34px), 화면 고정
-  var hx=anchor==='start'?(ls[0]-3*Uh):(ls[0]-tw+3*Uh);
-  var handle=el('rect',{x:hx,y:ls[1]-hh*0.5,width:tw,height:hh,fill:'transparent','pointer-events':'all'});
+  var tw=Math.max((''+(p.no||'')).length,((p.code||'').trim()).length)*0.33+0.7,hh=1.55;
+  var hx=anchor==='start'?(ls[0]-0.15):(ls[0]-tw+0.15);
+  var handle=el('rect',{x:hx,y:ls[1]-0.8,width:tw,height:hh,fill:'transparent','pointer-events':'all'});
   if(isSel){handle.setAttribute('stroke','#22cc00');handle.setAttribute('stroke-width',0.8);handle.setAttribute('stroke-dasharray','2 2');handle.setAttribute('vector-effect','non-scaling-stroke');}
   handle.style.cursor='move';
   var lx=ls[0],ly=ls[1],dragging=false,moved=false,gx=0,gy=0;
@@ -209,10 +179,10 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
   handle.addEventListener('pointermove',function(ev){
     if(!dragging)return;ev.preventDefault();moved=true;var w=toWorld(ev.clientX,ev.clientY);
     lx=w[0]-gx;ly=w[1]-gy;var off=anchor==='start'?0.15:-0.15;
-    moveLabelDiv(nt,lx+off,ly);
-    moveLabelDiv(ct,lx+off,ly);
+    nt.setAttribute('x',lx+off);nt.setAttribute('y',ly-0.18);
+    ct.setAttribute('x',lx+off);ct.setAttribute('y',ly+0.55);
     if(ld){ld.setAttribute('x2',lx);ld.setAttribute('y2',ly);}
-    handle.setAttribute('x',anchor==='start'?(lx-3*Uh):(lx-tw+3*Uh));handle.setAttribute('y',ly-hh*0.5);});
+    handle.setAttribute('x',anchor==='start'?(lx-0.15):(lx-tw+0.15));handle.setAttribute('y',ly-0.8);});
   function up(ev){if(!dragging)return;dragging=false;setTimeout(function(){labelDragging=false;},40);
     if(moved)state.labelOff[ptNum(p)]=[lx,-ly];
     try{handle.releasePointerCapture(ev.pointerId);}catch(e){}
@@ -233,73 +203,8 @@ function addNoteHandle(L,t,ld,lx,ly){
   h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
   gPts.appendChild(h);
 }
-// 줌-안전 텍스트: HTML div 오버레이로 화면 픽셀에 직접 렌더 → viewBox 스킵 문제 원천 차단
-// svgX,svgY = SVG(화면) 좌표. 오버레이는 화면픽셀이므로 viewBox→화면 변환해 배치.
-var lblOverlay=document.getElementById('lblOverlay');
-function clearLabels(grp){
-  if(!lblOverlay)return;
-  if(!grp){lblOverlay.innerHTML='';return;}
-  var ns=lblOverlay.querySelectorAll('.lbl-'+grp);
-  for(var i=0;i<ns.length;i++)ns[i].remove();
-}
-function mkLabel(svgX,svgY,text,opt){
-  opt=opt||{};
-  var d=document.createElement('div');
-  d.textContent=text;
-  d.className='lbl-'+(opt.grp||'pt');
-  d._sx=svgX; d._sy=svgY; // SVG좌표 저장 → pan/zoom 시 재배치
-  var anchor=opt.anchor||'start';
-  d._anchor=anchor;
-  d.style.cssText='position:absolute;'
-    +'font-size:'+(opt.px||13)+'px;color:'+(opt.fill||'#333')+';'
-    +'font-weight:'+(opt.weight||'400')+';white-space:nowrap;pointer-events:none;'
-    +'transform:translate('+(anchor==='end'?'-100%':(anchor==='middle'?'-50%':'0'))+',-50%);line-height:1;';
-  placeLabelDiv(d);
-  if(lblOverlay)lblOverlay.appendChild(d);
-  return d;
-}
-function placeLabelDiv(d){
-  // div는 lblOverlay 안에 들어가므로 반드시 lblOverlay 기준으로 배치해야 정확
-  var host=lblOverlay?lblOverlay.getBoundingClientRect():cv.getBoundingClientRect(); // 호출이 곧 레이아웃 flush(CTM 최신화)
-  var ctm=cv.getScreenCTM?cv.getScreenCTM():null;
-  if(ctm){                                           // ★브라우저 실측: 점의 화면 절대위치
-    var pt=cv.createSVGPoint();pt.x=d._sx;pt.y=d._sy;
-    var p=pt.matrixTransform(ctm);
-    d.style.left=(p.x-host.left)+'px';               // 부모(lblOverlay) 기준 상대
-    d.style.top =(p.y-host.top )+'px';
-    return;
-  }
-  var m=vbScale();                                   // 폴백(meet 공식) + cv↔host 차이 보정
-  d.style.left=((m.r.left-host.left)+m.ox+(d._sx-vb.x)*m.s)+'px';
-  d.style.top =((m.r.top -host.top )+m.oy+(d._sy-vb.y)*m.s)+'px';
-}
-function repositionLabels(){
-  if(!lblOverlay)return;
-  var ns=lblOverlay.children;
-  for(var i=0;i<ns.length;i++){var d=ns[i];if(d._sx!=null)placeLabelDiv(d);}
-}
-// ★ 심벌(측점 사각·맨홀 이중원)을 라벨과 동일한 화면픽셀 오버레이로 그림
-//   크기가 CSS px로 고정 → 줌/팬/리사이즈에 계산 자체가 없어 절대 안 변함
-function mkSym(svgX,svgY,grp,css){
-  var d=document.createElement('div');
-  d.className='lbl-'+(grp||'pt');     // clearLabels/repositionLabels와 동일 그룹키 → 같이 청소·재배치
-  d._sx=svgX; d._sy=svgY;
-  d.style.cssText='position:absolute;box-sizing:border-box;pointer-events:none;'
-    +'transform:translate(-50%,-50%);'+css; // 중심 정렬
-  placeLabelDiv(d);
-  if(lblOverlay)lblOverlay.appendChild(d);
-  return d;
-}
-// ★ 화면 1px당 월드단위 — getScreenCTM으로 브라우저가 실제 적용한 스케일을 직접 측정
-//   (preserveAspectRatio/meet/종횡비/리사이즈/줌이 모두 반영된 실측값 → 추정 오차 없음)
-function pxToWorld(){
-  var m=null; try{m=cv.getScreenCTM();}catch(e){}
-  if(m&&m.a)return 1/m.a;          // meet은 균일 스케일이라 m.a 하나면 충분
-  var r=cv.getBoundingClientRect(); // 폴백(SVG 미표시 등): 기존 추정식
-  return Math.max(vb.w/Math.max(r.width,1), vb.h/Math.max(r.height,1));
-}
 function drawGeo(){
-  clearSvg(gGeo); clearSvg(gPts); clearSvg(gHit); clearLabels('pt');
+  clearSvg(gGeo); clearSvg(gPts);
   state.lines.forEach(function(L){var def=LINECOL[L.layer]||{c:"#888",w:1.2};
     var pts=L.pts.map(function(p){var s=S(p[0],p[1]);return s[0]+','+s[1];}).join(' ');
     var pl=el('polyline',{points:pts,fill:'none',stroke:def.c,'stroke-width':def.w,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':'round'});
@@ -315,218 +220,19 @@ function drawGeo(){
     var t=el('text',{x:lx+0.25,y:ly+0.2,'font-size':0.62,fill:'#7a5f00','font-weight':'600','text-anchor':'start','pointer-events':'none'});t.textContent=L.note;gPts.appendChild(t);
     addNoteHandle(L,t,ld,lx,ly);
   });
-  var Up=pxToWorld(); // ★실측: 브라우저가 실제 그린 스케일 기준 1px당 월드단위
-  var _vs=document.getElementById('vstamp');if(_vs)_vs.textContent='심벌=화면고정 v4-overlay';
-  var hitR=Math.min(0.45, 9*Up);   // 클릭 히트: 작은 줌에선 화면 고정, 큰 줌에선 월드 0.45 상한
   state.points.forEach(function(p,i){var s=S(p.x,p.y);
-    // 측점 심벌(속빈 사각) — 화면픽셀 오버레이라 줌/팬/리사이즈에 절대 안 변함
-    mkSym(s[0],s[1],'pt','width:12px;height:12px;border:2.6px solid '+(isTpoint(p)?'#13803a':'#111')+';');
-    var hit=el('circle',{cx:s[0],cy:s[1],r:hitR,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
+    gPts.appendChild(el('rect',{x:s[0]-0.42,y:s[1]-0.42,width:0.84,height:0.84,fill:'none',stroke:isTpoint(p)?'#13803a':'#111','stroke-width':7.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    var hit=el('circle',{cx:s[0],cy:s[1],r:1.1,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
     hit.addEventListener('click',function(ev){if(mode!=='pan'||labelDragging)return;ev.stopPropagation();if(photoLink)selectPoint(ptNum(p));else{selNum=String(ptNum(p));drawGeo();highlightSel();}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
-    gHit.appendChild(hit);
-    if(/^\s*M/.test(p.code||''))mkSym(s[0],s[1],'pt','width:18px;height:18px;border:1.6px solid #000;border-radius:50%;');
+    gPts.appendChild(hit);
+    if(/^\s*M/.test(p.code||''))gPts.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.8,fill:'none',stroke:'#000','stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     var L=lay[i],ls=S(L.lx,L.ly),off=L.anchor==='start'?0.15:-0.15;
-    var ld=null;if(L.leader){ld=el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':1.3,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);}
-    var nt=mkLabel(ls[0]+off, ls[1], p.no, {fill:'#1a7a3a',weight:'400',anchor:L.anchor,grp:'pt',px:22});
-    // 코드는 번호 아래 줄로 같은 div에 추가
-    if((p.code||'').trim()){
-      var sub=document.createElement('div');
-      sub.textContent=(p.code||'').trim();
-      sub.style.cssText='color:#0f7a86;font-weight:400;margin-top:2px;';
-      nt.appendChild(sub);
-    }
-    var ct=nt; // 핸들 호환
+    var ld=null;if(L.leader){ld=el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':0.9,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);}
+    var nt=el('text',{x:ls[0]+off,y:ls[1]-0.18,'font-size':0.55,fill:'#1a7a3a','text-anchor':L.anchor,'pointer-events':'none'});nt.textContent=p.no;gPts.appendChild(nt);
+    var ct=el('text',{x:ls[0]+off,y:ls[1]+0.55,'font-size':0.55,fill:'#0f7a86','text-anchor':L.anchor,'pointer-events':'none'});ct.textContent=(p.code||'').trim();gPts.appendChild(ct);
     addLabelHandle(p,L,ls,nt,ct,ld,ptNum(p)===String(selNum));
   });
 }
-/* ====== 맨홀 심벌 렌더 ====== */
-function drawManholes(){
-  clearSvg(gMH); clearLabels('mh');
-  (state.manholes||[]).forEach(function(mh){
-    // 손 안 댄 자동순번 기본라벨(예 '2M (SK )')은 숫자 떼서 'M (SK )'로 정리 (캐리어 입력한 건 보존)
-    if(/^\s*\d+\s*M\s*\(\s*SK\s*\)\s*$/.test(mh.label||''))mh.label='M (SK )';
-    var s=S(mh.wx,mh.wy);
-    var mx=s[0], my=s[1];
-
-    // 가장 가까운 M코드 측점 찾기
-    var mp=null,md=1e18;
-    state.points.forEach(function(p){if(!isManhole(p))return;var d=Math.hypot(p.x-mh.wx,p.y-mh.wy);if(d<md){md=d;mp=p;}});
-
-    // 이중원(◎) — 측점 박스(0.294)와 비슷한 크기
-    // 화면 px → 월드 단위 변환 (이중원·라벨 크기용) — ★실측
-    var U=pxToWorld(); // 브라우저가 실제 그린 스케일 기준 1px당 월드
-    var EM=22*U; // 라벨 글자높이(22px) 만큼의 월드길이
-
-    // 이중원(◎) — 원래 월드 고정 크기
-    // 이중원(◎) — 화면픽셀 오버레이라 줌/팬/리사이즈에 절대 안 변함
-    mkSym(mx,my,'mh','width:22px;height:22px;border:1.6px solid #555;border-radius:50%;');
-    mkSym(mx,my,'mh','width:10px;height:10px;border:1.2px solid #555;border-radius:50%;');
-
-    // 라벨 글자 폭 (텍스트 길이 기준 월드값)
-    var txtW=(mh.label||'').length*EM*0.6+EM*0.3;
-
-    // 라벨 기본 위치: 맨홀 기준 4방향 자동 (M측점 반대쪽)
-    var defLx, defLy;
-    if(mp){
-      var dx=mh.wx-mp.x, dy=mh.wy-mp.y;
-      var goRight=(dx>=0);
-      var goUp=(dy>=0);
-      defLx = goRight ? mh.wx+1.0 : mh.wx-1.0-txtW;
-      defLy = goUp ? mh.wy+1.2 : mh.wy-0.8;
-    } else { defLx=mh.wx+1.0; defLy=mh.wy+1.2; }
-    var lx=mh.lx!=null?mh.lx:defLx, ly=mh.ly!=null?mh.ly:defLy;
-    var ls=S(lx,ly);
-    var lbx=ls[0], lby=ls[1]; // 밑줄 시작점(라벨 기준점)
-
-    // 라벨이 맨홀 기준 오른쪽/왼쪽 판단 (밑줄이 맨홀쪽으로 뻗는 방향)
-    var isRight=(lbx >= mx);
-    // 빨간 대각선: 맨홀중심 → 꺾임점. 꺾임점은 밑줄의 맨홀쪽 끝
-    // 파란 밑줄 길이 = max(대각선 길이의 30%, 글자 폭)
-    // 꺾임점 후보 = lbx (밑줄이 맨홀쪽으로 가는 끝)
-    var kinkX = isRight ? lbx : lbx; // 일단 lbx 기준, 아래서 밑줄 방향 결정
-    var kinkY = lby;
-    // 대각선 길이(맨홀→꺾임점)
-    var diagLen = Math.hypot(kinkX-mx, kinkY-my);
-    // 파란 밑줄 길이
-    var underLen = Math.max(diagLen*0.30, txtW);
-    // 밑줄 방향: 맨홀 반대쪽으로 (라벨이 오른쪽이면 밑줄도 오른쪽으로 뻗음)
-    var ulx1, ulx2;
-    if(isRight){ ulx1=kinkX; ulx2=kinkX+underLen; }
-    else { ulx1=kinkX; ulx2=kinkX-underLen; }
-    var uly=kinkY;
-
-    // 대각선 (맨홀중심 → 꺾임점) — 검정
-    gMH.appendChild(el('line',{x1:mx,y1:my,x2:kinkX,y2:kinkY,stroke:'#222','stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-    // 수평 밑줄 — 검정
-    gMH.appendChild(el('line',{x1:ulx1,y1:uly,x2:ulx2,y2:uly,stroke:'#222','stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-
-    // 라벨 텍스트 위치: 밑줄 중앙 위에 올라오게
-    var labelW=txtW, labelH=EM*1.15;
-    var txtCx=(ulx1+ulx2)/2; // 밑줄 중앙
-    var txtLeft=Math.min(ulx1,ulx2);
-
-    // M측점 연결선 (검정 실선) — 맨홀 앞 M점 + 그 점의 결선 이웃 중 M점들
-    if(mp){
-      var connectPts=[mp];
-      var nbrs=lineNeighbors(ptNum(mp));
-      nbrs.forEach(function(q){if(isManhole(q)&&connectPts.indexOf(q)<0)connectPts.push(q);});
-      connectPts.forEach(function(q){
-        if(q===mp)return; // mp는 대각선으로 이미 표시
-        var qs=S(q.x,q.y);
-        gMH.appendChild(el('line',{x1:qs[0],y1:qs[1],x2:mx,y2:my,stroke:'#222','stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-      });
-    }
-
-    // 더블클릭 → 'M' 과 '( )' 만 고정. 앞부분(숫자 등)과 괄호 안 둘 다 수정 가능
-    // 형식: [pre]M ([inner])  예: 2M (SK T), 4M (LG U+)
-    function openLabelEdit(){
-      var r=cv.getBoundingClientRect();
-      var scaleX=r.width/vb.w, scaleY=r.height/vb.h;
-      var sx=r.left+(txtLeft-vb.x)*scaleX;
-      var sy=r.top+(uly-vb.y)*scaleY;
-      // 현재 라벨 파싱: 앞부분 + M + (괄호안)
-      var lab=mh.label||'';
-      var pm=lab.match(/^(.*?)M\s*\(([^)]*)\)/);
-      var pre=pm?pm[1].trim():'';
-      var inner=pm?pm[2].trim():'';
-      // 자동순번 잔재 제거: 앞이 숫자뿐이고 캐리어가 기본(SK 또는 빈칸)이면 숫자 떼고 시작
-      if(/^\d+$/.test(pre) && (inner==='SK'||inner===''))pre='';
-      var wrap=document.createElement('div');
-      wrap.style.cssText='position:fixed;z-index:999;display:flex;align-items:center;gap:1px;'
-        +'left:'+sx+'px;top:'+(sy-36)+'px;background:#fffde7;border-bottom:2px solid #555;'
-        +'padding:3px 6px;font-size:18px;font-weight:600;color:#333;border-radius:4px;';
-      var inpPre=document.createElement('input');
-      inpPre.value=pre; inpPre.placeholder=''; inpPre.maxLength=2;
-      inpPre.style.cssText='font-size:18px;font-weight:600;color:#333;border:1px solid #bbb;border-radius:4px;background:#fff;outline:none;width:38px;text-align:center;padding:1px 2px;';
-      var spM=document.createElement('span');spM.textContent='M (';spM.style.margin='0 2px';
-      var inpIn=document.createElement('input');
-      inpIn.value=inner; inpIn.placeholder='SK';
-      inpIn.style.cssText='font-size:18px;font-weight:600;color:#333;border:none;background:transparent;outline:none;width:90px;text-align:center;';
-      var spR=document.createElement('span');spR.textContent=')';
-      wrap.appendChild(inpPre);wrap.appendChild(spM);wrap.appendChild(inpIn);wrap.appendChild(spR);
-      document.body.appendChild(wrap);inpIn.focus();inpIn.select();
-      var done=function(){if(wrap.parentNode){
-        var p=inpPre.value.trim(), v=inpIn.value.trim();
-        mh.label=p+'M ('+v+(v?' ':'')+')';
-        wrap.remove();drawManholes();}};
-      var onKey=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();};
-      inpPre.addEventListener('keydown',onKey);inpIn.addEventListener('keydown',onKey);
-      // 두 입력칸 모두에서 포커스 빠지면 done (단, 서로 이동 시는 유지)
-      var blurTimer=null;
-      function onBlur(){blurTimer=setTimeout(done,120);}
-      function onFocus(){if(blurTimer){clearTimeout(blurTimer);blurTimer=null;}}
-      inpPre.addEventListener('blur',onBlur);inpIn.addEventListener('blur',onBlur);
-      inpPre.addEventListener('focus',onFocus);inpIn.addEventListener('focus',onFocus);
-    }
-
-    // 라벨 텍스트 — 파란 밑줄 중앙 바로 위에 (글자가 밑줄을 덮지 않게 위로)
-    var mhLbl=mkLabel(txtCx, uly-EM*0.75, mh.label||'', {fill:'#333',weight:'600',anchor:'middle',grp:'mh',px:22});
-    // 라벨 div에 직접 더블클릭(수정) — 오버레이라 글자 위에서 바로 동작
-    mhLbl.style.pointerEvents='auto';
-    mhLbl.style.cursor='text';
-    mhLbl.addEventListener('dblclick',function(ev){ev.stopPropagation();if(mode==='delmh')return;openLabelEdit();});
-
-    // 드래그 핸들 - 맨홀 중심(이중원) — 히트영역 작게(측점 클릭 안 막게)
-    var drag=el('circle',{cx:mx,cy:my,r:13*U,fill:'transparent','pointer-events':'all',cursor:'move'});
-    drag.addEventListener('pointerdown',function(ev){
-      if(mode==='delmh'){ev.stopPropagation();ev.preventDefault();
-        var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();toast('맨홀 삭제');return;}
-      if(mode!=='pan'&&mode!=='mhplace')return;
-      ev.stopPropagation();ev.preventDefault();
-      if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
-      var w=toWorld(ev.clientX,ev.clientY);
-      mhDragState={type:'center',mh:mh,gx:w[0]-mh.wx,gy:(-w[1])-mh.wy};});
-    drag.addEventListener('dblclick',function(ev){ev.stopPropagation();openLabelEdit();});
-    gMH.appendChild(drag);
-
-    // 라벨 드래그 핸들 (밑줄+글자 영역)
-    var lbDrag=el('rect',{x:txtLeft-EM*0.2,y:uly-EM*1.1,width:Math.max(underLen,labelW)+EM*0.4,height:EM*1.3,rx:EM*0.1,fill:'transparent','pointer-events':'all',cursor:'move'});
-    lbDrag.addEventListener('pointerdown',function(ev){
-      if(mode==='delmh'){ev.stopPropagation();ev.preventDefault();
-        var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);drawManholes();toast('맨홀 삭제');return;}
-      if(mode!=='pan'&&mode!=='mhplace')return;
-      ev.stopPropagation();ev.preventDefault();
-      if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
-      var w=toWorld(ev.clientX,ev.clientY);
-      mhDragState={type:'label',mh:mh,gx:w[0]-mh.lx,gy:(-w[1])-mh.ly};});
-    lbDrag.addEventListener('dblclick',function(ev){ev.stopPropagation();openLabelEdit();});
-    gMH.appendChild(lbDrag);
-
-    // 지우기 모드 hover 빨간 표시
-    drag.addEventListener('mouseenter',function(){if(mode!=='delmh')return;drag.setAttribute('stroke','#d32f2f');drag.setAttribute('stroke-width',2);drag.setAttribute('vector-effect','non-scaling-stroke');drag.setAttribute('fill','rgba(211,47,47,0.25)');});
-    drag.addEventListener('mouseleave',function(){drag.setAttribute('stroke','none');drag.setAttribute('fill','transparent');});
-    lbDrag.addEventListener('mouseenter',function(){if(mode!=='delmh')return;lbDrag.setAttribute('stroke','#d32f2f');lbDrag.setAttribute('stroke-width',1.5);lbDrag.setAttribute('vector-effect','non-scaling-stroke');lbDrag.setAttribute('fill','rgba(211,47,47,0.15)');});
-    lbDrag.addEventListener('mouseleave',function(){lbDrag.setAttribute('stroke','none');lbDrag.setAttribute('fill','transparent');});
-  });
-}
-var mhDragState=null; // {type:'center'|'label', mh, gx, gy}
-window.addEventListener('pointermove',function(ev){
-  if(!mhDragState)return;ev.preventDefault();
-  var w=toWorld(ev.clientX,ev.clientY), mh=mhDragState.mh;
-  var wx=w[0], wy=-w[1]; // world (x=동, y=북)
-  if(mhDragState.type==='center'){
-    var newWx=wx-mhDragState.gx, newWy=wy-mhDragState.gy;
-    // 라벨도 같이 이동 (상대위치 유지)
-    if(mh.lx!=null){mh.lx+=newWx-mh.wx;mh.ly+=newWy-mh.wy;}
-    mh.wx=newWx;mh.wy=newWy;
-  } else {
-    mh.lx=wx-mhDragState.gx; mh.ly=wy-mhDragState.gy;
-  }
-  drawManholes();
-});
-window.addEventListener('pointerup',function(ev){
-  if(!mhDragState)return;mhDragState=null;drawManholes();
-});
-var mhIdSeq=1;
-function placeManholeAt(wx,wy){
-  // 팝업 없이 기본라벨 M (SK )로 바로 심기, 더블클릭으로 수정
-  var label='M (SK )';
-  state.manholes.push({id:mhIdSeq++, wx:wx, wy:wy, label:label, lx:null, ly:null});
-  drawManholes();
-  toast('맨홀 심기 완료 — 더블클릭으로 라벨 수정, Enter/Space로 종료');
-  // 모드 유지 (계속 찍을 수 있게)
-}
-
 function drawMarks(){ clearSvg(gMark);
   state.markups.forEach(function(m){
     var sh=m.type==='cir'?el('ellipse',{cx:m.cx,cy:m.cy,rx:m.rx,ry:m.ry}):el('rect',{x:m.x,y:m.y,width:m.w,height:m.h,rx:0.4});
@@ -548,8 +254,8 @@ function renderRecs(){var box=document.getElementById('recs');document.getElemen
 function updMeta(){document.getElementById('meta').textContent=(state.projectName||'현장 미선택')+' · 측량점 '+state.points.length+' · 결선 '+state.lines.filter(function(l){return l.layer==='통신관로';}).length;}
 
 /* ====== 뷰박스 ====== */
-var vb={x:0,y:0,w:100,h:100}, vb0={x:0,y:0,w:100,h:100}, _vbwLast=null;
-function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);repositionLabels();if(vb.w!==_vbwLast){_vbwLast=vb.w;if(typeof drawGeo==='function'){drawGeo();drawManholes();highlightSel();}}}
+var vb={x:0,y:0,w:100,h:100}, vb0={x:0,y:0,w:100,h:100};
+function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);}
 function fitView(){
   var xs=[],ys=[];function add(x,y){var s=S(x,y);xs.push(s[0]);ys.push(s[1]);}
   state.points.forEach(function(p){add(p.x,p.y);});
@@ -557,19 +263,10 @@ function fitView(){
   if(!xs.length){vb={x:0,y:0,w:100,h:100};vb0={x:0,y:0,w:100,h:100};applyVB();return;}
   var pad=5,minx=Math.min.apply(0,xs),maxx=Math.max.apply(0,xs),miny=Math.min.apply(0,ys),maxy=Math.max.apply(0,ys);
   vb0={x:minx-pad,y:miny-pad,w:(maxx-minx)+2*pad,h:(maxy-miny)+2*pad};
-  vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};applyVB();drawGeo();drawManholes();highlightSel();
+  vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};applyVB();
 }
-function toWorld(cx,cy){
-  cv.getBoundingClientRect();                        // 레이아웃 강제 갱신(CTM 최신화)
-  var ctm=cv.getScreenCTM?cv.getScreenCTM():null;
-  if(ctm){                                           // ★브라우저 실측의 역변환: 화면→SVG좌표
-    var pt=cv.createSVGPoint();pt.x=cx;pt.y=cy;
-    var p=pt.matrixTransform(ctm.inverse());
-    return [p.x, p.y];
-  }
-  var m=vbScale();return [vb.x+((cx-m.r.left)-m.ox)/m.s, vb.y+((cy-m.r.top)-m.oy)/m.s]; // 폴백
-}
-function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*=f;vb.h*=f;vb.x=w[0]-(cx-r.left)/r.width*vb.w;vb.y=w[1]-(cy-r.top)/r.height*vb.h;applyVB();drawGeo();drawManholes();highlightSel();}
+function toWorld(cx,cy){var r=cv.getBoundingClientRect();return [vb.x+(cx-r.left)/r.width*vb.w, vb.y+(cy-r.top)/r.height*vb.h];}
+function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*=f;vb.h*=f;vb.x=w[0]-(cx-r.left)/r.width*vb.w;vb.y=w[1]-(cy-r.top)/r.height*vb.h;applyVB();}
 
 /* ====== 결선 ====== */
 function nearestPointWorld(wx,wy){var best=null,bd=1e18;state.points.forEach(function(p){var s=S(p.x,p.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;best=p;}});return {p:best,d:Math.sqrt(bd)};}
@@ -604,15 +301,8 @@ function autoConnect(){
     for(var i=0;i<near.length && acc<Np;i++){var c=pipeCount(near[i]); if(acc+c<=Np){addE(P,near[i]);acc+=c;}}
   });
 
-  // C) 맨홀 통과 결선: 맨홀 2.5m 안 측점들을 맨홀 통과로 이어줌(관수 달라도 OK, 각도 무관)
-  var MHR=2.5, mhCount=0;
-  (state.manholes||[]).forEach(function(mh){
-    var nr=pts.map(function(p){return {p:p,d:Math.hypot(p.x-mh.wx,p.y-mh.wy)};}).filter(function(o){return o.d<=MHR;}).sort(function(a,b){return a.d-b.d;});
-    if(nr.length>=2){var A=nr[0].p,B=nr[1].p;edges=edges.filter(function(e){return !((e[0]===A&&e[1]===B)||(e[0]===B&&e[1]===A));});state.lines.push({layer:'통신관로',pts:[[A.x,A.y],[mh.wx,mh.wy],[B.x,B.y]]});mhCount++;}
-    else if(nr.length===1){var A1=nr[0].p;state.lines.push({layer:'통신관로',pts:[[A1.x,A1.y],[mh.wx,mh.wy]]});mhCount++;}
-  });
   edges.forEach(function(e){state.lines.push({layer:'통신관로',pts:[[e[0].x,e[0].y],[e[1].x,e[1].y]]});});
-  drawGeo();updMeta();toast('자동 결선 '+edges.length+'개 + 맨홀통과 '+mhCount+'개 (검수·수정하세요)');
+  drawGeo();updMeta();toast('자동 결선 '+edges.length+'개 (관수 연속·T점 분기 / 검수·수정하세요)');
 }
 var lineDraft=null, previewLine=null, drawLayer='통신관로', delLayer='통신관로';
 function renderDraft(){clearSvg(gDraft);previewLine=null;if(!lineDraft)return;
@@ -646,7 +336,7 @@ function deleteSegmentAt(wx,wy){
 }
 
 /* ====== 모드 UI ====== */
-function setModeUI(){renderSub();cv.classList.toggle('draw',mode!=='pan'&&mode!=='mhplace'&&mode!=='delmh');if(mode==='mhplace'||mode==='delmh'){cv.style.cursor='default';}else{cv.style.cursor='';}}
+function setModeUI(){renderSub();cv.classList.toggle('draw',mode!=='pan');}
 function setStatusUI(){renderSub();}
 
 /* ====== 포인터 ====== */
@@ -654,11 +344,9 @@ var dragging=false,startC=null,startVB=null,drawing=false,cur=null,sx=0,sy=0,mid
 cv.addEventListener('pointerdown',function(e){
   if(e.button===1){e.preventDefault();midPanning=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};cv.style.cursor='grabbing';try{cv.setPointerCapture(e.pointerId);}catch(x){}return;}
   if(mode==='pan'){/* 좌클릭=점 선택(pointerup에서), 화면이동은 휠(가운데) 버튼 */}
-  else if(mode==='mhplace'){var wm=toWorld(e.clientX,e.clientY);placeManholeAt(wm[0],-wm[1]);return;}
   else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);var np=nearestPointWorld(w[0],w[1]);
     var pt=(np.p&&np.d<vb.w*0.04)?[np.p.x,np.p.y]:[w[0],-w[1]];lineDraft.push(pt);renderDraft();}
   else if(mode==='delline'){var wd=toWorld(e.clientX,e.clientY);deleteSegmentAt(wd[0],wd[1]);}
-  else if(mode==='delmh'){/* 맨홀 삭제 모드: 빈 곳 클릭은 아무것도 안 함 (맨홀 클릭은 심벌 핸들러가 처리) */return;}
   else{drawing=true;var w2=toWorld(e.clientX,e.clientY);sx=w2[0];sy=w2[1];
     cur=el(mode==='box'?'rect':'ellipse',{fill:MKCOL[status],'fill-opacity':0.13,stroke:MKCOL[status],'stroke-width':2,'vector-effect':'non-scaling-stroke','pointer-events':'none'});
     if(mode==='box'){cur.setAttribute('x',sx);cur.setAttribute('y',sy);cur.setAttribute('width',0);cur.setAttribute('height',0);cur.setAttribute('rx',0.4);}else{cur.setAttribute('cx',sx);cur.setAttribute('cy',sy);cur.setAttribute('rx',0);cur.setAttribute('ry',0);}
@@ -748,7 +436,8 @@ function refreshProjects(){ if(!online)return;
   });
 }
 function saveProject(){
-  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
+  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;})};
+  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
   if(!state.projectName){toast('현장명을 먼저 정하세요(새 현장)');return;}
   var row={name:state.projectName,payload:payload,updated_at:new Date().toISOString()};
   if(state.projectId)row.id=state.projectId;
@@ -763,8 +452,8 @@ function loadProject(id){ if(!online||!id)return;
   sb.from('survey_projects').select('*').eq('id',id).single().then(function(res){
     if(res.error||!res.data){toast('불러오기 실패');return;}
     var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;
-    state.points=p.points||[];state.lines=p.lines||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];
-    selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();loadPhotos();toast('현장 불러옴: '+res.data.name);
+    state.points=p.points||[];state.lines=p.lines||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};
+    selNum=null;clearSvg(gSel);drawGeo();drawMarks();fitView();updMeta();loadPhotos();toast('현장 불러옴: '+res.data.name);
   });
 }
 
@@ -787,8 +476,8 @@ var TB=[
     {t:'지거선 지우기',tone:'del',mode:'delline',delLayer:'지거',hint:'지울 지거선 위에 마우스→클릭'},
     {t:'전체삭제',tone:'delall',fn:clearAllDraw}]},
   {k:'mh',label:'맨홀편집',icon:'◎',c:{bg:'#efeafa',fg:'#7a52e0'},tools:[
-    {t:'맨홀심기',tone:'draw',mode:'mhplace',hint:'도면에서 맨홀 위치를 클릭하세요'},
-    {t:'맨홀/인출선 지우기',tone:'del',mode:'delmh',hint:'지울 맨홀을 클릭하세요 (맨홀+인출선+라벨 전부 삭제)'}]},
+    {t:'맨홀심벌(이중원)',tone:'draw',soon:1},
+    {t:'인출선',tone:'draw',soon:1}]},
   {k:'push',label:'압입구간편집',icon:'⇥',c:{bg:'#e3f4ef',fg:'#109a82'},tools:[
     {t:'그리기',tone:'draw',soon:1},
     {t:'지우기',tone:'del',soon:1}]},
@@ -845,14 +534,14 @@ function renderSub(){
     else if(g==='clearMk'){state.markups.forEach(function(x){if(x.el)x.el.remove();});state.markups=[];renderRecs();}
     else if(g==='zin')zoomAt(0.8,rr.left+rr.width/2,rr.top+rr.height/2);
     else if(g==='zout')zoomAt(1.25,rr.left+rr.width/2,rr.top+rr.height/2);
-    else if(g==='fit'){fitView();drawGeo();drawManholes();}};});
+    else if(g==='fit')fitView();};});
 }
 renderRail();renderSub();
 bind('save',saveProject);
-bind('newProj',function(){var n=prompt('새 현장명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.manholes=[];photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 현장: '+n+' (CSV 업로드 후 저장)');});
+bind('newProj',function(){var n=prompt('새 현장명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 현장: '+n+' (CSV 업로드 후 저장)');});
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)loadProject(e.target.value);});
-document.getElementById('fCsv').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.manholes=[];state.projectId=null;state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화 / 현장명: '+state.projectName+')');};rd.readAsArrayBuffer(f);e.target.value='';});
+document.getElementById('fCsv').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.projectId=null;state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();fitView();updMeta();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화 / 현장명: '+state.projectName+')');};rd.readAsArrayBuffer(f);e.target.value='';});
 document.getElementById('fDxf').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var ln=parseDxfLines(decodeBuf(rd.result));state.lines=state.lines.filter(function(l){return l.layer==='지거'||l.layer==='압입구간'||l.layer==='주입상인출선';}).concat(ln);drawGeo();fitView();updMeta();toast('DXF 라인 '+ln.length+'개 로드');}catch(err){toast('DXF 파싱 오류');}};rd.readAsArrayBuffer(f);e.target.value='';});
 
 /* ====== 샘플 데이터 (수원 권선동 1041-6) ====== */
@@ -874,7 +563,7 @@ function loadSample(){
     {layer:'통신관로',pts:[[202567.43,517213.98],[202566.94,517212.32],[202566.72,517211.58]]},
     {layer:'압입구간',pts:[[202566.72,517211.58],[202594.89,517294.72]]},
     {layer:'지거',pts:[[202567.43,517213.98],[202573.57,517233.15]]}];
-  state.markups=[];state.manholes=[];photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();toast('샘플 로드됨');
+  state.markups=[];photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();fitView();updMeta();toast('샘플 로드됨');
 }
 
 /* init */
@@ -894,8 +583,8 @@ function neighborsOf(sel){var selP=pointByNum(sel),up=null,down=null;if(!selP)re
   return {up:up,down:down};}
 function highlightSel(){clearSvg(gSel);if(selNum==null)return;var p=pointByNum(selNum);if(!p)return;
   var nbs=neighborsOf(selNum);
-  [nbs.up,nbs.down].forEach(function(q){if(q){var sy=S(q.x,q.y);gSel.appendChild(el('circle',{cx:sy[0],cy:sy[1],r:0.65,fill:'none',stroke:'#ffcc00','stroke-width':1.4,'vector-effect':'non-scaling-stroke'}));}});
-  var s=S(p.x,p.y);gSel.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.8,fill:'none',stroke:'#22cc00','stroke-width':2.2,'vector-effect':'non-scaling-stroke'}));}
+  [nbs.up,nbs.down].forEach(function(q){if(q){var sy=S(q.x,q.y);gSel.appendChild(el('circle',{cx:sy[0],cy:sy[1],r:1.3,fill:'none',stroke:'#ffcc00','stroke-width':1.4,'vector-effect':'non-scaling-stroke'}));}});
+  var s=S(p.x,p.y);gSel.appendChild(el('circle',{cx:s[0],cy:s[1],r:1.6,fill:'none',stroke:'#22cc00','stroke-width':2.2,'vector-effect':'non-scaling-stroke'}));}
 function compressImage(file,maxW,q){return new Promise(function(res,rej){var img=new Image(),u=URL.createObjectURL(file);img.onload=function(){URL.revokeObjectURL(u);var w=img.width,h=img.height;if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(function(b){b?res(b):rej(new Error('blob'));},'image/jpeg',q);};img.onerror=function(){rej(new Error('img'));};img.src=u;});}
 var zoomState={img:null,scale:1,tx:0,ty:0,drag:false,sx:0,sy:0};
 function applyZoom(){var z=zoomState;if(!z.img)return;z.img.style.transform='translate('+z.tx+'px,'+z.ty+'px) scale('+z.scale+')';z.img.style.cursor=z.scale>1?(z.drag?'grabbing':'grab'):'zoom-in';}
@@ -983,12 +672,11 @@ cwrap.addEventListener('mousemove',function(e){
   if(mode==='line')drawIndicators(w); else if(mode==='delline')delHoverHighlight(w); else if(gDraw.childNodes.length)clearSvg(gDraw);
 });
 cwrap.addEventListener('mouseleave',coordReset);
-window.addEventListener('resize',function(){placeCoord();if(typeof drawGeo==='function'){drawGeo();drawManholes();highlightSel();}});
+window.addEventListener('resize',placeCoord);
 coordReset();
 window.addEventListener('keydown',function(e){
-  var tg=((e.target||{}).tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tg))return;
-  if(mode==='line'){if(e.key==='Enter'||e.key===' '||e.code==='Space'){e.preventDefault();finishDraw();}}
-  else if(mode==='mhplace'){if(e.key==='Enter'||e.key===' '||e.code==='Space'){e.preventDefault();mode='pan';setModeUI();toast('맨홀심기 종료');}}
+  if(mode!=='line')return;var tg=((e.target||{}).tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tg))return;
+  if(e.key==='Enter'||e.key===' '||e.code==='Space'){e.preventDefault();finishDraw();}
 });
 document.getElementById('recClear').onclick=function(){if(!state.markups.length){toast('삭제할 검수 기록이 없습니다');return;}state.markups.forEach(function(r){if(r.el)r.el.remove();});state.markups=[];renderRecs();toast('검수 기록 전체 삭제');};
 
