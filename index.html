@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 42</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 43</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -758,21 +758,45 @@ function autoConnect(){
   drawGeo();updMeta();toast('자동 결선 '+edges.length+'개 + 맨홀통과 '+mhCount+'개 (검수·수정하세요)');
 }
 var lineDraft=null, previewLine=null, drawLayer='통신관로', delLayer='통신관로';
-// 중복선 검수: 통신관로 중 같은 구간(같은 두 점 잇는 선분)이 2개 이상이면 그 자리에 빨간 써클 표시
+// 같은 선분 키(좌표쌍, 방향무관)
+function segKey(a,b){var lo=(a[0]<b[0]||(a[0]===b[0]&&a[1]<=b[1]))?[a,b]:[b,a];return lo[0][0].toFixed(3)+','+lo[0][1].toFixed(3)+'|'+lo[1][0].toFixed(3)+','+lo[1][1].toFixed(3);}
+// 중복 선분 제거 — 같은 구간이 여러 번이면 1선만 남김
+function removeDupLines(){
+  var seen={}, out=[];
+  state.lines.forEach(function(L){
+    if(L.layer!=='통신관로'||!L.pts||L.pts.length<2){out.push(L);return;}
+    var keep=[L.pts[0]];
+    for(var i=0;i<L.pts.length-1;i++){
+      var k=segKey(L.pts[i],L.pts[i+1]);
+      if(seen[k]){ if(keep.length>=2)out.push({layer:L.layer,pts:keep,note:L.note}); keep=[L.pts[i+1]]; }
+      else { seen[k]=true; keep.push(L.pts[i+1]); }
+    }
+    if(keep.length>=2)out.push({layer:L.layer,pts:keep,note:L.note});
+  });
+  state.lines=out;
+}
+// 중복선 검수: 통신관로 중 같은 구간이 2개 이상이면 써클 표시 + 팝업
 function inspectDupLines(){
   state.markups=state.markups.filter(function(m){return m.near!=='중복';}); // 이전 중복 써클 제거(갱신)
   var segs={};
   state.lines.forEach(function(L){if(L.layer!=='통신관로'||!L.pts)return;
-    for(var i=0;i<L.pts.length-1;i++){var a=L.pts[i],b=L.pts[i+1];
-      var lo=(a[0]<b[0]||(a[0]===b[0]&&a[1]<=b[1]))?[a,b]:[b,a];
-      var k=lo[0][0].toFixed(3)+','+lo[0][1].toFixed(3)+'|'+lo[1][0].toFixed(3)+','+lo[1][1].toFixed(3);
+    for(var i=0;i<L.pts.length-1;i++){var a=L.pts[i],b=L.pts[i+1];var k=segKey(a,b);
       if(!segs[k])segs[k]={mid:[(a[0]+b[0])/2,(a[1]+b[1])/2],n:0};
       segs[k].n++;}});
   var dups=[];for(var k in segs)if(segs[k].n>=2)dups.push(segs[k]);
+  if(!dups.length){drawMarks();updMeta();alert('중복선 검수 결과\n\n중복 0\n중복된 관로선이 없습니다.');return;}
   pushHist();
-  dups.forEach(function(d){var sm=S(d.mid[0],d.mid[1]);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:0.7,ry:0.7,status:'bad',near:'중복',cnt:d.n-1});});
+  var totalExtra=0;
+  dups.forEach(function(d){var sm=S(d.mid[0],d.mid[1]);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:0.7,ry:0.7,status:'bad',near:'중복',cnt:d.n-1});totalExtra+=d.n-1;});
   drawMarks();updMeta();
-  toast(dups.length?('✔ 중복선 검수 완료 — 중복 '+dups.length+'곳 (빨간 써클 표시)'):'✔ 중복선 검수 완료 — 중복 관로선 없음');
+  if(confirm('중복선 검수 결과\n\n중복 '+dups.length+'곳 · 중복 '+totalExtra+'선 발견\n\n중복된 선을 삭제하고 1선만 남길까요?')){
+    removeDupLines();
+    state.markups=state.markups.filter(function(m){return m.near!=='중복';}); // 써클 제거
+    drawGeo();drawMarks();updMeta();
+    toast('중복선 삭제 완료 — 1선만 유지');
+  }else{
+    toast('중복 '+dups.length+'곳 표시만 (삭제 안 함)');
+  }
 }
 function renderDraft(){clearSvg(gDraft);previewLine=null;if(!lineDraft)return;
   var col=(LINECOL[drawLayer]||{}).c||'#d92b2b', lw=(LINECOL[drawLayer]||{}).w||1.6;
