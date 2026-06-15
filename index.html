@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 10</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 11</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -159,6 +159,11 @@ var LINECOL={"통신관로":{c:"#d92b2b",w:1.6},"압입구간":{c:"#1f6fd6",w:1.
 function isTpoint(p){return /(^|\s)T(\s|$)/.test((p&&p.code)||'');}
 function pipeCount(p){var m=/[xX×]\s*(\d+)/.exec((p&&p.code)||'');return m?+m[1]:null;}
 function isManhole(p){return /^\s*M/.test((p&&p.code)||'');}
+// ── 폴리라인 위 앵커 계산 (지거 멘트 인출선용) ──
+function polySegs(pts){var segs=[],total=0;for(var i=0;i<pts.length-1;i++){var d=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);segs.push(d);total+=d;}return {segs:segs,total:total};}
+function polyAnchorT(L){if(L.anchorT!=null)return L.anchorT;var pts=L.pts;if(!pts||pts.length<2)return 0;var ps=polySegs(pts);return ps.total?(ps.segs[0]*0.5)/ps.total:0;} // 기본=첫 두 점 구간 중간
+function ptOnPoly(pts,t){var ps=polySegs(pts);if(ps.total===0)return [pts[0][0],pts[0][1]];var target=t*ps.total,acc=0;for(var i=0;i<ps.segs.length;i++){if(acc+ps.segs[i]>=target){var f=ps.segs[i]?(target-acc)/ps.segs[i]:0;return [pts[i][0]+(pts[i+1][0]-pts[i][0])*f,pts[i][1]+(pts[i+1][1]-pts[i][1])*f];}acc+=ps.segs[i];}return [pts[pts.length-1][0],pts[pts.length-1][1]];}
+function projToPoly(pts,px,py){var ps=polySegs(pts);if(ps.total===0)return 0;var best=Infinity,bestT=0,acc=0;for(var i=0;i<pts.length-1;i++){var ax=pts[i][0],ay=pts[i][1],dx=pts[i+1][0]-ax,dy=pts[i+1][1]-ay,L2=dx*dx+dy*dy;var f=L2?((px-ax)*dx+(py-ay)*dy)/L2:0;if(f<0)f=0;if(f>1)f=1;var qx=ax+dx*f,qy=ay+dy*f,dist=Math.hypot(px-qx,py-qy);if(dist<best){best=dist;bestT=(acc+ps.segs[i]*f)/ps.total;}acc+=ps.segs[i];}return bestT;}
 var MKCOL={ok:'#2a9e50',bad:'#d32f2f'};
 
 function el(t,a){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);return e;}
@@ -240,6 +245,14 @@ function addNoteHandle(L,t,ld,lx,ly){
   h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
   gPts.appendChild(h);
 }
+// 지거 멘트 앵커: 선을 따라 미끄러지게 드래그
+function addAnchorHandle(L,anc,ld){
+  var drag=false;
+  anc.addEventListener('pointerdown',function(ev){if(mode!=='pan')return;ev.stopPropagation();drag=true;labelDragging=true;anc.setAttribute('r',0.46);try{anc.setPointerCapture(ev.pointerId);}catch(e){}});
+  anc.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();var ww=toWorld(ev.clientX,ev.clientY);var t=projToPoly(L.pts,ww[0],ww[1]);L.anchorT=t;var aw=ptOnPoly(L.pts,t),s=S(aw[0],aw[1]);anc.setAttribute('cx',s[0]);anc.setAttribute('cy',s[1]);ld.setAttribute('x1',s[0]);ld.setAttribute('y1',s[1]);});
+  function up(ev){if(!drag)return;drag=false;setTimeout(function(){labelDragging=false;},40);try{anc.releasePointerCapture(ev.pointerId);}catch(e){}drawGeo();}
+  anc.addEventListener('pointerup',up);anc.addEventListener('pointercancel',up);
+}
 // 줌-안전 텍스트: HTML div 오버레이로 화면 픽셀에 직접 렌더 → viewBox 스킵 문제 원천 차단
 // svgX,svgY = SVG(화면) 좌표. 오버레이는 화면픽셀이므로 viewBox→화면 변환해 배치.
 var lblOverlay=document.getElementById('lblOverlay');
@@ -305,10 +318,11 @@ function drawGeo(){
   });
   var lay=computeLabels();
   state.lines.forEach(function(L){if(L.layer!=='지거'||!L.note)return;
-    var cx=0,cy=0;L.pts.forEach(function(p){cx+=p[0];cy+=p[1];});cx/=L.pts.length;cy/=L.pts.length;
-    var s=S(cx,cy),lx=(L.noteOff?L.noteOff[0]:s[0]+3),ly=(L.noteOff?L.noteOff[1]:s[1]-2.2);
+    var aw=ptOnPoly(L.pts,polyAnchorT(L));      // 선 위 앵커(world)
+    var s=S(aw[0],aw[1]),lx=(L.noteOff?L.noteOff[0]:s[0]+3),ly=(L.noteOff?L.noteOff[1]:s[1]-2.2);
     var ld=el('line',{x1:s[0],y1:s[1],x2:lx,y2:ly,stroke:'#a07e00','stroke-width':0.8,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);
-    gPts.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.32,fill:'#a07e00','pointer-events':'none'}));
+    var anc=el('circle',{cx:s[0],cy:s[1],r:0.32,fill:'#a07e00','pointer-events':'all'});anc.style.cursor='move';gPts.appendChild(anc);
+    addAnchorHandle(L,anc,ld);
     var t=el('text',{x:lx+0.25,y:ly+0.2,'font-size':0.62,fill:'#7a5f00','font-weight':'600','text-anchor':'start','pointer-events':'none'});t.textContent=L.note;gPts.appendChild(t);
     addNoteHandle(L,t,ld,lx,ly);
   });
