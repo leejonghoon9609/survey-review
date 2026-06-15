@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 21</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 22</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -232,14 +232,14 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
   handle.addEventListener('pointerup',up);handle.addEventListener('pointercancel',up);
   gPts.appendChild(handle);
 }
-function addNoteHandle(L,t,ld,lx,ly){
+function addNoteHandle(L,t,ld,lx,ly,ax,tw){
   var bb;try{bb=t.getBBox();}catch(e){bb=null;}
   var pad=0.4,bw=bb?bb.width:String(L.note).length*0.42,bh=bb?bb.height:0.85,bx=bb?bb.x:lx+0.25,by=bb?bb.y:ly-0.45;
   var h=el('rect',{x:bx-pad,y:by-pad,width:bw+2*pad,height:bh+2*pad,rx:0.3,fill:'transparent',stroke:'#a07e00','stroke-width':0.7,'stroke-dasharray':'1.6 1.6','vector-effect':'non-scaling-stroke','pointer-events':'all'});h.style.cursor='move';
   var drag=false,moved=false,nx=lx,ny=ly;
   h.addEventListener('pointerdown',function(ev){if(mode!=='pan')return;ev.stopPropagation();drag=true;moved=false;labelDragging=true;h.setAttribute('stroke','#7a5f00');h.setAttribute('stroke-width',1.1);h.setAttribute('stroke-dasharray','2.2 1.4');try{h.setPointerCapture(ev.pointerId);}catch(e){}});
   h.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();moved=true;var ww=toWorld(ev.clientX,ev.clientY);nx=ww[0];ny=ww[1];
-    t.setAttribute('x',nx+0.25);t.setAttribute('y',ny+0.2);ld.setAttribute('x2',nx);ld.setAttribute('y2',ny);
+    t.setAttribute('x',nx+0.25);t.setAttribute('y',ny+0.2);ld.setAttribute('x2', (ax!=null&&ax>nx)?nx+0.25+(tw||bw):nx);ld.setAttribute('y2',ny);
     h.setAttribute('x',nx+0.25-pad);h.setAttribute('y',ny-0.45-pad);});
   function up(ev){if(!drag)return;drag=false;setTimeout(function(){labelDragging=false;},40);
     if(moved){L.noteOff=[nx,ny];}
@@ -361,7 +361,7 @@ function drawGeo(){
     var tbb;try{tbb=t.getBBox();}catch(e){tbb=null;}
     var tw=tbb?tbb.width:(L.note||'').length*0.42;
     ld.setAttribute('x2', s[0]>lx ? lx+0.25+tw : lx);
-    addNoteHandle(L,t,ld,lx,ly);
+    addNoteHandle(L,t,ld,lx,ly,s[0],tw);
   });
   var Up=pxToWorld();
   var hitR=Math.min(0.45, 9*Up);   // 클릭 히트: 작은 줌에선 화면 고정, 큰 줌에선 월드 0.45 상한
