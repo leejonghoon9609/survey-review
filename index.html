@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 12</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 13</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -366,7 +366,7 @@ function drawManholes(){
     // 이중원(◎) — 측점 박스(0.294)와 비슷한 크기
     // 화면 px → 월드 단위 변환 (이중원·라벨 크기용) — ★실측
     var U=pxToWorld(); // 브라우저가 실제 그린 스케일 기준 1px당 월드
-    var EM=22*U; // 라벨 글자높이(22px) 만큼의 월드길이
+    var EM=15*U; // 라벨/인출선 스케일 (기존 22 → 30% 축소)
 
     // 이중원(◎) — 월드고정 정원: 줌하면 크기는 변하지만 절대 안 찌그러짐, 위치 정확
     gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.294,fill:'none',stroke:'#555','stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
@@ -470,7 +470,7 @@ function drawManholes(){
     }
 
     // 라벨 텍스트 — 파란 밑줄 중앙 바로 위에 (글자가 밑줄을 덮지 않게 위로)
-    var mhLbl=mkLabel(txtCx, uly-EM*0.75, mh.label||'', {fill:'#333',weight:'600',anchor:'middle',grp:'mh',px:22});
+    var mhLbl=mkLabel(txtCx, uly-EM*0.75, mh.label||'', {fill:'#333',weight:'600',anchor:'middle',grp:'mh',px:15});
     // 라벨 div에 직접 더블클릭(수정) — 오버레이라 글자 위에서 바로 동작
     mhLbl.style.pointerEvents='auto';
     mhLbl.style.cursor='text';
