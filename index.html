@@ -179,7 +179,16 @@ function vbScale(){
   var s=Math.min(r.width/vb.w, r.height/vb.h);            // meet: 가로·세로 같은 스케일
   return {r:r, s:s, ox:(r.width-vb.w*s)/2, oy:(r.height-vb.h*s)/2}; // 레터박스 여백(중앙정렬)
 }
-function worldToPx(svgX,svgY){var m=vbScale();return [m.ox+(svgX-vb.x)*m.s, m.oy+(svgY-vb.y)*m.s];}
+function worldToPx(svgX,svgY){
+  var r=cv.getBoundingClientRect();                 // 먼저 호출해 레이아웃 강제 갱신(CTM 최신화)
+  var ctm=cv.getScreenCTM?cv.getScreenCTM():null;
+  if(ctm){                                          // ★브라우저 실측: 점이 실제 찍힌 화면위치
+    var pt=cv.createSVGPoint();pt.x=svgX;pt.y=svgY;
+    var p=pt.matrixTransform(ctm);
+    return [p.x-r.left, p.y-r.top];                 // cv 요소 내부 상대 px
+  }
+  var m=vbScale();return [m.ox+(svgX-vb.x)*m.s, m.oy+(svgY-vb.y)*m.s]; // 폴백(meet 공식)
+}
 function moveLabelDiv(d,svgX,svgY){d._sx=svgX;d._sy=svgY;placeLabelDiv(d);}
 function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
   var anchor=L.anchor;
@@ -539,7 +548,16 @@ function fitView(){
   vb0={x:minx-pad,y:miny-pad,w:(maxx-minx)+2*pad,h:(maxy-miny)+2*pad};
   vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};applyVB();drawGeo();drawManholes();highlightSel();
 }
-function toWorld(cx,cy){var m=vbScale();return [vb.x+((cx-m.r.left)-m.ox)/m.s, vb.y+((cy-m.r.top)-m.oy)/m.s];}
+function toWorld(cx,cy){
+  cv.getBoundingClientRect();                        // 레이아웃 강제 갱신(CTM 최신화)
+  var ctm=cv.getScreenCTM?cv.getScreenCTM():null;
+  if(ctm){                                           // ★브라우저 실측의 역변환: 화면→SVG좌표
+    var pt=cv.createSVGPoint();pt.x=cx;pt.y=cy;
+    var p=pt.matrixTransform(ctm.inverse());
+    return [p.x, p.y];
+  }
+  var m=vbScale();return [vb.x+((cx-m.r.left)-m.ox)/m.s, vb.y+((cy-m.r.top)-m.oy)/m.s]; // 폴백
+}
 function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*=f;vb.h*=f;vb.x=w[0]-(cx-r.left)/r.width*vb.w;vb.y=w[1]-(cy-r.top)/r.height*vb.h;applyVB();drawGeo();drawManholes();highlightSel();}
 
 /* ====== 결선 ====== */
