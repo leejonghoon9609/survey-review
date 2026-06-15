@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 18</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 20</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -241,9 +241,11 @@ function addNoteHandle(L,t,ld,lx,ly){
   h.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();moved=true;var ww=toWorld(ev.clientX,ev.clientY);nx=ww[0];ny=ww[1];
     t.setAttribute('x',nx+0.25);t.setAttribute('y',ny+0.2);ld.setAttribute('x2',nx);ld.setAttribute('y2',ny);
     h.setAttribute('x',nx+0.25-pad);h.setAttribute('y',ny-0.45-pad);});
-  function up(ev){if(!drag)return;drag=false;setTimeout(function(){labelDragging=false;},40);if(moved)L.noteOff=[nx,ny];try{h.releasePointerCapture(ev.pointerId);}catch(e){}drawGeo();}
+  function up(ev){if(!drag)return;drag=false;setTimeout(function(){labelDragging=false;},40);
+    if(moved){L.noteOff=[nx,ny];}
+    else{var now=Date.now();if(now-(L._lastClick||0)<350){L._lastClick=0;openNoteEdit(L,lx,ly);}else{L._lastClick=now;}}
+    try{h.releasePointerCapture(ev.pointerId);}catch(e){}drawGeo();}
   h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
-  h.addEventListener('dblclick',function(ev){ev.stopPropagation();openNoteEdit(L,lx,ly);});
   gPts.appendChild(h);
 }
 // 지거 멘트 앵커: 잘 작동하는 라벨 드래그(addNoteHandle)와 동일한 setPointerCapture 패턴. gAnc 최상위라 측점에 안 가로채임.
