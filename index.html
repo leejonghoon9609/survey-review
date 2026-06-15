@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 43</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 44</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -169,6 +169,32 @@ var MKCOL={ok:'#2a9e50',bad:'#d32f2f'};
 function el(t,a){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);return e;}
 function S(x,y){return [x,-y];}                 // 화면좌표(북쪽 위)
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1800);}
+// 커스텀 팝업: 드래그 이동 가능, 항상 앞, 도면(팝업 밖)은 그대로 조작 가능(non-blocking)
+function showModal(opt){
+  var ex=document.getElementById('appModal');if(ex)ex.remove();
+  var card=document.createElement('div');card.id='appModal';
+  card.style.cssText='position:fixed;left:50%;top:120px;transform:translateX(-50%);z-index:10000;'
+    +'background:#fff;border:1px solid #e3e3df;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,0.22);'
+    +'min-width:300px;max-width:380px;font-family:inherit;overflow:hidden;';
+  var tc=opt.tone==='warn'?'#d98200':(opt.tone==='bad'?'#d32f2f':'#2a9e50');
+  var hd=document.createElement('div');
+  hd.style.cssText='display:flex;align-items:center;gap:8px;padding:11px 14px;background:#f7f7f4;border-bottom:1px solid #eee;cursor:move;user-select:none;font-weight:700;color:#333;font-size:15px;';
+  hd.innerHTML='<span style="color:'+tc+';font-size:11px">●</span>'+(opt.title||'알림')+'<span style="margin-left:auto;color:#c4c4be;font-size:11px;font-weight:400">⠿ 드래그로 이동</span>';
+  var bd=document.createElement('div');bd.style.cssText='padding:15px 16px;color:#444;font-size:14px;line-height:1.65;';bd.innerHTML=opt.body||'';
+  var ft=document.createElement('div');ft.style.cssText='display:flex;justify-content:flex-end;gap:8px;padding:0 16px 15px;';
+  (opt.buttons||[{label:'확인'}]).forEach(function(b){
+    var btn=document.createElement('button');btn.textContent=b.label;
+    btn.style.cssText='padding:7px 17px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid '+(b.primary?'#d32f2f':'#d4d4cf')+';background:'+(b.primary?'#d32f2f':'#fff')+';color:'+(b.primary?'#fff':'#666')+';';
+    btn.onclick=function(){card.remove();if(b.onClick)b.onClick();};
+    ft.appendChild(btn);
+  });
+  card.appendChild(hd);card.appendChild(bd);card.appendChild(ft);document.body.appendChild(card);
+  var drag=false,sl=0,st=0,dx=0,dy=0;
+  hd.addEventListener('pointerdown',function(ev){drag=true;var r=card.getBoundingClientRect();card.style.transform='none';card.style.left=r.left+'px';card.style.top=r.top+'px';sl=r.left;st=r.top;dx=ev.clientX;dy=ev.clientY;try{hd.setPointerCapture(ev.pointerId);}catch(e){}});
+  hd.addEventListener('pointermove',function(ev){if(!drag)return;card.style.left=(sl+ev.clientX-dx)+'px';card.style.top=(st+ev.clientY-dy)+'px';});
+  hd.addEventListener('pointerup',function(ev){drag=false;try{hd.releasePointerCapture(ev.pointerId);}catch(e){}});
+  return card;
+}
 
 /* ====== 렌더 ====== */
 function clearSvg(g){while(g.firstChild)g.removeChild(g.firstChild);}
@@ -784,19 +810,17 @@ function inspectDupLines(){
       if(!segs[k])segs[k]={mid:[(a[0]+b[0])/2,(a[1]+b[1])/2],n:0};
       segs[k].n++;}});
   var dups=[];for(var k in segs)if(segs[k].n>=2)dups.push(segs[k]);
-  if(!dups.length){drawMarks();updMeta();alert('중복선 검수 결과\n\n중복 0\n중복된 관로선이 없습니다.');return;}
+  if(!dups.length){drawMarks();updMeta();showModal({title:'중복선 검수 결과',tone:'ok',body:'<b style="font-size:16px">중복 0</b><br>중복된 관로선이 없습니다.',buttons:[{label:'확인'}]});return;}
   pushHist();
   var totalExtra=0;
   dups.forEach(function(d){var sm=S(d.mid[0],d.mid[1]);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:0.7,ry:0.7,status:'bad',near:'중복',cnt:d.n-1});totalExtra+=d.n-1;});
   drawMarks();updMeta();
-  if(confirm('중복선 검수 결과\n\n중복 '+dups.length+'곳 · 중복 '+totalExtra+'선 발견\n\n중복된 선을 삭제하고 1선만 남길까요?')){
-    removeDupLines();
-    state.markups=state.markups.filter(function(m){return m.near!=='중복';}); // 써클 제거
-    drawGeo();drawMarks();updMeta();
-    toast('중복선 삭제 완료 — 1선만 유지');
-  }else{
-    toast('중복 '+dups.length+'곳 표시만 (삭제 안 함)');
-  }
+  showModal({title:'중복선 검수 결과',tone:'bad',
+    body:'중복 <b style="color:#d32f2f;font-size:16px">'+dups.length+'곳 · '+totalExtra+'선</b> 발견했습니다.<br>도면에서 빨간 써클 위치를 확인하세요.<br>(빈 곳을 끌어 도면을 이동할 수 있어요)<br><br>중복된 선을 삭제하고 <b>1선만</b> 남길까요?',
+    buttons:[
+      {label:'취소',onClick:function(){toast('중복 '+dups.length+'곳 표시만 (삭제 안 함)');}},
+      {label:'중복 삭제',primary:true,onClick:function(){removeDupLines();state.markups=state.markups.filter(function(m){return m.near!=='중복';});drawGeo();drawMarks();updMeta();toast('중복선 삭제 완료 — 1선만 유지');}}
+    ]});
 }
 function renderDraft(){clearSvg(gDraft);previewLine=null;if(!lineDraft)return;
   var col=(LINECOL[drawLayer]||{}).c||'#d92b2b', lw=(LINECOL[drawLayer]||{}).w||1.6;
@@ -859,7 +883,10 @@ function setStatusUI(){renderSub();}
 var dragging=false,startC=null,startVB=null,drawing=false,cur=null,sx=0,sy=0,midPanning=false;
 cv.addEventListener('pointerdown',function(e){
   if(e.button===1){e.preventDefault();midPanning=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};cv.style.cursor='grabbing';try{cv.setPointerCapture(e.pointerId);}catch(x){}return;}
-  if(mode==='pan'){/* 좌클릭=점 선택(pointerup에서), 화면이동은 휠(가운데) 버튼 */}
+  if(mode==='pan'){/* 측점/맨홀 위=선택(pointerup), 빈 곳 드래그=화면이동 */
+    var w0=toWorld(e.clientX,e.clientY);var nr0=nearestSnapWorld(w0[0],w0[1]);
+    if(!(nr0.pt&&nr0.d<vb.w*0.025)){dragging=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};cv.style.cursor='grabbing';try{cv.setPointerCapture(e.pointerId);}catch(x){}}
+  }
   else if(mode==='mhplace'){var wm=toWorld(e.clientX,e.clientY);placeManholeAt(wm[0],-wm[1]);mode='pan';setModeUI();return;}
   else if(mode==='riserplace'){var wr=toWorld(e.clientX,e.clientY);placeManholeAt(wr[0],-wr[1],'riser');mode='pan';setModeUI();return;}
   else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);var ns=nearestSnapWorld(w[0],w[1]);
@@ -885,7 +912,7 @@ cv.addEventListener('pointermove',function(e){
 });
 function endPtr(){
   if(midPanning){midPanning=false;cv.style.cursor='';return;}
-  if(dragging)dragging=false;
+  if(dragging){dragging=false;cv.style.cursor='';}
   if(drawing&&cur){drawing=false;
     var isBox=mode==='box';var w=isBox?+cur.getAttribute('width'):+cur.getAttribute('rx')*2;var h=isBox?+cur.getAttribute('height'):+cur.getAttribute('ry')*2;
     if(w<0.4&&h<0.4){cur.remove();cur=null;return;}
