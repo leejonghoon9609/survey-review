@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 54</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 55</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -847,6 +847,41 @@ function inspectEndpoints(){
     body:'끝점이 CSV 측점에 안 붙은 곳 <b style="color:#d32f2f;font-size:16px">'+bad.length+'곳</b> 발견했습니다.<br>빨간 써클 위치를 확인하세요.',
     buttons:[{label:'확인'}]});
 }
+// DXF 내보내기 — 측점·결선·맨홀·입상주를 DXF(R12 ENTITIES)로 저장 후 다운로드. 좌표는 측량 월드(x=동, y=북)
+function exportDXF(){
+  if(!state.points.length&&!state.lines.length&&!(state.manholes||[]).length){toast('내보낼 데이터가 없습니다');return;}
+  var L=['0','SECTION','2','ENTITIES'];
+  function ent(a){for(var i=0;i<a.length;i++)L.push(a[i]);}
+  function N(n){return (Math.round(n*1000)/1000).toString();}
+  // 측점: POINT + 번호/코드 TEXT
+  state.points.forEach(function(p){
+    ent(['0','POINT','8','POINT','62','7','10',N(p.x),'20',N(p.y),'30','0']);
+    var no=(p.no||'')+'', cd=((p.code||'').trim());
+    if(no)ent(['0','TEXT','8','PT_LABEL','62','3','10',N(p.x+0.3),'20',N(p.y+0.4),'30','0','40','0.4','1',no]);
+    if(cd)ent(['0','TEXT','8','PT_LABEL','62','4','10',N(p.x+0.3),'20',N(p.y-0.1),'30','0','40','0.4','1',cd]);
+  });
+  // 결선: 각 선분 LINE (통신관로=빨강1 / 지거=노랑2 / 압입=파랑5)
+  var LM={'통신관로':['PIPE','1'],'지거':['JIGER','2'],'압입구간':['PUSH','5']};
+  state.lines.forEach(function(Ln){if(!Ln.pts||Ln.pts.length<2)return;var lm=LM[Ln.layer]||['PIPE','1'];
+    for(var i=0;i<Ln.pts.length-1;i++)
+      ent(['0','LINE','8',lm[0],'62',lm[1],'10',N(Ln.pts[i][0]),'20',N(Ln.pts[i][1]),'30','0','11',N(Ln.pts[i+1][0]),'21',N(Ln.pts[i+1][1]),'31','0']);
+  });
+  // 맨홀·입상주: POINT + 라벨 TEXT
+  (state.manholes||[]).forEach(function(mh){
+    var ly=mh.type==='riser'?'RISER':'MANHOLE';
+    ent(['0','POINT','8',ly,'62','5','10',N(mh.wx),'20',N(mh.wy),'30','0']);
+    if(mh.label)ent(['0','TEXT','8',ly+'_LABEL','62','5','10',N(mh.wx+0.5),'20',N(mh.wy+0.5),'30','0','40','0.5','1',mh.label]);
+  });
+  L.push('0','ENDSEC','0','EOF');
+  var dxf=L.join('\r\n');
+  var blob=new Blob([dxf],{type:'application/dxf'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;
+  a.download=((state.projectName||'survey').replace(/[^\w가-힣\-]/g,'_'))+'.dxf';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url);},1500);
+  toast('DXF 내보내기 완료 — 다운로드됨');
+}
 function renderDraft(){clearSvg(gDraft);previewLine=null;if(!lineDraft)return;
   var col=(LINECOL[drawLayer]||{}).c||'#d92b2b', lw=(LINECOL[drawLayer]||{}).w||1.6;
   for(var i=1;i<lineDraft.length;i++){var a=S(lineDraft[i-1][0],lineDraft[i-1][1]),b=S(lineDraft[i][0],lineDraft[i][1]);
@@ -1082,7 +1117,8 @@ function renderRail(){
   TB.forEach(function(c){if(c.k==='pan')html+='<div class="sep"></div>';
     var kb=keyForAction('cat:'+c.k),bdg=kb?'<span class="hk-badge">'+kb+'</span>':'';
     html+='<button data-k="'+c.k+'" style="'+railStyle(c.c,c.k===activeCat)+'">'+c.icon+' '+c.label+bdg+'</button>';});
-  html+='<div class="sep"></div><button id="hkOpen" style="background:#fff;color:#555;border:1px solid #e3e3df;border-radius:8px;font-weight:600;justify-content:flex-start"><span style="color:#1f6fd6;font-size:16px">⌨</span> 단축키 설정</button>';
+  html+='<div class="sep"></div><button id="dxfExport" style="background:#fff;color:#c0392b;border:1px solid #c0392b;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#c0392b">📐</span> DXF로 내보내기</button>';
+  html+='<button id="hkOpen" style="margin-top:auto;background:#fff;color:#555;border:1px solid #e3e3df;border-radius:8px;font-weight:600;justify-content:flex-start"><span style="color:#1f6fd6;font-size:16px">⌨</span> 단축키 설정</button>';
   r.innerHTML=html;
   r.querySelectorAll('button[data-k]').forEach(function(b){b.onclick=function(){
     activeCat=b.getAttribute('data-k');var c=curCat();
@@ -1095,6 +1131,7 @@ function renderRail(){
     else if(c.setmode){mode=c.setmode;cv.classList.toggle('draw',mode!=='pan');setModeUI();}
     else if(c.hint&&!c.tools.length)toast(c.hint);};});
   var ho=document.getElementById('hkOpen');if(ho)ho.onclick=openHotkeyModal;
+  var dx=document.getElementById('dxfExport');if(dx)dx.onclick=exportDXF;
 }
 function mkBtn(tool,i){
   var active=(tool.mode&&mode===tool.mode)||(tool.activeMode&&mode===tool.activeMode)||(tool.status&&status===tool.status);
