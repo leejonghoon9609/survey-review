@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 45</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 46</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -900,7 +900,12 @@ function deleteMarkupAt(wx,wy){
 }
 
 /* ====== 모드 UI ====== */
-function setModeUI(){if(mode!=='measure'){measurePts=[];if(typeof gMeasure!=='undefined'&&gMeasure)clearSvg(gMeasure);clearLabels('measure');}renderSub();cv.classList.toggle('draw',mode!=='pan'&&mode!=='mhplace'&&mode!=='delmh'&&mode!=='riserplace'&&mode!=='delriser'&&mode!=='delall2');if(mode==='mhplace'||mode==='delmh'||mode==='riserplace'||mode==='delriser'||mode==='delall2'){cv.style.cursor='default';}else{cv.style.cursor='';}}
+var lastStartAction=null; // 엔터/스페이스로 다시 시작할 '바로 전 시작 기능'
+function setModeUI(){
+  if(mode==='mhplace')lastStartAction=function(){mode='mhplace';setModeUI();toast('맨홀심기 — 클릭해 심기');};
+  else if(mode==='riserplace')lastStartAction=function(){mode='riserplace';setModeUI();toast('입상주심기 — 클릭해 심기');};
+  else if(mode==='line')lastStartAction=function(){startDraw(drawLayer);};
+  if(mode!=='measure'){measurePts=[];if(typeof gMeasure!=='undefined'&&gMeasure)clearSvg(gMeasure);clearLabels('measure');}renderSub();cv.classList.toggle('draw',mode!=='pan'&&mode!=='mhplace'&&mode!=='delmh'&&mode!=='riserplace'&&mode!=='delriser'&&mode!=='delall2');if(mode==='mhplace'||mode==='delmh'||mode==='riserplace'||mode==='delriser'||mode==='delall2'){cv.style.cursor='default';}else{cv.style.cursor='';}}
 function setStatusUI(){renderSub();}
 
 /* ====== 포인터 ====== */
@@ -1351,10 +1356,13 @@ window.addEventListener('resize',function(){placeCoord();if(typeof drawGeo==='fu
 coordReset();
 window.addEventListener('keydown',function(e){
   var tg=((e.target||{}).tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tg))return;
-  if(mode==='line'){if(e.key==='Enter'||e.key===' '||e.code==='Space'){e.preventDefault();finishDraw();}}
-  else if(mode==='mhplace'){if(e.key==='Enter'||e.key===' '||e.code==='Space'){e.preventDefault();mode='pan';setModeUI();toast('맨홀심기 종료');}}
-  else if(mode==='riserplace'){if(e.key==='Enter'||e.key===' '||e.code==='Space'){e.preventDefault();mode='pan';setModeUI();toast('입상주심기 종료');}}
-  else if(mode==='measure'){if(e.key==='Enter'||e.key===' '||e.code==='Space'){e.preventDefault();mode='pan';setModeUI();toast('거리산출 종료');}}
+  if(e.key==='Enter'||e.key===' '||e.code==='Space'){
+    e.preventDefault();
+    if(mode==='line'){finishDraw();return;}              // 선 그리는 중 → 완료(끔)
+    if(mode==='measure'){mode='pan';setModeUI();toast('거리산출 종료');return;}
+    if(mode==='mhplace'||mode==='riserplace')return;      // 심기 모드 중엔 무시(클릭으로 심음)
+    if(lastStartAction)lastStartAction();                 // 그 외(완료·심기 후 등) → 바로 전 시작 기능 다시 시작
+  }
 });
 document.getElementById('recClear').onclick=function(){if(!state.markups.length){toast('삭제할 검수 기록이 없습니다');return;}state.markups.forEach(function(r){if(r.el)r.el.remove();});state.markups=[];renderRecs();toast('검수 기록 전체 삭제');};
 
