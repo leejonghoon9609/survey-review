@@ -80,7 +80,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 4</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 5</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -151,22 +151,22 @@ function toast(m){var t=document.getElementById('toast');t.textContent=m;t.class
 
 /* ====== 렌더 ====== */
 function clearSvg(g){while(g.firstChild)g.removeChild(g.firstChild);}
-var LABEL_D=4.5; // 이 거리(m)보다 가까운 점끼리만 인출선 처리 (조절 가능)
+var LABEL_D=4.5; // (구) 근접 그룹 거리 — 현재 미사용, 호환용 유지
 function computeLabels(){
-  var pts=state.points,n=pts.length,vis=new Array(n).fill(false),groups=[];
-  for(var i=0;i<n;i++){if(vis[i])continue;var st=[i],grp=[];vis[i]=true;
-    while(st.length){var k=st.pop();grp.push(k);for(var j=0;j<n;j++){if(!vis[j]){var dx=pts[j].x-pts[k].x,dy=pts[j].y-pts[k].y;if(dx*dx+dy*dy<LABEL_D*LABEL_D){vis[j]=true;st.push(j);}}}}
-    groups.push(grp);}
-  var lay=new Array(n);
-  groups.forEach(function(grp){
-    if(grp.length===1){var p=pts[grp[0]];lay[grp[0]]={lx:p.x+0.7,ly:p.y,anchor:'start',leader:false};return;}
-    var cx=0,cy=0;grp.forEach(function(g){cx+=pts[g].x;cy+=pts[g].y;});cx/=grp.length;cy/=grp.length;
-    var rad=0;grp.forEach(function(g){rad=Math.max(rad,Math.hypot(pts[g].x-cx,pts[g].y-cy));});
-    var R=Math.max(rad+1.75,2.25);
-    var order=grp.slice().sort(function(a,b){return Math.atan2(pts[a].y-cy,pts[a].x-cx)-Math.atan2(pts[b].y-cy,pts[b].x-cx);});
-    var base=Math.atan2(pts[order[0]].y-cy,pts[order[0]].x-cx);
-    order.forEach(function(g,idx){var ang=base+2*Math.PI*idx/order.length,lx=cx+R*Math.cos(ang),ly=cy+R*Math.sin(ang);lay[g]={lx:lx,ly:ly,anchor:Math.cos(ang)>=0?'start':'end',leader:true};});
-  });
+  var pts=state.points, n=pts.length, lay=new Array(n);
+  if(!n) return lay;
+  // 인출선 길이 = 측점 평균 최근접 간격 기반 (현장 스케일에 자동 적응, 모든 라벨 동일 길이)
+  var sum=0,cnt=0;
+  for(var i=0;i<n;i++){var best=Infinity;
+    for(var j=0;j<n;j++){if(i!==j){var d=Math.hypot(pts[i].x-pts[j].x,pts[i].y-pts[j].y);if(d<best)best=d;}}
+    if(best<Infinity){sum+=best;cnt++;}}
+  var avg=cnt?sum/cnt:5;
+  var L=Math.max(avg*0.7, 1.0); // 인출선 길이(m). 짧/길게는 0.7 계수만 조절
+  // 측점 순서(CSV 순)대로 좌·우 번갈아, 인출선은 수평(측점과 같은 높이)
+  for(var k=0;k<n;k++){var p=pts[k],right=(k%2===0);
+    lay[k]=right?{lx:p.x+L,ly:p.y,anchor:'start',leader:true}
+               :{lx:p.x-L,ly:p.y,anchor:'end',  leader:true};}
+  // 작업자가 드래그로 옮긴 라벨은 그 위치 우선
   for(var ii=0;ii<n;ii++){var no=ptNum(pts[ii]);if(state.labelOff&&state.labelOff[no]){var o=state.labelOff[no];lay[ii]={lx:o[0],ly:o[1],anchor:(o[0]<pts[ii].x?'end':'start'),leader:true};}}
   return lay;
 }
