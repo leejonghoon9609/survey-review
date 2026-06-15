@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 46</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 48</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -822,28 +822,38 @@ function inspectDupLines(){
       {label:'중복 삭제',primary:true,onClick:function(){removeDupLines();state.markups=state.markups.filter(function(m){return m.near!=='중복';});drawGeo();drawMarks();updMeta();toast('중복선 삭제 완료 — 1선만 유지');}}
     ]});
 }
-// 끝점 검수: 통신관로 결선의 양 끝점이 측점·맨홀(검정 포인트)에 붙어 있는지 검사. 안 붙고 떠 있는 끝점을 빨간 써클로 표시
+// 끝점 검수 — 규칙: 선은 측량점→측량점으로 끝난다.
+// ①측점 근처를 선이 지나는데 그 측점이 선의 꼭짓점이 아님(선이 측점을 안 거치고 통과) ②선 끝점이 측점·맨홀 아닌 허공
 function inspectEndpoints(){
   state.markups=state.markups.filter(function(m){return m.near!=='끝점';}); // 이전 끝점 마크 제거(갱신)
-  var TOL=0.5; // 측점·맨홀에 '붙었다' 판정 허용거리(m)
+  var TOL=0.6;   // 측점·맨홀에 점이 '붙음' 판정 거리(m)
+  var NEAR=1.2;  // 선분이 측점 옆을 '지나감' 판정 거리(m)
   var nodes=[];
   state.points.forEach(function(p){nodes.push([p.x,p.y]);});
   (state.manholes||[]).forEach(function(mh){if(mh.type!=='riser')nodes.push([mh.wx,mh.wy]);});
-  function nearNode(x,y){for(var i=0;i<nodes.length;i++){if(Math.hypot(nodes[i][0]-x,nodes[i][1]-y)<=TOL)return true;}return false;}
+  function nearNode(x,y){for(var i=0;i<nodes.length;i++)if(Math.hypot(nodes[i][0]-x,nodes[i][1]-y)<=TOL)return true;return false;}
+  function ptSeg(px,py,a,b){var dx=b[0]-a[0],dy=b[1]-a[1],L2=dx*dx+dy*dy;if(L2<1e-9)return Math.hypot(px-a[0],py-a[1]);var t=((px-a[0])*dx+(py-a[1])*dy)/L2;t=Math.max(0,Math.min(1,t));return Math.hypot(px-(a[0]+t*dx),py-(a[1]+t*dy));}
   var bad=[], seen={};
-  state.lines.forEach(function(L){if(L.layer!=='통신관로'||!L.pts||L.pts.length<2)return;
-    [L.pts[0],L.pts[L.pts.length-1]].forEach(function(pt){
-      if(nearNode(pt[0],pt[1]))return; // 측점·맨홀에 붙음 = 정상
-      var k=pt[0].toFixed(3)+','+pt[1].toFixed(3); if(seen[k])return; seen[k]=1;
-      bad.push(pt);
+  function addBad(x,y){var k=x.toFixed(3)+','+y.toFixed(3);if(seen[k])return;seen[k]=1;bad.push([x,y]);}
+  // ① 측점이 선 위(근처)를 지나는데 선의 꼭짓점이 아님 → 선이 측점을 안 거치고 통과
+  state.points.forEach(function(P){
+    var onPoint=false, nearLine=false;
+    state.lines.forEach(function(L){if(L.layer!=='통신관로'||!L.pts)return;
+      for(var i=0;i<L.pts.length;i++)if(Math.hypot(L.pts[i][0]-P.x,L.pts[i][1]-P.y)<=TOL)onPoint=true;
+      for(var j=0;j<L.pts.length-1;j++)if(ptSeg(P.x,P.y,L.pts[j],L.pts[j+1])<=NEAR)nearLine=true;
     });
+    if(nearLine&&!onPoint)addBad(P.x,P.y);
   });
-  if(!bad.length){drawMarks();updMeta();showModal({title:'끝점 검수 결과',tone:'ok',body:'<b style="font-size:16px">정상</b><br>모든 결선 끝점이 측점·맨홀에 붙어 있습니다.',buttons:[{label:'확인'}]});return;}
+  // ② 선 끝점이 측점·맨홀 아닌 허공에 떠 있음
+  state.lines.forEach(function(L){if(L.layer!=='통신관로'||!L.pts||L.pts.length<2)return;
+    [L.pts[0],L.pts[L.pts.length-1]].forEach(function(pt){if(!nearNode(pt[0],pt[1]))addBad(pt[0],pt[1]);});
+  });
+  if(!bad.length){drawMarks();updMeta();showModal({title:'끝점 검수 결과',tone:'ok',body:'<b style="font-size:16px">정상</b><br>모든 선이 측량점에 제대로 붙어 있습니다.',buttons:[{label:'확인'}]});return;}
   pushHist();
   bad.forEach(function(pt){var sm=S(pt[0],pt[1]);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:0.8,ry:0.8,status:'bad',near:'끝점'});});
   drawMarks();updMeta();
   showModal({title:'끝점 검수 결과',tone:'bad',
-    body:'측점·맨홀에 안 붙은 떠 있는 끝점 <b style="color:#d32f2f;font-size:16px">'+bad.length+'곳</b> 발견했습니다.<br>빨간 써클 위치를 확인하세요.<br>(빈 곳을 끌어 도면을 이동할 수 있어요)',
+    body:'측량점에 안 붙은 곳 <b style="color:#d32f2f;font-size:16px">'+bad.length+'곳</b> 발견했습니다.<br>(선이 측점을 안 거치고 지나가거나, 끝점이 허공에 뜬 경우)<br>빨간 써클 위치를 확인하세요.',
     buttons:[{label:'확인'}]});
 }
 function renderDraft(){clearSvg(gDraft);previewLine=null;if(!lineDraft)return;
