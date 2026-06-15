@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 15</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 16</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -323,7 +323,8 @@ function drawGeo(){
     var s=S(aw[0],aw[1]),lx=(L.noteOff?L.noteOff[0]:s[0]+3),ly=(L.noteOff?L.noteOff[1]:s[1]-2.2);
     var ld=el('line',{x1:s[0],y1:s[1],x2:lx,y2:ly,stroke:'#a07e00','stroke-width':0.8,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);
     var anc=el('circle',{cx:s[0],cy:s[1],r:0.32,fill:'#a07e00','pointer-events':'none'});gAnc.appendChild(anc); // 보이는 원
-    var ah=el('circle',{cx:s[0],cy:s[1],r:0.85,fill:'transparent','pointer-events':'all'});ah.style.cursor='move';gAnc.appendChild(ah); // 클릭 잡기용 큰 투명 원
+    var ahR=Math.max(20*pxToWorld(), 1.0); // 클릭영역: 화면 ~20px 고정 (측점 9px보다 크게 → 쉽게 잡힘)
+    var ah=el('circle',{cx:s[0],cy:s[1],r:ahR,fill:'transparent','pointer-events':'all'});ah.style.cursor='move';gAnc.appendChild(ah); // 클릭 잡기용 큰 투명 원
     addAnchorHandle(L,ah,anc,ld);
     var t=el('text',{x:lx+0.25,y:ly+0.2,'font-size':0.62,fill:'#7a5f00','font-weight':'600','text-anchor':'start','pointer-events':'none'});t.textContent=L.note;gPts.appendChild(t);
     addNoteHandle(L,t,ld,lx,ly);
