@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 32</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 33</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -480,13 +480,20 @@ function drawManholes(){
     var txtCx=(ulx1+ulx2)/2; // 밑줄 중앙
     var txtLeft=Math.min(ulx1,ulx2);
 
-    // M측점 연결선 (검정 실선) — 맨홀 앞 M점 + 그 점의 결선 이웃 중 M점들
-    if(mp){
-      var connectPts=[mp];
-      var nbrs=lineNeighbors(ptNum(mp));
-      nbrs.forEach(function(q){if(isManhole(q)&&connectPts.indexOf(q)<0)connectPts.push(q);});
-      connectPts.forEach(function(q){
-        if(q===mp)return; // mp는 대각선으로 이미 표시
+    // M측점 연결선 (검정 실선) — 맨홀 반경 안 가장 가까운 M점 + 맨홀 건너편 M점
+    // 결선 유무와 무관. 양쪽에 있으면 양쪽, 한쪽만이면 한쪽.
+    if(!isRiser){
+      var R_MH=2.5; // 연결 반경(m)
+      var cand=[];
+      state.points.forEach(function(p){if(!isManhole(p))return;var d=Math.hypot(p.x-mh.wx,p.y-mh.wy);if(d<=R_MH)cand.push({p:p,d:d});});
+      cand.sort(function(a,b){return a.d-b.d;});
+      var conn=[];
+      if(cand.length){
+        var A=cand[0].p; conn.push(A);
+        var ax=A.x-mh.wx, ay=A.y-mh.wy; // A의 맨홀기준 방향
+        for(var ci=1;ci<cand.length;ci++){var q=cand[ci].p;var dot=(q.x-mh.wx)*ax+(q.y-mh.wy)*ay;if(dot<0){conn.push(q);break;}} // 건너편(반대방향) 1개
+      }
+      conn.forEach(function(q){
         var qs=S(q.x,q.y);
         gMH.appendChild(el('line',{x1:qs[0],y1:qs[1],x2:mx,y2:my,stroke:'#222','stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
       });
