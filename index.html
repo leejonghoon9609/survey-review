@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 14</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 15</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -245,15 +245,14 @@ function addNoteHandle(L,t,ld,lx,ly){
   h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
   gPts.appendChild(h);
 }
-// 지거 멘트 앵커: 선을 따라 미끄러지게 드래그 (gAnc 최상위 + 큰 히트 + window 이벤트 → 측점에 안 가로채이고 반복 가능)
+// 지거 멘트 앵커: 잘 작동하는 라벨 드래그(addNoteHandle)와 동일한 setPointerCapture 패턴. gAnc 최상위라 측점에 안 가로채임.
 function addAnchorHandle(L,ah,anc,ld){
   ah.style.cursor='move';
-  ah.addEventListener('pointerdown',function(ev){
-    if(mode!=='pan')return;ev.stopPropagation();ev.preventDefault();labelDragging=true;anc.setAttribute('r',0.46);
-    function mv(e){var ww=toWorld(e.clientX,e.clientY);var t=projToPoly(L.pts,ww[0],ww[1]);L.anchorT=t;var aw=ptOnPoly(L.pts,t),s=S(aw[0],aw[1]);anc.setAttribute('cx',s[0]);anc.setAttribute('cy',s[1]);ah.setAttribute('cx',s[0]);ah.setAttribute('cy',s[1]);ld.setAttribute('x1',s[0]);ld.setAttribute('y1',s[1]);}
-    function up(){window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);setTimeout(function(){labelDragging=false;},40);drawGeo();}
-    window.addEventListener('pointermove',mv);window.addEventListener('pointerup',up);
-  });
+  var drag=false;
+  ah.addEventListener('pointerdown',function(ev){if(mode!=='pan')return;ev.stopPropagation();drag=true;labelDragging=true;anc.setAttribute('r',0.46);try{ah.setPointerCapture(ev.pointerId);}catch(e){}});
+  ah.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();var ww=toWorld(ev.clientX,ev.clientY);var t=projToPoly(L.pts,ww[0],ww[1]);L.anchorT=t;var aw=ptOnPoly(L.pts,t),sp=S(aw[0],aw[1]);anc.setAttribute('cx',sp[0]);anc.setAttribute('cy',sp[1]);ah.setAttribute('cx',sp[0]);ah.setAttribute('cy',sp[1]);ld.setAttribute('x1',sp[0]);ld.setAttribute('y1',sp[1]);});
+  function up(ev){if(!drag)return;drag=false;setTimeout(function(){labelDragging=false;},40);try{ah.releasePointerCapture(ev.pointerId);}catch(e){}drawGeo();}
+  ah.addEventListener('pointerup',up);ah.addEventListener('pointercancel',up);
 }
 // 줌-안전 텍스트: HTML div 오버레이로 화면 픽셀에 직접 렌더 → viewBox 스킵 문제 원천 차단
 // svgX,svgY = SVG(화면) 좌표. 오버레이는 화면픽셀이므로 viewBox→화면 변환해 배치.
