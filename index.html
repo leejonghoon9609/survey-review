@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 38</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 39</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -227,10 +227,27 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
     handle.setAttribute('x',anchor==='start'?(lx-3*Uh):(lx-tw+3*Uh));handle.setAttribute('y',ly-hh*0.5);});
   function up(ev){if(!dragging)return;dragging=false;setTimeout(function(){labelDragging=false;},40);
     if(moved)state.labelOff[ptNum(p)]=[lx,-ly];
+    else{var now=Date.now();if(now-(p._lastClick||0)<350){p._lastClick=0;openPtEdit(p,ls);}else{p._lastClick=now;}}
     try{handle.releasePointerCapture(ev.pointerId);}catch(e){}
     drawGeo();highlightSel();}
   handle.addEventListener('pointerup',up);handle.addEventListener('pointercancel',up);
   gPts.appendChild(handle);
+}
+function openPtEdit(p,ls){
+  var r=cv.getBoundingClientRect();
+  var sx=r.left+(ls[0]-vb.x)/vb.w*r.width;
+  var sy=r.top+(ls[1]-vb.y)/vb.h*r.height;
+  var wrap=document.createElement('div');
+  wrap.style.cssText='position:fixed;z-index:999;left:'+sx+'px;top:'+(sy-22)+'px;background:#fffde7;border:1px solid #d32f2f;border-radius:5px;padding:5px;display:flex;flex-direction:column;gap:3px;box-shadow:0 2px 8px rgba(0,0,0,0.18);';
+  var mk=function(val,ph,col){var i=document.createElement('input');i.value=val;i.placeholder=ph;i.style.cssText='font-size:14px;font-weight:600;color:'+(col||'#333')+';border:1px solid #ccc;border-radius:3px;padding:2px 6px;outline:none;width:150px;';return i;};
+  var i1=mk(p.no||'','번호 (예 260522-10)','#1a7a3a');
+  var i2=mk((p.code||'').trim(),'코드 (예 FC 100x3)','#0f7a86');
+  wrap.appendChild(i1);wrap.appendChild(i2);document.body.appendChild(wrap);i2.focus();i2.select();
+  var done=function(){if(wrap.parentNode){pushHist();p.no=i1.value.trim();p.code=i2.value.trim();wrap.remove();drawGeo();if(photoPanelOpen)refreshPhotoPanel();}};
+  var onKey=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();};
+  i1.addEventListener('keydown',onKey);i2.addEventListener('keydown',onKey);
+  var bt=null;function ob(){bt=setTimeout(done,120);}function of(){if(bt){clearTimeout(bt);bt=null;}}
+  i1.addEventListener('blur',ob);i2.addEventListener('blur',ob);i1.addEventListener('focus',of);i2.addEventListener('focus',of);
 }
 function addNoteHandle(L,t,ld,lx,ly,ax,tw){
   var bb;try{bb=t.getBBox();}catch(e){bb=null;}
@@ -391,6 +408,9 @@ function drawGeo(){
     var L=lay[i],ls=S(L.lx,L.ly),off=L.anchor==='start'?0.15:-0.15;
     var ld=null;if(L.leader){ld=el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':1.3,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);}
     var nt=mkLabel(ls[0]+off, ls[1], p.no, {fill:'#1a7a3a',weight:'400',anchor:L.anchor,grp:'pt',px:15});
+    // 윗줄 날짜-번호에서 번호(마지막 - 뒤)만 빨간색
+    var noStr=(p.no||''), dpos=noStr.lastIndexOf('-');
+    if(dpos>=0)nt.innerHTML=noStr.slice(0,dpos+1)+'<span style="color:#d32f2f;font-weight:700">'+noStr.slice(dpos+1)+'</span>';
     // 코드는 번호 아래 줄로 같은 div에 추가
     if((p.code||'').trim()){
       var sub=document.createElement('div');
@@ -929,14 +949,8 @@ var TB=[
     {t:'압입구간 그리기',tone:'draw',fn:function(){startDraw('압입구간');},activeMode:'line'},
     {t:'압입구간 지우기',tone:'del',mode:'delline',delLayer:'압입구간',hint:'지울 압입구간 위에 마우스→클릭'}]},
   {k:'insp',label:'검수',icon:'✓',c:{bg:'#fbe9e9',fg:'#df524b'},tools:[
-    {t:'측점선택',tone:'pick',setmode:'pan',hint:'측점을 클릭해 선택'},
-    {t:'박스',tone:'shape',mode:'box'},
-    {t:'써클',tone:'shape',mode:'circle'},
-    {t:'확인',tone:'ok',status:'ok'},
-    {t:'이상',tone:'bad',status:'bad'},
-    {t:'T점',tone:'pt',soon:1},
-    {t:'맨홀',tone:'pt',soon:1},
-    {t:'전주입상',tone:'pt',soon:1}]}
+    {t:'관공수 검수',tone:'pick',setmode:'pan',hint:'관공수 검수 — 동작 방식을 알려주시면 연결하겠습니다'},
+    {t:'중복선 검수',tone:'shape',setmode:'pan',hint:'중복선 검수 — 동작 방식을 알려주시면 연결하겠습니다'}]}
 ];
 var TONE={data:{bg:'#eceef1',fg:'#6e757f'},draw:{bg:'#e7f3ea',fg:'#2a9e50'},del:{bg:'#fdf1dd',fg:'#d98200'},delall:{bg:'#fbe9e9',fg:'#df524b'},pick:{bg:'#e6effb',fg:'#2f7fe0'},shape:{bg:'#e6effb',fg:'#2f7fe0'},ok:{bg:'#e7f3ea',fg:'#2a9e50'},bad:{bg:'#fbe9e9',fg:'#df524b'},pt:{bg:'#efeafa',fg:'#7a52e0'}};
 function toneStyle(tone,active){var c=TONE[tone]||{bg:'#f3f3f0',fg:'#333'};return active?('background:'+c.fg+';color:#fff;border:1px solid '+c.fg+';border-left:4px solid '+c.fg+';border-radius:0 8px 8px 0;font-weight:700;'):('background:#fff;color:'+c.fg+';border:1px solid #e3e3df;border-left:4px solid '+c.fg+';border-radius:0 8px 8px 0;font-weight:600;');}
@@ -1107,8 +1121,8 @@ var gAnc=document.createElementNS(SVGNS,'g'); cv.appendChild(gAnc); // 지거 �
 var gMeasure=document.createElementNS(SVGNS,'g'); cv.appendChild(gMeasure); // 거리산출 표시
 /* ====== 실행취소(Undo) / 다시실행(Redo) ====== */
 var undoStack=[],redoStack=[];
-function snapHist(){return JSON.stringify({l:state.lines,m:state.manholes,lo:state.labelOff,mk:state.markups.map(function(x){var o={};for(var k in x)if(k!=='el')o[k]=x[k];return o;})});}
-function restoreHist(s){var o=JSON.parse(s);state.lines=o.l||[];state.manholes=o.m||[];state.labelOff=o.lo||{};state.markups.forEach(function(x){if(x.el)x.el.remove();});state.markups=o.mk||[];drawGeo();drawManholes();drawMarks();updMeta();}
+function snapHist(){return JSON.stringify({l:state.lines,m:state.manholes,lo:state.labelOff,pt:state.points,mk:state.markups.map(function(x){var o={};for(var k in x)if(k!=='el')o[k]=x[k];return o;})});}
+function restoreHist(s){var o=JSON.parse(s);state.lines=o.l||[];state.manholes=o.m||[];state.labelOff=o.lo||{};if(o.pt)state.points=o.pt;state.markups.forEach(function(x){if(x.el)x.el.remove();});state.markups=o.mk||[];drawGeo();drawManholes();drawMarks();updMeta();}
 function pushHist(){undoStack.push(snapHist());if(undoStack.length>60)undoStack.shift();redoStack=[];}
 function doUndo(){if(!undoStack.length){toast('되돌릴 작업이 없습니다');return;}redoStack.push(snapHist());restoreHist(undoStack.pop());toast('되돌렸습니다');}
 function doRedo(){if(!redoStack.length){toast('다시 실행할 작업이 없습니다');return;}undoStack.push(snapHist());restoreHist(redoStack.pop());toast('다시 실행했습니다');}
