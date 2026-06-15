@@ -180,11 +180,13 @@ function vbScale(){
   return {r:r, s:s, ox:(r.width-vb.w*s)/2, oy:(r.height-vb.h*s)/2}; // 레터박스 여백(중앙정렬)
 }
 function worldToPx(svgX,svgY){var cvr=cv.getBoundingClientRect();return [(svgX-vb.x)/vb.w*cvr.width,(svgY-vb.y)/vb.h*cvr.height];}
-// 심벌 크기 화면고정용: 화면 1px당 월드단위 [가로,세로]. meet 균일 스케일(stale 없음·찌그러짐 없음)
+// 심벌 크기 화면고정용: 화면 1px당 월드단위 [가로,세로]. 가로·세로 스케일을 각각 실측 → 어떤 경우든 화면상 정사각/정원
 function symScale(){
-  var r=cv.getBoundingClientRect();
-  var s=Math.min(r.width/Math.max(vb.w,1e-9), r.height/Math.max(vb.h,1e-9));
-  return [1/s, 1/s];
+  cv.getBoundingClientRect();                         // 레이아웃 flush(CTM 최신화)
+  var m=cv.getScreenCTM?cv.getScreenCTM():null;
+  if(m&&m.a)return [1/m.a, m.d?1/m.d:1/m.a];           // 가로=1/m.a, 세로=1/m.d (따로)
+  var r=cv.getBoundingClientRect(),s=Math.min(r.width/Math.max(vb.w,1e-9), r.height/Math.max(vb.h,1e-9));
+  return [1/s, 1/s];                                   // 폴백(meet 균일)
 }
 function moveLabelDiv(d,svgX,svgY){d._sx=svgX;d._sy=svgY;placeLabelDiv(d);}
 function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
@@ -872,9 +874,10 @@ function neighborsOf(sel){var selP=pointByNum(sel),up=null,down=null;if(!selP)re
   else{var ups=[],downs=[];state.points.forEach(function(q){if(ptNum(q)===String(sel))return;var d=Math.hypot(q.x-selP.x,q.y-selP.y);(q.y>selP.y?ups:downs).push({q:q,d:d});});ups.sort(function(a,b){return a.d-b.d;});downs.sort(function(a,b){return a.d-b.d;});if(ups[0])up=ups[0].q;if(downs[0])down=downs[0].q;}
   return {up:up,down:down};}
 function highlightSel(){clearSvg(gSel);if(selNum==null)return;var p=pointByNum(selNum);if(!p)return;
+  var sc=symScale();
   var nbs=neighborsOf(selNum);
-  [nbs.up,nbs.down].forEach(function(q){if(q){var sy=S(q.x,q.y);gSel.appendChild(el('circle',{cx:sy[0],cy:sy[1],r:0.65,fill:'none',stroke:'#ffcc00','stroke-width':1.4,'vector-effect':'non-scaling-stroke'}));}});
-  var s=S(p.x,p.y);gSel.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.8,fill:'none',stroke:'#22cc00','stroke-width':2.2,'vector-effect':'non-scaling-stroke'}));}
+  [nbs.up,nbs.down].forEach(function(q){if(q){var sy=S(q.x,q.y);gSel.appendChild(el('ellipse',{cx:sy[0],cy:sy[1],rx:13*sc[0],ry:13*sc[1],fill:'none',stroke:'#ffcc00','stroke-width':1.4,'vector-effect':'non-scaling-stroke'}));}});
+  var s=S(p.x,p.y);gSel.appendChild(el('ellipse',{cx:s[0],cy:s[1],rx:16*sc[0],ry:16*sc[1],fill:'none',stroke:'#22cc00','stroke-width':2.2,'vector-effect':'non-scaling-stroke'}));}
 function compressImage(file,maxW,q){return new Promise(function(res,rej){var img=new Image(),u=URL.createObjectURL(file);img.onload=function(){URL.revokeObjectURL(u);var w=img.width,h=img.height;if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(function(b){b?res(b):rej(new Error('blob'));},'image/jpeg',q);};img.onerror=function(){rej(new Error('img'));};img.src=u;});}
 var zoomState={img:null,scale:1,tx:0,ty:0,drag:false,sx:0,sy:0};
 function applyZoom(){var z=zoomState;if(!z.img)return;z.img.style.transform='translate('+z.tx+'px,'+z.ty+'px) scale('+z.scale+')';z.img.style.cursor=z.scale>1?(z.drag?'grabbing':'grab'):'zoom-in';}
