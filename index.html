@@ -539,7 +539,8 @@ function updMeta(){document.getElementById('meta').textContent=(state.projectNam
 
 /* ====== 뷰박스 ====== */
 var vb={x:0,y:0,w:100,h:100}, vb0={x:0,y:0,w:100,h:100}, _vbwLast=null;
-function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);repositionLabels();if(vb.w!==_vbwLast){_vbwLast=vb.w;if(typeof drawGeo==='function'){drawGeo();drawManholes();highlightSel();}}}
+function redrawSym(){if(typeof drawGeo==='function'){drawGeo();drawManholes();highlightSel();}}
+function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);repositionLabels();if(vb.w!==_vbwLast){_vbwLast=vb.w;redrawSym();requestAnimationFrame(redrawSym);}}
 function fitView(){
   var xs=[],ys=[];function add(x,y){var s=S(x,y);xs.push(s[0]);ys.push(s[1]);}
   state.points.forEach(function(p){add(p.x,p.y);});
@@ -547,10 +548,10 @@ function fitView(){
   if(!xs.length){vb={x:0,y:0,w:100,h:100};vb0={x:0,y:0,w:100,h:100};applyVB();return;}
   var pad=5,minx=Math.min.apply(0,xs),maxx=Math.max.apply(0,xs),miny=Math.min.apply(0,ys),maxy=Math.max.apply(0,ys);
   vb0={x:minx-pad,y:miny-pad,w:(maxx-minx)+2*pad,h:(maxy-miny)+2*pad};
-  vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};applyVB();drawGeo();drawManholes();highlightSel();
+  vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};applyVB();drawGeo();drawManholes();highlightSel();requestAnimationFrame(redrawSym);
 }
 function toWorld(cx,cy){var r=cv.getBoundingClientRect();return [vb.x+(cx-r.left)/r.width*vb.w, vb.y+(cy-r.top)/r.height*vb.h];}
-function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*=f;vb.h*=f;vb.x=w[0]-(cx-r.left)/r.width*vb.w;vb.y=w[1]-(cy-r.top)/r.height*vb.h;applyVB();drawGeo();drawManholes();highlightSel();}
+function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*=f;vb.h*=f;vb.x=w[0]-(cx-r.left)/r.width*vb.w;vb.y=w[1]-(cy-r.top)/r.height*vb.h;applyVB();drawGeo();drawManholes();highlightSel();requestAnimationFrame(redrawSym);}
 
 /* ====== 결선 ====== */
 function nearestPointWorld(wx,wy){var best=null,bd=1e18;state.points.forEach(function(p){var s=S(p.x,p.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;best=p;}});return {p:best,d:Math.sqrt(bd)};}
@@ -965,7 +966,7 @@ cwrap.addEventListener('mousemove',function(e){
   if(mode==='line')drawIndicators(w); else if(mode==='delline')delHoverHighlight(w); else if(gDraw.childNodes.length)clearSvg(gDraw);
 });
 cwrap.addEventListener('mouseleave',coordReset);
-window.addEventListener('resize',function(){placeCoord();if(typeof drawGeo==='function'){drawGeo();drawManholes();highlightSel();}});
+window.addEventListener('resize',function(){placeCoord();if(typeof drawGeo==='function'){drawGeo();drawManholes();highlightSel();requestAnimationFrame(redrawSym);}});
 coordReset();
 window.addEventListener('keydown',function(e){
   var tg=((e.target||{}).tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tg))return;
