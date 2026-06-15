@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 33</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 34</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -717,12 +717,11 @@ var lineDraft=null, previewLine=null, drawLayer='통신관로', delLayer='통신
 function renderDraft(){clearSvg(gDraft);previewLine=null;if(!lineDraft)return;
   var col=(LINECOL[drawLayer]||{}).c||'#d92b2b', lw=(LINECOL[drawLayer]||{}).w||1.6;
   for(var i=1;i<lineDraft.length;i++){var a=S(lineDraft[i-1][0],lineDraft[i-1][1]),b=S(lineDraft[i][0],lineDraft[i][1]);
-    gDraft.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:col,'stroke-width':lw,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}
-  lineDraft.forEach(function(p){var s=S(p[0],p[1]);gDraft.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.25,fill:'#1f6fd6','pointer-events':'none'}));});
+    gDraft.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:col,'stroke-width':lw,'stroke-dasharray':'4 3','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}
+  lineDraft.forEach(function(p){var s=S(p[0],p[1]);gDraft.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#1f6fd6','stroke-width':8,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));});
   drawIndicators(null);}
 function drawIndicators(cw){clearSvg(gDraw);if(mode!=='line'||!lineDraft)return;
-  lineDraft.forEach(function(v){var q=pointAtCoord(v[0],v[1]);if(q){var s=S(q.x,q.y);gDraw.appendChild(el('rect',{x:s[0]-0.45,y:s[1]-0.45,width:0.9,height:0.9,fill:'#1f6fd6','pointer-events':'none'}));}});
-  if(cw){var ns=nearestSnapWorld(cw[0],cw[1]);if(ns.pt&&ns.d<vb.w*0.04){var s2=S(ns.pt[0],ns.pt[1]);gDraw.appendChild(el('circle',{cx:s2[0],cy:s2[1],r:1.0,fill:'none',stroke:'#1f6fd6','stroke-width':2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}}}
+  if(cw){var ns=nearestSnapWorld(cw[0],cw[1]);if(ns.pt&&ns.d<vb.w*0.04){var s2=S(ns.pt[0],ns.pt[1]);gDraw.appendChild(el('line',{x1:s2[0],y1:s2[1],x2:s2[0],y2:s2[1],stroke:'#1f6fd6','stroke-width':10,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}}}
 function delHoverHighlight(cw){clearSvg(gDraw);var best=null,bd=1e18;
   state.lines.forEach(function(L){if(L.layer!==delLayer)return;for(var s=0;s<L.pts.length-1;s++){var a=S(L.pts[s][0],L.pts[s][1]),b=S(L.pts[s+1][0],L.pts[s+1][1]);var d=segDist(cw[0],cw[1],a[0],a[1],b[0],b[1]);if(d<bd){bd=d;best={a:a,b:b};}}});
   if(best&&bd<vb.w*0.03){var col=(LINECOL[delLayer]||{}).c||'#d92b2b';gDraw.appendChild(el('line',{x1:best.a[0],y1:best.a[1],x2:best.b[0],y2:best.b[1],stroke:col,'stroke-width':6,'stroke-opacity':0.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));}}
