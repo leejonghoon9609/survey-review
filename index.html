@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 56</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 57</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -850,27 +850,55 @@ function inspectEndpoints(){
 // DXF 내보내기 — 측점·결선·맨홀·입상주를 DXF(R12 ENTITIES)로 저장 후 다운로드. 좌표는 측량 월드(x=동, y=북)
 function exportDXF(){
   if(!state.points.length&&!state.lines.length&&!(state.manholes||[]).length){toast('내보낼 데이터가 없습니다');return;}
+  // 심벌 크기(실측 m) — CAD에서 보고 조정
+  var BOX=0.3, RO=0.5, RI=0.3, TH=0.5, RH=0.8; // 측점박스 변, 맨홀바깥/안 반지름, 글자높이, 입상주 높이
   var L=['0','SECTION','2','ENTITIES'];
   function ent(a){for(var i=0;i<a.length;i++)L.push(a[i]);}
   function N(n){return (Math.round(n*1000)/1000).toString();}
-  // 측점: POINT + 번호/코드 TEXT
-  state.points.forEach(function(p){
-    ent(['0','POINT','8','POINT','62','7','10',N(p.x),'20',N(p.y),'30','0']);
+  function line(x1,y1,x2,y2,layer,col){ent(['0','LINE','8',layer,'62',col,'10',N(x1),'20',N(y1),'30','0','11',N(x2),'21',N(y2),'31','0']);}
+  function circle(cx,cy,r,layer,col){ent(['0','CIRCLE','8',layer,'62',col,'10',N(cx),'20',N(cy),'30','0','40',N(r)]);}
+  function box(cx,cy,sz,layer,col){var h=sz/2;ent(['0','LWPOLYLINE','8',layer,'62',col,'90','4','70','1','10',N(cx-h),'20',N(cy-h),'10',N(cx+h),'20',N(cy-h),'10',N(cx+h),'20',N(cy+h),'10',N(cx-h),'20',N(cy+h)]);}
+  function text(x,y,h,s,layer,col,align){var a=['0','TEXT','8',layer,'62',col,'10',N(x),'20',N(y),'30','0','40',N(h),'1',s];if(align){a.push('72',String(align),'11',N(x),'21',N(y),'31','0');}ent(a);}
+  // 측점: 사각 박스 + 인출선 + 번호/코드 (T점 초록3, 일반 검정7)
+  var lay=computeLabels();
+  state.points.forEach(function(p,k){
+    box(p.x,p.y,BOX,'POINT',isTpoint(p)?'3':'7');
+    var lo=lay[k]||{lx:p.x+1,ly:p.y,anchor:'start'};
+    line(p.x,p.y,lo.lx,lo.ly,'PT_LEADER','8'); // 인출선(측점→라벨)
+    var al=(lo.anchor==='end')?2:0; // 왼쪽 라벨=우측정렬
     var no=(p.no||'')+'', cd=((p.code||'').trim());
-    if(no)ent(['0','TEXT','8','PT_LABEL','62','3','10',N(p.x+0.3),'20',N(p.y+0.4),'30','0','40','0.4','1',no]);
-    if(cd)ent(['0','TEXT','8','PT_LABEL','62','4','10',N(p.x+0.3),'20',N(p.y-0.1),'30','0','40','0.4','1',cd]);
+    if(no)text(lo.lx,lo.ly+TH*0.1,TH,no,'PT_LABEL','3',al);
+    if(cd)text(lo.lx,lo.ly-TH*1.1,TH,cd,'PT_LABEL','4',al);
   });
   // 결선: 각 선분 LINE (통신관로=빨강1 / 지거=노랑2 / 압입=파랑5)
   var LM={'통신관로':['PIPE','1'],'지거':['JIGER','2'],'압입구간':['PUSH','5']};
   state.lines.forEach(function(Ln){if(!Ln.pts||Ln.pts.length<2)return;var lm=LM[Ln.layer]||['PIPE','1'];
     for(var i=0;i<Ln.pts.length-1;i++)
-      ent(['0','LINE','8',lm[0],'62',lm[1],'10',N(Ln.pts[i][0]),'20',N(Ln.pts[i][1]),'30','0','11',N(Ln.pts[i+1][0]),'21',N(Ln.pts[i+1][1]),'31','0']);
+      line(Ln.pts[i][0],Ln.pts[i][1],Ln.pts[i+1][0],Ln.pts[i+1][1],lm[0],lm[1]);
   });
-  // 맨홀·입상주: POINT + 라벨 TEXT
+  // 맨홀(이중원) / 입상주(목주) + 인출선(대각선+밑줄) + 태그
   (state.manholes||[]).forEach(function(mh){
-    var ly=mh.type==='riser'?'RISER':'MANHOLE';
-    ent(['0','POINT','8',ly,'62','5','10',N(mh.wx),'20',N(mh.wy),'30','0']);
-    if(mh.label)ent(['0','TEXT','8',ly+'_LABEL','62','5','10',N(mh.wx+0.5),'20',N(mh.wy+0.5),'30','0','40','0.5','1',mh.label]);
+    var isRiser=(mh.type==='riser');
+    var ly=isRiser?'RISER':'MANHOLE', col=isRiser?'5':'7';
+    if(isRiser){ // 테이퍼 목주: 다리2 + 크로스암 + 꼭대기 작은 원 (북쪽 위)
+      var wB=0.14, wT=0.04, armW=0.24, armY=mh.wy+RH*0.74;
+      line(mh.wx-wB,mh.wy,mh.wx-wT,mh.wy+RH,ly,'5');
+      line(mh.wx+wB,mh.wy,mh.wx+wT,mh.wy+RH,ly,'5');
+      line(mh.wx-armW,armY,mh.wx+armW,armY,ly,'5');
+      circle(mh.wx,mh.wy+RH,wT+0.05,ly,'5');
+    } else { // 이중원 ◎
+      circle(mh.wx,mh.wy,RO,ly,'7'); circle(mh.wx,mh.wy,RI,ly,'7');
+    }
+    // 인출선: 라벨 위치(드래그 저장 lx/ly 우선, 없으면 기본). 대각선→밑줄, 태그는 밑줄 위
+    var lx=mh.lx!=null?mh.lx:(mh.wx+1.2), lyy=mh.ly!=null?mh.ly:(mh.wy+1.2);
+    var txtW=(mh.label||'').length*TH*0.62+TH*0.3;
+    var isRight=(lx>=mh.wx);
+    var diagLen=Math.hypot(lx-mh.wx,lyy-mh.wy);
+    var underLen=Math.max(diagLen*0.3,txtW);
+    var ux2=isRight?lx+underLen:lx-underLen;
+    line(mh.wx,mh.wy,lx,lyy,ly,col); // 대각선
+    line(lx,lyy,ux2,lyy,ly,col);     // 수평 밑줄
+    if(mh.label)text(Math.min(lx,ux2)+TH*0.1,lyy+TH*0.25,TH,mh.label,ly+'_LABEL',col,0);
   });
   L.push('0','ENDSEC','0','EOF');
   var dxf=L.join('\r\n');
