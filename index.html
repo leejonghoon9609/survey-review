@@ -21,6 +21,22 @@
   .rail button{justify-content:flex-start;width:100%;padding:11px 12px;font-size:14px}
   .rail button.on{background:#eef6ef;border-color:var(--ok);color:var(--ok);font-weight:600}
   .rail .sep{height:1px;background:var(--line);margin:3px 1px}
+  .hk-badge{margin-left:auto;display:inline-block;background:#c0392b;color:#fff;font-size:10px;font-weight:800;padding:1px 5px;border-radius:4px;min-width:16px;text-align:center;line-height:1.5}
+  .sub-b .hk-badge{margin-left:6px}
+  .hk-overlay{position:fixed;inset:0;background:rgba(20,20,18,.38);z-index:1000;display:flex;align-items:center;justify-content:center}
+  .hk-card{background:#fff;border-radius:13px;width:520px;max-width:92vw;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 10px 40px rgba(0,0,0,.25);overflow:hidden}
+  .hk-card h3{font-size:15px;font-weight:700;padding:15px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .hk-body{overflow:auto;padding:8px 10px}
+  .hk-grp{font-size:11px;font-weight:700;color:var(--muted);padding:9px 8px 4px}
+  .hk-row{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px}
+  .hk-row:hover{background:#fafaf8}
+  .hk-row .nm{flex:1;font-size:13px;color:var(--ink)}
+  .hk-row .keyb{min-width:52px;text-align:center;font-size:12px;font-weight:700;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:pointer;color:var(--ink)}
+  .hk-row .keyb.cap{border-color:var(--accent);color:var(--accent);background:#eef4fc}
+  .hk-row .keyb.set{border-color:#c0392b;color:#c0392b}
+  .hk-row .clr{font-size:12px;color:#bbb;cursor:pointer;padding:2px 6px;border:1px solid var(--line);border-radius:5px;background:#fff}
+  .hk-row .clr:hover{color:var(--bad);border-color:var(--bad)}
+  .hk-foot{padding:11px 18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
   button.soon{color:#b0b0b0;border-style:dashed}
   .viewgrp{margin-left:auto;display:flex;gap:6px;align-items:center}
   .zoomwrap2{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
@@ -80,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 5</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 6</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -780,17 +796,21 @@ function curCat(){for(var i=0;i<TB.length;i++)if(TB[i].k===activeCat)return TB[i
 function renderRail(){
   var r=document.getElementById('rail'),html='';
   TB.forEach(function(c){if(c.k==='pan')html+='<div class="sep"></div>';
-    html+='<button data-k="'+c.k+'" style="'+railStyle(c.c,c.k===activeCat)+'">'+c.icon+' '+c.label+'</button>';});
+    var kb=keyForAction('cat:'+c.k),bdg=kb?'<span class="hk-badge">'+kb+'</span>':'';
+    html+='<button data-k="'+c.k+'" style="'+railStyle(c.c,c.k===activeCat)+'">'+c.icon+' '+c.label+bdg+'</button>';});
+  html+='<div class="sep"></div><button id="hkOpen" style="background:#fff;color:#555;border:1px solid #e3e3df;border-radius:8px;font-weight:600;justify-content:center">⌨ 단축키</button>';
   r.innerHTML=html;
-  r.querySelectorAll('button').forEach(function(b){b.onclick=function(){
+  r.querySelectorAll('button[data-k]').forEach(function(b){b.onclick=function(){
     activeCat=b.getAttribute('data-k');var c=curCat();
     if(c.setmode){mode=c.setmode;cv.classList.toggle('draw',mode!=='pan');}
     renderRail();renderSub();if(c.hint&&!c.tools.length)toast(c.hint);};});
+  var ho=document.getElementById('hkOpen');if(ho)ho.onclick=openHotkeyModal;
 }
 function mkBtn(tool,i){
   var active=(tool.mode&&mode===tool.mode)||(tool.activeMode&&mode===tool.activeMode)||(tool.status&&status===tool.status);
   if(tool.soon)return '<button class="sub-b soon" style="'+toneStyle(tool.tone,false)+'opacity:.55">'+tool.t+'</button>';
-  return '<button data-i="'+i+'" class="sub-b" style="'+toneStyle(tool.tone,active)+'">'+tool.t+'</button>';
+  var kb=keyForAction('tool:'+curCat().k+':'+i),bdg=kb?'<span class="hk-badge">'+kb+'</span>':'';
+  return '<button data-i="'+i+'" class="sub-b" style="'+toneStyle(tool.tone,active)+'">'+tool.t+bdg+'</button>';
 }
 function renderSub(){
   var c=curCat(),s=document.getElementById('subbar'),html='';
@@ -817,6 +837,69 @@ function renderSub(){
     else if(g==='zout')zoomAt(1.25,rr.left+rr.width/2,rr.top+rr.height/2);
     else if(g==='fit'){fitView();drawGeo();drawManholes();}};});
 }
+/* ====== 단축키 시스템 ====== */
+var HK_KEY='survey_hotkeys';
+function loadHotkeys(){try{return JSON.parse(localStorage.getItem(HK_KEY)||'{}')||{};}catch(e){return {};}}
+function saveHotkeys(){try{localStorage.setItem(HK_KEY,JSON.stringify(hotkeys));}catch(e){}}
+var hotkeys=loadHotkeys(); // {actionId:'A'}
+function keyForAction(id){return hotkeys[id]?hkLabel(hotkeys[id]):'';}
+function actionForKey(key){for(var id in hotkeys){if(hotkeys[id]===key)return id;}return null;}
+function normKey(e){var k=e.key;if(!k)return '';
+  if(k===' ')return '';                       // 스페이스=그리기 완료용, 제외
+  if(k.length===1)return k.toUpperCase();
+  if(/^(Arrow(Up|Down|Left|Right)|F[1-9]|F1[0-2])$/.test(k))return k;
+  return '';}
+function hkLabel(k){return k.replace('Arrow','').replace('Up','↑').replace('Down','↓').replace('Left','←').replace('Right','→');}
+function actionList(){var arr=[];
+  TB.forEach(function(c){arr.push({id:'cat:'+c.k,name:c.icon+' '+c.label,grp:c.label});
+    c.tools.forEach(function(t,i){if(t.soon)return;arr.push({id:'tool:'+c.k+':'+i,name:'└ '+t.t,grp:c.label});});});
+  return arr;}
+function runAction(id){
+  if(id.indexOf('cat:')===0){var k=id.slice(4);activeCat=k;var c=curCat();
+    if(c.setmode){mode=c.setmode;cv.classList.toggle('draw',mode!=='pan');setModeUI();}
+    renderRail();renderSub();if(c.hint&&!c.tools.length)toast(c.hint);}
+  else if(id.indexOf('tool:')===0){var p=id.split(':'),ck=p[1],i=+p[2];
+    activeCat=ck;renderRail();renderSub();
+    var b=document.querySelector('#subbar button[data-i="'+i+'"]');if(b)b.click();}
+}
+var hkCapturing=null;
+function openHotkeyModal(){
+  var ov=document.createElement('div');ov.className='hk-overlay';ov.id='hkOverlay';
+  ov.innerHTML='<div class="hk-card"><h3>⌨ 단축키 설정 <span style="font-weight:400;color:#999;font-size:12px">— 칸을 누른 뒤 키보드를 누르세요</span></h3><div class="hk-body" id="hkBody"></div><div class="hk-foot"><button id="hkReset" style="background:#fff;color:#888;border:1px solid #e3e3df;border-radius:7px">전체 초기화</button><button id="hkClose" style="background:#222;color:#fff;border:none;border-radius:7px;font-weight:600">닫기</button></div></div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('mousedown',function(e){if(e.target===ov)closeHotkeyModal();});
+  document.getElementById('hkClose').onclick=closeHotkeyModal;
+  document.getElementById('hkReset').onclick=function(){if(confirm('설정한 단축키를 모두 지울까요?')){hotkeys={};saveHotkeys();renderHkBody();renderRail();renderSub();}};
+  renderHkBody();
+}
+function closeHotkeyModal(){hkCapturing=null;var ov=document.getElementById('hkOverlay');if(ov)ov.remove();}
+function renderHkBody(){
+  var body=document.getElementById('hkBody');if(!body)return;
+  var list=actionList(),html='',lastGrp=null;
+  list.forEach(function(a){
+    if(a.grp!==lastGrp){html+='<div class="hk-grp">'+a.grp+'</div>';lastGrp=a.grp;}
+    var raw=hotkeys[a.id],disp=hkCapturing===a.id?'…':(raw?hkLabel(raw):'지정');
+    var cls='keyb'+(raw?' set':'')+(hkCapturing===a.id?' cap':'');
+    html+='<div class="hk-row"><span class="nm">'+a.name+'</span><span class="'+cls+'" data-id="'+a.id+'">'+disp+'</span><span class="clr" data-clr="'+a.id+'">✕</span></div>';
+  });
+  body.innerHTML=html;
+  body.querySelectorAll('.keyb').forEach(function(el){el.onclick=function(){hkCapturing=el.getAttribute('data-id');renderHkBody();};});
+  body.querySelectorAll('.clr').forEach(function(el){el.onclick=function(){var id=el.getAttribute('data-clr');delete hotkeys[id];saveHotkeys();renderHkBody();renderRail();renderSub();};});
+}
+window.addEventListener('keydown',function(e){
+  if(hkCapturing){
+    if(e.key==='Escape'){hkCapturing=null;renderHkBody();return;}
+    var nk=normKey(e);if(!nk)return;e.preventDefault();
+    var prev=actionForKey(nk);if(prev&&prev!==hkCapturing)delete hotkeys[prev];
+    hotkeys[hkCapturing]=nk;hkCapturing=null;saveHotkeys();renderHkBody();renderRail();renderSub();return;
+  }
+  var tg=(e.target&&e.target.tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tg))return;
+  if(document.getElementById('hkOverlay'))return;
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  var k=normKey(e);if(!k)return;
+  var id=actionForKey(k);if(id){e.preventDefault();runAction(id);}
+},true);
+
 renderRail();renderSub();
 bind('save',saveProject);
 bind('newProj',function(){var n=prompt('새 현장명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.manholes=[];photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 현장: '+n+' (CSV 업로드 후 저장)');});
