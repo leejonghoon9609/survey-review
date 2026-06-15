@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 17</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 18</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -243,6 +243,7 @@ function addNoteHandle(L,t,ld,lx,ly){
     h.setAttribute('x',nx+0.25-pad);h.setAttribute('y',ny-0.45-pad);});
   function up(ev){if(!drag)return;drag=false;setTimeout(function(){labelDragging=false;},40);if(moved)L.noteOff=[nx,ny];try{h.releasePointerCapture(ev.pointerId);}catch(e){}drawGeo();}
   h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
+  h.addEventListener('dblclick',function(ev){ev.stopPropagation();openNoteEdit(L,lx,ly);});
   gPts.appendChild(h);
 }
 // 지거 멘트 앵커: 잘 작동하는 라벨 드래그(addNoteHandle)와 동일한 setPointerCapture 패턴. gAnc 최상위라 측점에 안 가로채임.
@@ -253,6 +254,33 @@ function addAnchorHandle(L,ah,anc,ld){
   ah.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();var ww=toWorld(ev.clientX,ev.clientY);var t=projToPoly(L.pts.map(function(p){return S(p[0],p[1]);}),ww[0],ww[1]);L.anchorT=t;var aw=ptOnPoly(L.pts,t),sp=S(aw[0],aw[1]);anc.setAttribute('cx',sp[0]);anc.setAttribute('cy',sp[1]);ah.setAttribute('cx',sp[0]);ah.setAttribute('cy',sp[1]);ld.setAttribute('x1',sp[0]);ld.setAttribute('y1',sp[1]);});
   function up(ev){if(!drag)return;drag=false;setTimeout(function(){labelDragging=false;},40);try{ah.releasePointerCapture(ev.pointerId);}catch(e){}drawGeo();}
   ah.addEventListener('pointerup',up);ah.addEventListener('pointercancel',up);
+}
+// 지거 태그 인라인 편집: [숫자]점(번호 : [번호] ) — '점(번호 :' 와 ')' 고정, 앞 숫자(2자리)+괄호안만 수정
+function openNoteEdit(L,lx,ly){
+  var r=cv.getBoundingClientRect();
+  var sx=r.left+(lx-vb.x)*(r.width/vb.w), sy=r.top+(ly-vb.y)*(r.height/vb.h);
+  var pm=(L.note||'').match(/^(\d*)\s*점\(번호\s*:\s*(.*?)\s*\)\s*$/);
+  var pre=pm?pm[1].trim():'', inner=pm?pm[2].trim():'';
+  var wrap=document.createElement('div');
+  wrap.style.cssText='position:fixed;z-index:999;display:flex;align-items:center;gap:1px;left:'+sx+'px;top:'+(sy-34)+'px;background:#fffde7;border-bottom:2px solid #a07e00;padding:3px 6px;font-size:16px;font-weight:600;color:#7a5f00;border-radius:4px;';
+  var inpPre=document.createElement('input');
+  inpPre.value=pre; inpPre.maxLength=2; inpPre.placeholder='00';
+  inpPre.style.cssText='font-size:16px;font-weight:600;color:#7a5f00;border:1px solid #cbb56a;border-radius:4px;background:#fff;outline:none;width:34px;text-align:center;padding:1px 2px;';
+  var spM=document.createElement('span');spM.textContent='점(번호 : ';spM.style.margin='0 2px';
+  var inpIn=document.createElement('input');
+  inpIn.value=inner; inpIn.placeholder='';
+  inpIn.style.cssText='font-size:16px;font-weight:600;color:#7a5f00;border:none;background:transparent;outline:none;width:100px;text-align:center;';
+  var spR=document.createElement('span');spR.textContent=' )';
+  wrap.appendChild(inpPre);wrap.appendChild(spM);wrap.appendChild(inpIn);wrap.appendChild(spR);
+  document.body.appendChild(wrap);inpIn.focus();inpIn.select();
+  var done=function(){if(wrap.parentNode){var p=inpPre.value.trim(),v=inpIn.value.trim();L.note=(p?p:'')+'점(번호 : '+v+' )';wrap.remove();drawGeo();}};
+  var onKey=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();};
+  inpPre.addEventListener('keydown',onKey);inpIn.addEventListener('keydown',onKey);
+  var blurTimer=null;
+  function onBlur(){blurTimer=setTimeout(done,120);}
+  function onFocus(){if(blurTimer){clearTimeout(blurTimer);blurTimer=null;}}
+  inpPre.addEventListener('blur',onBlur);inpIn.addEventListener('blur',onBlur);
+  inpPre.addEventListener('focus',onFocus);inpIn.addEventListener('focus',onFocus);
 }
 // 줌-안전 텍스트: HTML div 오버레이로 화면 픽셀에 직접 렌더 → viewBox 스킵 문제 원천 차단
 // svgX,svgY = SVG(화면) 좌표. 오버레이는 화면픽셀이므로 viewBox→화면 변환해 배치.
@@ -630,7 +658,7 @@ function delHoverHighlight(cw){clearSvg(gDraw);var best=null,bd=1e18;
   state.lines.forEach(function(L){if(L.layer!==delLayer)return;for(var s=0;s<L.pts.length-1;s++){var a=S(L.pts[s][0],L.pts[s][1]),b=S(L.pts[s+1][0],L.pts[s+1][1]);var d=segDist(cw[0],cw[1],a[0],a[1],b[0],b[1]);if(d<bd){bd=d;best={a:a,b:b};}}});
   if(best&&bd<vb.w*0.03){var col=(LINECOL[delLayer]||{}).c||'#d92b2b';gDraw.appendChild(el('line',{x1:best.a[0],y1:best.a[1],x2:best.b[0],y2:best.b[1],stroke:col,'stroke-width':6,'stroke-opacity':0.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));}}
 function startDraw(layer){drawLayer=layer||'통신관로';mode='line';setModeUI();lineDraft=[];clearSvg(gDraft);clearSvg(gDraw);toast((drawLayer==='지거'?'지거선':'관로선')+' 그리기: 점 클릭 → Enter/Space 또는 "완료" (되돌리기=한 점 취소)');}
-function finishDraw(){if(lineDraft&&lineDraft.length>=2){var rec={layer:drawLayer,pts:lineDraft.slice()};if(drawLayer==='지거'){var note=prompt('지거선 멘트(설명) 입력:','');if(note&&note.trim())rec.note=note.trim();}state.lines.push(rec);}lineDraft=null;previewLine=null;clearSvg(gDraft);clearSvg(gDraw);mode='pan';setModeUI();drawGeo();updMeta();}
+function finishDraw(){if(lineDraft&&lineDraft.length>=2){var rec={layer:drawLayer,pts:lineDraft.slice()};if(drawLayer==='지거'){rec.note='점(번호 :  )';}state.lines.push(rec);}lineDraft=null;previewLine=null;clearSvg(gDraft);clearSvg(gDraw);mode='pan';setModeUI();drawGeo();updMeta();}
 function clearLines(){state.lines=state.lines.filter(function(l){return l.layer!=='통신관로';});drawGeo();updMeta();toast('결선 모두 삭제');}
 function clearAllDraw(){state.lines=state.lines.filter(function(l){return l.layer!=='통신관로'&&l.layer!=='지거';});drawGeo();updMeta();toast('관로선·지거선 전체삭제');}
 function segDist(px,py,ax,ay,bx,by){var dx=bx-ax,dy=by-ay,L2=dx*dx+dy*dy,t=L2?((px-ax)*dx+(py-ay)*dy)/L2:0;t=Math.max(0,Math.min(1,t));var cx=ax+t*dx,cy=ay+t*dy;return Math.hypot(px-cx,py-cy);}
