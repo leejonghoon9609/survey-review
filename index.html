@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 40</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 41</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -757,6 +757,22 @@ function autoConnect(){
   drawGeo();updMeta();toast('자동 결선 '+edges.length+'개 + 맨홀통과 '+mhCount+'개 (검수·수정하세요)');
 }
 var lineDraft=null, previewLine=null, drawLayer='통신관로', delLayer='통신관로';
+// 중복선 검수: 통신관로 중 같은 구간(같은 두 점 잇는 선분)이 2개 이상이면 그 자리에 빨간 써클 표시
+function inspectDupLines(){
+  state.markups=state.markups.filter(function(m){return m.near!=='중복';}); // 이전 중복 써클 제거(갱신)
+  var segs={};
+  state.lines.forEach(function(L){if(L.layer!=='통신관로'||!L.pts)return;
+    for(var i=0;i<L.pts.length-1;i++){var a=L.pts[i],b=L.pts[i+1];
+      var lo=(a[0]<b[0]||(a[0]===b[0]&&a[1]<=b[1]))?[a,b]:[b,a];
+      var k=lo[0][0].toFixed(3)+','+lo[0][1].toFixed(3)+'|'+lo[1][0].toFixed(3)+','+lo[1][1].toFixed(3);
+      if(!segs[k])segs[k]={mid:[(a[0]+b[0])/2,(a[1]+b[1])/2],n:0};
+      segs[k].n++;}});
+  var dups=[];for(var k in segs)if(segs[k].n>=2)dups.push(segs[k]);
+  pushHist();
+  dups.forEach(function(d){var sm=S(d.mid[0],d.mid[1]);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:0.7,ry:0.7,status:'bad',near:'중복'});});
+  drawMarks();updMeta();
+  toast(dups.length?('중복 관로선 '+dups.length+'곳 — 빨간 써클 표시'):'중복 관로선 없음 ✓');
+}
 function renderDraft(){clearSvg(gDraft);previewLine=null;if(!lineDraft)return;
   var col=(LINECOL[drawLayer]||{}).c||'#d92b2b', lw=(LINECOL[drawLayer]||{}).w||1.6;
   for(var i=1;i<lineDraft.length;i++){var a=S(lineDraft[i-1][0],lineDraft[i-1][1]),b=S(lineDraft[i][0],lineDraft[i][1]);
@@ -952,7 +968,7 @@ var TB=[
     {t:'압입구간 지우기',tone:'del',mode:'delline',delLayer:'압입구간',hint:'지울 압입구간 위에 마우스→클릭'}]},
   {k:'insp',label:'검수',icon:'✓',c:{bg:'#fbe9e9',fg:'#df524b'},tools:[
     {t:'관공수 검수',tone:'pick',setmode:'pan',hint:'관공수 검수 — 동작 방식을 알려주시면 연결하겠습니다'},
-    {t:'중복선 검수',tone:'shape',setmode:'pan',hint:'중복선 검수 — 동작 방식을 알려주시면 연결하겠습니다'}]}
+    {t:'중복선 검수',tone:'shape',fn:inspectDupLines,hint:'중복 관로선을 찾아 빨간 써클로 표시'}]}
 ];
 var TONE={data:{bg:'#eceef1',fg:'#6e757f'},draw:{bg:'#e7f3ea',fg:'#2a9e50'},del:{bg:'#fdf1dd',fg:'#d98200'},delall:{bg:'#fbe9e9',fg:'#df524b'},pick:{bg:'#e6effb',fg:'#2f7fe0'},shape:{bg:'#e6effb',fg:'#2f7fe0'},ok:{bg:'#e7f3ea',fg:'#2a9e50'},bad:{bg:'#fbe9e9',fg:'#df524b'},pt:{bg:'#efeafa',fg:'#7a52e0'}};
 function toneStyle(tone,active){var c=TONE[tone]||{bg:'#f3f3f0',fg:'#333'};return active?('background:'+c.fg+';color:#fff;border:1px solid '+c.fg+';border-left:4px solid '+c.fg+';border-radius:0 8px 8px 0;font-weight:700;'):('background:#fff;color:'+c.fg+';border:1px solid #e3e3df;border-left:4px solid '+c.fg+';border-radius:0 8px 8px 0;font-weight:600;');}
