@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 69</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 71</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -4167,7 +4167,8 @@ cv.addEventListener('pointerdown',function(e){
   else if(mode==='mhplace'){var wm=toWorld(e.clientX,e.clientY);placeManholeAt(wm[0],-wm[1]);mode='pan';setModeUI();return;}
   else if(mode==='riserplace'){var wr=toWorld(e.clientX,e.clientY);placeManholeAt(wr[0],-wr[1],'riser');mode='pan';setModeUI();return;}
   else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);var ns=nearestSnapWorld(w[0],w[1]);
-    var pt=(ns.pt&&ns.d<vb.w*0.04)?[ns.pt[0],ns.pt[1]]:[w[0],-w[1]];lineDraft.push(pt);renderDraft();}
+    var snapTol=(drawLayer==='지거')?Math.max(pxToWorld()*14,0.25):vb.w*0.04; // 지거는 측점 바로 위만 스냅(끝점이 멀리 안 끌림)
+    var pt=(ns.pt&&ns.d<snapTol)?[ns.pt[0],ns.pt[1]]:[w[0],-w[1]];lineDraft.push(pt);renderDraft();}
   else if(mode==='delline'||mode==='delall2'){var wd=toWorld(e.clientX,e.clientY);if(mode==='delall2'&&deleteMarkupAt(wd[0],wd[1]))return;deleteSegmentAt(wd[0],wd[1]);}
   else if(mode==='measure'){var wm=toWorld(e.clientX,e.clientY);var nm=nearestSnapWorld(wm[0],wm[1]);var mp=(nm.pt&&nm.d<vb.w*0.04)?[nm.pt[0],nm.pt[1]]:[wm[0],-wm[1]];measureClick(mp);return;}
   else if(mode==='delmh'){/* 맨홀 삭제 모드: 빈 곳 클릭은 아무것도 안 함 (맨홀 클릭은 심벌 핸들러가 처리) */return;}
