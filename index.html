@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 72</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 73</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -4039,7 +4039,7 @@ EOF
   function line(x1,y1,x2,y2,layer,col,lt){var a=['0','LINE','5',H(),'330','17','100','AcDbEntity','8',layer];if(lt)a.push('6',lt);a.push('62',String(col),'100','AcDbLine','10',N(x1),'20',N(y1),'30','0','11',N(x2),'21',N(y2),'31','0');push(a);}
   function box(cx,cy,sz,layer,col){var h=sz/2;pline([[cx-h,cy-h],[cx+h,cy-h],[cx+h,cy+h],[cx-h,cy+h]],layer,col,true);}
   function text(x,y,h,s,layer,col,align){var hangul=/[^\x00-\x7F]/.test(s);var es=uesc(s);var a=['0','TEXT','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbText','10',N(x),'20',N(y),'30','0','40',N(h),'1',es];if(hangul)a.push('7','HANGUL');a.push('72',String(align||0),'11',N(x),'21',N(y),'31','0','100','AcDbText');push(a);}
-  function tw(label,unit){var w=0;for(var i=0;i<label.length;i++){w+=(label.charCodeAt(i)>127?unit*0.95:unit*0.72);}return w+unit*0.4;}
+  function tw(label,unit){function gw(ch){var c=ch.charCodeAt(0);if(c>127)return 1.0;if(ch===' ')return 0.6;if('MW'.indexOf(ch)>=0)return 0.92;if('Iil1|!.,:;'.indexOf(ch)>=0)return 0.33;if('()[]{}/'.indexOf(ch)>=0)return 0.44;if(ch>='A'&&ch<='Z')return 0.72;if(ch>='0'&&ch<='9')return 0.66;if(ch>='a'&&ch<='z')return 0.56;return 0.6;}var w=0;for(var i=0;i<label.length;i++)w+=gw(label.charAt(i))*unit;return w+unit*0.3;}
   // 측점: 박스 + 인출선(검정 점선) + 번호/코드
   var lay=computeLabels();
   state.points.forEach(function(p,k){
