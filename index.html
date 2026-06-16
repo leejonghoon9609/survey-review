@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 62</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 63</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -415,7 +415,7 @@ function drawGeo(){
     var ahR=Math.max(20*pxToWorld(), 1.0); // 클릭영역: 화면 ~20px 고정 (측점 9px보다 크게 → 쉽게 잡힘)
     var ah=el('circle',{cx:s[0],cy:s[1],r:ahR,fill:'transparent','pointer-events':'all'});ah.style.cursor='move';gAnc.appendChild(ah); // 클릭 잡기용 큰 투명 원
     addAnchorHandle(L,ah,anc,ld);
-    var t=el('text',{x:lx+0.25,y:ly+0.2,'font-size':1.1,fill:nf,'font-weight':'600','text-anchor':'start','pointer-events':'none'});t.textContent=L.note;gPts.appendChild(t);
+    var t=el('text',{x:lx+0.25,y:ly+0.2,'font-size':1.43,fill:nf,'font-weight':'600','text-anchor':'start','pointer-events':'none'});t.textContent=L.note;gPts.appendChild(t);
     // 인출선이 붙는 쪽: 앵커가 태그보다 오른쪽이면 태그 오른쪽 끝에서, 왼쪽이면 태그 왼쪽에서
     var tbb;try{tbb=t.getBBox();}catch(e){tbb=null;}
     var tw=tbb?tbb.width:(L.note||'').length*0.42;
@@ -483,7 +483,7 @@ function drawManholes(){
     }
 
     // 라벨 글자 폭 (텍스트 길이 기준 월드값)
-    var txtW=(mh.label||'').length*EM*0.6+EM*0.3;
+    var txtW=0,_lb=(mh.label||'');for(var _i=0;_i<_lb.length;_i++){txtW+=(_lb.charCodeAt(_i)>127?EM*1.0:EM*0.55);}txtW+=EM*0.5;if(isRiser)txtW*=1.33; // 한글=한칸,영문=0.55칸+여유, 입상주는 글자 큰 만큼 1.33배
 
     // 라벨 기본 위치: 관로선(연결 관로 방향) 기준 — 관로 가는 쪽 피해 반대/수직으로
     var defLx, defLy, pdirs=[];
@@ -607,7 +607,7 @@ function drawManholes(){
     }
 
     // 라벨 텍스트 — 파란 밑줄 중앙 바로 위에 (글자가 밑줄을 덮지 않게 위로)
-    var mhLbl=mkLabel(txtCx, uly-EM*0.75, mh.label||'', {fill:isRiser?'#1f6fd6':'#333',weight:'600',anchor:'middle',grp:'mh',px:15});
+    var mhLbl=mkLabel(txtCx, uly-EM*0.75, mh.label||'', {fill:isRiser?'#1f6fd6':'#333',weight:'600',anchor:'middle',grp:'mh',px:isRiser?20:15});
     // 라벨 div에 직접 더블클릭(수정) — 오버레이라 글자 위에서 바로 동작
     mhLbl.style.pointerEvents='auto';
     mhLbl.style.cursor='text';
@@ -4044,11 +4044,11 @@ EOF
       line(mh.wx-armW,armY,mh.wx+armW,armY,lyr,5);circle(mh.wx,mh.wy+RH,wT+0.05,lyr,5);
     } else {circle(mh.wx,mh.wy,RO,lyr,7);circle(mh.wx,mh.wy,RI,lyr,7);}
     var lx=mh.lx!=null?mh.lx:(mh.wx+1.2), lyy=mh.ly!=null?mh.ly:(mh.wy+1.2);
-    var txtW=(mh.label||'').length*TH*0.62+TH*0.3;
+    var txtW=0,_lb=(mh.label||'');for(var _i=0;_i<_lb.length;_i++){txtW+=(_lb.charCodeAt(_i)>127?TH:TH*0.55);}txtW+=TH*0.5; // 한글=한칸,영문=0.55칸+여유
     var isRight=(lx>=mh.wx);var diagLen=Math.hypot(lx-mh.wx,lyy-mh.wy);var underLen=Math.max(diagLen*0.3,txtW);
     var ux2=isRight?lx+underLen:lx-underLen;
     line(mh.wx,mh.wy,lx,lyy,lyr,col);line(lx,lyy,ux2,lyy,lyr,col);
-    if(mh.label)text(Math.min(lx,ux2)+TH*0.1,lyy+TH*0.25,TH,mh.label,lyr+'_LABEL',col,0);
+    if(mh.label)text((lx+ux2)/2,lyy+TH*0.25,TH,mh.label,lyr+'_LABEL',col,1); // 밑줄 중심에 중앙정렬
   });
   var dxf=PRE+E.join('\n')+'\n'+SUF;
   var blob=new Blob([dxf],{type:'application/dxf'});
