@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 73</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 74</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -4076,8 +4076,7 @@ EOF
     } else {circle(mh.wx,mh.wy,RO,lyr,7);circle(mh.wx,mh.wy,RI,lyr,7);}
     var w=tw(mh.label||'',TH);
     var _p=mhLabelBase(mh,w); var lx=_p.lx, lyy=_p.ly;
-    var isRight=(lx>=mh.wx);var diagLen=Math.hypot(lx-mh.wx,lyy-mh.wy);var underLen=Math.max(diagLen*0.3,w);
-    var ux2=isRight?lx+underLen:lx-underLen;
+    var isRight=(lx>=mh.wx);var ux2=isRight?lx+w:lx-w; // 밑줄=글자폭(인출선 길이와 무관)
     line(mh.wx,mh.wy,lx,lyy,lyr,col);line(lx,lyy,ux2,lyy,lyr,col);
     if(mh.label)text((lx+ux2)/2,lyy+TH*0.45,TH,mh.label,lyr+'_LABEL',col,1);
   });
