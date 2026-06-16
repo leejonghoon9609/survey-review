@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 81</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 82</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -491,7 +491,7 @@ function mhLabelBase(mh, txtW){
     var psl=Math.hypot(psx,psy);
     if(psl>0.4){var ux=-psx/psl,uy=-psy/psl;defLx=mh.wx+ux*1.3+(ux<0?-txtW:0);defLy=mh.wy+uy*1.3;}
     else {var d0=pdirs[0];var pnx=-d0[1],pny=d0[0];var pl=Math.hypot(pnx,pny)||1;pnx/=pl;pny/=pl;if(pny<0){pnx=-pnx;pny=-pny;}defLx=mh.wx+pnx*1.3+(pnx<0?-txtW:0);defLy=mh.wy+pny*1.3;}}
-  else if(rpd){var rux=rpd[0],ruy=rpd[1];defLx=mh.wx+rux*1.3+(rux<0?-txtW:0);defLy=mh.wy+ruy*1.3;}
+  else if(rpd){var rux=rpd[0],ruy=rpd[1];var RHOR=1.0,RLIFT=1.6;defLx=mh.wx+rux*RHOR+(rux<0?-txtW:0);defLy=mh.wy+RLIFT+ruy*0.4;} // 꺾임점 위로 들어 대각선 각 세움
   else if(mp){var dx=mh.wx-mp.x,dy=mh.wy-mp.y;defLx=(dx>=0)?mh.wx+1.0:mh.wx-1.0-txtW;defLy=(dy>=0)?mh.wy+1.2:mh.wy-0.8;}
   else {defLx=mh.wx+1.0;defLy=mh.wy+1.2;}
   return {lx:(mh.lx!=null?mh.lx:defLx), ly:(mh.ly!=null?mh.ly:defLy)};
