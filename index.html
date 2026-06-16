@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 79</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 80</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -4077,7 +4077,7 @@ EOF
     var w=tw(mh.label||'',TH);
     var _p=mhLabelBase(mh,w); var lx=_p.lx, lyy=_p.ly;
     var isRight=(lx>=mh.wx);
-    var uw=w+TH*0.12; var ux2=isRight?lx+uw:lx-uw; // 밑줄=글자폭+여유(글자 전체 덮음)
+    var uw=w+TH*0.12+1.2; var ux2=isRight?lx+uw:lx-uw; // 밑줄=글자폭+여유 +1.2m 연장(종훈님 CAD 실측)
     pline([[mh.wx,mh.wy],[lx,lyy],[ux2,lyy]],lyr,col,false); // 대각선+밑줄=폴리선 1개(붙음)
     if(mh.label)text(lx,lyy+TH*0.45,TH,mh.label,lyr+'_LABEL',col,isRight?0:2); // 꺾임점 기준 정렬(R=좌0,L=우2)
   });
