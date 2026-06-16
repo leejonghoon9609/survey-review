@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 61</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 62</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1298,7 +1298,7 @@ $SKPOLY
   9
 $TDCREATE
  40
-2461208.0096412036
+2461208.020798611
   9
 $TDUCREATE
  40
@@ -1306,7 +1306,7 @@ $TDUCREATE
   9
 $TDUPDATE
  40
-2461208.0096412036
+2461208.020798611
   9
 $TDUUPDATE
  40
@@ -1358,7 +1358,7 @@ $SPLINESEGS
   9
 $HANDSEED
   5
-41
+42
   9
 $SURFTAB1
  70
@@ -1738,11 +1738,11 @@ $PSTYLEMODE
   9
 $FINGERPRINTGUID
   2
-{DCD82060-E2BE-4700-B2E8-144A2C6EAB74}
+{D1C8F155-14E2-43A4-93D4-C76A25836EB1}
   9
 $VERSIONGUID
   2
-{70C2166B-BB4B-4755-BECC-5FC6853EEB27}
+{CD179417-C7BA-435E-8467-CD745E37FFB9}
   9
 $EXTNAMES
 290
@@ -2218,7 +2218,7 @@ Continuous
   0
 LAYER
   5
-2F
+30
 330
 1
 100
@@ -2240,7 +2240,7 @@ Continuous
   0
 LAYER
   5
-30
+31
 330
 1
 100
@@ -2262,7 +2262,7 @@ Continuous
   0
 LAYER
   5
-31
+32
 330
 1
 100
@@ -2284,7 +2284,7 @@ Continuous
   0
 LAYER
   5
-32
+33
 330
 1
 100
@@ -2306,7 +2306,7 @@ Continuous
   0
 LAYER
   5
-33
+34
 330
 1
 100
@@ -2328,7 +2328,7 @@ Continuous
   0
 LAYER
   5
-34
+35
 330
 1
 100
@@ -2350,7 +2350,7 @@ Continuous
   0
 LAYER
   5
-35
+36
 330
 1
 100
@@ -2372,7 +2372,7 @@ Continuous
   0
 LAYER
   5
-36
+37
 330
 1
 100
@@ -2394,7 +2394,7 @@ Continuous
   0
 LAYER
   5
-37
+38
 330
 1
 100
@@ -2416,7 +2416,7 @@ Continuous
   0
 LAYER
   5
-38
+39
 330
 1
 100
@@ -2438,7 +2438,7 @@ Continuous
   0
 LAYER
   5
-39
+3A
 330
 1
 100
@@ -2460,7 +2460,7 @@ Continuous
   0
 LAYER
   5
-3A
+3B
 330
 1
 100
@@ -2482,7 +2482,7 @@ Continuous
   0
 LAYER
   5
-3B
+3C
 330
 1
 100
@@ -2504,7 +2504,7 @@ Continuous
   0
 LAYER
   5
-3C
+3D
 330
 1
 100
@@ -2526,7 +2526,7 @@ Continuous
   0
 LAYER
   5
-3D
+3E
 330
 1
 100
@@ -2558,7 +2558,7 @@ STYLE
 100
 AcDbSymbolTable
  70
-1
+2
   0
 STYLE
   5
@@ -2584,7 +2584,35 @@ Standard
  42
 2.5
   3
-txt
+romans.shx
+  4
+
+  0
+STYLE
+  5
+2F
+330
+5
+100
+AcDbSymbolTableRecord
+100
+AcDbTextStyleTableRecord
+  2
+HANGUL
+ 70
+0
+ 40
+0.0
+ 41
+1.0
+ 50
+0.0
+ 71
+0
+ 42
+2.5
+  3
+malgun.ttf
   4
 
   0
@@ -2646,7 +2674,7 @@ ACAD
   0
 APPID
   5
-3E
+3F
 330
 3
 100
@@ -2660,7 +2688,7 @@ HATCHBACKGROUNDCOLOR
   0
 APPID
   5
-3F
+40
 330
 3
 100
@@ -3943,7 +3971,7 @@ CREATED_BY_EZDXF
   3
 WRITTEN_BY_EZDXF
 350
-40
+41
   0
 DICTIONARYVAR
   5
@@ -3955,11 +3983,11 @@ DictionaryVariables
 280
 0
   1
-1.4.4 @ 2026-06-16T00:13:53.189142+00:00
+1.4.4 @ 2026-06-16T00:29:57.008095+00:00
   0
 DICTIONARYVAR
   5
-40
+41
 330
 2D
 100
@@ -3967,7 +3995,7 @@ DictionaryVariables
 280
 0
   1
-1.4.4 @ 2026-06-16T00:13:53.191366+00:00
+1.4.4 @ 2026-06-16T00:29:57.011183+00:00
   0
 ENDSEC
   0
@@ -3978,12 +4006,13 @@ EOF
   function H(){return (hs++).toString(16).toUpperCase();}
   function N(n){return (Math.round(n*1000)/1000).toString();}
   function push(a){for(var i=0;i<a.length;i++)E.push(a[i]);}
+  function uesc(s){var o='';for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);o+=(c>127)?('\\U+'+('000'+c.toString(16).toUpperCase()).slice(-4)):s.charAt(i);}return o;}
   function pline(pts,layer,col,closed){var a=['0','LWPOLYLINE','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbPolyline','90',String(pts.length),'70',closed?'1':'0'];for(var i=0;i<pts.length;i++){a.push('10',N(pts[i][0]),'20',N(pts[i][1]));}push(a);}
   function circle(cx,cy,r,layer,col){push(['0','CIRCLE','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbCircle','10',N(cx),'20',N(cy),'30','0','40',N(r)]);}
   function line(x1,y1,x2,y2,layer,col){push(['0','LINE','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbLine','10',N(x1),'20',N(y1),'30','0','11',N(x2),'21',N(y2),'31','0']);}
   function box(cx,cy,sz,layer,col){var h=sz/2;pline([[cx-h,cy-h],[cx+h,cy-h],[cx+h,cy+h],[cx-h,cy+h]],layer,col,true);}
-  function text(x,y,h,s,layer,col,align){push(['0','TEXT','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbText','10',N(x),'20',N(y),'30','0','40',N(h),'1',s,'72',String(align||0),'11',N(x),'21',N(y),'31','0','100','AcDbText']);}
-  // 측점: 박스 + 인출선 + 번호/코드
+  function text(x,y,h,s,layer,col,align){var hangul=/[^\x00-\x7F]/.test(s);var es=uesc(s);var a=['0','TEXT','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbText','10',N(x),'20',N(y),'30','0','40',N(h),'1',es];if(hangul)a.push('7','HANGUL');a.push('72',String(align||0),'11',N(x),'21',N(y),'31','0','100','AcDbText');push(a);}
+  // 측점: 박스 + 인출선 + 번호/코드(romans, 작업자 동일)
   var lay=computeLabels();
   state.points.forEach(function(p,k){
     box(p.x,p.y,BOX,'POINT',isTpoint(p)?3:7);
@@ -3994,7 +4023,7 @@ EOF
     if(no)text(lo.lx,lo.ly+TH*0.1,TH,no,'PT_LABEL',3,al);
     if(cd)text(lo.lx,lo.ly-TH*1.1,TH,cd,'PT_CODE',4,al);
   });
-  // 결선: LWPOLYLINE (통신관로=빨강1/지거=노랑2/압입=파랑5)
+  // 결선: LWPOLYLINE
   var LM={'통신관로':['PIPE',1],'지거':['JIGER',2],'압입구간':['PUSH',5]};
   state.lines.forEach(function(Ln){if(!Ln.pts||Ln.pts.length<2)return;var lm=LM[Ln.layer]||['PIPE',1];
     pline(Ln.pts,lm[0],lm[1],false);
