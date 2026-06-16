@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 84</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 85</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -2323,7 +2323,7 @@ PUSH
  62
 5
   6
-DASHED
+Continuous
 370
 -3
 390
@@ -4055,6 +4055,8 @@ EOF
   function push(a){for(var i=0;i<a.length;i++)E.push(a[i]);}
   function uesc(s){var o='';for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);o+=(c>127)?('\\U+'+('000'+c.toString(16).toUpperCase()).slice(-4)):s.charAt(i);}return o;}
   function pline(pts,layer,col,closed,lt,lts){var a=['0','LWPOLYLINE','5',H(),'330','17','100','AcDbEntity','8',layer];if(lt)a.push('6',lt);if(lts)a.push('48',N(lts));a.push('62',String(col),'100','AcDbPolyline','90',String(pts.length),'70',closed?'1':'0');for(var i=0;i<pts.length;i++){a.push('10',N(pts[i][0]),'20',N(pts[i][1]));}push(a);}
+  // 선종에 의존하지 않는 '물리적 점선': 경로 따라 dash만큼 실선 LINE, gap만큼 띄움 → 어떤 뷰어에서도 점선으로 보임
+  function dashedPolyline(pts,layer,col,dash,gap){var period=dash+gap,pos=0;for(var i=0;i<pts.length-1;i++){var ax=pts[i][0],ay=pts[i][1],bx=pts[i+1][0],by=pts[i+1][1];var seg=Math.hypot(bx-ax,by-ay);if(seg<1e-9)continue;var ux=(bx-ax)/seg,uy=(by-ay)/seg,d=0;while(d<seg){var inPat=pos%period;if(inPat<dash){var step=Math.min(dash-inPat,seg-d);line(ax+ux*d,ay+uy*d,ax+ux*(d+step),ay+uy*(d+step),layer,col);d+=step;pos+=step;}else{var step2=Math.min(period-inPat,seg-d);d+=step2;pos+=step2;}}}}
   function circle(cx,cy,r,layer,col){push(['0','CIRCLE','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbCircle','10',N(cx),'20',N(cy),'30','0','40',N(r)]);}
   function line(x1,y1,x2,y2,layer,col,lt){var a=['0','LINE','5',H(),'330','17','100','AcDbEntity','8',layer];if(lt)a.push('6',lt);a.push('62',String(col),'100','AcDbLine','10',N(x1),'20',N(y1),'30','0','11',N(x2),'21',N(y2),'31','0');push(a);}
   function box(cx,cy,sz,layer,col){var h=sz/2;pline([[cx-h,cy-h],[cx+h,cy-h],[cx+h,cy+h],[cx-h,cy+h]],layer,col,true);}
@@ -4074,7 +4076,8 @@ EOF
   // 결선: LWPOLYLINE (압입=점선) + 지거/압입 멘트(인출선 점선 + 밑줄 + 중앙 글자)
   var LM={'통신관로':['PIPE',1],'지거':['JIGER',2],'압입구간':['PUSH',5]};
   state.lines.forEach(function(Ln){if(!Ln.pts||Ln.pts.length<2)return;var lm=LM[Ln.layer]||['PIPE',1];
-    pline(Ln.pts,lm[0],lm[1],false,(Ln.layer==='압입구간')?'DASHED':null,(Ln.layer==='압입구간')?5.0:null);
+    if(Ln.layer==='압입구간'){dashedPolyline(Ln.pts,'PUSH',5,3.0,2.0);} // 압입=물리적 점선(3m칸/2m간격)
+    else pline(Ln.pts,lm[0],lm[1],false);
     if((Ln.layer==='지거'||Ln.layer==='압입구간')&&Ln.note){
       var aw=ptOnPoly(Ln.pts,polyAnchorT(Ln));
       var nx,ny; if(Ln.noteOff){nx=Ln.noteOff[0];ny=-Ln.noteOff[1];} else {nx=aw[0]+1.8;ny=aw[1]+1.3;}
