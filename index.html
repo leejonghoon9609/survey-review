@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 58</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 60</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -415,7 +415,7 @@ function drawGeo(){
     var ahR=Math.max(20*pxToWorld(), 1.0); // 클릭영역: 화면 ~20px 고정 (측점 9px보다 크게 → 쉽게 잡힘)
     var ah=el('circle',{cx:s[0],cy:s[1],r:ahR,fill:'transparent','pointer-events':'all'});ah.style.cursor='move';gAnc.appendChild(ah); // 클릭 잡기용 큰 투명 원
     addAnchorHandle(L,ah,anc,ld);
-    var t=el('text',{x:lx+0.25,y:ly+0.2,'font-size':0.62,fill:nf,'font-weight':'600','text-anchor':'start','pointer-events':'none'});t.textContent=L.note;gPts.appendChild(t);
+    var t=el('text',{x:lx+0.25,y:ly+0.2,'font-size':1.1,fill:nf,'font-weight':'600','text-anchor':'start','pointer-events':'none'});t.textContent=L.note;gPts.appendChild(t);
     // 인출선이 붙는 쪽: 앵커가 태그보다 오른쪽이면 태그 오른쪽 끝에서, 왼쪽이면 태그 왼쪽에서
     var tbb;try{tbb=t.getBBox();}catch(e){tbb=null;}
     var tw=tbb?tbb.width:(L.note||'').length*0.42;
@@ -455,8 +455,8 @@ function drawManholes(){
   clearSvg(gMH); clearLabels('mh');
   (state.manholes||[]).forEach(function(mh){
     var isRiser=(mh.type==='riser');
-    // 손 안 댄 자동순번 기본라벨(예 '2M (SK )')은 숫자 떼서 'M (SK )'로 정리 (맨홀만)
-    if(!isRiser && /^\s*\d+\s*M\s*\(\s*SK\s*\)\s*$/.test(mh.label||''))mh.label='M (SK )';
+    // 손 안 댄 자동순번 기본라벨(예 '2M (SK )')만 'M (SK )'로 정리. 사용자가 직접 고친 건(_edited) 보존
+    if(!isRiser && !mh._edited && /^\s*\d+\s*M\s*\(\s*SK\s*\)\s*$/.test(mh.label||''))mh.label='M (SK )';
     var s=S(mh.wx,mh.wy);
     var mx=s[0], my=s[1];
 
@@ -594,6 +594,7 @@ function drawManholes(){
         pushHist();
         var p=inpPre.value.trim(), v=inpIn.value.trim();
         mh.label=p+'M ('+v+(v?' ':'')+')';
+        mh._edited=true; // 사용자가 직접 고침 → 자동정리 안 함
         wrap.remove();drawManholes();}};
       var onKey=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();};
       inpPre.addEventListener('keydown',onKey);inpIn.addEventListener('keydown',onKey);
@@ -852,12 +853,13 @@ function exportDXF(){
   if(!state.points.length&&!state.lines.length&&!(state.manholes||[]).length){toast('내보낼 데이터가 없습니다');return;}
   // 심벌 크기(실측 m) — CAD에서 보고 조정
   var BOX=0.3, RO=0.5, RI=0.3, TH=0.5, RH=0.8; // 측점박스 변, 맨홀바깥/안 반지름, 글자높이, 입상주 높이
-  var L=['0','SECTION','2','ENTITIES'];
+  var L=['0','SECTION','2','HEADER','9','$ACADVER','1','AC1015','0','ENDSEC','0','SECTION','2','ENTITIES'];
   function ent(a){for(var i=0;i<a.length;i++)L.push(a[i]);}
   function N(n){return (Math.round(n*1000)/1000).toString();}
   function line(x1,y1,x2,y2,layer,col){ent(['0','LINE','8',layer,'62',col,'10',N(x1),'20',N(y1),'30','0','11',N(x2),'21',N(y2),'31','0']);}
+  function polyline(pts,layer,col,closed){ent(['0','POLYLINE','8',layer,'62',col,'66','1','70',closed?'1':'0']);for(var i=0;i<pts.length;i++){ent(['0','VERTEX','8',layer,'10',N(pts[i][0]),'20',N(pts[i][1]),'30','0']);}ent(['0','SEQEND']);}
   function circle(cx,cy,r,layer,col){ent(['0','CIRCLE','8',layer,'62',col,'10',N(cx),'20',N(cy),'30','0','40',N(r)]);}
-  function box(cx,cy,sz,layer,col){var h=sz/2;line(cx-h,cy-h,cx+h,cy-h,layer,col);line(cx+h,cy-h,cx+h,cy+h,layer,col);line(cx+h,cy+h,cx-h,cy+h,layer,col);line(cx-h,cy+h,cx-h,cy-h,layer,col);}
+  function box(cx,cy,sz,layer,col){var h=sz/2;polyline([[cx-h,cy-h],[cx+h,cy-h],[cx+h,cy+h],[cx-h,cy+h]],layer,col,true);}
   function text(x,y,h,s,layer,col,align){var a=['0','TEXT','8',layer,'62',col,'10',N(x),'20',N(y),'30','0','40',N(h),'1',s];if(align){a.push('72',String(align),'11',N(x),'21',N(y),'31','0');}ent(a);}
   // 측점: 사각 박스 + 인출선 + 번호/코드 (T점 초록3, 일반 검정7)
   var lay=computeLabels();
@@ -870,11 +872,18 @@ function exportDXF(){
     if(no)text(lo.lx,lo.ly+TH*0.1,TH,no,'PT_LABEL','3',al);
     if(cd)text(lo.lx,lo.ly-TH*1.1,TH,cd,'PT_LABEL','4',al);
   });
-  // 결선: 각 선분 LINE (통신관로=빨강1 / 지거=노랑2 / 압입=파랑5)
+  // 결선: 폴리라인(통신관로=빨강1 / 지거=노랑2 / 압입=파랑5) — 정점(양끝)에만 grip, 중간 손잡이 없음
   var LM={'통신관로':['PIPE','1'],'지거':['JIGER','2'],'압입구간':['PUSH','5']};
   state.lines.forEach(function(Ln){if(!Ln.pts||Ln.pts.length<2)return;var lm=LM[Ln.layer]||['PIPE','1'];
-    for(var i=0;i<Ln.pts.length-1;i++)
-      line(Ln.pts[i][0],Ln.pts[i][1],Ln.pts[i+1][0],Ln.pts[i+1][1],lm[0],lm[1]);
+    polyline(Ln.pts,lm[0],lm[1],false);
+    // 지거·압입 멘트: 인출선 + 태그 (noteOff는 화면S좌표 → world는 y부호 반전)
+    if((Ln.layer==='지거'||Ln.layer==='압입구간')&&Ln.note){
+      var aw=ptOnPoly(Ln.pts,polyAnchorT(Ln)); // 선 위 앵커(world)
+      var nx,ny; if(Ln.noteOff){nx=Ln.noteOff[0];ny=-Ln.noteOff[1];} else {nx=aw[0]+3;ny=aw[1]+2.2;}
+      var lyr=Ln.layer==='압입구간'?'PUSH':'JIGER', lc=Ln.layer==='압입구간'?'5':'2';
+      line(aw[0],aw[1],nx,ny,lyr+'_LEADER',lc);
+      text(nx+TH*0.2,ny,TH,Ln.note,lyr+'_LABEL',lc,0);
+    }
   });
   // 맨홀(이중원) / 입상주(목주) + 인출선(대각선+밑줄) + 태그
   (state.manholes||[]).forEach(function(mh){
