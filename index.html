@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 85</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 86</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -839,6 +839,49 @@ function inspectDupLines(){
       {label:'취소',onClick:function(){toast('중복 '+dups.length+'곳 표시만 (삭제 안 함)');}},
       {label:'중복 삭제',primary:true,onClick:function(){removeDupLines();state.markups=state.markups.filter(function(m){return m.near!=='중복';});drawGeo();drawMarks();updMeta();toast('중복선 삭제 완료 — 1선만 유지');}}
     ]});
+}
+// 관공수 검수: 빨간 관로선(결선)을 따라 관수(xN) 규칙 점검
+//  규칙1 연속성 — 측점↔측점 직접 결선은 관수 동일해야(T점 제외). 맨홀을 거치는 구간은 관수 변화 허용.
+//  규칙2 T점   — 분기 가닥(관수<T) 들의 합 = T점 관수.
+function inspectPipeCount(){
+  state.markups=state.markups.filter(function(m){return m.near!=='관공수';}); // 이전 관공수 마크 갱신
+  var pts=state.points||[], mhs=state.manholes||[], TOL=0.05;
+  function findPt(xy){var b=null,bd=TOL*TOL;for(var i=0;i<pts.length;i++){var dx=pts[i].x-xy[0],dy=pts[i].y-xy[1],d=dx*dx+dy*dy;if(d<=bd){bd=d;b=pts[i];}}return b;}
+  function isMHcoord(xy){for(var i=0;i<mhs.length;i++){if(Math.hypot(mhs[i].wx-xy[0],mhs[i].wy-xy[1])<=TOL)return true;}return false;}
+  function idxOf(p){for(var i=0;i<pts.length;i++)if(pts[i]===p)return i;return -1;}
+  var issues=[]; // {wx,wy,msg}
+  var tNb={}; pts.forEach(function(p,i){if(isTpoint(p))tNb[i]=[];}); // T점 이웃 수집(규칙2)
+
+  state.lines.forEach(function(L){if(L.layer!=='통신관로'||!L.pts||L.pts.length<2)return;
+    for(var s=0;s<L.pts.length-1;s++){
+      var a=L.pts[s], b=L.pts[s+1];
+      if(isMHcoord(a)||isMHcoord(b))continue;            // 맨홀 거치는 구간 → 관수 변화 허용
+      var pa=findPt(a), pb=findPt(b); if(!pa||!pb)continue; // 측점 매칭 실패(끝점검수 영역)
+      var ca=pipeCount(pa), cb=pipeCount(pb);
+      if(isTpoint(pa)){var i1=idxOf(pa);if(tNb[i1])tNb[i1].push(cb);}   // T점 이웃 관수 수집
+      if(isTpoint(pb)){var i2=idxOf(pb);if(tNb[i2])tNb[i2].push(ca);}
+      if(isTpoint(pa)||isTpoint(pb))continue;            // 연속성은 둘 다 비T점만
+      if(ca==null||cb==null)continue;                    // 관수 미기재는 스킵
+      if(ca!==cb){var mx=(pa.x+pb.x)/2,my=(pa.y+pb.y)/2;
+        issues.push({wx:mx,wy:my,msg:pa.no+'('+ca+'공) ↔ '+pb.no+'('+cb+'공) 관수 불일치'});}
+    }
+  });
+
+  Object.keys(tNb).forEach(function(ti){
+    var P=pts[ti], Np=pipeCount(P); if(Np==null)return;
+    var br=tNb[ti].filter(function(c){return c!=null&&c<Np;}); // 분기 가닥(작은 관수)
+    if(!br.length)return; var sum=0; br.forEach(function(c){sum+=c;});
+    if(sum!==Np)issues.push({wx:P.x,wy:P.y,msg:'T점 '+P.no+'('+Np+'공) 분기합 '+sum+'공 ≠ '+Np+'공'});
+  });
+
+  if(!issues.length){drawMarks();updMeta();showModal({title:'관공수 검수 결과',tone:'ok',body:'<b style="font-size:16px">이상 0</b><br>관수 규칙(연속성·T점 합산) 위반이 없습니다.',buttons:[{label:'확인'}]});return;}
+  pushHist();
+  issues.forEach(function(it){var sm=S(it.wx,it.wy);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:0.8,ry:0.8,status:'bad',near:'관공수',msg:it.msg});});
+  drawMarks();updMeta();
+  var list=issues.map(function(it,i){return (i+1)+'. '+it.msg;}).join('<br>');
+  showModal({title:'관공수 검수 결과',tone:'bad',
+    body:'관수 이상 <b style="color:#d32f2f;font-size:16px">'+issues.length+'곳</b> 발견했습니다.<br>도면에서 빨간 써클을 확인하세요.<br><br><div style="text-align:left;font-size:13px;line-height:1.7;max-height:220px;overflow:auto">'+list+'</div>',
+    buttons:[{label:'확인'}]});
 }
 // 끝점 검수 — 단순 규칙: 선의 끝점이 CSV 측점에 안 붙으면 이상
 function inspectEndpoints(){
@@ -4334,7 +4377,7 @@ var TB=[
     {t:'압입구간 그리기',tone:'draw',fn:function(){startDraw('압입구간');},activeMode:'line'},
     {t:'압입구간 지우기',tone:'del',mode:'delline',delLayer:'압입구간',hint:'지울 압입구간 위에 마우스→클릭'}]},
   {k:'insp',label:'검수',icon:'✓',c:{bg:'#fbe9e9',fg:'#df524b'},tools:[
-    {t:'관공수 검수',tone:'insp1',setmode:'pan',hint:'관공수 검수 — 동작 방식을 알려주시면 연결하겠습니다'},
+    {t:'관공수 검수',tone:'insp1',fn:inspectPipeCount,hint:'관수 규칙 자동 점검 — 연속성(맨홀 제외) + T점 분기 합산'},
     {t:'중복선 검수',tone:'insp2',fn:inspectDupLines,hint:'중복 관로선을 찾아 빨간 써클로 표시'},
     {t:'끝점 검수',tone:'insp3',fn:inspectEndpoints,hint:'결선 끝점이 측점·맨홀에 붙어있는지 검수'}]}
 ];
