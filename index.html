@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 80</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 81</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -451,6 +451,24 @@ function drawGeo(){
   });
 }
 /* ====== 맨홀 심벌 렌더 ====== */
+// 가장 가까운 통신관로 세그먼트 찾기 → 관로 반대편 단위방향 [ux,uy,거리] (maxR 밖이면 null)
+function nearestPipeDir(wx,wy,maxR){
+  var bx=null,by=null,bd=1e18;
+  (state.lines||[]).forEach(function(L){
+    if(L.layer!=='통신관로'||!L.pts||L.pts.length<2)return;
+    for(var s=0;s<L.pts.length-1;s++){
+      var ax=L.pts[s][0],ay=L.pts[s][1],cx2=L.pts[s+1][0],cy2=L.pts[s+1][1];
+      var dx=cx2-ax,dy=cy2-ay,L2=dx*dx+dy*dy,t=L2?((wx-ax)*dx+(wy-ay)*dy)/L2:0;
+      t=t<0?0:(t>1?1:t);
+      var px=ax+t*dx,py=ay+t*dy,d=Math.hypot(wx-px,wy-py);
+      if(d<bd){bd=d;bx=px;by=py;}
+    }
+  });
+  if(bx===null||(maxR&&bd>maxR))return null;
+  var vx=wx-bx,vy=wy-by,vl=Math.hypot(vx,vy);
+  if(vl<1e-6)return null; // 관로 위에 정확히 있으면 방향 불명
+  return [vx/vl,vy/vl,bd];
+}
 // 맨홀/입상주 라벨 기본 위치(world) — 화면·DXF 공용. txtW=라벨 폭(각자 단위)
 function mhLabelBase(mh, txtW){
   var isRiser=(mh.type==='riser');
@@ -468,10 +486,12 @@ function mhLabelBase(mh, txtW){
       if(i<L.pts.length-1)pdirs.push([L.pts[i+1][0]-mh.wx,L.pts[i+1][1]-mh.wy]);
     }}});
   var defLx,defLy;
+  var rpd=isRiser?nearestPipeDir(mh.wx,mh.wy,5):null; // 입상주: 근처 관로선(5m내) 반대쪽 자동
   if(pdirs.length){var psx=0,psy=0;pdirs.forEach(function(d){var l=Math.hypot(d[0],d[1])||1;psx+=d[0]/l;psy+=d[1]/l;});
     var psl=Math.hypot(psx,psy);
     if(psl>0.4){var ux=-psx/psl,uy=-psy/psl;defLx=mh.wx+ux*1.3+(ux<0?-txtW:0);defLy=mh.wy+uy*1.3;}
     else {var d0=pdirs[0];var pnx=-d0[1],pny=d0[0];var pl=Math.hypot(pnx,pny)||1;pnx/=pl;pny/=pl;if(pny<0){pnx=-pnx;pny=-pny;}defLx=mh.wx+pnx*1.3+(pnx<0?-txtW:0);defLy=mh.wy+pny*1.3;}}
+  else if(rpd){var rux=rpd[0],ruy=rpd[1];defLx=mh.wx+rux*1.3+(rux<0?-txtW:0);defLy=mh.wy+ruy*1.3;}
   else if(mp){var dx=mh.wx-mp.x,dy=mh.wy-mp.y;defLx=(dx>=0)?mh.wx+1.0:mh.wx-1.0-txtW;defLy=(dy>=0)?mh.wy+1.2:mh.wy-0.8;}
   else {defLx=mh.wx+1.0;defLy=mh.wy+1.2;}
   return {lx:(mh.lx!=null?mh.lx:defLx), ly:(mh.ly!=null?mh.ly:defLy)};
