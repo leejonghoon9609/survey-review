@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 65</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 66</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -331,7 +331,7 @@ function openNoteEdit(L,lx,ly){
   inpIn.style.cssText='font-size:16px;font-weight:600;color:#7a5f00;border:none;background:transparent;outline:none;width:100px;text-align:center;';
   var spR=document.createElement('span');spR.textContent=' )';
   wrap.appendChild(inpPre);wrap.appendChild(spM);wrap.appendChild(inpIn);wrap.appendChild(spR);
-  document.body.appendChild(wrap);inpIn.focus();inpIn.select();
+  document.body.appendChild(wrap);inpPre.focus();inpPre.select();
   var done=function(){if(wrap.parentNode){pushHist();var p=inpPre.value.trim(),v=inpIn.value.trim();L.note=(p?p:'')+'점(번호 : '+v+' )';wrap.remove();drawGeo();}};
   var onKey=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();};
   inpPre.addEventListener('keydown',onKey);inpIn.addEventListener('keydown',onKey);
