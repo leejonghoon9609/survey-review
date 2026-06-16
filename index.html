@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 63</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 64</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -451,6 +451,31 @@ function drawGeo(){
   });
 }
 /* ====== 맨홀 심벌 렌더 ====== */
+// 맨홀/입상주 라벨 기본 위치(world) — 화면·DXF 공용. txtW=라벨 폭(각자 단위)
+function mhLabelBase(mh, txtW){
+  var isRiser=(mh.type==='riser');
+  var mp=null,md=1e18;
+  if(!isRiser)state.points.forEach(function(p){if(!isManhole(p))return;var d=Math.hypot(p.x-mh.wx,p.y-mh.wy);if(d<md){md=d;mp=p;}});
+  var pdirs=[];
+  if(!isRiser){var Rm2=2.5,cd2=[];
+    state.points.forEach(function(p){if(!isManhole(p))return;var d=Math.hypot(p.x-mh.wx,p.y-mh.wy);if(d<=Rm2)cd2.push({p:p,d:d});});
+    cd2.sort(function(a,b){return a.d-b.d;});
+    if(cd2.length){var A2=cd2[0].p;pdirs.push([A2.x-mh.wx,A2.y-mh.wy]);var ax2=A2.x-mh.wx,ay2=A2.y-mh.wy;
+      for(var pi=1;pi<cd2.length;pi++){var q2=cd2[pi].p;if((q2.x-mh.wx)*ax2+(q2.y-mh.wy)*ay2<0){pdirs.push([q2.x-mh.wx,q2.y-mh.wy]);break;}}}}
+  state.lines.forEach(function(L){if(L.layer!=='통신관로'||!L.pts)return;
+    for(var i=0;i<L.pts.length;i++){if(Math.abs(L.pts[i][0]-mh.wx)<0.15&&Math.abs(L.pts[i][1]-mh.wy)<0.15){
+      if(i>0)pdirs.push([L.pts[i-1][0]-mh.wx,L.pts[i-1][1]-mh.wy]);
+      if(i<L.pts.length-1)pdirs.push([L.pts[i+1][0]-mh.wx,L.pts[i+1][1]-mh.wy]);
+    }}});
+  var defLx,defLy;
+  if(pdirs.length){var psx=0,psy=0;pdirs.forEach(function(d){var l=Math.hypot(d[0],d[1])||1;psx+=d[0]/l;psy+=d[1]/l;});
+    var psl=Math.hypot(psx,psy);
+    if(psl>0.4){var ux=-psx/psl,uy=-psy/psl;defLx=mh.wx+ux*1.3+(ux<0?-txtW:0);defLy=mh.wy+uy*1.3;}
+    else {var d0=pdirs[0];var pnx=-d0[1],pny=d0[0];var pl=Math.hypot(pnx,pny)||1;pnx/=pl;pny/=pl;if(pny<0){pnx=-pnx;pny=-pny;}defLx=mh.wx+pnx*1.3+(pnx<0?-txtW:0);defLy=mh.wy+pny*1.3;}}
+  else if(mp){var dx=mh.wx-mp.x,dy=mh.wy-mp.y;defLx=(dx>=0)?mh.wx+1.0:mh.wx-1.0-txtW;defLy=(dy>=0)?mh.wy+1.2:mh.wy-0.8;}
+  else {defLx=mh.wx+1.0;defLy=mh.wy+1.2;}
+  return {lx:(mh.lx!=null?mh.lx:defLx), ly:(mh.ly!=null?mh.ly:defLy)};
+}
 function drawManholes(){
   clearSvg(gMH); clearLabels('mh');
   (state.manholes||[]).forEach(function(mh){
@@ -485,36 +510,8 @@ function drawManholes(){
     // 라벨 글자 폭 (텍스트 길이 기준 월드값)
     var txtW=0,_lb=(mh.label||'');for(var _i=0;_i<_lb.length;_i++){txtW+=(_lb.charCodeAt(_i)>127?EM*1.0:EM*0.55);}txtW+=EM*0.5;if(isRiser)txtW*=1.33; // 한글=한칸,영문=0.55칸+여유, 입상주는 글자 큰 만큼 1.33배
 
-    // 라벨 기본 위치: 관로선(연결 관로 방향) 기준 — 관로 가는 쪽 피해 반대/수직으로
-    var defLx, defLy, pdirs=[];
-    if(!isRiser){
-      // 맨홀 M측점 연결 방향(반경 안 가까운 점 + 건너편)
-      var Rm2=2.5, cd2=[];
-      state.points.forEach(function(p){if(!isManhole(p))return;var d=Math.hypot(p.x-mh.wx,p.y-mh.wy);if(d<=Rm2)cd2.push({p:p,d:d});});
-      cd2.sort(function(a,b){return a.d-b.d;});
-      if(cd2.length){var A2=cd2[0].p;pdirs.push([A2.x-mh.wx,A2.y-mh.wy]);var ax2=A2.x-mh.wx,ay2=A2.y-mh.wy;
-        for(var pi=1;pi<cd2.length;pi++){var q2=cd2[pi].p;if((q2.x-mh.wx)*ax2+(q2.y-mh.wy)*ay2<0){pdirs.push([q2.x-mh.wx,q2.y-mh.wy]);break;}}}
-    }
-    // 통신관로선이 이 심벌 좌표를 꼭짓점으로 가질 때 그 이웃점 방향도 관로 방향으로
-    state.lines.forEach(function(L){if(L.layer!=='통신관로'||!L.pts)return;
-      for(var i=0;i<L.pts.length;i++){if(Math.abs(L.pts[i][0]-mh.wx)<0.15&&Math.abs(L.pts[i][1]-mh.wy)<0.15){
-        if(i>0)pdirs.push([L.pts[i-1][0]-mh.wx,L.pts[i-1][1]-mh.wy]);
-        if(i<L.pts.length-1)pdirs.push([L.pts[i+1][0]-mh.wx,L.pts[i+1][1]-mh.wy]);
-      }}});
-    if(pdirs.length){
-      var psx=0,psy=0;pdirs.forEach(function(d){var l=Math.hypot(d[0],d[1])||1;psx+=d[0]/l;psy+=d[1]/l;});
-      var psl=Math.hypot(psx,psy);
-      if(psl>0.4){ // 관로가 한쪽으로 치우침 → 반대 방향
-        var ux=-psx/psl,uy=-psy/psl;defLx=mh.wx+ux*1.3+(ux<0?-txtW:0);defLy=mh.wy+uy*1.3;
-      } else { // 관로 양쪽 대칭 → 관로선에 수직(화면 위쪽)
-        var d0=pdirs[0];var pnx=-d0[1],pny=d0[0];var pl=Math.hypot(pnx,pny)||1;pnx/=pl;pny/=pl;if(pny<0){pnx=-pnx;pny=-pny;}
-        defLx=mh.wx+pnx*1.3+(pnx<0?-txtW:0);defLy=mh.wy+pny*1.3;
-      }
-    } else if(mp){ // 관로 없음 → 기존 M측점 기준
-      var dx=mh.wx-mp.x, dy=mh.wy-mp.y;
-      defLx=(dx>=0)?mh.wx+1.0:mh.wx-1.0-txtW;defLy=(dy>=0)?mh.wy+1.2:mh.wy-0.8;
-    } else { defLx=mh.wx+1.0; defLy=mh.wy+1.2; }
-    var lx=mh.lx!=null?mh.lx:defLx, ly=mh.ly!=null?mh.ly:defLy;
+    // 라벨 기본 위치(관로 방향 피해서) — 공통 함수
+    var _lp=mhLabelBase(mh, txtW); var lx=_lp.lx, ly=_lp.ly;
     var ls=S(lx,ly);
     var lbx=ls[0], lby=ls[1]; // 밑줄 시작점(라벨 기준점)
 
@@ -589,7 +586,7 @@ function drawManholes(){
       inpIn.style.cssText='font-size:18px;font-weight:600;color:#333;border:none;background:transparent;outline:none;width:90px;text-align:center;';
       var spR=document.createElement('span');spR.textContent=')';
       wrap.appendChild(inpPre);wrap.appendChild(spM);wrap.appendChild(inpIn);wrap.appendChild(spR);
-      document.body.appendChild(wrap);inpIn.focus();inpIn.select();
+      document.body.appendChild(wrap);inpPre.focus();inpPre.select();
       var done=function(){if(wrap.parentNode){
         pushHist();
         var p=inpPre.value.trim(), v=inpIn.value.trim();
@@ -607,7 +604,7 @@ function drawManholes(){
     }
 
     // 라벨 텍스트 — 파란 밑줄 중앙 바로 위에 (글자가 밑줄을 덮지 않게 위로)
-    var mhLbl=mkLabel(txtCx, uly-EM*0.75, mh.label||'', {fill:isRiser?'#1f6fd6':'#333',weight:'600',anchor:'middle',grp:'mh',px:isRiser?20:15});
+    var mhLbl=mkLabel(txtCx, uly-EM*(isRiser?0.32:0.75), mh.label||'', {fill:isRiser?'#1f6fd6':'#333',weight:'600',anchor:'middle',grp:'mh',px:isRiser?20:15});
     // 라벨 div에 직접 더블클릭(수정) — 오버레이라 글자 위에서 바로 동작
     mhLbl.style.pointerEvents='auto';
     mhLbl.style.cursor='text';
@@ -4043,12 +4040,12 @@ EOF
       line(mh.wx-wB,mh.wy,mh.wx-wT,mh.wy+RH,lyr,5);line(mh.wx+wB,mh.wy,mh.wx+wT,mh.wy+RH,lyr,5);
       line(mh.wx-armW,armY,mh.wx+armW,armY,lyr,5);circle(mh.wx,mh.wy+RH,wT+0.05,lyr,5);
     } else {circle(mh.wx,mh.wy,RO,lyr,7);circle(mh.wx,mh.wy,RI,lyr,7);}
-    var lx=mh.lx!=null?mh.lx:(mh.wx+1.2), lyy=mh.ly!=null?mh.ly:(mh.wy+1.2);
     var txtW=0,_lb=(mh.label||'');for(var _i=0;_i<_lb.length;_i++){txtW+=(_lb.charCodeAt(_i)>127?TH:TH*0.55);}txtW+=TH*0.5; // 한글=한칸,영문=0.55칸+여유
+    var _p=mhLabelBase(mh,txtW); var lx=_p.lx, lyy=_p.ly; // 화면과 같은 기본 위치
     var isRight=(lx>=mh.wx);var diagLen=Math.hypot(lx-mh.wx,lyy-mh.wy);var underLen=Math.max(diagLen*0.3,txtW);
     var ux2=isRight?lx+underLen:lx-underLen;
     line(mh.wx,mh.wy,lx,lyy,lyr,col);line(lx,lyy,ux2,lyy,lyr,col);
-    if(mh.label)text((lx+ux2)/2,lyy+TH*0.25,TH,mh.label,lyr+'_LABEL',col,1); // 밑줄 중심에 중앙정렬
+    if(mh.label)text((lx+ux2)/2,lyy+TH*0.15,TH,mh.label,lyr+'_LABEL',col,1); // 밑줄 중심·바로 위, 중앙정렬
   });
   var dxf=PRE+E.join('\n')+'\n'+SUF;
   var blob=new Blob([dxf],{type:'application/dxf'});
