@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 104</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 105</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -806,8 +806,13 @@ function autoConnect(){
   var chainAdj=new Map(), deg=new Map();
   function caPush(a,b){if(!chainAdj.has(a))chainAdj.set(a,[]);chainAdj.get(a).push(b);}
   function angV(v1,v2){var d1=Math.hypot(v1[0],v1[1]),d2=Math.hypot(v2[0],v2[1]);if(d1===0||d2===0)return 180;var cv=Math.max(-1,Math.min(1,(v1[0]*v2[0]+v1[1]*v2[1])/(d1*d2)));return Math.acos(cv)*180/Math.PI;}
+  function segCross(a,b,c,e){ if(a===c||a===e||b===c||b===e)return false; // 끝점 공유는 교차 아님
+    function ccw(p,q,r){return (q.x-p.x)*(r.y-p.y)-(q.y-p.y)*(r.x-p.x);}
+    var d1=ccw(c,e,a),d2=ccw(c,e,b),d3=ccw(a,b,c),d4=ccw(a,b,e);
+    return ((d1>0)!==(d2>0))&&((d3>0)!==(d4>0))&&d1!==0&&d2!==0&&d3!==0&&d4!==0; }
   function addE(p,q,chain){if(p===q)return false;if(ufFind(p)===ufFind(q))return false; /* 폐합방지 */
     if((!isTpoint(p)&&(deg.get(p)||0)>=2)||(!isTpoint(q)&&(deg.get(q)||0)>=2))return false; /* ★절대규칙: T 아닌 점은 분기인입 금지(연결 2개=통과선까지만) */
+    for(var ci=0;ci<edges.length;ci++){if(segCross(p,q,edges[ci][0],edges[ci][1]))return false;} /* ★관로선은 다른 관로선을 가로지르지 않음 */
     edges.push([p,q]);ufp.set(ufFind(p),ufFind(q)); deg.set(p,(deg.get(p)||0)+1);deg.set(q,(deg.get(q)||0)+1); if(chain){caPush(p,q);caPush(q,p);} return true;}
 
   function nearestT(q){var qc=pipeCount(q),best=null,bd=1e18;pts.forEach(function(p){if(!isTpoint(p))return;var pc=pipeCount(p);if(pc==null||qc==null||pc<=qc)return;var d=D(p,q);if(d<=THRESH&&d<bd){bd=d;best=p;}});return best;}
