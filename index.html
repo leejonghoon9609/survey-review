@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 107</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 108</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -830,7 +830,7 @@ function autoConnect(){
     for(var i=0;i<sm.length&&acc<Np;i++){var q=sm[i],c=pipeCount(q);
       if(acc+c>Np)continue;
       if(nearestT(q)!==P)continue;                            // 다른 T가 더 가까우면 그 T의 분기
-      var sc=nearestSC(q); if(sc&&D(P,q)>1.5*D(sc,q))continue; // 같은관수 이웃이 훨씬 가까우면 그건 라인 점(첨부2의 20)
+      var sc=nearestSC(q); if(sc){ if(D(P,q)>1.5*D(sc,q))continue; if(angV([q.x-sc.x,q.y-sc.y],[P.x-q.x,P.y-q.y])>90)continue; } // 라인점 가드 + ★정렬가드(분기는 제 라인 진행방향으로 T에 접근해야)
       if(addE(P,q))acc+=c;
     }
   });
@@ -856,7 +856,38 @@ function autoConnect(){
     if(best)addE(q,best);
   });
 
-  // C) 맨홀·입상주 통과 결선: 4m 안의 '맨홀앞 M측점'만 통과로 이어줌(M점만, 관수·각도 무관)
+  // 분기합(상위관수 점 t에 붙은 더 작은 관수들의 합) — 용량초과 판정용
+  function branchSum(t){var tc=pipeCount(t),s=0;edges.forEach(function(e){var o=(e[0]===t)?e[1]:(e[1]===t?e[0]:null);if(o){var oc=pipeCount(o);if(oc!=null&&tc!=null&&oc<tc)s+=oc;}});return s;}
+  // 4.5) ★T 본선연결: T는 상위관수 점(부모)에 연결돼야 — 아직 상위에 안 붙은 T를 가까운 상위관수점에 잇기(용량초과 금지)
+  pts.filter(isTpoint).sort(function(a,b){return (pipeCount(a)||0)-(pipeCount(b)||0);}).forEach(function(P){
+    var Np=pipeCount(P); if(Np==null)return;
+    var linkedUp=edges.some(function(e){var o=(e[0]===P)?e[1]:(e[1]===P?e[0]:null);return o&&pipeCount(o)!=null&&pipeCount(o)>Np;});
+    if(linkedUp)return;
+    var cand=pts.filter(function(p){return pipeCount(p)!=null&&pipeCount(p)>Np&&D(P,p)<=THRESH&&ufFind(p)!==ufFind(P);}).sort(function(a,b){return D(P,a)-D(P,b);});
+    for(var i=0;i<cand.length;i++){var Q=cand[i]; if(branchSum(Q)+Np>pipeCount(Q))continue; if(addE(P,Q))break;}
+  });
+  // 5) ★떠 있는 단일관수 라인 도킹: 어디에도 안 붙은 한 관수짜리 라인의 끝점을 가까운 상위관수 T에 연결(용량·정렬 가드)
+  var comp=new Map();
+  pts.forEach(function(p){var r=ufFind(p);if(!comp.has(r))comp.set(r,[]);comp.get(r).push(p);});
+  comp.forEach(function(members){
+    var vals={},hasT=false;members.forEach(function(m){vals[String(pipeCount(m))]=1;if(isTpoint(m))hasT=true;});
+    var keys=Object.keys(vals); if(keys.length!==1||hasT||keys[0]==='null')return;
+    var v=pipeCount(members[0]);
+    var eps=members.filter(function(m){return (deg.get(m)||0)<=1;}); if(!eps.length)eps=members;
+    var best=null,bestD=1e18,bestTurn=999;
+    eps.forEach(function(e){
+      var ca=chainAdj.get(e),dirv=null; if(ca&&ca.length){dirv=[e.x-ca[0].x,e.y-ca[0].y];}
+      pts.forEach(function(t){
+        if(!isTpoint(t)||pipeCount(t)==null||pipeCount(t)<=v||ufFind(t)===ufFind(e))return;
+        var d=D(e,t); if(d>THRESH)return;
+        var turn=dirv?angV(dirv,[t.x-e.x,t.y-e.y]):0; if(turn>90)return;
+        if(branchSum(t)+v>pipeCount(t))return;
+        if(d<bestD-0.01||(Math.abs(d-bestD)<=0.01&&turn<bestTurn)){bestD=d;bestTurn=turn;best=[e,t];}
+      });
+    });
+    if(best)addE(best[0],best[1]);
+  });
+
   var MHR=4, mhCount=0;
   (state.manholes||[]).forEach(function(mh){
     var nr=pts.filter(function(p){return isManhole(p);}).map(function(p){return {p:p,d:Math.hypot(p.x-mh.wx,p.y-mh.wy)};}).filter(function(o){return o.d<=MHR;}).sort(function(a,b){return a.d-b.d;});
@@ -896,7 +927,7 @@ function inspectDupLines(){
   if(!dups.length){drawMarks();updMeta();showModal({title:'중복선 검수 결과',tone:'ok',body:'<b style="font-size:16px">중복 0</b><br>중복된 관로선이 없습니다.',buttons:[{label:'확인'}]});return;}
   pushHist();
   var totalExtra=0;
-  dups.forEach(function(d){var sm=S(d.mid[0],d.mid[1]);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:2.4,ry:2.4,status:'bad',near:'중복',cnt:d.n-1});totalExtra+=d.n-1;});
+  dups.forEach(function(d){var sm=S(d.mid[0],d.mid[1]);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:1.7,ry:1.7,status:'bad',near:'중복',cnt:d.n-1});totalExtra+=d.n-1;});
   drawMarks();updMeta();
   showModal({title:'중복선 검수 결과',tone:'bad',
     body:'중복 <b style="color:#d32f2f;font-size:16px">'+dups.length+'곳 · '+totalExtra+'선</b> 발견했습니다.<br>도면에서 빨간 써클 위치를 확인하세요.<br>(빈 곳을 끌어 도면을 이동할 수 있어요)<br><br>중복된 선을 삭제하고 <b>1선만</b> 남길까요?',
@@ -978,7 +1009,14 @@ function inspectPipeCount(){
 
   if(!issues.length){drawMarks();updMeta();showModal({title:'관공수 검수 결과',tone:'ok',body:'<b style="font-size:16px">이상 0</b><br>관수 규칙(연속성·T점 합산) 위반이 없습니다.',buttons:[{label:'확인'}]});return;}
   pushHist();
-  issues.forEach(function(it,i){var sm=S(it.wx,it.wy);var sg=it.seg?[S(it.seg[0][0],it.seg[0][1]),S(it.seg[1][0],it.seg[1][1])]:null;state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:2.7,ry:2.7,status:'bad',near:'관공수',msg:it.msg,num:i+1,seg:sg});});
+  // 겹치는 검수원 분산: 가까운 이슈들을 작은 링으로 펼쳐 모두 보이게(2개 오류가 1원으로 포개지던 문제)
+  var R=1.9, SP=2.6, usd=issues.map(function(){return false;});
+  for(var gi=0;gi<issues.length;gi++){ if(usd[gi])continue; var cl=[gi]; usd[gi]=true;
+    for(var gj=gi+1;gj<issues.length;gj++){ if(usd[gj])continue;
+      if(Math.hypot(issues[gj].wx-issues[gi].wx,issues[gj].wy-issues[gi].wy)<2*R+0.6){cl.push(gj);usd[gj]=true;} }
+    if(cl.length>1){ var cx=0,cy=0;cl.forEach(function(k){cx+=issues[k].wx;cy+=issues[k].wy;});cx/=cl.length;cy/=cl.length;
+      cl.forEach(function(k,j){var ang=2*Math.PI*j/cl.length-Math.PI/2;issues[k].wx=cx+Math.cos(ang)*SP;issues[k].wy=cy+Math.sin(ang)*SP;}); } }
+  issues.forEach(function(it,i){var sm=S(it.wx,it.wy);var sg=it.seg?[S(it.seg[0][0],it.seg[0][1]),S(it.seg[1][0],it.seg[1][1])]:null;state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:R,ry:R,status:'bad',near:'관공수',msg:it.msg,num:i+1,seg:sg});});
   drawMarks();updMeta();
   var list=issues.map(function(it,i){return (i+1)+'. '+it.msg;}).join('<br>');
   showModal({title:'관공수 검수 결과',tone:'bad',
@@ -1004,7 +1042,7 @@ function inspectEndpoints(){
   });
   if(!bad.length){drawMarks();updMeta();showModal({title:'끝점 검수 결과',tone:'ok',body:'<b style="font-size:16px">정상</b><br>모든 선의 끝점이 CSV 측점에 붙어 있습니다.',buttons:[{label:'확인'}]});return;}
   pushHist();
-  bad.forEach(function(pt){var sm=S(pt[0],pt[1]);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:2.7,ry:2.7,status:'bad',near:'끝점'});});
+  bad.forEach(function(pt){var sm=S(pt[0],pt[1]);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:1.9,ry:1.9,status:'bad',near:'끝점'});});
   drawMarks();updMeta();
   showModal({title:'끝점 검수 결과',tone:'bad',
     body:'끝점이 CSV 측점에 안 붙은 곳 <b style="color:#d32f2f;font-size:16px">'+bad.length+'곳</b> 발견했습니다.<br>빨간 써클 위치를 확인하세요.',
