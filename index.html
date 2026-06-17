@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 87</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 88</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -696,6 +696,23 @@ function placeManholeAt(wx,wy,type){
   drawGeo();drawManholes();
   toast('맨홀 심기 완료 — 더블클릭으로 라벨 수정, Enter/Space로 종료');
   // 모드 유지 (계속 찍을 수 있게)
+}
+// 측점삽입: 다음 측점번호 자동 채번(기존 prefix 이어서 +1)
+function nextPtNo(){
+  var prefix='', maxN=0;
+  (state.points||[]).forEach(function(p){var m=/^(.*)-(\d+)$/.exec(p.no||'');if(m){prefix=m[1];var n=+m[2];if(n>maxN)maxN=n;}});
+  if(!prefix){var d=new Date();prefix=(''+d.getFullYear()).slice(2)+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);}
+  return prefix+'-'+(maxN+1);
+}
+// 측점삽입: 클릭 위치에 측점 생성 + 번호·코드 입력창 자동 오픈
+function insertPointAt(wx,wy){
+  pushHist();
+  var last=(state.points||[])[state.points.length-1];
+  var p={no:nextPtNo(), x:wx, y:wy, z:null, code:(last&&last.code)?last.code:'FC 100x2'};
+  state.points.push(p);
+  drawGeo();updMeta();
+  openPtEdit(p, S(p.x,p.y)); // 바로 번호·코드 입력
+  toast('측점 생성 — 번호·코드 입력 후 Enter (측점삽입 계속하려면 버튼 다시 클릭)');
 }
 // 맨홀 통과 결선 1개 추가 (반경 안 가장 가까운 M점 + 건너편 M점 → A·맨홀·B)
 function addManholePassLine(mh){
@@ -4220,7 +4237,7 @@ function setModeUI(){
   if(mode==='mhplace')lastStartAction=function(){mode='mhplace';setModeUI();toast('맨홀심기 — 클릭해 심기');};
   else if(mode==='riserplace')lastStartAction=function(){mode='riserplace';setModeUI();toast('입상주심기 — 클릭해 심기');};
   else if(mode==='line')lastStartAction=function(){startDraw(drawLayer);};
-  if(mode!=='measure'){measurePts=[];if(typeof gMeasure!=='undefined'&&gMeasure)clearSvg(gMeasure);clearLabels('measure');}renderSub();cv.classList.toggle('draw',mode!=='pan'&&mode!=='mhplace'&&mode!=='delmh'&&mode!=='riserplace'&&mode!=='delriser'&&mode!=='delall2');if(mode==='mhplace'||mode==='delmh'||mode==='riserplace'||mode==='delriser'||mode==='delall2'){cv.style.cursor='default';}else{cv.style.cursor='';}}
+  if(mode!=='measure'){measurePts=[];if(typeof gMeasure!=='undefined'&&gMeasure)clearSvg(gMeasure);clearLabels('measure');}renderSub();cv.classList.toggle('draw',mode!=='pan'&&mode!=='mhplace'&&mode!=='delmh'&&mode!=='riserplace'&&mode!=='delriser'&&mode!=='delall2'&&mode!=='ptins');if(mode==='ptins'){cv.style.cursor='crosshair';}else if(mode==='mhplace'||mode==='delmh'||mode==='riserplace'||mode==='delriser'||mode==='delall2'){cv.style.cursor='default';}else{cv.style.cursor='';}}
 function setStatusUI(){renderSub();}
 
 /* ====== 포인터 ====== */
@@ -4233,6 +4250,7 @@ cv.addEventListener('pointerdown',function(e){
   }
   else if(mode==='mhplace'){var wm=toWorld(e.clientX,e.clientY);placeManholeAt(wm[0],-wm[1]);mode='pan';setModeUI();return;}
   else if(mode==='riserplace'){var wr=toWorld(e.clientX,e.clientY);placeManholeAt(wr[0],-wr[1],'riser');mode='pan';setModeUI();return;}
+  else if(mode==='ptins'){var wi=toWorld(e.clientX,e.clientY);insertPointAt(wi[0],-wi[1]);mode='pan';setModeUI();return;}
   else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);var ns=nearestSnapWorld(w[0],w[1]);
     var snapTol=(drawLayer==='지거')?Math.max(pxToWorld()*14,0.25):vb.w*0.04; // 지거는 측점 바로 위만 스냅(끝점이 멀리 안 끌림)
     var pt=(ns.pt&&ns.d<snapTol)?[ns.pt[0],ns.pt[1]]:[w[0],-w[1]];lineDraft.push(pt);renderDraft();}
@@ -4376,6 +4394,8 @@ var TB=[
   {k:'push',label:'압입구간편집',icon:'⇥',c:{bg:'#e3f4ef',fg:'#109a82'},tools:[
     {t:'압입구간 그리기',tone:'draw',fn:function(){startDraw('압입구간');},activeMode:'line'},
     {t:'압입구간 지우기',tone:'del',mode:'delline',delLayer:'압입구간',hint:'지울 압입구간 위에 마우스→클릭'}]},
+  {k:'ptins',label:'측점삽입',icon:'＋',c:{bg:'#e6effb',fg:'#2f7fe0'},tools:[
+    {t:'측점삽입',tone:'pick',mode:'ptins',hint:'클릭한 위치에 측점 생성 → 번호·코드 입력'}]},
   {k:'insp',label:'검수',icon:'✓',c:{bg:'#fbe9e9',fg:'#df524b'},tools:[
     {t:'관공수 검수',tone:'insp1',fn:inspectPipeCount,hint:'관수 규칙 자동 점검 — 연속성(맨홀 제외) + T점 분기 합산'},
     {t:'중복선 검수',tone:'insp2',fn:inspectDupLines,hint:'중복 관로선을 찾아 빨간 써클로 표시'},
