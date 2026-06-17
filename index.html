@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 90</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 91</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -749,7 +749,7 @@ function removeManholePassLines(mh){
 function drawMarks(){ clearSvg(gMark); clearLabels('mk');
   state.markups.forEach(function(m){
     var insp=(m.near==='관공수'||m.near==='중복'||m.near==='끝점'); // 검수 오류 서클(자동검출)
-    var rx=(m.rx||0.8)*(insp?1.7:1), ry=(m.ry||0.8)*(insp?1.7:1); // 검수오류 서클은 크게
+    var rx=(m.rx||0.8)*(insp?3.4:1), ry=(m.ry||0.8)*(insp?3.4:1); // 검수오류 서클은 크게(두배)
     var sh=m.type==='cir'?el('ellipse',{cx:m.cx,cy:m.cy,rx:rx,ry:ry}):el('rect',{x:m.x,y:m.y,width:m.w,height:m.h,rx:0.4});
     var fillCol=insp?'#f4c400':MKCOL[m.status]; // 검수오류 안쪽=흐린 노랑, 테두리는 빨강 유지
     sh.setAttribute('fill',fillCol);sh.setAttribute('fill-opacity',insp?0.25:0.13);sh.setAttribute('stroke',MKCOL[m.status]);sh.setAttribute('stroke-width',2);sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');
