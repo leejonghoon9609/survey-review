@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 115</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 116</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -442,7 +442,9 @@ function drawGeo(){
     gPts.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:isManhole(p)?'#0d47a1':(isTpoint(p)?'#13803a':'#111'),'stroke-width':isManhole(p)?3.8:2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     gPts.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#111','stroke-width':4,'stroke-linecap':'square','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // 중심 점(박스와 동일 vector-effect → 줌 고정)
     var hit=el('circle',{cx:s[0],cy:s[1],r:hitR,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
-    hit.addEventListener('click',function(ev){if(mode!=='pan'||labelDragging)return;ev.stopPropagation();if(photoLink)selectPoint(ptNum(p));else{selNum=String(ptNum(p));drawGeo();highlightSel();}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
+    hit.addEventListener('click',function(ev){if(mode==='ptdel'||mode==='delall2'){ev.stopPropagation();ev.preventDefault();deletePoint(p);return;}if(mode!=='pan'||labelDragging)return;ev.stopPropagation();if(photoLink)selectPoint(ptNum(p));else{selNum=String(ptNum(p));drawGeo();highlightSel();}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
+    hit.addEventListener('mouseenter',function(){if(mode==='ptdel'||mode==='delall2'){hit.setAttribute('fill','rgba(211,47,47,0.28)');hit.setAttribute('stroke','#d32f2f');hit.setAttribute('stroke-width',1.6);hit.setAttribute('vector-effect','non-scaling-stroke');}});
+    hit.addEventListener('mouseleave',function(){hit.setAttribute('fill','transparent');hit.removeAttribute('stroke');});
     gHit.appendChild(hit);
     var L=lay[i],ls=S(L.lx,L.ly),off=L.anchor==='start'?0.15:-0.15;
     var ld=null;if(L.leader){ld=el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':1.3,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);}
@@ -727,6 +729,20 @@ function insertPointAt(wx,wy){
   drawGeo();updMeta();
   openPtEdit(p, S(p.x,p.y)); // 바로 번호·코드 입력
   toast('측점 생성 — 번호·코드 입력 후 Enter (측점삽입 계속하려면 버튼 다시 클릭)');
+}
+// 측점 삭제: 측점 + 거기 붙은 결선/지거/압입 정리(백판은 유지)
+function deletePoint(p){
+  var i=(state.points||[]).indexOf(p); if(i<0)return;
+  pushHist();
+  state.points.splice(i,1);
+  var app={'통신관로':1,'지거':1,'압입구간':1,'주입상인출선':1};
+  state.lines=(state.lines||[]).filter(function(l){
+    if(!app[l.layer])return true;
+    return !l.pts.some(function(v){return Math.hypot(v[0]-p.x,v[1]-p.y)<0.3;});
+  });
+  if(selNum===String(ptNum(p)))selNum=null;
+  drawGeo();updMeta();
+  toast('측점 '+(p.no||'')+' 삭제');
 }
 // 맨홀 통과 결선 1개 추가 (반경 안 가장 가까운 M점 + 건너편 M점 → A·맨홀·B)
 function addManholePassLine(mh){
@@ -4447,7 +4463,7 @@ function setModeUI(){
   if(mode==='mhplace')lastStartAction=function(){mode='mhplace';setModeUI();toast('맨홀심기 — 클릭해 심기');};
   else if(mode==='riserplace')lastStartAction=function(){mode='riserplace';setModeUI();toast('입상주심기 — 클릭해 심기');};
   else if(mode==='line')lastStartAction=function(){startDraw(drawLayer);};
-  if(mode!=='measure'){measurePts=[];if(typeof gMeasure!=='undefined'&&gMeasure)clearSvg(gMeasure);clearLabels('measure');}renderSub();cv.classList.toggle('draw',mode!=='pan'&&mode!=='mhplace'&&mode!=='delmh'&&mode!=='riserplace'&&mode!=='delriser'&&mode!=='delall2'&&mode!=='ptins');if(mode==='ptins'){cv.style.cursor='crosshair';}else if(mode==='mhplace'||mode==='delmh'||mode==='riserplace'||mode==='delriser'||mode==='delall2'){cv.style.cursor='default';}else{cv.style.cursor='';}}
+  if(mode!=='measure'){measurePts=[];if(typeof gMeasure!=='undefined'&&gMeasure)clearSvg(gMeasure);clearLabels('measure');}renderSub();cv.classList.toggle('draw',mode!=='pan'&&mode!=='mhplace'&&mode!=='delmh'&&mode!=='riserplace'&&mode!=='delriser'&&mode!=='delall2'&&mode!=='ptins'&&mode!=='ptdel');if(mode==='ptins'){cv.style.cursor='crosshair';}else if(mode==='mhplace'||mode==='delmh'||mode==='riserplace'||mode==='delriser'||mode==='delall2'||mode==='ptdel'){cv.style.cursor='default';}else{cv.style.cursor='';}}
 function setStatusUI(){renderSub();}
 
 /* ====== 포인터 ====== */
@@ -4461,6 +4477,7 @@ cv.addEventListener('pointerdown',function(e){
   else if(mode==='mhplace'){var wm=toWorld(e.clientX,e.clientY);placeManholeAt(wm[0],-wm[1]);mode='pan';setModeUI();return;}
   else if(mode==='riserplace'){var wr=toWorld(e.clientX,e.clientY);placeManholeAt(wr[0],-wr[1],'riser');mode='pan';setModeUI();return;}
   else if(mode==='ptins'){var wi=toWorld(e.clientX,e.clientY);insertPointAt(wi[0],-wi[1]);mode='pan';setModeUI();return;}
+  else if(mode==='ptdel'){return;} // 측점삭제: 빈 곳 클릭은 무시(측점 클릭은 hit 핸들러가 삭제)
   else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);var ns=nearestSnapWorld(w[0],w[1]);
     var snapTol=(drawLayer==='지거')?Math.max(pxToWorld()*14,0.25):vb.w*0.04; // 지거는 측점 바로 위만 스냅(끝점이 멀리 안 끌림)
     var pt=(ns.pt&&ns.d<snapTol)?[ns.pt[0],ns.pt[1]]:[w[0],-w[1]];lineDraft.push(pt);renderDraft();}
@@ -4606,7 +4623,8 @@ var TB=[
     {t:'압입구간 그리기',tone:'draw',fn:function(){startDraw('압입구간');},activeMode:'line'},
     {t:'압입구간 지우기',tone:'del',mode:'delline',delLayer:'압입구간',hint:'지울 압입구간 위에 마우스→클릭'}]},
   {k:'ptins',label:'측점삽입',icon:'＋',c:{bg:'#e6effb',fg:'#2f7fe0'},tools:[
-    {t:'측점삽입',tone:'pick',mode:'ptins',hint:'클릭한 위치에 측점 생성 → 번호·코드 입력'}]},
+    {t:'측점삽입',tone:'pick',mode:'ptins',hint:'클릭한 위치에 측점 생성 → 번호·코드 입력'},
+    {t:'측점 삭제',tone:'del',mode:'ptdel',hint:'삭제할 측점을 클릭 (빨갛게 표시되면 클릭)'}]},
   {k:'insp',label:'검수',icon:'✓',c:{bg:'#fbe9e9',fg:'#df524b'},tools:[
     {t:'관공수 검수',tone:'insp1',fn:inspectPipeCount,hint:'관수 규칙 자동 점검 — 연속성(맨홀 제외) + T점 분기 합산'},
     {t:'중복선 검수',tone:'insp2',fn:inspectDupLines,hint:'중복 관로선을 찾아 빨간 써클로 표시'},
@@ -4668,7 +4686,7 @@ function renderSub(){
   s.querySelectorAll('button[data-g]').forEach(function(b){b.onclick=function(){var g=b.getAttribute('data-g');
     if(g==='undo')doUndo();
     else if(g==='redo')doRedo();
-    else if(g==='delall2'){if(mode==='delall2'){mode='pan';toast('통합 지우기 종료');}else{mode='delall2';toast('통합 지우기: 지울 선·맨홀·입상주를 클릭하세요 (선택한 것만 삭제)');}setModeUI();}
+    else if(g==='delall2'){if(mode==='delall2'){mode='pan';toast('통합 지우기 종료');}else{mode='delall2';toast('통합 지우기: 지울 선·맨홀·입상주·측점을 클릭하세요 (선택한 것만 삭제)');}setModeUI();}
     else if(g==='measure'){if(mode==='measure'){mode='pan';measurePts=[];clearSvg(gMeasure);clearLabels('measure');toast('거리산출 종료');}else{mode='measure';measurePts=[];clearSvg(gMeasure);clearLabels('measure');toast('거리산출: 두 점을 클릭하세요 (측점·맨홀 자동 스냅, 3번째 클릭은 새로 시작)');}setModeUI();}
     else if(g==='fit'){fitView();drawGeo();drawManholes();}};});
   var db=s.querySelector('button[data-g="delall2"]');if(db&&mode==='delall2'){db.style.background='#c0392b';db.style.color='#fff';db.style.borderColor='#c0392b';}
