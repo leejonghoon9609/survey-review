@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 89</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 90</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -748,10 +748,13 @@ function removeManholePassLines(mh){
 
 function drawMarks(){ clearSvg(gMark); clearLabels('mk');
   state.markups.forEach(function(m){
-    var sh=m.type==='cir'?el('ellipse',{cx:m.cx,cy:m.cy,rx:m.rx,ry:m.ry}):el('rect',{x:m.x,y:m.y,width:m.w,height:m.h,rx:0.4});
-    sh.setAttribute('fill',MKCOL[m.status]);sh.setAttribute('fill-opacity',0.13);sh.setAttribute('stroke',MKCOL[m.status]);sh.setAttribute('stroke-width',2);sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');
+    var insp=(m.near==='관공수'||m.near==='중복'||m.near==='끝점'); // 검수 오류 서클(자동검출)
+    var rx=(m.rx||0.8)*(insp?1.7:1), ry=(m.ry||0.8)*(insp?1.7:1); // 검수오류 서클은 크게
+    var sh=m.type==='cir'?el('ellipse',{cx:m.cx,cy:m.cy,rx:rx,ry:ry}):el('rect',{x:m.x,y:m.y,width:m.w,height:m.h,rx:0.4});
+    var fillCol=insp?'#f4c400':MKCOL[m.status]; // 검수오류 안쪽=흐린 노랑, 테두리는 빨강 유지
+    sh.setAttribute('fill',fillCol);sh.setAttribute('fill-opacity',insp?0.25:0.13);sh.setAttribute('stroke',MKCOL[m.status]);sh.setAttribute('stroke-width',2);sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');
     gMark.appendChild(sh); m.el=sh;
-    if(m.near==='중복'&&m.cnt){mkLabel(m.cx, m.cy-(m.ry||0.7)-0.35, m.cnt+'선', {fill:'#d32f2f',weight:'700',anchor:'middle',grp:'mk',px:14});}
+    if(m.near==='중복'&&m.cnt){mkLabel(m.cx, m.cy-ry-0.35, m.cnt+'선', {fill:'#d32f2f',weight:'700',anchor:'middle',grp:'mk',px:14});}
   });
   renderRecs();
 }
