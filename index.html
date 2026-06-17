@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 91</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 92</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -721,7 +721,8 @@ function nextPtNo(){
 function insertPointAt(wx,wy){
   pushHist();
   var last=(state.points||[])[state.points.length-1];
-  var p={no:nextPtNo(), x:wx, y:wy, z:null, code:(last&&last.code)?last.code:'FC 100x2'};
+  var dc=(last&&last.code)?last.code.replace(/^\s*M\s*/i,''):'FC 100x2'; // 기본코드 M 제거(삽입측점이 M측점으로 잡히지 않게)
+  var p={no:nextPtNo(), x:wx, y:wy, z:null, code:dc};
   state.points.push(p);
   drawGeo();updMeta();
   openPtEdit(p, S(p.x,p.y)); // 바로 번호·코드 입력
@@ -4438,6 +4439,7 @@ function renderRail(){
     else if(c.k==='pipe'){startDraw('통신관로');}
     else if(c.k==='jiger'){startDraw('지거');}
     else if(c.k==='push'){startDraw('압입구간');}
+    else if(c.k==='ptins'){mode='ptins';setModeUI();toast('측점삽입: 도면을 클릭해 측점 생성 (한 번 생성 후 종료, 다시 하려면 측점삽입 클릭)');}
     else if(c.setmode){mode=c.setmode;cv.classList.toggle('draw',mode!=='pan');setModeUI();}
     else if(c.hint&&!c.tools.length)toast(c.hint);};});
   var ho=document.getElementById('hkOpen');if(ho)ho.onclick=openHotkeyModal;
