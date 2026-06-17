@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 113</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 114</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -845,7 +845,7 @@ function autoConnect(){
     while(g.length){
       var bi=0,bd=1e18;for(var i=0;i<g.length;i++){var d=D(g[i],cur);if(d<bd){bd=d;bi=i;}}
       var nx=g.splice(bi,1)[0];
-      if(bd<=THRESH)addE(cur,nx,true); // 같은 관수라도 너무 멀면 끊음
+      if(bd<=THRESH&&!(goesUp(cur)&&goesUp(nx)))addE(cur,nx,true); // 같은관수라도 너무 멀면 끊음 + ★분기엽끼리 다리 금지(딴 분기 연결 막던 폐합 방지)
       cur=nx;
     }
   });
