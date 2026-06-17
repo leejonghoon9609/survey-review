@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 111</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 112</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -886,6 +886,22 @@ function autoConnect(){
       });
     });
     if(best)addE(best[0],best[1]);
+  });
+
+  // 6) ★과결선 정리 — '같은관수 따라가다' 잘못 엮인 잉여 선 제거
+  function goesUp(p){return edges.some(function(e){var o=(e[0]===p)?e[1]:(e[1]===p?e[0]:null);return o&&pipeCount(o)!=null&&pipeCount(p)!=null&&pipeCount(o)>pipeCount(p);});}
+  // 6a) 양쪽 다 상위 T로 올라가는 같은관수 변 = 서로 다른 분기끼리 잘못 엮임 → 제거(예: 29-34)
+  edges=edges.filter(function(e){var a=e[0],b=e[1];
+    if(pipeCount(a)!=null&&pipeCount(a)===pipeCount(b)&&goesUp(a)&&goesUp(b))return false;
+    return true;});
+  // 6b) 입력(하위관수 분기)이 이미 꽉 찬 T는 같은관수 트렁크를 '입력 반대방향' 1개만 유지(예: 28-30 제거, 28-25 유지)
+  pts.filter(isTpoint).forEach(function(P){
+    var Np=pipeCount(P); if(Np==null||branchSum(P)<Np)return;
+    var same=edges.filter(function(e){return (e[0]===P||e[1]===P)&&pipeCount((e[0]===P)?e[1]:e[0])===Np;});
+    if(same.length<2)return;
+    var ix=0,iy=0;edges.forEach(function(e){var o=(e[0]===P)?e[1]:(e[1]===P?e[0]:null);if(o&&pipeCount(o)!=null&&pipeCount(o)<Np){var dx=o.x-P.x,dy=o.y-P.y,d=Math.hypot(dx,dy)||1;ix+=dx/d;iy+=dy/d;}});
+    var keep=null,kbest=-9;same.forEach(function(e){var o=(e[0]===P)?e[1]:e[0];var dx=o.x-P.x,dy=o.y-P.y,d=Math.hypot(dx,dy)||1;var dot=(dx/d)*(-ix)+(dy/d)*(-iy);if(dot>kbest){kbest=dot;keep=e;}});
+    edges=edges.filter(function(e){return !(same.indexOf(e)>=0&&e!==keep);});
   });
 
   var MHR=4, mhCount=0;
