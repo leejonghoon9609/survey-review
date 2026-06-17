@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 94</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 95</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -891,6 +891,8 @@ function inspectPipeCount(){
       var a=L.pts[s], b=L.pts[s+1];
       if(isMHcoord(a)||isMHcoord(b))continue;            // 맨홀 거치는 구간 → 관수 변화 허용
       var pa=findPt(a), pb=findPt(b); if(!pa||!pb)continue; // 측점 매칭 실패(끝점검수 영역)
+      if(L.layer==='통신관로'){var dd=Math.hypot(pa.x-pb.x,pa.y-pb.y); // 점간격 20m 초과 검수(결선만, 지거 제외)
+        if(dd>20)issues.push({wx:(pa.x+pb.x)/2,wy:(pa.y+pb.y)/2,msg:pa.no+' ↔ '+pb.no+' 측점간격 '+dd.toFixed(1)+'m > 20m'});}
       var ca=pipeCount(pa), cb=pipeCount(pb);
       if(isTpoint(pa)){var i1=idxOf(pa);if(tNb[i1])tNb[i1].push(cb);}   // T점 이웃 관수 수집
       if(isTpoint(pb)){var i2=idxOf(pb);if(tNb[i2])tNb[i2].push(ca);}
@@ -906,7 +908,7 @@ function inspectPipeCount(){
     var nbs=tNb[ti].filter(function(c){return c!=null;}); if(!nbs.length)return;
     var brs=nbs.slice(); var trunk=brs.indexOf(Np); if(trunk>=0)brs.splice(trunk,1); // 본선(관수==T) 1개 제거, 나머지 전부 분기
     var sum=0; brs.forEach(function(c){sum+=c;});
-    if(sum!==Np)issues.push({wx:P.x,wy:P.y,msg:'T점 '+P.no+'('+Np+'공) 분기합 '+sum+'공 ≠ '+Np+'공'});
+    if(sum>Np)issues.push({wx:P.x,wy:P.y,msg:'T점 '+P.no+'('+Np+'공) 분기합 '+sum+'공 > '+Np+'공 (초과 불가)'}); // 합=관수(분기) 또는 합<관수(추가로 받음) 정상, 초과만 이상
   });
 
   if(!issues.length){drawMarks();updMeta();showModal({title:'관공수 검수 결과',tone:'ok',body:'<b style="font-size:16px">이상 0</b><br>관수 규칙(연속성·T점 합산) 위반이 없습니다.',buttons:[{label:'확인'}]});return;}
