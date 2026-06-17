@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 95</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 96</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -797,7 +797,7 @@ function autoConnect(){
   if(state.points.length<2){toast('측량점을 먼저 올려주세요');return;}
   pushHist();
   state.lines=state.lines.filter(function(l){return l.layer!=='통신관로';}); // 자동결선만 갱신
-  var THRESH=40, pts=state.points;
+  var THRESH=20, pts=state.points; // 공공측량 20m 규정 — 20m 넘는 먼 점엔 결선 안 함
   function D(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
   var edges=[];
   function addE(p,q){if(p===q)return;for(var i=0;i<edges.length;i++){var e=edges[i];if((e[0]===p&&e[1]===q)||(e[0]===q&&e[1]===p))return;}edges.push([p,q]);}
