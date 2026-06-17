@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 108</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 109</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -927,7 +927,7 @@ function inspectDupLines(){
   if(!dups.length){drawMarks();updMeta();showModal({title:'중복선 검수 결과',tone:'ok',body:'<b style="font-size:16px">중복 0</b><br>중복된 관로선이 없습니다.',buttons:[{label:'확인'}]});return;}
   pushHist();
   var totalExtra=0;
-  dups.forEach(function(d){var sm=S(d.mid[0],d.mid[1]);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:1.7,ry:1.7,status:'bad',near:'중복',cnt:d.n-1});totalExtra+=d.n-1;});
+  dups.forEach(function(d){var sm=S(d.mid[0],d.mid[1]);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:1.19,ry:1.19,status:'bad',near:'중복',cnt:d.n-1});totalExtra+=d.n-1;});
   drawMarks();updMeta();
   showModal({title:'중복선 검수 결과',tone:'bad',
     body:'중복 <b style="color:#d32f2f;font-size:16px">'+dups.length+'곳 · '+totalExtra+'선</b> 발견했습니다.<br>도면에서 빨간 써클 위치를 확인하세요.<br>(빈 곳을 끌어 도면을 이동할 수 있어요)<br><br>중복된 선을 삭제하고 <b>1선만</b> 남길까요?',
@@ -1010,7 +1010,7 @@ function inspectPipeCount(){
   if(!issues.length){drawMarks();updMeta();showModal({title:'관공수 검수 결과',tone:'ok',body:'<b style="font-size:16px">이상 0</b><br>관수 규칙(연속성·T점 합산) 위반이 없습니다.',buttons:[{label:'확인'}]});return;}
   pushHist();
   // 겹치는 검수원 분산: 가까운 이슈들을 작은 링으로 펼쳐 모두 보이게(2개 오류가 1원으로 포개지던 문제)
-  var R=1.9, SP=2.6, usd=issues.map(function(){return false;});
+  var R=1.33, SP=2.0, usd=issues.map(function(){return false;});
   for(var gi=0;gi<issues.length;gi++){ if(usd[gi])continue; var cl=[gi]; usd[gi]=true;
     for(var gj=gi+1;gj<issues.length;gj++){ if(usd[gj])continue;
       if(Math.hypot(issues[gj].wx-issues[gi].wx,issues[gj].wy-issues[gi].wy)<2*R+0.6){cl.push(gj);usd[gj]=true;} }
@@ -1042,7 +1042,7 @@ function inspectEndpoints(){
   });
   if(!bad.length){drawMarks();updMeta();showModal({title:'끝점 검수 결과',tone:'ok',body:'<b style="font-size:16px">정상</b><br>모든 선의 끝점이 CSV 측점에 붙어 있습니다.',buttons:[{label:'확인'}]});return;}
   pushHist();
-  bad.forEach(function(pt){var sm=S(pt[0],pt[1]);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:1.9,ry:1.9,status:'bad',near:'끝점'});});
+  bad.forEach(function(pt){var sm=S(pt[0],pt[1]);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:1.33,ry:1.33,status:'bad',near:'끝점'});});
   drawMarks();updMeta();
   showModal({title:'끝점 검수 결과',tone:'bad',
     body:'끝점이 CSV 측점에 안 붙은 곳 <b style="color:#d32f2f;font-size:16px">'+bad.length+'곳</b> 발견했습니다.<br>빨간 써클 위치를 확인하세요.',
