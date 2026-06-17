@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 109</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 110</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -4262,7 +4262,7 @@ EOF
   // 백판(수치지도)=앱 레이어 외 라인 → 블록으로 따로 처리(여기선 제외)
   var baseLines=state.lines.filter(function(l){return (l.base||!appLay[l.layer])&&l.pts&&l.pts.length>=2;});
   state.lines.forEach(function(Ln){if(!Ln.pts||Ln.pts.length<2)return;if(Ln.base||!appLay[Ln.layer])return;var lm=LM[Ln.layer]||['PIPE',1];
-    if(Ln.layer==='압입구간'){dashedPolyline(Ln.pts,'PUSH',5,3.0,2.0);} // 압입=물리적 점선(3m칸/2m간격)
+    if(Ln.layer==='압입구간'){pline(Ln.pts,'PUSH',5,false,'DASHED',5);} // 압입=DASHED 선종 1폴리라인(점선 3m/2m, 한 선으로 선택됨)
     else pline(Ln.pts,lm[0],lm[1],false);
     if((Ln.layer==='지거'||Ln.layer==='압입구간')&&Ln.note){
       var aw=ptOnPoly(Ln.pts,polyAnchorT(Ln));
