@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 116</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 117</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -294,7 +294,7 @@ function addNoteHandle(L,t,ld,lx,ly,ax,tw){
   var hc=L.layer==='압입구간'?'#1f6fd6':'#a07e00', hc2=L.layer==='압입구간'?'#15489e':'#7a5f00';
   var h=el('rect',{x:bx-pad,y:by-pad,width:bw+2*pad,height:bh+2*pad,rx:0.3,fill:'transparent',stroke:hc,'stroke-width':0.7,'stroke-dasharray':'1.6 1.6','vector-effect':'non-scaling-stroke','pointer-events':'all'});h.style.cursor='move';
   var drag=false,moved=false,nx=lx,ny=ly;
-  h.addEventListener('pointerdown',function(ev){if(mode==='delall2'){ev.stopPropagation();ev.preventDefault();var li=state.lines.indexOf(L);if(li>=0){pushHist();state.lines.splice(li,1);drawGeo();updMeta();toast('멘트·선 삭제');}return;}if(mode!=='pan')return;ev.stopPropagation();drag=true;moved=false;labelDragging=true;h.setAttribute('stroke',hc2);h.setAttribute('stroke-width',1.1);h.setAttribute('stroke-dasharray','2.2 1.4');try{h.setPointerCapture(ev.pointerId);}catch(e){}});
+  h.addEventListener('pointerdown',function(ev){if(mode==='delall2'||mode==='ptdel'){ev.stopPropagation();ev.preventDefault();var li=state.lines.indexOf(L);if(li>=0){pushHist();state.lines.splice(li,1);drawGeo();updMeta();toast('멘트·선 삭제');}return;}if(mode!=='pan')return;ev.stopPropagation();drag=true;moved=false;labelDragging=true;h.setAttribute('stroke',hc2);h.setAttribute('stroke-width',1.1);h.setAttribute('stroke-dasharray','2.2 1.4');try{h.setPointerCapture(ev.pointerId);}catch(e){}});
   h.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();moved=true;var ww=toWorld(ev.clientX,ev.clientY);nx=ww[0];ny=ww[1];
     t.setAttribute('x',nx+0.25);t.setAttribute('y',ny+0.2);ld.setAttribute('x2', (ax!=null&&ax>nx)?nx+0.25+(tw||bw):nx);ld.setAttribute('y2',ny);
     h.setAttribute('x',nx+0.25-pad);h.setAttribute('y',ny-0.45-pad);});
@@ -309,7 +309,7 @@ function addNoteHandle(L,t,ld,lx,ly,ax,tw){
 function addAnchorHandle(L,ah,anc,ld){
   ah.style.cursor='move';
   var drag=false;
-  ah.addEventListener('pointerdown',function(ev){if(mode!=='pan')return;ev.stopPropagation();drag=true;labelDragging=true;anc.setAttribute('r',0.46);try{ah.setPointerCapture(ev.pointerId);}catch(e){}});
+  ah.addEventListener('pointerdown',function(ev){if(mode==='delall2'||mode==='ptdel'){ev.stopPropagation();ev.preventDefault();var li=state.lines.indexOf(L);if(li>=0){pushHist();state.lines.splice(li,1);drawGeo();updMeta();toast('멘트·선 삭제');}return;}if(mode!=='pan')return;ev.stopPropagation();drag=true;labelDragging=true;anc.setAttribute('r',0.46);try{ah.setPointerCapture(ev.pointerId);}catch(e){}});
   ah.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();var ww=toWorld(ev.clientX,ev.clientY);var t=projToPoly(L.pts.map(function(p){return S(p[0],p[1]);}),ww[0],ww[1]);L.anchorT=t;var aw=ptOnPoly(L.pts,t),sp=S(aw[0],aw[1]);anc.setAttribute('cx',sp[0]);anc.setAttribute('cy',sp[1]);ah.setAttribute('cx',sp[0]);ah.setAttribute('cy',sp[1]);ld.setAttribute('x1',sp[0]);ld.setAttribute('y1',sp[1]);});
   function up(ev){if(!drag)return;drag=false;setTimeout(function(){labelDragging=false;},40);try{ah.releasePointerCapture(ev.pointerId);}catch(e){}drawGeo();}
   ah.addEventListener('pointerup',up);ah.addEventListener('pointercancel',up);
@@ -4481,7 +4481,9 @@ cv.addEventListener('pointerdown',function(e){
   else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);var ns=nearestSnapWorld(w[0],w[1]);
     var snapTol=(drawLayer==='지거')?Math.max(pxToWorld()*14,0.25):vb.w*0.04; // 지거는 측점 바로 위만 스냅(끝점이 멀리 안 끌림)
     var pt=(ns.pt&&ns.d<snapTol)?[ns.pt[0],ns.pt[1]]:[w[0],-w[1]];lineDraft.push(pt);renderDraft();}
-  else if(mode==='delline'||mode==='delall2'){var wd=toWorld(e.clientX,e.clientY);if(mode==='delall2'&&deleteMarkupAt(wd[0],wd[1]))return;deleteSegmentAt(wd[0],wd[1]);}
+  else if(mode==='delline'||mode==='delall2'){var wd=toWorld(e.clientX,e.clientY);
+    if(mode==='delall2'){var hp=null,hpd=Math.max(pxToWorld()*12,0.4);(state.points||[]).forEach(function(q){var d=Math.hypot(q.x-wd[0],q.y+wd[1]);if(d<hpd){hpd=d;hp=q;}});if(hp){deletePoint(hp);return;} if(deleteMarkupAt(wd[0],wd[1]))return;}
+    deleteSegmentAt(wd[0],wd[1]);}
   else if(mode==='measure'){var wm=toWorld(e.clientX,e.clientY);var nm=nearestSnapWorld(wm[0],wm[1]);var mp=(nm.pt&&nm.d<vb.w*0.04)?[nm.pt[0],nm.pt[1]]:[wm[0],-wm[1]];measureClick(mp);return;}
   else if(mode==='delmh'){/* 맨홀 삭제 모드: 빈 곳 클릭은 아무것도 안 함 (맨홀 클릭은 심벌 핸들러가 처리) */return;}
   else{drawing=true;var w2=toWorld(e.clientX,e.clientY);sx=w2[0];sy=w2[1];
