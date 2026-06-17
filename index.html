@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 88</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 89</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -263,17 +263,30 @@ function openPtEdit(p,ls){
   var r=cv.getBoundingClientRect();
   var sx=r.left+(ls[0]-vb.x)/vb.w*r.width;
   var sy=r.top+(ls[1]-vb.y)/vb.h*r.height;
+  // 기존 번호/코드를 템플릿 칸으로 분해
+  var no=p.no||'', code=(p.code||'').trim();
+  var date='', num=''; var mNo=/^26(\d*)-?(.*)$/.exec(no); if(mNo){date=mNo[1]||'';num=mNo[2]||'';}
+  var prefix='FC 100', cnt=''; var xi=code.toLowerCase().lastIndexOf('x');
+  if(xi>=0){prefix=code.slice(0,xi).trim();cnt=code.slice(xi+1).trim();} else if(code){prefix=code;}
+  if(!prefix)prefix='FC 100';
   var wrap=document.createElement('div');
-  wrap.style.cssText='position:fixed;z-index:999;left:'+sx+'px;top:'+(sy-22)+'px;background:#fffde7;border:1px solid #d32f2f;border-radius:5px;padding:5px;display:flex;flex-direction:column;gap:3px;box-shadow:0 2px 8px rgba(0,0,0,0.18);';
-  var mk=function(val,ph,col){var i=document.createElement('input');i.value=val;i.placeholder=ph;i.style.cssText='font-size:14px;font-weight:600;color:'+(col||'#333')+';border:1px solid #ccc;border-radius:3px;padding:2px 6px;outline:none;width:150px;';return i;};
-  var i1=mk(p.no||'','번호 (예 260522-10)','#1a7a3a');
-  var i2=mk((p.code||'').trim(),'코드 (예 FC 100x3)','#0f7a86');
-  wrap.appendChild(i1);wrap.appendChild(i2);document.body.appendChild(wrap);i2.focus();i2.select();
-  var done=function(){if(wrap.parentNode){pushHist();p.no=i1.value.trim();p.code=i2.value.trim();wrap.remove();drawGeo();if(photoPanelOpen)refreshPhotoPanel();}};
+  wrap.style.cssText='position:fixed;z-index:999;left:'+sx+'px;top:'+(sy-34)+'px;background:#fffde7;border:1px solid #d32f2f;border-radius:5px;padding:6px;display:flex;flex-direction:column;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,0.18);';
+  var fix=function(t){var s=document.createElement('span');s.textContent=t;s.style.cssText='font-size:15px;font-weight:800;color:#9a9a93;align-self:center;padding:0 1px;';return s;};
+  var inp=function(val,ph,w,col){var i=document.createElement('input');i.value=val;i.placeholder=ph;i.style.cssText='font-size:14px;font-weight:600;color:'+(col||'#333')+';border:1px solid #ccc;border-radius:3px;padding:2px 5px;outline:none;width:'+w+'px;';return i;};
+  var row=function(){var d=document.createElement('div');d.style.cssText='display:flex;gap:3px;align-items:center;';return d;};
+  var iDate=inp(date,'날짜',56,'#1a7a3a'), iNum=inp(num,'번호',46,'#1a7a3a');
+  var r1=row();r1.appendChild(fix('26'));r1.appendChild(iDate);r1.appendChild(fix('-'));r1.appendChild(iNum);
+  var iPre=inp(prefix,'FC 100',74,'#0f7a86'), iCnt=inp(cnt,'관수',42,'#0f7a86');
+  var r2=row();r2.appendChild(iPre);r2.appendChild(fix('x'));r2.appendChild(iCnt);
+  wrap.appendChild(r1);wrap.appendChild(r2);document.body.appendChild(wrap);iDate.focus();iDate.select();
+  var done=function(){if(wrap.parentNode){pushHist();
+    p.no='26'+iDate.value.trim()+'-'+iNum.value.trim();
+    p.code=iPre.value.trim()+'x'+iCnt.value.trim();
+    wrap.remove();drawGeo();if(photoPanelOpen)refreshPhotoPanel();}};
   var onKey=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();};
-  i1.addEventListener('keydown',onKey);i2.addEventListener('keydown',onKey);
-  var bt=null;function ob(){bt=setTimeout(done,120);}function of(){if(bt){clearTimeout(bt);bt=null;}}
-  i1.addEventListener('blur',ob);i2.addEventListener('blur',ob);i1.addEventListener('focus',of);i2.addEventListener('focus',of);
+  var ins=[iDate,iNum,iPre,iCnt];
+  var bt=null;function ob(){bt=setTimeout(done,150);}function of(){if(bt){clearTimeout(bt);bt=null;}}
+  ins.forEach(function(i){i.addEventListener('keydown',onKey);i.addEventListener('blur',ob);i.addEventListener('focus',of);});
 }
 function addNoteHandle(L,t,ld,lx,ly,ax,tw){
   var bb;try{bb=t.getBBox();}catch(e){bb=null;}
