@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 100</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 101</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -811,18 +811,22 @@ function autoConnect(){
 
   function nearestT(q){var qc=pipeCount(q),best=null,bd=1e18;pts.forEach(function(p){if(!isTpoint(p))return;var pc=pipeCount(p);if(pc==null||qc==null||pc<=qc)return;var d=D(p,q);if(d<=THRESH&&d<bd){bd=d;best=p;}});return best;}
   function nearestSC(q){var qc=pipeCount(q);if(qc==null)return null;var best=null,bd=1e18;pts.forEach(function(p){if(p===q||pipeCount(p)!==qc)return;var d=D(p,q);if(d<=THRESH&&d<bd){bd=d;best=p;}});return best;}
-  function hasTrunk(P){var pc=pipeCount(P);if(pc==null)return false;return pts.some(function(p){return p!==P&&pipeCount(p)===pc&&D(p,P)<=THRESH;});}
   var branchAcc=new Map();
   // 1) 분기: 비T점 q는 '가장 가까운 T'가 '가장 가까운 같은관수 이웃'보다 가까우면 그 T에 붙음
   pts.forEach(function(q){ if(isTpoint(q))return; var qc=pipeCount(q); if(qc==null)return;
     var t=nearestT(q); if(!t)return; var sc=nearestSC(q);
     if(sc===null||D(t,q)<D(sc,q)){ if(addE(q,t))branchAcc.set(t,(branchAcc.get(t)||0)+qc); }
   });
-  // 2) 고립 T(같은관수 본선 없음)만 분기 합으로 Np 채움 — 가까운 작은 점부터
-  pts.forEach(function(P){ if(!isTpoint(P)||hasTrunk(P))return; var Np=pipeCount(P); if(Np==null)return;
-    var acc=branchAcc.get(P)||0;
+  // 2) T점이 자기 관수(Np)를 채우도록 분기 가져옴(본선 있어도) — 단 ①q의 최근접 T가 나 ②q의 같은관수 이웃이 나보다 1.5배 이상 가깝진 않음
+  pts.forEach(function(P){ if(!isTpoint(P))return; var Np=pipeCount(P); if(Np==null)return;
+    var acc=branchAcc.get(P)||0; if(acc>=Np)return;
     var sm=pts.filter(function(x){return !isTpoint(x)&&pipeCount(x)!=null&&pipeCount(x)<Np&&D(P,x)<=THRESH;}).sort(function(a,b){return D(P,a)-D(P,b);});
-    for(var i=0;i<sm.length&&acc<Np;i++){var c=pipeCount(sm[i]); if(acc+c<=Np){ if(addE(P,sm[i]))acc+=c; }}
+    for(var i=0;i<sm.length&&acc<Np;i++){var q=sm[i],c=pipeCount(q);
+      if(acc+c>Np)continue;
+      if(nearestT(q)!==P)continue;                            // 다른 T가 더 가까우면 그 T의 분기
+      var sc=nearestSC(q); if(sc&&D(P,q)>1.5*D(sc,q))continue; // 같은관수 이웃이 훨씬 가까우면 그건 라인 점(첨부2의 20)
+      if(addE(P,q))acc+=c;
+    }
   });
   // 3) 같은 관수 nearest 체인(본선) — 형제 분기끼린 폐합방지로 자동 차단
   var groups={};
