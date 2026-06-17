@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 103</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 104</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -834,7 +834,8 @@ function autoConnect(){
   pts.forEach(function(p){var c=pipeCount(p);var k=(c==null?'?':String(c));(groups[k]=groups[k]||[]).push(p);});
   Object.keys(groups).forEach(function(k){
     var g=groups[k].slice(); if(g.length<2)return;
-    g.sort(function(a,b){return a.x-b.x;});
+    var cx=0,cy=0;g.forEach(function(p){cx+=p.x;cy+=p.y;});cx/=g.length;cy/=g.length; // 무게중심
+    g.sort(function(a,b){return Math.hypot(b.x-cx,b.y-cy)-Math.hypot(a.x-cx,a.y-cy);}); // 먼 실제 끝점부터 시작(수직선 x정렬 지그재그 방지)
     var cur=g.shift();
     while(g.length){
       var bi=0,bd=1e18;for(var i=0;i<g.length;i++){var d=D(g[i],cur);if(d<bd){bd=d;bi=i;}}
