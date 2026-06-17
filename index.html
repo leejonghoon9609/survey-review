@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 98</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 99</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -802,18 +802,27 @@ function autoConnect(){
   var edges=[];
   var ufp=new Map(); // 폐합 방지 union-find (지하관로 = 트리, 고리 없음)
   function ufFind(p){if(!ufp.has(p))ufp.set(p,p);var r=p;while(ufp.get(r)!==r)r=ufp.get(r);while(ufp.get(p)!==r){var n=ufp.get(p);ufp.set(p,r);p=n;}return r;}
-  function addE(p,q){if(p===q)return;if(ufFind(p)===ufFind(q))return; /* 이미 같은 갈래 → 고리 생기므로 건너뜀 */ edges.push([p,q]);ufp.set(ufFind(p),ufFind(q));}
+  var chainAdj=new Map();
+  function caPush(a,b){if(!chainAdj.has(a))chainAdj.set(a,[]);chainAdj.get(a).push(b);}
+  function angV(v1,v2){var d1=Math.hypot(v1[0],v1[1]),d2=Math.hypot(v2[0],v2[1]);if(d1===0||d2===0)return 180;var cv=Math.max(-1,Math.min(1,(v1[0]*v2[0]+v1[1]*v2[1])/(d1*d2)));return Math.acos(cv)*180/Math.PI;}
+  function addE(p,q,chain){if(p===q)return false;if(ufFind(p)===ufFind(q))return false; /* 이미 같은 갈래 → 고리방지 */ edges.push([p,q]);ufp.set(ufFind(p),ufFind(q)); if(chain){caPush(p,q);caPush(q,p);} return true;}
 
-  // B) T점(분기점) 먼저 확정: 주위 '더 작은 관수' 점들을 가까운 순으로 합이 T관수 될 때까지 연결
-  //    (분기를 먼저 잡아야 16·19 같은 끝점끼리 잘못 이어 삼각형(폐합)이 안 생김)
-  pts.forEach(function(P){ if(!isTpoint(P))return; var Np=pipeCount(P); if(Np==null)return;
-    var near=pts.filter(function(q){return q!==P && pipeCount(q)!=null && pipeCount(q)<Np && D(P,q)<=THRESH;})
-                .sort(function(a,b){return D(P,a)-D(P,b);});
-    var acc=0;
-    for(var i=0;i<near.length && acc<Np;i++){var c=pipeCount(near[i]); if(acc+c<=Np){addE(P,near[i]);acc+=c;}}
+  function nearestT(q){var qc=pipeCount(q),best=null,bd=1e18;pts.forEach(function(p){if(!isTpoint(p))return;var pc=pipeCount(p);if(pc==null||qc==null||pc<=qc)return;var d=D(p,q);if(d<=THRESH&&d<bd){bd=d;best=p;}});return best;}
+  function nearestSC(q){var qc=pipeCount(q);if(qc==null)return null;var best=null,bd=1e18;pts.forEach(function(p){if(p===q||pipeCount(p)!==qc)return;var d=D(p,q);if(d<=THRESH&&d<bd){bd=d;best=p;}});return best;}
+  function hasTrunk(P){var pc=pipeCount(P);if(pc==null)return false;return pts.some(function(p){return p!==P&&pipeCount(p)===pc&&D(p,P)<=THRESH;});}
+  var branchAcc=new Map();
+  // 1) 분기: 비T점 q는 '가장 가까운 T'가 '가장 가까운 같은관수 이웃'보다 가까우면 그 T에 붙음
+  pts.forEach(function(q){ if(isTpoint(q))return; var qc=pipeCount(q); if(qc==null)return;
+    var t=nearestT(q); if(!t)return; var sc=nearestSC(q);
+    if(sc===null||D(t,q)<D(sc,q)){ if(addE(q,t))branchAcc.set(t,(branchAcc.get(t)||0)+qc); }
   });
-
-  // A) 본선: 같은 관수끼리 nearest-neighbor 체인. 단 이미 연결된(같은 갈래) 점끼린 안 이음(폐합 방지)
+  // 2) 고립 T(같은관수 본선 없음)만 분기 합으로 Np 채움 — 가까운 작은 점부터
+  pts.forEach(function(P){ if(!isTpoint(P)||hasTrunk(P))return; var Np=pipeCount(P); if(Np==null)return;
+    var acc=branchAcc.get(P)||0;
+    var sm=pts.filter(function(x){return !isTpoint(x)&&pipeCount(x)!=null&&pipeCount(x)<Np&&D(P,x)<=THRESH;}).sort(function(a,b){return D(P,a)-D(P,b);});
+    for(var i=0;i<sm.length&&acc<Np;i++){var c=pipeCount(sm[i]); if(acc+c<=Np){ if(addE(P,sm[i]))acc+=c; }}
+  });
+  // 3) 같은 관수 nearest 체인(본선) — 형제 분기끼린 폐합방지로 자동 차단
   var groups={};
   pts.forEach(function(p){var c=pipeCount(p);var k=(c==null?'?':String(c));(groups[k]=groups[k]||[]).push(p);});
   Object.keys(groups).forEach(function(k){
@@ -823,9 +832,15 @@ function autoConnect(){
     while(g.length){
       var bi=0,bd=1e18;for(var i=0;i<g.length;i++){var d=D(g[i],cur);if(d<bd){bd=d;bi=i;}}
       var nx=g.splice(bi,1)[0];
-      if(bd<=THRESH)addE(cur,nx); // 같은 관수라도 너무 멀면 끊음(별개 구간)
+      if(bd<=THRESH)addE(cur,nx,true); // 같은 관수라도 너무 멀면 끊음
       cur=nx;
     }
+  });
+  // 4) 라인 끝점(비T, 체인차수 1)을 진행 방향과 정렬된(꺾임<45°) 가까운 T에 연결 (22→14처럼)
+  pts.forEach(function(q){ if(isTpoint(q))return; var ca=chainAdj.get(q); if(!ca||ca.length!==1)return;
+    var r=ca[0], dirv=[q.x-r.x,q.y-r.y], best=null, bturn=45;
+    pts.forEach(function(p){ if(!isTpoint(p)||D(p,q)>THRESH||ufFind(p)===ufFind(q))return; var turn=angV(dirv,[p.x-q.x,p.y-q.y]); if(turn<bturn){bturn=turn;best=p;} });
+    if(best)addE(q,best);
   });
 
   // C) 맨홀 통과 결선: 맨홀 2.5m 안의 '맨홀앞 M측점'만 맨홀 통과로 이어줌(M점만, 관수·각도 무관)
