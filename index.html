@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 96</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 97</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -884,7 +884,6 @@ function inspectPipeCount(){
   function isMHcoord(xy){for(var i=0;i<mhs.length;i++){if(Math.hypot(mhs[i].wx-xy[0],mhs[i].wy-xy[1])<=TOL)return true;}return false;}
   function idxOf(p){for(var i=0;i<pts.length;i++)if(pts[i]===p)return i;return -1;}
   var issues=[]; // {wx,wy,msg}
-  var tNb={}; pts.forEach(function(p,i){if(isTpoint(p))tNb[i]=[];}); // T점 이웃 수집(규칙2)
 
   state.lines.forEach(function(L){if((L.layer!=='통신관로'&&L.layer!=='지거')||!L.pts||L.pts.length<2)return; // 결선+지거선 함께
     for(var s=0;s<L.pts.length-1;s++){
@@ -894,8 +893,6 @@ function inspectPipeCount(){
       if(L.layer==='통신관로'){var dd=Math.hypot(pa.x-pb.x,pa.y-pb.y); // 점간격 20m 초과 검수(결선만, 지거 제외)
         if(dd>20)issues.push({wx:(pa.x+pb.x)/2,wy:(pa.y+pb.y)/2,msg:pa.no+' ↔ '+pb.no+' 측점간격 '+dd.toFixed(1)+'m > 20m'});}
       var ca=pipeCount(pa), cb=pipeCount(pb);
-      if(isTpoint(pa)){var i1=idxOf(pa);if(tNb[i1])tNb[i1].push(cb);}   // T점 이웃 관수 수집
-      if(isTpoint(pb)){var i2=idxOf(pb);if(tNb[i2])tNb[i2].push(ca);}
       if(isTpoint(pa)||isTpoint(pb))continue;            // 연속성은 둘 다 비T점만
       if(ca==null||cb==null)continue;                    // 관수 미기재는 스킵
       if(ca!==cb){var mx=(pa.x+pb.x)/2,my=(pa.y+pb.y)/2;
@@ -903,12 +900,41 @@ function inspectPipeCount(){
     }
   });
 
-  Object.keys(tNb).forEach(function(ti){
-    var P=pts[ti], Np=pipeCount(P); if(Np==null)return;
-    var nbs=tNb[ti].filter(function(c){return c!=null;}); if(!nbs.length)return;
-    var brs=nbs.slice(); var trunk=brs.indexOf(Np); if(trunk>=0)brs.splice(trunk,1); // 본선(관수==T) 1개 제거, 나머지 전부 분기
-    var sum=0; brs.forEach(function(c){sum+=c;});
-    if(sum>Np)issues.push({wx:P.x,wy:P.y,msg:'T점 '+P.no+'('+Np+'공) 분기합 '+sum+'공 > '+Np+'공 (초과 불가)'}); // 합=관수(분기) 또는 합<관수(추가로 받음) 정상, 초과만 이상
+  // ===== T점 관 흐름 보존 검수 (트리: 맨홀/입상에서만 관 추가) =====
+  var adj={};
+  function addAdj(u,w){if(u===w)return;adj[u]=adj[u]||[];adj[w]=adj[w]||[];if(adj[u].indexOf(w)<0)adj[u].push(w);if(adj[w].indexOf(u)<0)adj[w].push(u);}
+  state.lines.forEach(function(L){if(L.layer!=='통신관로'||!L.pts)return; // 결선만(지거 제외)
+    var seq=[]; // 선을 따라가며 측점 순서 수집(맨홀 꼭짓점은 건너뛰되 양옆 측점 연결)
+    L.pts.forEach(function(v){if(isMHcoord(v))return;var p=findPt(v);if(p){var i=idxOf(p);if(i>=0&&(!seq.length||seq[seq.length-1]!==i))seq.push(i);}});
+    for(var k=0;k<seq.length-1;k++)addAdj(seq[k],seq[k+1]);
+  });
+  function isSrc(p){if(isManhole(p))return true;for(var i=0;i<mhs.length;i++){if(Math.hypot(mhs[i].wx-p.x,mhs[i].wy-p.y)<=2.5)return true;}return false;} // 맨홀/입상 2.5m 이내 = 관 공급원
+  var fvisited={}, fpar={}; // fpar[u]=부모쪽으로 흐르는 관수
+  Object.keys(adj).forEach(function(sk){sk=+sk;if(fvisited[sk])return;
+    var comp=[],stk=[sk],cseen={};cseen[sk]=1; // 연결요소 수집
+    while(stk.length){var u=stk.pop();comp.push(u);(adj[u]||[]).forEach(function(v){if(!cseen[v]){cseen[v]=1;stk.push(v);}});}
+    var root=null; // 루트=잎(소스 우선) — T점을 루트로 잡으면 본선도 분기로 세므로 금지
+    for(var a=0;a<comp.length;a++){if((adj[comp[a]]||[]).length<=1&&isSrc(pts[comp[a]])){root=comp[a];break;}}
+    if(root===null)for(var b=0;b<comp.length;b++){if((adj[comp[b]]||[]).length<=1){root=comp[b];break;}}
+    if(root===null)root=comp[0];
+    var parent={},order=[];parent[root]=-1;fvisited[root]=1;var st2=[root];
+    while(st2.length){var u=st2.pop();order.push(u);(adj[u]||[]).forEach(function(v){if(v===parent[u])return;if(fvisited[v])return;fvisited[v]=1;parent[v]=u;st2.push(v);});}
+    for(var oi=order.length-1;oi>=0;oi--){var u=order[oi]; // 후위순회: 잎→루트
+      var ch=(adj[u]||[]).filter(function(v){return parent[v]===u;});
+      var cs=0;ch.forEach(function(c){cs+=fpar[c];}); // 자식 흐름 합
+      var P=pts[u],Np=pipeCount(P);
+      if(Np==null){fpar[u]=cs;continue;}            // 관수 미기재 → 통과
+      if(isSrc(P)){var f=Np-cs;if(cs>Np)issues.push({wx:P.x,wy:P.y,msg:P.no+' 관수 부족: 분기합 '+cs+'공 > '+Np+'공'});fpar[u]=Math.max(f,0);} // 소스=추가 허용
+      else{var mx=0;ch.forEach(function(c){if(fpar[c]>mx)mx=fpar[c];});
+        if(!ch.length)fpar[u]=Np;                                                                          // 잎
+        else if(mx>Np){issues.push({wx:P.x,wy:P.y,msg:'T점 '+P.no+'('+Np+'공) 자식 관수 '+mx+'공 초과'});fpar[u]=Np;}
+        else if(mx===Np)fpar[u]=Np-(cs-mx);                                                                // 본선=자식, 부모=분기
+        else{if(cs!==Np)issues.push({wx:P.x,wy:P.y,msg:'T점 '+P.no+'('+Np+'공) 분기합 '+cs+'공 ≠ '+Np+'공'});fpar[u]=Np;} // 부모=본선
+      }
+    }
+    var rP=pts[root],Nr=pipeCount(rP),rch=(adj[root]||[]).filter(function(v){return parent[v]===root;}),rs=0;
+    rch.forEach(function(c){rs+=fpar[c];});
+    if(!isSrc(rP)&&Nr!=null&&rs!==Nr)issues.push({wx:rP.x,wy:rP.y,msg:'끝점 '+rP.no+'('+Nr+'공) 흐름 '+rs+'공 불일치'});
   });
 
   if(!issues.length){drawMarks();updMeta();showModal({title:'관공수 검수 결과',tone:'ok',body:'<b style="font-size:16px">이상 0</b><br>관수 규칙(연속성·T점 합산) 위반이 없습니다.',buttons:[{label:'확인'}]});return;}
