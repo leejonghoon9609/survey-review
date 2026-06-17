@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 106</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 107</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -4220,7 +4220,10 @@ EOF
   });
   // 결선: LWPOLYLINE (압입=점선) + 지거/압입 멘트(인출선 점선 + 밑줄 + 중앙 글자)
   var LM={'통신관로':['PIPE',1],'지거':['JIGER',2],'압입구간':['PUSH',5]};
-  state.lines.forEach(function(Ln){if(!Ln.pts||Ln.pts.length<2)return;var lm=LM[Ln.layer]||['PIPE',1];
+  var appLay={'통신관로':1,'지거':1,'압입구간':1,'주입상인출선':1};
+  // 백판(수치지도)=앱 레이어 외 라인 → 블록으로 따로 처리(여기선 제외)
+  var baseLines=state.lines.filter(function(l){return (l.base||!appLay[l.layer])&&l.pts&&l.pts.length>=2;});
+  state.lines.forEach(function(Ln){if(!Ln.pts||Ln.pts.length<2)return;if(Ln.base||!appLay[Ln.layer])return;var lm=LM[Ln.layer]||['PIPE',1];
     if(Ln.layer==='압입구간'){dashedPolyline(Ln.pts,'PUSH',5,3.0,2.0);} // 압입=물리적 점선(3m칸/2m간격)
     else pline(Ln.pts,lm[0],lm[1],false);
     if((Ln.layer==='지거'||Ln.layer==='압입구간')&&Ln.note){
@@ -4249,7 +4252,28 @@ EOF
     pline([[mh.wx,mh.wy],[lx,lyy],[ux2,lyy]],lyr,col,false); // 대각선+밑줄=폴리선 1개(붙음)
     if(mh.label)text(lx,lyy+TH*0.45,TH,mh.label,lyr+'_LABEL',col,isRight?0:2); // 꺾임점 기준 정렬(R=좌0,L=우2)
   });
-  var dxf=PRE+E.join('\n')+'\n'+SUF;
+  // ===== 백판(수치지도)을 단일 블록 BACKDROP 으로 묶기 (CAD에서 통째로 선택) =====
+  var PREx=PRE;
+  if(baseLines.length){
+    var BR='F0',BK='F1',EB='F2';                 // 미사용 핸들(충돌 검증됨)
+    var bent=[];                                 // 블록 내부 폴리라인(owner=BLOCK_RECORD BR, 회색8, 레이어0)
+    baseLines.forEach(function(L){
+      var a=['  0','LWPOLYLINE','  5',H(),'330',BR,'100','AcDbEntity','  8','0',' 62','8','100','AcDbPolyline',' 90',String(L.pts.length),' 70','0'];
+      for(var i=0;i<L.pts.length;i++){a.push(' 10',N(L.pts[i][0]),' 20',N(L.pts[i][1]));}
+      bent.push(a.join('\n'));
+    });
+    // 모델스페이스에 INSERT 1개(BACKDROP 참조, 원점·배율1)
+    push(['  0','INSERT','  5',H(),'330','17','100','AcDbEntity','  8','0','100','AcDbBlockReference','  2','BACKDROP',' 10','0',' 20','0',' 30','0',' 41','1',' 42','1',' 43','1',' 50','0']);
+    // BLOCK_RECORD 주입(테이블 ENDTAB 앞)
+    var brStr=['  0','BLOCK_RECORD','  5',BR,'330','9','100','AcDbSymbolTableRecord','100','AcDbBlockTableRecord','  2','BACKDROP'].join('\n')+'\n';
+    PREx=PREx.replace('340\n1E\n  0\nENDTAB','340\n1E\n'+brStr+'  0\nENDTAB');
+    // BLOCK 정의 주입(BLOCKS ENDSEC 앞)
+    var blkBegin=['  0','BLOCK','  5',BK,'330',BR,'100','AcDbEntity','  8','0','100','AcDbBlockBegin','  2','BACKDROP',' 70','0',' 10','0.0',' 20','0.0',' 30','0.0','  3','BACKDROP','  1',''].join('\n');
+    var blkEnd=['  0','ENDBLK','  5',EB,'330',BR,'100','AcDbEntity','  8','0','100','AcDbBlockEnd'].join('\n');
+    var blkStr=blkBegin+'\n'+bent.join('\n')+'\n'+blkEnd+'\n';
+    PREx=PREx.replace('AcDbBlockEnd\n  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES','AcDbBlockEnd\n'+blkStr+'  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES');
+  }
+  var dxf=PREx+E.join('\n')+'\n'+SUF;
   var blob=new Blob([dxf],{type:'application/dxf'});
   var url=URL.createObjectURL(blob);
   var a=document.createElement('a');a.href=url;a.download=((state.projectName||'survey').replace(/[^\w가-힣\-]/g,'_'))+'.dxf';
