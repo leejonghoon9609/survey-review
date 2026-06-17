@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 101</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 103</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -730,7 +730,7 @@ function insertPointAt(wx,wy){
 }
 // 맨홀 통과 결선 1개 추가 (반경 안 가장 가까운 M점 + 건너편 M점 → A·맨홀·B)
 function addManholePassLine(mh){
-  var MHR=2.5;
+  var MHR=4; // 맨홀·입상주 M점 관로선붙이기 반경(4m)
   var nr=state.points.filter(function(p){return isManhole(p)&&Math.hypot(p.x-mh.wx,p.y-mh.wy)<=MHR;})
                      .map(function(p){return {p:p,d:Math.hypot(p.x-mh.wx,p.y-mh.wy)};}).sort(function(a,b){return a.d-b.d;});
   if(!nr.length)return;
@@ -754,6 +754,7 @@ function drawMarks(){ clearSvg(gMark); clearLabels('mk');
     var fillCol=insp?'#f4c400':MKCOL[m.status]; // 검수오류 안쪽=흐린 노랑, 테두리는 빨강 유지
     sh.setAttribute('fill',fillCol);sh.setAttribute('fill-opacity',insp?0.25:0.13);sh.setAttribute('stroke',MKCOL[m.status]);sh.setAttribute('stroke-width',2);sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');
     gMark.appendChild(sh); m.el=sh;
+    if(m.seg){var ln=el('line',{x1:m.seg[0][0],y1:m.seg[0][1],x2:m.seg[1][0],y2:m.seg[1][1],stroke:'#16a34a','stroke-width':2.6,'stroke-dasharray':'6 4','stroke-linecap':'butt','vector-effect':'non-scaling-stroke','pointer-events':'none'});gMark.appendChild(ln);} // 20m 초과 구간 = 초록 점선
     if(m.num)mkLabel(m.cx, m.cy, String(m.num), {fill:'#c0392b',weight:'800',anchor:'middle',grp:'mk',px:15}); // 오류 번호(써클 중앙) — 써클 지우면 같이 사라짐
     if(m.near==='중복'&&m.cnt){mkLabel(m.cx, m.cy-(m.ry||0.7)-0.35, m.cnt+'선', {fill:'#d32f2f',weight:'700',anchor:'middle',grp:'mk',px:14});}
   });
@@ -849,8 +850,8 @@ function autoConnect(){
     if(best)addE(q,best);
   });
 
-  // C) 맨홀 통과 결선: 맨홀 2.5m 안의 '맨홀앞 M측점'만 맨홀 통과로 이어줌(M점만, 관수·각도 무관)
-  var MHR=2.5, mhCount=0;
+  // C) 맨홀·입상주 통과 결선: 4m 안의 '맨홀앞 M측점'만 통과로 이어줌(M점만, 관수·각도 무관)
+  var MHR=4, mhCount=0;
   (state.manholes||[]).forEach(function(mh){
     var nr=pts.filter(function(p){return isManhole(p);}).map(function(p){return {p:p,d:Math.hypot(p.x-mh.wx,p.y-mh.wy)};}).filter(function(o){return o.d<=MHR;}).sort(function(a,b){return a.d-b.d;});
     if(nr.length>=2){var A=nr[0].p,B=nr[1].p;edges=edges.filter(function(e){return !((e[0]===A&&e[1]===B)||(e[0]===B&&e[1]===A));});state.lines.push({layer:'통신관로',pts:[[A.x,A.y],[mh.wx,mh.wy],[B.x,B.y]]});mhCount++;}
@@ -915,7 +916,7 @@ function inspectPipeCount(){
       if(isMHcoord(a)||isMHcoord(b))continue;            // 맨홀 거치는 구간 → 관수 변화 허용
       var pa=findPt(a), pb=findPt(b); if(!pa||!pb)continue; // 측점 매칭 실패(끝점검수 영역)
       if(L.layer==='통신관로'){var dd=Math.hypot(pa.x-pb.x,pa.y-pb.y); // 점간격 20m 초과 검수(결선만, 지거 제외)
-        if(dd>20)issues.push({wx:(pa.x+pb.x)/2,wy:(pa.y+pb.y)/2,msg:pa.no+' ↔ '+pb.no+' 측점간격 '+dd.toFixed(1)+'m > 20m'});}
+        if(dd>20)issues.push({wx:(pa.x+pb.x)/2,wy:(pa.y+pb.y)/2,msg:pa.no+' ↔ '+pb.no+' 측점간격 '+dd.toFixed(1)+'m > 20m',seg:[[pa.x,pa.y],[pb.x,pb.y]]});}
       var ca=pipeCount(pa), cb=pipeCount(pb);
       if(isTpoint(pa)||isTpoint(pb))continue;            // 연속성은 둘 다 비T점만
       if(ca==null||cb==null)continue;                    // 관수 미기재는 스킵
@@ -971,7 +972,7 @@ function inspectPipeCount(){
 
   if(!issues.length){drawMarks();updMeta();showModal({title:'관공수 검수 결과',tone:'ok',body:'<b style="font-size:16px">이상 0</b><br>관수 규칙(연속성·T점 합산) 위반이 없습니다.',buttons:[{label:'확인'}]});return;}
   pushHist();
-  issues.forEach(function(it,i){var sm=S(it.wx,it.wy);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:2.7,ry:2.7,status:'bad',near:'관공수',msg:it.msg,num:i+1});});
+  issues.forEach(function(it,i){var sm=S(it.wx,it.wy);var sg=it.seg?[S(it.seg[0][0],it.seg[0][1]),S(it.seg[1][0],it.seg[1][1])]:null;state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:2.7,ry:2.7,status:'bad',near:'관공수',msg:it.msg,num:i+1,seg:sg});});
   drawMarks();updMeta();
   var list=issues.map(function(it,i){return (i+1)+'. '+it.msg;}).join('<br>');
   showModal({title:'관공수 검수 결과',tone:'bad',
