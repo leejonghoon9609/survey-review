@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 97</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 98</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -800,9 +800,20 @@ function autoConnect(){
   var THRESH=20, pts=state.points; // 공공측량 20m 규정 — 20m 넘는 먼 점엔 결선 안 함
   function D(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
   var edges=[];
-  function addE(p,q){if(p===q)return;for(var i=0;i<edges.length;i++){var e=edges[i];if((e[0]===p&&e[1]===q)||(e[0]===q&&e[1]===p))return;}edges.push([p,q]);}
+  var ufp=new Map(); // 폐합 방지 union-find (지하관로 = 트리, 고리 없음)
+  function ufFind(p){if(!ufp.has(p))ufp.set(p,p);var r=p;while(ufp.get(r)!==r)r=ufp.get(r);while(ufp.get(p)!==r){var n=ufp.get(p);ufp.set(p,r);p=n;}return r;}
+  function addE(p,q){if(p===q)return;if(ufFind(p)===ufFind(q))return; /* 이미 같은 갈래 → 고리 생기므로 건너뜀 */ edges.push([p,q]);ufp.set(ufFind(p),ufFind(q));}
 
-  // A) 본선: 같은 관수끼리만 이어줌(관수별 nearest-neighbor 체인). 관수 다르면 잇지 않음 → 안 맞으면 그 점에서 끝.
+  // B) T점(분기점) 먼저 확정: 주위 '더 작은 관수' 점들을 가까운 순으로 합이 T관수 될 때까지 연결
+  //    (분기를 먼저 잡아야 16·19 같은 끝점끼리 잘못 이어 삼각형(폐합)이 안 생김)
+  pts.forEach(function(P){ if(!isTpoint(P))return; var Np=pipeCount(P); if(Np==null)return;
+    var near=pts.filter(function(q){return q!==P && pipeCount(q)!=null && pipeCount(q)<Np && D(P,q)<=THRESH;})
+                .sort(function(a,b){return D(P,a)-D(P,b);});
+    var acc=0;
+    for(var i=0;i<near.length && acc<Np;i++){var c=pipeCount(near[i]); if(acc+c<=Np){addE(P,near[i]);acc+=c;}}
+  });
+
+  // A) 본선: 같은 관수끼리 nearest-neighbor 체인. 단 이미 연결된(같은 갈래) 점끼린 안 이음(폐합 방지)
   var groups={};
   pts.forEach(function(p){var c=pipeCount(p);var k=(c==null?'?':String(c));(groups[k]=groups[k]||[]).push(p);});
   Object.keys(groups).forEach(function(k){
@@ -815,14 +826,6 @@ function autoConnect(){
       if(bd<=THRESH)addE(cur,nx); // 같은 관수라도 너무 멀면 끊음(별개 구간)
       cur=nx;
     }
-  });
-
-  // B) T점(분기점) 합류: 주위에서 '더 작은 관수' 점들을 가까운 순으로, 합이 T관수가 될 때까지 연결
-  pts.forEach(function(P){ if(!isTpoint(P))return; var Np=pipeCount(P); if(Np==null)return;
-    var near=pts.filter(function(q){return q!==P && pipeCount(q)!=null && pipeCount(q)<Np && D(P,q)<=THRESH;})
-                .sort(function(a,b){return D(P,a)-D(P,b);});
-    var acc=0;
-    for(var i=0;i<near.length && acc<Np;i++){var c=pipeCount(near[i]); if(acc+c<=Np){addE(P,near[i]);acc+=c;}}
   });
 
   // C) 맨홀 통과 결선: 맨홀 2.5m 안의 '맨홀앞 M측점'만 맨홀 통과로 이어줌(M점만, 관수·각도 무관)
@@ -903,7 +906,7 @@ function inspectPipeCount(){
   // ===== T점 관 흐름 보존 검수 (트리: 맨홀/입상에서만 관 추가) =====
   var adj={};
   function addAdj(u,w){if(u===w)return;adj[u]=adj[u]||[];adj[w]=adj[w]||[];if(adj[u].indexOf(w)<0)adj[u].push(w);if(adj[w].indexOf(u)<0)adj[w].push(u);}
-  state.lines.forEach(function(L){if(L.layer!=='통신관로'||!L.pts)return; // 결선만(지거 제외)
+  state.lines.forEach(function(L){if((L.layer!=='통신관로'&&L.layer!=='지거')||!L.pts)return; // 결선+지거(연결되면 같은 관망으로 계산)
     var seq=[]; // 선을 따라가며 측점 순서 수집(맨홀 꼭짓점은 건너뛰되 양옆 측점 연결)
     L.pts.forEach(function(v){if(isMHcoord(v))return;var p=findPt(v);if(p){var i=idxOf(p);if(i>=0&&(!seq.length||seq[seq.length-1]!==i))seq.push(i);}});
     for(var k=0;k<seq.length-1;k++)addAdj(seq[k],seq[k+1]);
@@ -919,6 +922,14 @@ function inspectPipeCount(){
     if(root===null)root=comp[0];
     var parent={},order=[];parent[root]=-1;fvisited[root]=1;var st2=[root];
     while(st2.length){var u=st2.pop();order.push(u);(adj[u]||[]).forEach(function(v){if(v===parent[u])return;if(fvisited[v])return;fvisited[v]=1;parent[v]=u;st2.push(v);});}
+    var ecnt=0;comp.forEach(function(n){ecnt+=(adj[n]||[]).length;});ecnt/=2; // 컴포넌트 엣지 수
+    if(ecnt>comp.length-1){ // 트리(노드수-1)보다 엣지 많음 = 폐합(고리) 있음 → 흐름 계산 신뢰 불가, 고리만 표시
+      var done=false;
+      for(var ci=0;ci<comp.length&&!done;ci++){var cu=comp[ci],nbs=adj[cu]||[];
+        for(var ni=0;ni<nbs.length;ni++){var cv=nbs[ni];if(cu<cv&&parent[cu]!==cv&&parent[cv]!==cu){
+          issues.push({wx:(pts[cu].x+pts[cv].x)/2,wy:(pts[cu].y+pts[cv].y)/2,msg:'폐합(고리) 결선: '+pts[cu].no+' ↔ '+pts[cv].no+' — 지하관로는 고리가 없어야 함'});done=true;break;}}}
+      return;
+    }
     for(var oi=order.length-1;oi>=0;oi--){var u=order[oi]; // 후위순회: 잎→루트
       var ch=(adj[u]||[]).filter(function(v){return parent[v]===u;});
       var cs=0;ch.forEach(function(c){cs+=fpar[c];}); // 자식 흐름 합
