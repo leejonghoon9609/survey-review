@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 86</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 87</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -852,7 +852,7 @@ function inspectPipeCount(){
   var issues=[]; // {wx,wy,msg}
   var tNb={}; pts.forEach(function(p,i){if(isTpoint(p))tNb[i]=[];}); // T점 이웃 수집(규칙2)
 
-  state.lines.forEach(function(L){if(L.layer!=='통신관로'||!L.pts||L.pts.length<2)return;
+  state.lines.forEach(function(L){if((L.layer!=='통신관로'&&L.layer!=='지거')||!L.pts||L.pts.length<2)return; // 결선+지거선 함께
     for(var s=0;s<L.pts.length-1;s++){
       var a=L.pts[s], b=L.pts[s+1];
       if(isMHcoord(a)||isMHcoord(b))continue;            // 맨홀 거치는 구간 → 관수 변화 허용
