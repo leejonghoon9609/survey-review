@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 105</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 106</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -4277,6 +4277,16 @@ function delHoverHighlight(cw){clearSvg(gDraw);var best=null,bd=1e18;
 function startDraw(layer){drawLayer=layer||'통신관로';mode='line';setModeUI();lineDraft=[];clearSvg(gDraft);clearSvg(gDraw);toast((drawLayer==='지거'?'지거선':(drawLayer==='압입구간'?'압입구간':'관로선'))+' 그리기: 점 클릭 → Enter/Space 또는 "완료" (되돌리기=한 점 취소)');}
 function finishDraw(){if(lineDraft&&lineDraft.length>=2){pushHist();var rec={layer:drawLayer,pts:lineDraft.slice()};if(drawLayer==='지거'){rec.note='점(번호 :  )';}else if(drawLayer==='압입구간'){rec.note='압입구간 ';}state.lines.push(rec);}lineDraft=null;previewLine=null;clearSvg(gDraft);clearSvg(gDraw);mode='pan';setModeUI();drawGeo();updMeta();}
 function clearLines(){pushHist();state.lines=state.lines.filter(function(l){return l.layer!=='통신관로';});drawGeo();updMeta();toast('결선 모두 삭제');}
+// 수치지도 백판 전체 삭제 (앱 레이어=통신관로·지거·압입·주입상인출선 외 모두 = 백판)
+function clearBaseMap(){
+  var app={'통신관로':1,'지거':1,'압입구간':1,'주입상인출선':1};
+  var isBase=function(l){return l.base||!app[l.layer];};
+  var n=state.lines.filter(isBase).length;
+  if(!n){toast('삭제할 백판이 없습니다');return;}
+  pushHist();
+  state.lines=state.lines.filter(function(l){return !isBase(l);});
+  drawGeo();updMeta();toast('백판(수치지도) '+n+'개 라인 전체 삭제');
+}
 function clearAllDraw(){pushHist();state.lines=state.lines.filter(function(l){return l.layer!=='통신관로'&&l.layer!=='지거';});drawGeo();updMeta();toast('관로선·지거선 전체삭제');}
 function clearAllSym(){
   var nL=(state.lines||[]).length, nM=(state.manholes||[]).length;
@@ -4457,7 +4467,8 @@ function bind(id,fn){document.getElementById(id).onclick=fn;}
 var TB=[
   {k:'data',label:'기초자료 업로드',icon:'📁',c:{bg:'#eceef1',fg:'#6e757f'},tools:[
     {t:'CSV 업로드',tone:'data',fn:function(){document.getElementById('fCsv').click();}},
-    {t:'결선 DXF',tone:'data',fn:function(){document.getElementById('fDxf').click();}}]},
+    {t:'수치지도 DXF업로드',tone:'data',fn:function(){document.getElementById('fDxf').click();}},
+    {t:'백판 삭제',tone:'delall',fn:clearBaseMap}]},
   {k:'pan',label:'선택·이동',icon:'✋',c:{bg:'#fdf1dd',fg:'#d98200'},setmode:'pan',hint:'측점 클릭=선택 · 라벨 끌어 이동 · 휠 확대 · 가운데버튼 화면이동',tools:[]},
   {k:'mh',label:'맨홀편집',icon:'◎',c:{bg:'#efeafa',fg:'#7a52e0'},tools:[
     {t:'맨홀심기',tone:'draw',mode:'mhplace',hint:'도면에서 맨홀 위치를 클릭하세요'},
@@ -4625,7 +4636,7 @@ bind('newProj',function(){var n=prompt('새 현장명을 입력하세요 (예: �
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){pushHist();if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)loadProject(e.target.value);});
 document.getElementById('fCsv').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.manholes=[];state.projectId=null;state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화 / 현장명: '+state.projectName+')');};rd.readAsArrayBuffer(f);e.target.value='';});
-document.getElementById('fDxf').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var ln=parseDxfLines(decodeBuf(rd.result));state.lines=state.lines.filter(function(l){return l.layer==='지거'||l.layer==='압입구간'||l.layer==='주입상인출선';}).concat(ln);drawGeo();fitView();updMeta();toast('DXF 라인 '+ln.length+'개 로드');}catch(err){toast('DXF 파싱 오류');}};rd.readAsArrayBuffer(f);e.target.value='';});
+document.getElementById('fDxf').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var ln=parseDxfLines(decodeBuf(rd.result));ln.forEach(function(l){l.base=true;});state.lines=state.lines.filter(function(l){return !l.base;}).concat(ln);drawGeo();fitView();updMeta();toast('수치지도 백판 '+ln.length+'개 라인 로드');}catch(err){toast('DXF 파싱 오류');}};rd.readAsArrayBuffer(f);e.target.value='';});
 
 /* ====== 샘플 데이터 (수원 권선동 1041-6) ====== */
 function loadSample(){
