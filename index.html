@@ -96,7 +96,7 @@
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 92</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 93</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -903,8 +903,9 @@ function inspectPipeCount(){
 
   Object.keys(tNb).forEach(function(ti){
     var P=pts[ti], Np=pipeCount(P); if(Np==null)return;
-    var br=tNb[ti].filter(function(c){return c!=null&&c<Np;}); // 분기 가닥(작은 관수)
-    if(!br.length)return; var sum=0; br.forEach(function(c){sum+=c;});
+    var nbs=tNb[ti].filter(function(c){return c!=null;}); if(!nbs.length)return;
+    var brs=nbs.slice(); var trunk=brs.indexOf(Np); if(trunk>=0)brs.splice(trunk,1); // 본선(관수==T) 1개 제거, 나머지 전부 분기
+    var sum=0; brs.forEach(function(c){sum+=c;});
     if(sum!==Np)issues.push({wx:P.x,wy:P.y,msg:'T점 '+P.no+'('+Np+'공) 분기합 '+sum+'공 ≠ '+Np+'공'});
   });
 
