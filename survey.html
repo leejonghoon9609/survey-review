@@ -91,18 +91,19 @@
   .rf-ok{padding:9px 26px;border:1px solid var(--ok);background:var(--ok);color:#fff;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
   .rf-ok:hover{background:#258a45}
   @media (max-width:720px){.regcards{grid-template-columns:1fr 1fr}}
-  /* 지도/로드뷰 오버레이 */
-  .mapwrap{position:fixed;inset:0;background:#fff;z-index:210;display:flex;flex-direction:column}
-  .maphd{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--line);background:#fff}
-  .maphd .mapt{font-size:16px;font-weight:800}
-  .maphd .mapinfo{font-size:12px;color:var(--muted)}
-  .maphd .mapx{margin-left:auto}
+  /* 지도 배경 레이어 (도면 자리에 깔림) */
+  .maplayer{position:absolute;inset:0;z-index:8;background:#fff;display:flex;flex-direction:column}
+  .maptop{display:flex;align-items:center;gap:9px;padding:7px 12px;border-bottom:1px solid var(--line);background:#fff}
+  .maptop .mapt{font-size:14px;font-weight:800}
+  .maptop .mapinfo{font-size:12px;color:var(--muted)}
+  .maptop #rvModeBtn{margin-left:auto}
+  .maptop #rvModeBtn.on{background:#1f6fd6;color:#fff;border-color:#1f6fd6}
   .mapbtn2{border:1px solid var(--line);background:#fff;border-radius:7px;padding:6px 12px;cursor:pointer;font-size:13px;font-weight:600}
   .mapbtn2:hover{background:#f3f3f0}
   .mapbody{flex:1;display:flex;min-height:0}
   #kmap{flex:1;min-width:0}
   #krvpane{width:0;min-width:0;border-left:1px solid var(--line);position:relative;display:flex;flex-direction:column;transition:width .18s}
-  .mapwrap.rv-on #krvpane{width:46%}
+  .maplayer.rv-on #krvpane{width:46%}
   #kroadview{flex:1;min-height:0}
   .krvhd{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);background:#fff}
   .krvhd b{font-size:13px}
@@ -160,7 +161,7 @@
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
     <button id="mapBtn" class="photoBtn">🗺 지도/로드뷰</button>
     <span id="globalbtns" class="hgbtns" style="margin-left:auto"></span>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 124</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 125</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -173,6 +174,22 @@
       <div id="lblOverlay" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:5"></div>
       <div id="coordBox" class="coordbox">X <b>–</b>　Y <b>–</b></div>
       <div id="toast" class="toast"></div>
+      <div id="mapLayer" class="maplayer" style="display:none">
+        <div class="maptop">
+          <span class="mapt">🗺 지도 배경</span>
+          <span id="mapInfo" class="mapinfo"></span>
+          <button id="rvModeBtn" class="mapbtn2">로드뷰</button>
+          <button id="mapFit" class="mapbtn2">전체보기</button>
+        </div>
+        <div class="mapbody">
+          <div id="kmap"></div>
+          <div id="krvpane">
+            <div class="krvhd"><b>로드뷰</b><span id="krvpt"></span><button id="krvx" class="mapbtn2">닫기 ✕</button></div>
+            <div id="kroadview"></div>
+            <div id="krvmsg">이 지점 근처에 로드뷰가 없습니다.<br>(도로에서 떨어진 위치)</div>
+          </div>
+        </div>
+      </div>
     </div>
     </div>
     <div id="photoPanel" class="photo-panel">
@@ -248,24 +265,6 @@
       <div class="regfoot">
         <button id="regCancel" class="rf-cancel">취소</button>
         <button id="regOk" class="rf-ok">등록</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 지도 / 로드뷰 오버레이 -->
-  <div id="mapModal" class="mapwrap" style="display:none">
-    <div class="maphd">
-      <span class="mapt">🗺 지도 / 로드뷰</span>
-      <span id="mapInfo" class="mapinfo"></span>
-      <button id="mapFit" class="mapbtn2">전체보기</button>
-      <button id="mapX" class="mapx">닫기 ✕</button>
-    </div>
-    <div class="mapbody">
-      <div id="kmap"></div>
-      <div id="krvpane">
-        <div class="krvhd"><b>로드뷰</b><span id="krvpt"></span><button id="krvx" class="mapbtn2">닫기 ✕</button></div>
-        <div id="kroadview"></div>
-        <div id="krvmsg">이 지점 근처에 로드뷰가 없습니다.<br>(도로에서 떨어진 위치일 수 있어요)</div>
       </div>
     </div>
   </div>
@@ -5042,20 +5041,39 @@ function loadKakao(cb){
   s.onerror=function(){window.__kakaoLoading=false;toast('카카오 지도 로드 실패 — 네트워크 또는 도메인 등록을 확인하세요');};
   document.head.appendChild(s);
 }
-function openMapView(){
-  if(!state.points||!state.points.length){toast('먼저 측점(CSV)을 불러오세요');return;}
-  document.getElementById('mapModal').style.display='flex';
-  loadKakao(function(){
-    if(!kmap){
-      kmap=new kakao.maps.Map(document.getElementById('kmap'),{center:new kakao.maps.LatLng(37.27,127.0),level:3});
-      krv=new kakao.maps.Roadview(document.getElementById('kroadview'));
-      krvClient=new kakao.maps.RoadviewClient();
-    }
-    kmap.relayout();
-    buildMapData();
-  });
+function toggleMapView(){
+  var layer=document.getElementById('mapLayer'),btn=document.getElementById('mapBtn');
+  if(layer.style.display==='none'||!layer.style.display){
+    if(!state.points||!state.points.length){toast('먼저 측점(CSV)을 불러오세요');return;}
+    layer.style.display='flex';btn.classList.add('on');
+    loadKakao(function(){
+      if(!kmap){
+        kmap=new kakao.maps.Map(document.getElementById('kmap'),{center:new kakao.maps.LatLng(37.27,127.0),level:3});
+        kmap.addControl(new kakao.maps.ZoomControl(),kakao.maps.ControlPosition.RIGHT);
+        krv=new kakao.maps.Roadview(document.getElementById('kroadview'));
+        krvClient=new kakao.maps.RoadviewClient();
+      }
+      kmap.relayout();buildMapData();
+    });
+  }else{layer.style.display='none';btn.classList.remove('on');}
 }
-function closeMapView(){document.getElementById('mapModal').style.display='none';}
+var rvOverlay=null,rvClickHandler=null,rvMode=false;
+function toggleRvMode(){
+  if(!kmap)return;
+  rvMode=!rvMode;var b=document.getElementById('rvModeBtn');
+  if(rvMode){
+    b.classList.add('on');
+    if(!rvOverlay)rvOverlay=new kakao.maps.RoadviewOverlay();
+    rvOverlay.setMap(kmap);
+    rvClickHandler=function(e){var ll=e.latLng;showKRoadview(ll.getLat(),ll.getLng(),'클릭 위치');};
+    kakao.maps.event.addListener(kmap,'click',rvClickHandler);
+    toast('로드뷰: 파란 도로선 위 원하는 곳을 클릭하세요');
+  }else{
+    b.classList.remove('on');
+    if(rvOverlay)rvOverlay.setMap(null);
+    if(rvClickHandler){kakao.maps.event.removeListener(kmap,'click',rvClickHandler);rvClickHandler=null;}
+  }
+}
 function buildMapData(){
   if(!kmap)return;
   kMarkers.forEach(function(m){m.setMap(null);});kMarkers=[];
@@ -5081,7 +5099,7 @@ function buildMapData(){
   document.getElementById('mapInfo').textContent=n+'개 측점 · '+kLines.length+'개 결선/관로 · 마커 클릭=로드뷰';
 }
 function showKRoadview(lat,lng,label){
-  document.getElementById('mapModal').classList.add('rv-on');
+  document.getElementById('mapLayer').classList.add('rv-on');
   document.getElementById('krvpt').textContent=label||'';
   setTimeout(function(){if(kmap)kmap.relayout();},200);
   var pos=new kakao.maps.LatLng(lat,lng);
@@ -5090,10 +5108,10 @@ function showKRoadview(lat,lng,label){
     else{document.getElementById('krvmsg').style.display='none';krv.setPanoId(panoId,pos);setTimeout(function(){krv.relayout();},220);}
   });
 }
-bind('mapBtn',openMapView);
-bind('mapX',closeMapView);
+bind('mapBtn',toggleMapView);
+bind('rvModeBtn',toggleRvMode);
 document.getElementById('mapFit').onclick=function(){if(kmap&&kMarkers.length){var b=new kakao.maps.LatLngBounds();kMarkers.forEach(function(m){b.extend(m.getPosition());});kmap.setBounds(b);}};
-document.getElementById('krvx').onclick=function(){document.getElementById('mapModal').classList.remove('rv-on');setTimeout(function(){if(kmap)kmap.relayout();},200);};
+document.getElementById('krvx').onclick=function(){document.getElementById('mapLayer').classList.remove('rv-on');setTimeout(function(){if(kmap)kmap.relayout();},200);};
 bind('newProj',function(){var n=prompt('새 현장명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.manholes=[];photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 현장: '+n+' (CSV 업로드 후 저장)');});
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){pushHist();if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)loadProject(e.target.value);});
