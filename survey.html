@@ -163,7 +163,7 @@
     <button id="mapBtn" class="photoBtn">🗺 지도/로드뷰</button>
     <button id="bgBtn" class="photoBtn">🗺 지도배경</button>
     <span id="globalbtns" class="hgbtns" style="margin-left:auto"></span>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 128</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 129</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5328,6 +5328,11 @@ cwrap.addEventListener('mousemove',function(e){
 });
 cwrap.addEventListener('mouseleave',coordReset);
 window.addEventListener('resize',function(){fixAspect();applyVB();placeCoord();if(typeof drawGeo==='function'){drawGeo();drawManholes();highlightSel();}});
+// 캔버스 영역 크기 변화(사진패널 열기/닫기·창 크기 등) 감지 → 배경지도 relayout + 종횡비 재맞춤
+if(window.ResizeObserver){
+  var _cwEl=document.querySelector('.canvas-wrap');
+  if(_cwEl){var _cwro=new ResizeObserver(function(){if(bgMapOn&&bgmap){try{bgmap.relayout();}catch(e){}}fixAspect();applyVB();});_cwro.observe(_cwEl);}
+}
 coordReset();
 window.addEventListener('keydown',function(e){
   var tg=((e.target||{}).tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tg))return;
