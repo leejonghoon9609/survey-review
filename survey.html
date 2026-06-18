@@ -40,6 +40,8 @@
   .hk-foot{padding:11px 18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
   button.soon{color:#b0b0b0;border-style:dashed}
   .viewgrp{margin-left:auto;display:flex;gap:6px;align-items:center}
+  .hgbtns{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .hgbtns .subhint{margin:0 2px}
   .zoomwrap2{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
   .zoomwrap2 button{border:none;border-right:1px solid var(--line);border-radius:0}
   .zoomwrap2 button:last-child{border-right:none}
@@ -138,7 +140,8 @@
     <button id="save" class="pri">저장</button>
     <button id="delProj" class="dgr">사업 삭제</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 122</span>
+    <span id="globalbtns" class="hgbtns" style="margin-left:auto"></span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 123</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -4797,9 +4800,10 @@ function renderSub(){
   if(mode==='line')html+='<button id="lineDone" class="on">완료</button>';
   var kbM=keyForAction('fixed:measure'),kbU=keyForAction('fixed:undo'),kbR=keyForAction('fixed:redo'),kbC=keyForAction('fixed:clearsym');
   var bdg=function(k){return k?' <span class="hk-badge" style="margin-left:4px">'+k+'</span>':'';};
-  html+='<span class="viewgrp"><button data-g="delall2" style="border:1px solid #c0392b;color:#c0392b;font-weight:700">🧹 지우기(통합)'+bdg(kbC)+'</button><button data-g="measure" style="border:1px solid #d32f2f;color:#d32f2f;font-weight:700"><span style="color:#f2b400">📏</span> 거리산출'+bdg(kbM)+'</button><button data-g="undo">← 되돌리기'+bdg(kbU)+'</button><button data-g="redo">다시 실행 →'+bdg(kbR)+'</button>'
-      +'<span class="subhint">보기</span><button data-g="fit">전체</button></span>';
+  var vhtml='<button data-g="delall2" style="border:1px solid #c0392b;color:#c0392b;font-weight:700">🧹 지우기(통합)'+bdg(kbC)+'</button><button data-g="measure" style="border:1px solid #d32f2f;color:#d32f2f;font-weight:700"><span style="color:#f2b400">📏</span> 거리산출'+bdg(kbM)+'</button><button data-g="undo">← 되돌리기'+bdg(kbU)+'</button><button data-g="redo">다시 실행 →'+bdg(kbR)+'</button>'
+      +'<span class="subhint">보기</span><button data-g="fit">전체</button>';
   s.innerHTML=html;
+  var gb=document.getElementById('globalbtns'); if(gb)gb.innerHTML=vhtml;
   c.tools.forEach(function(tool,i){if(tool.soon)return;var b=s.querySelector('button[data-i="'+i+'"]');if(!b)return;
     b.onclick=function(){
       if(tool.delLayer)delLayer=tool.delLayer;
@@ -4810,14 +4814,14 @@ function renderSub(){
     };});
   s.querySelectorAll('button.soon').forEach(function(b){b.onclick=function(){toast(b.textContent+' — 다음 단계에서 추가 예정');};});
   var ld=document.getElementById('lineDone');if(ld)ld.onclick=finishDraw;
-  s.querySelectorAll('button[data-g]').forEach(function(b){b.onclick=function(){var g=b.getAttribute('data-g');
+  if(gb)gb.querySelectorAll('button[data-g]').forEach(function(b){b.onclick=function(){var g=b.getAttribute('data-g');
     if(g==='undo')doUndo();
     else if(g==='redo')doRedo();
     else if(g==='delall2'){if(mode==='delall2'){mode='pan';toast('통합 지우기 종료');}else{mode='delall2';toast('통합 지우기: 지울 선·맨홀·입상주·측점을 클릭하세요 (선택한 것만 삭제)');}setModeUI();}
     else if(g==='measure'){if(mode==='measure'){mode='pan';measurePts=[];clearSvg(gMeasure);clearLabels('measure');toast('거리산출 종료');}else{mode='measure';measurePts=[];clearSvg(gMeasure);clearLabels('measure');toast('거리산출: 두 점을 클릭하세요 (측점·맨홀 자동 스냅, 3번째 클릭은 새로 시작)');}setModeUI();}
     else if(g==='fit'){fitView();drawGeo();drawManholes();}};});
-  var db=s.querySelector('button[data-g="delall2"]');if(db&&mode==='delall2'){db.style.background='#c0392b';db.style.color='#fff';db.style.borderColor='#c0392b';}
-  var mb=s.querySelector('button[data-g="measure"]');if(mb&&mode==='measure'){mb.style.background='#e8590c';mb.style.color='#fff';mb.style.borderColor='#e8590c';}
+  var db=gb&&gb.querySelector('button[data-g="delall2"]');if(db&&mode==='delall2'){db.style.background='#c0392b';db.style.color='#fff';db.style.borderColor='#c0392b';}
+  var mb=gb&&gb.querySelector('button[data-g="measure"]');if(mb&&mode==='measure'){mb.style.background='#e8590c';mb.style.color='#fff';mb.style.borderColor='#e8590c';}
 }
 /* ====== 단축키 시스템 ====== */
 var HK_KEY='survey_hotkeys';
@@ -4843,8 +4847,8 @@ function actionList(){var arr=[];
 function runAction(id){
   if(id==='fixed:undo'){doUndo();return;}
   if(id==='fixed:redo'){doRedo();return;}
-  if(id==='fixed:clearsym'){var cb=document.querySelector('#subbar button[data-g="delall2"]');if(cb)cb.click();return;}
-  if(id==='fixed:measure'){var mb=document.querySelector('#subbar button[data-g="measure"]');if(mb)mb.click();return;}
+  if(id==='fixed:clearsym'){var cb=document.querySelector('#globalbtns button[data-g="delall2"]');if(cb)cb.click();return;}
+  if(id==='fixed:measure'){var mb=document.querySelector('#globalbtns button[data-g="measure"]');if(mb)mb.click();return;}
   if(id.indexOf('cat:')===0){var k=id.slice(4);activeCat=k;var c=curCat();
     if(c.setmode){mode=c.setmode;cv.classList.toggle('draw',mode!=='pan');setModeUI();}
     renderRail();renderSub();if(c.hint&&!c.tools.length)toast(c.hint);}
