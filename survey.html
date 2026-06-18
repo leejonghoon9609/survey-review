@@ -1,0 +1,4942 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>지하시설물 후측량 검수 시스템</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--line:#e3e3e0;--ink:#1c1c1a;--muted:#6b6b66;--bg:#fafaf8;--ok:#2a9e50;--bad:#d32f2f;--accent:#1f6fd6}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);background:var(--bg);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 14px;border-bottom:1px solid var(--line);background:#fff}
+  header h1{font-size:14px;font-weight:600;margin-right:6px}
+  select,input[type=text]{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink)}
+  .conn{font-size:12px;padding:4px 8px;border-radius:6px;margin-left:auto}
+  .conn.on{background:#eef6ef;color:var(--ok)} .conn.off{background:#f3f3f0;color:var(--muted)}
+  .subbar{display:flex;flex-wrap:wrap;gap:7px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);background:#fff;min-height:62px}
+  .sub-b{padding:11px 15px;font-size:14px;border-radius:8px}
+  .subhint{font-size:12px;color:var(--muted)}
+  .rail{width:205px;flex:none;border-right:1px solid var(--line);background:#fafaf8;padding:8px;display:flex;flex-direction:column;gap:7px;overflow-y:auto}
+  .rail button{justify-content:flex-start;width:100%;padding:11px 12px;font-size:14px}
+  .rail button.on{background:#eef6ef;border-color:var(--ok);color:var(--ok);font-weight:600}
+  .rail .sep{height:1px;background:var(--line);margin:3px 1px}
+  .hk-badge{margin-left:auto;display:inline-block;background:transparent;color:#c0392b;border:1.5px solid #c0392b;font-size:10px;font-weight:800;padding:0 5px;border-radius:4px;min-width:16px;text-align:center;line-height:1.6}
+  .sub-b .hk-badge{margin-left:6px}
+  .hk-overlay{position:fixed;inset:0;background:rgba(20,20,18,.38);z-index:1000;display:flex;align-items:center;justify-content:center}
+  .hk-card{background:#fff;border-radius:13px;width:520px;max-width:92vw;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 10px 40px rgba(0,0,0,.25);overflow:hidden}
+  .hk-card h3{font-size:15px;font-weight:700;padding:15px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .hk-body{overflow:auto;padding:8px 10px}
+  .hk-grp{font-size:11px;font-weight:700;color:var(--muted);padding:9px 8px 4px}
+  .hk-row{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:7px}
+  .hk-row:hover{background:#fafaf8}
+  .hk-row .nm{flex:1;font-size:13px;color:var(--ink)}
+  .hk-row .keyb{min-width:52px;text-align:center;font-size:12px;font-weight:700;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;cursor:pointer;color:var(--ink)}
+  .hk-row .keyb.cap{border-color:var(--accent);color:var(--accent);background:#eef4fc}
+  .hk-row .keyb.set{border-color:#c0392b;color:#c0392b}
+  .hk-row .clr{font-size:12px;color:#bbb;cursor:pointer;padding:2px 6px;border:1px solid var(--line);border-radius:5px;background:#fff}
+  .hk-row .clr:hover{color:var(--bad);border-color:var(--bad)}
+  .hk-foot{padding:11px 18px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px}
+  button.soon{color:#b0b0b0;border-style:dashed}
+  .viewgrp{margin-left:auto;display:flex;gap:6px;align-items:center}
+  .zoomwrap2{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+  .zoomwrap2 button{border:none;border-right:1px solid var(--line);border-radius:0}
+  .zoomwrap2 button:last-child{border-right:none}
+  button{font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--line);background:#fff;border-radius:7px;cursor:pointer;color:var(--ink);display:inline-flex;align-items:center;gap:5px;transition:.12s;white-space:nowrap}
+  button:hover{background:#f2f2ef}
+  button.on{border-color:var(--ink);background:#f2f2ef;font-weight:600}
+  button.on-ok{border-color:var(--ok);color:var(--ok);background:#eef6ef;font-weight:600}
+  button.on-bad{border-color:var(--bad);color:var(--bad);background:#fbeeee;font-weight:600}
+  button.pri{border-color:var(--accent);color:var(--accent)}
+  .stage{flex:1;display:flex;min-height:0}
+  .maincol{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
+  .canvas-wrap{flex:1;position:relative;background:#fff;min-width:0}
+  svg#cv{width:100%;height:100%;display:block;touch-action:none;cursor:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='80'%20height='80'%3E%3Cg%20stroke='%23000'%20stroke-width='1'%20fill='none'%3E%3Crect%20x='34'%20y='34'%20width='12'%20height='12'/%3E%3Cline%20x1='0'%20y1='40'%20x2='30'%20y2='40'/%3E%3Cline%20x1='50'%20y1='40'%20x2='80'%20y2='40'/%3E%3Cline%20x1='40'%20y1='0'%20x2='40'%20y2='30'/%3E%3Cline%20x1='40'%20y1='50'%20x2='40'%20y2='80'/%3E%3C/g%3E%3C/svg%3E") 40 40, crosshair}
+  .panel{width:240px;border-left:1px solid var(--line);background:#fff;display:none;flex-direction:column}
+  .panel h2{font-size:11px;font-weight:600;padding:9px 12px;border-bottom:1px solid var(--line);color:var(--muted);display:flex;justify-content:space-between}
+  .recs{flex:1;overflow:auto;padding:8px;display:flex;flex-direction:column;gap:6px}
+  .rec{display:flex;align-items:center;gap:7px;font-size:12px;padding:6px 8px;border:1px solid var(--line);border-radius:7px}
+  .dot{width:11px;height:11px;flex:none}.dot.box{border-radius:2px}.dot.cir{border-radius:50%}
+  .rec .del{padding:2px 7px;font-size:12px;line-height:1;color:#999;border:1px solid var(--line);background:#fff;border-radius:5px;cursor:pointer}
+  .rec .del:hover{color:var(--bad);border-color:var(--bad);background:#fbeeee}
+  .empty{font-size:12px;color:var(--muted);padding:8px}
+  .meta{font-size:12px;color:var(--muted);padding:8px 12px;border-top:1px solid var(--line);line-height:1.6}
+  .toast{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);background:#1c1c1a;color:#fff;font-size:12px;padding:8px 14px;border-radius:8px;opacity:0;transition:.25s;pointer-events:none}
+  .toast.show{opacity:.95}
+  .coordbox{position:fixed;right:10px;bottom:10px;z-index:50;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:12px;color:var(--ink);font-variant-numeric:tabular-nums;pointer-events:none;box-shadow:0 1px 6px rgba(0,0,0,.12);line-height:1.5}
+  .coordbox b{font-weight:600}
+  .coordbox .cb-near{display:block;color:var(--muted);font-size:11px;margin-top:1px}
+  .recclr{padding:2px 8px;font-size:11px;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer}
+  .recclr:hover{color:var(--bad);border-color:var(--bad);background:#fbeeee}
+  .photoBtn{background:#eef6ef;border-color:#bcdcc0;color:#2a9e50;font-weight:600}
+  .photo-panel{width:37%;min-width:480px;max-width:44%;background:#fff;border-left:1px solid var(--line);display:none;flex-direction:column;flex:none}
+  .linkon{background:#eef6ef;border-color:#bcdcc0;color:#2a9e50;font-weight:600}
+  .photo-panel.open{display:flex}
+  .php-head{display:flex;gap:8px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .php-head h3{font-size:13px;font-weight:600;margin-right:auto}
+  .php-body{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:10px;min-height:0}
+  .php-main,.php-sub{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fafaf8;display:flex;flex-direction:column}
+  .php-main{flex:3;min-height:160px}
+  .php-main .cap,.php-sub .cap{font-size:15px;color:#0d47a1;font-weight:700;padding:7px 11px;border-bottom:1px solid var(--line);background:#fff;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .php-main .cap{font-size:16px}
+  .zoomwrap{flex:1;min-height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#f3f3f0;position:relative}
+  .php-main .zoomwrap .ph{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;flex:none}
+  .php-main .ph{flex:1;width:100%;height:auto;min-height:0;object-fit:contain;background:#f3f3f0;display:block}
+  .php-row{display:flex;gap:10px;flex:2;min-height:130px}
+  .php-sub{flex:1;min-width:0}
+  .php-sub .ph{flex:1;width:100%;height:auto;min-height:0;object-fit:contain;background:#f3f3f0;display:block}
+  .ph.php-none{display:flex;align-items:center;justify-content:center;color:#bbb;font-size:12px}
+  @media(max-width:760px){.glbl{display:none}.coordbox{font-size:11px;padding:5px 8px}.photo-panel{width:100%;min-width:0}.php-main{min-height:140px}.php-row{min-height:120px}}
+</style>
+</head>
+<body>
+  <header>
+    <h1>후측량 검수 시스템</h1>
+    <select id="proj"><option value="">현장 선택…</option></select>
+    <button id="newProj">＋ 새 현장</button>
+    <button id="save" class="pri">저장</button>
+    <button id="photoBtn" class="photoBtn">측점사진보기</button>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 117</span>
+    <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
+  </header>
+
+  <div class="stage">
+    <div class="rail" id="rail"></div>
+    <div class="maincol">
+      <div class="subbar" id="subbar"></div>
+    <div class="canvas-wrap">
+      <svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div id="lblOverlay" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:5"></div>
+      <div id="coordBox" class="coordbox">X <b>–</b>　Y <b>–</b></div>
+      <div id="toast" class="toast"></div>
+    </div>
+    </div>
+    <div id="photoPanel" class="photo-panel">
+      <div class="php-head">
+        <h3>측점 사진</h3>
+        <select id="photoSel"><option value="">측점 선택…</option></select>
+        <button id="photoLinkBtn" class="linkon">🔗 연동</button>
+        <button id="photoUp">사진 업로드</button>
+        <button id="photoClose">✕</button>
+      </div>
+      <div class="php-body" id="photoBody"></div>
+    </div>
+    <aside class="panel">
+      <h2><span>검수 기록</span><span style="display:flex;gap:8px;align-items:center"><button id="recClear" class="recclr">전체삭제</button><span id="recCount">0</span></span></h2>
+      <div class="recs" id="recs"><div class="empty">표시 없음</div></div>
+      <div class="meta" id="meta">현장 미선택 · 측량점 0</div>
+    </aside>
+  </div>
+
+  <input type="file" id="fCsv" accept=".csv" style="display:none">
+  <input type="file" id="fDxf" accept=".dxf" style="display:none">
+  <input type="file" id="fPhotos" accept="image/*" multiple style="display:none">
+
+<script>
+/* ====== 설정: 본인 Supabase 정보 입력 (비우면 로컬 모드) ====== */
+var SUPABASE_URL = "https://yidswostdxaejjeikxhg.supabase.co";
+var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZHN3b3N0ZHhhZWpqZWlreGhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NjM1MDAsImV4cCI6MjA5MzUzOTUwMH0.DIP9Yqr7v0Z5y4bdqU5UkoNn1OL0dh1WuYhaiOxtaq4";
+/* ============================================================== */
+
+var SVGNS="http://www.w3.org/2000/svg";
+var cv=document.getElementById('cv');
+var gGeo=document.createElementNS(SVGNS,'g'); gGeo.setAttribute('pointer-events','none');
+var gMark=document.createElementNS(SVGNS,'g'); gMark.setAttribute('pointer-events','none');
+var gDraft=document.createElementNS(SVGNS,'g'); gDraft.setAttribute('pointer-events','none');
+var gPts=document.createElementNS(SVGNS,'g');
+var gMH=document.createElementNS(SVGNS,'g'); // 맨홀 심벌 레이어
+var gHit=document.createElementNS(SVGNS,'g'); // 측점 클릭 hit (최상위 — 항상 클릭 우선)
+cv.appendChild(gGeo); cv.appendChild(gMark); cv.appendChild(gDraft); cv.appendChild(gPts); cv.appendChild(gMH); cv.appendChild(gHit);
+
+/* 상태 */
+var state={ projectId:null, projectName:null, points:[], lines:[], markups:[], labelOff:{}, manholes:[] };
+// manhole 구조: {id, wx, wy, label, lx, ly}
+// wx,wy = 맨홀 중심 세계좌표(x=동,y=북)
+// lx,ly = 라벨 앵커 세계좌표
+// label = '2M(SKB)' 등
+var mode='pan', status='ok';
+var LINECOL={"통신관로":{c:"#d92b2b",w:1.6},"압입구간":{c:"#1f6fd6",w:3.0,dash:"10 7"},"지거":{c:"#f2b400",w:2.4},"주입상인출선":{c:"#999",w:1}};
+function isTpoint(p){return /(^|\s)T(\s|$)/.test((p&&p.code)||'');}
+function pipeCount(p){var m=/[xX×]\s*(\d+)/.exec((p&&p.code)||'');return m?+m[1]:null;}
+function isManhole(p){return /^\s*M/.test((p&&p.code)||'');}
+// ── 폴리라인 위 앵커 계산 (지거 멘트 인출선용) ──
+function polySegs(pts){var segs=[],total=0;for(var i=0;i<pts.length-1;i++){var d=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);segs.push(d);total+=d;}return {segs:segs,total:total};}
+function polyAnchorT(L){if(L.anchorT!=null)return L.anchorT;var pts=L.pts;if(!pts||pts.length<2)return 0;var ps=polySegs(pts);return ps.total?(ps.segs[0]*0.5)/ps.total:0;} // 기본=첫 두 점 구간 중간
+function ptOnPoly(pts,t){var ps=polySegs(pts);if(ps.total===0)return [pts[0][0],pts[0][1]];var target=t*ps.total,acc=0;for(var i=0;i<ps.segs.length;i++){if(acc+ps.segs[i]>=target){var f=ps.segs[i]?(target-acc)/ps.segs[i]:0;return [pts[i][0]+(pts[i+1][0]-pts[i][0])*f,pts[i][1]+(pts[i+1][1]-pts[i][1])*f];}acc+=ps.segs[i];}return [pts[pts.length-1][0],pts[pts.length-1][1]];}
+function projToPoly(pts,px,py){var ps=polySegs(pts);if(ps.total===0)return 0;var best=Infinity,bestT=0,acc=0;for(var i=0;i<pts.length-1;i++){var ax=pts[i][0],ay=pts[i][1],dx=pts[i+1][0]-ax,dy=pts[i+1][1]-ay,L2=dx*dx+dy*dy;var f=L2?((px-ax)*dx+(py-ay)*dy)/L2:0;if(f<0)f=0;if(f>1)f=1;var qx=ax+dx*f,qy=ay+dy*f,dist=Math.hypot(px-qx,py-qy);if(dist<best){best=dist;bestT=(acc+ps.segs[i]*f)/ps.total;}acc+=ps.segs[i];}return bestT;}
+var MKCOL={ok:'#2a9e50',bad:'#d32f2f'};
+
+function el(t,a){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);return e;}
+function S(x,y){return [x,-y];}                 // 화면좌표(북쪽 위)
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1800);}
+// 커스텀 팝업: 드래그 이동 가능, 항상 앞, 도면(팝업 밖)은 그대로 조작 가능(non-blocking)
+function showModal(opt){
+  var ex=document.getElementById('appModal');if(ex)ex.remove();
+  var card=document.createElement('div');card.id='appModal';
+  card.style.cssText='position:fixed;left:50%;top:120px;transform:translateX(-50%);z-index:10000;'
+    +'background:#fff;border:1px solid #e3e3df;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,0.22);'
+    +'min-width:300px;max-width:380px;font-family:inherit;overflow:hidden;';
+  var tc=opt.tone==='warn'?'#d98200':(opt.tone==='bad'?'#d32f2f':'#2a9e50');
+  var hd=document.createElement('div');
+  hd.style.cssText='display:flex;align-items:center;gap:8px;padding:11px 14px;background:#f7f7f4;border-bottom:1px solid #eee;cursor:move;user-select:none;font-weight:700;color:#333;font-size:15px;';
+  hd.innerHTML='<span style="color:'+tc+';font-size:11px">●</span>'+(opt.title||'알림')+'<span style="margin-left:auto;color:#c4c4be;font-size:11px;font-weight:400">⠿ 드래그로 이동</span>';
+  var bd=document.createElement('div');bd.style.cssText='padding:15px 16px;color:#444;font-size:14px;line-height:1.65;';bd.innerHTML=opt.body||'';
+  var ft=document.createElement('div');ft.style.cssText='display:flex;justify-content:flex-end;gap:8px;padding:0 16px 15px;';
+  (opt.buttons||[{label:'확인'}]).forEach(function(b){
+    var btn=document.createElement('button');btn.textContent=b.label;
+    btn.style.cssText='padding:7px 17px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid '+(b.primary?'#d32f2f':'#d4d4cf')+';background:'+(b.primary?'#d32f2f':'#fff')+';color:'+(b.primary?'#fff':'#666')+';';
+    btn.onclick=function(){card.remove();if(b.onClick)b.onClick();};
+    ft.appendChild(btn);
+  });
+  card.appendChild(hd);card.appendChild(bd);card.appendChild(ft);document.body.appendChild(card);
+  var drag=false,sl=0,st=0,dx=0,dy=0;
+  hd.addEventListener('pointerdown',function(ev){drag=true;var r=card.getBoundingClientRect();card.style.transform='none';card.style.left=r.left+'px';card.style.top=r.top+'px';sl=r.left;st=r.top;dx=ev.clientX;dy=ev.clientY;try{hd.setPointerCapture(ev.pointerId);}catch(e){}});
+  hd.addEventListener('pointermove',function(ev){if(!drag)return;card.style.left=(sl+ev.clientX-dx)+'px';card.style.top=(st+ev.clientY-dy)+'px';});
+  hd.addEventListener('pointerup',function(ev){drag=false;try{hd.releasePointerCapture(ev.pointerId);}catch(e){}});
+  return card;
+}
+
+/* ====== 렌더 ====== */
+function clearSvg(g){while(g.firstChild)g.removeChild(g.firstChild);}
+var LABEL_D=4.5; // (구) 근접 그룹 거리 — 현재 미사용, 호환용 유지
+function computeLabels(){
+  var pts=state.points, n=pts.length, lay=new Array(n);
+  if(!n) return lay;
+  // 인출선 길이 = 측점 평균 최근접 간격 기반 (현장 스케일에 자동 적응, 모든 라벨 동일 길이)
+  var sum=0,cnt=0;
+  for(var i=0;i<n;i++){var best=Infinity;
+    for(var j=0;j<n;j++){if(i!==j){var d=Math.hypot(pts[i].x-pts[j].x,pts[i].y-pts[j].y);if(d<best)best=d;}}
+    if(best<Infinity){sum+=best;cnt++;}}
+  var avg=cnt?sum/cnt:5;
+  var L=Math.max(avg*0.7, 1.0); // 인출선 길이(m). 짧/길게는 0.7 계수만 조절
+  // 측점 순서(CSV 순)대로 좌·우 번갈아, 인출선은 수평(측점과 같은 높이)
+  for(var k=0;k<n;k++){var p=pts[k],right=(k%2===0);
+    lay[k]=right?{lx:p.x+L,ly:p.y,anchor:'start',leader:true}
+               :{lx:p.x-L,ly:p.y,anchor:'end',  leader:true};}
+  // 작업자가 드래그로 옮긴 라벨은 그 위치 우선
+  for(var ii=0;ii<n;ii++){var no=ptNum(pts[ii]);if(state.labelOff&&state.labelOff[no]){var o=state.labelOff[no];lay[ii]={lx:o[0],ly:o[1],anchor:(o[0]<pts[ii].x?'end':'start'),leader:true};}}
+  return lay;
+}
+var labelDragging=false;
+// world(SVG)좌표 → 화면픽셀 (오버레이 div 배치용)
+// ★ SVG meet 렌더와 동일한 좌표변환의 기준값 (균일 스케일 + xMidYMid 여백)
+//   placeLabelDiv(표시)·toWorld(입력)가 이 하나를 공유 → SVG 점과 픽셀단위로 정확히 일치
+function vbScale(){
+  var r=cv.getBoundingClientRect();
+  var s=Math.min(r.width/vb.w, r.height/vb.h);            // meet: 가로·세로 같은 스케일
+  return {r:r, s:s, ox:(r.width-vb.w*s)/2, oy:(r.height-vb.h*s)/2}; // 레터박스 여백(중앙정렬)
+}
+function worldToPx(svgX,svgY){var cvr=cv.getBoundingClientRect();return [(svgX-vb.x)/vb.w*cvr.width,(svgY-vb.y)/vb.h*cvr.height];}
+function moveLabelDiv(d,svgX,svgY){d._sx=svgX;d._sy=svgY;placeLabelDiv(d);}
+function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
+  var anchor=L.anchor;
+  var Uh=vb.w/Math.max(cv.getBoundingClientRect().width,1); // 1px = Uh world
+  var maxChars=Math.max((''+(p.no||'')).length,((p.code||'').trim()).length);
+  var tw=26*Uh;  // 이동/수정 핸들 폭 — 작게(인출선 닿는 라벨 앞부분만)
+  var hh=20*Uh;  // 핸들 높이 — 한 줄 정도
+  var hx=anchor==='start'?(ls[0]-3*Uh):(ls[0]-tw+3*Uh);
+  var handle=el('rect',{x:hx,y:ls[1]-hh*0.5,width:tw,height:hh,fill:'transparent','pointer-events':'all'});
+  if(isSel){handle.setAttribute('stroke','#22cc00');handle.setAttribute('stroke-width',0.8);handle.setAttribute('stroke-dasharray','2 2');handle.setAttribute('vector-effect','non-scaling-stroke');}
+  handle.style.cursor='move';
+  var lx=ls[0],ly=ls[1],dragging=false,moved=false,gx=0,gy=0;
+  handle.addEventListener('pointerdown',function(ev){
+    if(mode!=='pan')return;ev.stopPropagation();ev.preventDefault();
+    if(String(ptNum(p))!==String(selNum)){selNum=String(ptNum(p));highlightSel();if(photoPanelOpen)refreshPhotoPanel();}
+    dragging=true;moved=false;labelDragging=true;var w=toWorld(ev.clientX,ev.clientY);gx=w[0]-lx;gy=w[1]-ly;
+    try{handle.setPointerCapture(ev.pointerId);}catch(e){}});
+  handle.addEventListener('pointermove',function(ev){
+    if(!dragging)return;ev.preventDefault();moved=true;var w=toWorld(ev.clientX,ev.clientY);
+    lx=w[0]-gx;ly=w[1]-gy;var off=anchor==='start'?0.15:-0.15;
+    moveLabelDiv(nt,lx+off,ly);
+    moveLabelDiv(ct,lx+off,ly);
+    if(ld){ld.setAttribute('x2',lx);ld.setAttribute('y2',ly);}
+    handle.setAttribute('x',anchor==='start'?(lx-3*Uh):(lx-tw+3*Uh));handle.setAttribute('y',ly-hh*0.5);});
+  function up(ev){if(!dragging)return;dragging=false;setTimeout(function(){labelDragging=false;},40);
+    if(moved)state.labelOff[ptNum(p)]=[lx,-ly];
+    else{var now=Date.now();if(now-(p._lastClick||0)<350){p._lastClick=0;openPtEdit(p,ls);}else{p._lastClick=now;}}
+    try{handle.releasePointerCapture(ev.pointerId);}catch(e){}
+    drawGeo();highlightSel();}
+  handle.addEventListener('pointerup',up);handle.addEventListener('pointercancel',up);
+  gPts.appendChild(handle);
+}
+function openPtEdit(p,ls){
+  var r=cv.getBoundingClientRect();
+  var sx=r.left+(ls[0]-vb.x)/vb.w*r.width;
+  var sy=r.top+(ls[1]-vb.y)/vb.h*r.height;
+  // 기존 번호/코드를 템플릿 칸으로 분해
+  var no=p.no||'', code=(p.code||'').trim();
+  var date='', num=''; var mNo=/^26(\d*)-?(.*)$/.exec(no); if(mNo){date=mNo[1]||'';num=mNo[2]||'';}
+  var prefix='FC 100', cnt=''; var xi=code.toLowerCase().lastIndexOf('x');
+  if(xi>=0){prefix=code.slice(0,xi).trim();cnt=code.slice(xi+1).trim();} else if(code){prefix=code;}
+  if(!prefix)prefix='FC 100';
+  var wrap=document.createElement('div');
+  wrap.style.cssText='position:fixed;z-index:999;left:'+sx+'px;top:'+(sy-34)+'px;background:#fffde7;border:1px solid #d32f2f;border-radius:5px;padding:6px;display:flex;flex-direction:column;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,0.18);';
+  var fix=function(t){var s=document.createElement('span');s.textContent=t;s.style.cssText='font-size:15px;font-weight:800;color:#9a9a93;align-self:center;padding:0 1px;';return s;};
+  var inp=function(val,ph,w,col){var i=document.createElement('input');i.value=val;i.placeholder=ph;i.style.cssText='font-size:14px;font-weight:600;color:'+(col||'#333')+';border:1px solid #ccc;border-radius:3px;padding:2px 5px;outline:none;width:'+w+'px;';return i;};
+  var row=function(){var d=document.createElement('div');d.style.cssText='display:flex;gap:3px;align-items:center;';return d;};
+  var iDate=inp(date,'날짜',56,'#1a7a3a'), iNum=inp(num,'번호',46,'#1a7a3a');
+  var r1=row();r1.appendChild(fix('26'));r1.appendChild(iDate);r1.appendChild(fix('-'));r1.appendChild(iNum);
+  var iPre=inp(prefix,'FC 100',74,'#0f7a86'), iCnt=inp(cnt,'관수',42,'#0f7a86');
+  var r2=row();r2.appendChild(iPre);r2.appendChild(fix('x'));r2.appendChild(iCnt);
+  wrap.appendChild(r1);wrap.appendChild(r2);document.body.appendChild(wrap);iDate.focus();iDate.select();
+  var done=function(){if(wrap.parentNode){pushHist();
+    p.no='26'+iDate.value.trim()+'-'+iNum.value.trim();
+    p.code=iPre.value.trim()+'x'+iCnt.value.trim();
+    wrap.remove();drawGeo();if(photoPanelOpen)refreshPhotoPanel();}};
+  var onKey=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();};
+  var ins=[iDate,iNum,iPre,iCnt];
+  var bt=null;function ob(){bt=setTimeout(done,150);}function of(){if(bt){clearTimeout(bt);bt=null;}}
+  ins.forEach(function(i){i.addEventListener('keydown',onKey);i.addEventListener('blur',ob);i.addEventListener('focus',of);});
+}
+function addNoteHandle(L,t,ld,lx,ly,ax,tw){
+  var bb;try{bb=t.getBBox();}catch(e){bb=null;}
+  var pad=0.4,bw=bb?bb.width:String(L.note).length*0.42,bh=bb?bb.height:0.85,bx=bb?bb.x:lx+0.25,by=bb?bb.y:ly-0.45;
+  var hc=L.layer==='압입구간'?'#1f6fd6':'#a07e00', hc2=L.layer==='압입구간'?'#15489e':'#7a5f00';
+  var h=el('rect',{x:bx-pad,y:by-pad,width:bw+2*pad,height:bh+2*pad,rx:0.3,fill:'transparent',stroke:hc,'stroke-width':0.7,'stroke-dasharray':'1.6 1.6','vector-effect':'non-scaling-stroke','pointer-events':'all'});h.style.cursor='move';
+  var drag=false,moved=false,nx=lx,ny=ly;
+  h.addEventListener('pointerdown',function(ev){if(mode==='delall2'||mode==='ptdel'){ev.stopPropagation();ev.preventDefault();var li=state.lines.indexOf(L);if(li>=0){pushHist();state.lines.splice(li,1);drawGeo();updMeta();toast('멘트·선 삭제');}return;}if(mode!=='pan')return;ev.stopPropagation();drag=true;moved=false;labelDragging=true;h.setAttribute('stroke',hc2);h.setAttribute('stroke-width',1.1);h.setAttribute('stroke-dasharray','2.2 1.4');try{h.setPointerCapture(ev.pointerId);}catch(e){}});
+  h.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();moved=true;var ww=toWorld(ev.clientX,ev.clientY);nx=ww[0];ny=ww[1];
+    t.setAttribute('x',nx+0.25);t.setAttribute('y',ny+0.2);ld.setAttribute('x2', (ax!=null&&ax>nx)?nx+0.25+(tw||bw):nx);ld.setAttribute('y2',ny);
+    h.setAttribute('x',nx+0.25-pad);h.setAttribute('y',ny-0.45-pad);});
+  function up(ev){if(!drag)return;drag=false;setTimeout(function(){labelDragging=false;},40);
+    if(moved){L.noteOff=[nx,ny];}
+    else{var now=Date.now();if(now-(L._lastClick||0)<350){L._lastClick=0;openNoteEdit(L,lx,ly);}else{L._lastClick=now;}}
+    try{h.releasePointerCapture(ev.pointerId);}catch(e){}drawGeo();}
+  h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
+  gPts.appendChild(h);
+}
+// 지거 멘트 앵커: 잘 작동하는 라벨 드래그(addNoteHandle)와 동일한 setPointerCapture 패턴. gAnc 최상위라 측점에 안 가로채임.
+function addAnchorHandle(L,ah,anc,ld){
+  ah.style.cursor='move';
+  var drag=false;
+  ah.addEventListener('pointerdown',function(ev){if(mode==='delall2'||mode==='ptdel'){ev.stopPropagation();ev.preventDefault();var li=state.lines.indexOf(L);if(li>=0){pushHist();state.lines.splice(li,1);drawGeo();updMeta();toast('멘트·선 삭제');}return;}if(mode!=='pan')return;ev.stopPropagation();drag=true;labelDragging=true;anc.setAttribute('r',0.46);try{ah.setPointerCapture(ev.pointerId);}catch(e){}});
+  ah.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();var ww=toWorld(ev.clientX,ev.clientY);var t=projToPoly(L.pts.map(function(p){return S(p[0],p[1]);}),ww[0],ww[1]);L.anchorT=t;var aw=ptOnPoly(L.pts,t),sp=S(aw[0],aw[1]);anc.setAttribute('cx',sp[0]);anc.setAttribute('cy',sp[1]);ah.setAttribute('cx',sp[0]);ah.setAttribute('cy',sp[1]);ld.setAttribute('x1',sp[0]);ld.setAttribute('y1',sp[1]);});
+  function up(ev){if(!drag)return;drag=false;setTimeout(function(){labelDragging=false;},40);try{ah.releasePointerCapture(ev.pointerId);}catch(e){}drawGeo();}
+  ah.addEventListener('pointerup',up);ah.addEventListener('pointercancel',up);
+}
+// 지거 태그 인라인 편집: [숫자]점(번호 : [번호] ) — '점(번호 :' 와 ')' 고정, 앞 숫자(2자리)+괄호안만 수정
+function openNoteEdit(L,lx,ly){
+  var r=cv.getBoundingClientRect();
+  var sx=r.left+(lx-vb.x)*(r.width/vb.w), sy=r.top+(ly-vb.y)*(r.height/vb.h);
+  if(L.layer==='압입구간'){
+    var m=(L.note||'').match(/^압입구간\s*(.*)$/),inner0=m?m[1].trim():'';
+    var wp=document.createElement('div');
+    wp.style.cssText='position:fixed;z-index:999;display:flex;align-items:center;left:'+sx+'px;top:'+(sy-34)+'px;background:#eef4fc;border-bottom:2px solid #1f6fd6;padding:3px 8px;font-size:16px;font-weight:700;color:#15489e;border-radius:4px;';
+    var spA=document.createElement('span');spA.textContent='압입구간';spA.style.marginRight='6px';
+    var inp=document.createElement('input');inp.value=inner0;inp.placeholder='멘트 입력';
+    inp.style.cssText='font-size:16px;font-weight:600;color:#15489e;border:none;background:transparent;outline:none;width:150px;text-align:left;';
+    wp.appendChild(spA);wp.appendChild(inp);document.body.appendChild(wp);inp.focus();inp.select();
+    var dp=function(){if(wp.parentNode){pushHist();var v=inp.value.trim();L.note='압입구간'+(v?' '+v:' ');wp.remove();drawGeo();}};
+    inp.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();dp();}else e.stopPropagation();});
+    inp.addEventListener('blur',function(){setTimeout(dp,120);});
+    return;
+  }
+  var pm=(L.note||'').match(/^(\d*)\s*점\(번호\s*:\s*(.*?)\s*\)\s*$/);
+  var pre=pm?pm[1].trim():'', inner=pm?pm[2].trim():'';
+  var wrap=document.createElement('div');
+  wrap.style.cssText='position:fixed;z-index:999;display:flex;align-items:center;gap:1px;left:'+sx+'px;top:'+(sy-34)+'px;background:#fffde7;border-bottom:2px solid #a07e00;padding:3px 6px;font-size:16px;font-weight:600;color:#7a5f00;border-radius:4px;';
+  var inpPre=document.createElement('input');
+  inpPre.value=pre; inpPre.maxLength=2; inpPre.placeholder='00';
+  inpPre.style.cssText='font-size:16px;font-weight:600;color:#7a5f00;border:1px solid #cbb56a;border-radius:4px;background:#fff;outline:none;width:34px;text-align:center;padding:1px 2px;';
+  var spM=document.createElement('span');spM.textContent='점(번호 : ';spM.style.margin='0 2px';
+  var inpIn=document.createElement('input');
+  inpIn.value=inner; inpIn.placeholder='';
+  inpIn.style.cssText='font-size:16px;font-weight:600;color:#7a5f00;border:none;background:transparent;outline:none;width:100px;text-align:center;';
+  var spR=document.createElement('span');spR.textContent=' )';
+  wrap.appendChild(inpPre);wrap.appendChild(spM);wrap.appendChild(inpIn);wrap.appendChild(spR);
+  document.body.appendChild(wrap);inpPre.focus();inpPre.select();
+  var done=function(){if(wrap.parentNode){pushHist();var p=inpPre.value.trim(),v=inpIn.value.trim();L.note=(p?p:'')+'점(번호 : '+v+' )';wrap.remove();drawGeo();}};
+  var onKey=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();};
+  inpPre.addEventListener('keydown',onKey);inpIn.addEventListener('keydown',onKey);
+  var blurTimer=null;
+  function onBlur(){blurTimer=setTimeout(done,120);}
+  function onFocus(){if(blurTimer){clearTimeout(blurTimer);blurTimer=null;}}
+  inpPre.addEventListener('blur',onBlur);inpIn.addEventListener('blur',onBlur);
+  inpPre.addEventListener('focus',onFocus);inpIn.addEventListener('focus',onFocus);
+}
+// 줌-안전 텍스트: HTML div 오버레이로 화면 픽셀에 직접 렌더 → viewBox 스킵 문제 원천 차단
+// svgX,svgY = SVG(화면) 좌표. 오버레이는 화면픽셀이므로 viewBox→화면 변환해 배치.
+var lblOverlay=document.getElementById('lblOverlay');
+function clearLabels(grp){
+  if(!lblOverlay)return;
+  if(!grp){lblOverlay.innerHTML='';return;}
+  var ns=lblOverlay.querySelectorAll('.lbl-'+grp);
+  for(var i=0;i<ns.length;i++)ns[i].remove();
+}
+function mkLabel(svgX,svgY,text,opt){
+  opt=opt||{};
+  var d=document.createElement('div');
+  d.textContent=text;
+  d.className='lbl-'+(opt.grp||'pt');
+  d._sx=svgX; d._sy=svgY; // SVG좌표 저장 → pan/zoom 시 재배치
+  var anchor=opt.anchor||'start';
+  d._anchor=anchor;
+  d.style.cssText='position:absolute;'
+    +'font-size:'+(opt.px||13)+'px;color:'+(opt.fill||'#333')+';'
+    +'font-weight:'+(opt.weight||'400')+';white-space:nowrap;pointer-events:none;'
+    +'transform:translate('+(anchor==='end'?'-100%':(anchor==='middle'?'-50%':'0'))+',-50%);line-height:1;';
+  placeLabelDiv(d);
+  if(lblOverlay)lblOverlay.appendChild(d);
+  return d;
+}
+function placeLabelDiv(d){
+  var cvr=cv.getBoundingClientRect();
+  d.style.left=((d._sx-vb.x)/vb.w*cvr.width)+'px';
+  d.style.top =((d._sy-vb.y)/vb.h*cvr.height)+'px';
+}
+function repositionLabels(){
+  if(!lblOverlay)return;
+  var ns=lblOverlay.children;
+  for(var i=0;i<ns.length;i++){var d=ns[i];if(d._sx!=null)placeLabelDiv(d);}
+}
+// ★ 심벌(측점 사각·맨홀 이중원)을 라벨과 동일한 화면픽셀 오버레이로 그림
+//   크기가 CSS px로 고정 → 줌/팬/리사이즈에 계산 자체가 없어 절대 안 변함
+function mkSym(svgX,svgY,grp,css){
+  var d=document.createElement('div');
+  d.className='lbl-'+(grp||'pt');     // clearLabels/repositionLabels와 동일 그룹키 → 같이 청소·재배치
+  d._sx=svgX; d._sy=svgY;
+  d.style.cssText='position:absolute;box-sizing:border-box;pointer-events:none;'
+    +'transform:translate(-50%,-50%);'+css; // 중심 정렬
+  placeLabelDiv(d);
+  if(lblOverlay)lblOverlay.appendChild(d);
+  return d;
+}
+// ★ 화면 1px당 월드단위 — getScreenCTM으로 브라우저가 실제 적용한 스케일을 직접 측정
+//   (preserveAspectRatio/meet/종횡비/리사이즈/줌이 모두 반영된 실측값 → 추정 오차 없음)
+function pxToWorld(){
+  var m=null; try{m=cv.getScreenCTM();}catch(e){}
+  if(m&&m.a)return 1/m.a;          // meet은 균일 스케일이라 m.a 하나면 충분
+  var r=cv.getBoundingClientRect(); // 폴백(SVG 미표시 등): 기존 추정식
+  return Math.max(vb.w/Math.max(r.width,1), vb.h/Math.max(r.height,1));
+}
+function drawGeo(){
+  clearSvg(gGeo); clearSvg(gPts); clearSvg(gHit); clearSvg(gAnc); clearLabels('pt');
+  state.lines.forEach(function(L){var def=LINECOL[L.layer]||{c:"#888",w:1.2};
+    var pts=L.pts.map(function(p){var s=S(p[0],p[1]);return s[0]+','+s[1];}).join(' ');
+    var pl=el('polyline',{points:pts,fill:'none',stroke:def.c,'stroke-width':def.w,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':def.dash?'butt':'round'});
+    if(def.dash)pl.setAttribute('stroke-dasharray',def.dash);
+    gGeo.appendChild(pl);
+  });
+  var lay=computeLabels();
+  state.lines.forEach(function(L){if((L.layer!=='지거'&&L.layer!=='압입구간')||!L.note)return;
+    var nc=L.layer==='압입구간'?'#1f6fd6':'#a07e00';   // 인출선·앵커·박스 색
+    var nf=L.layer==='압입구간'?'#15489e':'#7a5f00';   // 글자 색
+    var aw=ptOnPoly(L.pts,polyAnchorT(L));      // 선 위 앵커(world)
+    var s=S(aw[0],aw[1]),lx=(L.noteOff?L.noteOff[0]:s[0]+1.8),ly=(L.noteOff?L.noteOff[1]:s[1]-1.3);
+    var ld=el('line',{x1:s[0],y1:s[1],x2:lx,y2:ly,stroke:nc,'stroke-width':0.8,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);
+    var anc=el('circle',{cx:s[0],cy:s[1],r:0.32,fill:nc,'pointer-events':'none'});gAnc.appendChild(anc); // 보이는 원
+    var ahR=Math.max(20*pxToWorld(), 1.0); // 클릭영역: 화면 ~20px 고정 (측점 9px보다 크게 → 쉽게 잡힘)
+    var ah=el('circle',{cx:s[0],cy:s[1],r:ahR,fill:'transparent','pointer-events':'all'});ah.style.cursor='move';gAnc.appendChild(ah); // 클릭 잡기용 큰 투명 원
+    addAnchorHandle(L,ah,anc,ld);
+    var t=el('text',{x:lx+0.25,y:ly+0.2,'font-size':1.43,fill:nf,'font-weight':'600','text-anchor':'start','pointer-events':'none'});t.textContent=L.note;gPts.appendChild(t);
+    // 인출선이 붙는 쪽: 앵커가 태그보다 오른쪽이면 태그 오른쪽 끝에서, 왼쪽이면 태그 왼쪽에서
+    var tbb;try{tbb=t.getBBox();}catch(e){tbb=null;}
+    var tw=tbb?tbb.width:(L.note||'').length*0.42;
+    ld.setAttribute('x2', s[0]>lx ? lx+0.25+tw : lx);
+    addNoteHandle(L,t,ld,lx,ly,s[0],tw);
+  });
+  var Up=pxToWorld();
+  var hitR=Math.min(0.45, 9*Up);   // 클릭 히트: 작은 줌에선 화면 고정, 큰 줌에선 월드 0.45 상한
+  state.points.forEach(function(p,i){var s=S(p.x,p.y);
+    // 측점 심벌(속빈 사각) — 월드고정 정사각: 줌하면 크기는 변하지만 절대 안 찌그러짐, 위치 정확
+    gPts.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:isManhole(p)?'#0d47a1':(isTpoint(p)?'#13803a':'#111'),'stroke-width':isManhole(p)?3.8:2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    gPts.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#111','stroke-width':4,'stroke-linecap':'square','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // 중심 점(박스와 동일 vector-effect → 줌 고정)
+    var hit=el('circle',{cx:s[0],cy:s[1],r:hitR,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
+    hit.addEventListener('click',function(ev){if(mode==='ptdel'||mode==='delall2'){ev.stopPropagation();ev.preventDefault();deletePoint(p);return;}if(mode!=='pan'||labelDragging)return;ev.stopPropagation();if(photoLink)selectPoint(ptNum(p));else{selNum=String(ptNum(p));drawGeo();highlightSel();}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
+    hit.addEventListener('mouseenter',function(){if(mode==='ptdel'||mode==='delall2'){hit.setAttribute('fill','rgba(211,47,47,0.28)');hit.setAttribute('stroke','#d32f2f');hit.setAttribute('stroke-width',1.6);hit.setAttribute('vector-effect','non-scaling-stroke');}});
+    hit.addEventListener('mouseleave',function(){hit.setAttribute('fill','transparent');hit.removeAttribute('stroke');});
+    gHit.appendChild(hit);
+    var L=lay[i],ls=S(L.lx,L.ly),off=L.anchor==='start'?0.15:-0.15;
+    var ld=null;if(L.leader){ld=el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':1.3,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);}
+    var nt=mkLabel(ls[0]+off, ls[1], p.no, {fill:'#1a7a3a',weight:'400',anchor:L.anchor,grp:'pt',px:15});
+    // 윗줄 날짜-번호에서 번호(마지막 - 뒤)만 빨간색
+    var noStr=(p.no||''), dpos=noStr.lastIndexOf('-');
+    if(dpos>=0)nt.innerHTML=noStr.slice(0,dpos+1)+'<span style="color:#d32f2f;font-weight:700">'+noStr.slice(dpos+1)+'</span>';
+    // 코드는 번호 아래 줄로 같은 div에 추가
+    if((p.code||'').trim()){
+      var sub=document.createElement('div');
+      var code=(p.code||'').trim();
+      if(isTpoint(p)){sub.innerHTML=code.replace(/(^|\s)(T)(?=\s|$)/,'$1<span style="color:#d32f2f;font-weight:700">T</span>');}
+      else{sub.textContent=code;}
+      sub.style.cssText='color:#0f7a86;font-weight:400;margin-top:2px;';
+      nt.appendChild(sub);
+    }
+    var ct=nt; // 핸들 호환
+    addLabelHandle(p,L,ls,nt,ct,ld,ptNum(p)===String(selNum));
+  });
+}
+/* ====== 맨홀 심벌 렌더 ====== */
+// 가장 가까운 통신관로 세그먼트 찾기 → 관로 반대편 단위방향 [ux,uy,거리] (maxR 밖이면 null)
+function nearestPipeDir(wx,wy,maxR){
+  var bx=null,by=null,bd=1e18;
+  (state.lines||[]).forEach(function(L){
+    if(L.layer!=='통신관로'||!L.pts||L.pts.length<2)return;
+    for(var s=0;s<L.pts.length-1;s++){
+      var ax=L.pts[s][0],ay=L.pts[s][1],cx2=L.pts[s+1][0],cy2=L.pts[s+1][1];
+      var dx=cx2-ax,dy=cy2-ay,L2=dx*dx+dy*dy,t=L2?((wx-ax)*dx+(wy-ay)*dy)/L2:0;
+      t=t<0?0:(t>1?1:t);
+      var px=ax+t*dx,py=ay+t*dy,d=Math.hypot(wx-px,wy-py);
+      if(d<bd){bd=d;bx=px;by=py;}
+    }
+  });
+  if(bx===null||(maxR&&bd>maxR))return null;
+  var vx=wx-bx,vy=wy-by,vl=Math.hypot(vx,vy);
+  if(vl<1e-6)return null; // 관로 위에 정확히 있으면 방향 불명
+  return [vx/vl,vy/vl,bd];
+}
+// 맨홀/입상주 라벨 기본 위치(world) — 화면·DXF 공용. txtW=라벨 폭(각자 단위)
+function mhLabelBase(mh, txtW){
+  var isRiser=(mh.type==='riser');
+  var mp=null,md=1e18;
+  if(!isRiser)state.points.forEach(function(p){if(!isManhole(p))return;var d=Math.hypot(p.x-mh.wx,p.y-mh.wy);if(d<md){md=d;mp=p;}});
+  var pdirs=[];
+  if(!isRiser){var Rm2=2.5,cd2=[];
+    state.points.forEach(function(p){if(!isManhole(p))return;var d=Math.hypot(p.x-mh.wx,p.y-mh.wy);if(d<=Rm2)cd2.push({p:p,d:d});});
+    cd2.sort(function(a,b){return a.d-b.d;});
+    if(cd2.length){var A2=cd2[0].p;pdirs.push([A2.x-mh.wx,A2.y-mh.wy]);var ax2=A2.x-mh.wx,ay2=A2.y-mh.wy;
+      for(var pi=1;pi<cd2.length;pi++){var q2=cd2[pi].p;if((q2.x-mh.wx)*ax2+(q2.y-mh.wy)*ay2<0){pdirs.push([q2.x-mh.wx,q2.y-mh.wy]);break;}}}}
+  state.lines.forEach(function(L){if(L.layer!=='통신관로'||!L.pts)return;
+    for(var i=0;i<L.pts.length;i++){if(Math.abs(L.pts[i][0]-mh.wx)<0.15&&Math.abs(L.pts[i][1]-mh.wy)<0.15){
+      if(i>0)pdirs.push([L.pts[i-1][0]-mh.wx,L.pts[i-1][1]-mh.wy]);
+      if(i<L.pts.length-1)pdirs.push([L.pts[i+1][0]-mh.wx,L.pts[i+1][1]-mh.wy]);
+    }}});
+  var defLx,defLy;
+  var rpd=isRiser?nearestPipeDir(mh.wx,mh.wy,5):null; // 입상주: 근처 관로선(5m내) 반대쪽 자동
+  if(pdirs.length){var psx=0,psy=0;pdirs.forEach(function(d){var l=Math.hypot(d[0],d[1])||1;psx+=d[0]/l;psy+=d[1]/l;});
+    var psl=Math.hypot(psx,psy);
+    if(psl>0.4){var ux=-psx/psl,uy=-psy/psl;defLx=mh.wx+ux*1.3+(ux<0?-txtW:0);defLy=mh.wy+uy*1.3;}
+    else {var d0=pdirs[0];var pnx=-d0[1],pny=d0[0];var pl=Math.hypot(pnx,pny)||1;pnx/=pl;pny/=pl;if(pny<0){pnx=-pnx;pny=-pny;}defLx=mh.wx+pnx*1.3+(pnx<0?-txtW:0);defLy=mh.wy+pny*1.3;}}
+  else if(rpd){var rux=rpd[0],ruy=rpd[1];var RHOR=1.0,RLIFT=1.6;defLx=mh.wx+rux*RHOR+(rux<0?-txtW:0);defLy=mh.wy+RLIFT+ruy*0.4;} // 꺾임점 위로 들어 대각선 각 세움
+  else if(mp){var dx=mh.wx-mp.x,dy=mh.wy-mp.y;defLx=(dx>=0)?mh.wx+1.0:mh.wx-1.0-txtW;defLy=(dy>=0)?mh.wy+1.2:mh.wy-0.8;}
+  else {defLx=mh.wx+1.0;defLy=mh.wy+1.2;}
+  return {lx:(mh.lx!=null?mh.lx:defLx), ly:(mh.ly!=null?mh.ly:defLy)};
+}
+function drawManholes(){
+  clearSvg(gMH); clearLabels('mh');
+  (state.manholes||[]).forEach(function(mh){
+    var isRiser=(mh.type==='riser');
+    // 손 안 댄 자동순번 기본라벨(예 '2M (SK )')만 'M (SK )'로 정리. 사용자가 직접 고친 건(_edited) 보존
+    if(!isRiser && !mh._edited && /^\s*\d+\s*M\s*\(\s*SK\s*\)\s*$/.test(mh.label||''))mh.label='M (SK )';
+    var s=S(mh.wx,mh.wy);
+    var mx=s[0], my=s[1];
+
+    // 가장 가까운 M코드 측점 찾기 (맨홀만 — 입상주는 M측점 연결 안 함)
+    var mp=null,md=1e18;
+    if(!isRiser)state.points.forEach(function(p){if(!isManhole(p))return;var d=Math.hypot(p.x-mh.wx,p.y-mh.wy);if(d<md){md=d;mp=p;}});
+
+    var U=pxToWorld(); // 1px당 월드
+    var EM=15*U;
+
+    if(isRiser){
+      // 입상주 = 테이퍼 목주(전봇대): 밑동이 넓고 위로 갈수록 좁아짐. 중심점=밑동(mx,my). 색=파랑
+      var H=0.9, wB=0.16, wT=0.05, armW=0.27, armY=my-H*0.74, RC='#1f6fd6';
+      gMH.appendChild(el('line',{x1:mx-wB,y1:my,x2:mx-wT,y2:my-H,stroke:RC,'stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gMH.appendChild(el('line',{x1:mx+wB,y1:my,x2:mx+wT,y2:my-H,stroke:RC,'stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gMH.appendChild(el('line',{x1:mx-armW,y1:armY,x2:mx+armW,y2:armY,stroke:RC,'stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gMH.appendChild(el('ellipse',{cx:mx,cy:my-H,rx:wT+0.05,ry:0.05,fill:'none',stroke:RC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gMH.appendChild(el('line',{x1:mx,y1:my,x2:mx,y2:my,stroke:RC,'stroke-width':5,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // 밑동 중심점(화면고정)
+    } else {
+      // 맨홀 = 이중원(◎) + 중심점
+      gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.294,fill:'none',stroke:'#555','stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.133,fill:'none',stroke:'#555','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gMH.appendChild(el('line',{x1:mx,y1:my,x2:mx,y2:my,stroke:'#000','stroke-width':4.5,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    }
+
+    // 라벨 글자 폭 (텍스트 길이 기준 월드값)
+    var txtW=0,_lb=(mh.label||'');for(var _i=0;_i<_lb.length;_i++){txtW+=(_lb.charCodeAt(_i)>127?EM*1.0:EM*0.55);}txtW+=EM*0.5;if(isRiser)txtW*=1.33; // 한글=한칸,영문=0.55칸+여유, 입상주는 글자 큰 만큼 1.33배
+
+    // 라벨 기본 위치(관로 방향 피해서) — 공통 함수
+    var _lp=mhLabelBase(mh, txtW); var lx=_lp.lx, ly=_lp.ly;
+    var ls=S(lx,ly);
+    var lbx=ls[0], lby=ls[1]; // 밑줄 시작점(라벨 기준점)
+
+    // 라벨이 맨홀 기준 오른쪽/왼쪽 판단 (밑줄이 맨홀쪽으로 뻗는 방향)
+    var isRight=(lbx >= mx);
+    // 빨간 대각선: 맨홀중심 → 꺾임점. 꺾임점은 밑줄의 맨홀쪽 끝
+    // 파란 밑줄 길이 = max(대각선 길이의 30%, 글자 폭)
+    // 꺾임점 후보 = lbx (밑줄이 맨홀쪽으로 가는 끝)
+    var kinkX = isRight ? lbx : lbx; // 일단 lbx 기준, 아래서 밑줄 방향 결정
+    var kinkY = lby;
+    // 대각선 길이(맨홀→꺾임점)
+    var diagLen = Math.hypot(kinkX-mx, kinkY-my);
+    // 파란 밑줄 길이
+    var underLen = Math.max(diagLen*0.30, txtW);
+    // 밑줄 방향: 맨홀 반대쪽으로 (라벨이 오른쪽이면 밑줄도 오른쪽으로 뻗음)
+    var ulx1, ulx2;
+    if(isRight){ ulx1=kinkX; ulx2=kinkX+underLen; }
+    else { ulx1=kinkX; ulx2=kinkX-underLen; }
+    var uly=kinkY;
+
+    // 대각선 (맨홀중심 → 꺾임점) — 맨홀 검정, 입상주 파랑
+    var LDC=isRiser?'#1f6fd6':'#222';
+    gMH.appendChild(el('line',{x1:mx,y1:my,x2:kinkX,y2:kinkY,stroke:LDC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    // 수평 밑줄
+    gMH.appendChild(el('line',{x1:ulx1,y1:uly,x2:ulx2,y2:uly,stroke:LDC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+
+    // 라벨 텍스트 위치: 밑줄 중앙 위에 올라오게
+    var labelW=txtW, labelH=EM*1.15;
+    var txtCx=(ulx1+ulx2)/2; // 밑줄 중앙
+    var txtLeft=Math.min(ulx1,ulx2);
+
+    // (맨홀↔M측점 연결선은 결선 데이터(state.lines)로 통일 — drawGeo가 그림. 여기서 즉석으로 안 그림)
+
+    // 더블클릭 → 'M' 과 '( )' 만 고정. 앞부분(숫자 등)과 괄호 안 둘 다 수정 가능
+    // 형식: [pre]M ([inner])  예: 2M (SK T), 4M (LG U+)
+    function openLabelEdit(){
+      var r=cv.getBoundingClientRect();
+      var scaleX=r.width/vb.w, scaleY=r.height/vb.h;
+      var sx=r.left+(txtLeft-vb.x)*scaleX;
+      var sy=r.top+(uly-vb.y)*scaleY;
+      if(isRiser){
+        // 입상주: 통째로 자유편집 (기본 '통신주입상', 뒤에 멘트 추가/수정 자유)
+        var wrapR=document.createElement('div');
+        wrapR.style.cssText='position:fixed;z-index:999;left:'+sx+'px;top:'+(sy-36)+'px;'
+          +'background:#fffde7;border-bottom:2px solid #555;padding:3px 6px;border-radius:4px;';
+        var inpR=document.createElement('input');
+        inpR.value=mh.label||'통신주입상'; inpR.placeholder='통신주입상';
+        inpR.style.cssText='font-size:18px;font-weight:600;color:#333;border:none;background:transparent;outline:none;width:200px;';
+        wrapR.appendChild(inpR);document.body.appendChild(wrapR);inpR.focus();inpR.select();
+        var doneR=function(){if(wrapR.parentNode){pushHist();mh.label=inpR.value.trim()||'통신주입상';wrapR.remove();drawManholes();}};
+        inpR.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();doneR();}else e.stopPropagation();});
+        inpR.addEventListener('blur',function(){setTimeout(doneR,120);});
+        return;
+      }
+      // 현재 라벨 파싱: 앞부분 + M + (괄호안)
+      var lab=mh.label||'';
+      var pm=lab.match(/^(.*?)M\s*\(([^)]*)\)/);
+      var pre=pm?pm[1].trim():'';
+      var inner=pm?pm[2].trim():'';
+      // 자동순번 잔재 제거: 앞이 숫자뿐이고 캐리어가 기본(SK 또는 빈칸)이면 숫자 떼고 시작
+      if(/^\d+$/.test(pre) && (inner==='SK'||inner===''))pre='';
+      var wrap=document.createElement('div');
+      wrap.style.cssText='position:fixed;z-index:999;display:flex;align-items:center;gap:1px;'
+        +'left:'+sx+'px;top:'+(sy-36)+'px;background:#fffde7;border-bottom:2px solid #555;'
+        +'padding:3px 6px;font-size:18px;font-weight:600;color:#333;border-radius:4px;';
+      var inpPre=document.createElement('input');
+      inpPre.value=pre; inpPre.placeholder=''; inpPre.maxLength=2;
+      inpPre.style.cssText='font-size:18px;font-weight:600;color:#333;border:1px solid #bbb;border-radius:4px;background:#fff;outline:none;width:38px;text-align:center;padding:1px 2px;';
+      var spM=document.createElement('span');spM.textContent='M (';spM.style.margin='0 2px';
+      var inpIn=document.createElement('input');
+      inpIn.value=inner; inpIn.placeholder='SK';
+      inpIn.style.cssText='font-size:18px;font-weight:600;color:#333;border:none;background:transparent;outline:none;width:90px;text-align:center;';
+      var spR=document.createElement('span');spR.textContent=')';
+      wrap.appendChild(inpPre);wrap.appendChild(spM);wrap.appendChild(inpIn);wrap.appendChild(spR);
+      document.body.appendChild(wrap);inpPre.focus();inpPre.select();
+      var done=function(){if(wrap.parentNode){
+        pushHist();
+        var p=inpPre.value.trim(), v=inpIn.value.trim();
+        mh.label=p+'M ('+v+(v?' ':'')+')';
+        mh._edited=true; // 사용자가 직접 고침 → 자동정리 안 함
+        wrap.remove();drawManholes();}};
+      var onKey=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();};
+      inpPre.addEventListener('keydown',onKey);inpIn.addEventListener('keydown',onKey);
+      // 두 입력칸 모두에서 포커스 빠지면 done (단, 서로 이동 시는 유지)
+      var blurTimer=null;
+      function onBlur(){blurTimer=setTimeout(done,120);}
+      function onFocus(){if(blurTimer){clearTimeout(blurTimer);blurTimer=null;}}
+      inpPre.addEventListener('blur',onBlur);inpIn.addEventListener('blur',onBlur);
+      inpPre.addEventListener('focus',onFocus);inpIn.addEventListener('focus',onFocus);
+    }
+
+    // 라벨 텍스트 — 파란 밑줄 중앙 바로 위에 (글자가 밑줄을 덮지 않게 위로)
+    var mhLbl=mkLabel(txtCx, uly-EM*(isRiser?0.95:0.75), mh.label||'', {fill:isRiser?'#1f6fd6':'#333',weight:'600',anchor:'middle',grp:'mh',px:isRiser?20:15});
+    // 라벨 div에 직접 더블클릭(수정) — 오버레이라 글자 위에서 바로 동작
+    mhLbl.style.pointerEvents='auto';
+    mhLbl.style.cursor='text';
+    mhLbl.addEventListener('dblclick',function(ev){ev.stopPropagation();if(mode==='delmh'||mode==='delriser')return;openLabelEdit();});
+
+    // 드래그 핸들 - 맨홀 중심(이중원) — 히트영역 작게(측점 클릭 안 막게)
+    var drag=el('circle',{cx:mx,cy:my,r:13*U,fill:'transparent','pointer-events':'all',cursor:'move'});
+    drag.addEventListener('pointerdown',function(ev){
+      if((mode==='delmh'&&!isRiser)||(mode==='delriser'&&isRiser)||mode==='delall2'){ev.stopPropagation();ev.preventDefault();pushHist();
+        var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);if(!isRiser)removeManholePassLines(mh);drawManholes();drawGeo();toast(isRiser?'입상주 삭제':'맨홀 삭제(통과결선 포함)');return;}
+      if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace')return;
+      ev.stopPropagation();ev.preventDefault();
+      pushHist();
+      if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
+      var w=toWorld(ev.clientX,ev.clientY);
+      mhDragState={type:'center',mh:mh,gx:w[0]-mh.wx,gy:(-w[1])-mh.wy};});
+    drag.addEventListener('dblclick',function(ev){ev.stopPropagation();openLabelEdit();});
+    gMH.appendChild(drag);
+
+    // 라벨 드래그 핸들 (밑줄+글자 영역)
+    var lbDrag=el('rect',{x:txtLeft-EM*0.5,y:uly-EM*1.7,width:Math.max(underLen,labelW)+EM*1.0,height:EM*2.3,rx:EM*0.1,fill:'transparent','pointer-events':'all',cursor:'move'});
+    lbDrag.addEventListener('pointerdown',function(ev){
+      if((mode==='delmh'&&!isRiser)||(mode==='delriser'&&isRiser)||mode==='delall2'){ev.stopPropagation();ev.preventDefault();
+        var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);if(!isRiser)removeManholePassLines(mh);drawManholes();drawGeo();toast(isRiser?'입상주 삭제':'맨홀 삭제(통과결선 포함)');return;}
+      if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace')return;
+      ev.stopPropagation();ev.preventDefault();
+      if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
+      var w=toWorld(ev.clientX,ev.clientY);
+      mhDragState={type:'label',mh:mh,gx:w[0]-mh.lx,gy:(-w[1])-mh.ly};});
+    lbDrag.addEventListener('dblclick',function(ev){ev.stopPropagation();openLabelEdit();});
+    gMH.appendChild(lbDrag);
+
+    // 지우기 모드 hover 빨간 표시
+    drag.addEventListener('mouseenter',function(){if(!((mode==='delmh'&&!isRiser)||(mode==='delriser'&&isRiser)||mode==='delall2'))return;drag.setAttribute('stroke','#d32f2f');drag.setAttribute('stroke-width',2);drag.setAttribute('vector-effect','non-scaling-stroke');drag.setAttribute('fill','rgba(211,47,47,0.25)');});
+    drag.addEventListener('mouseleave',function(){drag.setAttribute('stroke','none');drag.setAttribute('fill','transparent');});
+    lbDrag.addEventListener('mouseenter',function(){if(!((mode==='delmh'&&!isRiser)||(mode==='delriser'&&isRiser)||mode==='delall2'))return;lbDrag.setAttribute('stroke','#d32f2f');lbDrag.setAttribute('stroke-width',1.5);lbDrag.setAttribute('vector-effect','non-scaling-stroke');lbDrag.setAttribute('fill','rgba(211,47,47,0.15)');});
+    lbDrag.addEventListener('mouseleave',function(){lbDrag.setAttribute('stroke','none');lbDrag.setAttribute('fill','transparent');});
+  });
+}
+var mhDragState=null; // {type:'center'|'label', mh, gx, gy}
+window.addEventListener('pointermove',function(ev){
+  if(!mhDragState)return;ev.preventDefault();
+  var w=toWorld(ev.clientX,ev.clientY), mh=mhDragState.mh;
+  var wx=w[0], wy=-w[1]; // world (x=동, y=북)
+  if(mhDragState.type==='center'){
+    var newWx=wx-mhDragState.gx, newWy=wy-mhDragState.gy;
+    var oldWx=mh.wx, oldWy=mh.wy;
+    // 이 맨홀을 통과하는 관로선의 맨홀좌표점도 같이 이동 (결선이 맨홀 중심에 붙어 따라옴)
+    state.lines.forEach(function(L){if(L.layer!=='통신관로'||!L.pts)return;L.pts.forEach(function(p){if(Math.abs(p[0]-oldWx)<1e-4&&Math.abs(p[1]-oldWy)<1e-4){p[0]=newWx;p[1]=newWy;}});});
+    // 라벨도 같이 이동 (상대위치 유지)
+    if(mh.lx!=null){mh.lx+=newWx-mh.wx;mh.ly+=newWy-mh.wy;}
+    mh.wx=newWx;mh.wy=newWy;
+  } else {
+    mh.lx=wx-mhDragState.gx; mh.ly=wy-mhDragState.gy;
+  }
+  drawManholes();drawGeo();
+});
+window.addEventListener('pointerup',function(ev){
+  if(!mhDragState)return;mhDragState=null;drawManholes();drawGeo();
+});
+var mhIdSeq=1;
+function placeManholeAt(wx,wy,type){
+  pushHist();
+  // 팝업 없이 기본라벨로 바로 심기, 더블클릭으로 수정
+  var label=(type==='riser')?'통신주입상':'M (SK )';
+  var mh={id:mhIdSeq++, wx:wx, wy:wy, label:label, lx:null, ly:null, type:type||'mh'};
+  state.manholes.push(mh);
+  if(type!=='riser')addManholePassLine(mh); // 맨홀 통과 결선을 결선 데이터에 추가
+  drawGeo();drawManholes();
+  toast('맨홀 심기 완료 — 더블클릭으로 라벨 수정, Enter/Space로 종료');
+  // 모드 유지 (계속 찍을 수 있게)
+}
+// 측점삽입: 다음 측점번호 자동 채번(기존 prefix 이어서 +1)
+function nextPtNo(){
+  var prefix='', maxN=0;
+  (state.points||[]).forEach(function(p){var m=/^(.*)-(\d+)$/.exec(p.no||'');if(m){prefix=m[1];var n=+m[2];if(n>maxN)maxN=n;}});
+  if(!prefix){var d=new Date();prefix=(''+d.getFullYear()).slice(2)+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);}
+  return prefix+'-'+(maxN+1);
+}
+// 측점삽입: 클릭 위치에 측점 생성 + 번호·코드 입력창 자동 오픈
+function insertPointAt(wx,wy){
+  pushHist();
+  var last=(state.points||[])[state.points.length-1];
+  var dc=(last&&last.code)?last.code.replace(/^\s*M\s*/i,''):'FC 100x2'; // 기본코드 M 제거(삽입측점이 M측점으로 잡히지 않게)
+  var p={no:nextPtNo(), x:wx, y:wy, z:null, code:dc};
+  state.points.push(p);
+  drawGeo();updMeta();
+  openPtEdit(p, S(p.x,p.y)); // 바로 번호·코드 입력
+  toast('측점 생성 — 번호·코드 입력 후 Enter (측점삽입 계속하려면 버튼 다시 클릭)');
+}
+// 측점 삭제: 측점 + 거기 붙은 결선/지거/압입 정리(백판은 유지)
+function deletePoint(p){
+  var i=(state.points||[]).indexOf(p); if(i<0)return;
+  pushHist();
+  state.points.splice(i,1);
+  var app={'통신관로':1,'지거':1,'압입구간':1,'주입상인출선':1};
+  state.lines=(state.lines||[]).filter(function(l){
+    if(!app[l.layer])return true;
+    return !l.pts.some(function(v){return Math.hypot(v[0]-p.x,v[1]-p.y)<0.3;});
+  });
+  if(selNum===String(ptNum(p)))selNum=null;
+  drawGeo();updMeta();
+  toast('측점 '+(p.no||'')+' 삭제');
+}
+// 맨홀 통과 결선 1개 추가 (반경 안 가장 가까운 M점 + 건너편 M점 → A·맨홀·B)
+function addManholePassLine(mh){
+  var MHR=4; // 맨홀·입상주 M점 관로선붙이기 반경(4m)
+  var nr=state.points.filter(function(p){return isManhole(p)&&Math.hypot(p.x-mh.wx,p.y-mh.wy)<=MHR;})
+                     .map(function(p){return {p:p,d:Math.hypot(p.x-mh.wx,p.y-mh.wy)};}).sort(function(a,b){return a.d-b.d;});
+  if(!nr.length)return;
+  var A=nr[0].p, B=null, ax=A.x-mh.wx, ay=A.y-mh.wy;
+  for(var i=1;i<nr.length;i++){var q=nr[i].p;if((q.x-mh.wx)*ax+(q.y-mh.wy)*ay<0){B=q;break;}}
+  if(B)state.lines.push({layer:'통신관로',pts:[[A.x,A.y],[mh.wx,mh.wy],[B.x,B.y]],mhId:mh.id});
+  else state.lines.push({layer:'통신관로',pts:[[A.x,A.y],[mh.wx,mh.wy]],mhId:mh.id});
+}
+// 맨홀 삭제 시 그 맨홀을 지나는 통신관로 결선도 함께 제거 (맨홀좌표 포함 선)
+function removeManholePassLines(mh){
+  state.lines=state.lines.filter(function(L){
+    if(L.layer!=='통신관로'||!L.pts)return true;
+    return !L.pts.some(function(pt){return Math.abs(pt[0]-mh.wx)<1e-4&&Math.abs(pt[1]-mh.wy)<1e-4;});
+  });
+}
+
+function drawMarks(){ clearSvg(gMark); clearLabels('mk');
+  state.markups.forEach(function(m){
+    var insp=(m.near==='관공수'||m.near==='중복'||m.near==='끝점'); // 검수 오류 서클(자동검출)
+    var sh=m.type==='cir'?el('ellipse',{cx:m.cx,cy:m.cy,rx:m.rx,ry:m.ry}):el('rect',{x:m.x,y:m.y,width:m.w,height:m.h,rx:0.4});
+    var fillCol=insp?'#f4c400':MKCOL[m.status]; // 검수오류 안쪽=흐린 노랑, 테두리는 빨강 유지
+    sh.setAttribute('fill',fillCol);sh.setAttribute('fill-opacity',insp?0.25:0.13);sh.setAttribute('stroke',MKCOL[m.status]);sh.setAttribute('stroke-width',2);sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');
+    gMark.appendChild(sh); m.el=sh;
+    if(m.seg){var ln=el('line',{x1:m.seg[0][0],y1:m.seg[0][1],x2:m.seg[1][0],y2:m.seg[1][1],stroke:'#16a34a','stroke-width':2.6,'stroke-dasharray':'6 4','stroke-linecap':'butt','vector-effect':'non-scaling-stroke','pointer-events':'none'});gMark.appendChild(ln);} // 20m 초과 구간 = 초록 점선
+    if(m.num)mkLabel(m.cx, m.cy, String(m.num), {fill:'#c0392b',weight:'800',anchor:'middle',grp:'mk',px:15}); // 오류 번호(써클 중앙) — 써클 지우면 같이 사라짐
+    if(m.near==='중복'&&m.cnt){mkLabel(m.cx, m.cy-(m.ry||0.7)-0.35, m.cnt+'선', {fill:'#d32f2f',weight:'700',anchor:'middle',grp:'mk',px:14});}
+  });
+  renderRecs();
+}
+function renderRecs(){var box=document.getElementById('recs');document.getElementById('recCount').textContent=state.markups.length;
+  if(!state.markups.length){box.innerHTML='<div class="empty">표시 없음</div>';return;}
+  box.innerHTML=state.markups.map(function(r,i){
+    return '<div class="rec"><span class="dot '+(r.type==='cir'?'cir':'box')+'" style="background:'+MKCOL[r.status]+'"></span>'
+      +'<span style="color:#6b6b66">'+(i+1)+'</span><span>'+(r.type==='cir'?'써클':'박스')+'</span>'
+      +'<span style="color:'+MKCOL[r.status]+'">· '+(r.status==='ok'?'확인':'이상')+'</span>'
+      +'<span style="margin-left:auto;color:#6b6b66;margin-right:6px">'+(r.near||'-')+'</span>'
+      +'<button class="del" data-i="'+i+'">✕</button></div>';
+  }).join('');
+}
+function updMeta(){document.getElementById('meta').textContent=(state.projectName||'현장 미선택')+' · 측량점 '+state.points.length+' · 결선 '+state.lines.filter(function(l){return l.layer==='통신관로';}).length;}
+
+/* ====== 뷰박스 ====== */
+var vb={x:0,y:0,w:100,h:100}, vb0={x:0,y:0,w:100,h:100}, _vbwLast=null;
+function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);repositionLabels();}
+function fitView(){
+  var xs=[],ys=[];function add(x,y){var s=S(x,y);xs.push(s[0]);ys.push(s[1]);}
+  state.points.forEach(function(p){add(p.x,p.y);});
+  state.lines.forEach(function(L){L.pts.forEach(function(p){add(p[0],p[1]);});});
+  if(!xs.length){vb={x:0,y:0,w:100,h:100};vb0={x:0,y:0,w:100,h:100};applyVB();return;}
+  var pad=5,minx=Math.min.apply(0,xs),maxx=Math.max.apply(0,xs),miny=Math.min.apply(0,ys),maxy=Math.max.apply(0,ys);
+  vb0={x:minx-pad,y:miny-pad,w:(maxx-minx)+2*pad,h:(maxy-miny)+2*pad};
+  vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};applyVB();drawGeo();drawManholes();highlightSel();
+}
+function toWorld(cx,cy){var r=cv.getBoundingClientRect();return [vb.x+(cx-r.left)/r.width*vb.w, vb.y+(cy-r.top)/r.height*vb.h];}
+function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*=f;vb.h*=f;vb.x=w[0]-(cx-r.left)/r.width*vb.w;vb.y=w[1]-(cy-r.top)/r.height*vb.h;applyVB();drawGeo();drawManholes();highlightSel();}
+
+/* ====== 결선 ====== */
+function nearestPointWorld(wx,wy){var best=null,bd=1e18;state.points.forEach(function(p){var s=S(p.x,p.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;best=p;}});return {p:best,d:Math.sqrt(bd)};}
+// 그리기 스냅: 측점 + 맨홀 중심 중 가장 가까운 것 (pt=[worldX,worldY])
+function nearestSnapWorld(wx,wy){var bd=1e18,pt=null;
+  state.points.forEach(function(p){var s=S(p.x,p.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;pt=[p.x,p.y];}});
+  (state.manholes||[]).forEach(function(mh){var s=S(mh.wx,mh.wy);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;pt=[mh.wx,mh.wy];}});
+  return {pt:pt,d:Math.sqrt(bd)};}
+function autoConnect(){
+  if(state.points.length<2){toast('측량점을 먼저 올려주세요');return;}
+  pushHist();
+  state.lines=state.lines.filter(function(l){return l.layer!=='통신관로';}); // 자동결선만 갱신
+  var THRESH=20, pts=state.points; // 공공측량 20m 규정 — 20m 넘는 먼 점엔 결선 안 함
+  function D(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+  var edges=[];
+  var ufp=new Map(); // 폐합 방지 union-find (지하관로 = 트리, 고리 없음)
+  function ufFind(p){if(!ufp.has(p))ufp.set(p,p);var r=p;while(ufp.get(r)!==r)r=ufp.get(r);while(ufp.get(p)!==r){var n=ufp.get(p);ufp.set(p,r);p=n;}return r;}
+  var chainAdj=new Map(), deg=new Map();
+  function caPush(a,b){if(!chainAdj.has(a))chainAdj.set(a,[]);chainAdj.get(a).push(b);}
+  function angV(v1,v2){var d1=Math.hypot(v1[0],v1[1]),d2=Math.hypot(v2[0],v2[1]);if(d1===0||d2===0)return 180;var cv=Math.max(-1,Math.min(1,(v1[0]*v2[0]+v1[1]*v2[1])/(d1*d2)));return Math.acos(cv)*180/Math.PI;}
+  function segCross(a,b,c,e){ if(a===c||a===e||b===c||b===e)return false; // 끝점 공유는 교차 아님
+    function ccw(p,q,r){return (q.x-p.x)*(r.y-p.y)-(q.y-p.y)*(r.x-p.x);}
+    var d1=ccw(c,e,a),d2=ccw(c,e,b),d3=ccw(a,b,c),d4=ccw(a,b,e);
+    return ((d1>0)!==(d2>0))&&((d3>0)!==(d4>0))&&d1!==0&&d2!==0&&d3!==0&&d4!==0; }
+  function addE(p,q,chain){if(p===q)return false;if(ufFind(p)===ufFind(q))return false; /* 폐합방지 */
+    if((!isTpoint(p)&&(deg.get(p)||0)>=2)||(!isTpoint(q)&&(deg.get(q)||0)>=2))return false; /* ★절대규칙: T 아닌 점은 분기인입 금지(연결 2개=통과선까지만) */
+    for(var ci=0;ci<edges.length;ci++){if(segCross(p,q,edges[ci][0],edges[ci][1]))return false;} /* ★관로선은 다른 관로선을 가로지르지 않음 */
+    edges.push([p,q]);ufp.set(ufFind(p),ufFind(q)); deg.set(p,(deg.get(p)||0)+1);deg.set(q,(deg.get(q)||0)+1); if(chain){caPush(p,q);caPush(q,p);} return true;}
+
+  function nearestT(q){var qc=pipeCount(q),best=null,bd=1e18;pts.forEach(function(p){if(!isTpoint(p))return;var pc=pipeCount(p);if(pc==null||qc==null||pc<=qc)return;var d=D(p,q);if(d<=THRESH&&d<bd){bd=d;best=p;}});return best;}
+  function nearestSC(q){var qc=pipeCount(q);if(qc==null)return null;var best=null,bd=1e18;pts.forEach(function(p){if(p===q||pipeCount(p)!==qc)return;var d=D(p,q);if(d<=THRESH&&d<bd){bd=d;best=p;}});return best;}
+  var branchAcc=new Map();
+  // 1) 분기: 비T점 q는 '가장 가까운 T'가 '가장 가까운 같은관수 이웃'보다 가까우면 그 T에 붙음
+  pts.forEach(function(q){ if(isTpoint(q))return; var qc=pipeCount(q); if(qc==null)return;
+    var t=nearestT(q); if(!t)return; var sc=nearestSC(q);
+    if(sc===null||D(t,q)<D(sc,q)){ if(addE(q,t))branchAcc.set(t,(branchAcc.get(t)||0)+qc); }
+  });
+  // 2) T점이 자기 관수(Np)를 채우도록 분기 가져옴(본선 있어도) — 단 ①q의 최근접 T가 나 ②q의 같은관수 이웃이 나보다 1.5배 이상 가깝진 않음
+  pts.forEach(function(P){ if(!isTpoint(P))return; var Np=pipeCount(P); if(Np==null)return;
+    var acc=branchAcc.get(P)||0; if(acc>=Np)return;
+    var sm=pts.filter(function(x){return !isTpoint(x)&&pipeCount(x)!=null&&pipeCount(x)<Np&&D(P,x)<=THRESH;}).sort(function(a,b){return D(P,a)-D(P,b);});
+    for(var i=0;i<sm.length&&acc<Np;i++){var q=sm[i],c=pipeCount(q);
+      if(acc+c>Np)continue;
+      if(nearestT(q)!==P)continue;                            // 다른 T가 더 가까우면 그 T의 분기
+      var completes=(acc+c===Np); var sc=nearestSC(q); if(sc){ if(D(P,q)>1.5*D(sc,q))continue; if(!completes&&angV([q.x-sc.x,q.y-sc.y],[P.x-q.x,P.y-q.y])>90)continue; } // 라인점 가드 + 정렬가드(단, 이 분기로 T가 정확히 채워지면 완화)
+      if(addE(P,q))acc+=c;
+    }
+  });
+  // 3) 같은 관수 nearest 체인(본선) — 형제 분기끼린 폐합방지로 자동 차단
+  var groups={};
+  pts.forEach(function(p){var c=pipeCount(p);var k=(c==null?'?':String(c));(groups[k]=groups[k]||[]).push(p);});
+  Object.keys(groups).forEach(function(k){
+    var g=groups[k].slice(); if(g.length<2)return;
+    var cx=0,cy=0;g.forEach(function(p){cx+=p.x;cy+=p.y;});cx/=g.length;cy/=g.length; // 무게중심
+    g.sort(function(a,b){return Math.hypot(b.x-cx,b.y-cy)-Math.hypot(a.x-cx,a.y-cy);}); // 먼 실제 끝점부터 시작(수직선 x정렬 지그재그 방지)
+    function tParent(p){var best=null,bd=1e18;edges.forEach(function(e){var o=(e[0]===p)?e[1]:(e[1]===p?e[0]:null);if(o&&pipeCount(o)!=null&&pipeCount(p)!=null&&pipeCount(o)>pipeCount(p)){var d=D(p,o);if(d<bd){bd=d;best=o;}}});return best;}
+    function chainOK(cu,nx){
+      if(goesUp(cu)&&goesUp(nx))return false;                                  // 분기엽끼리 다리 금지
+      var tp=tParent(cu); if(tp&&angV([cu.x-tp.x,cu.y-tp.y],[nx.x-cu.x,nx.y-cu.y])>75)return false; // 분기엽은 제 라인 진행방향(상위T 반대쪽)으로만
+      var t2=tParent(nx); if(t2&&angV([nx.x-t2.x,nx.y-t2.y],[cu.x-nx.x,cu.y-nx.y])>75)return false;
+      return true;
+    }
+    var cur=g.shift();
+    while(g.length){
+      var pick=-1,pd=1e18;
+      for(var i=0;i<g.length;i++){var d=D(g[i],cur); if(d<=THRESH&&d<pd&&chainOK(cur,g[i])){pd=d;pick=i;}}
+      if(pick<0){ var fi=0,fd=-1;for(var j=0;j<g.length;j++){var dd=Math.hypot(g[j].x-cx,g[j].y-cy);if(dd>fd){fd=dd;fi=j;}} cur=g.splice(fi,1)[0];continue; } // 이어갈 데 없음 → 남은 것 중 끝점에서 새 체인 시작
+      var nx=g.splice(pick,1)[0];addE(cur,nx,true);cur=nx;
+    }
+  });
+  // 4) 라인 끝점(비T, 체인차수 1)을 진행 방향과 정렬된(꺾임<45°) 가까운 T에 연결 (22→14처럼)
+  pts.forEach(function(q){ if(isTpoint(q))return; var ca=chainAdj.get(q); if(!ca||ca.length!==1)return;
+    var r=ca[0], dirv=[q.x-r.x,q.y-r.y], best=null, bturn=45;
+    pts.forEach(function(p){ if(!isTpoint(p)||D(p,q)>THRESH||ufFind(p)===ufFind(q))return; var turn=angV(dirv,[p.x-q.x,p.y-q.y]); if(turn<bturn){bturn=turn;best=p;} });
+    if(best)addE(q,best);
+  });
+
+  // 분기합(상위관수 점 t에 붙은 더 작은 관수들의 합) — 용량초과 판정용
+  function branchSum(t){var tc=pipeCount(t),s=0;edges.forEach(function(e){var o=(e[0]===t)?e[1]:(e[1]===t?e[0]:null);if(o){var oc=pipeCount(o);if(oc!=null&&tc!=null&&oc<tc)s+=oc;}});return s;}
+  // 4.5) ★T 본선연결: T는 상위관수 점(부모)에 연결돼야 — 아직 상위에 안 붙은 T를 가까운 상위관수점에 잇기(용량초과 금지)
+  pts.filter(isTpoint).sort(function(a,b){return (pipeCount(a)||0)-(pipeCount(b)||0);}).forEach(function(P){
+    var Np=pipeCount(P); if(Np==null)return;
+    var linkedUp=edges.some(function(e){var o=(e[0]===P)?e[1]:(e[1]===P?e[0]:null);return o&&pipeCount(o)!=null&&pipeCount(o)>Np;});
+    if(linkedUp)return;
+    var cand=pts.filter(function(p){return pipeCount(p)!=null&&pipeCount(p)>Np&&D(P,p)<=THRESH&&ufFind(p)!==ufFind(P);}).sort(function(a,b){return D(P,a)-D(P,b);});
+    for(var i=0;i<cand.length;i++){var Q=cand[i]; if(branchSum(Q)+Np>pipeCount(Q))continue; if(addE(P,Q))break;}
+  });
+  // 5) ★떠 있는 단일관수 라인 도킹: 어디에도 안 붙은 한 관수짜리 라인의 끝점을 가까운 상위관수 T에 연결(용량·정렬 가드)
+  var comp=new Map();
+  pts.forEach(function(p){var r=ufFind(p);if(!comp.has(r))comp.set(r,[]);comp.get(r).push(p);});
+  comp.forEach(function(members){
+    var vals={},hasT=false;members.forEach(function(m){vals[String(pipeCount(m))]=1;if(isTpoint(m))hasT=true;});
+    var keys=Object.keys(vals); if(keys.length!==1||hasT||keys[0]==='null')return;
+    var v=pipeCount(members[0]);
+    var eps=members.filter(function(m){return (deg.get(m)||0)<=1;}); if(!eps.length)eps=members;
+    var best=null,bestD=1e18,bestTurn=999;
+    eps.forEach(function(e){
+      var ca=chainAdj.get(e),dirv=null; if(ca&&ca.length){dirv=[e.x-ca[0].x,e.y-ca[0].y];}
+      pts.forEach(function(t){
+        if(!isTpoint(t)||pipeCount(t)==null||pipeCount(t)<=v||ufFind(t)===ufFind(e))return;
+        var d=D(e,t); if(d>THRESH)return;
+        var turn=dirv?angV(dirv,[t.x-e.x,t.y-e.y]):0; if(turn>90)return;
+        if(branchSum(t)+v>pipeCount(t))return;
+        if(d<bestD-0.01||(Math.abs(d-bestD)<=0.01&&turn<bestTurn)){bestD=d;bestTurn=turn;best=[e,t];}
+      });
+    });
+    if(best)addE(best[0],best[1]);
+  });
+
+  // 6) ★과결선 정리 — '같은관수 따라가다' 잘못 엮인 잉여 선 제거
+  function goesUp(p){return edges.some(function(e){var o=(e[0]===p)?e[1]:(e[1]===p?e[0]:null);return o&&pipeCount(o)!=null&&pipeCount(p)!=null&&pipeCount(o)>pipeCount(p);});}
+  // 6a) 양쪽 다 상위 T로 올라가는 같은관수 변 = 서로 다른 분기끼리 잘못 엮임 → 제거(예: 29-34)
+  edges=edges.filter(function(e){var a=e[0],b=e[1];
+    if(pipeCount(a)!=null&&pipeCount(a)===pipeCount(b)&&goesUp(a)&&goesUp(b))return false;
+    return true;});
+  // 6b) 입력(하위관수 분기)이 이미 꽉 찬 T는 같은관수 트렁크를 '입력 반대방향' 1개만 유지(예: 28-30 제거, 28-25 유지)
+  pts.filter(isTpoint).forEach(function(P){
+    var Np=pipeCount(P); if(Np==null||branchSum(P)<Np)return;
+    var same=edges.filter(function(e){return (e[0]===P||e[1]===P)&&pipeCount((e[0]===P)?e[1]:e[0])===Np;});
+    if(same.length<2)return;
+    var ix=0,iy=0;edges.forEach(function(e){var o=(e[0]===P)?e[1]:(e[1]===P?e[0]:null);if(o&&pipeCount(o)!=null&&pipeCount(o)<Np){var dx=o.x-P.x,dy=o.y-P.y,d=Math.hypot(dx,dy)||1;ix+=dx/d;iy+=dy/d;}});
+    var keep=null,kbest=-9;same.forEach(function(e){var o=(e[0]===P)?e[1]:e[0];var dx=o.x-P.x,dy=o.y-P.y,d=Math.hypot(dx,dy)||1;var dot=(dx/d)*(-ix)+(dy/d)*(-iy);if(dot>kbest){kbest=dot;keep=e;}});
+    edges=edges.filter(function(e){return !(same.indexOf(e)>=0&&e!==keep);});
+  });
+
+  var MHR=4, mhCount=0;
+  (state.manholes||[]).forEach(function(mh){
+    var nr=pts.filter(function(p){return isManhole(p);}).map(function(p){return {p:p,d:Math.hypot(p.x-mh.wx,p.y-mh.wy)};}).filter(function(o){return o.d<=MHR;}).sort(function(a,b){return a.d-b.d;});
+    if(nr.length>=2){var A=nr[0].p,B=nr[1].p;edges=edges.filter(function(e){return !((e[0]===A&&e[1]===B)||(e[0]===B&&e[1]===A));});state.lines.push({layer:'통신관로',pts:[[A.x,A.y],[mh.wx,mh.wy],[B.x,B.y]]});mhCount++;}
+    else if(nr.length===1){var A1=nr[0].p;state.lines.push({layer:'통신관로',pts:[[A1.x,A1.y],[mh.wx,mh.wy]]});mhCount++;}
+  });
+  edges.forEach(function(e){state.lines.push({layer:'통신관로',pts:[[e[0].x,e[0].y],[e[1].x,e[1].y]]});});
+  drawGeo();updMeta();toast('자동 결선 '+edges.length+'개 + 맨홀통과 '+mhCount+'개 (검수·수정하세요)');
+}
+var lineDraft=null, previewLine=null, drawLayer='통신관로', delLayer='통신관로';
+// 같은 선분 키(좌표쌍, 방향무관)
+function segKey(a,b){var lo=(a[0]<b[0]||(a[0]===b[0]&&a[1]<=b[1]))?[a,b]:[b,a];return lo[0][0].toFixed(3)+','+lo[0][1].toFixed(3)+'|'+lo[1][0].toFixed(3)+','+lo[1][1].toFixed(3);}
+// 중복 선분 제거 — 같은 구간이 여러 번이면 1선만 남김
+function removeDupLines(){
+  var seen={}, out=[];
+  state.lines.forEach(function(L){
+    if(L.layer!=='통신관로'||!L.pts||L.pts.length<2){out.push(L);return;}
+    var keep=[L.pts[0]];
+    for(var i=0;i<L.pts.length-1;i++){
+      var k=segKey(L.pts[i],L.pts[i+1]);
+      if(seen[k]){ if(keep.length>=2)out.push({layer:L.layer,pts:keep,note:L.note}); keep=[L.pts[i+1]]; }
+      else { seen[k]=true; keep.push(L.pts[i+1]); }
+    }
+    if(keep.length>=2)out.push({layer:L.layer,pts:keep,note:L.note});
+  });
+  state.lines=out;
+}
+// 중복선 검수: 통신관로 중 같은 구간이 2개 이상이면 써클 표시 + 팝업
+function inspectDupLines(){
+  state.markups=state.markups.filter(function(m){return m.near!=='중복';}); // 이전 중복 써클 제거(갱신)
+  var segs={};
+  state.lines.forEach(function(L){if(L.layer!=='통신관로'||!L.pts)return;
+    for(var i=0;i<L.pts.length-1;i++){var a=L.pts[i],b=L.pts[i+1];var k=segKey(a,b);
+      if(!segs[k])segs[k]={mid:[(a[0]+b[0])/2,(a[1]+b[1])/2],n:0};
+      segs[k].n++;}});
+  var dups=[];for(var k in segs)if(segs[k].n>=2)dups.push(segs[k]);
+  if(!dups.length){drawMarks();updMeta();showModal({title:'중복선 검수 결과',tone:'ok',body:'<b style="font-size:16px">중복 0</b><br>중복된 관로선이 없습니다.',buttons:[{label:'확인'}]});return;}
+  pushHist();
+  var totalExtra=0;
+  dups.forEach(function(d){var sm=S(d.mid[0],d.mid[1]);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:1.19,ry:1.19,status:'bad',near:'중복',cnt:d.n-1});totalExtra+=d.n-1;});
+  drawMarks();updMeta();
+  showModal({title:'중복선 검수 결과',tone:'bad',
+    body:'중복 <b style="color:#d32f2f;font-size:16px">'+dups.length+'곳 · '+totalExtra+'선</b> 발견했습니다.<br>도면에서 빨간 써클 위치를 확인하세요.<br>(빈 곳을 끌어 도면을 이동할 수 있어요)<br><br>중복된 선을 삭제하고 <b>1선만</b> 남길까요?',
+    buttons:[
+      {label:'취소',onClick:function(){toast('중복 '+dups.length+'곳 표시만 (삭제 안 함)');}},
+      {label:'중복 삭제',primary:true,onClick:function(){removeDupLines();state.markups=state.markups.filter(function(m){return m.near!=='중복';});drawGeo();drawMarks();updMeta();toast('중복선 삭제 완료 — 1선만 유지');}}
+    ]});
+}
+// 관공수 검수: 빨간 관로선(결선)을 따라 관수(xN) 규칙 점검
+//  규칙1 연속성 — 측점↔측점 직접 결선은 관수 동일해야(T점 제외). 맨홀을 거치는 구간은 관수 변화 허용.
+//  규칙2 T점   — 분기 가닥(관수<T) 들의 합 = T점 관수.
+function inspectPipeCount(){
+  state.markups=state.markups.filter(function(m){return m.near!=='관공수';}); // 이전 관공수 마크 갱신
+  var pts=state.points||[], mhs=state.manholes||[], TOL=0.05;
+  function findPt(xy){var b=null,bd=TOL*TOL;for(var i=0;i<pts.length;i++){var dx=pts[i].x-xy[0],dy=pts[i].y-xy[1],d=dx*dx+dy*dy;if(d<=bd){bd=d;b=pts[i];}}return b;}
+  function isMHcoord(xy){for(var i=0;i<mhs.length;i++){if(Math.hypot(mhs[i].wx-xy[0],mhs[i].wy-xy[1])<=TOL)return true;}return false;}
+  function idxOf(p){for(var i=0;i<pts.length;i++)if(pts[i]===p)return i;return -1;}
+  var issues=[]; // {wx,wy,msg}
+
+  state.lines.forEach(function(L){if((L.layer!=='통신관로'&&L.layer!=='지거')||!L.pts||L.pts.length<2)return; // 결선+지거선 함께
+    for(var s=0;s<L.pts.length-1;s++){
+      var a=L.pts[s], b=L.pts[s+1];
+      if(isMHcoord(a)||isMHcoord(b))continue;            // 맨홀 거치는 구간 → 관수 변화 허용
+      var pa=findPt(a), pb=findPt(b); if(!pa||!pb)continue; // 측점 매칭 실패(끝점검수 영역)
+      if(L.layer==='통신관로'){var dd=Math.hypot(pa.x-pb.x,pa.y-pb.y); // 점간격 20m 초과 검수(결선만, 지거 제외)
+        if(dd>20)issues.push({wx:(pa.x+pb.x)/2,wy:(pa.y+pb.y)/2,msg:pa.no+' ↔ '+pb.no+' 측점간격 '+dd.toFixed(1)+'m > 20m',seg:[[pa.x,pa.y],[pb.x,pb.y]]});}
+      var ca=pipeCount(pa), cb=pipeCount(pb);
+      if(isTpoint(pa)||isTpoint(pb))continue;            // 연속성은 둘 다 비T점만
+      if(ca==null||cb==null)continue;                    // 관수 미기재는 스킵
+      if(ca!==cb){var mx=(pa.x+pb.x)/2,my=(pa.y+pb.y)/2;
+        issues.push({wx:mx,wy:my,msg:pa.no+'('+ca+'공) ↔ '+pb.no+'('+cb+'공) 관수 불일치'});}
+    }
+  });
+
+  // ===== T점 관 흐름 보존 검수 (트리: 맨홀/입상에서만 관 추가) =====
+  var adj={};
+  function addAdj(u,w){if(u===w)return;adj[u]=adj[u]||[];adj[w]=adj[w]||[];if(adj[u].indexOf(w)<0)adj[u].push(w);if(adj[w].indexOf(u)<0)adj[w].push(u);}
+  state.lines.forEach(function(L){if((L.layer!=='통신관로'&&L.layer!=='지거')||!L.pts)return; // 결선+지거(연결되면 같은 관망으로 계산)
+    var seq=[]; // 선을 따라가며 측점 순서 수집(맨홀 꼭짓점은 건너뛰되 양옆 측점 연결)
+    L.pts.forEach(function(v){if(isMHcoord(v))return;var p=findPt(v);if(p){var i=idxOf(p);if(i>=0&&(!seq.length||seq[seq.length-1]!==i))seq.push(i);}});
+    for(var k=0;k<seq.length-1;k++)addAdj(seq[k],seq[k+1]);
+  });
+  function isSrc(p){if(isManhole(p))return true;for(var i=0;i<mhs.length;i++){if(Math.hypot(mhs[i].wx-p.x,mhs[i].wy-p.y)<=2.5)return true;}return false;} // 맨홀/입상 2.5m 이내 = 관 공급원
+  var fvisited={}, fpar={}; // fpar[u]=부모쪽으로 흐르는 관수
+  Object.keys(adj).forEach(function(sk){sk=+sk;if(fvisited[sk])return;
+    var comp=[],stk=[sk],cseen={};cseen[sk]=1; // 연결요소 수집
+    while(stk.length){var u=stk.pop();comp.push(u);(adj[u]||[]).forEach(function(v){if(!cseen[v]){cseen[v]=1;stk.push(v);}});}
+    var root=null; // 루트=잎(소스 우선) — T점을 루트로 잡으면 본선도 분기로 세므로 금지
+    for(var a=0;a<comp.length;a++){if((adj[comp[a]]||[]).length<=1&&isSrc(pts[comp[a]])){root=comp[a];break;}}
+    if(root===null)for(var b=0;b<comp.length;b++){if((adj[comp[b]]||[]).length<=1){root=comp[b];break;}}
+    if(root===null)root=comp[0];
+    var parent={},order=[];parent[root]=-1;fvisited[root]=1;var st2=[root];
+    while(st2.length){var u=st2.pop();order.push(u);(adj[u]||[]).forEach(function(v){if(v===parent[u])return;if(fvisited[v])return;fvisited[v]=1;parent[v]=u;st2.push(v);});}
+    var ecnt=0;comp.forEach(function(n){ecnt+=(adj[n]||[]).length;});ecnt/=2; // 컴포넌트 엣지 수
+    if(ecnt>comp.length-1){ // 트리(노드수-1)보다 엣지 많음 = 폐합(고리) 있음 → 흐름 계산 신뢰 불가, 고리만 표시
+      var done=false;
+      for(var ci=0;ci<comp.length&&!done;ci++){var cu=comp[ci],nbs=adj[cu]||[];
+        for(var ni=0;ni<nbs.length;ni++){var cv=nbs[ni];if(cu<cv&&parent[cu]!==cv&&parent[cv]!==cu){
+          issues.push({wx:(pts[cu].x+pts[cv].x)/2,wy:(pts[cu].y+pts[cv].y)/2,msg:'폐합(고리) 결선: '+pts[cu].no+' ↔ '+pts[cv].no+' — 지하관로는 고리가 없어야 함'});done=true;break;}}}
+      return;
+    }
+    for(var oi=order.length-1;oi>=0;oi--){var u=order[oi]; // 후위순회: 잎→루트
+      var ch=(adj[u]||[]).filter(function(v){return parent[v]===u;});
+      var cs=0;ch.forEach(function(c){cs+=fpar[c];}); // 자식 흐름 합
+      var P=pts[u],Np=pipeCount(P);
+      if(Np==null){fpar[u]=cs;continue;}            // 관수 미기재 → 통과
+      if(isSrc(P)){var f=Np-cs;if(cs>Np)issues.push({wx:P.x,wy:P.y,msg:P.no+' 관수 부족: 분기합 '+cs+'공 > '+Np+'공'});fpar[u]=Math.max(f,0);} // 소스=추가 허용
+      else{var mx=0;ch.forEach(function(c){if(fpar[c]>mx)mx=fpar[c];});
+        if(!ch.length)fpar[u]=Np;                                                                          // 잎
+        else if(mx>Np){issues.push({wx:P.x,wy:P.y,msg:'T점 '+P.no+'('+Np+'공) 자식 관수 '+mx+'공 초과'});fpar[u]=Np;}
+        else if(mx===Np)fpar[u]=Np-(cs-mx);                                                                // 본선=자식, 부모=분기
+        else{if(cs!==Np)issues.push({wx:P.x,wy:P.y,msg:'T점 '+P.no+'('+Np+'공) 분기합 '+cs+'공 ≠ '+Np+'공'});fpar[u]=Np;} // 부모=본선
+      }
+    }
+    var rP=pts[root],Nr=pipeCount(rP),rch=(adj[root]||[]).filter(function(v){return parent[v]===root;}),rs=0;
+    rch.forEach(function(c){rs+=fpar[c];});
+    if(!isSrc(rP)&&Nr!=null&&rs!==Nr)issues.push({wx:rP.x,wy:rP.y,msg:'끝점 '+rP.no+'('+Nr+'공) 흐름 '+rs+'공 불일치'});
+  });
+
+  if(!issues.length){drawMarks();updMeta();showModal({title:'관공수 검수 결과',tone:'ok',body:'<b style="font-size:16px">이상 0</b><br>관수 규칙(연속성·T점 합산) 위반이 없습니다.',buttons:[{label:'확인'}]});return;}
+  pushHist();
+  // 겹치는 검수원 분산: 가까운 이슈들을 작은 링으로 펼쳐 모두 보이게(2개 오류가 1원으로 포개지던 문제)
+  var R=1.33, SP=2.0, usd=issues.map(function(){return false;});
+  for(var gi=0;gi<issues.length;gi++){ if(usd[gi])continue; var cl=[gi]; usd[gi]=true;
+    for(var gj=gi+1;gj<issues.length;gj++){ if(usd[gj])continue;
+      if(Math.hypot(issues[gj].wx-issues[gi].wx,issues[gj].wy-issues[gi].wy)<2*R+0.6){cl.push(gj);usd[gj]=true;} }
+    if(cl.length>1){ var cx=0,cy=0;cl.forEach(function(k){cx+=issues[k].wx;cy+=issues[k].wy;});cx/=cl.length;cy/=cl.length;
+      cl.forEach(function(k,j){var ang=2*Math.PI*j/cl.length-Math.PI/2;issues[k].wx=cx+Math.cos(ang)*SP;issues[k].wy=cy+Math.sin(ang)*SP;}); } }
+  issues.forEach(function(it,i){var sm=S(it.wx,it.wy);var sg=it.seg?[S(it.seg[0][0],it.seg[0][1]),S(it.seg[1][0],it.seg[1][1])]:null;state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:R,ry:R,status:'bad',near:'관공수',msg:it.msg,num:i+1,seg:sg});});
+  drawMarks();updMeta();
+  var list=issues.map(function(it,i){return (i+1)+'. '+it.msg;}).join('<br>');
+  showModal({title:'관공수 검수 결과',tone:'bad',
+    body:'관수 이상 <b style="color:#d32f2f;font-size:16px">'+issues.length+'곳</b> 발견했습니다.<br>도면에서 빨간 써클을 확인하세요.<br><br><div style="text-align:left;font-size:13px;line-height:1.7;max-height:220px;overflow:auto">'+list+'</div>',
+    buttons:[{label:'확인'}]});
+}
+// 끝점 검수 — 단순 규칙: 선의 끝점이 CSV 측점에 안 붙으면 이상
+function inspectEndpoints(){
+  state.markups=state.markups.filter(function(m){return m.near!=='끝점';}); // 이전 끝점 마크 제거(갱신)
+  var TOL=1e-6; // 사실상 0 — 측점에 정확히 붙은 것만 정상, 조금이라도 떨어지면 잡음
+  function nearPoint(x,y){
+    for(var i=0;i<state.points.length;i++){var p=state.points[i];if(Math.hypot(p.x-x,p.y-y)<=TOL)return true;}
+    var mhs=state.manholes||[];for(var j=0;j<mhs.length;j++){if(Math.hypot(mhs[j].wx-x,mhs[j].wy-y)<=TOL)return true;} // 맨홀·입상주에 붙은 끝점도 정상
+    return false;
+  }
+  var bad=[], seen={};
+  state.lines.forEach(function(L){if(L.layer!=='통신관로'||!L.pts||L.pts.length<2)return;
+    [L.pts[0],L.pts[L.pts.length-1]].forEach(function(pt){
+      if(nearPoint(pt[0],pt[1]))return; // CSV 측점에 붙음 = 정상
+      var k=pt[0].toFixed(3)+','+pt[1].toFixed(3); if(seen[k])return; seen[k]=1;
+      bad.push(pt);
+    });
+  });
+  if(!bad.length){drawMarks();updMeta();showModal({title:'끝점 검수 결과',tone:'ok',body:'<b style="font-size:16px">정상</b><br>모든 선의 끝점이 CSV 측점에 붙어 있습니다.',buttons:[{label:'확인'}]});return;}
+  pushHist();
+  bad.forEach(function(pt){var sm=S(pt[0],pt[1]);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:1.33,ry:1.33,status:'bad',near:'끝점'});});
+  drawMarks();updMeta();
+  showModal({title:'끝점 검수 결과',tone:'bad',
+    body:'끝점이 CSV 측점에 안 붙은 곳 <b style="color:#d32f2f;font-size:16px">'+bad.length+'곳</b> 발견했습니다.<br>빨간 써클 위치를 확인하세요.',
+    buttons:[{label:'확인'}]});
+}
+// DXF 내보내기 — 측점·결선·맨홀·입상주를 DXF(R12 ENTITIES)로 저장 후 다운로드. 좌표는 측량 월드(x=동, y=북)
+function exportDXF(){
+  if(!state.points.length&&!state.lines.length&&!(state.manholes||[]).length){toast('내보낼 데이터가 없습니다');return;}
+  var PRE=`  0
+SECTION
+  2
+HEADER
+  9
+$ACADVER
+  1
+AC1015
+  9
+$ACADMAINTVER
+ 70
+6
+  9
+$DWGCODEPAGE
+  3
+ANSI_1252
+  9
+$INSBASE
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  9
+$EXTMIN
+ 10
+1e+20
+ 20
+1e+20
+ 30
+1e+20
+  9
+$EXTMAX
+ 10
+-1e+20
+ 20
+-1e+20
+ 30
+-1e+20
+  9
+$LIMMIN
+ 10
+0.0
+ 20
+0.0
+  9
+$LIMMAX
+ 10
+420.0
+ 20
+297.0
+  9
+$ORTHOMODE
+ 70
+0
+  9
+$REGENMODE
+ 70
+1
+  9
+$FILLMODE
+ 70
+1
+  9
+$QTEXTMODE
+ 70
+0
+  9
+$MIRRTEXT
+ 70
+1
+  9
+$LTSCALE
+ 40
+1.0
+  9
+$ATTMODE
+ 70
+1
+  9
+$TEXTSIZE
+ 40
+2.5
+  9
+$TRACEWID
+ 40
+1.0
+  9
+$TEXTSTYLE
+  7
+Standard
+  9
+$CLAYER
+  8
+0
+  9
+$CELTYPE
+  6
+ByLayer
+  9
+$CECOLOR
+ 62
+256
+  9
+$CELTSCALE
+ 40
+1.0
+  9
+$DISPSILH
+ 70
+0
+  9
+$DIMSCALE
+ 40
+1.0
+  9
+$DIMASZ
+ 40
+2.5
+  9
+$DIMEXO
+ 40
+0.625
+  9
+$DIMDLI
+ 40
+3.75
+  9
+$DIMRND
+ 40
+0.0
+  9
+$DIMDLE
+ 40
+0.0
+  9
+$DIMEXE
+ 40
+1.25
+  9
+$DIMTP
+ 40
+0.0
+  9
+$DIMTM
+ 40
+0.0
+  9
+$DIMTXT
+ 40
+2.5
+  9
+$DIMCEN
+ 40
+2.5
+  9
+$DIMTSZ
+ 40
+0.0
+  9
+$DIMTOL
+ 70
+0
+  9
+$DIMLIM
+ 70
+0
+  9
+$DIMTIH
+ 70
+0
+  9
+$DIMTOH
+ 70
+0
+  9
+$DIMSE1
+ 70
+0
+  9
+$DIMSE2
+ 70
+0
+  9
+$DIMTAD
+ 70
+1
+  9
+$DIMZIN
+ 70
+8
+  9
+$DIMBLK
+  1
+
+  9
+$DIMASO
+ 70
+1
+  9
+$DIMSHO
+ 70
+1
+  9
+$DIMPOST
+  1
+
+  9
+$DIMAPOST
+  1
+
+  9
+$DIMALT
+ 70
+0
+  9
+$DIMALTD
+ 70
+3
+  9
+$DIMALTF
+ 40
+0.03937007874
+  9
+$DIMLFAC
+ 40
+1.0
+  9
+$DIMTOFL
+ 70
+1
+  9
+$DIMTVP
+ 40
+0.0
+  9
+$DIMTIX
+ 70
+0
+  9
+$DIMSOXD
+ 70
+0
+  9
+$DIMSAH
+ 70
+0
+  9
+$DIMBLK1
+  1
+
+  9
+$DIMBLK2
+  1
+
+  9
+$DIMSTYLE
+  2
+ISO-25
+  9
+$DIMCLRD
+ 70
+0
+  9
+$DIMCLRE
+ 70
+0
+  9
+$DIMCLRT
+ 70
+0
+  9
+$DIMTFAC
+ 40
+1.0
+  9
+$DIMGAP
+ 40
+0.625
+  9
+$DIMJUST
+ 70
+0
+  9
+$DIMSD1
+ 70
+0
+  9
+$DIMSD2
+ 70
+0
+  9
+$DIMTOLJ
+ 70
+0
+  9
+$DIMTZIN
+ 70
+8
+  9
+$DIMALTZ
+ 70
+0
+  9
+$DIMALTTZ
+ 70
+0
+  9
+$DIMUPT
+ 70
+0
+  9
+$DIMDEC
+ 70
+2
+  9
+$DIMTDEC
+ 70
+2
+  9
+$DIMALTU
+ 70
+2
+  9
+$DIMALTTD
+ 70
+3
+  9
+$DIMTXSTY
+  7
+Standard
+  9
+$DIMAUNIT
+ 70
+0
+  9
+$DIMADEC
+ 70
+0
+  9
+$DIMALTRND
+ 40
+0.0
+  9
+$DIMAZIN
+ 70
+0
+  9
+$DIMDSEP
+ 70
+44
+  9
+$DIMATFIT
+ 70
+3
+  9
+$DIMFRAC
+ 70
+0
+  9
+$DIMLDRBLK
+  1
+
+  9
+$DIMLUNIT
+ 70
+2
+  9
+$DIMLWD
+ 70
+-2
+  9
+$DIMLWE
+ 70
+-2
+  9
+$DIMTMOVE
+ 70
+0
+  9
+$LUNITS
+ 70
+2
+  9
+$LUPREC
+ 70
+4
+  9
+$SKETCHINC
+ 40
+1.0
+  9
+$FILLETRAD
+ 40
+10.0
+  9
+$AUNITS
+ 70
+0
+  9
+$AUPREC
+ 70
+2
+  9
+$MENU
+  1
+.
+  9
+$ELEVATION
+ 40
+0.0
+  9
+$PELEVATION
+ 40
+0.0
+  9
+$THICKNESS
+ 40
+0.0
+  9
+$LIMCHECK
+ 70
+0
+  9
+$CHAMFERA
+ 40
+0.0
+  9
+$CHAMFERB
+ 40
+0.0
+  9
+$CHAMFERC
+ 40
+0.0
+  9
+$CHAMFERD
+ 40
+0.0
+  9
+$SKPOLY
+ 70
+0
+  9
+$TDCREATE
+ 40
+2461208.088020833
+  9
+$TDUCREATE
+ 40
+2458532.153996898
+  9
+$TDUPDATE
+ 40
+2461208.088020833
+  9
+$TDUUPDATE
+ 40
+2458532.1544311
+  9
+$TDINDWG
+ 40
+0.0
+  9
+$TDUSRTIMER
+ 40
+0.0
+  9
+$USRTIMER
+ 70
+1
+  9
+$ANGBASE
+ 50
+0.0
+  9
+$ANGDIR
+ 70
+0
+  9
+$PDMODE
+ 70
+0
+  9
+$PDSIZE
+ 40
+0.0
+  9
+$PLINEWID
+ 40
+0.0
+  9
+$SPLFRAME
+ 70
+0
+  9
+$SPLINETYPE
+ 70
+6
+  9
+$SPLINESEGS
+ 70
+8
+  9
+$HANDSEED
+  5
+43
+  9
+$SURFTAB1
+ 70
+6
+  9
+$SURFTAB2
+ 70
+6
+  9
+$SURFTYPE
+ 70
+6
+  9
+$SURFU
+ 70
+6
+  9
+$SURFV
+ 70
+6
+  9
+$UCSBASE
+  2
+
+  9
+$UCSNAME
+  2
+
+  9
+$UCSORG
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  9
+$UCSXDIR
+ 10
+1.0
+ 20
+0.0
+ 30
+0.0
+  9
+$UCSYDIR
+ 10
+0.0
+ 20
+1.0
+ 30
+0.0
+  9
+$UCSORTHOREF
+  2
+
+  9
+$UCSORTHOVIEW
+ 70
+0
+  9
+$UCSORGTOP
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  9
+$UCSORGBOTTOM
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  9
+$UCSORGLEFT
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  9
+$UCSORGRIGHT
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  9
+$UCSORGFRONT
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  9
+$UCSORGBACK
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  9
+$PUCSBASE
+  2
+
+  9
+$PUCSNAME
+  2
+
+  9
+$PUCSORG
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  9
+$PUCSXDIR
+ 10
+1.0
+ 20
+0.0
+ 30
+0.0
+  9
+$PUCSYDIR
+ 10
+0.0
+ 20
+1.0
+ 30
+0.0
+  9
+$PUCSORTHOREF
+  2
+
+  9
+$PUCSORTHOVIEW
+ 70
+0
+  9
+$PUCSORGTOP
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  9
+$PUCSORGBOTTOM
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  9
+$PUCSORGLEFT
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  9
+$PUCSORGRIGHT
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  9
+$PUCSORGFRONT
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  9
+$PUCSORGBACK
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  9
+$USERI1
+ 70
+0
+  9
+$USERI2
+ 70
+0
+  9
+$USERI3
+ 70
+0
+  9
+$USERI4
+ 70
+0
+  9
+$USERI5
+ 70
+0
+  9
+$USERR1
+ 40
+0.0
+  9
+$USERR2
+ 40
+0.0
+  9
+$USERR3
+ 40
+0.0
+  9
+$USERR4
+ 40
+0.0
+  9
+$USERR5
+ 40
+0.0
+  9
+$WORLDVIEW
+ 70
+1
+  9
+$SHADEDGE
+ 70
+3
+  9
+$SHADEDIF
+ 70
+70
+  9
+$TILEMODE
+ 70
+1
+  9
+$MAXACTVP
+ 70
+64
+  9
+$PINSBASE
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  9
+$PLIMCHECK
+ 70
+0
+  9
+$PEXTMIN
+ 10
+1e+20
+ 20
+1e+20
+ 30
+1e+20
+  9
+$PEXTMAX
+ 10
+-1e+20
+ 20
+-1e+20
+ 30
+-1e+20
+  9
+$PLIMMIN
+ 10
+0.0
+ 20
+0.0
+  9
+$PLIMMAX
+ 10
+420.0
+ 20
+297.0
+  9
+$UNITMODE
+ 70
+0
+  9
+$VISRETAIN
+ 70
+1
+  9
+$PLINEGEN
+ 70
+0
+  9
+$PSLTSCALE
+ 70
+1
+  9
+$TREEDEPTH
+ 70
+3020
+  9
+$CMLSTYLE
+  2
+Standard
+  9
+$CMLJUST
+ 70
+0
+  9
+$CMLSCALE
+ 40
+20.0
+  9
+$PROXYGRAPHICS
+ 70
+1
+  9
+$MEASUREMENT
+ 70
+1
+  9
+$CELWEIGHT
+370
+-1
+  9
+$ENDCAPS
+280
+0
+  9
+$JOINSTYLE
+280
+0
+  9
+$LWDISPLAY
+290
+0
+  9
+$INSUNITS
+ 70
+6
+  9
+$HYPERLINKBASE
+  1
+
+  9
+$STYLESHEET
+  1
+
+  9
+$XEDIT
+290
+1
+  9
+$CEPSNTYPE
+380
+0
+  9
+$PSTYLEMODE
+290
+1
+  9
+$FINGERPRINTGUID
+  2
+{00DE19DB-40A1-46AE-A1EF-B4F1CDD48632}
+  9
+$VERSIONGUID
+  2
+{1EB46289-0012-4F44-A87B-47AFBD8FBAAE}
+  9
+$EXTNAMES
+290
+1
+  9
+$PSVPSCALE
+ 40
+0.0
+  9
+$OLESTARTUP
+290
+0
+  0
+ENDSEC
+  0
+SECTION
+  2
+CLASSES
+  0
+CLASS
+  1
+ACDBDICTIONARYWDFLT
+  2
+AcDbDictionaryWithDefault
+  3
+ObjectDBX Classes
+ 90
+0
+280
+0
+281
+0
+  0
+CLASS
+  1
+SUN
+  2
+AcDbSun
+  3
+SCENEOE
+ 90
+1153
+280
+0
+281
+0
+  0
+CLASS
+  1
+VISUALSTYLE
+  2
+AcDbVisualStyle
+  3
+ObjectDBX Classes
+ 90
+4095
+280
+0
+281
+0
+  0
+CLASS
+  1
+MATERIAL
+  2
+AcDbMaterial
+  3
+ObjectDBX Classes
+ 90
+1153
+280
+0
+281
+0
+  0
+CLASS
+  1
+SCALE
+  2
+AcDbScale
+  3
+ObjectDBX Classes
+ 90
+1153
+280
+0
+281
+0
+  0
+CLASS
+  1
+TABLESTYLE
+  2
+AcDbTableStyle
+  3
+ObjectDBX Classes
+ 90
+4095
+280
+0
+281
+0
+  0
+CLASS
+  1
+MLEADERSTYLE
+  2
+AcDbMLeaderStyle
+  3
+ACDB_MLEADERSTYLE_CLASS
+ 90
+4095
+280
+0
+281
+0
+  0
+CLASS
+  1
+DICTIONARYVAR
+  2
+AcDbDictionaryVar
+  3
+ObjectDBX Classes
+ 90
+0
+280
+0
+281
+0
+  0
+CLASS
+  1
+CELLSTYLEMAP
+  2
+AcDbCellStyleMap
+  3
+ObjectDBX Classes
+ 90
+1152
+280
+0
+281
+0
+  0
+CLASS
+  1
+MENTALRAYRENDERSETTINGS
+  2
+AcDbMentalRayRenderSettings
+  3
+SCENEOE
+ 90
+1024
+280
+0
+281
+0
+  0
+CLASS
+  1
+ACDBDETAILVIEWSTYLE
+  2
+AcDbDetailViewStyle
+  3
+ObjectDBX Classes
+ 90
+1025
+280
+0
+281
+0
+  0
+CLASS
+  1
+ACDBSECTIONVIEWSTYLE
+  2
+AcDbSectionViewStyle
+  3
+ObjectDBX Classes
+ 90
+1025
+280
+0
+281
+0
+  0
+CLASS
+  1
+RASTERVARIABLES
+  2
+AcDbRasterVariables
+  3
+ISM
+ 90
+0
+280
+0
+281
+0
+  0
+CLASS
+  1
+ACDBPLACEHOLDER
+  2
+AcDbPlaceHolder
+  3
+ObjectDBX Classes
+ 90
+0
+280
+0
+281
+0
+  0
+CLASS
+  1
+LAYOUT
+  2
+AcDbLayout
+  3
+ObjectDBX Classes
+ 90
+0
+280
+0
+281
+0
+  0
+ENDSEC
+  0
+SECTION
+  2
+TABLES
+  0
+TABLE
+  2
+VPORT
+  5
+8
+330
+0
+100
+AcDbSymbolTable
+ 70
+1
+  0
+VPORT
+  5
+23
+330
+8
+100
+AcDbSymbolTableRecord
+100
+AcDbViewportTableRecord
+  2
+*Active
+ 70
+0
+ 10
+0.0
+ 20
+0.0
+ 11
+1.0
+ 21
+1.0
+ 12
+0.0
+ 22
+0.0
+ 13
+0.0
+ 23
+0.0
+ 14
+0.5
+ 24
+0.5
+ 15
+0.5
+ 25
+0.5
+ 16
+0.0
+ 26
+0.0
+ 36
+1.0
+ 17
+0.0
+ 27
+0.0
+ 37
+0.0
+ 40
+1000.0
+ 41
+1.34
+ 42
+50.0
+ 43
+0.0
+ 44
+0.0
+ 50
+0.0
+ 51
+0.0
+ 71
+0
+ 72
+1000
+ 73
+1
+ 74
+3
+ 75
+0
+ 76
+0
+ 77
+0
+ 78
+0
+281
+0
+ 65
+0
+146
+0.0
+  0
+ENDTAB
+  0
+TABLE
+  2
+LTYPE
+  5
+2
+330
+0
+100
+AcDbSymbolTable
+ 70
+5
+  0
+LTYPE
+  5
+24
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLinetypeTableRecord
+  2
+ByBlock
+ 70
+0
+  3
+
+ 72
+65
+ 73
+0
+ 40
+0.0
+  0
+LTYPE
+  5
+25
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLinetypeTableRecord
+  2
+ByLayer
+ 70
+0
+  3
+
+ 72
+65
+ 73
+0
+ 40
+0.0
+  0
+LTYPE
+  5
+26
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLinetypeTableRecord
+  2
+Continuous
+ 70
+0
+  3
+
+ 72
+65
+ 73
+0
+ 40
+0.0
+  0
+LTYPE
+  5
+30
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLinetypeTableRecord
+  2
+DASHED
+ 70
+0
+  3
+__ __ __
+ 72
+65
+ 73
+2
+ 40
+1.0
+ 49
+0.6
+ 74
+0
+ 49
+-0.4
+ 74
+0
+  0
+LTYPE
+  5
+500
+330
+2
+100
+AcDbSymbolTableRecord
+100
+AcDbLinetypeTableRecord
+  2
+PUSHDASH
+ 70
+0
+  3
+___ ___ ___
+ 72
+65
+ 73
+2
+ 40
+5.0
+ 49
+3.0
+ 74
+0
+ 49
+-2.0
+ 74
+0
+  0
+ENDTAB
+  0
+TABLE
+  2
+LAYER
+  5
+1
+330
+0
+100
+AcDbSymbolTable
+ 70
+17
+  0
+LAYER
+  5
+27
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+0
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+13
+  0
+LAYER
+  5
+28
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+Defpoints
+ 70
+0
+ 62
+7
+  6
+Continuous
+290
+0
+370
+-3
+390
+13
+  0
+LAYER
+  5
+31
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+PIPE
+ 70
+0
+ 62
+1
+  6
+Continuous
+370
+-3
+390
+13
+  0
+LAYER
+  5
+32
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+JIGER
+ 70
+0
+ 62
+2
+  6
+Continuous
+370
+-3
+390
+13
+  0
+LAYER
+  5
+33
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+PUSH
+ 70
+0
+ 62
+5
+  6
+Continuous
+370
+-3
+390
+13
+  0
+LAYER
+  5
+34
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+POINT
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+13
+  0
+LAYER
+  5
+35
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+MANHOLE
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+13
+  0
+LAYER
+  5
+36
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+RISER
+ 70
+0
+ 62
+5
+  6
+Continuous
+370
+-3
+390
+13
+  0
+LAYER
+  5
+37
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+PT_LABEL
+ 70
+0
+ 62
+3
+  6
+Continuous
+370
+-3
+390
+13
+  0
+LAYER
+  5
+38
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+PT_CODE
+ 70
+0
+ 62
+4
+  6
+Continuous
+370
+-3
+390
+13
+  0
+LAYER
+  5
+39
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+PT_LEADER
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+13
+  0
+LAYER
+  5
+3A
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+MANHOLE_LABEL
+ 70
+0
+ 62
+7
+  6
+Continuous
+370
+-3
+390
+13
+  0
+LAYER
+  5
+3B
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+RISER_LABEL
+ 70
+0
+ 62
+5
+  6
+Continuous
+370
+-3
+390
+13
+  0
+LAYER
+  5
+3C
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+JIGER_LABEL
+ 70
+0
+ 62
+6
+  6
+Continuous
+370
+-3
+390
+13
+  0
+LAYER
+  5
+3D
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+PUSH_LABEL
+ 70
+0
+ 62
+5
+  6
+Continuous
+370
+-3
+390
+13
+  0
+LAYER
+  5
+3E
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+JIGER_LEADER
+ 70
+0
+ 62
+2
+  6
+Continuous
+370
+-3
+390
+13
+  0
+LAYER
+  5
+3F
+330
+1
+100
+AcDbSymbolTableRecord
+100
+AcDbLayerTableRecord
+  2
+PUSH_LEADER
+ 70
+0
+ 62
+5
+  6
+Continuous
+370
+-3
+390
+13
+  0
+ENDTAB
+  0
+TABLE
+  2
+STYLE
+  5
+5
+330
+0
+100
+AcDbSymbolTable
+ 70
+2
+  0
+STYLE
+  5
+29
+330
+5
+100
+AcDbSymbolTableRecord
+100
+AcDbTextStyleTableRecord
+  2
+Standard
+ 70
+0
+ 40
+0.0
+ 41
+1.0
+ 50
+0.0
+ 71
+0
+ 42
+2.5
+  3
+romans.shx
+  4
+
+  0
+STYLE
+  5
+2F
+330
+5
+100
+AcDbSymbolTableRecord
+100
+AcDbTextStyleTableRecord
+  2
+HANGUL
+ 70
+0
+ 40
+0.0
+ 41
+1.0
+ 50
+0.0
+ 71
+0
+ 42
+2.5
+  3
+malgun.ttf
+  4
+
+  0
+ENDTAB
+  0
+TABLE
+  2
+VIEW
+  5
+7
+330
+0
+100
+AcDbSymbolTable
+ 70
+0
+  0
+ENDTAB
+  0
+TABLE
+  2
+UCS
+  5
+6
+330
+0
+100
+AcDbSymbolTable
+ 70
+0
+  0
+ENDTAB
+  0
+TABLE
+  2
+APPID
+  5
+3
+330
+0
+100
+AcDbSymbolTable
+ 70
+3
+  0
+APPID
+  5
+2A
+330
+3
+100
+AcDbSymbolTableRecord
+100
+AcDbRegAppTableRecord
+  2
+ACAD
+ 70
+0
+  0
+APPID
+  5
+40
+330
+3
+100
+AcDbSymbolTableRecord
+100
+AcDbRegAppTableRecord
+  2
+HATCHBACKGROUNDCOLOR
+ 70
+0
+  0
+APPID
+  5
+41
+330
+3
+100
+AcDbSymbolTableRecord
+100
+AcDbRegAppTableRecord
+  2
+EZDXF
+ 70
+0
+  0
+ENDTAB
+  0
+TABLE
+  2
+DIMSTYLE
+  5
+4
+330
+0
+100
+AcDbSymbolTable
+ 70
+1
+100
+AcDbDimStyleTable
+  0
+DIMSTYLE
+105
+2B
+330
+4
+100
+AcDbSymbolTableRecord
+100
+AcDbDimStyleTableRecord
+  2
+Standard
+ 70
+0
+  3
+
+  4
+
+ 40
+1.0
+ 41
+2.5
+ 42
+0.625
+ 43
+3.75
+ 44
+1.25
+ 45
+0.0
+ 46
+0.0
+ 47
+0.0
+ 48
+0.0
+140
+2.5
+141
+2.5
+142
+0.0
+143
+0.03937007874
+144
+1.0
+145
+0.0
+146
+1.0
+147
+0.625
+148
+0.0
+ 71
+0
+ 72
+0
+ 73
+0
+ 74
+0
+ 75
+0
+ 76
+0
+ 77
+1
+ 78
+8
+ 79
+3
+170
+0
+171
+3
+172
+1
+173
+0
+174
+0
+175
+0
+176
+0
+177
+0
+178
+0
+179
+2
+271
+2
+272
+2
+273
+2
+274
+3
+275
+0
+276
+0
+277
+2
+278
+44
+279
+0
+280
+0
+281
+0
+282
+0
+283
+0
+284
+8
+285
+0
+286
+0
+288
+0
+289
+3
+371
+-2
+372
+-2
+  0
+ENDTAB
+  0
+TABLE
+  2
+BLOCK_RECORD
+  5
+9
+330
+0
+100
+AcDbSymbolTable
+ 70
+2
+  0
+BLOCK_RECORD
+  5
+17
+330
+9
+100
+AcDbSymbolTableRecord
+100
+AcDbBlockTableRecord
+  2
+*Model_Space
+340
+1A
+  0
+BLOCK_RECORD
+  5
+1B
+330
+9
+100
+AcDbSymbolTableRecord
+100
+AcDbBlockTableRecord
+  2
+*Paper_Space
+340
+1E
+  0
+ENDTAB
+  0
+ENDSEC
+  0
+SECTION
+  2
+BLOCKS
+  0
+BLOCK
+  5
+18
+330
+17
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockBegin
+  2
+*Model_Space
+ 70
+0
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  3
+*Model_Space
+  1
+
+  0
+ENDBLK
+  5
+19
+330
+17
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockEnd
+  0
+BLOCK
+  5
+1C
+330
+1B
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockBegin
+  2
+*Paper_Space
+ 70
+0
+ 10
+0.0
+ 20
+0.0
+ 30
+0.0
+  3
+*Paper_Space
+  1
+
+  0
+ENDBLK
+  5
+1D
+330
+1B
+100
+AcDbEntity
+  8
+0
+100
+AcDbBlockEnd
+  0
+ENDSEC
+  0
+SECTION
+  2
+ENTITIES
+`;
+  var SUF=`  0
+ENDSEC
+  0
+SECTION
+  2
+OBJECTS
+  0
+DICTIONARY
+  5
+A
+330
+0
+100
+AcDbDictionary
+281
+1
+  3
+ACAD_COLOR
+350
+B
+  3
+ACAD_GROUP
+350
+C
+  3
+ACAD_LAYOUT
+350
+D
+  3
+ACAD_MATERIAL
+350
+E
+  3
+ACAD_MLEADERSTYLE
+350
+F
+  3
+ACAD_MLINESTYLE
+350
+10
+  3
+ACAD_PLOTSETTINGS
+350
+11
+  3
+ACAD_PLOTSTYLENAME
+350
+12
+  3
+ACAD_SCALELIST
+350
+14
+  3
+ACAD_TABLESTYLE
+350
+15
+  3
+ACAD_VISUALSTYLE
+350
+16
+  3
+EZDXF_META
+350
+2D
+  0
+DICTIONARY
+  5
+B
+330
+A
+100
+AcDbDictionary
+281
+1
+  0
+DICTIONARY
+  5
+C
+330
+A
+100
+AcDbDictionary
+281
+1
+  0
+DICTIONARY
+  5
+D
+330
+A
+100
+AcDbDictionary
+281
+1
+  3
+Model
+350
+1A
+  3
+Layout1
+350
+1E
+  0
+DICTIONARY
+  5
+E
+330
+A
+100
+AcDbDictionary
+281
+1
+  3
+ByBlock
+350
+1F
+  3
+ByLayer
+350
+20
+  3
+Global
+350
+21
+  0
+DICTIONARY
+  5
+F
+330
+A
+100
+AcDbDictionary
+281
+1
+  3
+Standard
+350
+2C
+  0
+DICTIONARY
+  5
+10
+330
+A
+100
+AcDbDictionary
+281
+1
+  3
+Standard
+350
+22
+  0
+DICTIONARY
+  5
+11
+330
+A
+100
+AcDbDictionary
+281
+1
+  0
+ACDBDICTIONARYWDFLT
+  5
+12
+330
+A
+100
+AcDbDictionary
+281
+1
+  3
+Normal
+350
+13
+100
+AcDbDictionaryWithDefault
+340
+13
+  0
+ACDBPLACEHOLDER
+  5
+13
+330
+12
+  0
+DICTIONARY
+  5
+14
+330
+A
+100
+AcDbDictionary
+281
+1
+  0
+DICTIONARY
+  5
+15
+330
+A
+100
+AcDbDictionary
+281
+1
+  0
+DICTIONARY
+  5
+16
+330
+A
+100
+AcDbDictionary
+281
+1
+  0
+LAYOUT
+  5
+1A
+330
+D
+100
+AcDbPlotSettings
+  1
+
+  4
+A3
+  6
+
+ 40
+7.5
+ 41
+20.0
+ 42
+7.5
+ 43
+20.0
+ 44
+420.0
+ 45
+297.0
+ 46
+0.0
+ 47
+0.0
+ 48
+0.0
+ 49
+0.0
+140
+0.0
+141
+0.0
+142
+1.0
+143
+1.0
+ 70
+1024
+ 72
+1
+ 73
+0
+ 74
+5
+  7
+
+ 75
+16
+ 76
+0
+ 77
+2
+ 78
+300
+147
+1.0
+148
+0.0
+149
+0.0
+100
+AcDbLayout
+  1
+Model
+ 70
+1
+ 71
+0
+ 10
+0.0
+ 20
+0.0
+ 11
+420.0
+ 21
+297.0
+ 12
+0.0
+ 22
+0.0
+ 32
+0.0
+ 14
+1e+20
+ 24
+1e+20
+ 34
+1e+20
+ 15
+-1e+20
+ 25
+-1e+20
+ 35
+-1e+20
+146
+0.0
+ 13
+0.0
+ 23
+0.0
+ 33
+0.0
+ 16
+1.0
+ 26
+0.0
+ 36
+0.0
+ 17
+0.0
+ 27
+1.0
+ 37
+0.0
+ 76
+1
+330
+17
+  0
+LAYOUT
+  5
+1E
+330
+D
+100
+AcDbPlotSettings
+  1
+
+  4
+A3
+  6
+
+ 40
+7.5
+ 41
+20.0
+ 42
+7.5
+ 43
+20.0
+ 44
+420.0
+ 45
+297.0
+ 46
+0.0
+ 47
+0.0
+ 48
+0.0
+ 49
+0.0
+140
+0.0
+141
+0.0
+142
+1.0
+143
+1.0
+ 70
+0
+ 72
+1
+ 73
+0
+ 74
+5
+  7
+
+ 75
+16
+ 76
+0
+ 77
+2
+ 78
+300
+147
+1.0
+148
+0.0
+149
+0.0
+100
+AcDbLayout
+  1
+Layout1
+ 70
+1
+ 71
+1
+ 10
+0.0
+ 20
+0.0
+ 11
+420.0
+ 21
+297.0
+ 12
+0.0
+ 22
+0.0
+ 32
+0.0
+ 14
+1e+20
+ 24
+1e+20
+ 34
+1e+20
+ 15
+-1e+20
+ 25
+-1e+20
+ 35
+-1e+20
+146
+0.0
+ 13
+0.0
+ 23
+0.0
+ 33
+0.0
+ 16
+1.0
+ 26
+0.0
+ 36
+0.0
+ 17
+0.0
+ 27
+1.0
+ 37
+0.0
+ 76
+1
+330
+1B
+  0
+MATERIAL
+  5
+1F
+102
+{ACAD_REACTORS
+330
+E
+102
+}
+330
+E
+100
+AcDbMaterial
+  1
+ByBlock
+  2
+
+ 70
+0
+ 40
+1.0
+ 71
+1
+ 41
+1.0
+ 91
+-1023410177
+ 42
+1.0
+ 72
+1
+  3
+
+ 73
+1
+ 74
+1
+ 75
+1
+ 44
+0.5
+ 73
+0
+ 45
+1.0
+ 46
+1.0
+ 77
+1
+  4
+
+ 78
+1
+ 79
+1
+170
+1
+ 48
+1.0
+171
+1
+  6
+
+172
+1
+173
+1
+174
+1
+140
+1.0
+141
+1.0
+175
+1
+  7
+
+176
+1
+177
+1
+178
+1
+143
+1.0
+179
+1
+  8
+
+270
+1
+271
+1
+272
+1
+145
+1.0
+146
+1.0
+273
+1
+  9
+
+274
+1
+275
+1
+276
+1
+ 42
+1.0
+ 72
+1
+  3
+
+ 73
+1
+ 74
+1
+ 75
+1
+ 94
+63
+  0
+MATERIAL
+  5
+20
+102
+{ACAD_REACTORS
+330
+E
+102
+}
+330
+E
+100
+AcDbMaterial
+  1
+ByLayer
+  2
+
+ 70
+0
+ 40
+1.0
+ 71
+1
+ 41
+1.0
+ 91
+-1023410177
+ 42
+1.0
+ 72
+1
+  3
+
+ 73
+1
+ 74
+1
+ 75
+1
+ 44
+0.5
+ 73
+0
+ 45
+1.0
+ 46
+1.0
+ 77
+1
+  4
+
+ 78
+1
+ 79
+1
+170
+1
+ 48
+1.0
+171
+1
+  6
+
+172
+1
+173
+1
+174
+1
+140
+1.0
+141
+1.0
+175
+1
+  7
+
+176
+1
+177
+1
+178
+1
+143
+1.0
+179
+1
+  8
+
+270
+1
+271
+1
+272
+1
+145
+1.0
+146
+1.0
+273
+1
+  9
+
+274
+1
+275
+1
+276
+1
+ 42
+1.0
+ 72
+1
+  3
+
+ 73
+1
+ 74
+1
+ 75
+1
+ 94
+63
+  0
+MATERIAL
+  5
+21
+102
+{ACAD_REACTORS
+330
+E
+102
+}
+330
+E
+100
+AcDbMaterial
+  1
+Global
+  2
+
+ 70
+0
+ 40
+1.0
+ 71
+1
+ 41
+1.0
+ 91
+-1023410177
+ 42
+1.0
+ 72
+1
+  3
+
+ 73
+1
+ 74
+1
+ 75
+1
+ 44
+0.5
+ 73
+0
+ 45
+1.0
+ 46
+1.0
+ 77
+1
+  4
+
+ 78
+1
+ 79
+1
+170
+1
+ 48
+1.0
+171
+1
+  6
+
+172
+1
+173
+1
+174
+1
+140
+1.0
+141
+1.0
+175
+1
+  7
+
+176
+1
+177
+1
+178
+1
+143
+1.0
+179
+1
+  8
+
+270
+1
+271
+1
+272
+1
+145
+1.0
+146
+1.0
+273
+1
+  9
+
+274
+1
+275
+1
+276
+1
+ 42
+1.0
+ 72
+1
+  3
+
+ 73
+1
+ 74
+1
+ 75
+1
+ 94
+63
+  0
+MLINESTYLE
+  5
+22
+102
+{ACAD_REACTORS
+330
+10
+102
+}
+330
+10
+100
+AcDbMlineStyle
+  2
+Standard
+ 70
+0
+  3
+
+ 62
+256
+ 51
+90.0
+ 52
+90.0
+ 71
+2
+ 49
+0.5
+ 62
+256
+  6
+BYLAYER
+ 49
+-0.5
+ 62
+256
+  6
+BYLAYER
+  0
+MLEADERSTYLE
+  5
+2C
+102
+{ACAD_REACTORS
+330
+F
+102
+}
+330
+F
+100
+AcDbMLeaderStyle
+179
+2
+170
+2
+171
+1
+172
+0
+ 90
+2
+ 40
+0.0
+ 41
+0.0
+173
+1
+ 91
+-1056964608
+ 92
+-2
+290
+1
+ 42
+2.0
+291
+1
+ 43
+8.0
+  3
+Standard
+ 44
+4.0
+300
+
+342
+29
+174
+1
+175
+1
+176
+0
+178
+1
+ 93
+-1056964608
+ 45
+4.0
+292
+0
+297
+0
+ 46
+4.0
+ 94
+-1056964608
+ 47
+1.0
+ 49
+1.0
+140
+1.0
+294
+1
+141
+0.0
+177
+0
+142
+1.0
+295
+0
+296
+0
+143
+3.75
+271
+0
+272
+9
+273
+9
+  0
+DICTIONARY
+  5
+2D
+330
+A
+100
+AcDbDictionary
+280
+1
+281
+1
+  3
+CREATED_BY_EZDXF
+350
+2E
+  3
+WRITTEN_BY_EZDXF
+350
+42
+  0
+DICTIONARYVAR
+  5
+2E
+330
+2D
+100
+DictionaryVariables
+280
+0
+  1
+1.4.4 @ 2026-06-16T02:06:45.251362+00:00
+  0
+DICTIONARYVAR
+  5
+42
+330
+2D
+100
+DictionaryVariables
+280
+0
+  1
+1.4.4 @ 2026-06-16T02:06:45.254593+00:00
+  0
+ENDSEC
+  0
+EOF
+`;
+  var BOX=0.3, RO=0.5, RI=0.3, TH=0.5, RH=0.8;
+  var E=[], hs=0x1000;
+  function H(){return (hs++).toString(16).toUpperCase();}
+  function N(n){return (Math.round(n*1000)/1000).toString();}
+  function push(a){for(var i=0;i<a.length;i++)E.push(a[i]);}
+  function uesc(s){var o='';for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);o+=(c>127)?('\\U+'+('000'+c.toString(16).toUpperCase()).slice(-4)):s.charAt(i);}return o;}
+  function pline(pts,layer,col,closed,lt,lts){var a=['0','LWPOLYLINE','5',H(),'330','17','100','AcDbEntity','8',layer];if(lt)a.push('6',lt);if(lts)a.push('48',N(lts));a.push('62',String(col),'100','AcDbPolyline','90',String(pts.length),'70',closed?'1':'0');for(var i=0;i<pts.length;i++){a.push('10',N(pts[i][0]),'20',N(pts[i][1]));}push(a);}
+  // 선종에 의존하지 않는 '물리적 점선': 경로 따라 dash만큼 실선 LINE, gap만큼 띄움 → 어떤 뷰어에서도 점선으로 보임
+  function dashedPolyline(pts,layer,col,dash,gap){var period=dash+gap,pos=0;for(var i=0;i<pts.length-1;i++){var ax=pts[i][0],ay=pts[i][1],bx=pts[i+1][0],by=pts[i+1][1];var seg=Math.hypot(bx-ax,by-ay);if(seg<1e-9)continue;var ux=(bx-ax)/seg,uy=(by-ay)/seg,d=0;while(d<seg){var inPat=pos%period;if(inPat<dash){var step=Math.min(dash-inPat,seg-d);line(ax+ux*d,ay+uy*d,ax+ux*(d+step),ay+uy*(d+step),layer,col);d+=step;pos+=step;}else{var step2=Math.min(period-inPat,seg-d);d+=step2;pos+=step2;}}}}
+  function circle(cx,cy,r,layer,col){push(['0','CIRCLE','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbCircle','10',N(cx),'20',N(cy),'30','0','40',N(r)]);}
+  function line(x1,y1,x2,y2,layer,col,lt){var a=['0','LINE','5',H(),'330','17','100','AcDbEntity','8',layer];if(lt)a.push('6',lt);a.push('62',String(col),'100','AcDbLine','10',N(x1),'20',N(y1),'30','0','11',N(x2),'21',N(y2),'31','0');push(a);}
+  function box(cx,cy,sz,layer,col){var h=sz/2;pline([[cx-h,cy-h],[cx+h,cy-h],[cx+h,cy+h],[cx-h,cy+h]],layer,col,true);}
+  function text(x,y,h,s,layer,col,align){var hangul=/[^\x00-\x7F]/.test(s);var es=uesc(s);var a=['0','TEXT','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbText','10',N(x),'20',N(y),'30','0','40',N(h),'1',es];if(hangul)a.push('7','HANGUL');a.push('72',String(align||0),'11',N(x),'21',N(y),'31','0','100','AcDbText');push(a);}
+  function tw(label,unit){function gw(ch){var c=ch.charCodeAt(0);if(c>127)return 1.1;if(ch===' ')return 0.392;if(ch==='M')return 1.065;if(ch==='W')return 1.22;if(ch>='0'&&ch<='9')return 0.785;if('()[]{}'.indexOf(ch)>=0)return 0.482;if('Iilj|!.,:;'.indexOf(ch)>=0)return 0.36;if('TY'.indexOf(ch)>=0)return 0.755;if(ch>='A'&&ch<='Z')return 0.8;if(ch>='a'&&ch<='z')return 0.6;return 0.5;}var w=0;for(var i=0;i<label.length;i++)w+=gw(label.charAt(i))*unit;return w+unit*0.05;}
+  // 측점: 박스 + 인출선(검정 점선) + 번호/코드
+  var lay=computeLabels();
+  state.points.forEach(function(p,k){
+    box(p.x,p.y,BOX,'POINT',isTpoint(p)?3:7);
+    var lo=lay[k]||{lx:p.x+1,ly:p.y,anchor:'start'};
+    line(p.x,p.y,lo.lx,lo.ly,'PT_LEADER',7,'DASHED');
+    var al=(lo.anchor==='end')?2:0;
+    var no=(p.no||'')+'', cd=((p.code||'').trim());
+    if(no)text(lo.lx,lo.ly+TH*0.1,TH,no,'PT_LABEL',3,al);
+    if(cd)text(lo.lx,lo.ly-TH*1.1,TH,cd,'PT_CODE',4,al);
+  });
+  // 결선: LWPOLYLINE (압입=점선) + 지거/압입 멘트(인출선 점선 + 밑줄 + 중앙 글자)
+  var LM={'통신관로':['PIPE',1],'지거':['JIGER',2],'압입구간':['PUSH',5]};
+  var appLay={'통신관로':1,'지거':1,'압입구간':1,'주입상인출선':1};
+  // 백판(수치지도)=앱 레이어 외 라인 → 블록으로 따로 처리(여기선 제외)
+  var baseLines=state.lines.filter(function(l){return (l.base||!appLay[l.layer])&&l.pts&&l.pts.length>=2;});
+  state.lines.forEach(function(Ln){if(!Ln.pts||Ln.pts.length<2)return;if(Ln.base||!appLay[Ln.layer])return;var lm=LM[Ln.layer]||['PIPE',1];
+    if(Ln.layer==='압입구간'){pline(Ln.pts,'PUSH',5,false,'DASHED');} // 압입=DASHED 선종 1폴리라인(첨부2 스타일, 가는 점선)
+    else pline(Ln.pts,lm[0],lm[1],false);
+    if((Ln.layer==='지거'||Ln.layer==='압입구간')&&Ln.note){
+      var aw=ptOnPoly(Ln.pts,polyAnchorT(Ln));
+      var nx,ny; if(Ln.noteOff){nx=Ln.noteOff[0];ny=-Ln.noteOff[1];} else {nx=aw[0]+1.8;ny=aw[1]+1.3;}
+      var lyr=Ln.layer==='압입구간'?'PUSH':'JIGER', lc=Ln.layer==='압입구간'?5:2;
+      var dx=nx-aw[0],dy=ny-aw[1],dl=Math.hypot(dx,dy)||1;
+      if(dl>2.5){nx=aw[0]+dx/dl*2.5;ny=aw[1]+dy/dl*2.5;} // 인출선 최대 2.5m(혼자 길게 안 나오게)
+      var w=tw(Ln.note,TH); var isR=nx>=aw[0]; var u2=isR?nx+w:nx-w;
+      pline([[aw[0],aw[1]],[nx,ny],[u2,ny]],lyr+'_LEADER',lc,false); // 인출선+밑줄=실선 폴리라인(떨어짐 없이 붙음)
+      text((nx+u2)/2,ny+TH*0.45,TH,Ln.note,lyr+'_LABEL',(Ln.layer==='지거')?6:lc,1);
+    }
+  });
+  // 맨홀/입상주 + 인출선 + 태그(밑줄 위로 띄워 안 겹치게)
+  (state.manholes||[]).forEach(function(mh){
+    var isRiser=(mh.type==='riser');
+    var lyr=isRiser?'RISER':'MANHOLE', col=isRiser?5:7;
+    if(isRiser){var wB=0.14,wT=0.04,armW=0.24,armY=mh.wy+RH*0.74;
+      line(mh.wx-wB,mh.wy,mh.wx-wT,mh.wy+RH,lyr,5);line(mh.wx+wB,mh.wy,mh.wx+wT,mh.wy+RH,lyr,5);
+      line(mh.wx-armW,armY,mh.wx+armW,armY,lyr,5);circle(mh.wx,mh.wy+RH,wT+0.05,lyr,5);
+    } else {circle(mh.wx,mh.wy,RO,lyr,7);circle(mh.wx,mh.wy,RI,lyr,7);}
+    var w=tw(mh.label||'',TH);
+    var _p=mhLabelBase(mh,w); var lx=_p.lx, lyy=_p.ly;
+    var isRight=(lx>=mh.wx);
+    var uw=w+TH*0.12+1.2; var ux2=isRight?lx+uw:lx-uw; // 밑줄=글자폭+여유 +1.2m 연장(종훈님 CAD 실측)
+    pline([[mh.wx,mh.wy],[lx,lyy],[ux2,lyy]],lyr,col,false); // 대각선+밑줄=폴리선 1개(붙음)
+    if(mh.label)text(lx,lyy+TH*0.45,TH,mh.label,lyr+'_LABEL',col,isRight?0:2); // 꺾임점 기준 정렬(R=좌0,L=우2)
+  });
+  // ===== 백판(수치지도)을 단일 블록 BACKDROP 으로 묶기 (CAD에서 통째로 선택) =====
+  var PREx=PRE;
+  if(baseLines.length){
+    var BR='F0',BK='F1',EB='F2';                 // 미사용 핸들(충돌 검증됨)
+    var bent=[];                                 // 블록 내부 폴리라인(owner=BLOCK_RECORD BR, 회색8, 레이어0)
+    baseLines.forEach(function(L){
+      var a=['  0','LWPOLYLINE','  5',H(),'330',BR,'100','AcDbEntity','  8','0',' 62','8','100','AcDbPolyline',' 90',String(L.pts.length),' 70','0'];
+      for(var i=0;i<L.pts.length;i++){a.push(' 10',N(L.pts[i][0]),' 20',N(L.pts[i][1]));}
+      bent.push(a.join('\n'));
+    });
+    // 모델스페이스에 INSERT 1개(BACKDROP 참조, 원점·배율1)
+    push(['  0','INSERT','  5',H(),'330','17','100','AcDbEntity','  8','0','100','AcDbBlockReference','  2','BACKDROP',' 10','0',' 20','0',' 30','0',' 41','1',' 42','1',' 43','1',' 50','0']);
+    // BLOCK_RECORD 주입(테이블 ENDTAB 앞)
+    var brStr=['  0','BLOCK_RECORD','  5',BR,'330','9','100','AcDbSymbolTableRecord','100','AcDbBlockTableRecord','  2','BACKDROP'].join('\n')+'\n';
+    PREx=PREx.replace('340\n1E\n  0\nENDTAB','340\n1E\n'+brStr+'  0\nENDTAB');
+    // BLOCK 정의 주입(BLOCKS ENDSEC 앞)
+    var blkBegin=['  0','BLOCK','  5',BK,'330',BR,'100','AcDbEntity','  8','0','100','AcDbBlockBegin','  2','BACKDROP',' 70','0',' 10','0.0',' 20','0.0',' 30','0.0','  3','BACKDROP','  1',''].join('\n');
+    var blkEnd=['  0','ENDBLK','  5',EB,'330',BR,'100','AcDbEntity','  8','0','100','AcDbBlockEnd'].join('\n');
+    var blkStr=blkBegin+'\n'+bent.join('\n')+'\n'+blkEnd+'\n';
+    PREx=PREx.replace('AcDbBlockEnd\n  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES','AcDbBlockEnd\n'+blkStr+'  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES');
+  }
+  var dxf=PREx+E.join('\n')+'\n'+SUF;
+  var blob=new Blob([dxf],{type:'application/dxf'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download=((state.projectName||'survey').replace(/[^\w가-힣\-]/g,'_'))+'.dxf';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url);},1500);
+  toast('DXF 내보내기 완료 — 다운로드됨');
+}
+function renderDraft(){clearSvg(gDraft);previewLine=null;if(!lineDraft)return;
+  var col=(LINECOL[drawLayer]||{}).c||'#d92b2b', lw=(LINECOL[drawLayer]||{}).w||1.6;
+  for(var i=1;i<lineDraft.length;i++){var a=S(lineDraft[i-1][0],lineDraft[i-1][1]),b=S(lineDraft[i][0],lineDraft[i][1]);
+    gDraft.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:col,'stroke-width':lw,'stroke-dasharray':'4 3','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}
+  lineDraft.forEach(function(p){var s=S(p[0],p[1]);gDraft.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#1f6fd6','stroke-width':8,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));});
+  drawIndicators(null);}
+function drawIndicators(cw){clearSvg(gDraw);if(mode!=='line'||!lineDraft)return;
+  if(cw){var ns=nearestSnapWorld(cw[0],cw[1]);if(ns.pt&&ns.d<vb.w*0.04){var s2=S(ns.pt[0],ns.pt[1]);gDraw.appendChild(el('line',{x1:s2[0],y1:s2[1],x2:s2[0],y2:s2[1],stroke:'#1f6fd6','stroke-width':10,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}}}
+function delHoverHighlight(cw){clearSvg(gDraw);var best=null,bd=1e18;
+  state.lines.forEach(function(L){if(mode!=='delall2'&&L.layer!==delLayer)return;for(var s=0;s<L.pts.length-1;s++){var a=S(L.pts[s][0],L.pts[s][1]),b=S(L.pts[s+1][0],L.pts[s+1][1]);var d=segDist(cw[0],cw[1],a[0],a[1],b[0],b[1]);if(d<bd){bd=d;best={a:a,b:b,layer:L.layer};}}});
+  if(best&&bd<vb.w*0.03){var col=(LINECOL[best.layer]||{}).c||'#d92b2b';gDraw.appendChild(el('line',{x1:best.a[0],y1:best.a[1],x2:best.b[0],y2:best.b[1],stroke:col,'stroke-width':6,'stroke-opacity':0.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));}
+  if(mode==='delall2'){ // 검수 써클·박스도 마우스가 위에 오면 두껍게
+    var mb=-1,mbd=1e18;
+    state.markups.forEach(function(m,i){var cx=m.type==='cir'?m.cx:(m.x+m.w/2),cy=m.type==='cir'?m.cy:(m.y+m.h/2);var rr=m.type==='cir'?Math.max(m.rx,m.ry):Math.max(m.w,m.h)/2;var d=Math.hypot(cw[0]-cx,cw[1]-cy);if(d<rr+vb.w*0.015&&d<mbd){mbd=d;mb=i;}});
+    if(mb>=0){var m=state.markups[mb];var sh=m.type==='cir'?el('ellipse',{cx:m.cx,cy:m.cy,rx:m.rx,ry:m.ry}):el('rect',{x:m.x,y:m.y,width:m.w,height:m.h,rx:0.4});sh.setAttribute('fill','none');sh.setAttribute('stroke',MKCOL[m.status]||'#d32f2f');sh.setAttribute('stroke-width',7);sh.setAttribute('stroke-opacity',0.55);sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');gDraw.appendChild(sh);}
+  }
+}
+function startDraw(layer){drawLayer=layer||'통신관로';mode='line';setModeUI();lineDraft=[];clearSvg(gDraft);clearSvg(gDraw);toast((drawLayer==='지거'?'지거선':(drawLayer==='압입구간'?'압입구간':'관로선'))+' 그리기: 점 클릭 → Enter/Space 또는 "완료" (되돌리기=한 점 취소)');}
+function finishDraw(){if(lineDraft&&lineDraft.length>=2){pushHist();var rec={layer:drawLayer,pts:lineDraft.slice()};if(drawLayer==='지거'){rec.note='점(번호 :  )';}else if(drawLayer==='압입구간'){rec.note='압입구간 ';}state.lines.push(rec);}lineDraft=null;previewLine=null;clearSvg(gDraft);clearSvg(gDraw);mode='pan';setModeUI();drawGeo();updMeta();}
+function clearLines(){pushHist();state.lines=state.lines.filter(function(l){return l.layer!=='통신관로';});drawGeo();updMeta();toast('결선 모두 삭제');}
+// 수치지도 백판 전체 삭제 (앱 레이어=통신관로·지거·압입·주입상인출선 외 모두 = 백판)
+function clearBaseMap(){
+  var app={'통신관로':1,'지거':1,'압입구간':1,'주입상인출선':1};
+  var isBase=function(l){return l.base||!app[l.layer];};
+  var n=state.lines.filter(isBase).length;
+  if(!n){toast('삭제할 백판이 없습니다');return;}
+  pushHist();
+  state.lines=state.lines.filter(function(l){return !isBase(l);});
+  drawGeo();updMeta();toast('백판(수치지도) '+n+'개 라인 전체 삭제');
+}
+function clearAllDraw(){pushHist();state.lines=state.lines.filter(function(l){return l.layer!=='통신관로'&&l.layer!=='지거';});drawGeo();updMeta();toast('관로선·지거선 전체삭제');}
+function clearAllSym(){
+  var nL=(state.lines||[]).length, nM=(state.manholes||[]).length;
+  if(!nL&&!nM){toast('지울 선·심벌이 없습니다');return;}
+  pushHist();
+  state.lines=[];           // 관로·지거·압입 전부
+  state.manholes=[];        // 맨홀·입상주 (인출선 포함)
+  if(lineDraft){lineDraft=null;clearSvg(gDraft);clearSvg(gDraw);mode='pan';setModeUI();}
+  drawGeo();drawManholes();updMeta();
+  toast('선·심벌 전체 삭제 ('+nL+'선·'+nM+'심벌 / 되돌리기로 복구)');
+}
+function segDist(px,py,ax,ay,bx,by){var dx=bx-ax,dy=by-ay,L2=dx*dx+dy*dy,t=L2?((px-ax)*dx+(py-ay)*dy)/L2:0;t=Math.max(0,Math.min(1,t));var cx=ax+t*dx,cy=ay+t*dy;return Math.hypot(px-cx,py-cy);}
+function deleteSegmentAt(wx,wy){
+  var best=null,bd=1e18;
+  state.lines.forEach(function(L,li){ if(mode!=='delall2'&&L.layer!==delLayer)return;
+    for(var s=0;s<L.pts.length-1;s++){var a=S(L.pts[s][0],L.pts[s][1]),b=S(L.pts[s+1][0],L.pts[s+1][1]);
+      var d=segDist(wx,wy,a[0],a[1],b[0],b[1]); if(d<bd){bd=d;best={li:li,si:s};}}});
+  if(!best||bd>vb.w*0.03){toast('지울 선에 더 가까이 클릭하세요');return;}
+  pushHist();
+  var L=state.lines[best.li],left=L.pts.slice(0,best.si+1),right=L.pts.slice(best.si+1),repl=[];
+  if(left.length>=2)repl.push({layer:L.layer,pts:left,note:L.note});
+  if(right.length>=2)repl.push({layer:L.layer,pts:right});
+  state.lines.splice.apply(state.lines,[best.li,1].concat(repl));
+  clearSvg(gDraw);drawGeo();updMeta();toast('선 1개 삭제');
+}
+// 통합 지우기에서 검수 표시(써클·박스·중복원) 클릭 삭제
+function deleteMarkupAt(wx,wy){
+  var best=-1,bd=1e18;
+  state.markups.forEach(function(m,i){
+    var cx=m.type==='cir'?m.cx:(m.x+m.w/2), cy=m.type==='cir'?m.cy:(m.y+m.h/2);
+    var rr=m.type==='cir'?Math.max(m.rx,m.ry):Math.max(m.w,m.h)/2;
+    var d=Math.hypot(wx-cx,wy-cy);
+    if(d<rr+vb.w*0.015 && d<bd){bd=d;best=i;}
+  });
+  if(best<0)return false;
+  pushHist();var m=state.markups[best];if(m.el)m.el.remove();state.markups.splice(best,1);
+  drawMarks();updMeta();toast('검수 표시 삭제');return true;
+}
+
+/* ====== 모드 UI ====== */
+var lastStartAction=null; // 엔터/스페이스로 다시 시작할 '바로 전 시작 기능'
+function setModeUI(){
+  if(mode==='mhplace')lastStartAction=function(){mode='mhplace';setModeUI();toast('맨홀심기 — 클릭해 심기');};
+  else if(mode==='riserplace')lastStartAction=function(){mode='riserplace';setModeUI();toast('입상주심기 — 클릭해 심기');};
+  else if(mode==='line')lastStartAction=function(){startDraw(drawLayer);};
+  if(mode!=='measure'){measurePts=[];if(typeof gMeasure!=='undefined'&&gMeasure)clearSvg(gMeasure);clearLabels('measure');}renderSub();cv.classList.toggle('draw',mode!=='pan'&&mode!=='mhplace'&&mode!=='delmh'&&mode!=='riserplace'&&mode!=='delriser'&&mode!=='delall2'&&mode!=='ptins'&&mode!=='ptdel');if(mode==='ptins'){cv.style.cursor='crosshair';}else if(mode==='mhplace'||mode==='delmh'||mode==='riserplace'||mode==='delriser'||mode==='delall2'||mode==='ptdel'){cv.style.cursor='default';}else{cv.style.cursor='';}}
+function setStatusUI(){renderSub();}
+
+/* ====== 포인터 ====== */
+var dragging=false,startC=null,startVB=null,drawing=false,cur=null,sx=0,sy=0,midPanning=false;
+cv.addEventListener('pointerdown',function(e){
+  if(e.button===1){e.preventDefault();midPanning=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};cv.style.cursor='grabbing';try{cv.setPointerCapture(e.pointerId);}catch(x){}return;}
+  if(mode==='pan'){/* 측점/맨홀 위=선택(pointerup), 빈 곳 드래그=화면이동 */
+    var w0=toWorld(e.clientX,e.clientY);var nr0=nearestSnapWorld(w0[0],w0[1]);
+    if(!(nr0.pt&&nr0.d<vb.w*0.025)){dragging=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};cv.style.cursor='grabbing';try{cv.setPointerCapture(e.pointerId);}catch(x){}}
+  }
+  else if(mode==='mhplace'){var wm=toWorld(e.clientX,e.clientY);placeManholeAt(wm[0],-wm[1]);mode='pan';setModeUI();return;}
+  else if(mode==='riserplace'){var wr=toWorld(e.clientX,e.clientY);placeManholeAt(wr[0],-wr[1],'riser');mode='pan';setModeUI();return;}
+  else if(mode==='ptins'){var wi=toWorld(e.clientX,e.clientY);insertPointAt(wi[0],-wi[1]);mode='pan';setModeUI();return;}
+  else if(mode==='ptdel'){return;} // 측점삭제: 빈 곳 클릭은 무시(측점 클릭은 hit 핸들러가 삭제)
+  else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);var ns=nearestSnapWorld(w[0],w[1]);
+    var snapTol=(drawLayer==='지거')?Math.max(pxToWorld()*14,0.25):vb.w*0.04; // 지거는 측점 바로 위만 스냅(끝점이 멀리 안 끌림)
+    var pt=(ns.pt&&ns.d<snapTol)?[ns.pt[0],ns.pt[1]]:[w[0],-w[1]];lineDraft.push(pt);renderDraft();}
+  else if(mode==='delline'||mode==='delall2'){var wd=toWorld(e.clientX,e.clientY);
+    if(mode==='delall2'){var hp=null,hpd=Math.max(pxToWorld()*12,0.4);(state.points||[]).forEach(function(q){var d=Math.hypot(q.x-wd[0],q.y+wd[1]);if(d<hpd){hpd=d;hp=q;}});if(hp){deletePoint(hp);return;} if(deleteMarkupAt(wd[0],wd[1]))return;}
+    deleteSegmentAt(wd[0],wd[1]);}
+  else if(mode==='measure'){var wm=toWorld(e.clientX,e.clientY);var nm=nearestSnapWorld(wm[0],wm[1]);var mp=(nm.pt&&nm.d<vb.w*0.04)?[nm.pt[0],nm.pt[1]]:[wm[0],-wm[1]];measureClick(mp);return;}
+  else if(mode==='delmh'){/* 맨홀 삭제 모드: 빈 곳 클릭은 아무것도 안 함 (맨홀 클릭은 심벌 핸들러가 처리) */return;}
+  else{drawing=true;var w2=toWorld(e.clientX,e.clientY);sx=w2[0];sy=w2[1];
+    cur=el(mode==='box'?'rect':'ellipse',{fill:MKCOL[status],'fill-opacity':0.13,stroke:MKCOL[status],'stroke-width':2,'vector-effect':'non-scaling-stroke','pointer-events':'none'});
+    if(mode==='box'){cur.setAttribute('x',sx);cur.setAttribute('y',sy);cur.setAttribute('width',0);cur.setAttribute('height',0);cur.setAttribute('rx',0.4);}else{cur.setAttribute('cx',sx);cur.setAttribute('cy',sy);cur.setAttribute('rx',0);cur.setAttribute('ry',0);}
+    gMark.appendChild(cur);}
+  if(mode!=='pan')try{cv.setPointerCapture(e.pointerId);}catch(x){}
+});
+cv.addEventListener('pointermove',function(e){
+  if(midPanning){var rr=cv.getBoundingClientRect();var ddx=(e.clientX-startC[0])/rr.width*startVB.w,ddy=(e.clientY-startC[1])/rr.height*startVB.h;vb.x=startVB.x-ddx;vb.y=startVB.y-ddy;applyVB();return;}
+  if(dragging){var r=cv.getBoundingClientRect();var dx=(e.clientX-startC[0])/r.width*startVB.w,dy=(e.clientY-startC[1])/r.height*startVB.h;vb.x=startVB.x-dx;vb.y=startVB.y-dy;applyVB();}
+  else if(mode==='line'&&lineDraft&&lineDraft.length){var w=toWorld(e.clientX,e.clientY);var last=S(lineDraft[lineDraft.length-1][0],lineDraft[lineDraft.length-1][1]);
+    if(!previewLine){previewLine=el('line',{stroke:(LINECOL[drawLayer]||{}).c||'#d92b2b','stroke-width':1.2,'stroke-dasharray':'4 3','vector-effect':'non-scaling-stroke','pointer-events':'none'});gDraft.appendChild(previewLine);}
+    previewLine.setAttribute('x1',last[0]);previewLine.setAttribute('y1',last[1]);previewLine.setAttribute('x2',w[0]);previewLine.setAttribute('y2',w[1]);}
+  else if(drawing&&cur){var w=toWorld(e.clientX,e.clientY),x=w[0],y=w[1];
+    if(mode==='box'){cur.setAttribute('x',Math.min(sx,x));cur.setAttribute('y',Math.min(sy,y));cur.setAttribute('width',Math.abs(x-sx));cur.setAttribute('height',Math.abs(y-sy));}
+    else{cur.setAttribute('cx',(sx+x)/2);cur.setAttribute('cy',(sy+y)/2);cur.setAttribute('rx',Math.abs(x-sx)/2);cur.setAttribute('ry',Math.abs(y-sy)/2);}}
+});
+function endPtr(){
+  if(midPanning){midPanning=false;cv.style.cursor='';return;}
+  if(dragging){dragging=false;cv.style.cursor='';}
+  if(drawing&&cur){drawing=false;
+    var isBox=mode==='box';var w=isBox?+cur.getAttribute('width'):+cur.getAttribute('rx')*2;var h=isBox?+cur.getAttribute('height'):+cur.getAttribute('ry')*2;
+    if(w<0.4&&h<0.4){cur.remove();cur=null;return;}
+    var ccx=isBox?(+cur.getAttribute('x')+w/2):+cur.getAttribute('cx');var ccy=isBox?(+cur.getAttribute('y')+h/2):+cur.getAttribute('cy');
+    var np=nearestPointWorld(ccx,ccy);var rec={type:isBox?'box':'cir',status:status,near:np.p?np.p.no:'-',el:cur};
+    if(isBox){rec.x=+cur.getAttribute('x');rec.y=+cur.getAttribute('y');rec.w=w;rec.h=h;}else{rec.cx=+cur.getAttribute('cx');rec.cy=+cur.getAttribute('cy');rec.rx=+cur.getAttribute('rx');rec.ry=+cur.getAttribute('ry');}
+    pushHist();state.markups.push(rec);cur=null;renderRecs();}
+}
+cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endPtr);
+cv.addEventListener('mousedown',function(e){if(e.button===1)e.preventDefault();});
+cv.addEventListener('auxclick',function(e){if(e.button===1)e.preventDefault();});
+cv.addEventListener('wheel',function(e){e.preventDefault();zoomAt(e.deltaY>0?1.12:0.89,e.clientX,e.clientY);},{passive:false});
+
+/* ====== CSV / DXF 파싱 ====== */
+function decodeBuf(buf){var u=new TextDecoder('utf-8',{fatal:false}).decode(buf);if(u.indexOf('\uFFFD')>=0){try{return new TextDecoder('euc-kr').decode(buf);}catch(e){return u;}}return u;}
+function splitCsvLine(s){var out=[],cur='',q=false;for(var i=0;i<s.length;i++){var c=s[i];if(c==='"'){q=!q;}else if(c===','&&!q){out.push(cur);cur='';}else cur+=c;}out.push(cur);return out;}
+function parseCsv(text,fname){
+  var rows=text.replace(/\r/g,'').split('\n').filter(function(l){return l.trim().length;});
+  if(!rows.length)return [];
+  var head=splitCsvLine(rows[0]).map(function(s){return s.trim();});
+  function col(){for(var a=0;a<arguments.length;a++){var i=head.indexOf(arguments[a]);if(i>=0)return i;}return -1;}
+  var ci={name:col('이름','번호'),x:col('X'),y:col('Y'),z:col('Z(레벨)','Z','Z(레벨)'),code:col('코드'),date:col('현재날짜')};
+  var dm=(fname||'').match(/20(\d{6})/);var fdate=dm?dm[1]:'';
+  var pts=[];
+  for(var r=1;r<rows.length;r++){var f=splitCsvLine(rows[r]);
+    var cx=parseFloat(f[ci.x]),cy=parseFloat(f[ci.y]);if(isNaN(cx)||isNaN(cy))continue;
+    var dt=fdate; if(ci.date>=0&&f[ci.date]){var m=f[ci.date].match(/(\d{2})(\d{2})-?(\d{2})-?(\d{2})|\d{4}-(\d{2})-(\d{2})/);var raw=(f[ci.date]||'').replace(/[^0-9]/g,'');if(raw.length>=8)dt=raw.slice(2,8);}
+    var name=ci.name>=0?(f[ci.name]||'').trim():String(r);
+    pts.push({no:(dt?dt+'-':'')+name, x:cy, y:cx, z:ci.z>=0?parseFloat(f[ci.z]):null, code:ci.code>=0?(f[ci.code]||'').trim():''});
+  }
+  return pts;
+}
+function parseDxfLines(text){
+  var L=text.replace(/\r/g,'').split('\n'),pairs=[];
+  for(var i=0;i+1<L.length;i+=2)pairs.push([L[i].trim(),L[i+1]]);
+  var lines=[],i2=0;
+  while(i2<pairs.length){
+    var code=pairs[i2][0],val=pairs[i2][1];
+    if(code==='0'&&(val.trim()==='LWPOLYLINE'||val.trim()==='POLYLINE'||val.trim()==='LINE')){
+      var type=val.trim(),layer='0',xs=[],ys=[],j=i2+1,ent={};
+      while(j<pairs.length&&pairs[j][0]!=='0'){var c=pairs[j][0],v=pairs[j][1];
+        if(c==='8')layer=v.trim();
+        if(type==='LINE'){if(c==='10')ent.x1=parseFloat(v);if(c==='20')ent.y1=parseFloat(v);if(c==='11')ent.x2=parseFloat(v);if(c==='21')ent.y2=parseFloat(v);}
+        else{if(c==='10')xs.push(parseFloat(v));if(c==='20')ys.push(parseFloat(v));}
+        j++;}
+      if(type==='LINE'&&ent.x1!=null)lines.push({layer:layer,pts:[[ent.x1,ent.y1],[ent.x2,ent.y2]]});
+      else if(xs.length>=2){var pp=[];for(var k=0;k<xs.length;k++)pp.push([xs[k],ys[k]]);lines.push({layer:layer,pts:pp});}
+      i2=j;
+    } else i2++;
+  }
+  return lines;
+}
+
+/* ====== Supabase ====== */
+var sb=null, online=false;
+function initSb(){
+  if(SUPABASE_URL&&SUPABASE_ANON_KEY&&window.supabase){
+    sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);online=true;
+    document.getElementById('conn').className='conn on';document.getElementById('conn').textContent='Supabase 연결';
+    refreshProjects();
+  }else{document.getElementById('conn').className='conn off';document.getElementById('conn').textContent='로컬 모드';}
+}
+function refreshProjects(){ if(!online)return;
+  sb.from('survey_projects').select('id,name,updated_at').order('updated_at',{ascending:false}).then(function(res){
+    var sel=document.getElementById('proj');sel.innerHTML='<option value="">현장 선택…</option>';
+    (res.data||[]).forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
+    if(state.projectId)sel.value=state.projectId;
+  });
+}
+function saveProject(){
+  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
+  if(!state.projectName){toast('현장명을 먼저 정하세요(새 현장)');return;}
+  var row={name:state.projectName,payload:payload,updated_at:new Date().toISOString()};
+  if(state.projectId)row.id=state.projectId;
+  sb.from('survey_projects').upsert(row).select().then(function(res){
+    if(res.error){toast('저장 오류: '+res.error.message);return;}
+    var saved=res.data&&res.data[0];if(saved){state.projectId=saved.id;}
+    sb.from('survey_history').insert({project_id:state.projectId,payload:payload}); // 이력
+    refreshProjects();loadPhotos();toast('저장 완료');
+  });
+}
+function loadProject(id){ if(!online||!id)return;
+  sb.from('survey_projects').select('*').eq('id',id).single().then(function(res){
+    if(res.error||!res.data){toast('불러오기 실패');return;}
+    var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;
+    state.points=p.points||[];state.lines=p.lines||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];
+    selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();loadPhotos();toast('현장 불러옴: '+res.data.name);
+  });
+}
+
+/* ====== 버튼 바인딩 ====== */
+function bind(id,fn){document.getElementById(id).onclick=fn;}
+/* ====== 데이터 기반 툴바 (좌측 카테고리 + 상단 세부도구) ====== */
+var TB=[
+  {k:'data',label:'기초자료 업로드',icon:'📁',c:{bg:'#eceef1',fg:'#6e757f'},tools:[
+    {t:'CSV 업로드',tone:'data',fn:function(){document.getElementById('fCsv').click();}},
+    {t:'수치지도 DXF업로드',tone:'data',fn:function(){document.getElementById('fDxf').click();}},
+    {t:'백판 삭제',tone:'delall',fn:clearBaseMap}]},
+  {k:'pan',label:'선택·이동',icon:'✋',c:{bg:'#fdf1dd',fg:'#d98200'},setmode:'pan',hint:'측점 클릭=선택 · 라벨 끌어 이동 · 휠 확대 · 가운데버튼 화면이동',tools:[]},
+  {k:'mh',label:'맨홀편집',icon:'◎',c:{bg:'#efeafa',fg:'#7a52e0'},tools:[
+    {t:'맨홀심기',tone:'draw',mode:'mhplace',hint:'도면에서 맨홀 위치를 클릭하세요'},
+    {t:'맨홀/인출선 지우기',tone:'del',mode:'delmh',hint:'지울 맨홀을 클릭하세요 (맨홀+인출선+라벨 전부 삭제)'}]},
+  {k:'riser',label:'입상주편집',icon:'🗼',c:{bg:'#f1efe3',fg:'#7a6a3a'},tools:[
+    {t:'입상주심기',tone:'draw',mode:'riserplace',hint:'도면에서 입상주(전봇대) 위치를 클릭하세요'},
+    {t:'입상주 지우기',tone:'del',mode:'delriser',hint:'지울 입상주를 클릭하세요'}]},
+  {k:'conn',label:'결선',icon:'🔗',c:{bg:'#e7f3ea',fg:'#2a9e50'},tools:[
+    {t:'자동결선',tone:'draw',fn:autoConnect},
+    {t:'결선지우기(선택)',tone:'del',mode:'delline',delLayer:'통신관로',hint:'지울 결선을 클릭'},
+    {t:'결선지우기(전체)',tone:'delall',fn:clearLines}]},
+  {k:'pipe',label:'관로선편집',icon:'✎',c:{bg:'#e6effb',fg:'#2f7fe0'},tools:[
+    {t:'관로선 그리기',tone:'draw',fn:function(){startDraw('통신관로');},activeMode:'line'},
+    {t:'관로선 지우기',tone:'del',mode:'delline',delLayer:'통신관로',hint:'지울 관로선 위에 마우스→두껍게 표시되면 클릭'},
+    {t:'전체삭제',tone:'delall',fn:clearAllDraw}]},
+  {k:'jiger',label:'지거편집',icon:'〰',c:{bg:'#fdf7e3',fg:'#c9920a'},tools:[
+    {t:'지거선 그리기',tone:'draw',fn:function(){startDraw('지거');},activeMode:'line'},
+    {t:'지거선 지우기',tone:'del',mode:'delline',delLayer:'지거',hint:'지울 지거선 위에 마우스→클릭'}]},
+  {k:'push',label:'압입구간편집',icon:'⇥',c:{bg:'#e3f4ef',fg:'#109a82'},tools:[
+    {t:'압입구간 그리기',tone:'draw',fn:function(){startDraw('압입구간');},activeMode:'line'},
+    {t:'압입구간 지우기',tone:'del',mode:'delline',delLayer:'압입구간',hint:'지울 압입구간 위에 마우스→클릭'}]},
+  {k:'ptins',label:'측점삽입',icon:'＋',c:{bg:'#e6effb',fg:'#2f7fe0'},tools:[
+    {t:'측점삽입',tone:'pick',mode:'ptins',hint:'클릭한 위치에 측점 생성 → 번호·코드 입력'},
+    {t:'측점 삭제',tone:'del',mode:'ptdel',hint:'삭제할 측점을 클릭 (빨갛게 표시되면 클릭)'}]},
+  {k:'insp',label:'검수',icon:'✓',c:{bg:'#fbe9e9',fg:'#df524b'},tools:[
+    {t:'관공수 검수',tone:'insp1',fn:inspectPipeCount,hint:'관수 규칙 자동 점검 — 연속성(맨홀 제외) + T점 분기 합산'},
+    {t:'중복선 검수',tone:'insp2',fn:inspectDupLines,hint:'중복 관로선을 찾아 빨간 써클로 표시'},
+    {t:'끝점 검수',tone:'insp3',fn:inspectEndpoints,hint:'결선 끝점이 측점·맨홀에 붙어있는지 검수'}]}
+];
+var TONE={data:{bg:'#eceef1',fg:'#6e757f'},draw:{bg:'#e7f3ea',fg:'#2a9e50'},del:{bg:'#fdf1dd',fg:'#d98200'},delall:{bg:'#fbe9e9',fg:'#df524b'},pick:{bg:'#e6effb',fg:'#2f7fe0'},shape:{bg:'#e6effb',fg:'#2f7fe0'},ok:{bg:'#e7f3ea',fg:'#2a9e50'},bad:{bg:'#fbe9e9',fg:'#df524b'},pt:{bg:'#efeafa',fg:'#7a52e0'},insp1:{bg:'#e6effb',fg:'#2f7fe0'},insp2:{bg:'#efeafa',fg:'#7a52e0'},insp3:{bg:'#e3f4ef',fg:'#109a82'}};
+function toneStyle(tone,active){var c=TONE[tone]||{bg:'#f3f3f0',fg:'#333'};return active?('background:'+c.fg+';color:#fff;border:1px solid '+c.fg+';border-left:4px solid '+c.fg+';border-radius:0 8px 8px 0;font-weight:700;'):('background:#fff;color:'+c.fg+';border:1px solid #e3e3df;border-left:4px solid '+c.fg+';border-radius:0 8px 8px 0;font-weight:600;');}
+function railStyle(col,active){col=col||{bg:'#f3f3f0',fg:'#333'};return active?('background:'+col.bg+';color:'+col.fg+';border:1px solid '+col.fg+';border-left:4px solid '+col.fg+';border-radius:0 8px 8px 0;font-weight:700;'):('background:#fff;color:'+col.fg+';border:1px solid #e3e3df;border-left:4px solid '+col.fg+';border-radius:0 8px 8px 0;font-weight:600;');}
+var activeCat='pan';
+function curCat(){for(var i=0;i<TB.length;i++)if(TB[i].k===activeCat)return TB[i];return TB[0];}
+function renderRail(){
+  var r=document.getElementById('rail'),html='';
+  TB.forEach(function(c){if(c.k==='pan')html+='<div class="sep"></div>';
+    var kb=keyForAction('cat:'+c.k),bdg=kb?'<span class="hk-badge">'+kb+'</span>':'';
+    html+='<button data-k="'+c.k+'" style="'+railStyle(c.c,c.k===activeCat)+'">'+c.icon+' '+c.label+bdg+'</button>';});
+  html+='<div class="sep"></div><button id="dxfExport" style="background:#fff;color:#c0392b;border:1px solid #c0392b;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#c0392b">📐</span> DXF로 내보내기</button>';
+  html+='<button id="hkOpen" style="margin-top:auto;background:#fff;color:#555;border:1px solid #e3e3df;border-radius:8px;font-weight:600;justify-content:flex-start"><span style="color:#1f6fd6;font-size:16px">⌨</span> 단축키 설정</button>';
+  r.innerHTML=html;
+  r.querySelectorAll('button[data-k]').forEach(function(b){b.onclick=function(){
+    activeCat=b.getAttribute('data-k');var c=curCat();
+    renderRail();renderSub();
+    if(c.k==='mh'){mode='mhplace';setModeUI();toast('맨홀심기: 도면을 클릭해 심기 (한 번 심으면 종료, 다시 심으려면 맨홀심기 클릭)');}
+    else if(c.k==='riser'){mode='riserplace';setModeUI();toast('입상주심기: 도면을 클릭해 심기 (한 번 심으면 종료, 다시 심으려면 입상주심기 클릭)');}
+    else if(c.k==='pipe'){startDraw('통신관로');}
+    else if(c.k==='jiger'){startDraw('지거');}
+    else if(c.k==='push'){startDraw('압입구간');}
+    else if(c.k==='ptins'){mode='ptins';setModeUI();toast('측점삽입: 도면을 클릭해 측점 생성 (한 번 생성 후 종료, 다시 하려면 측점삽입 클릭)');}
+    else if(c.setmode){mode=c.setmode;cv.classList.toggle('draw',mode!=='pan');setModeUI();}
+    else if(c.hint&&!c.tools.length)toast(c.hint);};});
+  var ho=document.getElementById('hkOpen');if(ho)ho.onclick=openHotkeyModal;
+  var dx=document.getElementById('dxfExport');if(dx)dx.onclick=exportDXF;
+}
+function mkBtn(tool,i){
+  var active=(tool.mode&&mode===tool.mode)||(tool.activeMode&&mode===tool.activeMode)||(tool.status&&status===tool.status);
+  if(tool.soon)return '<button class="sub-b soon" style="'+toneStyle(tool.tone,false)+'opacity:.55">'+tool.t+'</button>';
+  var kb=keyForAction('tool:'+curCat().k+':'+i),bdg=kb?'<span class="hk-badge">'+kb+'</span>':'';
+  return '<button data-i="'+i+'" class="sub-b" style="'+toneStyle(tool.tone,active)+'">'+tool.t+bdg+'</button>';
+}
+function renderSub(){
+  var c=curCat(),s=document.getElementById('subbar'),html='';
+  if(c.tools.length)html+=c.tools.map(mkBtn).join('');
+  else if(c.hint)html+='<span class="subhint">'+c.hint+'</span>';
+  if(mode==='line')html+='<button id="lineDone" class="on">완료</button>';
+  var kbM=keyForAction('fixed:measure'),kbU=keyForAction('fixed:undo'),kbR=keyForAction('fixed:redo'),kbC=keyForAction('fixed:clearsym');
+  var bdg=function(k){return k?' <span class="hk-badge" style="margin-left:4px">'+k+'</span>':'';};
+  html+='<span class="viewgrp"><button data-g="delall2" style="border:1px solid #c0392b;color:#c0392b;font-weight:700">🧹 지우기(통합)'+bdg(kbC)+'</button><button data-g="measure" style="border:1px solid #d32f2f;color:#d32f2f;font-weight:700"><span style="color:#f2b400">📏</span> 거리산출'+bdg(kbM)+'</button><button data-g="undo">← 되돌리기'+bdg(kbU)+'</button><button data-g="redo">다시 실행 →'+bdg(kbR)+'</button>'
+      +'<span class="subhint">보기</span><button data-g="fit">전체</button></span>';
+  s.innerHTML=html;
+  c.tools.forEach(function(tool,i){if(tool.soon)return;var b=s.querySelector('button[data-i="'+i+'"]');if(!b)return;
+    b.onclick=function(){
+      if(tool.delLayer)delLayer=tool.delLayer;
+      if(tool.fn)tool.fn();
+      if(tool.setmode){mode=tool.setmode;setModeUI();if(tool.hint)toast(tool.hint);}
+      if(tool.mode){if(mode===tool.mode){mode='pan';}else{mode=tool.mode;if(tool.hint)toast(tool.hint);}setModeUI();}
+      if(tool.status){status=tool.status;setStatusUI();}
+    };});
+  s.querySelectorAll('button.soon').forEach(function(b){b.onclick=function(){toast(b.textContent+' — 다음 단계에서 추가 예정');};});
+  var ld=document.getElementById('lineDone');if(ld)ld.onclick=finishDraw;
+  s.querySelectorAll('button[data-g]').forEach(function(b){b.onclick=function(){var g=b.getAttribute('data-g');
+    if(g==='undo')doUndo();
+    else if(g==='redo')doRedo();
+    else if(g==='delall2'){if(mode==='delall2'){mode='pan';toast('통합 지우기 종료');}else{mode='delall2';toast('통합 지우기: 지울 선·맨홀·입상주·측점을 클릭하세요 (선택한 것만 삭제)');}setModeUI();}
+    else if(g==='measure'){if(mode==='measure'){mode='pan';measurePts=[];clearSvg(gMeasure);clearLabels('measure');toast('거리산출 종료');}else{mode='measure';measurePts=[];clearSvg(gMeasure);clearLabels('measure');toast('거리산출: 두 점을 클릭하세요 (측점·맨홀 자동 스냅, 3번째 클릭은 새로 시작)');}setModeUI();}
+    else if(g==='fit'){fitView();drawGeo();drawManholes();}};});
+  var db=s.querySelector('button[data-g="delall2"]');if(db&&mode==='delall2'){db.style.background='#c0392b';db.style.color='#fff';db.style.borderColor='#c0392b';}
+  var mb=s.querySelector('button[data-g="measure"]');if(mb&&mode==='measure'){mb.style.background='#e8590c';mb.style.color='#fff';mb.style.borderColor='#e8590c';}
+}
+/* ====== 단축키 시스템 ====== */
+var HK_KEY='survey_hotkeys';
+function loadHotkeys(){try{return JSON.parse(localStorage.getItem(HK_KEY)||'{}')||{};}catch(e){return {};}}
+function saveHotkeys(){try{localStorage.setItem(HK_KEY,JSON.stringify(hotkeys));}catch(e){}}
+var hotkeys=loadHotkeys(); // {actionId:'A'}
+function keyForAction(id){return hotkeys[id]?hkLabel(hotkeys[id]):'';}
+function actionForKey(key){for(var id in hotkeys){if(hotkeys[id]===key)return id;}return null;}
+function normKey(e){var k=e.key;if(!k)return '';
+  if(k===' ')return '';                       // 스페이스=그리기 완료용, 제외
+  if(k.length===1)return k.toUpperCase();
+  if(/^(Arrow(Up|Down|Left|Right)|F[1-9]|F1[0-2])$/.test(k))return k;
+  return '';}
+function hkLabel(k){return k.replace('Arrow','').replace('Up','↑').replace('Down','↓').replace('Left','←').replace('Right','→');}
+function actionList(){var arr=[];
+  TB.forEach(function(c){arr.push({id:'cat:'+c.k,name:c.icon+' '+c.label,grp:c.label});
+    c.tools.forEach(function(t,i){if(t.soon)return;arr.push({id:'tool:'+c.k+':'+i,name:'└ '+t.t,grp:c.label});});});
+  arr.push({id:'fixed:clearsym',name:'🧹 지우기(통합)',grp:'도구'});
+  arr.push({id:'fixed:measure',name:'📏 거리산출',grp:'도구'});
+  arr.push({id:'fixed:undo',name:'← 되돌리기',grp:'도구'});
+  arr.push({id:'fixed:redo',name:'다시 실행 →',grp:'도구'});
+  return arr;}
+function runAction(id){
+  if(id==='fixed:undo'){doUndo();return;}
+  if(id==='fixed:redo'){doRedo();return;}
+  if(id==='fixed:clearsym'){var cb=document.querySelector('#subbar button[data-g="delall2"]');if(cb)cb.click();return;}
+  if(id==='fixed:measure'){var mb=document.querySelector('#subbar button[data-g="measure"]');if(mb)mb.click();return;}
+  if(id.indexOf('cat:')===0){var k=id.slice(4);activeCat=k;var c=curCat();
+    if(c.setmode){mode=c.setmode;cv.classList.toggle('draw',mode!=='pan');setModeUI();}
+    renderRail();renderSub();if(c.hint&&!c.tools.length)toast(c.hint);}
+  else if(id.indexOf('tool:')===0){var p=id.split(':'),ck=p[1],i=+p[2];
+    activeCat=ck;renderRail();renderSub();
+    var b=document.querySelector('#subbar button[data-i="'+i+'"]');if(b)b.click();}
+}
+var hkCapturing=null;
+function openHotkeyModal(){
+  var ov=document.createElement('div');ov.className='hk-overlay';ov.id='hkOverlay';
+  ov.innerHTML='<div class="hk-card"><h3>⌨ 단축키 설정 <span style="font-weight:400;color:#999;font-size:12px">— 칸을 누른 뒤 키보드를 누르세요</span></h3><div class="hk-body" id="hkBody"></div><div class="hk-foot"><button id="hkReset" style="background:#fff;color:#888;border:1px solid #e3e3df;border-radius:7px">전체 초기화</button><button id="hkClose" style="background:#222;color:#fff;border:none;border-radius:7px;font-weight:600">닫기</button></div></div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('mousedown',function(e){if(e.target===ov)closeHotkeyModal();});
+  document.getElementById('hkClose').onclick=closeHotkeyModal;
+  document.getElementById('hkReset').onclick=function(){if(confirm('설정한 단축키를 모두 지울까요?')){hotkeys={};saveHotkeys();renderHkBody();renderRail();renderSub();}};
+  renderHkBody();
+}
+function closeHotkeyModal(){hkCapturing=null;var ov=document.getElementById('hkOverlay');if(ov)ov.remove();}
+function renderHkBody(){
+  var body=document.getElementById('hkBody');if(!body)return;
+  var list=actionList(),html='',lastGrp=null;
+  list.forEach(function(a){
+    if(a.grp!==lastGrp){html+='<div class="hk-grp">'+a.grp+'</div>';lastGrp=a.grp;}
+    var raw=hotkeys[a.id],disp=hkCapturing===a.id?'…':(raw?hkLabel(raw):'지정');
+    var cls='keyb'+(raw?' set':'')+(hkCapturing===a.id?' cap':'');
+    html+='<div class="hk-row"><span class="nm">'+a.name+'</span><span class="'+cls+'" data-id="'+a.id+'">'+disp+'</span><span class="clr" data-clr="'+a.id+'">✕</span></div>';
+  });
+  body.innerHTML=html;
+  body.querySelectorAll('.keyb').forEach(function(el){el.onclick=function(){hkCapturing=el.getAttribute('data-id');renderHkBody();};});
+  body.querySelectorAll('.clr').forEach(function(el){el.onclick=function(){var id=el.getAttribute('data-clr');delete hotkeys[id];saveHotkeys();renderHkBody();renderRail();renderSub();};});
+}
+window.addEventListener('keydown',function(e){
+  if(hkCapturing){
+    if(e.key==='Escape'){hkCapturing=null;renderHkBody();return;}
+    var nk=normKey(e);if(!nk)return;e.preventDefault();
+    var prev=actionForKey(nk);if(prev&&prev!==hkCapturing)delete hotkeys[prev];
+    hotkeys[hkCapturing]=nk;hkCapturing=null;saveHotkeys();renderHkBody();renderRail();renderSub();return;
+  }
+  var tg=(e.target&&e.target.tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tg))return;
+  if(document.getElementById('hkOverlay'))return;
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  var k=normKey(e);if(!k)return;
+  var id=actionForKey(k);if(id){e.preventDefault();runAction(id);}
+},true);
+
+renderRail();renderSub();
+bind('save',saveProject);
+bind('newProj',function(){var n=prompt('새 현장명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.manholes=[];photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 현장: '+n+' (CSV 업로드 후 저장)');});
+document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){pushHist();if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
+document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)loadProject(e.target.value);});
+document.getElementById('fCsv').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.manholes=[];state.projectId=null;state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화 / 현장명: '+state.projectName+')');};rd.readAsArrayBuffer(f);e.target.value='';});
+document.getElementById('fDxf').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var ln=parseDxfLines(decodeBuf(rd.result));ln.forEach(function(l){l.base=true;});state.lines=state.lines.filter(function(l){return !l.base;}).concat(ln);drawGeo();fitView();updMeta();toast('수치지도 백판 '+ln.length+'개 라인 로드');}catch(err){toast('DXF 파싱 오류');}};rd.readAsArrayBuffer(f);e.target.value='';});
+
+/* ====== 샘플 데이터 (수원 권선동 1041-6) ====== */
+function loadSample(){
+  state.projectId=null;state.projectName='샘플 — 수원 권선동 1041-6';
+  state.points=[
+    {no:'260522-1',x:202592.400,y:517281.538,code:'FC 100x2'},{no:'260522-2',x:202592.887,y:517283.007,code:'FC 100x2'},
+    {no:'260522-3',x:202592.896,y:517287.406,code:'FC 100x2'},{no:'260522-4',x:202590.990,y:517276.500,code:'FC 100x2'},
+    {no:'260522-5',x:202588.265,y:517272.106,code:'FC 100x2'},{no:'260522-6',x:202594.399,y:517293.622,code:'M FC 100x2'},
+    {no:'260522-7',x:202596.028,y:517298.226,code:'FC 100x3'},{no:'260522-8',x:202595.385,y:517295.748,code:'M FC 100x3'},
+    {no:'260522-9',x:202568.987,y:517213.439,code:'FC 100x2'},{no:'260522-10',x:202575.269,y:517234.256,code:'FC 100x3'},
+    {no:'260522-11',x:202573.568,y:517233.149,code:'FC 100x3'},{no:'260522-12',x:202567.429,y:517213.978,code:'FC T 100x5'},
+    {no:'260522-13',x:202566.936,y:517212.318,code:'M FC 100x5'}];
+  state.lines=[
+    {layer:'통신관로',pts:[[202567.43,517213.98],[202568.99,517213.44]]},
+    {layer:'통신관로',pts:[[202573.57,517233.15],[202575.27,517234.26]]},
+    {layer:'통신관로',pts:[[202588.26,517272.11],[202590.99,517276.5],[202592.4,517281.54],[202592.89,517283.01],[202592.9,517287.41],[202594.4,517293.62],[202594.89,517294.72]]},
+    {layer:'통신관로',pts:[[202594.89,517294.72],[202595.38,517295.75],[202596.03,517298.23]]},
+    {layer:'통신관로',pts:[[202567.43,517213.98],[202566.94,517212.32],[202566.72,517211.58]]},
+    {layer:'압입구간',pts:[[202566.72,517211.58],[202594.89,517294.72]]},
+    {layer:'지거',pts:[[202567.43,517213.98],[202573.57,517233.15]]}];
+  state.markups=[];state.manholes=[];photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();toast('샘플 로드됨');
+}
+
+/* init */
+/* ====== 측점 사진 ====== */
+var photoMap={}, selNum=null, photoPanelOpen=false, photoLink=true;
+var gSel=document.createElementNS(SVGNS,'g'); gSel.setAttribute('pointer-events','none'); cv.appendChild(gSel);
+var gDraw=document.createElementNS(SVGNS,'g'); gDraw.setAttribute('pointer-events','none'); cv.appendChild(gDraw);
+var gAnc=document.createElementNS(SVGNS,'g'); cv.appendChild(gAnc); // 지거 멘트 앵커 (최상위 — 측점보다 위에서 클릭 우선)
+var gMeasure=document.createElementNS(SVGNS,'g'); cv.appendChild(gMeasure); // 거리산출 표시
+/* ====== 실행취소(Undo) / 다시실행(Redo) ====== */
+var undoStack=[],redoStack=[];
+function snapHist(){return JSON.stringify({l:state.lines,m:state.manholes,lo:state.labelOff,pt:state.points,mk:state.markups.map(function(x){var o={};for(var k in x)if(k!=='el')o[k]=x[k];return o;})});}
+function restoreHist(s){var o=JSON.parse(s);state.lines=o.l||[];state.manholes=o.m||[];state.labelOff=o.lo||{};if(o.pt)state.points=o.pt;state.markups.forEach(function(x){if(x.el)x.el.remove();});state.markups=o.mk||[];drawGeo();drawManholes();drawMarks();updMeta();}
+function pushHist(){undoStack.push(snapHist());if(undoStack.length>60)undoStack.shift();redoStack=[];}
+function doUndo(){if(!undoStack.length){toast('되돌릴 작업이 없습니다');return;}redoStack.push(snapHist());restoreHist(undoStack.pop());toast('되돌렸습니다');}
+function doRedo(){if(!redoStack.length){toast('다시 실행할 작업이 없습니다');return;}undoStack.push(snapHist());restoreHist(redoStack.pop());toast('다시 실행했습니다');}
+/* ====== 거리산출 ====== */
+var measurePts=[];
+function measureClick(pt){if(measurePts.length>=2){measurePts=[];clearLabels('measure');}measurePts.push(pt);drawMeasure();}
+function drawMeasure(){clearSvg(gMeasure);clearLabels('measure');if(!measurePts.length)return;
+  measurePts.forEach(function(p){var s=S(p[0],p[1]);gMeasure.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#e8590c','stroke-width':9,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));});
+  if(measurePts.length===2){var a=S(measurePts[0][0],measurePts[0][1]),b=S(measurePts[1][0],measurePts[1][1]);
+    gMeasure.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:'#e8590c','stroke-width':2.5,'stroke-dasharray':'5 3','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    var d=Math.hypot(measurePts[1][0]-measurePts[0][0],measurePts[1][1]-measurePts[0][1]);
+    mkLabel((a[0]+b[0])/2,(a[1]+b[1])/2,d.toFixed(2)+' m',{fill:'#e8590c',weight:'800',anchor:'middle',grp:'measure',px:16});
+    toast('거리: '+d.toFixed(3)+' m');
+  }
+}
+function ptNum(p){return (p.no||'').toString().split('-').pop();}
+function pointByNum(n){for(var i=0;i<state.points.length;i++)if(ptNum(state.points[i])===String(n))return state.points[i];return null;}
+function sortedNums(){return state.points.map(ptNum).filter(function(v){return v!=='';}).sort(function(a,b){return (parseFloat(a)||0)-(parseFloat(b)||0);});}
+function pointAtCoord(x,y){for(var i=0;i<state.points.length;i++){var q=state.points[i];if(Math.abs(q.x-x)<0.06&&Math.abs(q.y-y)<0.06)return q;}return null;}
+function lineNeighbors(sel){var p=pointByNum(sel);if(!p)return [];var res=[];(state.lines||[]).forEach(function(l){if(l.layer!=='통신관로')return;var pts=l.pts;for(var i=0;i<pts.length;i++){if(Math.abs(pts[i][0]-p.x)<0.06&&Math.abs(pts[i][1]-p.y)<0.06){[i-1,i+1].forEach(function(j){if(j>=0&&j<pts.length){var q=pointAtCoord(pts[j][0],pts[j][1]);if(q&&ptNum(q)!==String(sel)&&res.indexOf(q)<0)res.push(q);}});}}});return res;}
+function neighborsOf(sel){var selP=pointByNum(sel),up=null,down=null;if(!selP)return {up:null,down:null};
+  var nb=lineNeighbors(sel);
+  if(nb.length){nb.forEach(function(q){if(q.y>selP.y){if(!up||q.y<up.y)up=q;}else{if(!down||q.y>down.y)down=q;}});}
+  else{var ups=[],downs=[];state.points.forEach(function(q){if(ptNum(q)===String(sel))return;var d=Math.hypot(q.x-selP.x,q.y-selP.y);(q.y>selP.y?ups:downs).push({q:q,d:d});});ups.sort(function(a,b){return a.d-b.d;});downs.sort(function(a,b){return a.d-b.d;});if(ups[0])up=ups[0].q;if(downs[0])down=downs[0].q;}
+  return {up:up,down:down};}
+function highlightSel(){clearSvg(gSel);if(selNum==null)return;var p=pointByNum(selNum);if(!p)return;
+  var nbs=neighborsOf(selNum);
+  [nbs.up,nbs.down].forEach(function(q){if(q){var sy=S(q.x,q.y);gSel.appendChild(el('circle',{cx:sy[0],cy:sy[1],r:0.224,fill:'none',stroke:'#ffcc00','stroke-width':1.4,'vector-effect':'non-scaling-stroke'}));}});
+  var s=S(p.x,p.y);gSel.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.28,fill:'none',stroke:'#22cc00','stroke-width':2.2,'vector-effect':'non-scaling-stroke'}));}
+function compressImage(file,maxW,q){return new Promise(function(res,rej){var img=new Image(),u=URL.createObjectURL(file);img.onload=function(){URL.revokeObjectURL(u);var w=img.width,h=img.height;if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(function(b){b?res(b):rej(new Error('blob'));},'image/jpeg',q);};img.onerror=function(){rej(new Error('img'));};img.src=u;});}
+var zoomState={img:null,scale:1,tx:0,ty:0,drag:false,sx:0,sy:0};
+function applyZoom(){var z=zoomState;if(!z.img)return;z.img.style.transform='translate('+z.tx+'px,'+z.ty+'px) scale('+z.scale+')';z.img.style.cursor=z.scale>1?(z.drag?'grabbing':'grab'):'zoom-in';}
+function setupZoom(img){zoomState={img:img,scale:1,tx:0,ty:0,drag:false,sx:0,sy:0};if(!img)return;img.style.transformOrigin='center center';
+  img.addEventListener('wheel',function(e){e.preventDefault();var z=zoomState;z.scale*=(e.deltaY<0?1.2:0.83);z.scale=Math.max(1,Math.min(6,z.scale));if(z.scale<=1){z.scale=1;z.tx=0;z.ty=0;}applyZoom();},{passive:false});
+  img.addEventListener('mousedown',function(e){var z=zoomState;if(z.scale<=1)return;e.preventDefault();z.drag=true;z.sx=e.clientX-z.tx;z.sy=e.clientY-z.ty;applyZoom();});
+  img.addEventListener('dblclick',function(e){e.preventDefault();var z=zoomState;z.scale=1;z.tx=0;z.ty=0;applyZoom();});
+  applyZoom();}
+window.addEventListener('mousemove',function(e){var z=zoomState;if(!z.drag)return;z.tx=e.clientX-z.sx;z.ty=e.clientY-z.sy;applyZoom();});
+window.addEventListener('mouseup',function(){var z=zoomState;if(z.drag){z.drag=false;applyZoom();}});
+function paneImg(num,label,big){var url=num!=null?photoMap[num]:null;var p=num!=null?pointByNum(num):null;var sub=p?(p.no+' '+((p.code||'').trim())):(num!=null?('번호 '+num):'');
+  var cap=sub?(label+' / '+sub):label;
+  var inner;
+  if(url){inner=big?('<div class="zoomwrap"><img class="ph" id="zoomImg" src="'+url+'" alt=""></div>'):('<img class="ph" src="'+url+'" alt="">');}
+  else{inner='<div class="ph php-none">'+(num!=null?'사진 없음':'-')+'</div>';}
+  return '<div class="'+(big?'php-main':'php-sub')+'"><div class="cap"><span>'+cap+'</span></div>'+inner+'</div>';}
+function refreshPhotoPanel(){
+  var sel=document.getElementById('photoSel'),nums=sortedNums();
+  sel.innerHTML='<option value="">측점 선택…</option>'+nums.map(function(n){var p=pointByNum(n);return '<option value="'+n+'">'+(p?p.no:n)+'</option>';}).join('');
+  if(selNum!=null)sel.value=String(selNum);
+  var body=document.getElementById('photoBody');
+  if(selNum==null){body.innerHTML='<div style="color:#999;font-size:12px;padding:14px;text-align:center;line-height:1.7">측점을 선택하세요.<br>(위 드롭다운 또는 도면에서 점 클릭)<br>또는 <b>사진 업로드</b>로 일괄 등록</div>';return;}
+  var nbs=neighborsOf(selNum),up=nbs.up,down=nbs.down;
+  var n1=up?ptNum(up):null,n2=down?ptNum(down):null;
+  body.innerHTML=paneImg(selNum,'선택측점 사진',true)+'<div class="php-row">'+paneImg(n1,'위 측점',false)+paneImg(n2,'아래 측점',false)+'</div>';
+  setupZoom(document.getElementById('zoomImg'));
+}
+function selectPoint(num){selNum=String(num);drawGeo();highlightSel();var sel=document.getElementById('photoSel');if(sel)sel.value=String(num);if(photoPanelOpen)refreshPhotoPanel();}
+function openPhotoPanel(o){photoPanelOpen=(o==null)?!photoPanelOpen:!!o;document.getElementById('photoPanel').classList.toggle('open',photoPanelOpen);if(photoPanelOpen)refreshPhotoPanel();setTimeout(function(){fitView();if(typeof placeCoord==='function')placeCoord();},30);}
+function loadPhotos(){photoMap={};if(!online||!state.projectId){if(photoPanelOpen)refreshPhotoPanel();return;}
+  sb.from('survey_photos').select('point_no,url').eq('project_id',state.projectId).then(function(res){(res.data||[]).forEach(function(r){photoMap[r.point_no]=r.url;});if(photoPanelOpen)refreshPhotoPanel();});}
+function uploadPhotos(files){
+  if(!online){toast('로컬 모드 — 사진 저장 불가');return;}
+  if(!state.projectId){toast('먼저 "저장"으로 현장을 저장한 뒤 사진을 올려주세요');return;}
+  var arr=[].slice.call(files);if(!arr.length)return;toast('사진 '+arr.length+'장 업로드 중…');
+  var done=0,ok=0;
+  arr.forEach(function(f){
+    var num=(f.name.replace(/\.[^.]+$/,'').match(/\d+/)||[''])[0];
+    if(!num){done++;if(done===arr.length)toast(ok+'/'+arr.length+'장 완료');return;}
+    compressImage(f,1280,0.7).then(function(blob){
+      var path=state.projectId+'/'+num+'.jpg';
+      return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
+        if(up.error)throw up.error;
+        var url=sb.storage.from('photos').getPublicUrl(path).data.publicUrl+'?t='+Date.now();
+        return sb.from('survey_photos').delete().eq('project_id',state.projectId).eq('point_no',num).then(function(){
+          return sb.from('survey_photos').insert({project_id:state.projectId,point_no:num,url:url}).then(function(ins){if(ins.error)throw ins.error;photoMap[num]=url;ok++;});
+        });
+      });
+    }).catch(function(err){console.error('photo upload',num,err);}).then(function(){
+      done++;if(done===arr.length){toast(ok+'/'+arr.length+'장 업로드 완료');if(photoPanelOpen)refreshPhotoPanel();}
+    });
+  });
+}
+bind('photoBtn',function(){openPhotoPanel();});
+document.getElementById('photoClose').onclick=function(){openPhotoPanel(false);};
+document.getElementById('photoUp').onclick=function(){document.getElementById('fPhotos').click();};
+document.getElementById('photoLinkBtn').onclick=function(){photoLink=!photoLink;this.textContent=photoLink?'🔗 연동':'🔓 미연동';this.classList.toggle('linkon',photoLink);toast(photoLink?'도면↔사진 연동 ON (점 클릭=사진)':'연동 OFF (점 클릭해도 사진 고정)');};
+document.getElementById('fPhotos').addEventListener('change',function(e){uploadPhotos(e.target.files);e.target.value='';});
+document.getElementById('photoSel').addEventListener('change',function(e){if(e.target.value){selNum=e.target.value;drawGeo();highlightSel();refreshPhotoPanel();}else{selNum=null;drawGeo();clearSvg(gSel);refreshPhotoPanel();}});
+/* 도면에서 점 클릭 → 선택 (이동 모드) */
+cv.addEventListener('click',function(e){
+  if(mode!=='pan'||labelDragging)return;
+  var w=toWorld(e.clientX,e.clientY),r=cv.getBoundingClientRect(),wpp=vb.w/r.width;
+  var nr=nearestPointWorld(w[0],w[1]);
+  if(nr.p&&nr.d<40*wpp){
+    if(photoLink){selectPoint(ptNum(nr.p));}
+    else{selNum=String(ptNum(nr.p));drawGeo();highlightSel();}
+    toast('측점 '+nr.p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));
+  }
+});
+
+/* ====== 좌표 표시 (마우스 따라) ====== */
+function fmtCoord(v){return v.toLocaleString('en-US',{minimumFractionDigits:3,maximumFractionDigits:3});}
+var coordBox=document.getElementById('coordBox');
+var cwrap=cv.parentElement;
+function placeCoord(){var r=cv.getBoundingClientRect();coordBox.style.right=(Math.max(2,window.innerWidth-r.right)+10)+'px';coordBox.style.bottom=(Math.max(2,window.innerHeight-r.bottom)+10)+'px';}
+function coordReset(){coordBox.innerHTML='X <b>–</b>　Y <b>–</b>';placeCoord();if(gDraw)clearSvg(gDraw);}
+cwrap.addEventListener('mousemove',function(e){
+  placeCoord();
+  var w=toWorld(e.clientX,e.clientY); var X=-w[1], Y=w[0];   // X=북, Y=동
+  var r=cv.getBoundingClientRect(), wpp=vb.w/r.width;
+  var nr=nearestPointWorld(w[0],w[1]); var near='';
+  if(nr.p && nr.d < 22*wpp){ near='<span class="cb-near">'+nr.p.no+'  '+((nr.p.code||'').trim())+'</span>'; }
+  coordBox.innerHTML='X <b>'+fmtCoord(X)+'</b>　Y <b>'+fmtCoord(Y)+'</b>'+near;
+  if(mode==='line')drawIndicators(w); else if(mode==='delline'||mode==='delall2')delHoverHighlight(w); else if(gDraw.childNodes.length)clearSvg(gDraw);
+});
+cwrap.addEventListener('mouseleave',coordReset);
+window.addEventListener('resize',function(){placeCoord();if(typeof drawGeo==='function'){drawGeo();drawManholes();highlightSel();}});
+coordReset();
+window.addEventListener('keydown',function(e){
+  var tg=((e.target||{}).tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tg))return;
+  if(e.key==='Enter'||e.key===' '||e.code==='Space'){
+    e.preventDefault();
+    if(mode==='line'){finishDraw();return;}              // 선 그리는 중 → 완료(끔)
+    if(mode==='measure'){mode='pan';setModeUI();toast('거리산출 종료');return;}
+    if(mode==='mhplace'||mode==='riserplace')return;      // 심기 모드 중엔 무시(클릭으로 심음)
+    if(lastStartAction)lastStartAction();                 // 그 외(완료·심기 후 등) → 바로 전 시작 기능 다시 시작
+  }
+});
+document.getElementById('recClear').onclick=function(){if(!state.markups.length){toast('삭제할 검수 기록이 없습니다');return;}state.markups.forEach(function(r){if(r.el)r.el.remove();});state.markups=[];renderRecs();toast('검수 기록 전체 삭제');};
+
+setModeUI();setStatusUI();initSb();updMeta();toast('CSV 업로드 또는 상단에서 현장을 선택하세요');
+</script>
+</body>
+</html>
