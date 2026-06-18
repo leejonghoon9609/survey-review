@@ -163,7 +163,7 @@
     <button id="mapBtn" class="photoBtn">🗺 지도/로드뷰</button>
     <button id="bgBtn" class="photoBtn">🗺 지도배경</button>
     <span id="globalbtns" class="hgbtns" style="margin-left:auto"></span>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 127</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 128</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -932,6 +932,8 @@ function updMeta(){document.getElementById('meta').textContent=(state.projectNam
 /* ====== 뷰박스 ====== */
 var vb={x:0,y:0,w:100,h:100}, vb0={x:0,y:0,w:100,h:100}, _vbwLast=null;
 function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);repositionLabels();if(bgMapOn)syncMapBg();}
+// 뷰박스 종횡비를 화면(canvas) 종횡비에 맞춰 확장(중심유지) → meet 여백 제거 → 줌·팬 좌표 정확
+function fixAspect(){var r=cv.getBoundingClientRect();if(r.width<1||r.height<1)return;var car=r.width/r.height,cx=vb.x+vb.w/2,cy=vb.y+vb.h/2;if(vb.w/vb.h<car)vb.w=vb.h*car;else vb.h=vb.w/car;vb.x=cx-vb.w/2;vb.y=cy-vb.h/2;}
 function fitView(){
   var xs=[],ys=[];function add(x,y){var s=S(x,y);xs.push(s[0]);ys.push(s[1]);}
   state.points.forEach(function(p){add(p.x,p.y);});
@@ -939,7 +941,7 @@ function fitView(){
   if(!xs.length){vb={x:0,y:0,w:100,h:100};vb0={x:0,y:0,w:100,h:100};applyVB();return;}
   var pad=5,minx=Math.min.apply(0,xs),maxx=Math.max.apply(0,xs),miny=Math.min.apply(0,ys),maxy=Math.max.apply(0,ys);
   vb0={x:minx-pad,y:miny-pad,w:(maxx-minx)+2*pad,h:(maxy-miny)+2*pad};
-  vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};applyVB();drawGeo();drawManholes();highlightSel();
+  vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};fixAspect();applyVB();drawGeo();drawManholes();highlightSel();
 }
 function toWorld(cx,cy){var m=null;try{m=cv.getScreenCTM();}catch(e){}if(m&&m.a){var im=m.inverse();return [im.a*cx+im.c*cy+im.e, im.b*cx+im.d*cy+im.f];}var r=cv.getBoundingClientRect();return [vb.x+(cx-r.left)/r.width*vb.w, vb.y+(cy-r.top)/r.height*vb.h];}
 function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*=f;vb.h*=f;vb.x=w[0]-(cx-r.left)/r.width*vb.w;vb.y=w[1]-(cy-r.top)/r.height*vb.h;applyVB();drawGeo();drawManholes();highlightSel();}
@@ -4657,7 +4659,7 @@ function endPtr(){
 cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endPtr);
 cv.addEventListener('mousedown',function(e){if(e.button===1)e.preventDefault();});
 cv.addEventListener('auxclick',function(e){if(e.button===1)e.preventDefault();});
-cv.addEventListener('wheel',function(e){e.preventDefault();zoomAt(e.deltaY>0?1.12:0.89,e.clientX,e.clientY);},{passive:false});
+cv.addEventListener('wheel',function(e){e.preventDefault();zoomAt(e.deltaY>0?1.07:0.935,e.clientX,e.clientY);},{passive:false});
 
 /* ====== CSV / DXF 파싱 ====== */
 function decodeBuf(buf){var u=new TextDecoder('utf-8',{fatal:false}).decode(buf);if(u.indexOf('\uFFFD')>=0){try{return new TextDecoder('euc-kr').decode(buf);}catch(e){return u;}}return u;}
@@ -5118,7 +5120,7 @@ document.getElementById('mapFit').onclick=function(){if(kmap&&kMarkers.length){v
 document.getElementById('krvx').onclick=function(){document.getElementById('mapLayer').classList.remove('rv-on');setTimeout(function(){if(kmap)kmap.relayout();},200);};
 
 /* ===== 지도 배경 (도면 뒤에 깔림, 방식 나) ===== */
-var bgmap=null,bgMapOn=false,_bgSync=false;
+var bgmap=null,bgMapOn=false,_bgSync=false,_bgRaf=0;
 function bgMpp(){
   if(!bgmap)return null;
   try{
@@ -5130,7 +5132,8 @@ function bgMpp(){
     return dm/dpx;
   }catch(e){return null;}
 }
-function syncMapBg(){
+function syncMapBg(){if(!bgMapOn||!bgmap)return;if(_bgRaf)return;_bgRaf=requestAnimationFrame(function(){_bgRaf=0;syncMapBgNow();});}
+function syncMapBgNow(){
   if(!bgMapOn||!bgmap||_bgSync)return;
   _bgSync=true;
   try{
@@ -5324,7 +5327,7 @@ cwrap.addEventListener('mousemove',function(e){
   if(mode==='line')drawIndicators(w); else if(mode==='delline'||mode==='delall2')delHoverHighlight(w); else if(gDraw.childNodes.length)clearSvg(gDraw);
 });
 cwrap.addEventListener('mouseleave',coordReset);
-window.addEventListener('resize',function(){placeCoord();if(typeof drawGeo==='function'){drawGeo();drawManholes();highlightSel();}});
+window.addEventListener('resize',function(){fixAspect();applyVB();placeCoord();if(typeof drawGeo==='function'){drawGeo();drawManholes();highlightSel();}});
 coordReset();
 window.addEventListener('keydown',function(e){
   var tg=((e.target||{}).tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tg))return;
