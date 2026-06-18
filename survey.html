@@ -164,15 +164,15 @@
 <body>
   <header>
     <h1>후측량 결선 DB</h1>
-    <select id="proj"><option value="">현장 선택…</option></select>
-    <button id="newProj">＋ 새 현장</button>
+    <select id="proj"><option value="">사업 선택…</option></select>
+    <button id="newProj">＋ 새 사업</button>
     <button id="save" class="pri">저장</button>
     <button id="delProj" class="dgr">사업 삭제</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
     <button id="bgBtn" class="photoBtn">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn">📷 로드뷰</button>
     <span id="globalbtns" class="hgbtns" style="margin-left:auto"></span>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 130</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 131</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -692,7 +692,7 @@ function drawManholes(){
     }
 
     // 라벨 글자 폭 (텍스트 길이 기준 월드값)
-    var txtW=0,_lb=(mh.label||'');for(var _i=0;_i<_lb.length;_i++){txtW+=(_lb.charCodeAt(_i)>127?EM*1.0:EM*0.55);}txtW+=EM*0.5;if(isRiser)txtW*=1.33; // 한글=한칸,영문=0.55칸+여유, 입상주는 글자 큰 만큼 1.33배
+    var txtW=0,_lb=(mh.label||'');for(var _i=0;_i<_lb.length;_i++){txtW+=(_lb.charCodeAt(_i)>127?EM*1.0:EM*0.55);}txtW+=EM*0.5;txtW*=1.33; // 한글=한칸,영문=0.55칸+여유, 라벨 px20 기준 1.33배(맨홀·입상주 동일)
 
     // 라벨 기본 위치(관로 방향 피해서) — 공통 함수
     var _lp=mhLabelBase(mh, txtW); var lx=_lp.lx, ly=_lp.ly;
@@ -788,7 +788,7 @@ function drawManholes(){
     }
 
     // 라벨 텍스트 — 파란 밑줄 중앙 바로 위에 (글자가 밑줄을 덮지 않게 위로)
-    var mhLbl=mkLabel(txtCx, uly-EM*(isRiser?0.95:0.75), mh.label||'', {fill:isRiser?'#1f6fd6':'#333',weight:'600',anchor:'middle',grp:'mh',px:isRiser?20:15});
+    var mhLbl=mkLabel(txtCx, uly-EM*0.95, mh.label||'', {fill:isRiser?'#1f6fd6':'#333',weight:'600',anchor:'middle',grp:'mh',px:20});
     // 라벨 div에 직접 더블클릭(수정) — 오버레이라 글자 위에서 바로 동작
     mhLbl.style.pointerEvents='auto';
     mhLbl.style.cursor='text';
@@ -4721,14 +4721,14 @@ function initSb(){
 }
 function refreshProjects(){ if(!online)return;
   sb.from('survey_projects').select('id,name,updated_at').order('updated_at',{ascending:false}).then(function(res){
-    var sel=document.getElementById('proj');sel.innerHTML='<option value="">현장 선택…</option>';
+    var sel=document.getElementById('proj');sel.innerHTML='<option value="">사업 선택…</option>';
     (res.data||[]).forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
     if(state.projectId)sel.value=state.projectId;
   });
 }
 function saveProject(){
   var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
-  if(!state.projectName){toast('현장명을 먼저 정하세요(새 현장)');return;}
+  if(!state.projectName){toast('사업명을 먼저 정하세요(새 사업)');return;}
   var row={name:state.projectName,payload:payload,updated_at:new Date().toISOString()};
   if(state.projectId)row.id=state.projectId;
   sb.from('survey_projects').upsert(row).select().then(function(res){
@@ -5094,10 +5094,10 @@ function pickRoadview(clientX,clientY){
 }
 function toggleRvPick(){
   var btn=document.getElementById('rvBtn');
-  if(rvPick){rvPick=false;btn.classList.remove('on');toast('로드뷰 위치찍기 종료');return;}
+  if(rvPick){rvPick=false;btn.classList.remove('on');cv.style.cursor='';toast('로드뷰 위치찍기 종료');return;}
   if(!state.points||!state.points.length){toast('먼저 측점(CSV)을 불러오세요');return;}
   if(!bgMapOn)toggleBgMap();
-  rvPick=true;btn.classList.add('on');
+  rvPick=true;btn.classList.add('on');cv.style.cursor='pointer';
   toast('지도에서 로드뷰 볼 위치를 클릭하세요 (측점을 찍으면 아래에 사진)');
 }
 bind('rvBtn',toggleRvPick);
@@ -5154,7 +5154,7 @@ function toggleBgMap(){
   });
 }
 bind('bgBtn',toggleBgMap);
-bind('newProj',function(){var n=prompt('새 현장명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.manholes=[];photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 현장: '+n+' (CSV 업로드 후 저장)');});
+bind('newProj',function(){var n=prompt('새 사업명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.manholes=[];photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 사업: '+n+' (CSV 업로드 후 저장)');});
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){pushHist();if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)loadProject(e.target.value);});
 function loadCsvFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.manholes=[];state.projectId=null;state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatus();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화)');};rd.readAsArrayBuffer(f);}
