@@ -145,13 +145,16 @@
   .rv-photo-empty{color:var(--muted);font-size:13px;text-align:center;margin:auto;padding:20px}
   .php-none{display:flex;align-items:center;justify-content:center;color:var(--muted);min-height:80px}
   .php-head{display:flex;gap:8px;align-items:center;padding:9px 12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-  .php-head h3{font-size:13px;font-weight:600;margin-right:auto}
+  .php-head h3{font-size:13px;font-weight:600}
+  .dirtgl{margin-right:auto;border:1px solid var(--line);background:#fff;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:12px;font-weight:600;color:#555}
+  .dirtgl.on{border-color:#d500f2;color:#d500f2;background:#fdf0ff}
   .php-body{flex:1;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:10px;min-height:0}
   .php-main,.php-sub{border:1px solid var(--line);border-radius:9px;overflow:hidden;background:#fafaf8;display:flex;flex-direction:column;position:relative}
-  .dirArrow{position:absolute;top:32px;left:8px;z-index:4;width:36px;height:36px;border-radius:9px;border:2px solid #e65100;background:rgba(255,255,255,0.92);color:#e65100;font-size:21px;font-weight:900;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px rgba(0,0,0,0.25);padding:0}
-  .dirArrow:hover{background:#fff3e0}
+  .dirArrow{flex:none;width:26px;height:26px;border-radius:7px;border:2px solid #d500f2;background:#fff;color:#d500f2;font-size:16px;font-weight:900;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0}
+  .dirArrow:hover{background:#fbeaff}
   .php-main{flex:3;min-height:160px}
-  .php-main .cap,.php-sub .cap{font-size:15px;color:#0d47a1;font-weight:700;padding:7px 11px;border-bottom:1px solid var(--line);background:#fff;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .php-main .cap,.php-sub .cap{font-size:15px;color:#0d47a1;font-weight:700;padding:6px 11px;border-bottom:1px solid var(--line);background:#fff;flex:none;display:flex;align-items:center;gap:6px}
+  .php-main .cap span,.php-sub .cap span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .php-main .cap{font-size:16px}
   .zoomwrap{flex:1;min-height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#f3f3f0;position:relative}
   .php-main .zoomwrap .ph{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;flex:none}
@@ -174,7 +177,7 @@
     <button id="bgBtn" class="photoBtn">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn">📷 로드뷰</button>
     <span id="globalbtns" class="hgbtns" style="margin-left:auto"></span>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 133</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 134</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -193,6 +196,7 @@
     <div id="photoPanel" class="photo-panel">
       <div class="php-head">
         <h3>측점 사진</h3>
+        <button id="dirToggle" class="dirtgl on">🧭 방향 ON</button>
         <select id="photoSel"><option value="">측점 선택…</option></select>
         <button id="photoLinkBtn" class="linkon">🔗 연동</button>
         <button id="photoUp">사진 업로드</button>
@@ -592,7 +596,7 @@ function drawGeo(){
     // 측점 심벌(속빈 사각) — 월드고정 정사각: 줌하면 크기는 변하지만 절대 안 찌그러짐, 위치 정확
     gPts.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:isManhole(p)?'#0d47a1':(isTpoint(p)?'#13803a':'#111'),'stroke-width':isManhole(p)?3.8:2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     gPts.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#111','stroke-width':4,'stroke-linecap':'square','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // 중심 점(박스와 동일 vector-effect → 줌 고정)
-    (function(){var d4=getPhotoDir(p),dv=[[0,-1],[1,0],[0,1],[-1,0]][d4],pr=[-dv[1],dv[0]],hl=0.16,AC='#e65100';
+    if(showDirArrows!==false)(function(){var d4=getPhotoDir(p),dv=[[0,-1],[1,0],[0,1],[-1,0]][d4],pr=[-dv[1],dv[0]],hl=0.16,AC='#d500f2';
       var ax0=s[0]+dv[0]*0.22,ay0=s[1]+dv[1]*0.22,ax1=s[0]+dv[0]*0.62,ay1=s[1]+dv[1]*0.62;
       gPts.appendChild(el('line',{x1:ax0,y1:ay0,x2:ax1,y2:ay1,stroke:AC,'stroke-width':2.6,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));
       gPts.appendChild(el('line',{x1:ax1,y1:ay1,x2:ax1-dv[0]*hl+pr[0]*hl,y2:ay1-dv[1]*hl+pr[1]*hl,stroke:AC,'stroke-width':2.6,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));
@@ -5108,6 +5112,7 @@ function toggleRvPick(){
   toast('지도에서 로드뷰 볼 위치를 클릭하세요 (측점을 찍으면 아래에 사진)');
 }
 bind('rvBtn',toggleRvPick);
+bind('dirToggle',function(){showDirArrows=!showDirArrows;var b=document.getElementById('dirToggle');b.classList.toggle('on',showDirArrows);b.textContent='🧭 방향 '+(showDirArrows?'ON':'OFF');drawGeo();});
 // 사진 방향 화살표 클릭 → 90° 회전 (사진 패널·로드뷰 패널 공통)
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.dirArrow');if(!b)return;e.stopPropagation();e.preventDefault();var p=pointByNum(b.getAttribute('data-num'));if(!p)return;cyclePhotoDir(p);b.textContent=ARROWS[getPhotoDir(p)];drawGeo();},true);
 bind('rvClose',closeRvPanel);
@@ -5245,7 +5250,7 @@ function setupZoom(img){zoomState={img:img,scale:1,tx:0,ty:0,drag:false,sx:0,sy:
 window.addEventListener('mousemove',function(e){var z=zoomState;if(!z.drag)return;z.tx=e.clientX-z.sx;z.ty=e.clientY-z.sy;applyZoom();});
 window.addEventListener('mouseup',function(){var z=zoomState;if(z.drag){z.drag=false;applyZoom();}});
 /* ===== 측점사진 방향 화살표 (0=↑북 1=→동 2=↓남 3=←서) ===== */
-var ARROWS=['↑','→','↓','←'];
+var ARROWS=['↑','→','↓','←'],showDirArrows=true;
 function pipeDirAt(p){
   for(var i=0;i<state.lines.length;i++){var L=state.lines[i];if(!L.pts)continue;
     for(var j=0;j<L.pts.length;j++){var v=L.pts[j];
@@ -5264,7 +5269,7 @@ function paneImg(num,label,big){var url=num!=null?photoMap[num]:null;var p=num!=
   if(url){inner=big?('<div class="zoomwrap"><img class="ph" id="zoomImg" src="'+url+'" alt=""></div>'):('<img class="ph" src="'+url+'" alt="">');}
   else{inner='<div class="ph php-none">'+(num!=null?'사진 없음':'-')+'</div>';}
   var arrow=p?('<button class="dirArrow" data-num="'+num+'" title="사진 방향 — 클릭하면 회전">'+ARROWS[getPhotoDir(p)]+'</button>'):'';
-  return '<div class="'+(big?'php-main':'php-sub')+'"><div class="cap"><span>'+cap+'</span></div>'+inner+arrow+'</div>';}
+  return '<div class="'+(big?'php-main':'php-sub')+'"><div class="cap">'+arrow+'<span>'+cap+'</span></div>'+inner+'</div>';}
 function refreshPhotoPanel(){
   var sel=document.getElementById('photoSel'),nums=sortedNums();
   sel.innerHTML='<option value="">측점 선택…</option>'+nums.map(function(n){var p=pointByNum(n);return '<option value="'+n+'">'+(p?p.no:n)+'</option>';}).join('');
