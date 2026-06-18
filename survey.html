@@ -59,17 +59,27 @@
   .regname label{font-size:14px;font-weight:700;white-space:nowrap}
   .regname input{flex:1;padding:9px 12px;border:1px solid var(--line);border-radius:8px;font-size:14px;outline:none}
   .regname input:focus{border-color:var(--accent)}
-  .regcards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:12px 20px 6px}
-  .regcard{border:1px solid var(--line);border-radius:11px;padding:14px 13px;display:flex;flex-direction:column;min-height:150px;background:#fcfcfb}
-  .rc-t{font-size:14px;font-weight:800;text-align:center;margin-bottom:8px}
-  .rc-st{font-size:11.5px;color:var(--muted);text-align:center;line-height:1.4;flex:1;display:flex;align-items:center;justify-content:center;padding:4px}
-  .rc-st.done{color:var(--ok);font-weight:700}
-  .rc-note{font-size:10px;color:#b3b3ad;text-align:center;margin-bottom:9px;line-height:1.3}
-  .rc-btn{padding:8px;border:1px solid var(--accent);color:var(--accent);background:#fff;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
-  .rc-btn:hover{background:#eef5fd}
-  .rc-crs{flex:1;display:flex;flex-direction:column;justify-content:center;gap:9px;padding:6px 2px}
-  .rc-crs label{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;border:1px solid var(--line);border-radius:7px;padding:7px 10px;cursor:pointer}
-  .rc-crs input{accent-color:var(--accent)}
+  .regcards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:14px 20px 6px}
+  .regcard{border:1px solid var(--line);border-top:3px solid var(--rc,#ccc);border-radius:11px;padding:14px 13px;display:flex;flex-direction:column;min-height:212px;background:#fcfcfb}
+  .regcard.csv{--rc:#1f6fd6}
+  .regcard.pho{--rc:#2a9e50}
+  .regcard.crs{--rc:#7a52e0}
+  .regcard.dxf{--rc:#d98200}
+  .rc-t{font-size:14px;font-weight:800;text-align:center;margin-bottom:10px;color:var(--rc)}
+  .rc-drop{flex:1;border:1.5px dashed #d2d2cc;border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:10px;text-align:center;cursor:pointer;transition:.15s;margin-bottom:11px}
+  .rc-drop:hover{background:#f6f8fb}
+  .rc-drop.over{border-color:var(--rc);border-width:2px;background:#f2f6fc}
+  .rc-dico{font-size:21px;color:var(--rc);opacity:.7;line-height:1}
+  .rc-st{font-size:12px;color:var(--muted);line-height:1.35}
+  .rc-st.done{color:var(--ok);font-weight:800}
+  .rc-hint{font-size:10.5px;color:#b3b3ad}
+  .rc-btn{align-self:center;padding:8px 24px;border:1px solid var(--rc);color:var(--rc);background:#fff;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
+  .rc-btn:hover{background:#f6f8fb}
+  .rc-crs{flex:1;display:flex;flex-direction:column;justify-content:center;gap:9px;padding:6px 2px;margin-bottom:8px}
+  .rc-crs label{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;border:1px solid var(--line);border-radius:7px;padding:8px 10px;cursor:pointer}
+  .rc-crs label:hover{border-color:var(--rc)}
+  .rc-crs input{accent-color:var(--rc)}
+  .rc-note{font-size:10px;color:#b3b3ad;text-align:center;line-height:1.3}
   .regfoot{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px 18px}
   .rf-cancel{padding:9px 22px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
   .rf-ok{padding:9px 26px;border:1px solid var(--ok);background:var(--ok);color:#fff;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
@@ -124,7 +134,7 @@
     <button id="save" class="pri">저장</button>
     <button id="delProj" class="dgr">사업 삭제</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 119</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 120</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -170,30 +180,40 @@
         <input id="regName" type="text" placeholder="예: 수원 권선동 1041-6" autocomplete="off">
       </div>
       <div class="regcards">
-        <div class="regcard">
+        <div class="regcard csv">
           <div class="rc-t">CSV 로딩</div>
-          <div class="rc-st" id="rcCsv">측점 데이터 (.csv)</div>
-          <div class="rc-note">성과 파일 자동연동은 추후 지원</div>
+          <div class="rc-drop" id="dropCsv">
+            <span class="rc-dico">⬇</span>
+            <span class="rc-st" id="rcCsv">측점 데이터 (.csv)</span>
+            <span class="rc-hint">파일을 끌어다 놓기</span>
+          </div>
           <button class="rc-btn" id="rcCsvBtn">직접 로딩</button>
         </div>
-        <div class="regcard">
+        <div class="regcard pho">
           <div class="rc-t">측점사진 로딩</div>
-          <div class="rc-st" id="rcPho">사진 (파일명=측점번호)</div>
-          <div class="rc-note">성과 파일 자동연동은 추후 지원</div>
+          <div class="rc-drop" id="dropPho">
+            <span class="rc-dico">⬇</span>
+            <span class="rc-st" id="rcPho">사진 (파일명=측점번호)</span>
+            <span class="rc-hint">여러 장 끌어다 놓기</span>
+          </div>
           <button class="rc-btn" id="rcPhoBtn">직접 로딩</button>
         </div>
-        <div class="regcard">
+        <div class="regcard crs">
           <div class="rc-t">좌표계 설정</div>
           <div class="rc-crs">
             <label><input type="radio" name="regCrs" value="5186" checked> 중부 GRS80</label>
             <label><input type="radio" name="regCrs" value="5187"> 동부 GRS80</label>
+            <label><input type="radio" name="regCrs" value="5185"> 서부 GRS80</label>
           </div>
           <div class="rc-note">적용은 현재 작업 마무리 후 예정</div>
         </div>
-        <div class="regcard">
+        <div class="regcard dxf">
           <div class="rc-t">수치지도 로딩</div>
-          <div class="rc-st" id="rcDxf">백판 도면 (.dxf)</div>
-          <div class="rc-note">성과 파일 자동연동은 추후 지원</div>
+          <div class="rc-drop" id="dropDxf">
+            <span class="rc-dico">⬇</span>
+            <span class="rc-st" id="rcDxf">백판 도면 (.dxf)</span>
+            <span class="rc-hint">파일을 끌어다 놓기</span>
+          </div>
           <button class="rc-btn" id="rcDxfBtn">직접 로딩</button>
         </div>
       </div>
@@ -4918,13 +4938,29 @@ bind('regOk',registerProject);
 document.getElementById('rcCsvBtn').onclick=function(){document.getElementById('fCsv').click();};
 document.getElementById('rcDxfBtn').onclick=function(){document.getElementById('fDxf').click();};
 document.getElementById('rcPhoBtn').onclick=function(){document.getElementById('fRegPhotos').click();};
-document.getElementById('fRegPhotos').addEventListener('change',function(e){pendingPhotos=[].slice.call(e.target.files);updRegStatus();e.target.value='';toast('사진 '+pendingPhotos.length+'장 선택 (등록 시 업로드)');});
+function regAddPhotos(list){var arr=[].slice.call(list);if(!arr.length)return;pendingPhotos=(pendingPhotos||[]).concat(arr);updRegStatus();toast('사진 '+pendingPhotos.length+'장 선택 (등록 시 업로드)');}
+document.getElementById('fRegPhotos').addEventListener('change',function(e){regAddPhotos(e.target.files);e.target.value='';});
+function setupDrop(zid,onfiles){var z=document.getElementById(zid);if(!z)return;
+  z.addEventListener('dragover',function(e){e.preventDefault();e.stopPropagation();z.classList.add('over');});
+  z.addEventListener('dragleave',function(e){e.preventDefault();e.stopPropagation();z.classList.remove('over');});
+  z.addEventListener('drop',function(e){e.preventDefault();e.stopPropagation();z.classList.remove('over');var fs=e.dataTransfer&&e.dataTransfer.files;if(fs&&fs.length)onfiles(fs);});
+}
+setupDrop('dropCsv',function(fs){loadCsvFile(fs[0]);});
+setupDrop('dropDxf',function(fs){loadDxfFile(fs[0]);});
+setupDrop('dropPho',function(fs){regAddPhotos(fs);});
+document.getElementById('dropCsv').addEventListener('click',function(){document.getElementById('fCsv').click();});
+document.getElementById('dropDxf').addEventListener('click',function(){document.getElementById('fDxf').click();});
+document.getElementById('dropPho').addEventListener('click',function(){document.getElementById('fRegPhotos').click();});
+document.getElementById('regModal').addEventListener('dragover',function(e){e.preventDefault();});
+document.getElementById('regModal').addEventListener('drop',function(e){e.preventDefault();});
 document.getElementById('regModal').addEventListener('click',function(e){if(e.target===this)closeRegModal();});
 bind('newProj',function(){var n=prompt('새 현장명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.manholes=[];photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 현장: '+n+' (CSV 업로드 후 저장)');});
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){pushHist();if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)loadProject(e.target.value);});
-document.getElementById('fCsv').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.manholes=[];state.projectId=null;state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatus();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화)');};rd.readAsArrayBuffer(f);e.target.value='';});
-document.getElementById('fDxf').addEventListener('change',function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){try{var ln=parseDxfLines(decodeBuf(rd.result));ln.forEach(function(l){l.base=true;});state.lines=state.lines.filter(function(l){return !l.base;}).concat(ln);drawGeo();fitView();updMeta();if(regOpen())updRegStatus();toast('수치지도 백판 '+ln.length+'개 라인 로드');}catch(err){toast('DXF 파싱 오류');}};rd.readAsArrayBuffer(f);e.target.value='';});
+function loadCsvFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.manholes=[];state.projectId=null;state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatus();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화)');};rd.readAsArrayBuffer(f);}
+document.getElementById('fCsv').addEventListener('change',function(e){loadCsvFile(e.target.files[0]);e.target.value='';});
+function loadDxfFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){try{var ln=parseDxfLines(decodeBuf(rd.result));ln.forEach(function(l){l.base=true;});state.lines=state.lines.filter(function(l){return !l.base;}).concat(ln);drawGeo();fitView();updMeta();if(regOpen())updRegStatus();toast('수치지도 백판 '+ln.length+'개 라인 로드');}catch(err){toast('DXF 파싱 오류');}};rd.readAsArrayBuffer(f);}
+document.getElementById('fDxf').addEventListener('change',function(e){loadDxfFile(e.target.files[0]);e.target.value='';});
 
 /* ====== 샘플 데이터 (수원 권선동 1041-6) ====== */
 function loadSample(){
