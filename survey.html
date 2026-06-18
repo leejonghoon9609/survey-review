@@ -91,6 +91,24 @@
   .rf-ok{padding:9px 26px;border:1px solid var(--ok);background:var(--ok);color:#fff;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
   .rf-ok:hover{background:#258a45}
   @media (max-width:720px){.regcards{grid-template-columns:1fr 1fr}}
+  /* 지도/로드뷰 오버레이 */
+  .mapwrap{position:fixed;inset:0;background:#fff;z-index:210;display:flex;flex-direction:column}
+  .maphd{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--line);background:#fff}
+  .maphd .mapt{font-size:16px;font-weight:800}
+  .maphd .mapinfo{font-size:12px;color:var(--muted)}
+  .maphd .mapx{margin-left:auto}
+  .mapbtn2{border:1px solid var(--line);background:#fff;border-radius:7px;padding:6px 12px;cursor:pointer;font-size:13px;font-weight:600}
+  .mapbtn2:hover{background:#f3f3f0}
+  .mapbody{flex:1;display:flex;min-height:0}
+  #kmap{flex:1;min-width:0}
+  #krvpane{width:0;min-width:0;border-left:1px solid var(--line);position:relative;display:flex;flex-direction:column;transition:width .18s}
+  .mapwrap.rv-on #krvpane{width:46%}
+  #kroadview{flex:1;min-height:0}
+  .krvhd{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);background:#fff}
+  .krvhd b{font-size:13px}
+  .krvhd #krvpt{font-size:12px;color:var(--muted)}
+  .krvhd .mapbtn2{margin-left:auto}
+  #krvmsg{display:none;position:absolute;inset:40px 0 0 0;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:var(--muted);font-size:13px;background:#f7f7f5;text-align:center;padding:20px}
   .stage{flex:1;display:flex;min-height:0}
   .maincol{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
   .canvas-wrap{flex:1;position:relative;background:#fff;min-width:0}
@@ -140,8 +158,9 @@
     <button id="save" class="pri">저장</button>
     <button id="delProj" class="dgr">사업 삭제</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
+    <button id="mapBtn" class="photoBtn">🗺 지도/로드뷰</button>
     <span id="globalbtns" class="hgbtns" style="margin-left:auto"></span>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 123</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 124</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -229,6 +248,24 @@
       <div class="regfoot">
         <button id="regCancel" class="rf-cancel">취소</button>
         <button id="regOk" class="rf-ok">등록</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 지도 / 로드뷰 오버레이 -->
+  <div id="mapModal" class="mapwrap" style="display:none">
+    <div class="maphd">
+      <span class="mapt">🗺 지도 / 로드뷰</span>
+      <span id="mapInfo" class="mapinfo"></span>
+      <button id="mapFit" class="mapbtn2">전체보기</button>
+      <button id="mapX" class="mapx">닫기 ✕</button>
+    </div>
+    <div class="mapbody">
+      <div id="kmap"></div>
+      <div id="krvpane">
+        <div class="krvhd"><b>로드뷰</b><span id="krvpt"></span><button id="krvx" class="mapbtn2">닫기 ✕</button></div>
+        <div id="kroadview"></div>
+        <div id="krvmsg">이 지점 근처에 로드뷰가 없습니다.<br>(도로에서 떨어진 위치일 수 있어요)</div>
       </div>
     </div>
   </div>
@@ -4991,6 +5028,72 @@ function crsCheck(){
 }
 document.getElementById('crsCheckBtn').onclick=crsCheck;
 document.querySelectorAll('input[name="regCrs"]').forEach(function(r){r.addEventListener('change',function(){state.crs=regSelectedCrs();crsCheck();});});
+
+/* ===== 지도 / 로드뷰 (카카오) ===== */
+var KAKAO_KEY='5b0b406bb81a843663c796bed1d59a9a'; // 도메인 잠금(leejonghoon9609.github.io) JS 키
+var kmap=null,krv=null,krvClient=null,kMarkers=[],kLines=[];
+function loadKakao(cb){
+  if(window.kakao&&window.kakao.maps&&window.kakao.maps.Map){cb();return;}
+  if(window.__kakaoLoading){var t=setInterval(function(){if(window.kakao&&window.kakao.maps&&window.kakao.maps.Map){clearInterval(t);cb();}},150);return;}
+  window.__kakaoLoading=true;
+  var s=document.createElement('script');
+  s.src='https://dapi.kakao.com/v2/maps/sdk.js?appkey='+KAKAO_KEY+'&autoload=false';
+  s.onload=function(){kakao.maps.load(function(){window.__kakaoLoading=false;cb();});};
+  s.onerror=function(){window.__kakaoLoading=false;toast('카카오 지도 로드 실패 — 네트워크 또는 도메인 등록을 확인하세요');};
+  document.head.appendChild(s);
+}
+function openMapView(){
+  if(!state.points||!state.points.length){toast('먼저 측점(CSV)을 불러오세요');return;}
+  document.getElementById('mapModal').style.display='flex';
+  loadKakao(function(){
+    if(!kmap){
+      kmap=new kakao.maps.Map(document.getElementById('kmap'),{center:new kakao.maps.LatLng(37.27,127.0),level:3});
+      krv=new kakao.maps.Roadview(document.getElementById('kroadview'));
+      krvClient=new kakao.maps.RoadviewClient();
+    }
+    kmap.relayout();
+    buildMapData();
+  });
+}
+function closeMapView(){document.getElementById('mapModal').style.display='none';}
+function buildMapData(){
+  if(!kmap)return;
+  kMarkers.forEach(function(m){m.setMap(null);});kMarkers=[];
+  kLines.forEach(function(l){l.setMap(null);});kLines=[];
+  var crs=state.crs||'5186',app={'통신관로':1,'지거':1,'압입구간':1,'주입상인출선':1};
+  var bounds=new kakao.maps.LatLngBounds(),n=0;
+  (state.lines||[]).forEach(function(L){
+    if(L.base||!app[L.layer]||!L.pts||L.pts.length<2)return;
+    var path=[];L.pts.forEach(function(v){var ll=toLatLng(v[0],v[1],crs);if(ll)path.push(new kakao.maps.LatLng(ll.lat,ll.lng));});
+    if(path.length<2)return;
+    var col=(L.layer==='지거')?'#f2b400':(L.layer==='압입구간')?'#1f6fd6':(L.layer==='주입상인출선')?'#999':'#d92b2b';
+    var pl=new kakao.maps.Polyline({path:path,strokeWeight:4,strokeColor:col,strokeOpacity:0.85,strokeStyle:(L.layer==='압입구간')?'shortdash':'solid'});
+    pl.setMap(kmap);kLines.push(pl);
+  });
+  (state.points||[]).forEach(function(p){
+    var ll=toLatLng(p.x,p.y,crs);if(!ll)return;
+    var pos=new kakao.maps.LatLng(ll.lat,ll.lng);
+    var mk=new kakao.maps.Marker({position:pos,map:kmap,title:(p.no||'')});
+    kakao.maps.event.addListener(mk,'click',function(){showKRoadview(ll.lat,ll.lng,(p.no||'')+' '+(p.code||'').trim());kmap.setCenter(pos);});
+    kMarkers.push(mk);bounds.extend(pos);n++;
+  });
+  if(n)kmap.setBounds(bounds);
+  document.getElementById('mapInfo').textContent=n+'개 측점 · '+kLines.length+'개 결선/관로 · 마커 클릭=로드뷰';
+}
+function showKRoadview(lat,lng,label){
+  document.getElementById('mapModal').classList.add('rv-on');
+  document.getElementById('krvpt').textContent=label||'';
+  setTimeout(function(){if(kmap)kmap.relayout();},200);
+  var pos=new kakao.maps.LatLng(lat,lng);
+  krvClient.getNearestPanoId(pos,50,function(panoId){
+    if(panoId===null){document.getElementById('krvmsg').style.display='flex';}
+    else{document.getElementById('krvmsg').style.display='none';krv.setPanoId(panoId,pos);setTimeout(function(){krv.relayout();},220);}
+  });
+}
+bind('mapBtn',openMapView);
+bind('mapX',closeMapView);
+document.getElementById('mapFit').onclick=function(){if(kmap&&kMarkers.length){var b=new kakao.maps.LatLngBounds();kMarkers.forEach(function(m){b.extend(m.getPosition());});kmap.setBounds(b);}};
+document.getElementById('krvx').onclick=function(){document.getElementById('mapModal').classList.remove('rv-on');setTimeout(function(){if(kmap)kmap.relayout();},200);};
 bind('newProj',function(){var n=prompt('새 현장명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.manholes=[];photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 현장: '+n+' (CSV 업로드 후 저장)');});
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){pushHist();if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)loadProject(e.target.value);});
