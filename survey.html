@@ -113,7 +113,7 @@
   .stage{flex:1;display:flex;min-height:0}
   .maincol{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
   .canvas-wrap{flex:1;position:relative;background:#fff;min-width:0;overflow:hidden}
-  .kmapbg{position:absolute;inset:0;z-index:1;transform-origin:center center}
+  .kmapbg{position:absolute;top:-30%;left:-30%;width:160%;height:160%;z-index:1;transform-origin:center center}
   svg#cv{width:100%;height:100%;display:block;position:relative;z-index:2;touch-action:none;cursor:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='80'%20height='80'%3E%3Cg%20stroke='%23000'%20stroke-width='1'%20fill='none'%3E%3Crect%20x='34'%20y='34'%20width='12'%20height='12'/%3E%3Cline%20x1='0'%20y1='40'%20x2='30'%20y2='40'/%3E%3Cline%20x1='50'%20y1='40'%20x2='80'%20y2='40'/%3E%3Cline%20x1='40'%20y1='0'%20x2='40'%20y2='30'/%3E%3Cline%20x1='40'%20y1='50'%20x2='40'%20y2='80'/%3E%3C/g%3E%3C/svg%3E") 40 40, crosshair}
   .panel{width:240px;border-left:1px solid var(--line);background:#fff;display:none;flex-direction:column}
   .panel h2{font-size:11px;font-weight:600;padding:9px 12px;border-bottom:1px solid var(--line);color:var(--muted);display:flex;justify-content:space-between}
@@ -172,7 +172,7 @@
     <button id="bgBtn" class="photoBtn">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn">📷 로드뷰</button>
     <span id="globalbtns" class="hgbtns" style="margin-left:auto"></span>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 131</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 132</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5132,8 +5132,9 @@ function syncMapBgNow(){
         var delta=Math.round(Math.log(cur/svgMpp)/Math.LN2);
         if(delta){var L=Math.max(1,Math.min(14,bgmap.getLevel()-delta));if(L!==bgmap.getLevel())bgmap.setLevel(L);}
         var now=bgMpp()||svgMpp,scale=now/svgMpp;
-        if(!isFinite(scale)||scale<1)scale=1;
-        document.getElementById('kmapBg').style.transform='scale('+Math.min(scale,8).toFixed(3)+')';
+        if(!isFinite(scale)||scale<=0)scale=1;
+        scale=Math.max(0.63,Math.min(scale,8)); // 0.63 하한=160% 오버사이즈가 덮는 범위(빈틈 방지)
+        document.getElementById('kmapBg').style.transform='scale('+scale.toFixed(3)+')';
       }
     }
   }catch(e){}
