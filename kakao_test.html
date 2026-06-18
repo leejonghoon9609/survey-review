@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>카카오맵 + 로드뷰 검증 (테스트)</title>
+<script src="https://cdn.jsdelivr.net/npm/proj4@2.20.9/dist/proj4.js"></script>
+<style>
+  :root{--line:#e3e3e0;--ink:#1c1c1a;--mut:#6b6b66;--accent:#1f6fd6;--bad:#d32f2f}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:-apple-system,"Malgun Gothic","Apple SD Gothic Neo",sans-serif;color:var(--ink);display:flex;flex-direction:column;height:100vh;overflow:hidden}
+  .bar{display:flex;flex-wrap:wrap;gap:9px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);background:#fff}
+  .bar h1{font-size:15px;font-weight:800;margin-right:8px;white-space:nowrap}
+  .bar input[type=text]{width:300px;max-width:42vw;padding:7px 10px;border:1px solid var(--line);border-radius:7px;font-size:13px}
+  .bar select{padding:7px 9px;border:1px solid var(--line);border-radius:7px;font-size:13px}
+  .bar label.file{padding:7px 12px;border:1px solid var(--line);border-radius:7px;font-size:13px;cursor:pointer;background:#fafaf8}
+  .bar button{padding:7px 16px;border:1px solid var(--accent);color:#fff;background:var(--accent);border-radius:7px;font-size:13px;font-weight:700;cursor:pointer}
+  .bar #status{font-size:12px;color:var(--mut);margin-left:auto}
+  .wrap{flex:1;display:flex;min-height:0;position:relative}
+  #map{flex:1;min-width:0}
+  #rvpane{width:0;min-width:0;border-left:1px solid var(--line);position:relative;transition:width .18s;display:flex;flex-direction:column}
+  body.rv-on #rvpane{width:46%}
+  #roadview{flex:1;min-height:0}
+  .rvhd{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);background:#fff}
+  .rvhd b{font-size:13px}
+  .rvhd .rvx{margin-left:auto;border:1px solid var(--line);background:#fff;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:13px}
+  #rvmsg{display:none;position:absolute;inset:42px 0 0 0;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:var(--mut);font-size:13px;background:#f7f7f5;text-align:center;padding:20px}
+  .hint{font-size:12px;color:var(--mut);padding:6px 14px;background:#fbfbf9;border-bottom:1px solid var(--line)}
+</style>
+</head>
+<body>
+  <div class="bar">
+    <h1>카카오맵 + 로드뷰 검증</h1>
+    <input type="text" id="key" placeholder="카카오 JavaScript 앱키 붙여넣기" autocomplete="off">
+    <select id="crs">
+      <option value="5186">중부 GRS80</option>
+      <option value="5187">동부 GRS80</option>
+      <option value="5185">서부 GRS80</option>
+    </select>
+    <label class="file">CSV 선택<input type="file" id="csv" accept=".csv" style="display:none"></label>
+    <button id="show">지도에 표시</button>
+    <span id="status">CSV를 고르고 앱키 입력 후 [지도에 표시]</span>
+  </div>
+  <div class="hint">측점 마커를 클릭하면 그 위치의 로드뷰가 오른쪽에 뜹니다. 마커가 실제 도로 위에 맞게 떨어지는지 확인하세요.</div>
+  <div class="wrap">
+    <div id="map"></div>
+    <div id="rvpane">
+      <div class="rvhd"><b>로드뷰</b><span id="rvpt" style="color:#6b6b66;font-size:12px"></span><button class="rvx" id="rvx">닫기 ✕</button></div>
+      <div id="roadview"></div>
+      <div id="rvmsg">이 지점 근처에 로드뷰가 없습니다.<br>(도로에서 떨어진 위치일 수 있어요)</div>
+    </div>
+  </div>
+
+<script>
+/* ===== CSV 파서 (본 시스템과 동일) ===== */
+function decodeBuf(buf){var u=new TextDecoder('utf-8',{fatal:false}).decode(buf);if(u.indexOf('\uFFFD')>=0){try{return new TextDecoder('euc-kr').decode(buf);}catch(e){return u;}}return u;}
+function splitCsvLine(s){var out=[],cur='',q=false;for(var i=0;i<s.length;i++){var c=s[i];if(c==='"'){q=!q;}else if(c===','&&!q){out.push(cur);cur='';}else cur+=c;}out.push(cur);return out;}
+function parseCsv(text,fname){
+  var rows=text.replace(/\r/g,'').split('\n').filter(function(l){return l.trim().length;});
+  if(!rows.length)return [];
+  var head=splitCsvLine(rows[0]).map(function(s){return s.trim();});
+  function col(){for(var a=0;a<arguments.length;a++){var i=head.indexOf(arguments[a]);if(i>=0)return i;}return -1;}
+  var ci={name:col('이름','번호'),x:col('X'),y:col('Y'),z:col('Z(레벨)','Z'),code:col('코드'),date:col('현재날짜')};
+  var dm=(fname||'').match(/20(\d{6})/);var fdate=dm?dm[1]:'';
+  var pts=[];
+  for(var r=1;r<rows.length;r++){var f=splitCsvLine(rows[r]);
+    var cx=parseFloat(f[ci.x]),cy=parseFloat(f[ci.y]);if(isNaN(cx)||isNaN(cy))continue;
+    var dt=fdate; if(ci.date>=0&&f[ci.date]){var raw=(f[ci.date]||'').replace(/[^0-9]/g,'');if(raw.length>=8)dt=raw.slice(2,8);}
+    var name=ci.name>=0?(f[ci.name]||'').trim():String(r);
+    pts.push({no:(dt?dt+'-':'')+name, x:cy, y:cx, code:ci.code>=0?(f[ci.code]||'').trim():''});
+  }
+  return pts;
+}
+/* ===== 좌표계 (TM → WGS84) ===== */
+proj4.defs('KTM5185','+proj=tmerc +lat_0=38 +lon_0=125 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs');
+proj4.defs('KTM5186','+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs');
+proj4.defs('KTM5187','+proj=tmerc +lat_0=38 +lon_0=129 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs');
+
+var PTS=[], map, rv, rvClient, markers=[], poly;
+function loadKakao(key,cb){
+  if(window.kakao&&window.kakao.maps&&window.kakao.maps.Map){cb();return;}
+  var s=document.createElement('script');
+  s.src='https://dapi.kakao.com/v2/maps/sdk.js?appkey='+encodeURIComponent(key)+'&autoload=false';
+  s.onload=function(){kakao.maps.load(cb);};
+  s.onerror=function(){alert('카카오 SDK 로드 실패\n→ 앱키, 그리고 개발자콘솔 Web 플랫폼에 이 페이지 도메인이 등록됐는지 확인하세요.');};
+  document.head.appendChild(s);
+}
+function initMap(){
+  map=new kakao.maps.Map(document.getElementById('map'),{center:new kakao.maps.LatLng(37.27,127.0),level:3});
+  rv=new kakao.maps.Roadview(document.getElementById('roadview'));
+  rvClient=new kakao.maps.RoadviewClient();
+}
+function showRoadview(lat,lng,label){
+  document.body.classList.add('rv-on');
+  document.getElementById('rvpt').textContent=label||'';
+  setTimeout(function(){if(map)map.relayout();},200);
+  var pos=new kakao.maps.LatLng(lat,lng);
+  rvClient.getNearestPanoId(pos,50,function(panoId){
+    if(panoId===null){document.getElementById('rvmsg').style.display='flex';}
+    else{document.getElementById('rvmsg').style.display='none';rv.setPanoId(panoId,pos);setTimeout(function(){rv.relayout();},220);}
+  });
+}
+function plot(){
+  markers.forEach(function(m){m.setMap(null);});markers=[];
+  if(poly)poly.setMap(null);
+  var crs=document.getElementById('crs').value;
+  var bounds=new kakao.maps.LatLngBounds(),path=[],first=null;
+  PTS.forEach(function(p){
+    var r=proj4('KTM'+crs,'WGS84',[p.x,p.y]);var lat=r[1],lng=r[0];
+    var ll=new kakao.maps.LatLng(lat,lng);
+    var mk=new kakao.maps.Marker({position:ll,map:map});
+    kakao.maps.event.addListener(mk,'click',function(){showRoadview(lat,lng,(p.no||'')+' '+(p.code||''));map.setCenter(ll);});
+    markers.push(mk);bounds.extend(ll);path.push(ll);
+    if(!first)first={lat:lat,lng:lng,no:p.no};
+  });
+  poly=new kakao.maps.Polyline({path:path,strokeWeight:3,strokeColor:'#d92b2b',strokeOpacity:0.75});
+  poly.setMap(map);
+  if(PTS.length)map.setBounds(bounds);
+  var zn={'5185':'서부','5186':'중부','5187':'동부'}[crs];
+  document.getElementById('status').textContent=PTS.length+'개 측점 ('+zn+'원점) · 첫점 '+(first?first.no+' → '+first.lat.toFixed(6)+','+first.lng.toFixed(6):'')+' · 마커 클릭=로드뷰';
+}
+document.getElementById('csv').addEventListener('change',function(e){
+  var f=e.target.files[0];if(!f)return;var rd=new FileReader();
+  rd.onload=function(){PTS=parseCsv(decodeBuf(rd.result),f.name);document.getElementById('status').textContent='CSV 로딩: 측점 '+PTS.length+'개 — [지도에 표시] 누르세요';};
+  rd.readAsArrayBuffer(f);e.target.value='';
+});
+document.getElementById('show').onclick=function(){
+  var key=document.getElementById('key').value.trim();
+  if(!key){alert('카카오 JavaScript 앱키를 입력하세요');return;}
+  if(!PTS.length){alert('먼저 CSV를 불러오세요');return;}
+  loadKakao(key,function(){if(!map)initMap();plot();});
+};
+document.getElementById('crs').addEventListener('change',function(){if(map&&PTS.length)plot();});
+document.getElementById('rvx').onclick=function(){document.body.classList.remove('rv-on');setTimeout(function(){if(map)map.relayout();},200);};
+</script>
+</body>
+</html>
