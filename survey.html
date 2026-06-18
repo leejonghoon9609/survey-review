@@ -48,6 +48,7 @@
   button.on-ok{border-color:var(--ok);color:var(--ok);background:#eef6ef;font-weight:600}
   button.on-bad{border-color:var(--bad);color:var(--bad);background:#fbeeee;font-weight:600}
   button.pri{border-color:var(--accent);color:var(--accent)}
+  button.dgr{border-color:var(--bad);color:var(--bad)}
   .stage{flex:1;display:flex;min-height:0}
   .maincol{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
   .canvas-wrap{flex:1;position:relative;background:#fff;min-width:0}
@@ -95,8 +96,9 @@
     <select id="proj"><option value="">현장 선택…</option></select>
     <button id="newProj">＋ 새 현장</button>
     <button id="save" class="pri">저장</button>
+    <button id="delProj" class="dgr">사업 삭제</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 117</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 118</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -4594,6 +4596,31 @@ function loadProject(id){ if(!online||!id)return;
     selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();loadPhotos();toast('현장 불러옴: '+res.data.name);
   });
 }
+function deleteProject(){
+  if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
+  var sel=document.getElementById('proj');var id=sel.value;
+  if(!id){toast('삭제할 사업을 먼저 선택하세요');return;}
+  var nm=(sel.options[sel.selectedIndex]&&sel.options[sel.selectedIndex].text)||'(이름없음)';
+  if(!confirm("'"+nm+"' 사업을 삭제할까요?\n\n측점·결선·검수·사진 기록이 모두 지워지며 되돌릴 수 없습니다."))return;
+  // 사진 스토리지 정리(best-effort) → 사진행 → 이력 → 사업 순서
+  Promise.resolve()
+    .then(function(){return sb.storage.from('photos').list(id).then(function(r){
+        var files=((r&&r.data)||[]).map(function(f){return id+'/'+f.name;});
+        return files.length?sb.storage.from('photos').remove(files):null;
+      }).catch(function(){});})
+    .then(function(){return sb.from('survey_photos').delete().eq('project_id',id);})
+    .then(function(){return sb.from('survey_history').delete().eq('project_id',id);})
+    .then(function(){return sb.from('survey_projects').delete().eq('id',id);})
+    .then(function(res){
+      if(res&&res.error){toast('삭제 오류: '+res.error.message);return;}
+      if(state.projectId===id){ // 현재 열려있던 사업이면 화면 초기화
+        state.projectId=null;state.projectName=null;state.points=[];state.lines=[];state.markups=[];state.manholes=[];state.labelOff={};photoMap={};selNum=null;
+        clearSvg(gSel);clearSvg(gMH);drawGeo();drawMarks();drawManholes();updMeta();if(photoPanelOpen)refreshPhotoPanel();
+      }
+      refreshProjects();
+      toast('사업 삭제 완료: '+nm);
+    });
+}
 
 /* ====== 버튼 바인딩 ====== */
 function bind(id,fn){document.getElementById(id).onclick=fn;}
@@ -4767,6 +4794,7 @@ window.addEventListener('keydown',function(e){
 
 renderRail();renderSub();
 bind('save',saveProject);
+bind('delProj',deleteProject);
 bind('newProj',function(){var n=prompt('새 현장명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.manholes=[];photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 현장: '+n+' (CSV 업로드 후 저장)');});
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){pushHist();if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)loadProject(e.target.value);});
