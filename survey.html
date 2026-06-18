@@ -163,7 +163,7 @@
     <button id="mapBtn" class="photoBtn">🗺 지도/로드뷰</button>
     <button id="bgBtn" class="photoBtn">🗺 지도배경</button>
     <span id="globalbtns" class="hgbtns" style="margin-left:auto"></span>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 126</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 127</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -366,7 +366,9 @@ function vbScale(){
   var s=Math.min(r.width/vb.w, r.height/vb.h);            // meet: 가로·세로 같은 스케일
   return {r:r, s:s, ox:(r.width-vb.w*s)/2, oy:(r.height-vb.h*s)/2}; // 레터박스 여백(중앙정렬)
 }
-function worldToPx(svgX,svgY){var cvr=cv.getBoundingClientRect();return [(svgX-vb.x)/vb.w*cvr.width,(svgY-vb.y)/vb.h*cvr.height];}
+// SVG user(S-space)좌표 → 페이지(화면)픽셀. getScreenCTM 실측(meet·여백·줌·리사이즈 정확 반영)
+function w2screen(sx,sy){var m=null;try{m=cv.getScreenCTM();}catch(e){}if(m&&m.a)return [m.a*sx+m.c*sy+m.e, m.b*sx+m.d*sy+m.f];var r=cv.getBoundingClientRect();return [r.left+(sx-vb.x)/vb.w*r.width, r.top+(sy-vb.y)/vb.h*r.height];}
+function worldToPx(svgX,svgY){var p=w2screen(svgX,svgY),r=cv.getBoundingClientRect();return [p[0]-r.left,p[1]-r.top];}
 function moveLabelDiv(d,svgX,svgY){d._sx=svgX;d._sy=svgY;placeLabelDiv(d);}
 function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
   var anchor=L.anchor;
@@ -401,8 +403,7 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
 }
 function openPtEdit(p,ls){
   var r=cv.getBoundingClientRect();
-  var sx=r.left+(ls[0]-vb.x)/vb.w*r.width;
-  var sy=r.top+(ls[1]-vb.y)/vb.h*r.height;
+  var _p=w2screen(ls[0],ls[1]);var sx=_p[0],sy=_p[1];
   // 기존 번호/코드를 템플릿 칸으로 분해
   var no=p.no||'', code=(p.code||'').trim();
   var date='', num=''; var mNo=/^26(\d*)-?(.*)$/.exec(no); if(mNo){date=mNo[1]||'';num=mNo[2]||'';}
@@ -520,9 +521,9 @@ function mkLabel(svgX,svgY,text,opt){
   return d;
 }
 function placeLabelDiv(d){
-  var cvr=cv.getBoundingClientRect();
-  d.style.left=((d._sx-vb.x)/vb.w*cvr.width)+'px';
-  d.style.top =((d._sy-vb.y)/vb.h*cvr.height)+'px';
+  var p=w2screen(d._sx,d._sy),r=cv.getBoundingClientRect();
+  d.style.left=(p[0]-r.left)+'px';
+  d.style.top =(p[1]-r.top)+'px';
 }
 function repositionLabels(){
   if(!lblOverlay)return;
@@ -940,7 +941,7 @@ function fitView(){
   vb0={x:minx-pad,y:miny-pad,w:(maxx-minx)+2*pad,h:(maxy-miny)+2*pad};
   vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};applyVB();drawGeo();drawManholes();highlightSel();
 }
-function toWorld(cx,cy){var r=cv.getBoundingClientRect();return [vb.x+(cx-r.left)/r.width*vb.w, vb.y+(cy-r.top)/r.height*vb.h];}
+function toWorld(cx,cy){var m=null;try{m=cv.getScreenCTM();}catch(e){}if(m&&m.a){var im=m.inverse();return [im.a*cx+im.c*cy+im.e, im.b*cx+im.d*cy+im.f];}var r=cv.getBoundingClientRect();return [vb.x+(cx-r.left)/r.width*vb.w, vb.y+(cy-r.top)/r.height*vb.h];}
 function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*=f;vb.h*=f;vb.x=w[0]-(cx-r.left)/r.width*vb.w;vb.y=w[1]-(cy-r.top)/r.height*vb.h;applyVB();drawGeo();drawManholes();highlightSel();}
 
 /* ====== 결선 ====== */
@@ -5138,8 +5139,8 @@ function syncMapBg(){
     var ll=toLatLng(wE,wN,crs);
     if(ll){
       bgmap.setCenter(new kakao.maps.LatLng(ll.lat,ll.lng));
-      var canvasW=Math.max(cv.getBoundingClientRect().width,1);
-      var svgMpp=vb.w/canvasW,cur=bgMpp();
+      var m=null;try{m=cv.getScreenCTM();}catch(e){}
+      var svgMpp=(m&&m.a)?(1/m.a):(vb.w/Math.max(cv.getBoundingClientRect().width,1)),cur=bgMpp();
       if(cur&&svgMpp>0){
         var delta=Math.round(Math.log(cur/svgMpp)/Math.LN2);
         if(delta){var L=Math.max(1,Math.min(14,bgmap.getLevel()-delta));if(L!==bgmap.getLevel())bgmap.setLevel(L);}
