@@ -112,8 +112,9 @@
   #krvmsg{display:none;position:absolute;inset:40px 0 0 0;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:var(--muted);font-size:13px;background:#f7f7f5;text-align:center;padding:20px}
   .stage{flex:1;display:flex;min-height:0}
   .maincol{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
-  .canvas-wrap{flex:1;position:relative;background:#fff;min-width:0}
-  svg#cv{width:100%;height:100%;display:block;touch-action:none;cursor:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='80'%20height='80'%3E%3Cg%20stroke='%23000'%20stroke-width='1'%20fill='none'%3E%3Crect%20x='34'%20y='34'%20width='12'%20height='12'/%3E%3Cline%20x1='0'%20y1='40'%20x2='30'%20y2='40'/%3E%3Cline%20x1='50'%20y1='40'%20x2='80'%20y2='40'/%3E%3Cline%20x1='40'%20y1='0'%20x2='40'%20y2='30'/%3E%3Cline%20x1='40'%20y1='50'%20x2='40'%20y2='80'/%3E%3C/g%3E%3C/svg%3E") 40 40, crosshair}
+  .canvas-wrap{flex:1;position:relative;background:#fff;min-width:0;overflow:hidden}
+  .kmapbg{position:absolute;inset:0;z-index:1;transform-origin:center center}
+  svg#cv{width:100%;height:100%;display:block;position:relative;z-index:2;touch-action:none;cursor:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='80'%20height='80'%3E%3Cg%20stroke='%23000'%20stroke-width='1'%20fill='none'%3E%3Crect%20x='34'%20y='34'%20width='12'%20height='12'/%3E%3Cline%20x1='0'%20y1='40'%20x2='30'%20y2='40'/%3E%3Cline%20x1='50'%20y1='40'%20x2='80'%20y2='40'/%3E%3Cline%20x1='40'%20y1='0'%20x2='40'%20y2='30'/%3E%3Cline%20x1='40'%20y1='50'%20x2='40'%20y2='80'/%3E%3C/g%3E%3C/svg%3E") 40 40, crosshair}
   .panel{width:240px;border-left:1px solid var(--line);background:#fff;display:none;flex-direction:column}
   .panel h2{font-size:11px;font-weight:600;padding:9px 12px;border-bottom:1px solid var(--line);color:var(--muted);display:flex;justify-content:space-between}
   .recs{flex:1;overflow:auto;padding:8px;display:flex;flex-direction:column;gap:6px}
@@ -160,8 +161,9 @@
     <button id="delProj" class="dgr">사업 삭제</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
     <button id="mapBtn" class="photoBtn">🗺 지도/로드뷰</button>
+    <button id="bgBtn" class="photoBtn">🗺 지도배경</button>
     <span id="globalbtns" class="hgbtns" style="margin-left:auto"></span>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 125</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 126</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -170,6 +172,7 @@
     <div class="maincol">
       <div class="subbar" id="subbar"></div>
     <div class="canvas-wrap">
+      <div id="kmapBg" class="kmapbg" style="display:none"></div>
       <svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg>
       <div id="lblOverlay" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:5"></div>
       <div id="coordBox" class="coordbox">X <b>–</b>　Y <b>–</b></div>
@@ -927,7 +930,7 @@ function updMeta(){document.getElementById('meta').textContent=(state.projectNam
 
 /* ====== 뷰박스 ====== */
 var vb={x:0,y:0,w:100,h:100}, vb0={x:0,y:0,w:100,h:100}, _vbwLast=null;
-function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);repositionLabels();}
+function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);repositionLabels();if(bgMapOn)syncMapBg();}
 function fitView(){
   var xs=[],ys=[];function add(x,y){var s=S(x,y);xs.push(s[0]);ys.push(s[1]);}
   state.points.forEach(function(p){add(p.x,p.y);});
@@ -5112,6 +5115,57 @@ bind('mapBtn',toggleMapView);
 bind('rvModeBtn',toggleRvMode);
 document.getElementById('mapFit').onclick=function(){if(kmap&&kMarkers.length){var b=new kakao.maps.LatLngBounds();kMarkers.forEach(function(m){b.extend(m.getPosition());});kmap.setBounds(b);}};
 document.getElementById('krvx').onclick=function(){document.getElementById('mapLayer').classList.remove('rv-on');setTimeout(function(){if(kmap)kmap.relayout();},200);};
+
+/* ===== 지도 배경 (도면 뒤에 깔림, 방식 나) ===== */
+var bgmap=null,bgMapOn=false,_bgSync=false;
+function bgMpp(){
+  if(!bgmap)return null;
+  try{
+    var proj=bgmap.getProjection(),c=bgmap.getCenter(),lat=c.getLat(),lng=c.getLng();
+    var p1=proj.containerPointFromCoords(c);
+    var p2=proj.containerPointFromCoords(new kakao.maps.LatLng(lat,lng+0.0009));
+    var dpx=Math.hypot(p2.x-p1.x,p2.y-p1.y);if(dpx<0.001)return null;
+    var dm=0.0009*(Math.PI/180)*6378137*Math.cos(lat*Math.PI/180);
+    return dm/dpx;
+  }catch(e){return null;}
+}
+function syncMapBg(){
+  if(!bgMapOn||!bgmap||_bgSync)return;
+  _bgSync=true;
+  try{
+    var crs=state.crs||'5186';
+    var wE=vb.x+vb.w/2,wN=-(vb.y+vb.h/2);
+    var ll=toLatLng(wE,wN,crs);
+    if(ll){
+      bgmap.setCenter(new kakao.maps.LatLng(ll.lat,ll.lng));
+      var canvasW=Math.max(cv.getBoundingClientRect().width,1);
+      var svgMpp=vb.w/canvasW,cur=bgMpp();
+      if(cur&&svgMpp>0){
+        var delta=Math.round(Math.log(cur/svgMpp)/Math.LN2);
+        if(delta){var L=Math.max(1,Math.min(14,bgmap.getLevel()-delta));if(L!==bgmap.getLevel())bgmap.setLevel(L);}
+        var now=bgMpp()||svgMpp,scale=now/svgMpp;
+        if(!isFinite(scale)||scale<1)scale=1;
+        document.getElementById('kmapBg').style.transform='scale('+Math.min(scale,8).toFixed(3)+')';
+      }
+    }
+  }catch(e){}
+  _bgSync=false;
+}
+function toggleBgMap(){
+  var btn=document.getElementById('bgBtn'),div=document.getElementById('kmapBg');
+  if(bgMapOn){bgMapOn=false;div.style.display='none';btn.classList.remove('on');return;}
+  if(!state.points||!state.points.length){toast('먼저 측점(CSV)을 불러오세요');return;}
+  div.style.display='block';btn.classList.add('on');
+  loadKakao(function(){
+    if(!bgmap){
+      bgmap=new kakao.maps.Map(div,{center:new kakao.maps.LatLng(37.27,127.0),level:3,draggable:false,scrollwheel:false,disableDoubleClickZoom:true});
+      bgmap.setZoomable(false);
+    }
+    bgMapOn=true;bgmap.relayout();syncMapBg();
+    toast('지도 배경 ON — 그 위에서 결선 작업하세요');
+  });
+}
+bind('bgBtn',toggleBgMap);
 bind('newProj',function(){var n=prompt('새 현장명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.manholes=[];photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 현장: '+n+' (CSV 업로드 후 저장)');});
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){pushHist();if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)loadProject(e.target.value);});
