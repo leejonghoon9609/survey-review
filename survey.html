@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>후측량 결선 DB</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/proj4@2.20.9/dist/proj4.js"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{--line:#e3e3e0;--ink:#1c1c1a;--muted:#6b6b66;--bg:#fafaf8;--ok:#2a9e50;--bad:#d32f2f;--accent:#1f6fd6}
@@ -75,10 +76,13 @@
   .rc-hint{font-size:10.5px;color:#b3b3ad}
   .rc-btn{align-self:center;padding:8px 24px;border:1px solid var(--rc);color:var(--rc);background:#fff;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
   .rc-btn:hover{background:#f6f8fb}
-  .rc-crs{flex:1;display:flex;flex-direction:column;justify-content:center;gap:9px;padding:6px 2px;margin-bottom:8px}
-  .rc-crs label{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;border:1px solid var(--line);border-radius:7px;padding:8px 10px;cursor:pointer}
+  .rc-crs{display:flex;flex-direction:column;justify-content:center;gap:6px;padding:4px 2px;margin-bottom:8px}
+  .rc-crs label{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;border:1px solid var(--line);border-radius:7px;padding:6px 9px;cursor:pointer}
   .rc-crs label:hover{border-color:var(--rc)}
   .rc-crs input{accent-color:var(--rc)}
+  .rc-crsout{font-size:11px;color:var(--ok);font-weight:700;text-align:center;line-height:1.45;min-height:14px;margin-top:8px}
+  .rc-maplink{display:block;text-align:center;font-size:11px;color:#7a52e0;font-weight:700;margin-top:5px;text-decoration:none}
+  .rc-maplink:hover{text-decoration:underline}
   .rc-note{font-size:10px;color:#b3b3ad;text-align:center;line-height:1.3}
   .regfoot{display:flex;justify-content:flex-end;gap:10px;padding:14px 20px 18px}
   .rf-cancel{padding:9px 22px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
@@ -134,7 +138,7 @@
     <button id="save" class="pri">저장</button>
     <button id="delProj" class="dgr">사업 삭제</button>
     <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 120</span>
+    <span id="buildno" style="margin-left:auto;font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 122</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -205,7 +209,9 @@
             <label><input type="radio" name="regCrs" value="5187"> 동부 GRS80</label>
             <label><input type="radio" name="regCrs" value="5185"> 서부 GRS80</label>
           </div>
-          <div class="rc-note">적용은 현재 작업 마무리 후 예정</div>
+          <button class="rc-btn" id="crsCheckBtn">변환 확인</button>
+          <div class="rc-crsout" id="crsResult">CSV 로딩 후 변환 확인</div>
+          <a class="rc-maplink" id="crsMapLink" target="_blank" rel="noopener" style="display:none">카카오맵에서 위치 확인 →</a>
         </div>
         <div class="regcard dxf">
           <div class="rc-t">수치지도 로딩</div>
@@ -4667,7 +4673,7 @@ function refreshProjects(){ if(!online)return;
   });
 }
 function saveProject(){
-  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
+  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
   if(!state.projectName){toast('현장명을 먼저 정하세요(새 현장)');return;}
   var row={name:state.projectName,payload:payload,updated_at:new Date().toISOString()};
   if(state.projectId)row.id=state.projectId;
@@ -4682,7 +4688,7 @@ function loadProject(id){ if(!online||!id)return;
   sb.from('survey_projects').select('*').eq('id',id).single().then(function(res){
     if(res.error||!res.data){toast('불러오기 실패');return;}
     var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;
-    state.points=p.points||[];state.lines=p.lines||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];
+    state.points=p.points||[];state.lines=p.lines||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.crs=p.crs||'5186';
     selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();loadPhotos();toast('현장 불러옴: '+res.data.name);
   });
 }
@@ -4902,10 +4908,14 @@ function updRegStatus(){
   var p=document.getElementById('rcPho');
   if(pendingPhotos&&pendingPhotos.length){p.textContent='사진 '+pendingPhotos.length+'장 선택됨';p.classList.add('done');}
   else{p.textContent='사진 (파일명=측점번호)';p.classList.remove('done');}
+  if(state.points&&state.points.length&&typeof crsCheck==='function')crsCheck();
 }
 function openRegModal(){
   document.getElementById('regName').value=state.projectName||'';
   pendingPhotos=null;
+  var crs=state.crs||'5186';var rc=document.querySelector('input[name="regCrs"][value="'+crs+'"]');if(rc)rc.checked=true;
+  var out=document.getElementById('crsResult');out.textContent='CSV 로딩 후 변환 확인';out.style.color='';
+  document.getElementById('crsMapLink').style.display='none';
   document.getElementById('regModal').style.display='flex';
   updRegStatus();
   setTimeout(function(){document.getElementById('regName').focus();},30);
@@ -4917,7 +4927,7 @@ function registerProject(){
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
   state.projectName=name;
   var crsEl=document.querySelector('input[name="regCrs"]:checked');state.crs=crsEl?crsEl.value:'5186';
-  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes};
+  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs};
   var row={name:name,payload:payload,updated_at:new Date().toISOString()};
   if(state.projectId)row.id=state.projectId;
   var photos=pendingPhotos; // 모달 닫으면 null되므로 미리 캡쳐
@@ -4954,6 +4964,29 @@ document.getElementById('dropPho').addEventListener('click',function(){document.
 document.getElementById('regModal').addEventListener('dragover',function(e){e.preventDefault();});
 document.getElementById('regModal').addEventListener('drop',function(e){e.preventDefault();});
 document.getElementById('regModal').addEventListener('click',function(e){if(e.target===this)closeRegModal();});
+
+/* ===== 좌표계 변환 (proj4: TM → WGS84) ===== */
+(function(){if(typeof proj4==='undefined')return;
+  proj4.defs('KTM5185','+proj=tmerc +lat_0=38 +lon_0=125 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs');
+  proj4.defs('KTM5186','+proj=tmerc +lat_0=38 +lon_0=127 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs');
+  proj4.defs('KTM5187','+proj=tmerc +lat_0=38 +lon_0=129 +k=1 +x_0=200000 +y_0=600000 +ellps=GRS80 +units=m +no_defs');
+})();
+function toLatLng(east,north,crs){if(typeof proj4==='undefined')return null;try{var r=proj4('KTM'+(crs||state.crs||'5186'),'WGS84',[east,north]);return {lng:r[0],lat:r[1]};}catch(e){return null;}}
+function regSelectedCrs(){var el=document.querySelector('input[name="regCrs"]:checked');return el?el.value:'5186';}
+function crsCheck(){
+  var crs=regSelectedCrs();state.crs=crs;
+  var out=document.getElementById('crsResult'),lk=document.getElementById('crsMapLink');
+  if(!state.points||!state.points.length){out.textContent='CSV를 먼저 로딩하세요';out.style.color='#d98200';lk.style.display='none';return;}
+  var p=state.points[0],ll=toLatLng(p.x,p.y,crs);
+  if(!ll){out.textContent='변환 실패 (proj4 로드 확인)';out.style.color='#d32f2f';lk.style.display='none';return;}
+  var zn={'5185':'서부','5186':'중부','5187':'동부'}[crs]||crs;
+  out.style.color='#2a9e50';
+  out.innerHTML='측점 '+p.no+' ('+zn+'원점)<br>위도 '+ll.lat.toFixed(6)+' / 경도 '+ll.lng.toFixed(6);
+  lk.href='https://map.kakao.com/link/map/'+encodeURIComponent(p.no+' 측점')+','+ll.lat+','+ll.lng;
+  lk.style.display='block';
+}
+document.getElementById('crsCheckBtn').onclick=crsCheck;
+document.querySelectorAll('input[name="regCrs"]').forEach(function(r){r.addEventListener('change',function(){state.crs=regSelectedCrs();crsCheck();});});
 bind('newProj',function(){var n=prompt('새 현장명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.manholes=[];photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 현장: '+n+' (CSV 업로드 후 저장)');});
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){pushHist();if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)loadProject(e.target.value);});
