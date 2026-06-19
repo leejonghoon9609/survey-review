@@ -241,7 +241,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 165</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 166</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -315,7 +315,7 @@
             <span class="rc-hint">파일을 끌어다 놓기</span>
           </div>
           <button class="rc-btn" id="rcCsvBtn">직접 로딩</button>
-          <button class="rc-clr" id="clrCsv" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">✕ 제거</button>
+          <button class="rc-clr" id="clrCsv" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">🗑 CSV별 삭제</button>
         </div>
         <div class="regcard pho">
           <div class="rc-t">측점사진 로딩</div>
@@ -4864,7 +4864,7 @@ function parseCsv(text,fname){
     var cx=parseFloat(f[ci.x]),cy=parseFloat(f[ci.y]);if(isNaN(cx)||isNaN(cy))continue;
     var dt=fdate; if(ci.date>=0&&f[ci.date]){var m=f[ci.date].match(/(\d{2})(\d{2})-?(\d{2})-?(\d{2})|\d{4}-(\d{2})-(\d{2})/);var raw=(f[ci.date]||'').replace(/[^0-9]/g,'');if(raw.length>=8)dt=raw.slice(2,8);}
     var name=ci.name>=0?(f[ci.name]||'').trim():String(r);
-    pts.push({no:(dt?dt+'-':'')+name, x:cy, y:cx, z:ci.z>=0?parseFloat(f[ci.z]):null, code:ci.code>=0?(f[ci.code]||'').trim():''});
+    pts.push({no:(dt?dt+'-':'')+name, x:cy, y:cx, z:ci.z>=0?parseFloat(f[ci.z]):null, code:ci.code>=0?(f[ci.code]||'').trim():'', _csv:(fname||'')});
   }
   return pts;
 }
@@ -5155,7 +5155,7 @@ var pendingPhotos=null;
 function regOpen(){return document.getElementById('regModal').style.display!=='none';}
 function updRegStatus(){
   var c=document.getElementById('rcCsv');
-  if(state.points&&state.points.length){c.textContent='측점 '+state.points.length+'개 로딩됨';c.classList.add('done');}
+  if(state.points&&state.points.length){var ng=csvGroups().length;c.textContent='측점 '+state.points.length+'개'+(ng>1?(' · '+ng+'개 파일'):'')+' 로딩됨';c.classList.add('done');}
   else{c.textContent='측점 데이터 (.csv)';c.classList.remove('done');}
   var d=document.getElementById('rcDxf');
   var nb=(state.lines||[]).filter(function(l){return l.base;}).length;
@@ -5209,7 +5209,7 @@ document.getElementById('rcCsvBtn').onclick=function(){document.getElementById('
 document.getElementById('rcDxfBtn').onclick=function(){document.getElementById('fDxf').click();};
 document.getElementById('rcPhoBtn').onclick=function(){document.getElementById('fRegPhotos').click();};
 (function(){
-  var c1=document.getElementById('clrCsv');if(c1)c1.onclick=function(){state.points=[];selNum=null;clearSvg(gSel);drawGeo();updMeta();updRegStatus();toast('CSV 제거됨 — 다시 올려주세요');};
+  var c1=document.getElementById('clrCsv');if(c1)c1.onclick=openCsvList;
   var c2=document.getElementById('clrPho');if(c2)c2.onclick=openPhotoList;
   var c3=document.getElementById('clrDxf');if(c3)c3.onclick=function(){state.lines=(state.lines||[]).filter(function(l){return !l.base;});drawGeo();updMeta();updRegStatus();toast('수치지도(백판) 제거됨');};
 })();
@@ -5237,7 +5237,7 @@ function setupDrop(zid,onfiles){var z=document.getElementById(zid);if(!z)return;
   z.addEventListener('dragleave',function(e){e.preventDefault();e.stopPropagation();z.classList.remove('over');});
   z.addEventListener('drop',function(e){e.preventDefault();e.stopPropagation();z.classList.remove('over');var fs=e.dataTransfer&&e.dataTransfer.files;if(fs&&fs.length)onfiles(fs);});
 }
-setupDrop('dropCsv',function(fs){loadCsvFile(fs[0]);});
+setupDrop('dropCsv',function(fs){if(regOpen())regAddCsv(fs[0]);else loadCsvFile(fs[0]);});
 setupDrop('dropDxf',function(fs){loadDxfFile(fs[0]);});
 setupDrop('dropPho',function(fs){regAddPhotos(fs);});
 document.getElementById('dropCsv').addEventListener('click',function(){document.getElementById('fCsv').click();});
@@ -5474,7 +5474,38 @@ bind('newProj',function(){var n=prompt('새 사업명을 입력하세요 (예: �
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){pushHist();if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)loadProject(e.target.value);});
 function loadCsvFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.manholes=[];state.projectId=null;state.routingDone=false;setReadOnly(false);state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatus();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화)');};rd.readAsArrayBuffer(f);}
-document.getElementById('fCsv').addEventListener('change',function(e){loadCsvFile(e.target.files[0]);e.target.value='';});
+function regAddCsv(f){if(!f)return;var rd=new FileReader();rd.onload=function(){
+  var pts=parseCsv(decodeBuf(rd.result),f.name);
+  if(!pts.length){toast('CSV에서 측점을 못 읽었습니다');return;}
+  if(!state.points)state.points=[];
+  var nn={};pts.forEach(function(p){nn[p.no]=1;});
+  state.points=state.points.filter(function(p){return !nn[p.no];}).concat(pts);
+  if(!state.projectName){state.projectName=f.name.replace(/\.[^.]+$/,'');var rn=document.getElementById('regName');if(rn&&!rn.value.trim())rn.value=state.projectName;}
+  selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatus();
+  toast('CSV "'+f.name+'" +'+pts.length+'개 (총 '+state.points.length+'개)');
+};rd.readAsArrayBuffer(f);}
+function csvGroups(){var g={},order=[];(state.points||[]).forEach(function(p){var k=p._csv||'(파일명 없음)';if(g[k]==null){g[k]=0;order.push(k);}g[k]++;});return order.map(function(k){return {name:k,count:g[k]};});}
+function removeCsvGroup(name){state.points=(state.points||[]).filter(function(p){return (p._csv||'(파일명 없음)')!==name;});selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();updRegStatus();toast('"'+name+'" 측점 제거됨');}
+function openCsvList(){
+  if(!csvGroups().length){toast('로딩된 CSV가 없습니다');return;}
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center';
+  var box=document.createElement('div');
+  box.style.cssText='background:#fff;border-radius:12px;max-width:460px;width:88%;max-height:74vh;display:flex;flex-direction:column;box-shadow:0 8px 30px rgba(0,0,0,.25)';
+  function render(){
+    var gs=csvGroups();
+    if(!gs.length){ov.remove();toast('CSV 전부 제거됨');return;}
+    var rows=gs.map(function(g){return '<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid #f2f2f2;font-size:13px"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+g.name+' <b style="color:#1a7a3a">'+g.count+'개</b></span><button data-k="'+encodeURIComponent(g.name)+'" class="cvl-x" style="flex:none;border:1px solid #e3b4ae;background:#fff;color:#c0392b;border-radius:6px;padding:3px 10px;font-size:12px;cursor:pointer">✕ 삭제</button></div>';}).join('');
+    box.innerHTML='<div style="display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid #eee"><b style="flex:1;font-size:15px">로딩된 CSV ('+gs.length+'개 파일)</b><button id="cvlClose" style="border:none;background:#f2f2f2;border-radius:7px;padding:5px 11px;cursor:pointer">닫기</button></div><div style="overflow:auto">'+rows+'</div><div style="padding:10px 14px;border-top:1px solid #eee;text-align:right"><button id="cvlAll" style="border:1px solid #e3b4ae;background:#fff;color:#c0392b;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer">전체 비우기</button></div>';
+    [].forEach.call(box.querySelectorAll('.cvl-x'),function(b){b.onclick=function(){removeCsvGroup(decodeURIComponent(this.getAttribute('data-k')));render();};});
+    box.querySelector('#cvlClose').onclick=function(){ov.remove();};
+    box.querySelector('#cvlAll').onclick=function(){state.points=[];selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();updRegStatus();ov.remove();toast('CSV 전부 제거됨');};
+  }
+  render();
+  ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};
+  document.body.appendChild(ov);
+}
+document.getElementById('fCsv').addEventListener('change',function(e){var f=e.target.files[0];if(regOpen())regAddCsv(f);else loadCsvFile(f);e.target.value='';});
 function loadDxfFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){try{var ln=parseDxfLines(decodeBuf(rd.result));ln.forEach(function(l){l.base=true;});state.lines=state.lines.filter(function(l){return !l.base;}).concat(ln);drawGeo();fitView();updMeta();if(regOpen())updRegStatus();toast('수치지도 백판 '+ln.length+'개 라인 로드');}catch(err){toast('DXF 파싱 오류');}};rd.readAsArrayBuffer(f);}
 document.getElementById('fDxf').addEventListener('change',function(e){loadDxfFile(e.target.files[0]);e.target.value='';});
 
