@@ -194,12 +194,15 @@
   .viewer #vNote2.on{background:#fff;color:#d32f2f}
   /* 선택측점 사진만 크게 */
   .viewer .php-body .php-main{flex:1}
+  /* ===== 보기 전용(결선완료 로딩) ===== */
+  .readonly #rail{opacity:.45;pointer-events:none;filter:grayscale(.35)}
 </style>
 </head>
 <body>
   <header>
     <button id="modeToggle" class="photoBtn">📱 뷰어</button>
     <h1>후측량 결선 DB</h1>
+    <span id="roBadge" class="wk" style="display:none;color:#d98200;border:1px solid #e0b15a;background:#fff8ec;border-radius:7px;padding:2px 9px;font-size:12px;font-weight:700">🔒 보기 전용</span>
     <span id="viewerBar" class="vw">
       <select id="vproj"><option value="">결선완료사업…</option></select>
       <button id="vPhoto" class="photoBtn">📷 사진</button>
@@ -212,10 +215,11 @@
     <button id="delProj" class="dgr wk">사업 삭제</button>
     <span id="globalbtns" class="hgbtns wk"></span>
     <button id="doneListBtn" class="wk" style="background:#eafaf0;color:#16a34a;border:1px solid #16a34a;font-weight:700">✅ 결선 완료사업</button>
+    <span id="doneSummary" class="wk" style="display:none;color:#d32f2f;border:1px solid #d32f2f;background:#fff5f5;border-radius:7px;padding:3px 10px;font-size:12.5px;font-weight:800"></span>
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 142</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 143</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -438,7 +442,7 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
   handle.style.cursor='move';
   var lx=ls[0],ly=ls[1],dragging=false,moved=false,gx=0,gy=0;
   handle.addEventListener('pointerdown',function(ev){
-    if(mode!=='pan'||viewerMode)return;ev.stopPropagation();ev.preventDefault();
+    if(mode!=='pan'||viewerMode||readOnly)return;ev.stopPropagation();ev.preventDefault();
     if(String(ptNum(p))!==String(selNum)){selNum=String(ptNum(p));highlightSel();if(photoPanelOpen)refreshPhotoPanel();}
     dragging=true;moved=false;labelDragging=true;var w=toWorld(ev.clientX,ev.clientY);gx=w[0]-lx;gy=w[1]-ly;
     try{handle.setPointerCapture(ev.pointerId);}catch(e){}});
@@ -491,7 +495,7 @@ function addNoteHandle(L,t,ld,lx,ly,ax,tw){
   var hc=L.layer==='압입구간'?'#1f6fd6':'#a07e00', hc2=L.layer==='압입구간'?'#15489e':'#7a5f00';
   var h=el('rect',{x:bx-pad,y:by-pad,width:bw+2*pad,height:bh+2*pad,rx:0.3,fill:'transparent',stroke:hc,'stroke-width':0.7,'stroke-dasharray':'1.6 1.6','vector-effect':'non-scaling-stroke','pointer-events':'all'});h.style.cursor='move';
   var drag=false,moved=false,nx=lx,ny=ly;
-  h.addEventListener('pointerdown',function(ev){if(mode==='delall2'||mode==='ptdel'){ev.stopPropagation();ev.preventDefault();var li=state.lines.indexOf(L);if(li>=0){pushHist();state.lines.splice(li,1);drawGeo();updMeta();toast('멘트·선 삭제');}return;}if(mode!=='pan'||viewerMode)return;ev.stopPropagation();drag=true;moved=false;labelDragging=true;h.setAttribute('stroke',hc2);h.setAttribute('stroke-width',1.1);h.setAttribute('stroke-dasharray','2.2 1.4');try{h.setPointerCapture(ev.pointerId);}catch(e){}});
+  h.addEventListener('pointerdown',function(ev){if(mode==='delall2'||mode==='ptdel'){ev.stopPropagation();ev.preventDefault();var li=state.lines.indexOf(L);if(li>=0){pushHist();state.lines.splice(li,1);drawGeo();updMeta();toast('멘트·선 삭제');}return;}if(mode!=='pan'||viewerMode||readOnly)return;ev.stopPropagation();drag=true;moved=false;labelDragging=true;h.setAttribute('stroke',hc2);h.setAttribute('stroke-width',1.1);h.setAttribute('stroke-dasharray','2.2 1.4');try{h.setPointerCapture(ev.pointerId);}catch(e){}});
   h.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();moved=true;var ww=toWorld(ev.clientX,ev.clientY);nx=ww[0];ny=ww[1];
     t.setAttribute('x',nx+0.25);t.setAttribute('y',ny+0.2);ld.setAttribute('x2', (ax!=null&&ax>nx)?nx+0.25+(tw||bw):nx);ld.setAttribute('y2',ny);
     h.setAttribute('x',nx+0.25-pad);h.setAttribute('y',ny-0.45-pad);});
@@ -506,7 +510,7 @@ function addNoteHandle(L,t,ld,lx,ly,ax,tw){
 function addAnchorHandle(L,ah,anc,ld){
   ah.style.cursor='move';
   var drag=false;
-  ah.addEventListener('pointerdown',function(ev){if(mode==='delall2'||mode==='ptdel'){ev.stopPropagation();ev.preventDefault();var li=state.lines.indexOf(L);if(li>=0){pushHist();state.lines.splice(li,1);drawGeo();updMeta();toast('멘트·선 삭제');}return;}if(mode!=='pan'||viewerMode)return;ev.stopPropagation();drag=true;labelDragging=true;anc.setAttribute('r',0.46);try{ah.setPointerCapture(ev.pointerId);}catch(e){}});
+  ah.addEventListener('pointerdown',function(ev){if(mode==='delall2'||mode==='ptdel'){ev.stopPropagation();ev.preventDefault();var li=state.lines.indexOf(L);if(li>=0){pushHist();state.lines.splice(li,1);drawGeo();updMeta();toast('멘트·선 삭제');}return;}if(mode!=='pan'||viewerMode||readOnly)return;ev.stopPropagation();drag=true;labelDragging=true;anc.setAttribute('r',0.46);try{ah.setPointerCapture(ev.pointerId);}catch(e){}});
   ah.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();var ww=toWorld(ev.clientX,ev.clientY);var t=projToPoly(L.pts.map(function(p){return S(p[0],p[1]);}),ww[0],ww[1]);L.anchorT=t;var aw=ptOnPoly(L.pts,t),sp=S(aw[0],aw[1]);anc.setAttribute('cx',sp[0]);anc.setAttribute('cy',sp[1]);ah.setAttribute('cx',sp[0]);ah.setAttribute('cy',sp[1]);ld.setAttribute('x1',sp[0]);ld.setAttribute('y1',sp[1]);});
   function up(ev){if(!drag)return;drag=false;setTimeout(function(){labelDragging=false;},40);try{ah.releasePointerCapture(ev.pointerId);}catch(e){}drawGeo();}
   ah.addEventListener('pointerup',up);ah.addEventListener('pointercancel',up);
@@ -852,7 +856,7 @@ function drawManholes(){
     drag.addEventListener('pointerdown',function(ev){
       if((mode==='delmh'&&!isRiser)||(mode==='delriser'&&isRiser)||mode==='delall2'){ev.stopPropagation();ev.preventDefault();pushHist();
         var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);if(!isRiser)removeManholePassLines(mh);drawManholes();drawGeo();toast(isRiser?'입상주 삭제':'맨홀 삭제(통과결선 포함)');return;}
-      if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace'||viewerMode)return;
+      if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace'||viewerMode||readOnly)return;
       ev.stopPropagation();ev.preventDefault();
       pushHist();
       if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
@@ -866,7 +870,7 @@ function drawManholes(){
     lbDrag.addEventListener('pointerdown',function(ev){
       if((mode==='delmh'&&!isRiser)||(mode==='delriser'&&isRiser)||mode==='delall2'){ev.stopPropagation();ev.preventDefault();
         var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);if(!isRiser)removeManholePassLines(mh);drawManholes();drawGeo();toast(isRiser?'입상주 삭제':'맨홀 삭제(통과결선 포함)');return;}
-      if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace'||viewerMode)return;
+      if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace'||viewerMode||readOnly)return;
       ev.stopPropagation();ev.preventDefault();
       if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
       var w=toWorld(ev.clientX,ev.clientY);
@@ -4791,6 +4795,7 @@ cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endP
 cv.addEventListener('mousedown',function(e){if(e.button===1)e.preventDefault();});
 cv.addEventListener('auxclick',function(e){if(e.button===1)e.preventDefault();});
 cv.addEventListener('wheel',function(e){e.preventDefault();zoomAt(e.deltaY>0?1.07:0.935,e.clientX,e.clientY);},{passive:false});
+cv.addEventListener('dblclick',function(e){if(viewerMode||readOnly)return;var ni=hitNote(e.clientX,e.clientY);if(ni>=0){e.preventDefault();openNoteEdit(ni);}}); // PC 편집모드: 특이사항 더블클릭=수정/삭제
 
 /* ====== CSV / DXF 파싱 ====== */
 function decodeBuf(buf){var u=new TextDecoder('utf-8',{fatal:false}).decode(buf);if(u.indexOf('\uFFFD')>=0){try{return new TextDecoder('euc-kr').decode(buf);}catch(e){return u;}}return u;}
@@ -4861,7 +4866,7 @@ function saveProject(){
     refreshProjects();loadPhotos();toast('저장 완료');
   });
 }
-function loadProject(id){ if(!online||!id)return;
+function loadProject(id,ro){ if(!online||!id)return; setReadOnly(!!ro);
   sb.from('survey_projects').select('*').eq('id',id).single().then(function(res){
     if(res.error||!res.data){toast('불러오기 실패');return;}
     var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;
@@ -4997,6 +5002,7 @@ function renderSub(){
   s.querySelectorAll('button.soon').forEach(function(b){b.onclick=function(){toast(b.textContent+' — 다음 단계에서 추가 예정');};});
   var ld=document.getElementById('lineDone');if(ld)ld.onclick=finishDraw;
   if(gb)gb.querySelectorAll('button[data-g]').forEach(function(b){b.onclick=function(){var g=b.getAttribute('data-g');
+    if(readOnly&&(g==='undo'||g==='redo'||g==='delall2')){toast('보기 전용 — 수정은 상단 "사업 선택"으로 불러오세요');return;}
     if(g==='undo')doUndo();
     else if(g==='redo')doRedo();
     else if(g==='delall2'){if(mode==='delall2'){mode='pan';toast('통합 지우기 종료');}else{mode='delall2';toast('통합 지우기: 지울 선·맨홀·입상주·측점을 클릭하세요 (선택한 것만 삭제)');}setModeUI();}
@@ -5235,7 +5241,7 @@ bind('rvBtn',toggleRvPick);
 bind('dirToggle',function(){showDirArrows=!showDirArrows;var b=document.getElementById('dirToggle');b.classList.toggle('on',showDirArrows);b.textContent='🧭 방향 '+(showDirArrows?'ON':'OFF');drawGeo();});
 
 /* ===== 작업/뷰어 모드 + 특이사항 ===== */
-var viewerMode=false,noteMode=false;
+var viewerMode=false,noteMode=false,readOnly=false;
 function isMobileDevice(){var t=(navigator.maxTouchPoints||0)>0||('ontouchstart' in window);var ua=/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent||'');var narrow=Math.min(screen.width||9999,screen.height||9999)<820;return t&&(ua||narrow);}
 function setViewer(v){viewerMode=!!v;document.body.classList.toggle('viewer',viewerMode);var b=document.getElementById('modeToggle');if(b)b.textContent=viewerMode?'📱 뷰어':'💻 작업';try{localStorage.setItem('viewMode',viewerMode?'1':'0');}catch(e){}
   if(viewerMode&&noteMode){} 
@@ -5277,12 +5283,16 @@ function registerDone(){
     buttons:[{label:(state.routingDone?'완료 해제':'취소')+'',onClick:function(){if(state.routingDone){state.routingDone=false;saveProject();toast('결선완료 해제됨');}}},
              {label:'등록',primary:true,onClick:function(){state.routingDone=true;saveProject();toast('결선완료 사업으로 등록됨');}}]});
 }
+function countNotes(pl){return ((pl&&pl.markups)||[]).filter(function(m){return m.near==='특이사항';}).length;}
+function setReadOnly(v){readOnly=!!v;document.body.classList.toggle('readonly',readOnly);var b=document.getElementById('roBadge');if(b)b.style.display=readOnly?'':'none';}
 function refreshDoneProjects(){ if(!online)return;
-  var vsel=document.getElementById('vproj');if(!vsel)return;
   sb.from('survey_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
     var rows=(res.data||[]).filter(function(p){return p.payload&&p.payload.routingDone;});
-    vsel.innerHTML='<option value="">결선완료사업…</option>'+rows.map(function(p){return '<option value="'+p.id+'">'+p.name+'</option>';}).join('');
-    if(state.projectId)vsel.value=state.projectId;
+    var vsel=document.getElementById('vproj');
+    if(vsel){vsel.innerHTML='<option value="">결선완료사업…</option>'+rows.map(function(p){return '<option value="'+p.id+'">'+p.name+'</option>';}).join('');if(state.projectId)vsel.value=state.projectId;}
+    var pw=0,tn=0;rows.forEach(function(p){var n=countNotes(p.payload);if(n>0){pw++;tn+=n;}});
+    var sm=document.getElementById('doneSummary');
+    if(sm){if(tn>0){sm.style.display='';sm.textContent='⚠ 수정 '+pw+'사업 · '+tn+'건';}else{sm.style.display='none';}}
   });
 }
 function openDoneList(){
@@ -5290,13 +5300,16 @@ function openDoneList(){
   sb.from('survey_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
     var rows=(res.data||[]).filter(function(p){return p.payload&&p.payload.routingDone;});
     var body=rows.length
-      ? '<div style="max-height:320px;overflow:auto;text-align:left">'+rows.map(function(p){return '<div style="display:flex;gap:6px;margin:4px 0">'
-          +'<button class="done-row" data-id="'+p.id+'" style="flex:1;text-align:left;padding:10px 12px;border:1px solid #d6eede;border-radius:9px;background:#f6fcf8;cursor:pointer;font-size:14px;font-weight:600;color:#15803d">✅ '+p.name+'</button>'
+      ? '<div style="max-height:320px;overflow:auto;text-align:left">'+rows.map(function(p){var n=countNotes(p.payload);
+          var bg=n>0?'#fdecec':'#f6fcf8',bd=n>0?'#eaa':'#d6eede',col=n>0?'#c0392b':'#15803d';
+          var badge=n>0?'<span style="background:#d32f2f;color:#fff;font-size:11px;font-weight:800;padding:2px 7px;border-radius:10px;margin-right:7px">수정 '+n+'</span>':'';
+          return '<div style="display:flex;gap:6px;margin:4px 0">'
+          +'<button class="done-row" data-id="'+p.id+'" style="flex:1;text-align:left;padding:10px 12px;border:1px solid '+bd+';border-radius:9px;background:'+bg+';cursor:pointer;font-size:14px;font-weight:700;color:'+col+'">'+badge+(n>0?'⚠':'✅')+' '+p.name+'</button>'
           +'<button class="done-del" data-id="'+p.id+'" data-nm="'+(''+p.name).replace(/"/g,'&quot;')+'" title="사업 삭제" style="flex:none;padding:0 13px;border:1px solid #f0c4c4;border-radius:9px;background:#fdf3f3;color:#d32f2f;cursor:pointer;font-size:15px">🗑</button>'
-          +'</div>';}).join('')+'</div><div style="color:#999;font-size:12px;margin-top:6px">선택하면 불러와서 보고 편집 · 🗑 = 사업 삭제</div>'
+          +'</div>';}).join('')+'</div><div style="color:#999;font-size:12px;margin-top:6px">불러오면 <b>보기 전용</b> · 수정은 상단 <b>사업 선택</b>으로 · 🗑 = 삭제</div>'
       : '<div style="color:#999;padding:6px">등록된 결선완료 사업이 없습니다.<br>좌측 레일 하단 <b style="color:#16a34a">✅ 결선완료사업 등록</b>으로 등록하세요.</div>';
     var card=showModal({title:'✅ 결선 완료사업',tone:'ok',body:body,buttons:[{label:'닫기'}]});
-    card.querySelectorAll('.done-row').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-id');card.remove();loadProject(id);};});
+    card.querySelectorAll('.done-row').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-id');card.remove();loadProject(id,true);};});
     card.querySelectorAll('.done-del').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-id'),nm=b.getAttribute('data-nm')||'(이름없음)';
       if(!confirm("'"+nm+"' 사업을 완전히 삭제할까요?\n측점·결선·검수·사진이 모두 지워지며 되돌릴 수 없습니다."))return;
       var r=deleteProjectById(id,nm);(r&&r.then?r:Promise.resolve()).then(function(){card.remove();openDoneList();});
@@ -5361,10 +5374,10 @@ function toggleBgMap(){
   });
 }
 bind('bgBtn',toggleBgMap);
-bind('newProj',function(){var n=prompt('새 사업명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.routingDone=false;state.manholes=[];state.photoDir={};photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 사업: '+n+' (CSV 업로드 후 저장)');});
+bind('newProj',function(){var n=prompt('새 사업명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.routingDone=false;setReadOnly(false);state.manholes=[];state.photoDir={};photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 사업: '+n+' (CSV 업로드 후 저장)');});
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){pushHist();if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)loadProject(e.target.value);});
-function loadCsvFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.manholes=[];state.projectId=null;state.routingDone=false;state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatus();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화)');};rd.readAsArrayBuffer(f);}
+function loadCsvFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.manholes=[];state.projectId=null;state.routingDone=false;setReadOnly(false);state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatus();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화)');};rd.readAsArrayBuffer(f);}
 document.getElementById('fCsv').addEventListener('change',function(e){loadCsvFile(e.target.files[0]);e.target.value='';});
 function loadDxfFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){try{var ln=parseDxfLines(decodeBuf(rd.result));ln.forEach(function(l){l.base=true;});state.lines=state.lines.filter(function(l){return !l.base;}).concat(ln);drawGeo();fitView();updMeta();if(regOpen())updRegStatus();toast('수치지도 백판 '+ln.length+'개 라인 로드');}catch(err){toast('DXF 파싱 오류');}};rd.readAsArrayBuffer(f);}
 document.getElementById('fDxf').addEventListener('change',function(e){loadDxfFile(e.target.files[0]);e.target.value='';});
