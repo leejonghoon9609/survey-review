@@ -241,7 +241,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 163</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 164</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -315,6 +315,7 @@
             <span class="rc-hint">파일을 끌어다 놓기</span>
           </div>
           <button class="rc-btn" id="rcCsvBtn">직접 로딩</button>
+          <button class="rc-clr" id="clrCsv" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">✕ 제거</button>
         </div>
         <div class="regcard pho">
           <div class="rc-t">측점사진 로딩</div>
@@ -324,6 +325,7 @@
             <span class="rc-hint">여러 장 끌어다 놓기</span>
           </div>
           <button class="rc-btn" id="rcPhoBtn">직접 로딩</button>
+          <button class="rc-clr" id="clrPho" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">✕ 제거</button>
         </div>
         <div class="regcard crs">
           <div class="rc-t">좌표계 설정</div>
@@ -344,6 +346,7 @@
             <span class="rc-hint">파일을 끌어다 놓기</span>
           </div>
           <button class="rc-btn" id="rcDxfBtn">직접 로딩</button>
+          <button class="rc-clr" id="clrDxf" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">✕ 제거</button>
         </div>
       </div>
       <div class="regfoot">
@@ -493,7 +496,9 @@ function openPtEdit(p,ls){
   var _p=w2screen(ls[0],ls[1]);var sx=_p[0],sy=_p[1];
   // 기존 번호/코드를 템플릿 칸으로 분해
   var no=p.no||'', code=(p.code||'').trim();
-  var date='', num=''; var mNo=/^26(\d*)-?(.*)$/.exec(no); if(mNo){date=mNo[1]||'';num=mNo[2]||'';}
+  var yr='', date='', num=''; var mNo=/^(\d{2})(\d{4})-?(.*)$/.exec(no);
+  if(mNo){yr=mNo[1];date=mNo[2];num=mNo[3]||'';}
+  else{var m2=/^(\d*)-?(.*)$/.exec(no); if(m2){date=m2[1]||'';num=m2[2]||'';}}
   var prefix='FC 100', cnt=''; var xi=code.toLowerCase().lastIndexOf('x');
   if(xi>=0){prefix=code.slice(0,xi).trim();cnt=code.slice(xi+1).trim();} else if(code){prefix=code;}
   if(!prefix)prefix='FC 100';
@@ -502,17 +507,17 @@ function openPtEdit(p,ls){
   var fix=function(t){var s=document.createElement('span');s.textContent=t;s.style.cssText='font-size:15px;font-weight:800;color:#9a9a93;align-self:center;padding:0 1px;';return s;};
   var inp=function(val,ph,w,col){var i=document.createElement('input');i.value=val;i.placeholder=ph;i.style.cssText='font-size:14px;font-weight:600;color:'+(col||'#333')+';border:1px solid #ccc;border-radius:3px;padding:2px 5px;outline:none;width:'+w+'px;';return i;};
   var row=function(){var d=document.createElement('div');d.style.cssText='display:flex;gap:3px;align-items:center;';return d;};
-  var iDate=inp(date,'날짜',56,'#1a7a3a'), iNum=inp(num,'번호',46,'#1a7a3a');
-  var r1=row();r1.appendChild(fix('26'));r1.appendChild(iDate);r1.appendChild(fix('-'));r1.appendChild(iNum);
+  var iYear=inp(yr,'YY',32,'#1a7a3a'), iDate=inp(date,'MMDD',52,'#1a7a3a'), iNum=inp(num,'번호',46,'#1a7a3a');
+  var r1=row();r1.appendChild(iYear);r1.appendChild(iDate);r1.appendChild(fix('-'));r1.appendChild(iNum);
   var iPre=inp(prefix,'FC 100',74,'#0f7a86'), iCnt=inp(cnt,'관수',42,'#0f7a86');
   var r2=row();r2.appendChild(iPre);r2.appendChild(fix('x'));r2.appendChild(iCnt);
   wrap.appendChild(r1);wrap.appendChild(r2);document.body.appendChild(wrap);iDate.focus();iDate.select();
   var done=function(){if(wrap.parentNode){pushHist();
-    p.no='26'+iDate.value.trim()+'-'+iNum.value.trim();
+    p.no=iYear.value.trim()+iDate.value.trim()+'-'+iNum.value.trim();
     p.code=iPre.value.trim()+'x'+iCnt.value.trim();
     wrap.remove();drawGeo();if(photoPanelOpen)refreshPhotoPanel();}};
   var onKey=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();};
-  var ins=[iDate,iNum,iPre,iCnt];
+  var ins=[iYear,iDate,iNum,iPre,iCnt];
   var bt=null;function ob(){bt=setTimeout(done,150);}function of(){if(bt){clearTimeout(bt);bt=null;}}
   ins.forEach(function(i){i.addEventListener('keydown',onKey);i.addEventListener('blur',ob);i.addEventListener('focus',of);});
 }
@@ -5160,6 +5165,10 @@ function updRegStatus(){
   if(pendingPhotos&&pendingPhotos.length){p.textContent='사진 '+pendingPhotos.length+'장 선택됨';p.classList.add('done');}
   else{p.textContent='사진 (파일명=측점번호)';p.classList.remove('done');}
   if(state.points&&state.points.length&&typeof crsCheck==='function')crsCheck();
+  var _tg=function(id,on){var b=document.getElementById(id);if(b)b.style.display=on?'inline-block':'none';};
+  _tg('clrCsv', !!(state.points&&state.points.length));
+  _tg('clrDxf', (state.lines||[]).filter(function(l){return l.base;}).length>0);
+  _tg('clrPho', !!(pendingPhotos&&pendingPhotos.length));
 }
 function openRegModal(){
   document.getElementById('regName').value=state.projectName||'';
@@ -5199,6 +5208,11 @@ bind('regOk',registerProject);
 document.getElementById('rcCsvBtn').onclick=function(){document.getElementById('fCsv').click();};
 document.getElementById('rcDxfBtn').onclick=function(){document.getElementById('fDxf').click();};
 document.getElementById('rcPhoBtn').onclick=function(){document.getElementById('fRegPhotos').click();};
+(function(){
+  var c1=document.getElementById('clrCsv');if(c1)c1.onclick=function(){state.points=[];selNum=null;clearSvg(gSel);drawGeo();updMeta();updRegStatus();toast('CSV 제거됨 — 다시 올려주세요');};
+  var c2=document.getElementById('clrPho');if(c2)c2.onclick=function(){pendingPhotos=null;updRegStatus();toast('선택 사진 제거됨');};
+  var c3=document.getElementById('clrDxf');if(c3)c3.onclick=function(){state.lines=(state.lines||[]).filter(function(l){return !l.base;});drawGeo();updMeta();updRegStatus();toast('수치지도(백판) 제거됨');};
+})();
 function regAddPhotos(list){var arr=[].slice.call(list);if(!arr.length)return;pendingPhotos=(pendingPhotos||[]).concat(arr);updRegStatus();toast('사진 '+pendingPhotos.length+'장 선택 (등록 시 업로드)');}
 document.getElementById('fRegPhotos').addEventListener('change',function(e){regAddPhotos(e.target.files);e.target.value='';});
 function setupDrop(zid,onfiles){var z=document.getElementById(zid);if(!z)return;
