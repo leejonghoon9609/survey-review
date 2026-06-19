@@ -65,6 +65,16 @@
   .app .ic{width:54px;height:54px;border-radius:13px;flex:none;display:flex;align-items:center;justify-content:center}
   .app.go .ic{background:var(--greenbg)}
   .app.soon .ic{background:var(--redbg)}
+  /* 카드별 색 구분 */
+  .app.c-survey::before{background:#46a33f}
+  .app.c-survey .ic{background:#ecf6ea}
+  .app.c-survey:hover{border-color:#cfe7c9;box-shadow:0 2px 4px rgba(20,60,90,.05),0 16px 34px rgba(40,140,70,.14)}
+  .app.c-field::before{background:#2456c7}
+  .app.c-field .ic{background:#e9f1ff}
+  .app.c-field:hover{border-color:#cdddf5;box-shadow:0 2px 4px rgba(20,60,90,.05),0 16px 34px rgba(36,86,199,.14)}
+  .app.c-tango::before{background:#c2185b}
+  .app.c-tango .ic{background:#fdeef6}
+  .app.c-tango:hover{border-color:#f3cfe0;box-shadow:0 2px 4px rgba(20,60,90,.05),0 16px 34px rgba(194,24,91,.14)}
   .app .body{flex:1;min-width:0}
   .app .nm{font-size:18px;font-weight:800;letter-spacing:-.02em}
   .app .en{font-size:10.5px;font-weight:600;color:var(--faint);letter-spacing:.08em;margin-top:1px}
@@ -128,7 +138,7 @@
       <span class="t" id="clk">--:--</span>
       <span class="d" id="cdt">&nbsp;</span>
     </div>
-    <span class="buildno" id="buildno">BUILD 156</span>
+    <span class="buildno" id="buildno">BUILD 157</span>
   </header>
 
   <main class="wrap">
@@ -138,7 +148,7 @@
       <div class="h-desc">현장 측량부터 후측량 검수까지, 대원항업 내부 시스템</div>
 
       <div class="stack">
-        <a class="app go" href="survey.html">
+        <a class="app go c-survey" href="survey.html">
           <span class="ic">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
               <circle cx="5" cy="6" r="2.3" fill="#46a33f"/>
@@ -162,7 +172,7 @@
           </div>
         </a>
 
-        <a class="app go" href="field.html">
+        <a class="app go c-field" href="field.html">
           <span class="ic">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
               <rect x="6.5" y="2.5" width="11" height="19" rx="2.4" stroke="#2456c7" stroke-width="1.8"/>
@@ -172,7 +182,7 @@
             </svg>
           </span>
           <div class="body">
-            <div class="nm">후측량 현장</div>
+            <div class="nm">측량(현장)</div>
             <div class="en">FIELD</div>
             <div class="ds">현장에서 노출관로·후측량 사진을 찍고 특이사항을 기록합니다. (PC·모바일)</div>
           </div>
@@ -184,12 +194,12 @@
           </div>
         </a>
 
-        <a class="app go" href="tango.html">
+        <a class="app go c-tango" href="tango.html">
           <span class="ic">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-              <rect x="4" y="10" width="16" height="10" rx="2.2" stroke="#c2185b" stroke-width="1.8"/>
-              <path d="M8 10V7a4 4 0 018 0v3" stroke="#c2185b" stroke-width="1.8" stroke-linecap="round"/>
-              <circle cx="12" cy="15" r="1.5" fill="#c2185b"/>
+              <path d="M9 18V6l10-2v12" stroke="#c2185b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <ellipse cx="6.6" cy="18" rx="2.7" ry="2.1" fill="#c2185b"/>
+              <ellipse cx="16.6" cy="16" rx="2.7" ry="2.1" fill="#c2185b"/>
             </svg>
           </span>
           <div class="body">
