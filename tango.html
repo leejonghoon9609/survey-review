@@ -233,7 +233,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 153</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 154</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -345,6 +345,8 @@
   </div>
 
 <script>
+/* 페이지 자동 감지: 결선(survey) / 후측량 현장(field) / 탱고(tango) */
+var IS_FIELD=(document.title==='후측량 현장'), IS_TANGO=(document.title==='탱고 DB');
 /* ====== 설정: 본인 Supabase 정보 입력 (비우면 로컬 모드) ====== */
 var SUPABASE_URL = "https://yidswostdxaejjeikxhg.supabase.co";
 var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZHN3b3N0ZHhhZWpqZWlreGhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NjM1MDAsImV4cCI6MjA5MzUzOTUwMH0.DIP9Yqr7v0Z5y4bdqU5UkoNn1OL0dh1WuYhaiOxtaq4";
@@ -5268,7 +5270,7 @@ bind('dirToggle',function(){showDirArrows=!showDirArrows;var b=document.getEleme
 /* ===== 작업/뷰어 모드 + 특이사항 ===== */
 var viewerMode=false,noteMode=false,readOnly=false;
 function isMobileDevice(){var t=(navigator.maxTouchPoints||0)>0||('ontouchstart' in window);var ua=/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent||'');var narrow=Math.min(screen.width||9999,screen.height||9999)<820;return t&&(ua||narrow);}
-function setViewer(v){viewerMode=!!v;document.body.classList.toggle('viewer',viewerMode);var b=document.getElementById('modeToggle');if(b)b.textContent=viewerMode?'📱 현장':'💻 결선';try{localStorage.setItem('viewMode',viewerMode?'1':'0');}catch(e){}
+function setViewer(v){viewerMode=!!v;document.body.classList.toggle('viewer',viewerMode);var b=document.getElementById('modeToggle');if(b)b.textContent=IS_FIELD?'💻 후측량 결선':(IS_TANGO?(viewerMode?'📱 현장':'💻 결선'):'📱 후측량 현장');try{if(IS_TANGO)localStorage.setItem('viewMode',viewerMode?'1':'0');}catch(e){}
   if(viewerMode&&noteMode){} 
   setTimeout(function(){fixAspect();applyVB();if(bgMapOn&&bgmap){try{bgmap.relayout();}catch(e){}}if(typeof drawGeo==='function'){drawGeo();drawMarks();drawManholes();highlightSel();}},80);}
 function toggleNoteMode(){noteMode=!noteMode;var b=document.getElementById('vNote2');if(b)b.classList.toggle('on',noteMode);cv.style.cursor=noteMode?'crosshair':'';toast(noteMode?'특이사항: 빈 곳을 탭해 추가 · 표시를 끌어 이동 · 더블탭=수정/삭제':'특이사항 종료');}
@@ -5292,7 +5294,7 @@ function addNote(clientX,clientY){
   state.markups.push({type:'cir',cx:w[0],cy:w[1],rx:1.4,ry:1.4,status:'bad',near:'특이사항',note:note.trim()});
   drawMarks();noteAutoSave();
 }
-bind('modeToggle',function(){setViewer(!viewerMode);});
+bind('modeToggle',function(){if(IS_FIELD){location.href='survey.html';}else if(IS_TANGO){setViewer(!viewerMode);}else{if(confirm('후측량 현장으로 이동할까요? 저장 안 한 변경은 사라집니다.'))location.href='field.html';}});
 bind('vPhoto',function(){openPhotoPanel();});
 bind('vMap',toggleBgMap);
 bind('vRv',toggleRvPick);
@@ -5343,7 +5345,7 @@ function openDoneList(){
 }
 var _dlb=document.getElementById('doneListBtn');if(_dlb)_dlb.onclick=openDoneList;
 var _rob=document.getElementById('roBadge');if(_rob)_rob.onclick=function(){if(readOnly&&state.projectId){setReadOnly(false);var ps=document.getElementById('proj');if(ps)ps.value=state.projectId;toast('수정 가능 모드로 전환 (사업 선택)');}};
-(function(){var saved=null;try{saved=localStorage.getItem('viewMode');}catch(e){}setViewer(saved!=null?(saved==='1'):isMobileDevice());})();
+(function(){if(IS_FIELD){setViewer(true);return;}if(IS_TANGO){var saved=null;try{saved=localStorage.getItem('viewMode');}catch(e){}setViewer(saved!=null?(saved==='1'):isMobileDevice());return;}setViewer(false);})();
 // 사진 방향 화살표 클릭 → 90° 회전 (사진 패널·로드뷰 패널 공통)
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.dirArrow');if(!b)return;e.stopPropagation();e.preventDefault();var p=pointByNum(b.getAttribute('data-num'));if(!p)return;cyclePhotoDir(p);b.textContent=ARROWS[getPhotoDir(p)];drawGeo();},true);
 bind('rvClose',closeRvPanel);
