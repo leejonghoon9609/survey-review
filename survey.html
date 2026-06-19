@@ -215,7 +215,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 141</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 142</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -377,7 +377,10 @@ function showModal(opt){
   var ft=document.createElement('div');ft.style.cssText='display:flex;justify-content:flex-end;gap:8px;padding:0 16px 15px;';
   (opt.buttons||[{label:'확인'}]).forEach(function(b){
     var btn=document.createElement('button');btn.textContent=b.label;
-    btn.style.cssText='padding:7px 17px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid '+(b.primary?'#d32f2f':'#d4d4cf')+';background:'+(b.primary?'#d32f2f':'#fff')+';color:'+(b.primary?'#fff':'#666')+';';
+    var bg=b.ok?'#16a34a':(b.primary?'#d32f2f':'#fff');
+    var col=(b.ok||b.primary)?'#fff':(b.danger?'#d32f2f':'#666');
+    var bord=b.ok?'#16a34a':(b.primary?'#d32f2f':(b.danger?'#e3a0a0':'#d4d4cf'));
+    btn.style.cssText='padding:7px 17px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid '+bord+';background:'+bg+';color:'+col+';';
     btn.onclick=function(){card.remove();if(b.onClick)b.onClick();};
     ft.appendChild(btn);
   });
@@ -4697,7 +4700,7 @@ function setStatusUI(){renderSub();}
 
 /* ====== 포인터 ====== */
 var dragging=false,startC=null,startVB=null,drawing=false,cur=null,sx=0,sy=0,midPanning=false;
-var activePtrs={},pinch=null,noteDrag=null;
+var activePtrs={},pinch=null,noteDrag=null,_lastNoteTap={i:-1,t:0};
 function hitNote(clientX,clientY){var w=toWorld(clientX,clientY),tol=pxToWorld()*18;for(var i=0;i<state.markups.length;i++){var m=state.markups[i];if(m.near==='특이사항'&&Math.hypot(m.cx-w[0],m.cy-w[1])<((m.rx||1.2)+tol))return i;}return -1;}
 cv.addEventListener('pointerdown',function(e){
   if(e.pointerType==='touch'){activePtrs[e.pointerId]={x:e.clientX,y:e.clientY};
@@ -4713,8 +4716,7 @@ cv.addEventListener('pointerdown',function(e){
   }
   if(viewerMode&&e.button===0){
     var _ni=hitNote(e.clientX,e.clientY);
-    if(_ni>=0){noteDrag={i:_ni,lastW:toWorld(e.clientX,e.clientY),moved:false,longHandled:false};
-      noteDrag.timer=setTimeout(function(){if(noteDrag&&!noteDrag.moved){noteDrag.longHandled=true;var m=state.markups[noteDrag.i];if(m&&confirm('이 특이사항을 삭제할까요?')){state.markups.splice(noteDrag.i,1);drawMarks();noteAutoSave();}}},2000);
+    if(_ni>=0){noteDrag={i:_ni,lastW:toWorld(e.clientX,e.clientY),moved:false,sx0:e.clientX,sy0:e.clientY};
       try{cv.setPointerCapture(e.pointerId);}catch(x){}e.preventDefault();return;}
   }
   if(rvPick&&e.button===0){e.preventDefault();pickRoadview(e.clientX,e.clientY);return;}
@@ -4744,7 +4746,9 @@ cv.addEventListener('pointerdown',function(e){
 });
 cv.addEventListener('pointermove',function(e){
   if(e.pointerType==='touch'&&activePtrs[e.pointerId]){activePtrs[e.pointerId].x=e.clientX;activePtrs[e.pointerId].y=e.clientY;}
-  if(noteDrag){var wd=toWorld(e.clientX,e.clientY),m=state.markups[noteDrag.i];if(m){var ddx=wd[0]-noteDrag.lastW[0],ddy=wd[1]-noteDrag.lastW[1];if(Math.abs(ddx)>1e-9||Math.abs(ddy)>1e-9){if(noteDrag.timer){clearTimeout(noteDrag.timer);noteDrag.timer=null;}m.cx+=ddx;m.cy+=ddy;noteDrag.lastW=wd;noteDrag.moved=true;drawMarks();}}return;}
+  if(noteDrag){var m=state.markups[noteDrag.i];
+    if(!noteDrag.moved){if(Math.hypot(e.clientX-noteDrag.sx0,e.clientY-noteDrag.sy0)<8)return;noteDrag.moved=true;noteDrag.lastW=toWorld(e.clientX,e.clientY);}
+    var wd=toWorld(e.clientX,e.clientY);if(m){m.cx+=wd[0]-noteDrag.lastW[0];m.cy+=wd[1]-noteDrag.lastW[1];noteDrag.lastW=wd;drawMarks();}return;}
   if(pinch){var pids=Object.keys(activePtrs);if(pids.length<2)return;
     var pa=activePtrs[pids[0]],pb=activePtrs[pids[1]];
     var pmx=(pa.x+pb.x)/2,pmy=(pa.y+pb.y)/2,d=Math.max(1,Math.hypot(pa.x-pb.x,pa.y-pb.y));
@@ -4767,10 +4771,11 @@ cv.addEventListener('pointermove',function(e){
 function endPtr(e){
   if(e&&e.pointerType==='touch'&&e.pointerId!=null&&activePtrs[e.pointerId]){delete activePtrs[e.pointerId];}
   if(pinch&&Object.keys(activePtrs).length<2){pinch=null;drawGeo();drawManholes();highlightSel();return;}
-  if(noteDrag){var nd=noteDrag;noteDrag=null;if(nd.timer)clearTimeout(nd.timer);
-    if(nd.longHandled){return;}
-    if(nd.moved){noteAutoSave();}
-    else{var m=state.markups[nd.i];if(m){var nv=prompt('특이사항 수정 (비우면 삭제)',m.note||'');if(nv!==null){if(nv.trim()===''){state.markups.splice(nd.i,1);}else{m.note=nv.trim();}drawMarks();noteAutoSave();}}}
+  if(noteDrag){var nd=noteDrag;noteDrag=null;
+    if(nd.moved){noteAutoSave();return;}
+    var now=Date.now();
+    if(_lastNoteTap.i===nd.i&&(now-_lastNoteTap.t)<450){_lastNoteTap={i:-1,t:0};openNoteEdit(nd.i);}
+    else{_lastNoteTap={i:nd.i,t:now};}
     return;}
   if(midPanning){midPanning=false;cv.style.cursor='';return;}
   if(dragging){dragging=false;cv.style.cursor='';}
@@ -5235,7 +5240,18 @@ function isMobileDevice(){var t=(navigator.maxTouchPoints||0)>0||('ontouchstart'
 function setViewer(v){viewerMode=!!v;document.body.classList.toggle('viewer',viewerMode);var b=document.getElementById('modeToggle');if(b)b.textContent=viewerMode?'📱 뷰어':'💻 작업';try{localStorage.setItem('viewMode',viewerMode?'1':'0');}catch(e){}
   if(viewerMode&&noteMode){} 
   setTimeout(function(){fixAspect();applyVB();if(bgMapOn&&bgmap){try{bgmap.relayout();}catch(e){}}if(typeof drawGeo==='function'){drawGeo();drawMarks();drawManholes();highlightSel();}},80);}
-function toggleNoteMode(){noteMode=!noteMode;var b=document.getElementById('vNote2');if(b)b.classList.toggle('on',noteMode);cv.style.cursor=noteMode?'crosshair':'';toast(noteMode?'특이사항: 도면을 탭해 위치 찍고 멘트 입력 (기존 표시 탭=수정/삭제)':'특이사항 종료');}
+function toggleNoteMode(){noteMode=!noteMode;var b=document.getElementById('vNote2');if(b)b.classList.toggle('on',noteMode);cv.style.cursor=noteMode?'crosshair':'';toast(noteMode?'특이사항: 빈 곳을 탭해 추가 · 표시를 끌어 이동 · 더블탭=수정/삭제':'특이사항 종료');}
+function openNoteEdit(i){
+  var m=state.markups[i];if(!m)return;
+  var card=showModal({title:'⚠ 특이사항',tone:'warn',
+    body:'<div style="margin-bottom:5px;font-size:13px;color:#666">멘트</div><textarea id="noteEditTa" style="width:100%;min-height:74px;font-size:15px;padding:9px;border:1px solid #d4d4cf;border-radius:8px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea>',
+    buttons:[
+      {label:'🗑 삭제',danger:true,onClick:function(){state.markups.splice(i,1);drawMarks();noteAutoSave();toast('특이사항 삭제됨');}},
+      {label:'취소'},
+      {label:'저장',ok:true,onClick:function(){var ta=document.getElementById('noteEditTa');var v=ta?ta.value.trim():'';if(v===''){state.markups.splice(i,1);}else{m.note=v;}drawMarks();noteAutoSave();}}
+    ]});
+  var ta=card.querySelector('#noteEditTa');if(ta){ta.value=m.note||'';setTimeout(function(){try{ta.focus();}catch(e){}},60);}
+}
 function noteAutoSave(){if(online&&state.projectName){saveProject();}else{toast('특이사항 추가됨 — 온라인 연결 시 저장됩니다');}}
 function addNote(clientX,clientY){
   var w=toWorld(clientX,clientY),tol=pxToWorld()*16,hit=-1;
