@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>후측량 현장</title>
+<title>측량(현장)</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/proj4@2.20.9/dist/proj4.js"></script>
 <style>
@@ -174,7 +174,6 @@
   .php-split{flex:1;display:flex;flex-direction:column;gap:10px;min-height:0}
   .php-split>.php-main{flex:1;min-height:0}
   .php-after .ph.php-none{color:#bbb;font-size:13px;background:#f6f6f3;flex:1}
-  @media(min-width:761px){.viewer .php-split{flex-direction:row}}
   /* 폰 현장모드: 노출/후측량 각각 풀사이즈로 세로 스택 + 패널 스크롤 */
   @media(max-width:760px){.viewer .php-split{flex:none}.viewer .php-split>.php-main{flex:none;height:42vh;min-height:300px}}
   @media(max-width:760px){.glbl{display:none}.coordbox{font-size:11px;padding:5px 8px}.photo-panel{width:100%;min-width:0}.php-main{min-height:140px}.php-row{min-height:120px}}
@@ -208,6 +207,13 @@
   .viewer #vNote2.on{background:#fff;color:#d32f2f}
   /* 선택측점 사진만 크게 */
   .viewer .php-body .php-main{flex:1}
+  /* PC(넓은 화면) 현장모드: 사진/로드뷰 패널을 아래 대신 오른쪽에 (결선처럼) */
+  @media(min-width:761px){
+    .viewer .stage{flex-direction:row}
+    .viewer .photo-panel{width:38%!important;min-width:420px!important;max-width:46%!important;border-left:1px solid var(--line)!important;border-top:none!important}
+    .viewer .photo-panel.open{height:auto!important}
+    .viewer #rvPanel.open{width:42%!important;min-width:440px!important;max-width:50%!important;height:auto!important;border-left:1px solid var(--line)!important;border-top:none!important}
+  }
   /* ===== 보기 전용(결선완료 로딩) ===== */
   .readonly #rail{opacity:.45;pointer-events:none;filter:grayscale(.35)}
 </style>
@@ -216,12 +222,12 @@
   <header>
     <button id="homeBtn" class="photoBtn" style="background:#eef2f7;border:1px solid #c6d2e0;color:#33506e;font-weight:700;border-radius:8px;padding:5px 11px;margin-right:2px">🏠 홈</button>
     <button id="modeToggle" class="photoBtn">💻 결선</button>
-    <h1>후측량 현장</h1>
+    <h1>측량(현장)</h1>
     <button id="sysSwitch" class="wk" onclick="if(confirm('탱고 DB로 이동할까요? 저장 안 한 변경은 사라집니다.'))location.href='tango.html'" style="background:#fdeef6;border:1px solid #e06ba8;color:#c2185b;font-weight:700;border-radius:8px;padding:5px 11px;margin-left:2px">🎵 탱고 DB 이동</button>
     <span id="roBadge" class="wk" style="display:none;cursor:pointer;color:#d98200;border:1px solid #e0b15a;background:#fff8ec;border-radius:7px;padding:2px 9px;font-size:12px;font-weight:700" title="클릭하면 수정 가능 모드로 전환">🔒 보기 전용 · 클릭=수정</span>
     <span id="viewerBar" class="vw">
       <select id="vproj"><option value="">결선완료사업목록</option></select>
-      <button id="vPhoto" class="photoBtn">📷 노출관로 측점사진</button>
+      <button id="vPhoto" class="photoBtn">📷 후측량 사진</button>
       <button id="vMap" class="photoBtn">🗺 지도</button>
       <button id="vRv" class="photoBtn">로드뷰</button>
     </span>
@@ -235,7 +241,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 159</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 160</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -347,8 +353,8 @@
   </div>
 
 <script>
-/* 페이지 자동 감지: 결선(survey) / 후측량 현장(field) / 탱고(tango) */
-var IS_FIELD=(document.title==='후측량 현장'), IS_TANGO=(document.title==='탱고 DB');
+/* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
+var IS_FIELD=(document.title==='측량(현장)'), IS_TANGO=(document.title==='탱고 DB');
 /* ====== 설정: 본인 Supabase 정보 입력 (비우면 로컬 모드) ====== */
 var SUPABASE_URL = "https://yidswostdxaejjeikxhg.supabase.co";
 var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZHN3b3N0ZHhhZWpqZWlreGhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NjM1MDAsImV4cCI6MjA5MzUzOTUwMH0.DIP9Yqr7v0Z5y4bdqU5UkoNn1OL0dh1WuYhaiOxtaq4";
@@ -5294,7 +5300,7 @@ bind('dirToggle',function(){showDirArrows=!showDirArrows;var b=document.getEleme
 /* ===== 작업/뷰어 모드 + 특이사항 ===== */
 var viewerMode=false,noteMode=false,readOnly=false;
 function isMobileDevice(){var t=(navigator.maxTouchPoints||0)>0||('ontouchstart' in window);var ua=/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent||'');var narrow=Math.min(screen.width||9999,screen.height||9999)<820;return t&&(ua||narrow);}
-function setViewer(v){viewerMode=!!v;document.body.classList.toggle('viewer',viewerMode);var b=document.getElementById('modeToggle');if(b)b.textContent=IS_FIELD?'💻 후측량 결선':(IS_TANGO?(viewerMode?'📱 현장':'💻 결선'):'📱 후측량 현장');try{if(IS_TANGO)localStorage.setItem('viewMode',viewerMode?'1':'0');}catch(e){}
+function setViewer(v){viewerMode=!!v;document.body.classList.toggle('viewer',viewerMode);var b=document.getElementById('modeToggle');if(b)b.textContent=IS_FIELD?'💻 후측량 결선':(IS_TANGO?(viewerMode?'📱 현장':'💻 결선'):'📱 측량(현장)');try{if(IS_TANGO)localStorage.setItem('viewMode',viewerMode?'1':'0');}catch(e){}
   if(viewerMode&&noteMode){} 
   setTimeout(function(){fixAspect();applyVB();if(bgMapOn&&bgmap){try{bgmap.relayout();}catch(e){}}if(typeof drawGeo==='function'){drawGeo();drawMarks();drawManholes();highlightSel();}},80);}
 function toggleNoteMode(){noteMode=!noteMode;var b=document.getElementById('vNote2');if(b)b.classList.toggle('on',noteMode);cv.style.cursor=noteMode?'crosshair':'';toast(noteMode?'특이사항: 빈 곳을 탭해 추가 · 표시를 끌어 이동 · 더블탭=수정/삭제':'특이사항 종료');}
@@ -5318,7 +5324,7 @@ function addNote(clientX,clientY){
   state.markups.push({type:'cir',cx:w[0],cy:w[1],rx:1.4,ry:1.4,status:'bad',near:'특이사항',note:note.trim()});
   drawMarks();noteAutoSave();
 }
-bind('modeToggle',function(){if(IS_FIELD){location.href='survey.html';}else if(IS_TANGO){setViewer(!viewerMode);}else{if(confirm('후측량 현장으로 이동할까요? 저장 안 한 변경은 사라집니다.'))location.href='field.html';}});
+bind('modeToggle',function(){if(IS_FIELD){location.href='survey.html';}else if(IS_TANGO){setViewer(!viewerMode);}else{if(confirm('측량(현장)으로 이동할까요? 저장 안 한 변경은 사라집니다.'))location.href='field.html';}});
 (function(){var hb=document.getElementById('homeBtn');if(hb)hb.onclick=function(){if(viewerMode||confirm('홈(랜딩)으로 이동할까요? 저장 안 한 변경은 사라집니다.'))location.href='index.html';};})();
 bind('vPhoto',function(){openPhotoPanel();});
 bind('vMap',toggleBgMap);
