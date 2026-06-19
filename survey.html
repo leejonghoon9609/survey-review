@@ -200,7 +200,7 @@
 </head>
 <body>
   <header>
-    <button id="modeToggle" class="photoBtn">📱 뷰어</button>
+    <button id="modeToggle" class="photoBtn">💻 결선</button>
     <h1>후측량 결선 DB</h1>
     <span id="roBadge" class="wk" style="display:none;cursor:pointer;color:#d98200;border:1px solid #e0b15a;background:#fff8ec;border-radius:7px;padding:2px 9px;font-size:12px;font-weight:700" title="클릭하면 수정 가능 모드로 전환">🔒 보기 전용 · 클릭=수정</span>
     <span id="viewerBar" class="vw">
@@ -219,7 +219,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 145</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 146</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5243,7 +5243,7 @@ bind('dirToggle',function(){showDirArrows=!showDirArrows;var b=document.getEleme
 /* ===== 작업/뷰어 모드 + 특이사항 ===== */
 var viewerMode=false,noteMode=false,readOnly=false;
 function isMobileDevice(){var t=(navigator.maxTouchPoints||0)>0||('ontouchstart' in window);var ua=/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent||'');var narrow=Math.min(screen.width||9999,screen.height||9999)<820;return t&&(ua||narrow);}
-function setViewer(v){viewerMode=!!v;document.body.classList.toggle('viewer',viewerMode);var b=document.getElementById('modeToggle');if(b)b.textContent=viewerMode?'📱 뷰어':'💻 작업';try{localStorage.setItem('viewMode',viewerMode?'1':'0');}catch(e){}
+function setViewer(v){viewerMode=!!v;document.body.classList.toggle('viewer',viewerMode);var b=document.getElementById('modeToggle');if(b)b.textContent=viewerMode?'📱 현장':'💻 결선';try{localStorage.setItem('viewMode',viewerMode?'1':'0');}catch(e){}
   if(viewerMode&&noteMode){} 
   setTimeout(function(){fixAspect();applyVB();if(bgMapOn&&bgmap){try{bgmap.relayout();}catch(e){}}if(typeof drawGeo==='function'){drawGeo();drawMarks();drawManholes();highlightSel();}},80);}
 function toggleNoteMode(){noteMode=!noteMode;var b=document.getElementById('vNote2');if(b)b.classList.toggle('on',noteMode);cv.style.cursor=noteMode?'crosshair':'';toast(noteMode?'특이사항: 빈 곳을 탭해 추가 · 표시를 끌어 이동 · 더블탭=수정/삭제':'특이사항 종료');}
