@@ -241,7 +241,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 162</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 163</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -254,6 +254,7 @@
       <svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg>
       <div id="lblOverlay" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:5"></div>
       <div id="coordBox" class="coordbox">X <b>–</b>　Y <b>–</b></div>
+      <button id="tangoMakeBtn" style="position:absolute;top:10px;left:10px;z-index:6;display:none;background:#f3eafc;border:1px solid #8e44ad;color:#7b2cbf;font-weight:800;border-radius:9px;padding:9px 14px;font-size:13.5px;box-shadow:0 2px 9px rgba(0,0,0,.14);cursor:pointer">🎵 탱고작업용 성과제작</button>
       <div id="toast" class="toast"></div>
     </div>
     </div>
@@ -5380,6 +5381,8 @@ var _rob=document.getElementById('roBadge');if(_rob)_rob.onclick=function(){if(r
 (function(){if(IS_FIELD){setViewer(true);return;}if(IS_TANGO){var saved=null;try{saved=localStorage.getItem('viewMode');}catch(e){}setViewer(saved!=null?(saved==='1'):isMobileDevice());return;}setViewer(false);})();
 /* 페이지 분리 — 이동은 랜딩에서. 결선/현장은 모드이동버튼 제거(탱고 in-page 토글만 유지), 시스템이동버튼은 전 페이지 제거 */
 (function(){var mt=document.getElementById('modeToggle');if(mt&&!IS_TANGO)mt.remove();var ss=document.getElementById('sysSwitch');if(ss)ss.remove();})();
+/* 측량(현장) 전용: 탱고작업용 성과제작 버튼 (기능은 다음 단계에서 연결) */
+(function(){var tb=document.getElementById('tangoMakeBtn');if(!tb)return;if(IS_FIELD){tb.style.display='block';tb.onclick=function(){toast('탱고작업용 성과제작 — 다음 단계에서 기능을 연결합니다');};}else{tb.remove();}})();
 // 사진 방향 화살표 클릭 → 90° 회전 (사진 패널·로드뷰 패널 공통)
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.dirArrow');if(!b)return;e.stopPropagation();e.preventDefault();var p=pointByNum(b.getAttribute('data-num'));if(!p)return;cyclePhotoDir(p);b.textContent=ARROWS[getPhotoDir(p)];drawGeo();},true);
 bind('rvClose',closeRvPanel);
