@@ -208,7 +208,7 @@
   <header>
     <button id="modeToggle" class="photoBtn">💻 결선</button>
     <h1>후측량 결선 DB</h1>
-    <button id="sysSwitch" class="wk" onclick="if(confirm('탱고 DB로 이동할까요? 저장 안 한 변경은 사라집니다.'))location.href='tango.html'" style="background:#fdeef6;border:1px solid #e06ba8;color:#c2185b;font-weight:700;border-radius:8px;padding:5px 11px;margin-left:2px">🎵 탱고 DB</button>
+    <button id="sysSwitch" class="wk" onclick="if(confirm('탱고 DB로 이동할까요? 저장 안 한 변경은 사라집니다.'))location.href='tango.html'" style="background:#fdeef6;border:1px solid #e06ba8;color:#c2185b;font-weight:700;border-radius:8px;padding:5px 11px;margin-left:2px">🎵 탱고 DB 이동</button>
     <span id="roBadge" class="wk" style="display:none;cursor:pointer;color:#d98200;border:1px solid #e0b15a;background:#fff8ec;border-radius:7px;padding:2px 9px;font-size:12px;font-weight:700" title="클릭하면 수정 가능 모드로 전환">🔒 보기 전용 · 클릭=수정</span>
     <span id="viewerBar" class="vw">
       <select id="vproj"><option value="">결선완료사업…</option></select>
@@ -226,7 +226,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 149</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 150</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -4954,16 +4954,26 @@ var TONE={data:{bg:'#eceef1',fg:'#6e757f'},draw:{bg:'#e7f3ea',fg:'#2a9e50'},del:
 function toneStyle(tone,active){var c=TONE[tone]||{bg:'#f3f3f0',fg:'#333'};return active?('background:'+c.fg+';color:#fff;border:1px solid '+c.fg+';border-left:4px solid '+c.fg+';border-radius:0 8px 8px 0;font-weight:700;'):('background:#fff;color:'+c.fg+';border:1px solid #e3e3df;border-left:4px solid '+c.fg+';border-radius:0 8px 8px 0;font-weight:600;');}
 function railStyle(col,active){col=col||{bg:'#f3f3f0',fg:'#333'};return active?('background:'+col.bg+';color:'+col.fg+';border:1px solid '+col.fg+';border-left:4px solid '+col.fg+';border-radius:0 8px 8px 0;font-weight:700;'):('background:#fff;color:'+col.fg+';border:1px solid #e3e3df;border-left:4px solid '+col.fg+';border-radius:0 8px 8px 0;font-weight:600;');}
 var activeCat='pan';
+var toolsOpen=false;try{toolsOpen=(localStorage.getItem('toolsOpen')==='1');}catch(e){}
 function curCat(){for(var i=0;i<TB.length;i++)if(TB[i].k===activeCat)return TB[i];return TB[0];}
 function renderRail(){
   var r=document.getElementById('rail'),html='';
-  TB.forEach(function(c){if(c.k==='pan')html+='<div class="sep"></div>';
+  TB.forEach(function(c){
     var kb=keyForAction('cat:'+c.k),bdg=kb?'<span class="hk-badge">'+kb+'</span>':'';
+    if(c.k==='data'){
+      html+='<button data-k="'+c.k+'" style="'+railStyle(c.c,c.k===activeCat)+'">'+c.icon+' '+c.label+bdg+'</button>';
+      html+='<div class="sep"></div>';
+      html+='<button id="toolToggle" style="background:'+(toolsOpen?'#fdf1dd':'#fff')+';color:#d98200;border:1px solid #d98200;border-radius:8px;font-weight:700;justify-content:flex-start">🛠 편집도구<span style="margin-left:auto;font-size:12px">'+(toolsOpen?'▲':'▼')+'</span></button>';
+      html+='<div id="toolGroup" style="display:'+(toolsOpen?'flex':'none')+';flex-direction:column;gap:7px">';
+      return;
+    }
     html+='<button data-k="'+c.k+'" style="'+railStyle(c.c,c.k===activeCat)+'">'+c.icon+' '+c.label+bdg+'</button>';});
+  html+='</div>';
   html+='<div class="sep"></div><button id="dxfExport" style="background:#fff;color:#c0392b;border:1px solid #c0392b;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#c0392b">📐</span> DXF로 내보내기</button>';
   html+='<button id="doneReg" style="background:#16a34a;color:#fff;border:1px solid #16a34a;border-radius:8px;font-weight:700;justify-content:flex-start">✅ 결선완료사업 등록</button>';
   html+='<button id="hkOpen" style="margin-top:auto;background:#fff;color:#555;border:1px solid #e3e3df;border-radius:8px;font-weight:600;justify-content:flex-start"><span style="color:#1f6fd6;font-size:16px">⌨</span> 단축키 설정</button>';
   r.innerHTML=html;
+  var tt=document.getElementById('toolToggle');if(tt)tt.onclick=function(){toolsOpen=!toolsOpen;try{localStorage.setItem('toolsOpen',toolsOpen?'1':'0');}catch(e){}renderRail();renderSub();};
   r.querySelectorAll('button[data-k]').forEach(function(b){b.onclick=function(){
     var bk=b.getAttribute('data-k');
     if(bk==='data'){openRegModal();return;}
