@@ -207,12 +207,12 @@
   .viewer #vNote2.on{background:#fff;color:#d32f2f}
   /* 선택측점 사진만 크게 */
   .viewer .php-body .php-main{flex:1}
-  /* PC(넓은 화면) 현장모드: 사진/로드뷰 패널을 아래 대신 오른쪽에 (결선처럼) */
+  /* PC(넓은 화면) 측량(현장) 전용: 사진/로드뷰 패널을 아래 대신 오른쪽에 (결선 DB·탱고는 영향 없음) */
   @media(min-width:761px){
-    .viewer .stage{flex-direction:row}
-    .viewer .photo-panel{width:38%!important;min-width:420px!important;max-width:46%!important;border-left:1px solid var(--line)!important;border-top:none!important}
-    .viewer .photo-panel.open{height:auto!important}
-    .viewer #rvPanel.open{width:42%!important;min-width:440px!important;max-width:50%!important;height:auto!important;border-left:1px solid var(--line)!important;border-top:none!important}
+    .fpage .stage{flex-direction:row}
+    .fpage .photo-panel{width:38%!important;min-width:420px!important;max-width:46%!important;border-left:1px solid var(--line)!important;border-top:none!important}
+    .fpage .photo-panel.open{height:auto!important}
+    .fpage #rvPanel.open{width:42%!important;min-width:440px!important;max-width:50%!important;height:auto!important;border-left:1px solid var(--line)!important;border-top:none!important}
   }
   /* ===== 보기 전용(결선완료 로딩) ===== */
   .readonly #rail{opacity:.45;pointer-events:none;filter:grayscale(.35)}
@@ -241,7 +241,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 160</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 161</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -355,6 +355,7 @@
 <script>
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
 var IS_FIELD=(document.title==='측량(현장)'), IS_TANGO=(document.title==='탱고 DB');
+if(IS_FIELD)document.body.classList.add('fpage');
 /* ====== 설정: 본인 Supabase 정보 입력 (비우면 로컬 모드) ====== */
 var SUPABASE_URL = "https://yidswostdxaejjeikxhg.supabase.co";
 var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZHN3b3N0ZHhhZWpqZWlreGhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NjM1MDAsImV4cCI6MjA5MzUzOTUwMH0.DIP9Yqr7v0Z5y4bdqU5UkoNn1OL0dh1WuYhaiOxtaq4";
