@@ -175,6 +175,8 @@
   .php-split>.php-main{flex:1;min-height:0}
   .php-after .ph.php-none{color:#bbb;font-size:13px;background:#f6f6f3;flex:1}
   @media(min-width:761px){.viewer .php-split{flex-direction:row}}
+  /* 폰 현장모드: 노출/후측량 각각 풀사이즈로 세로 스택 + 패널 스크롤 */
+  @media(max-width:760px){.viewer .php-split{flex:none}.viewer .php-split>.php-main{flex:none;height:42vh;min-height:300px}}
   @media(max-width:760px){.glbl{display:none}.coordbox{font-size:11px;padding:5px 8px}.photo-panel{width:100%;min-width:0}.php-main{min-height:140px}.php-row{min-height:120px}}
   /* ===== 뷰어모드 ===== */
   .vw{display:none}
@@ -231,7 +233,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 152</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 153</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5499,12 +5501,18 @@ function paneImg(num,label,big){var url=num!=null?photoMap[num]:null;var p=num!=
   else{inner='<div class="ph php-none">'+(num!=null?'사진 없음':'-')+'</div>';}
   var arrow=p?('<button class="dirArrow" data-num="'+num+'" title="사진 방향 — 클릭하면 회전">'+ARROWS[getPhotoDir(p)]+'</button>'):'';
   return '<div class="'+(big?'php-main':'php-sub')+'"><div class="cap">'+arrow+'<span>'+cap+'</span></div>'+inner+'</div>';}
-/* 후측량 사진 슬롯 — afterMap 표시 + 현장모드 촬영 버튼 */
-function paneAfter(num,label){var url=num!=null?afterMap[num]:null;var p=num!=null?pointByNum(num):null;var sub=p?(p.no+' '+((p.code||'').trim())):(num!=null?('번호 '+num):'');
+/* 후측량 사진 슬롯 — afterMap 표시 + 폰:촬영 / PC:새로고침 (캡션 번호 뒤 _A) */
+function paneAfter(num,label){var url=num!=null?afterMap[num]:null;var p=num!=null?pointByNum(num):null;
+  var sub=p?((p.no+'_A '+((p.code||'').trim())).trim()):(num!=null?('번호 '+num+'_A'):'');
   var cap=sub?(label+' / '+sub):label;
-  var btn=(viewerMode&&num!=null)?'<button class="afterCap" data-num="'+num+'" style="flex:none;margin-left:auto;border:1px solid #16a34a;background:#eafaf0;color:#16a34a;border-radius:7px;padding:4px 10px;font-size:13px;font-weight:700;cursor:pointer">📷 '+(url?'재촬영':'촬영')+'</button>':'';
-  var inner=url?('<img class="ph" src="'+url+'" alt="">'):'<div class="ph php-none">'+(viewerMode?'📷 촬영 버튼으로 후측량 사진을 찍어주세요':'촬영 예정')+'</div>';
-  return '<div class="php-main php-after"><div class="cap"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+cap+'</span>'+btn+'</div>'+inner+'</div>';}
+  var isMob=(typeof isMobileDevice==='function')?isMobileDevice():false;
+  var btn='';
+  if(num!=null){
+    if(isMob&&viewerMode)btn='<button class="afterCap" data-num="'+num+'" style="flex:none;margin-left:auto;border:1px solid #16a34a;background:#eafaf0;color:#16a34a;border-radius:7px;padding:4px 10px;font-size:13px;font-weight:700;cursor:pointer">📷 '+(url?'재촬영':'촬영')+'</button>';
+    else if(!isMob)btn='<button class="afterRefresh" data-num="'+num+'" style="flex:none;margin-left:auto;border:1px solid #1f6fd6;background:#eef4fc;color:#1f6fd6;border-radius:7px;padding:4px 10px;font-size:13px;font-weight:700;cursor:pointer">🔄 새로고침</button>';
+  }
+  var ph=url?('<img class="ph" src="'+url+'" alt="">'):('<div class="ph php-none">'+((isMob&&viewerMode)?'📷 촬영 버튼으로 후측량 사진을 찍어주세요':(!isMob?'🔄 새로고침으로 최신 후측량 사진을 불러오세요':'촬영 예정'))+'</div>');
+  return '<div class="php-main php-after"><div class="cap"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+cap+'</span>'+btn+'</div>'+ph+'</div>';}
 function refreshPhotoPanel(){
   var sel=document.getElementById('photoSel'),nums=sortedNums();
   sel.innerHTML='<option value="">측점 선택…</option>'+nums.map(function(n){var p=pointByNum(n);return '<option value="'+n+'">'+(p?p.no:n)+'</option>';}).join('');
@@ -5514,6 +5522,7 @@ function refreshPhotoPanel(){
   body.innerHTML='<div class="php-split">'+paneImg(selNum,'노출관로 사진',true)+paneAfter(selNum,'후측량 사진')+'</div>';
   setupZoom(document.getElementById('zoomImg'));
   var ac=document.querySelector('.afterCap');if(ac)ac.onclick=function(){afterTargetNum=this.getAttribute('data-num');document.getElementById('fAfter').click();};
+  var ar=document.querySelector('.afterRefresh');if(ar)ar.onclick=function(){toast('후측량 사진 새로고침…');loadPhotos();};
 }
 function selectPoint(num){selNum=String(num);drawGeo();highlightSel();var sel=document.getElementById('photoSel');if(sel)sel.value=String(num);if(photoPanelOpen)refreshPhotoPanel();}
 function openPhotoPanel(o){photoPanelOpen=(o==null)?!photoPanelOpen:!!o;document.getElementById('photoPanel').classList.toggle('open',photoPanelOpen);if(photoPanelOpen&&typeof closeRvPanel==='function')closeRvPanel();if(photoPanelOpen)refreshPhotoPanel();setTimeout(function(){fitView();if(typeof placeCoord==='function')placeCoord();},30);}
