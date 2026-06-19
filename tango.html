@@ -170,6 +170,11 @@
   .php-sub{flex:1;min-width:0}
   .php-sub .ph{flex:1;width:100%;height:auto;min-height:0;object-fit:contain;background:#f3f3f0;display:block}
   .ph.php-none{display:flex;align-items:center;justify-content:center;color:#bbb;font-size:12px}
+  /* 노출/후측량 2등분 — 기본 세로(사이드패널·폰), 현장모드+넓은화면만 가로 */
+  .php-split{flex:1;display:flex;flex-direction:column;gap:10px;min-height:0}
+  .php-split>.php-main{flex:1;min-height:0}
+  .php-after .ph.php-none{color:#bbb;font-size:13px;background:#f6f6f3;flex:1}
+  @media(min-width:761px){.viewer .php-split{flex-direction:row}}
   @media(max-width:760px){.glbl{display:none}.coordbox{font-size:11px;padding:5px 8px}.photo-panel{width:100%;min-width:0}.php-main{min-height:140px}.php-row{min-height:120px}}
   /* ===== 뷰어모드 ===== */
   .vw{display:none}
@@ -226,7 +231,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 150</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 151</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5493,16 +5498,17 @@ function paneImg(num,label,big){var url=num!=null?photoMap[num]:null;var p=num!=
   else{inner='<div class="ph php-none">'+(num!=null?'사진 없음':'-')+'</div>';}
   var arrow=p?('<button class="dirArrow" data-num="'+num+'" title="사진 방향 — 클릭하면 회전">'+ARROWS[getPhotoDir(p)]+'</button>'):'';
   return '<div class="'+(big?'php-main':'php-sub')+'"><div class="cap">'+arrow+'<span>'+cap+'</span></div>'+inner+'</div>';}
+/* 후측량 사진 슬롯 (촬영 기능 연결 전 — 빈 자리만) */
+function paneAfter(num,label){var p=num!=null?pointByNum(num):null;var sub=p?(p.no+' '+((p.code||'').trim())):(num!=null?('번호 '+num):'');
+  var cap=sub?(label+' / '+sub):label;
+  return '<div class="php-main php-after"><div class="cap"><span>'+cap+'</span></div><div class="ph php-none">촬영 예정</div></div>';}
 function refreshPhotoPanel(){
   var sel=document.getElementById('photoSel'),nums=sortedNums();
   sel.innerHTML='<option value="">측점 선택…</option>'+nums.map(function(n){var p=pointByNum(n);return '<option value="'+n+'">'+(p?p.no:n)+'</option>';}).join('');
   if(selNum!=null)sel.value=String(selNum);
   var body=document.getElementById('photoBody');
   if(selNum==null){body.innerHTML='<div style="color:#999;font-size:12px;padding:14px;text-align:center;line-height:1.7">측점을 선택하세요.<br>(위 드롭다운 또는 도면에서 점 클릭)<br>또는 <b>사진 업로드</b>로 일괄 등록</div>';return;}
-  var nbs=neighborsOf(selNum),up=nbs.up,down=nbs.down;
-  var n1=up?ptNum(up):null,n2=down?ptNum(down):null;
-  if(viewerMode){body.innerHTML=paneImg(selNum,'선택측점 사진',true);}
-  else{body.innerHTML=paneImg(selNum,'선택측점 사진',true)+'<div class="php-row">'+paneImg(n1,'위 측점',false)+paneImg(n2,'아래 측점',false)+'</div>';}
+  body.innerHTML='<div class="php-split">'+paneImg(selNum,'노출관로 사진',true)+paneAfter(selNum,'후측량 사진')+'</div>';
   setupZoom(document.getElementById('zoomImg'));
 }
 function selectPoint(num){selNum=String(num);drawGeo();highlightSel();var sel=document.getElementById('photoSel');if(sel)sel.value=String(num);if(photoPanelOpen)refreshPhotoPanel();}
