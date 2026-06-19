@@ -198,7 +198,7 @@
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
     <span id="globalbtns" class="hgbtns wk" style="margin-left:auto"></span>
     <button id="modeToggle" class="photoBtn" style="margin-left:6px">📱 뷰어</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 135</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 136</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -4652,7 +4652,19 @@ function setStatusUI(){renderSub();}
 
 /* ====== 포인터 ====== */
 var dragging=false,startC=null,startVB=null,drawing=false,cur=null,sx=0,sy=0,midPanning=false;
+var activePtrs={},pinch=null;
 cv.addEventListener('pointerdown',function(e){
+  if(e.pointerType==='touch'){activePtrs[e.pointerId]={x:e.clientX,y:e.clientY};
+    var pids=Object.keys(activePtrs);
+    if(pids.length>=2){ // 두 손가락 = 핀치 확대/축소(+이동)
+      dragging=false;midPanning=false;drawing=false;cv.style.cursor='';
+      var pa=activePtrs[pids[0]],pb=activePtrs[pids[1]];
+      var pmx=(pa.x+pb.x)/2,pmy=(pa.y+pb.y)/2;
+      pinch={d0:Math.max(1,Math.hypot(pa.x-pb.x,pa.y-pb.y)),w0:toWorld(pmx,pmy),vbw0:vb.w,vbh0:vb.h};
+      try{cv.setPointerCapture(e.pointerId);}catch(x){}
+      return;
+    }
+  }
   if(rvPick&&e.button===0){e.preventDefault();pickRoadview(e.clientX,e.clientY);return;}
   if(noteMode&&e.button===0){e.preventDefault();addNote(e.clientX,e.clientY);return;}
   if(e.button===1){e.preventDefault();midPanning=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};cv.style.cursor='grabbing';try{cv.setPointerCapture(e.pointerId);}catch(x){}return;}
@@ -4679,6 +4691,17 @@ cv.addEventListener('pointerdown',function(e){
   if(mode!=='pan')try{cv.setPointerCapture(e.pointerId);}catch(x){}
 });
 cv.addEventListener('pointermove',function(e){
+  if(e.pointerType==='touch'&&activePtrs[e.pointerId]){activePtrs[e.pointerId].x=e.clientX;activePtrs[e.pointerId].y=e.clientY;}
+  if(pinch){var pids=Object.keys(activePtrs);if(pids.length<2)return;
+    var pa=activePtrs[pids[0]],pb=activePtrs[pids[1]];
+    var pmx=(pa.x+pb.x)/2,pmy=(pa.y+pb.y)/2,d=Math.max(1,Math.hypot(pa.x-pb.x,pa.y-pb.y));
+    var f=pinch.d0/d,r=cv.getBoundingClientRect();
+    var nw=pinch.vbw0*f,nh=pinch.vbh0*f;
+    if(nw<0.2){var k=0.2/nw;nw*=k;nh*=k;} if(nw>200000){var k2=200000/nw;nw*=k2;nh*=k2;}
+    vb.w=nw;vb.h=nh;
+    vb.x=pinch.w0[0]-(pmx-r.left)/r.width*nw;
+    vb.y=pinch.w0[1]-(pmy-r.top)/r.height*nh;
+    applyVB();return;}
   if(midPanning){var rr=cv.getBoundingClientRect();var ddx=(e.clientX-startC[0])/rr.width*startVB.w,ddy=(e.clientY-startC[1])/rr.height*startVB.h;vb.x=startVB.x-ddx;vb.y=startVB.y-ddy;applyVB();return;}
   if(dragging){var r=cv.getBoundingClientRect();var dx=(e.clientX-startC[0])/r.width*startVB.w,dy=(e.clientY-startC[1])/r.height*startVB.h;vb.x=startVB.x-dx;vb.y=startVB.y-dy;applyVB();}
   else if(mode==='line'&&lineDraft&&lineDraft.length){var w=toWorld(e.clientX,e.clientY);var last=S(lineDraft[lineDraft.length-1][0],lineDraft[lineDraft.length-1][1]);
@@ -4688,7 +4711,9 @@ cv.addEventListener('pointermove',function(e){
     if(mode==='box'){cur.setAttribute('x',Math.min(sx,x));cur.setAttribute('y',Math.min(sy,y));cur.setAttribute('width',Math.abs(x-sx));cur.setAttribute('height',Math.abs(y-sy));}
     else{cur.setAttribute('cx',(sx+x)/2);cur.setAttribute('cy',(sy+y)/2);cur.setAttribute('rx',Math.abs(x-sx)/2);cur.setAttribute('ry',Math.abs(y-sy)/2);}}
 });
-function endPtr(){
+function endPtr(e){
+  if(e&&e.pointerType==='touch'&&e.pointerId!=null&&activePtrs[e.pointerId]){delete activePtrs[e.pointerId];}
+  if(pinch&&Object.keys(activePtrs).length<2){pinch=null;drawGeo();drawManholes();highlightSel();return;}
   if(midPanning){midPanning=false;cv.style.cursor='';return;}
   if(dragging){dragging=false;cv.style.cursor='';}
   if(drawing&&cur){drawing=false;
