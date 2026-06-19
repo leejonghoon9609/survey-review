@@ -164,20 +164,41 @@
   .php-sub .ph{flex:1;width:100%;height:auto;min-height:0;object-fit:contain;background:#f3f3f0;display:block}
   .ph.php-none{display:flex;align-items:center;justify-content:center;color:#bbb;font-size:12px}
   @media(max-width:760px){.glbl{display:none}.coordbox{font-size:11px;padding:5px 8px}.photo-panel{width:100%;min-width:0}.php-main{min-height:140px}.php-row{min-height:120px}}
+  /* ===== 뷰어모드 ===== */
+  .vw{display:none}
+  .viewer .wk{display:none!important}
+  .viewer .vw{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .viewer #modeToggle{margin-left:auto}
+  .viewer #vNote.on{background:#fdecef;border-color:#d32f2f;color:#d32f2f}
+  .viewer #vMap.on,.viewer #vRv.on{background:#fdf0ff;border-color:#d500f2;color:#d500f2}
+  .viewer .stage{flex-direction:column}
+  .viewer #rail,.viewer #subbar,.viewer aside.panel{display:none}
+  .viewer .maincol{flex:1;min-height:0;width:100%}
+  .viewer .photo-panel{width:100%!important;max-width:none!important;min-width:0!important;border-left:none;border-top:2px solid var(--line)}
+  .viewer .photo-panel.open{display:flex;flex:none;height:44vh}
+  .viewer #rvPanel.open{width:100%!important;max-width:none!important;border-left:none;border-top:2px solid var(--line);flex:none;height:50vh}
 </style>
 </head>
 <body>
   <header>
     <h1>후측량 결선 DB</h1>
-    <select id="proj"><option value="">사업 선택…</option></select>
-    <button id="newProj">＋ 새 사업</button>
-    <button id="save" class="pri">저장</button>
-    <button id="delProj" class="dgr">사업 삭제</button>
-    <button id="photoBtn" class="photoBtn">측점사진보기</button>
-    <button id="bgBtn" class="photoBtn">🗺 카카오맵</button>
-    <button id="rvBtn" class="photoBtn">📷 로드뷰</button>
-    <span id="globalbtns" class="hgbtns" style="margin-left:auto"></span>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 134</span>
+    <span id="viewerBar" class="vw">
+      <select id="vproj"><option value="">사업 선택…</option></select>
+      <button id="vPhoto" class="photoBtn">📷 측점사진</button>
+      <button id="vMap" class="photoBtn">🗺 카카오맵</button>
+      <button id="vRv" class="photoBtn">로드뷰</button>
+      <button id="vNote" class="photoBtn">⚠ 특이사항</button>
+    </span>
+    <select id="proj" class="wk"><option value="">사업 선택…</option></select>
+    <button id="newProj" class="wk">＋ 새 사업</button>
+    <button id="save" class="pri wk">저장</button>
+    <button id="delProj" class="dgr wk">사업 삭제</button>
+    <button id="photoBtn" class="photoBtn wk">측점사진보기</button>
+    <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
+    <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
+    <span id="globalbtns" class="hgbtns wk" style="margin-left:auto"></span>
+    <button id="modeToggle" class="photoBtn" style="margin-left:6px">📱 뷰어</button>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 135</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -602,7 +623,7 @@ function drawGeo(){
       gPts.appendChild(el('line',{x1:ax1,y1:ay1,x2:ax1-dv[0]*hl+pr[0]*hl,y2:ay1-dv[1]*hl+pr[1]*hl,stroke:AC,'stroke-width':2.6,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));
       gPts.appendChild(el('line',{x1:ax1,y1:ay1,x2:ax1-dv[0]*hl-pr[0]*hl,y2:ay1-dv[1]*hl-pr[1]*hl,stroke:AC,'stroke-width':2.6,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));})();
     var hit=el('circle',{cx:s[0],cy:s[1],r:hitR,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
-    hit.addEventListener('click',function(ev){if(mode==='ptdel'||mode==='delall2'){ev.stopPropagation();ev.preventDefault();deletePoint(p);return;}if(mode!=='pan'||labelDragging)return;ev.stopPropagation();if(photoLink)selectPoint(ptNum(p));else{selNum=String(ptNum(p));drawGeo();highlightSel();}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
+    hit.addEventListener('click',function(ev){if(mode==='ptdel'||mode==='delall2'){ev.stopPropagation();ev.preventDefault();deletePoint(p);return;}if(mode!=='pan'||labelDragging||noteMode)return;ev.stopPropagation();if(photoLink)selectPoint(ptNum(p));else{selNum=String(ptNum(p));drawGeo();highlightSel();}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
     hit.addEventListener('mouseenter',function(){if(mode==='ptdel'||mode==='delall2'){hit.setAttribute('fill','rgba(211,47,47,0.28)');hit.setAttribute('stroke','#d32f2f');hit.setAttribute('stroke-width',1.6);hit.setAttribute('vector-effect','non-scaling-stroke');}});
     hit.addEventListener('mouseleave',function(){hit.setAttribute('fill','transparent');hit.removeAttribute('stroke');});
     gHit.appendChild(hit);
@@ -933,6 +954,7 @@ function drawMarks(){ clearSvg(gMark); clearLabels('mk');
     if(m.seg){var ln=el('line',{x1:m.seg[0][0],y1:m.seg[0][1],x2:m.seg[1][0],y2:m.seg[1][1],stroke:'#16a34a','stroke-width':2.6,'stroke-dasharray':'6 4','stroke-linecap':'butt','vector-effect':'non-scaling-stroke','pointer-events':'none'});gMark.appendChild(ln);} // 20m 초과 구간 = 초록 점선
     if(m.num)mkLabel(m.cx, m.cy, String(m.num), {fill:'#c0392b',weight:'800',anchor:'middle',grp:'mk',px:15}); // 오류 번호(써클 중앙) — 써클 지우면 같이 사라짐
     if(m.near==='중복'&&m.cnt){mkLabel(m.cx, m.cy-(m.ry||0.7)-0.35, m.cnt+'선', {fill:'#d32f2f',weight:'700',anchor:'middle',grp:'mk',px:14});}
+    if(m.near==='특이사항'&&m.note){mkLabel(m.cx, m.cy+(m.ry||1.2)+0.55, m.note, {fill:'#d32f2f',weight:'800',anchor:'middle',grp:'mk',px:16});}
   });
   renderRecs();
 }
@@ -4632,6 +4654,7 @@ function setStatusUI(){renderSub();}
 var dragging=false,startC=null,startVB=null,drawing=false,cur=null,sx=0,sy=0,midPanning=false;
 cv.addEventListener('pointerdown',function(e){
   if(rvPick&&e.button===0){e.preventDefault();pickRoadview(e.clientX,e.clientY);return;}
+  if(noteMode&&e.button===0){e.preventDefault();addNote(e.clientX,e.clientY);return;}
   if(e.button===1){e.preventDefault();midPanning=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};cv.style.cursor='grabbing';try{cv.setPointerCapture(e.pointerId);}catch(x){}return;}
   if(mode==='pan'){/* 측점/맨홀 위=선택(pointerup), 빈 곳 드래그=화면이동 */
     var w0=toWorld(e.clientX,e.clientY);var nr0=nearestSnapWorld(w0[0],w0[1]);
@@ -4735,6 +4758,7 @@ function refreshProjects(){ if(!online)return;
     var sel=document.getElementById('proj');sel.innerHTML='<option value="">사업 선택…</option>';
     (res.data||[]).forEach(function(p){var o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
     if(state.projectId)sel.value=state.projectId;
+    var vsel=document.getElementById('vproj');if(vsel){vsel.innerHTML=sel.innerHTML;if(state.projectId)vsel.value=state.projectId;}
   });
 }
 function saveProject(){
@@ -4755,6 +4779,8 @@ function loadProject(id){ if(!online||!id)return;
     var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;
     state.points=p.points||[];state.lines=p.lines||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};
     selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();loadPhotos();toast('현장 불러옴: '+res.data.name);
+    var vs=document.getElementById('vproj');if(vs)vs.value=res.data.id;
+    if(viewerMode)setTimeout(function(){openPhotoPanel(true);},150);
   });
 }
 function deleteProject(){
@@ -5105,14 +5131,38 @@ function pickRoadview(clientX,clientY){
 }
 function toggleRvPick(){
   var btn=document.getElementById('rvBtn');
-  if(rvPick){rvPick=false;btn.classList.remove('on');cv.style.cursor='';toast('로드뷰 위치찍기 종료');return;}
+  if(rvPick){rvPick=false;btn.classList.remove('on');var _vr=document.getElementById('vRv');if(_vr)_vr.classList.remove('on');cv.style.cursor='';toast('로드뷰 위치찍기 종료');return;}
   if(!state.points||!state.points.length){toast('먼저 측점(CSV)을 불러오세요');return;}
   if(!bgMapOn)toggleBgMap();
-  rvPick=true;btn.classList.add('on');cv.style.cursor='pointer';
+  rvPick=true;btn.classList.add('on');var _vr2=document.getElementById('vRv');if(_vr2)_vr2.classList.add('on');cv.style.cursor='pointer';
   toast('지도에서 로드뷰 볼 위치를 클릭하세요 (측점을 찍으면 아래에 사진)');
 }
 bind('rvBtn',toggleRvPick);
 bind('dirToggle',function(){showDirArrows=!showDirArrows;var b=document.getElementById('dirToggle');b.classList.toggle('on',showDirArrows);b.textContent='🧭 방향 '+(showDirArrows?'ON':'OFF');drawGeo();});
+
+/* ===== 작업/뷰어 모드 + 특이사항 ===== */
+var viewerMode=false,noteMode=false;
+function isMobileDevice(){var t=(navigator.maxTouchPoints||0)>0||('ontouchstart' in window);var ua=/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent||'');var narrow=Math.min(screen.width||9999,screen.height||9999)<820;return t&&(ua||narrow);}
+function setViewer(v){viewerMode=!!v;document.body.classList.toggle('viewer',viewerMode);var b=document.getElementById('modeToggle');if(b)b.textContent=viewerMode?'💻 작업':'📱 뷰어';try{localStorage.setItem('viewMode',viewerMode?'1':'0');}catch(e){}
+  if(viewerMode&&noteMode){} 
+  setTimeout(function(){fixAspect();applyVB();if(bgMapOn&&bgmap){try{bgmap.relayout();}catch(e){}}if(typeof drawGeo==='function'){drawGeo();drawMarks();drawManholes();highlightSel();}},80);}
+function toggleNoteMode(){noteMode=!noteMode;var b=document.getElementById('vNote');if(b)b.classList.toggle('on',noteMode);cv.style.cursor=noteMode?'crosshair':'';toast(noteMode?'특이사항: 도면을 탭해 위치 찍고 멘트 입력 (기존 표시 탭=수정/삭제)':'특이사항 종료');}
+function noteAutoSave(){if(online&&state.projectName){saveProject();}else{toast('특이사항 추가됨 — 온라인 연결 시 저장됩니다');}}
+function addNote(clientX,clientY){
+  var w=toWorld(clientX,clientY),tol=pxToWorld()*16,hit=-1;
+  for(var i=0;i<state.markups.length;i++){var m=state.markups[i];if(m.near==='특이사항'&&Math.hypot(m.cx-w[0],m.cy-w[1])<((m.rx||1.2)+tol)){hit=i;break;}}
+  if(hit>=0){var nv=prompt('특이사항 수정 (비우면 삭제)',state.markups[hit].note||'');if(nv===null)return;if(nv.trim()===''){state.markups.splice(hit,1);}else{state.markups[hit].note=nv.trim();}drawMarks();noteAutoSave();return;}
+  var note=prompt('특이사항 멘트를 입력하세요');if(note===null||note.trim()==='')return;
+  state.markups.push({type:'cir',cx:w[0],cy:w[1],rx:1.4,ry:1.4,status:'bad',near:'특이사항',note:note.trim()});
+  drawMarks();noteAutoSave();
+}
+bind('modeToggle',function(){setViewer(!viewerMode);});
+bind('vPhoto',function(){openPhotoPanel();});
+bind('vMap',toggleBgMap);
+bind('vRv',toggleRvPick);
+bind('vNote',toggleNoteMode);
+var _vproj=document.getElementById('vproj');if(_vproj)_vproj.addEventListener('change',function(){if(this.value)loadProject(this.value);});
+(function(){var saved=null;try{saved=localStorage.getItem('viewMode');}catch(e){}setViewer(saved!=null?(saved==='1'):isMobileDevice());})();
 // 사진 방향 화살표 클릭 → 90° 회전 (사진 패널·로드뷰 패널 공통)
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.dirArrow');if(!b)return;e.stopPropagation();e.preventDefault();var p=pointByNum(b.getAttribute('data-num'));if(!p)return;cyclePhotoDir(p);b.textContent=ARROWS[getPhotoDir(p)];drawGeo();},true);
 bind('rvClose',closeRvPanel);
@@ -5156,9 +5206,9 @@ function syncMapBgNow(){
 }
 function toggleBgMap(){
   var btn=document.getElementById('bgBtn'),div=document.getElementById('kmapBg');
-  if(bgMapOn){bgMapOn=false;div.style.display='none';btn.classList.remove('on');return;}
+  if(bgMapOn){bgMapOn=false;div.style.display='none';btn.classList.remove('on');var _vm=document.getElementById('vMap');if(_vm)_vm.classList.remove('on');return;}
   if(!state.points||!state.points.length){toast('먼저 측점(CSV)을 불러오세요');return;}
-  div.style.display='block';btn.classList.add('on');
+  div.style.display='block';btn.classList.add('on');var _vm2=document.getElementById('vMap');if(_vm2)_vm2.classList.add('on');
   loadKakao(function(){
     if(!bgmap){
       bgmap=new kakao.maps.Map(div,{center:new kakao.maps.LatLng(37.27,127.0),level:3,draggable:false,scrollwheel:false,disableDoubleClickZoom:true});
