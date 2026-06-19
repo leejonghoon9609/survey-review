@@ -214,7 +214,7 @@
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
     <span id="globalbtns" class="hgbtns wk" style="margin-left:auto"></span>
     <button id="modeToggle" class="photoBtn" style="margin-left:6px">📱 뷰어</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 138</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 139</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -965,11 +965,11 @@ function drawMarks(){ clearSvg(gMark); clearLabels('mk');
   state.markups.forEach(function(m){
     var insp=(m.near==='관공수'||m.near==='중복'||m.near==='끝점'); // 검수 오류 서클(자동검출)
     var sh=m.type==='cir'?el('ellipse',{cx:m.cx,cy:m.cy,rx:m.rx,ry:m.ry}):el('rect',{x:m.x,y:m.y,width:m.w,height:m.h,rx:0.4});
-    var fillCol=insp?'#f4c400':MKCOL[m.status]; // 검수오류 안쪽=흐린 노랑, 테두리는 빨강 유지
-    sh.setAttribute('fill',fillCol);sh.setAttribute('fill-opacity',insp?0.25:0.13);sh.setAttribute('stroke',MKCOL[m.status]);sh.setAttribute('stroke-width',2);sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');
+    var fillCol=m.soft?'#ffb74d':(insp?'#f4c400':MKCOL[m.status]); var strokeCol=m.soft?'#f57c00':MKCOL[m.status];
+    sh.setAttribute('fill',fillCol);sh.setAttribute('fill-opacity',insp?0.25:0.13);sh.setAttribute('stroke',strokeCol);sh.setAttribute('stroke-width',2);sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');
     gMark.appendChild(sh); m.el=sh;
     if(m.seg){var ln=el('line',{x1:m.seg[0][0],y1:m.seg[0][1],x2:m.seg[1][0],y2:m.seg[1][1],stroke:'#16a34a','stroke-width':2.6,'stroke-dasharray':'6 4','stroke-linecap':'butt','vector-effect':'non-scaling-stroke','pointer-events':'none'});gMark.appendChild(ln);} // 20m 초과 구간 = 초록 점선
-    if(m.num)mkLabel(m.cx, m.cy, String(m.num), {fill:'#c0392b',weight:'800',anchor:'middle',grp:'mk',px:15}); // 오류 번호(써클 중앙) — 써클 지우면 같이 사라짐
+    if(m.num!=null&&m.num!=='')mkLabel(m.cx, m.cy, String(m.num), {fill:m.soft?'#f57c00':'#c0392b',weight:'800',anchor:'middle',grp:'mk',px:15}); // 오류 번호(써클 중앙) — 써클 지우면 같이 사라짐
     if(m.near==='중복'&&m.cnt){mkLabel(m.cx, m.cy-(m.ry||0.7)-0.35, m.cnt+'선', {fill:'#d32f2f',weight:'700',anchor:'middle',grp:'mk',px:14});}
     if(m.near==='특이사항'&&m.note){mkLabel(m.cx, m.cy+(m.ry||1.2)+0.55, m.note, {fill:'#d32f2f',weight:'800',anchor:'middle',grp:'mk',px:16});}
   });
@@ -1211,7 +1211,20 @@ function inspectPipeCount(){
     for(var k=0;k<seq.length-1;k++)addAdj(seq[k],seq[k+1]);
   });
   function isSrc(p){if(isManhole(p))return true;for(var i=0;i<mhs.length;i++){if(Math.hypot(mhs[i].wx-p.x,mhs[i].wy-p.y)<=2.5)return true;}return false;} // 맨홀/입상 2.5m 이내 = 관 공급원
-  var fvisited={}, fpar={}; // fpar[u]=부모쪽으로 흐르는 관수
+  // ===== ② T점 국소 분기 규칙 (다중 맨홀에 강함 · 빨강 권위) =====
+  //  같은 관수 가닥(본선)은 분기합에서 제외, 더 작은 분기들의 합 = T 관수.
+  var tPassed={}, redIdx={};
+  Object.keys(adj).forEach(function(uk){var u=+uk,P=pts[u];if(!P||!isTpoint(P))return;
+    var N=pipeCount(P);if(N==null)return;
+    var branches=[],mains=0,bigs=[];
+    (adj[u]||[]).forEach(function(v){var c=pipeCount(pts[v]);if(c==null)return;if(c>N)bigs.push(c);else if(c===N)mains++;else branches.push(c);});
+    if(bigs.length){issues.push({wx:P.x,wy:P.y,idx:u,msg:'T점 '+P.no+'('+N+'공): 더 큰 관수 '+Math.max.apply(null,bigs)+'공 가닥 연결 — 확인'});redIdx[u]=1;return;}
+    if(branches.length){var bs=0;branches.forEach(function(b){bs+=b;});
+      if(bs!==N){issues.push({wx:P.x,wy:P.y,idx:u,msg:'T점 '+P.no+'('+N+'공) 분기합 '+bs+'공 ≠ '+N+'공'});redIdx[u]=1;return;}}
+    tPassed[u]=1;
+  });
+  // ===== ① 흐름 보조점검(단일루트) → 주황 "확인 필요". 방향 1개 가정이라 다중 맨홀에선 모호 =====
+  var flowRaw=[], fvisited={}, fpar={}; // fpar[u]=부모쪽으로 흐르는 관수
   Object.keys(adj).forEach(function(sk){sk=+sk;if(fvisited[sk])return;
     var comp=[],stk=[sk],cseen={};cseen[sk]=1; // 연결요소 수집
     while(stk.length){var u=stk.pop();comp.push(u);(adj[u]||[]).forEach(function(v){if(!cseen[v]){cseen[v]=1;stk.push(v);}});}
@@ -1234,33 +1247,47 @@ function inspectPipeCount(){
       var cs=0;ch.forEach(function(c){cs+=fpar[c];}); // 자식 흐름 합
       var P=pts[u],Np=pipeCount(P);
       if(Np==null){fpar[u]=cs;continue;}            // 관수 미기재 → 통과
-      if(isSrc(P)){var f=Np-cs;if(cs>Np)issues.push({wx:P.x,wy:P.y,msg:P.no+' 관수 부족: 분기합 '+cs+'공 > '+Np+'공'});fpar[u]=Math.max(f,0);} // 소스=추가 허용
+      if(isSrc(P)){var f=Np-cs;if(cs>Np)flowRaw.push({wx:P.x,wy:P.y,idx:u,msg:P.no+' 흐름 점검: 분기합 '+cs+'공 > '+Np+'공'});fpar[u]=Math.max(f,0);} // 소스=추가 허용
       else{var mx=0;ch.forEach(function(c){if(fpar[c]>mx)mx=fpar[c];});
         if(!ch.length)fpar[u]=Np;                                                                          // 잎
-        else if(mx>Np){issues.push({wx:P.x,wy:P.y,msg:'T점 '+P.no+'('+Np+'공) 자식 관수 '+mx+'공 초과'});fpar[u]=Np;}
+        else if(mx>Np){flowRaw.push({wx:P.x,wy:P.y,idx:u,msg:P.no+'('+Np+'공) 흐름 점검: 자식 '+mx+'공 초과'});fpar[u]=Np;}
         else if(mx===Np)fpar[u]=Np-(cs-mx);                                                                // 본선=자식, 부모=분기
-        else{if(cs!==Np)issues.push({wx:P.x,wy:P.y,msg:'T점 '+P.no+'('+Np+'공) 분기합 '+cs+'공 ≠ '+Np+'공'});fpar[u]=Np;} // 부모=본선
+        else{if(cs!==Np)flowRaw.push({wx:P.x,wy:P.y,idx:u,msg:P.no+'('+Np+'공) 흐름 점검: 합 '+cs+'공 ≠ '+Np+'공'});fpar[u]=Np;} // 부모=본선
       }
     }
     var rP=pts[root],Nr=pipeCount(rP),rch=(adj[root]||[]).filter(function(v){return parent[v]===root;}),rs=0;
     rch.forEach(function(c){rs+=fpar[c];});
-    if(!isSrc(rP)&&Nr!=null&&rs!==Nr)issues.push({wx:rP.x,wy:rP.y,msg:'끝점 '+rP.no+'('+Nr+'공) 흐름 '+rs+'공 불일치'});
+    if(!isSrc(rP)&&Nr!=null&&rs!==Nr)flowRaw.push({wx:rP.x,wy:rP.y,idx:root,msg:'끝점 '+rP.no+'('+Nr+'공) 흐름 '+rs+'공 불일치'});
   });
 
-  if(!issues.length){drawMarks();updMeta();showModal({title:'관공수 검수 결과',tone:'ok',body:'<b style="font-size:16px">이상 0</b><br>관수 규칙(연속성·T점 합산) 위반이 없습니다.',buttons:[{label:'확인'}]});return;}
+  // ===== 주황 후보: ②통과·빨강·맨홀인접 점은 억제(흐름 방향 모호) =====
+  var soft=[];
+  flowRaw.forEach(function(fi){var u=fi.idx;if(u!=null&&(tPassed[u]||redIdx[u]||isSrc(pts[u])))return;soft.push(fi);});
+
+  if(!issues.length&&!soft.length){drawMarks();updMeta();showModal({title:'관공수 검수 결과',tone:'ok',body:'<b style="font-size:16px">이상 0</b><br>관수 규칙(연속성·T점 분기·흐름)을 모두 통과했습니다.',buttons:[{label:'확인'}]});return;}
   pushHist();
-  // 겹치는 검수원 분산: 가까운 이슈들을 작은 링으로 펼쳐 모두 보이게(2개 오류가 1원으로 포개지던 문제)
-  var R=1.33, SP=2.0, usd=issues.map(function(){return false;});
-  for(var gi=0;gi<issues.length;gi++){ if(usd[gi])continue; var cl=[gi]; usd[gi]=true;
-    for(var gj=gi+1;gj<issues.length;gj++){ if(usd[gj])continue;
-      if(Math.hypot(issues[gj].wx-issues[gi].wx,issues[gj].wy-issues[gi].wy)<2*R+0.6){cl.push(gj);usd[gj]=true;} }
-    if(cl.length>1){ var cx=0,cy=0;cl.forEach(function(k){cx+=issues[k].wx;cy+=issues[k].wy;});cx/=cl.length;cy/=cl.length;
-      cl.forEach(function(k,j){var ang=2*Math.PI*j/cl.length-Math.PI/2;issues[k].wx=cx+Math.cos(ang)*SP;issues[k].wy=cy+Math.sin(ang)*SP;}); } }
+  var R=1.33;
+  function spread(arr){ // 겹치는 검수원 분산
+    var SP=2.0,usd=arr.map(function(){return false;});
+    for(var gi=0;gi<arr.length;gi++){ if(usd[gi])continue; var cl=[gi]; usd[gi]=true;
+      for(var gj=gi+1;gj<arr.length;gj++){ if(usd[gj])continue;
+        if(Math.hypot(arr[gj].wx-arr[gi].wx,arr[gj].wy-arr[gi].wy)<2*R+0.6){cl.push(gj);usd[gj]=true;} }
+      if(cl.length>1){ var cx=0,cy=0;cl.forEach(function(k){cx+=arr[k].wx;cy+=arr[k].wy;});cx/=cl.length;cy/=cl.length;
+        cl.forEach(function(k,j){var ang=2*Math.PI*j/cl.length-Math.PI/2;arr[k].wx=cx+Math.cos(ang)*SP;arr[k].wy=cy+Math.sin(ang)*SP;}); } }
+  }
+  spread(issues); spread(soft);
   issues.forEach(function(it,i){var sm=S(it.wx,it.wy);var sg=it.seg?[S(it.seg[0][0],it.seg[0][1]),S(it.seg[1][0],it.seg[1][1])]:null;state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:R,ry:R,status:'bad',near:'관공수',msg:it.msg,num:i+1,seg:sg});});
+  soft.forEach(function(it){var sm=S(it.wx,it.wy);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:R,ry:R,status:'bad',near:'관공수',soft:true,msg:it.msg,num:'?'});});
   drawMarks();updMeta();
-  var list=issues.map(function(it,i){return (i+1)+'. '+it.msg;}).join('<br>');
-  showModal({title:'관공수 검수 결과',tone:'bad',
-    body:'관수 이상 <b style="color:#d32f2f;font-size:16px">'+issues.length+'곳</b> 발견했습니다.<br>도면에서 빨간 써클을 확인하세요.<br><br><div style="text-align:left;font-size:13px;line-height:1.7;max-height:220px;overflow:auto">'+list+'</div>',
+  var redList=issues.map(function(it,i){return (i+1)+'. '+it.msg;}).join('<br>');
+  var softList=soft.map(function(it){return '• '+it.msg;}).join('<br>');
+  showModal({title:'관공수 검수 결과',tone:issues.length?'bad':'ok',
+    body:(issues.length?'확실한 이상 <b style="color:#d32f2f;font-size:16px">'+issues.length+'곳</b> (빨강 써클)':'확실한 이상 <b style="color:#16a34a">0</b>')
+      +(soft.length?'<br>확인 필요 <b style="color:#f57c00;font-size:16px">'+soft.length+'곳</b> (주황 써클 — 흐름이 한 방향 가정에서 안 맞음. 오류가 아닐 수 있음)':'')
+      +'<br><br><div style="text-align:left;font-size:13px;line-height:1.7;max-height:220px;overflow:auto">'
+      +(redList?'<b style="color:#d32f2f">● 빨강(확실)</b><br>'+redList:'')
+      +(redList&&softList?'<br><br>':'')
+      +(softList?'<b style="color:#f57c00">● 주황(확인 필요)</b><br>'+softList:'')+'</div>',
     buttons:[{label:'확인'}]});
 }
 // 끝점 검수 — 단순 규칙: 선의 끝점이 CSV 측점에 안 붙으면 이상
