@@ -215,7 +215,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 140</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 141</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -4872,8 +4872,12 @@ function deleteProject(){
   if(!id){toast('삭제할 사업을 먼저 선택하세요');return;}
   var nm=(sel.options[sel.selectedIndex]&&sel.options[sel.selectedIndex].text)||'(이름없음)';
   if(!confirm("'"+nm+"' 사업을 삭제할까요?\n\n측점·결선·검수·사진 기록이 모두 지워지며 되돌릴 수 없습니다."))return;
+  deleteProjectById(id,nm);
+}
+function deleteProjectById(id,nm){
+  if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return Promise.resolve();}
   // 사진 스토리지 정리(best-effort) → 사진행 → 이력 → 사업 순서
-  Promise.resolve()
+  return Promise.resolve()
     .then(function(){return sb.storage.from('photos').list(id).then(function(r){
         var files=((r&&r.data)||[]).map(function(f){return id+'/'+f.name;});
         return files.length?sb.storage.from('photos').remove(files):null;
@@ -4888,7 +4892,7 @@ function deleteProject(){
         clearSvg(gSel);clearSvg(gMH);drawGeo();drawMarks();drawManholes();updMeta();if(photoPanelOpen)refreshPhotoPanel();
       }
       refreshProjects();
-      toast('사업 삭제 완료: '+nm);
+      toast('사업 삭제 완료: '+(nm||''));
     });
 }
 
@@ -5270,10 +5274,17 @@ function openDoneList(){
   sb.from('survey_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
     var rows=(res.data||[]).filter(function(p){return p.payload&&p.payload.routingDone;});
     var body=rows.length
-      ? '<div style="max-height:320px;overflow:auto;text-align:left">'+rows.map(function(p){return '<button class="done-row" data-id="'+p.id+'" style="display:block;width:100%;text-align:left;padding:10px 12px;margin:4px 0;border:1px solid #d6eede;border-radius:9px;background:#f6fcf8;cursor:pointer;font-size:14px;font-weight:600;color:#15803d">✅ '+p.name+'</button>';}).join('')+'</div><div style="color:#999;font-size:12px;margin-top:6px">선택하면 불러와서 보고 편집할 수 있습니다.</div>'
+      ? '<div style="max-height:320px;overflow:auto;text-align:left">'+rows.map(function(p){return '<div style="display:flex;gap:6px;margin:4px 0">'
+          +'<button class="done-row" data-id="'+p.id+'" style="flex:1;text-align:left;padding:10px 12px;border:1px solid #d6eede;border-radius:9px;background:#f6fcf8;cursor:pointer;font-size:14px;font-weight:600;color:#15803d">✅ '+p.name+'</button>'
+          +'<button class="done-del" data-id="'+p.id+'" data-nm="'+(''+p.name).replace(/"/g,'&quot;')+'" title="사업 삭제" style="flex:none;padding:0 13px;border:1px solid #f0c4c4;border-radius:9px;background:#fdf3f3;color:#d32f2f;cursor:pointer;font-size:15px">🗑</button>'
+          +'</div>';}).join('')+'</div><div style="color:#999;font-size:12px;margin-top:6px">선택하면 불러와서 보고 편집 · 🗑 = 사업 삭제</div>'
       : '<div style="color:#999;padding:6px">등록된 결선완료 사업이 없습니다.<br>좌측 레일 하단 <b style="color:#16a34a">✅ 결선완료사업 등록</b>으로 등록하세요.</div>';
     var card=showModal({title:'✅ 결선 완료사업',tone:'ok',body:body,buttons:[{label:'닫기'}]});
     card.querySelectorAll('.done-row').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-id');card.remove();loadProject(id);};});
+    card.querySelectorAll('.done-del').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-id'),nm=b.getAttribute('data-nm')||'(이름없음)';
+      if(!confirm("'"+nm+"' 사업을 완전히 삭제할까요?\n측점·결선·검수·사진이 모두 지워지며 되돌릴 수 없습니다."))return;
+      var r=deleteProjectById(id,nm);(r&&r.then?r:Promise.resolve()).then(function(){card.remove();openDoneList();});
+    };});
   });
 }
 var _dlb=document.getElementById('doneListBtn');if(_dlb)_dlb.onclick=openDoneList;
