@@ -177,6 +177,23 @@
   .viewer .photo-panel{width:100%!important;max-width:none!important;min-width:0!important;border-left:none;border-top:2px solid var(--line)}
   .viewer .photo-panel.open{display:flex;flex:none;height:44vh}
   .viewer #rvPanel.open{width:100%!important;max-width:none!important;border-left:none;border-top:2px solid var(--line);flex:none;height:50vh}
+  /* 상단바 한 줄 + dev배지 숨김 */
+  .viewer #buildno,.viewer #conn{display:none}
+  .viewer header{flex-wrap:wrap;align-items:center;row-gap:6px;column-gap:6px;padding:7px 9px}
+  .viewer h1{flex-basis:100%;font-size:17px;margin:0}
+  .viewer #viewerBar{flex:1;min-width:0;flex-wrap:nowrap;overflow-x:auto;gap:5px}
+  .viewer #viewerBar button{font-size:12.5px;padding:5px 9px;white-space:nowrap;flex:none}
+  .viewer #viewerBar select{font-size:12.5px;padding:4px 6px;flex:none;max-width:130px}
+  .viewer #modeToggle{font-size:12.5px;padding:5px 9px;white-space:nowrap;flex:none}
+  /* 사진 헤더 한 줄 + 업로드/닫기 숨김 */
+  .viewer .php-head{flex-wrap:nowrap;overflow-x:auto;gap:5px;padding:6px 9px}
+  .viewer .php-head h3{display:none}
+  .viewer #photoUp,.viewer #photoClose{display:none}
+  .viewer .php-head button,.viewer .php-head select{font-size:12px;padding:4px 7px;white-space:nowrap;flex:none}
+  .viewer #vNote2{background:#d32f2f;color:#fff;border-color:#d32f2f;font-weight:700}
+  .viewer #vNote2.on{background:#fff;color:#d32f2f}
+  /* 선택측점 사진만 크게 */
+  .viewer .php-body .php-main{flex:1}
 </style>
 </head>
 <body>
@@ -184,10 +201,9 @@
     <h1>후측량 결선 DB</h1>
     <span id="viewerBar" class="vw">
       <select id="vproj"><option value="">사업 선택…</option></select>
-      <button id="vPhoto" class="photoBtn">📷 측점사진</button>
-      <button id="vMap" class="photoBtn">🗺 카카오맵</button>
+      <button id="vPhoto" class="photoBtn">📷 사진</button>
+      <button id="vMap" class="photoBtn">🗺 지도</button>
       <button id="vRv" class="photoBtn">로드뷰</button>
-      <button id="vNote" class="photoBtn">⚠ 특이사항</button>
     </span>
     <select id="proj" class="wk"><option value="">사업 선택…</option></select>
     <button id="newProj" class="wk">＋ 새 사업</button>
@@ -198,7 +214,7 @@
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
     <span id="globalbtns" class="hgbtns wk" style="margin-left:auto"></span>
     <button id="modeToggle" class="photoBtn" style="margin-left:6px">📱 뷰어</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 136</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px">BUILD 137</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -220,6 +236,7 @@
         <button id="dirToggle" class="dirtgl on">🧭 방향 ON</button>
         <select id="photoSel"><option value="">측점 선택…</option></select>
         <button id="photoLinkBtn" class="linkon">🔗 연동</button>
+        <button id="vNote2" class="vw">⚠ 특이사항</button>
         <button id="photoUp">사진 업로드</button>
         <button id="photoClose">✕</button>
       </div>
@@ -5168,10 +5185,10 @@ bind('dirToggle',function(){showDirArrows=!showDirArrows;var b=document.getEleme
 /* ===== 작업/뷰어 모드 + 특이사항 ===== */
 var viewerMode=false,noteMode=false;
 function isMobileDevice(){var t=(navigator.maxTouchPoints||0)>0||('ontouchstart' in window);var ua=/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent||'');var narrow=Math.min(screen.width||9999,screen.height||9999)<820;return t&&(ua||narrow);}
-function setViewer(v){viewerMode=!!v;document.body.classList.toggle('viewer',viewerMode);var b=document.getElementById('modeToggle');if(b)b.textContent=viewerMode?'💻 작업':'📱 뷰어';try{localStorage.setItem('viewMode',viewerMode?'1':'0');}catch(e){}
+function setViewer(v){viewerMode=!!v;document.body.classList.toggle('viewer',viewerMode);var b=document.getElementById('modeToggle');if(b)b.textContent=viewerMode?'📱 뷰어':'💻 작업';try{localStorage.setItem('viewMode',viewerMode?'1':'0');}catch(e){}
   if(viewerMode&&noteMode){} 
   setTimeout(function(){fixAspect();applyVB();if(bgMapOn&&bgmap){try{bgmap.relayout();}catch(e){}}if(typeof drawGeo==='function'){drawGeo();drawMarks();drawManholes();highlightSel();}},80);}
-function toggleNoteMode(){noteMode=!noteMode;var b=document.getElementById('vNote');if(b)b.classList.toggle('on',noteMode);cv.style.cursor=noteMode?'crosshair':'';toast(noteMode?'특이사항: 도면을 탭해 위치 찍고 멘트 입력 (기존 표시 탭=수정/삭제)':'특이사항 종료');}
+function toggleNoteMode(){noteMode=!noteMode;var b=document.getElementById('vNote2');if(b)b.classList.toggle('on',noteMode);cv.style.cursor=noteMode?'crosshair':'';toast(noteMode?'특이사항: 도면을 탭해 위치 찍고 멘트 입력 (기존 표시 탭=수정/삭제)':'특이사항 종료');}
 function noteAutoSave(){if(online&&state.projectName){saveProject();}else{toast('특이사항 추가됨 — 온라인 연결 시 저장됩니다');}}
 function addNote(clientX,clientY){
   var w=toWorld(clientX,clientY),tol=pxToWorld()*16,hit=-1;
@@ -5185,7 +5202,7 @@ bind('modeToggle',function(){setViewer(!viewerMode);});
 bind('vPhoto',function(){openPhotoPanel();});
 bind('vMap',toggleBgMap);
 bind('vRv',toggleRvPick);
-bind('vNote',toggleNoteMode);
+bind('vNote2',toggleNoteMode);
 var _vproj=document.getElementById('vproj');if(_vproj)_vproj.addEventListener('change',function(){if(this.value)loadProject(this.value);});
 (function(){var saved=null;try{saved=localStorage.getItem('viewMode');}catch(e){}setViewer(saved!=null?(saved==='1'):isMobileDevice());})();
 // 사진 방향 화살표 클릭 → 90° 회전 (사진 패널·로드뷰 패널 공통)
@@ -5353,7 +5370,8 @@ function refreshPhotoPanel(){
   if(selNum==null){body.innerHTML='<div style="color:#999;font-size:12px;padding:14px;text-align:center;line-height:1.7">측점을 선택하세요.<br>(위 드롭다운 또는 도면에서 점 클릭)<br>또는 <b>사진 업로드</b>로 일괄 등록</div>';return;}
   var nbs=neighborsOf(selNum),up=nbs.up,down=nbs.down;
   var n1=up?ptNum(up):null,n2=down?ptNum(down):null;
-  body.innerHTML=paneImg(selNum,'선택측점 사진',true)+'<div class="php-row">'+paneImg(n1,'위 측점',false)+paneImg(n2,'아래 측점',false)+'</div>';
+  if(viewerMode){body.innerHTML=paneImg(selNum,'선택측점 사진',true);}
+  else{body.innerHTML=paneImg(selNum,'선택측점 사진',true)+'<div class="php-row">'+paneImg(n1,'위 측점',false)+paneImg(n2,'아래 측점',false)+'</div>';}
   setupZoom(document.getElementById('zoomImg'));
 }
 function selectPoint(num){selNum=String(num);drawGeo();highlightSel();var sel=document.getElementById('photoSel');if(sel)sel.value=String(num);if(photoPanelOpen)refreshPhotoPanel();}
