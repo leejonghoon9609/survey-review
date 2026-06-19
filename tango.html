@@ -231,7 +231,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 151</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 152</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -284,6 +284,7 @@
   <input type="file" id="fCsv" accept=".csv" style="display:none">
   <input type="file" id="fDxf" accept=".dxf" style="display:none">
   <input type="file" id="fPhotos" accept="image/*" multiple style="display:none">
+  <input type="file" id="fAfter" accept="image/*" capture="environment" style="display:none">
   <input type="file" id="fRegPhotos" accept="image/*" multiple style="display:none">
 
   <!-- 사업 등록 모달 -->
@@ -4910,7 +4911,7 @@ function deleteProjectById(id,nm){
     .then(function(res){
       if(res&&res.error){toast('삭제 오류: '+res.error.message);return;}
       if(state.projectId===id){ // 현재 열려있던 사업이면 화면 초기화
-        state.projectId=null;state.projectName=null;state.points=[];state.lines=[];state.markups=[];state.manholes=[];state.labelOff={};photoMap={};selNum=null;
+        state.projectId=null;state.projectName=null;state.points=[];state.lines=[];state.markups=[];state.manholes=[];state.labelOff={};photoMap={};afterMap={};selNum=null;
         clearSvg(gSel);clearSvg(gMH);drawGeo();drawMarks();drawManholes();updMeta();if(photoPanelOpen)refreshPhotoPanel();
       }
       refreshProjects();
@@ -5397,10 +5398,10 @@ function toggleBgMap(){
   });
 }
 bind('bgBtn',toggleBgMap);
-bind('newProj',function(){var n=prompt('새 사업명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.routingDone=false;setReadOnly(false);state.manholes=[];state.photoDir={};photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 사업: '+n+' (CSV 업로드 후 저장)');});
+bind('newProj',function(){var n=prompt('새 사업명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.routingDone=false;setReadOnly(false);state.manholes=[];state.photoDir={};photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 사업: '+n+' (CSV 업로드 후 저장)');});
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){pushHist();if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)loadProject(e.target.value);});
-function loadCsvFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.manholes=[];state.projectId=null;state.routingDone=false;setReadOnly(false);state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatus();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화)');};rd.readAsArrayBuffer(f);}
+function loadCsvFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.manholes=[];state.projectId=null;state.routingDone=false;setReadOnly(false);state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatus();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화)');};rd.readAsArrayBuffer(f);}
 document.getElementById('fCsv').addEventListener('change',function(e){loadCsvFile(e.target.files[0]);e.target.value='';});
 function loadDxfFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){try{var ln=parseDxfLines(decodeBuf(rd.result));ln.forEach(function(l){l.base=true;});state.lines=state.lines.filter(function(l){return !l.base;}).concat(ln);drawGeo();fitView();updMeta();if(regOpen())updRegStatus();toast('수치지도 백판 '+ln.length+'개 라인 로드');}catch(err){toast('DXF 파싱 오류');}};rd.readAsArrayBuffer(f);}
 document.getElementById('fDxf').addEventListener('change',function(e){loadDxfFile(e.target.files[0]);e.target.value='';});
@@ -5424,12 +5425,12 @@ function loadSample(){
     {layer:'통신관로',pts:[[202567.43,517213.98],[202566.94,517212.32],[202566.72,517211.58]]},
     {layer:'압입구간',pts:[[202566.72,517211.58],[202594.89,517294.72]]},
     {layer:'지거',pts:[[202567.43,517213.98],[202573.57,517233.15]]}];
-  state.markups=[];state.manholes=[];photoMap={};selNum=null;state.labelOff={};clearSvg(gSel);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();toast('샘플 로드됨');
+  state.markups=[];state.manholes=[];photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();toast('샘플 로드됨');
 }
 
 /* init */
 /* ====== 측점 사진 ====== */
-var photoMap={}, selNum=null, photoPanelOpen=false, photoLink=true;
+var photoMap={}, afterMap={}, afterTargetNum=null, selNum=null, photoPanelOpen=false, photoLink=true;
 var gSel=document.createElementNS(SVGNS,'g'); gSel.setAttribute('pointer-events','none'); cv.appendChild(gSel);
 var gDraw=document.createElementNS(SVGNS,'g'); gDraw.setAttribute('pointer-events','none'); cv.appendChild(gDraw);
 var gAnc=document.createElementNS(SVGNS,'g'); cv.appendChild(gAnc); // 지거 멘트 앵커 (최상위 — 측점보다 위에서 클릭 우선)
@@ -5498,10 +5499,12 @@ function paneImg(num,label,big){var url=num!=null?photoMap[num]:null;var p=num!=
   else{inner='<div class="ph php-none">'+(num!=null?'사진 없음':'-')+'</div>';}
   var arrow=p?('<button class="dirArrow" data-num="'+num+'" title="사진 방향 — 클릭하면 회전">'+ARROWS[getPhotoDir(p)]+'</button>'):'';
   return '<div class="'+(big?'php-main':'php-sub')+'"><div class="cap">'+arrow+'<span>'+cap+'</span></div>'+inner+'</div>';}
-/* 후측량 사진 슬롯 (촬영 기능 연결 전 — 빈 자리만) */
-function paneAfter(num,label){var p=num!=null?pointByNum(num):null;var sub=p?(p.no+' '+((p.code||'').trim())):(num!=null?('번호 '+num):'');
+/* 후측량 사진 슬롯 — afterMap 표시 + 현장모드 촬영 버튼 */
+function paneAfter(num,label){var url=num!=null?afterMap[num]:null;var p=num!=null?pointByNum(num):null;var sub=p?(p.no+' '+((p.code||'').trim())):(num!=null?('번호 '+num):'');
   var cap=sub?(label+' / '+sub):label;
-  return '<div class="php-main php-after"><div class="cap"><span>'+cap+'</span></div><div class="ph php-none">촬영 예정</div></div>';}
+  var btn=(viewerMode&&num!=null)?'<button class="afterCap" data-num="'+num+'" style="flex:none;margin-left:auto;border:1px solid #16a34a;background:#eafaf0;color:#16a34a;border-radius:7px;padding:4px 10px;font-size:13px;font-weight:700;cursor:pointer">📷 '+(url?'재촬영':'촬영')+'</button>':'';
+  var inner=url?('<img class="ph" src="'+url+'" alt="">'):'<div class="ph php-none">'+(viewerMode?'📷 촬영 버튼으로 후측량 사진을 찍어주세요':'촬영 예정')+'</div>';
+  return '<div class="php-main php-after"><div class="cap"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+cap+'</span>'+btn+'</div>'+inner+'</div>';}
 function refreshPhotoPanel(){
   var sel=document.getElementById('photoSel'),nums=sortedNums();
   sel.innerHTML='<option value="">측점 선택…</option>'+nums.map(function(n){var p=pointByNum(n);return '<option value="'+n+'">'+(p?p.no:n)+'</option>';}).join('');
@@ -5510,11 +5513,12 @@ function refreshPhotoPanel(){
   if(selNum==null){body.innerHTML='<div style="color:#999;font-size:12px;padding:14px;text-align:center;line-height:1.7">측점을 선택하세요.<br>(위 드롭다운 또는 도면에서 점 클릭)<br>또는 <b>사진 업로드</b>로 일괄 등록</div>';return;}
   body.innerHTML='<div class="php-split">'+paneImg(selNum,'노출관로 사진',true)+paneAfter(selNum,'후측량 사진')+'</div>';
   setupZoom(document.getElementById('zoomImg'));
+  var ac=document.querySelector('.afterCap');if(ac)ac.onclick=function(){afterTargetNum=this.getAttribute('data-num');document.getElementById('fAfter').click();};
 }
 function selectPoint(num){selNum=String(num);drawGeo();highlightSel();var sel=document.getElementById('photoSel');if(sel)sel.value=String(num);if(photoPanelOpen)refreshPhotoPanel();}
 function openPhotoPanel(o){photoPanelOpen=(o==null)?!photoPanelOpen:!!o;document.getElementById('photoPanel').classList.toggle('open',photoPanelOpen);if(photoPanelOpen&&typeof closeRvPanel==='function')closeRvPanel();if(photoPanelOpen)refreshPhotoPanel();setTimeout(function(){fitView();if(typeof placeCoord==='function')placeCoord();},30);}
-function loadPhotos(){photoMap={};if(!online||!state.projectId){if(photoPanelOpen)refreshPhotoPanel();return;}
-  sb.from('survey_photos').select('point_no,url').eq('project_id',state.projectId).then(function(res){(res.data||[]).forEach(function(r){photoMap[r.point_no]=r.url;});if(photoPanelOpen)refreshPhotoPanel();});}
+function loadPhotos(){photoMap={};afterMap={};if(!online||!state.projectId){if(photoPanelOpen)refreshPhotoPanel();return;}
+  sb.from('survey_photos').select('point_no,url').eq('project_id',state.projectId).then(function(res){(res.data||[]).forEach(function(r){var pn=String(r.point_no);if(/_A$/.test(pn))afterMap[pn.replace(/_A$/,'')]=r.url;else photoMap[pn]=r.url;});if(photoPanelOpen)refreshPhotoPanel();});}
 function uploadPhotos(files){
   if(!online){toast('로컬 모드 — 사진 저장 불가');return;}
   if(!state.projectId){toast('먼저 "저장"으로 현장을 저장한 뒤 사진을 올려주세요');return;}
@@ -5537,11 +5541,30 @@ function uploadPhotos(files){
     });
   });
 }
+/* 후측량 사진 — 단일 촬영/업로드 (point_no = 번호_A) */
+function uploadAfterPhoto(file,num){
+  if(!file)return;
+  if(!online){toast('로컬 모드 — 사진 저장 불가');return;}
+  if(!state.projectId){toast('먼저 "저장"으로 현장을 저장한 뒤 촬영하세요');return;}
+  if(num==null){toast('측점을 먼저 선택하세요');return;}
+  var pn=num+'_A';toast('후측량 사진 업로드 중…');
+  compressImage(file,1280,0.7).then(function(blob){
+    var path=state.projectId+'/'+num+'_A.jpg';
+    return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
+      if(up.error)throw up.error;
+      var url=sb.storage.from('photos').getPublicUrl(path).data.publicUrl+'?t='+Date.now();
+      return sb.from('survey_photos').delete().eq('project_id',state.projectId).eq('point_no',pn).then(function(){
+        return sb.from('survey_photos').insert({project_id:state.projectId,point_no:pn,url:url}).then(function(ins){if(ins.error)throw ins.error;afterMap[num]=url;});
+      });
+    });
+  }).then(function(){toast('후측량 사진 업로드 완료');if(photoPanelOpen)refreshPhotoPanel();}).catch(function(err){console.error('after upload',num,err);toast('후측량 사진 업로드 실패');});
+}
 bind('photoBtn',function(){openPhotoPanel();});
 document.getElementById('photoClose').onclick=function(){openPhotoPanel(false);};
 document.getElementById('photoUp').onclick=function(){document.getElementById('fPhotos').click();};
 document.getElementById('photoLinkBtn').onclick=function(){photoLink=!photoLink;this.textContent=photoLink?'🔗 연동':'🔓 미연동';this.classList.toggle('linkon',photoLink);toast(photoLink?'도면↔사진 연동 ON (점 클릭=사진)':'연동 OFF (점 클릭해도 사진 고정)');};
 document.getElementById('fPhotos').addEventListener('change',function(e){uploadPhotos(e.target.files);e.target.value='';});
+document.getElementById('fAfter').addEventListener('change',function(e){if(e.target.files[0])uploadAfterPhoto(e.target.files[0],afterTargetNum);e.target.value='';});
 document.getElementById('photoSel').addEventListener('change',function(e){if(e.target.value){selNum=e.target.value;drawGeo();highlightSel();refreshPhotoPanel();}else{selNum=null;drawGeo();clearSvg(gSel);refreshPhotoPanel();}});
 /* 도면에서 점 클릭 → 선택 (이동 모드) */
 cv.addEventListener('click',function(e){
