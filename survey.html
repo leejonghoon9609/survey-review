@@ -219,7 +219,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 143</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 144</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -385,7 +385,7 @@ function showModal(opt){
     var col=(b.ok||b.primary)?'#fff':(b.danger?'#d32f2f':'#666');
     var bord=b.ok?'#16a34a':(b.primary?'#d32f2f':(b.danger?'#e3a0a0':'#d4d4cf'));
     btn.style.cssText='padding:7px 17px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid '+bord+';background:'+bg+';color:'+col+';';
-    btn.onclick=function(){card.remove();if(b.onClick)b.onClick();};
+    btn.onclick=function(){if(b.onClick)b.onClick();card.remove();};
     ft.appendChild(btn);
   });
   card.appendChild(hd);card.appendChild(bd);card.appendChild(ft);document.body.appendChild(card);
