@@ -220,8 +220,8 @@
     <button id="sysSwitch" class="wk" onclick="if(confirm('결선 DB로 이동할까요? 저장 안 한 변경은 사라집니다.'))location.href='survey.html'" style="background:#eafaf0;border:1px solid #16a34a;color:#16a34a;font-weight:700;border-radius:8px;padding:5px 11px;margin-left:2px">🔗 결선 DB 이동</button>
     <span id="roBadge" class="wk" style="display:none;cursor:pointer;color:#d98200;border:1px solid #e0b15a;background:#fff8ec;border-radius:7px;padding:2px 9px;font-size:12px;font-weight:700" title="클릭하면 수정 가능 모드로 전환">🔒 보기 전용 · 클릭=수정</span>
     <span id="viewerBar" class="vw">
-      <select id="vproj"><option value="">결선완료사업…</option></select>
-      <button id="vPhoto" class="photoBtn">📷 사진</button>
+      <select id="vproj"><option value="">결선완료사업목록</option></select>
+      <button id="vPhoto" class="photoBtn">📷 노출관로 측점사진</button>
       <button id="vMap" class="photoBtn">🗺 지도</button>
       <button id="vRv" class="photoBtn">로드뷰</button>
     </span>
@@ -235,7 +235,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 157</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 158</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5319,7 +5319,7 @@ function refreshDoneProjects(){ if(!online)return;
   sb.from('survey_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
     var rows=(res.data||[]).filter(function(p){return p.payload&&p.payload.routingDone;});
     var vsel=document.getElementById('vproj');
-    if(vsel){vsel.innerHTML='<option value="">결선완료사업…</option>'+rows.map(function(p){return '<option value="'+p.id+'">'+p.name+'</option>';}).join('');if(state.projectId)vsel.value=state.projectId;}
+    if(vsel){vsel.innerHTML='<option value="">결선완료사업목록</option>'+rows.map(function(p){return '<option value="'+p.id+'">'+p.name+'</option>';}).join('');if(state.projectId)vsel.value=state.projectId;}
     var pw=0,tn=0;rows.forEach(function(p){var n=countNotes(p.payload);if(n>0){pw++;tn+=n;}});
     var sm=document.getElementById('doneSummary');
     if(sm){if(tn>0){sm.style.display='';sm.textContent='⚠ 수정 '+pw+'사업 · '+tn+'건';}else{sm.style.display='none';}}
