@@ -183,6 +183,7 @@
   .viewer .wk{display:none!important}
   .viewer .vw{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
   .viewer #modeToggle{order:1}
+  .viewer #homeBtn{order:1;font-size:12.5px;padding:5px 9px;white-space:nowrap;flex:none}
   .viewer #vNote.on{background:#fdecef;border-color:#d32f2f;color:#d32f2f}
   .viewer .stage{flex-direction:column}
   .viewer #rail,.viewer #subbar,.viewer aside.panel{display:none}
@@ -213,6 +214,7 @@
 </head>
 <body>
   <header>
+    <button id="homeBtn" class="photoBtn" style="background:#eef2f7;border:1px solid #c6d2e0;color:#33506e;font-weight:700;border-radius:8px;padding:5px 11px;margin-right:2px">🏠 홈</button>
     <button id="modeToggle" class="photoBtn">💻 결선</button>
     <h1>탱고 DB</h1>
     <button id="sysSwitch" class="wk" onclick="if(confirm('결선 DB로 이동할까요? 저장 안 한 변경은 사라집니다.'))location.href='survey.html'" style="background:#eafaf0;border:1px solid #16a34a;color:#16a34a;font-weight:700;border-radius:8px;padding:5px 11px;margin-left:2px">🔗 결선 DB 이동</button>
@@ -233,7 +235,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 154</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 156</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5295,6 +5297,7 @@ function addNote(clientX,clientY){
   drawMarks();noteAutoSave();
 }
 bind('modeToggle',function(){if(IS_FIELD){location.href='survey.html';}else if(IS_TANGO){setViewer(!viewerMode);}else{if(confirm('후측량 현장으로 이동할까요? 저장 안 한 변경은 사라집니다.'))location.href='field.html';}});
+(function(){var hb=document.getElementById('homeBtn');if(hb)hb.onclick=function(){if(viewerMode||confirm('홈(랜딩)으로 이동할까요? 저장 안 한 변경은 사라집니다.'))location.href='index.html';};})();
 bind('vPhoto',function(){openPhotoPanel();});
 bind('vMap',toggleBgMap);
 bind('vRv',toggleRvPick);
@@ -5346,6 +5349,8 @@ function openDoneList(){
 var _dlb=document.getElementById('doneListBtn');if(_dlb)_dlb.onclick=openDoneList;
 var _rob=document.getElementById('roBadge');if(_rob)_rob.onclick=function(){if(readOnly&&state.projectId){setReadOnly(false);var ps=document.getElementById('proj');if(ps)ps.value=state.projectId;toast('수정 가능 모드로 전환 (사업 선택)');}};
 (function(){if(IS_FIELD){setViewer(true);return;}if(IS_TANGO){var saved=null;try{saved=localStorage.getItem('viewMode');}catch(e){}setViewer(saved!=null?(saved==='1'):isMobileDevice());return;}setViewer(false);})();
+/* 페이지 분리 — 이동은 랜딩에서. 결선/현장은 모드이동버튼 제거(탱고 in-page 토글만 유지), 시스템이동버튼은 전 페이지 제거 */
+(function(){var mt=document.getElementById('modeToggle');if(mt&&!IS_TANGO)mt.remove();var ss=document.getElementById('sysSwitch');if(ss)ss.remove();})();
 // 사진 방향 화살표 클릭 → 90° 회전 (사진 패널·로드뷰 패널 공통)
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.dirArrow');if(!b)return;e.stopPropagation();e.preventDefault();var p=pointByNum(b.getAttribute('data-num'));if(!p)return;cyclePhotoDir(p);b.textContent=ARROWS[getPhotoDir(p)];drawGeo();},true);
 bind('rvClose',closeRvPanel);
