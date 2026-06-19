@@ -241,7 +241,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 164</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 165</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -325,7 +325,7 @@
             <span class="rc-hint">여러 장 끌어다 놓기</span>
           </div>
           <button class="rc-btn" id="rcPhoBtn">직접 로딩</button>
-          <button class="rc-clr" id="clrPho" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">✕ 제거</button>
+          <button class="rc-clr" id="clrPho" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">🗑 사진별 삭제</button>
         </div>
         <div class="regcard crs">
           <div class="rc-t">좌표계 설정</div>
@@ -473,7 +473,7 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
   var lx=ls[0],ly=ls[1],dragging=false,moved=false,gx=0,gy=0;
   handle.addEventListener('pointerdown',function(ev){
     if(mode!=='pan'||viewerMode||readOnly)return;ev.stopPropagation();ev.preventDefault();
-    if(String(ptNum(p))!==String(selNum)){selNum=String(ptNum(p));highlightSel();if(photoPanelOpen)refreshPhotoPanel();}
+    if(p.no!==selNum){selNum=p.no;highlightSel();if(photoPanelOpen)refreshPhotoPanel();}
     dragging=true;moved=false;labelDragging=true;var w=toWorld(ev.clientX,ev.clientY);gx=w[0]-lx;gy=w[1]-ly;
     try{handle.setPointerCapture(ev.pointerId);}catch(e){}});
   handle.addEventListener('pointermove',function(ev){
@@ -680,7 +680,7 @@ function drawGeo(){
       gPts.appendChild(el('line',{x1:ax1,y1:ay1,x2:ax1-dv[0]*hl+pr[0]*hl,y2:ay1-dv[1]*hl+pr[1]*hl,stroke:AC,'stroke-width':2.6,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));
       gPts.appendChild(el('line',{x1:ax1,y1:ay1,x2:ax1-dv[0]*hl-pr[0]*hl,y2:ay1-dv[1]*hl-pr[1]*hl,stroke:AC,'stroke-width':2.6,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));})();
     var hit=el('circle',{cx:s[0],cy:s[1],r:hitR,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
-    hit.addEventListener('click',function(ev){if(mode==='ptdel'||mode==='delall2'){ev.stopPropagation();ev.preventDefault();deletePoint(p);return;}if(mode!=='pan'||labelDragging||noteMode)return;ev.stopPropagation();if(photoLink)selectPoint(ptNum(p));else{selNum=String(ptNum(p));drawGeo();highlightSel();}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
+    hit.addEventListener('click',function(ev){if(mode==='ptdel'||mode==='delall2'){ev.stopPropagation();ev.preventDefault();deletePoint(p);return;}if(mode!=='pan'||labelDragging||noteMode)return;ev.stopPropagation();if(photoLink)selectPoint(p.no);else{selNum=p.no;drawGeo();highlightSel();}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
     hit.addEventListener('mouseenter',function(){if(mode==='ptdel'||mode==='delall2'){hit.setAttribute('fill','rgba(211,47,47,0.28)');hit.setAttribute('stroke','#d32f2f');hit.setAttribute('stroke-width',1.6);hit.setAttribute('vector-effect','non-scaling-stroke');}});
     hit.addEventListener('mouseleave',function(){hit.setAttribute('fill','transparent');hit.removeAttribute('stroke');});
     gHit.appendChild(hit);
@@ -700,7 +700,7 @@ function drawGeo(){
       nt.appendChild(sub);
     }
     var ct=nt; // 핸들 호환
-    addLabelHandle(p,L,ls,nt,ct,ld,ptNum(p)===String(selNum));
+    addLabelHandle(p,L,ls,nt,ct,ld,p.no===selNum);
   });
 }
 /* ====== 맨홀 심벌 렌더 ====== */
@@ -978,7 +978,7 @@ function deletePoint(p){
     if(!app[l.layer])return true;
     return !l.pts.some(function(v){return Math.hypot(v[0]-p.x,v[1]-p.y)<0.3;});
   });
-  if(selNum===String(ptNum(p)))selNum=null;
+  if(selNum===p.no)selNum=null;
   drawGeo();updMeta();
   toast('측점 '+(p.no||'')+' 삭제');
 }
@@ -5210,9 +5210,26 @@ document.getElementById('rcDxfBtn').onclick=function(){document.getElementById('
 document.getElementById('rcPhoBtn').onclick=function(){document.getElementById('fRegPhotos').click();};
 (function(){
   var c1=document.getElementById('clrCsv');if(c1)c1.onclick=function(){state.points=[];selNum=null;clearSvg(gSel);drawGeo();updMeta();updRegStatus();toast('CSV 제거됨 — 다시 올려주세요');};
-  var c2=document.getElementById('clrPho');if(c2)c2.onclick=function(){pendingPhotos=null;updRegStatus();toast('선택 사진 제거됨');};
+  var c2=document.getElementById('clrPho');if(c2)c2.onclick=openPhotoList;
   var c3=document.getElementById('clrDxf');if(c3)c3.onclick=function(){state.lines=(state.lines||[]).filter(function(l){return !l.base;});drawGeo();updMeta();updRegStatus();toast('수치지도(백판) 제거됨');};
 })();
+function openPhotoList(){
+  if(!pendingPhotos||!pendingPhotos.length){toast('선택된 사진이 없습니다');return;}
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center';
+  var box=document.createElement('div');
+  box.style.cssText='background:#fff;border-radius:12px;max-width:440px;width:88%;max-height:74vh;display:flex;flex-direction:column;box-shadow:0 8px 30px rgba(0,0,0,.25)';
+  function render(){
+    var rows=pendingPhotos.map(function(f,i){return '<div style="display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid #f2f2f2;font-size:13px"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+f.name+'</span><button data-i="'+i+'" class="ppl-x" style="flex:none;border:1px solid #e3b4ae;background:#fff;color:#c0392b;border-radius:6px;padding:2px 9px;font-size:12px;cursor:pointer">✕</button></div>';}).join('');
+    box.innerHTML='<div style="display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid #eee"><b style="flex:1;font-size:15px">선택 사진 '+pendingPhotos.length+'장</b><button id="pplClose" style="border:none;background:#f2f2f2;border-radius:7px;padding:5px 11px;cursor:pointer">닫기</button></div><div style="overflow:auto">'+rows+'</div><div style="padding:10px 14px;border-top:1px solid #eee;text-align:right"><button id="pplAll" style="border:1px solid #e3b4ae;background:#fff;color:#c0392b;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer">전체 비우기</button></div>';
+    [].forEach.call(box.querySelectorAll('.ppl-x'),function(b){b.onclick=function(){var i=+this.getAttribute('data-i');pendingPhotos.splice(i,1);updRegStatus();if(!pendingPhotos.length){pendingPhotos=null;ov.remove();toast('사진 전부 제거됨');return;}render();};});
+    box.querySelector('#pplClose').onclick=function(){ov.remove();};
+    box.querySelector('#pplAll').onclick=function(){pendingPhotos=null;updRegStatus();ov.remove();toast('선택 사진 전부 제거됨');};
+  }
+  render();
+  ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};
+  document.body.appendChild(ov);
+}
 function regAddPhotos(list){var arr=[].slice.call(list);if(!arr.length)return;pendingPhotos=(pendingPhotos||[]).concat(arr);updRegStatus();toast('사진 '+pendingPhotos.length+'장 선택 (등록 시 업로드)');}
 document.getElementById('fRegPhotos').addEventListener('change',function(e){regAddPhotos(e.target.files);e.target.value='';});
 function setupDrop(zid,onfiles){var z=document.getElementById(zid);if(!z)return;
@@ -5398,7 +5415,7 @@ var _rob=document.getElementById('roBadge');if(_rob)_rob.onclick=function(){if(r
 /* 측량(현장) 전용: 탱고작업용 성과제작 버튼 (기능은 다음 단계에서 연결) */
 (function(){var tb=document.getElementById('tangoMakeBtn');if(!tb)return;if(IS_FIELD){tb.style.display='block';tb.onclick=function(){toast('탱고작업용 성과제작 — 다음 단계에서 기능을 연결합니다');};}else{tb.remove();}})();
 // 사진 방향 화살표 클릭 → 90° 회전 (사진 패널·로드뷰 패널 공통)
-document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.dirArrow');if(!b)return;e.stopPropagation();e.preventDefault();var p=pointByNum(b.getAttribute('data-num'));if(!p)return;cyclePhotoDir(p);b.textContent=ARROWS[getPhotoDir(p)];drawGeo();},true);
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.dirArrow');if(!b)return;e.stopPropagation();e.preventDefault();var p=pointByNo(b.getAttribute('data-num'));if(!p)return;cyclePhotoDir(p);b.textContent=ARROWS[getPhotoDir(p)];drawGeo();},true);
 bind('rvClose',closeRvPanel);
 
 /* ===== 지도 배경 (도면 뒤에 깔림, 방식 나) ===== */
@@ -5512,14 +5529,16 @@ function drawMeasure(){clearSvg(gMeasure);clearLabels('measure');if(!measurePts.
 function ptNum(p){return (p.no||'').toString().split('-').pop();}
 function pointByNum(n){for(var i=0;i<state.points.length;i++)if(ptNum(state.points[i])===String(n))return state.points[i];return null;}
 function sortedNums(){return state.points.map(ptNum).filter(function(v){return v!=='';}).sort(function(a,b){return (parseFloat(a)||0)-(parseFloat(b)||0);});}
+function pointByNo(no){if(no==null)return null;for(var i=0;i<state.points.length;i++)if(state.points[i].no===no)return state.points[i];return pointByNum(no);}
+function sortedNos(){return state.points.map(function(p){return p.no;}).filter(function(v){return v;}).sort(function(a,b){function pr(s){var m=/^(\d{6})-?(.*)$/.exec(s);return m?[parseFloat(m[1])||0,parseFloat(m[2])||0]:[0,parseFloat(s.split('-').pop())||0];}var A=pr(a),B=pr(b);return A[0]-B[0]||A[1]-B[1];});}
 function pointAtCoord(x,y){for(var i=0;i<state.points.length;i++){var q=state.points[i];if(Math.abs(q.x-x)<0.06&&Math.abs(q.y-y)<0.06)return q;}return null;}
-function lineNeighbors(sel){var p=pointByNum(sel);if(!p)return [];var res=[];(state.lines||[]).forEach(function(l){if(l.layer!=='통신관로')return;var pts=l.pts;for(var i=0;i<pts.length;i++){if(Math.abs(pts[i][0]-p.x)<0.06&&Math.abs(pts[i][1]-p.y)<0.06){[i-1,i+1].forEach(function(j){if(j>=0&&j<pts.length){var q=pointAtCoord(pts[j][0],pts[j][1]);if(q&&ptNum(q)!==String(sel)&&res.indexOf(q)<0)res.push(q);}});}}});return res;}
-function neighborsOf(sel){var selP=pointByNum(sel),up=null,down=null;if(!selP)return {up:null,down:null};
+function lineNeighbors(sel){var p=pointByNo(sel);if(!p)return [];var res=[];(state.lines||[]).forEach(function(l){if(l.layer!=='통신관로')return;var pts=l.pts;for(var i=0;i<pts.length;i++){if(Math.abs(pts[i][0]-p.x)<0.06&&Math.abs(pts[i][1]-p.y)<0.06){[i-1,i+1].forEach(function(j){if(j>=0&&j<pts.length){var q=pointAtCoord(pts[j][0],pts[j][1]);if(q&&q.no!==sel&&res.indexOf(q)<0)res.push(q);}});}}});return res;}
+function neighborsOf(sel){var selP=pointByNo(sel),up=null,down=null;if(!selP)return {up:null,down:null};
   var nb=lineNeighbors(sel);
   if(nb.length){nb.forEach(function(q){if(q.y>selP.y){if(!up||q.y<up.y)up=q;}else{if(!down||q.y>down.y)down=q;}});}
-  else{var ups=[],downs=[];state.points.forEach(function(q){if(ptNum(q)===String(sel))return;var d=Math.hypot(q.x-selP.x,q.y-selP.y);(q.y>selP.y?ups:downs).push({q:q,d:d});});ups.sort(function(a,b){return a.d-b.d;});downs.sort(function(a,b){return a.d-b.d;});if(ups[0])up=ups[0].q;if(downs[0])down=downs[0].q;}
+  else{var ups=[],downs=[];state.points.forEach(function(q){if(q.no===sel)return;var d=Math.hypot(q.x-selP.x,q.y-selP.y);(q.y>selP.y?ups:downs).push({q:q,d:d});});ups.sort(function(a,b){return a.d-b.d;});downs.sort(function(a,b){return a.d-b.d;});if(ups[0])up=ups[0].q;if(downs[0])down=downs[0].q;}
   return {up:up,down:down};}
-function highlightSel(){clearSvg(gSel);if(selNum==null)return;var p=pointByNum(selNum);if(!p)return;
+function highlightSel(){clearSvg(gSel);if(selNum==null)return;var p=pointByNo(selNum);if(!p)return;
   var nbs=neighborsOf(selNum);
   [nbs.up,nbs.down].forEach(function(q){if(q){var sy=S(q.x,q.y);gSel.appendChild(el('circle',{cx:sy[0],cy:sy[1],r:0.224,fill:'none',stroke:'#ffcc00','stroke-width':1.4,'vector-effect':'non-scaling-stroke'}));}});
   var s=S(p.x,p.y);gSel.appendChild(el('circle',{cx:s[0],cy:s[1],r:0.28,fill:'none',stroke:'#22cc00','stroke-width':2.2,'vector-effect':'non-scaling-stroke'}));}
@@ -5547,28 +5566,28 @@ function defaultPhotoDir(p){var v=pipeDirAt(p);return v?dir4FromVec(v[0],v[1]):0
 function getPhotoDir(p){if(!p)return 0;var k=ptNum(p);if(state.photoDir&&state.photoDir[k]!=null)return state.photoDir[k];return defaultPhotoDir(p);}
 function setPhotoDir(p,d){if(!state.photoDir)state.photoDir={};state.photoDir[ptNum(p)]=((d%4)+4)%4;}
 function cyclePhotoDir(p){setPhotoDir(p,getPhotoDir(p)+1);}
-function paneImg(num,label,big){var url=num!=null?photoMap[num]:null;var p=num!=null?pointByNum(num):null;var sub=p?(p.no+' '+((p.code||'').trim())):(num!=null?('번호 '+num):'');
+function paneImg(no,label,big){var p=no!=null?pointByNo(no):null;var bn=p?ptNum(p):null;var url=bn!=null?photoMap[bn]:null;var sub=p?(p.no+' '+((p.code||'').trim())):(no!=null?('번호 '+no):'');
   var cap=sub?(label+' / '+sub):label;
   var inner;
   if(url){inner=big?('<div class="zoomwrap"><img class="ph" id="zoomImg" src="'+url+'" alt=""></div>'):('<img class="ph" src="'+url+'" alt="">');}
-  else{inner='<div class="ph php-none">'+(num!=null?'사진 없음':'-')+'</div>';}
-  var arrow=p?('<button class="dirArrow" data-num="'+num+'" title="사진 방향 — 클릭하면 회전">'+ARROWS[getPhotoDir(p)]+'</button>'):'';
+  else{inner='<div class="ph php-none">'+(no!=null?'사진 없음':'-')+'</div>';}
+  var arrow=p?('<button class="dirArrow" data-num="'+p.no+'" title="사진 방향 — 클릭하면 회전">'+ARROWS[getPhotoDir(p)]+'</button>'):'';
   return '<div class="'+(big?'php-main':'php-sub')+'"><div class="cap">'+arrow+'<span>'+cap+'</span></div>'+inner+'</div>';}
 /* 후측량 사진 슬롯 — afterMap 표시 + 폰:촬영 / PC:새로고침 (캡션 번호 뒤 _A) */
-function paneAfter(num,label){var url=num!=null?afterMap[num]:null;var p=num!=null?pointByNum(num):null;
-  var sub=p?((p.no+'_A '+((p.code||'').trim())).trim()):(num!=null?('번호 '+num+'_A'):'');
+function paneAfter(no,label){var p=no!=null?pointByNo(no):null;var bn=p?ptNum(p):null;var url=bn!=null?afterMap[bn]:null;
+  var sub=p?((p.no+'_A '+((p.code||'').trim())).trim()):(no!=null?('번호 '+no+'_A'):'');
   var cap=sub?(label+' / '+sub):label;
   var isMob=(typeof isMobileDevice==='function')?isMobileDevice():false;
   var btn='';
-  if(num!=null){
-    if(isMob&&viewerMode)btn='<button class="afterCap" data-num="'+num+'" style="flex:none;margin-left:auto;border:1px solid #16a34a;background:#eafaf0;color:#16a34a;border-radius:7px;padding:4px 10px;font-size:13px;font-weight:700;cursor:pointer">📷 '+(url?'재촬영':'촬영')+'</button>';
-    else if(!isMob)btn='<button class="afterRefresh" data-num="'+num+'" style="flex:none;margin-left:auto;border:1px solid #1f6fd6;background:#eef4fc;color:#1f6fd6;border-radius:7px;padding:4px 10px;font-size:13px;font-weight:700;cursor:pointer">🔄 새로고침</button>';
+  if(no!=null){
+    if(isMob&&viewerMode)btn='<button class="afterCap" data-num="'+bn+'" style="flex:none;margin-left:auto;border:1px solid #16a34a;background:#eafaf0;color:#16a34a;border-radius:7px;padding:4px 10px;font-size:13px;font-weight:700;cursor:pointer">📷 '+(url?'재촬영':'촬영')+'</button>';
+    else if(!isMob)btn='<button class="afterRefresh" data-num="'+bn+'" style="flex:none;margin-left:auto;border:1px solid #1f6fd6;background:#eef4fc;color:#1f6fd6;border-radius:7px;padding:4px 10px;font-size:13px;font-weight:700;cursor:pointer">🔄 새로고침</button>';
   }
   var ph=url?('<img class="ph" src="'+url+'" alt="">'):('<div class="ph php-none">'+((isMob&&viewerMode)?'📷 촬영 버튼으로 후측량 사진을 찍어주세요':(!isMob?'🔄 새로고침으로 최신 후측량 사진을 불러오세요':'촬영 예정'))+'</div>');
   return '<div class="php-main php-after"><div class="cap"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+cap+'</span>'+btn+'</div>'+ph+'</div>';}
 function refreshPhotoPanel(){
-  var sel=document.getElementById('photoSel'),nums=sortedNums();
-  sel.innerHTML='<option value="">측점 선택…</option>'+nums.map(function(n){var p=pointByNum(n);return '<option value="'+n+'">'+(p?p.no:n)+'</option>';}).join('');
+  var sel=document.getElementById('photoSel'),nos=sortedNos();
+  sel.innerHTML='<option value="">측점 선택…</option>'+nos.map(function(n){return '<option value="'+n+'">'+n+'</option>';}).join('');
   if(selNum!=null)sel.value=String(selNum);
   var body=document.getElementById('photoBody');
   if(selNum==null){body.innerHTML='<div style="color:#999;font-size:12px;padding:14px;text-align:center;line-height:1.7">측점을 선택하세요.<br>(위 드롭다운 또는 도면에서 점 클릭)<br>또는 <b>사진 업로드</b>로 일괄 등록</div>';return;}
@@ -5578,7 +5597,7 @@ function refreshPhotoPanel(){
   }else{
     // 결선 DB: 원래대로 — 선택측점 사진 + 위/아래 측점 썸네일
     var nbs=neighborsOf(selNum),up=nbs.up,down=nbs.down;
-    var n1=up?ptNum(up):null,n2=down?ptNum(down):null;
+    var n1=up?up.no:null,n2=down?down.no:null;
     if(viewerMode){body.innerHTML=paneImg(selNum,'선택측점 사진',true);}
     else{body.innerHTML=paneImg(selNum,'선택측점 사진',true)+'<div class="php-row">'+paneImg(n1,'위 측점',false)+paneImg(n2,'아래 측점',false)+'</div>';}
   }
@@ -5643,8 +5662,8 @@ cv.addEventListener('click',function(e){
   var w=toWorld(e.clientX,e.clientY),r=cv.getBoundingClientRect(),wpp=vb.w/r.width;
   var nr=nearestPointWorld(w[0],w[1]);
   if(nr.p&&nr.d<40*wpp){
-    if(photoLink){selectPoint(ptNum(nr.p));}
-    else{selNum=String(ptNum(nr.p));drawGeo();highlightSel();}
+    if(photoLink){selectPoint(nr.p.no);}
+    else{selNum=nr.p.no;drawGeo();highlightSel();}
     toast('측점 '+nr.p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));
   }
 });
