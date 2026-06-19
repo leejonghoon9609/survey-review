@@ -202,7 +202,7 @@
   <header>
     <button id="modeToggle" class="photoBtn">📱 뷰어</button>
     <h1>후측량 결선 DB</h1>
-    <span id="roBadge" class="wk" style="display:none;color:#d98200;border:1px solid #e0b15a;background:#fff8ec;border-radius:7px;padding:2px 9px;font-size:12px;font-weight:700">🔒 보기 전용</span>
+    <span id="roBadge" class="wk" style="display:none;cursor:pointer;color:#d98200;border:1px solid #e0b15a;background:#fff8ec;border-radius:7px;padding:2px 9px;font-size:12px;font-weight:700" title="클릭하면 수정 가능 모드로 전환">🔒 보기 전용 · 클릭=수정</span>
     <span id="viewerBar" class="vw">
       <select id="vproj"><option value="">결선완료사업…</option></select>
       <button id="vPhoto" class="photoBtn">📷 사진</button>
@@ -219,7 +219,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 144</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 145</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5317,6 +5317,7 @@ function openDoneList(){
   });
 }
 var _dlb=document.getElementById('doneListBtn');if(_dlb)_dlb.onclick=openDoneList;
+var _rob=document.getElementById('roBadge');if(_rob)_rob.onclick=function(){if(readOnly&&state.projectId){setReadOnly(false);var ps=document.getElementById('proj');if(ps)ps.value=state.projectId;toast('수정 가능 모드로 전환 (사업 선택)');}};
 (function(){var saved=null;try{saved=localStorage.getItem('viewMode');}catch(e){}setViewer(saved!=null?(saved==='1'):isMobileDevice());})();
 // 사진 방향 화살표 클릭 → 90° 회전 (사진 패널·로드뷰 패널 공통)
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.dirArrow');if(!b)return;e.stopPropagation();e.preventDefault();var p=pointByNum(b.getAttribute('data-num'));if(!p)return;cyclePhotoDir(p);b.textContent=ARROWS[getPhotoDir(p)];drawGeo();},true);
