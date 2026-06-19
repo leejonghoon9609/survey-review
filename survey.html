@@ -132,6 +132,13 @@
   .recclr{padding:2px 8px;font-size:11px;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer}
   .recclr:hover{color:var(--bad);border-color:var(--bad);background:#fbeeee}
   .photoBtn{background:#eef6ef;border-color:#bcdcc0;color:#2a9e50;font-weight:600}
+  /* 버튼 색 구분 */
+  #modeToggle{background:#eaf1ff;border-color:#6a8fe0;color:#2456c7;font-weight:700}
+  #photoBtn,#vPhoto{background:#e3f6f2;border-color:#5cc9b8;color:#0f766e;font-weight:700}
+  #bgBtn,#vMap{background:#fff5dd;border-color:#e3bb55;color:#a87a00;font-weight:700}
+  #rvBtn,#vRv{background:#f1ebff;border-color:#a98ee8;color:#6d28d9;font-weight:700}
+  #bgBtn.on,#vMap.on{background:#e3a008;border-color:#e3a008;color:#fff}
+  #rvBtn.on,#vRv.on{background:#7c3aed;border-color:#7c3aed;color:#fff}
   .photo-panel{width:37%;min-width:480px;max-width:44%;background:#fff;border-left:1px solid var(--line);display:none;flex-direction:column;flex:none}
   .linkon{background:#eef6ef;border-color:#bcdcc0;color:#2a9e50;font-weight:600}
   .photo-panel.open{display:flex}
@@ -170,7 +177,6 @@
   .viewer .vw{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
   .viewer #modeToggle{order:1}
   .viewer #vNote.on{background:#fdecef;border-color:#d32f2f;color:#d32f2f}
-  .viewer #vMap.on,.viewer #vRv.on{background:#fdf0ff;border-color:#d500f2;color:#d500f2}
   .viewer .stage{flex-direction:column}
   .viewer #rail,.viewer #subbar,.viewer aside.panel{display:none}
   .viewer .maincol{flex:1;min-height:0;width:100%}
@@ -219,7 +225,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 147</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 148</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
