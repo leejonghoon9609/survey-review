@@ -182,9 +182,13 @@
   .jz-ph2{display:flex;border-top:1px solid #333}
   .jz-pc{flex:1;min-width:0;display:flex;flex-direction:column}
   .jz-pc+.jz-pc{border-left:1px solid #333}
-  .jz-pc img{width:100%;height:150px;object-fit:cover;display:block}
-  .jz-pc .ne{display:flex;align-items:center;justify-content:center;height:150px;color:#bbb;font-size:12px}
+  .jz-pc img{width:100%;height:220px;object-fit:cover;display:block}
+  .jz-pc .ne{display:flex;align-items:center;justify-content:center;height:220px;color:#bbb;font-size:12px}
   .jz-cap{text-align:center;font-weight:700;background:#fafafa;border-top:1px solid #333;padding:4px;font-size:12px}
+  .jz-datemenu{display:none;position:absolute;top:100%;right:0;margin-top:4px;background:#fff;border:1px solid #ccc;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.15);z-index:50;min-width:170px;overflow:hidden}
+  .jz-dateitem{padding:9px 13px;font-size:13px;cursor:pointer;border-bottom:1px solid #f1f1f1;white-space:nowrap}
+  .jz-dateitem:last-child{border-bottom:none}
+  .jz-dateitem:hover{background:#e7faf5}
   .jz-link{border:1px solid #16a34a;border-radius:7px;padding:4px 10px;font-weight:700;cursor:pointer;background:#eafaf0;color:#16a34a}
   .jz-link.off{border-color:#9ca3af;background:#f3f4f6;color:#6b7280}
   .jz-done{background:#eef2ff;border:1px solid #4f46e5;color:#4f46e5;border-radius:7px;padding:4px 10px;font-weight:700;cursor:pointer}
@@ -322,7 +326,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 190</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 191</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -369,10 +373,13 @@
       <div class="php-head">
         <h3>실시간 사진조서</h3>
         <button id="joseoLinkBtn" class="jz-link">🔗 연동</button>
-        <button onclick="joseoDownloadAll()" class="jz-dlall">📦 전체 ZIP</button>
-        <button id="joseoDlDate" onclick="joseoDownloadDate()" class="jz-dldate">📥 날짜별 다운로드</button>
         <button id="joseoDoneBtn" class="jz-done">✅ 완료등록</button>
-        <button onclick="closeJoseoPanel()">✕</button>
+        <div style="margin-left:auto;display:flex;gap:6px;align-items:center;position:relative">
+          <button onclick="joseoDownloadAll()" class="jz-dlall">📦 전체 ZIP</button>
+          <button id="joseoDlDate" class="jz-dldate">📥 날짜별 다운로드 ▾</button>
+          <div id="joseoDateMenu" class="jz-datemenu"></div>
+          <button onclick="closeJoseoPanel()">✕</button>
+        </div>
       </div>
       <div id="joseoTabs" class="jz-tabs"></div>
       <div id="joseoProgWrap" class="jz-prog"><div id="joseoProgTxt" class="jz-progtxt"></div><div class="jz-progbar"><div id="joseoProgBar"></div></div></div>
@@ -5848,6 +5855,8 @@ function joseoRegisterDone(){
   if(lb) lb.onclick=function(){ joseoLink=!joseoLink; this.textContent=joseoLink?'🔗 연동':'🔓 미연동'; this.classList.toggle('off',!joseoLink); toast(joseoLink?'측점↔조서 연동 ON (점 클릭=조서 이동)':'조서 연동 OFF'); };
   var db=document.getElementById('joseoDoneBtn');
   if(db) db.onclick=joseoRegisterDone;
+  var dd=document.getElementById('joseoDlDate');
+  if(dd) dd.onclick=function(e){ e.stopPropagation(); joseoToggleDateMenu(); };
 })();
 function closeJoseoPanel(){ var p=document.getElementById('joseoPanel'); if(p)p.style.display='none'; }
 function joseoRenderTabs(){
@@ -5857,7 +5866,6 @@ function joseoRenderTabs(){
     b.onclick=function(){ joseoState.cur=dk; joseoRenderTabs(); joseoRenderPreview(dk); };
     t.appendChild(b);
   });
-  var dl=document.getElementById('joseoDlDate'); if(dl)dl.textContent='📥 '+joseoState.cur+' 다운로드';
 }
 function joseoRenderPreview(dk){
   var box=document.getElementById('joseoPreview'); if(!box)return;
@@ -5868,6 +5876,7 @@ function joseoRenderPreview(dk){
     var aft=r.aftUrl?'<img src="'+joseoEsc(r.aftUrl)+'">':'<div class="ne">공사후 사진 없음</div>';
     html+='<div class="jz-card" data-no="'+joseoEsc(r.fullNo||r.name)+'">'
       +'<table class="jz-tbl">'
+      +'<colgroup><col style="width:17%"><col style="width:16.5%"><col style="width:16.5%"><col style="width:12.5%"><col style="width:12.5%"><col style="width:12.5%"><col style="width:12.5%"></colgroup>'
       +'<tr><td class="lbl">측량날짜</td><td class="val" colspan="2">'+joseoEsc(r.date)+'</td><td class="lbl">측점명</td><td class="val" colspan="3">'+joseoEsc(r.name)+'</td></tr>'
       +'<tr><td class="lbl" colspan="2">좌표(GRS80)</td><td class="lbl" rowspan="2">시설물종류</td><td class="lbl" rowspan="2">재질</td><td class="lbl" rowspan="2">관경</td><td class="lbl" rowspan="2">이격거리</td><td class="lbl" rowspan="2">심도</td></tr>'
       +'<tr><td class="lbl">X(N)</td><td class="lbl">Y(E)</td></tr>'
@@ -5879,10 +5888,10 @@ function joseoRenderPreview(dk){
   });
   box.innerHTML=html;
 }
-async function joseoDownloadDate(){
+async function joseoDownloadDate(forceDk){
   if(!joseoState)return;
   try{
-    var dk=joseoState.cur, recs=(joseoState.groups[dk]||[]).map(joseoRec);
+    var dk=forceDk||joseoState.cur, recs=(joseoState.groups[dk]||[]).map(joseoRec);
     joseoProg('사진 불러오는 중…',0.05);
     await joseoFetchPhotos(recs,function(d,t){ joseoProg('사진 '+d+'/'+t, t?(d/t*0.7):0.5); });
     joseoProg('엑셀 생성 중…',0.85);
@@ -5892,6 +5901,14 @@ async function joseoDownloadDate(){
     joseoProg('완료 ✓',1); setTimeout(joseoProgHide,1200);
   }catch(e){ toast('조서 생성 실패: '+(e&&e.message||e)); joseoProgHide(); }
 }
+function joseoToggleDateMenu(){
+  var m=document.getElementById('joseoDateMenu'); if(!m||!joseoState)return;
+  if(m.style.display==='block'){ m.style.display='none'; return; }
+  m.innerHTML=joseoState.dates.map(function(dk){ return '<div class="jz-dateitem" data-dk="'+joseoEsc(dk)+'">📥 '+joseoEsc(dk)+' ('+joseoState.groups[dk].length+') 다운로드</div>'; }).join('');
+  [].forEach.call(m.querySelectorAll('.jz-dateitem'),function(it){ it.onclick=function(e){ e.stopPropagation(); var dk=this.getAttribute('data-dk'); m.style.display='none'; joseoDownloadDate(dk); }; });
+  m.style.display='block';
+}
+document.addEventListener('click',function(e){ var m=document.getElementById('joseoDateMenu'); if(!m||m.style.display!=='block')return; if(!e.target.closest('#joseoDateMenu')&&e.target.id!=='joseoDlDate') m.style.display='none'; });
 function joseoDownloadFinal(){
   if(!joseoEnsureLibs())return;
   if(!state.projectName){ toast('먼저 사업을 불러오세요'); return; }
