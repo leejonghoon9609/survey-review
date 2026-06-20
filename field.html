@@ -185,7 +185,7 @@
   .jz-pc img{width:100%;height:220px;object-fit:cover;display:block}
   .jz-pc .ne{display:flex;align-items:center;justify-content:center;height:220px;color:#bbb;font-size:12px}
   .jz-cap{text-align:center;font-weight:700;background:#fafafa;border-top:1px solid #333;padding:4px;font-size:12px}
-  .jz-datemenu{display:none;position:absolute;top:100%;right:0;margin-top:4px;background:#fff;border:1px solid #ccc;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.15);z-index:50;min-width:170px;overflow:hidden}
+  .jz-datemenu{display:none;position:fixed;background:#fff;border:1px solid #ccc;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.18);z-index:1300;min-width:200px;overflow:hidden}
   .jz-dateitem{padding:9px 13px;font-size:13px;cursor:pointer;border-bottom:1px solid #f1f1f1;white-space:nowrap}
   .jz-dateitem:last-child{border-bottom:none}
   .jz-dateitem:hover{background:#e7faf5}
@@ -326,7 +326,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 191</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 192</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -376,7 +376,7 @@
         <button id="joseoDoneBtn" class="jz-done">✅ 완료등록</button>
         <div style="margin-left:auto;display:flex;gap:6px;align-items:center;position:relative">
           <button onclick="joseoDownloadAll()" class="jz-dlall">📦 전체 ZIP</button>
-          <button id="joseoDlDate" class="jz-dldate">📥 날짜별 다운로드 ▾</button>
+          <button id="joseoDlDate" class="jz-dldate">📥 날자별 다운로드 ▾</button>
           <div id="joseoDateMenu" class="jz-datemenu"></div>
           <button onclick="closeJoseoPanel()">✕</button>
         </div>
@@ -5902,11 +5902,17 @@ async function joseoDownloadDate(forceDk){
   }catch(e){ toast('조서 생성 실패: '+(e&&e.message||e)); joseoProgHide(); }
 }
 function joseoToggleDateMenu(){
-  var m=document.getElementById('joseoDateMenu'); if(!m||!joseoState)return;
+  var m=document.getElementById('joseoDateMenu'), btn=document.getElementById('joseoDlDate');
+  if(!m||!btn){ return; }
   if(m.style.display==='block'){ m.style.display='none'; return; }
+  if(!joseoState||!joseoState.dates||!joseoState.dates.length){ toast('먼저 사업을 불러오세요'); return; }
   m.innerHTML=joseoState.dates.map(function(dk){ return '<div class="jz-dateitem" data-dk="'+joseoEsc(dk)+'">📥 '+joseoEsc(dk)+' ('+joseoState.groups[dk].length+') 다운로드</div>'; }).join('');
   [].forEach.call(m.querySelectorAll('.jz-dateitem'),function(it){ it.onclick=function(e){ e.stopPropagation(); var dk=this.getAttribute('data-dk'); m.style.display='none'; joseoDownloadDate(dk); }; });
   m.style.display='block';
+  var r=btn.getBoundingClientRect();
+  m.style.top=(r.bottom+5)+'px';
+  m.style.left='auto';
+  m.style.right=Math.max(8,(window.innerWidth-r.right))+'px';
 }
 document.addEventListener('click',function(e){ var m=document.getElementById('joseoDateMenu'); if(!m||m.style.display!=='block')return; if(!e.target.closest('#joseoDateMenu')&&e.target.id!=='joseoDlDate') m.style.display='none'; });
 function joseoDownloadFinal(){
