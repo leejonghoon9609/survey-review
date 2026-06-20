@@ -177,10 +177,14 @@
   table.jz-tbl td{border:1px solid #333;font-size:12px;text-align:center;padding:5px 4px;word-break:break-all}
   table.jz-tbl td.lbl{background:#fff;font-weight:700}
   table.jz-tbl td.val{font-weight:700}
-  table.jz-tbl td.ph{padding:0;height:200px;vertical-align:middle}
-  table.jz-tbl td.ph img{width:100%;height:200px;object-fit:cover;display:block}
-  table.jz-tbl td.ph i{display:flex;align-items:center;justify-content:center;height:200px;color:#bbb;font-size:13px;font-style:normal}
   table.jz-tbl td.cap{font-weight:700;background:#fafafa}
+  /* 사진 좌우 동일폭(50:50) */
+  .jz-ph2{display:flex;border-top:1px solid #333}
+  .jz-pc{flex:1;min-width:0;display:flex;flex-direction:column}
+  .jz-pc+.jz-pc{border-left:1px solid #333}
+  .jz-pc img{width:100%;height:150px;object-fit:cover;display:block}
+  .jz-pc .ne{display:flex;align-items:center;justify-content:center;height:150px;color:#bbb;font-size:12px}
+  .jz-cap{text-align:center;font-weight:700;background:#fafafa;border-top:1px solid #333;padding:4px;font-size:12px}
   .jz-link{border:1px solid #16a34a;border-radius:7px;padding:4px 10px;font-weight:700;cursor:pointer;background:#eafaf0;color:#16a34a}
   .jz-link.off{border-color:#9ca3af;background:#f3f4f6;color:#6b7280}
   .jz-done{background:#eef2ff;border:1px solid #4f46e5;color:#4f46e5;border-radius:7px;padding:4px 10px;font-weight:700;cursor:pointer}
@@ -318,7 +322,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 189</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 190</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5682,7 +5686,7 @@ function openFinalStatus(){
   ov.style.cssText='position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center';
   var box=document.createElement('div');
   box.style.cssText='background:#fff;border-radius:14px;width:92%;max-width:440px;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden';
-  function row(k,label){var done=!!fd[k];return '<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #f1f1f1"><span style="flex:1;font-size:15px;font-weight:600">'+label+'</span><span style="font-size:13px;font-weight:800;padding:4px 11px;border-radius:20px;'+(done?'background:#eafaf0;color:#16a34a;border:1px solid #16a34a':'background:#fff5f5;color:#d32f2f;border:1px solid #d32f2f')+'">'+(done?'등록완료':'미완료')+'</span><button class="fs-tgl" data-k="'+k+'" style="border:1px solid #ccc;background:#fff;border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer">'+(done?'미완료로':'등록완료')+'</button></div>';}
+  function row(k,label){var done=!!fd[k];var btn=(k==='joseo'&&done)?'<button class="fs-dl" style="border:1px solid #0d9488;background:#e7faf5;color:#0d9488;border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer;font-weight:700">📥 다운로드</button>':'<button class="fs-tgl" data-k="'+k+'" style="border:1px solid #ccc;background:#fff;border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer">'+(done?'미완료로':'등록완료')+'</button>';return '<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #f1f1f1"><span style="flex:1;font-size:15px;font-weight:600">'+label+'</span><span style="font-size:13px;font-weight:800;padding:4px 11px;border-radius:20px;'+(done?'background:#eafaf0;color:#16a34a;border:1px solid #16a34a':'background:#fff5f5;color:#d32f2f;border:1px solid #d32f2f')+'">'+(done?'등록완료':'미완료')+'</span>'+btn+'</div>';}
   function render(){
     var allDone=items.every(function(it){return !!fd[it[0]];});
     box.innerHTML='<div style="padding:15px 18px;border-bottom:1px solid #eee;display:flex;align-items:center"><b style="flex:1;font-size:16px;color:#4f46e5">📋 후측량 최종성과 등록</b><button id="fsClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div>'
@@ -5690,6 +5694,7 @@ function openFinalStatus(){
       +'<div style="padding:13px 18px;font-size:13px;'+(allDone?'color:#16a34a;font-weight:700':'color:#888')+'">'+(allDone?'✅ 모든 성과 등록완료':'각 항목을 등록완료로 표시하세요 (성과 제작 연결은 다음 단계)')+'</div>';
     box.querySelector('#fsClose').onclick=function(){ov.remove();};
     [].forEach.call(box.querySelectorAll('.fs-tgl'),function(b){b.onclick=function(){var k=this.getAttribute('data-k');fd[k]=!fd[k];state.fieldDone=fd;if(online&&state.projectId)saveProject();refreshFieldBar();render();};});
+    var dlb=box.querySelector('.fs-dl'); if(dlb)dlb.onclick=function(){ joseoDownloadFinal(); };
   }
   render();ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};document.body.appendChild(ov);
 }
@@ -5859,17 +5864,18 @@ function joseoRenderPreview(dk){
   var recs=(joseoState.groups[dk]||[]).map(joseoRec);
   var html='<div class="jz-proj">사업명 : '+joseoEsc(state.projectName||'')+'</div>';
   recs.forEach(function(r){
-    var exp=r.expUrl?'<img src="'+joseoEsc(r.expUrl)+'">':'<i>실시간 사진 없음</i>';
-    var aft=r.aftUrl?'<img src="'+joseoEsc(r.aftUrl)+'">':'<i>공사후 사진 없음</i>';
+    var exp=r.expUrl?'<img src="'+joseoEsc(r.expUrl)+'">':'<div class="ne">실시간 사진 없음</div>';
+    var aft=r.aftUrl?'<img src="'+joseoEsc(r.aftUrl)+'">':'<div class="ne">공사후 사진 없음</div>';
     html+='<div class="jz-card" data-no="'+joseoEsc(r.fullNo||r.name)+'">'
       +'<table class="jz-tbl">'
       +'<tr><td class="lbl">측량날짜</td><td class="val" colspan="2">'+joseoEsc(r.date)+'</td><td class="lbl">측점명</td><td class="val" colspan="3">'+joseoEsc(r.name)+'</td></tr>'
       +'<tr><td class="lbl" colspan="2">좌표(GRS80)</td><td class="lbl" rowspan="2">시설물종류</td><td class="lbl" rowspan="2">재질</td><td class="lbl" rowspan="2">관경</td><td class="lbl" rowspan="2">이격거리</td><td class="lbl" rowspan="2">심도</td></tr>'
       +'<tr><td class="lbl">X(N)</td><td class="lbl">Y(E)</td></tr>'
       +'<tr><td class="val">'+joseoEsc(r.x)+'</td><td class="val">'+joseoEsc(r.y)+'</td><td class="val">'+joseoEsc(r.facility)+'</td><td class="val">'+joseoEsc(r.mat)+'</td><td class="val">'+joseoEsc(r.dia)+'</td><td class="val">'+joseoEsc(r.gap)+'</td><td class="val">'+joseoEsc(r.depth)+'</td></tr>'
-      +'<tr><td class="ph" colspan="3">'+exp+'</td><td class="ph" colspan="4">'+aft+'</td></tr>'
-      +'<tr><td class="cap" colspan="3">실시간 측량점</td><td class="cap" colspan="4">공사 후 관로</td></tr>'
-      +'</table></div>';
+      +'</table>'
+      +'<div class="jz-ph2"><div class="jz-pc">'+exp+'<div class="jz-cap">실시간 측량점</div></div>'
+      +'<div class="jz-pc">'+aft+'<div class="jz-cap">공사 후 관로</div></div></div>'
+      +'</div>';
   });
   box.innerHTML=html;
 }
@@ -5885,6 +5891,17 @@ async function joseoDownloadDate(){
     joseoSaveBlob(buf, joseoFileName(dk));
     joseoProg('완료 ✓',1); setTimeout(joseoProgHide,1200);
   }catch(e){ toast('조서 생성 실패: '+(e&&e.message||e)); joseoProgHide(); }
+}
+function joseoDownloadFinal(){
+  if(!joseoEnsureLibs())return;
+  if(!state.projectName){ toast('먼저 사업을 불러오세요'); return; }
+  var groups=joseoGroups(), dates=Object.keys(groups).sort();
+  if(!dates.length){ toast('관로 측점이 없습니다 (맨홀·보강판 제외)'); return; }
+  joseoState={ groups:groups, dates:dates, cur:dates[0] };
+  var panel=document.getElementById('joseoPanel'); if(panel)panel.style.display='flex';
+  joseoRenderTabs(); joseoRenderPreview(joseoState.cur); joseoSyncDoneBtn();
+  toast('최종본(전체) 생성 중…');
+  joseoDownloadAll();
 }
 async function joseoDownloadAll(){
   if(!joseoState)return;
