@@ -6,6 +6,7 @@
 <title>후측량 결선 DB</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/proj4@2.20.9/dist/proj4.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{--line:#e3e3e0;--ink:#1c1c1a;--muted:#6b6b66;--bg:#fafaf8;--ok:#2a9e50;--bad:#d32f2f;--accent:#1f6fd6}
@@ -241,7 +242,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 167</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 168</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -292,12 +293,11 @@
     </aside>
   </div>
 
-  <input type="file" id="fCsv" accept=".csv" style="display:none">
+  <input type="file" id="fCsv" accept=".csv" multiple style="display:none">
   <input type="file" id="fDxf" accept=".dxf" style="display:none">
   <input type="file" id="fPhotos" accept="image/*" multiple style="display:none">
   <input type="file" id="fAfter" accept="image/*" capture="environment" style="display:none">
-  <input type="file" id="fRegPhotos" accept="image/*" multiple style="display:none">
-  <input type="file" id="fRegPhotoDir" accept="image/*" webkitdirectory multiple style="display:none">
+  <input type="file" id="fRegPhotos" accept="image/*,.zip" multiple style="display:none">
 
   <!-- 사업 등록 모달 -->
   <div id="regModal" class="regwrap" style="display:none">
@@ -322,11 +322,10 @@
           <div class="rc-t">측점사진 로딩</div>
           <div class="rc-drop" id="dropPho">
             <span class="rc-dico">⬇</span>
-            <span class="rc-st" id="rcPho">사진 — 폴더=날짜, 파일=번호</span>
-            <span class="rc-hint">여러 장 끌어다 놓기</span>
+            <span class="rc-st" id="rcPho">사진 — 번호 또는 ZIP(이름=날짜)</span>
+            <span class="rc-hint">사진·ZIP 끌어다 놓기</span>
           </div>
-          <button class="rc-btn" id="rcPhoDirBtn" style="background:#f3eafc;border-color:#b07fd6;color:#7b2cbf">📁 날짜폴더 로딩</button>
-          <button class="rc-btn" id="rcPhoBtn" style="margin-top:4px">사진 직접 로딩</button>
+          <button class="rc-btn" id="rcPhoBtn">직접 로딩</button>
           <button class="rc-clr" id="clrPho" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">🗑 사진별 삭제</button>
         </div>
         <div class="regcard crs">
@@ -5234,7 +5233,6 @@ bind('regOk',registerProject);
 document.getElementById('rcCsvBtn').onclick=function(){document.getElementById('fCsv').click();};
 document.getElementById('rcDxfBtn').onclick=function(){document.getElementById('fDxf').click();};
 document.getElementById('rcPhoBtn').onclick=function(){document.getElementById('fRegPhotos').click();};
-(function(){var b=document.getElementById('rcPhoDirBtn');if(b)b.onclick=function(){document.getElementById('fRegPhotoDir').click();};var fd=document.getElementById('fRegPhotoDir');if(fd)fd.addEventListener('change',function(e){regAddPhotos(e.target.files);e.target.value='';});})();
 (function(){
   var c1=document.getElementById('clrCsv');if(c1)c1.onclick=openCsvList;
   var c2=document.getElementById('clrPho');if(c2)c2.onclick=openPhotoList;
@@ -5257,14 +5255,14 @@ function openPhotoList(){
   ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};
   document.body.appendChild(ov);
 }
-function regAddPhotos(list){var arr=[].slice.call(list);if(!arr.length)return;pendingPhotos=(pendingPhotos||[]).concat(arr);updRegStatus();toast('사진 '+pendingPhotos.length+'장 선택 (등록 시 업로드)');}
+function regAddPhotos(list){expandPhotoFiles(list).then(function(files){if(!files.length){toast('처리할 사진이 없습니다');return;}pendingPhotos=(pendingPhotos||[]).concat(files);updRegStatus();toast('사진 '+pendingPhotos.length+'장 선택 (등록 시 업로드)');});}
 document.getElementById('fRegPhotos').addEventListener('change',function(e){regAddPhotos(e.target.files);e.target.value='';});
 function setupDrop(zid,onfiles){var z=document.getElementById(zid);if(!z)return;
   z.addEventListener('dragover',function(e){e.preventDefault();e.stopPropagation();z.classList.add('over');});
   z.addEventListener('dragleave',function(e){e.preventDefault();e.stopPropagation();z.classList.remove('over');});
   z.addEventListener('drop',function(e){e.preventDefault();e.stopPropagation();z.classList.remove('over');var fs=e.dataTransfer&&e.dataTransfer.files;if(fs&&fs.length)onfiles(fs);});
 }
-setupDrop('dropCsv',function(fs){if(regOpen())regAddCsv(fs[0]);else loadCsvFile(fs[0]);});
+setupDrop('dropCsv',function(fs){if(regOpen())regAddCsvFiles(fs);else loadCsvFile(fs[0]);});
 setupDrop('dropDxf',function(fs){loadDxfFile(fs[0]);});
 setupDrop('dropPho',function(fs){regAddPhotos(fs);});
 document.getElementById('dropCsv').addEventListener('click',function(){document.getElementById('fCsv').click();});
@@ -5501,16 +5499,39 @@ bind('newProj',function(){var n=prompt('새 사업명을 입력하세요 (예: �
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){pushHist();if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)loadProject(e.target.value);});
 function loadCsvFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.manholes=[];state.projectId=null;state.routingDone=false;setReadOnly(false);state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatus();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화)');};rd.readAsArrayBuffer(f);}
-function regAddCsv(f){if(!f)return;var rd=new FileReader();rd.onload=function(){
+function regAddCsv(f,cb){if(!f){if(cb)cb();return;}var rd=new FileReader();rd.onload=function(){
   var pts=parseCsv(decodeBuf(rd.result),f.name);
-  if(!pts.length){toast('CSV에서 측점을 못 읽었습니다');return;}
-  if(!state.points)state.points=[];
-  var nn={};pts.forEach(function(p){nn[p.no]=1;});
-  state.points=state.points.filter(function(p){return !nn[p.no];}).concat(pts);
-  if(!state.projectName){state.projectName=f.name.replace(/\.[^.]+$/,'');var rn=document.getElementById('regName');if(rn&&!rn.value.trim())rn.value=state.projectName;}
-  selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatus();
-  toast('CSV "'+f.name+'" +'+pts.length+'개 (총 '+state.points.length+'개)');
+  if(pts.length){
+    if(!state.points)state.points=[];
+    var nn={};pts.forEach(function(p){nn[p.no]=1;});
+    state.points=state.points.filter(function(p){return !nn[p.no];}).concat(pts);
+    if(!state.projectName){state.projectName=f.name.replace(/\.[^.]+$/,'');var rn=document.getElementById('regName');if(rn&&!rn.value.trim())rn.value=state.projectName;}
+    selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatus();
+    toast('CSV "'+f.name+'" +'+pts.length+'개 (총 '+state.points.length+'개)');
+  }else toast('CSV에서 측점을 못 읽었습니다: '+f.name);
+  if(cb)cb();
 };rd.readAsArrayBuffer(f);}
+function regAddCsvFiles(files){var arr=[].slice.call(files);(function next(i){if(i>=arr.length)return;regAddCsv(arr[i],function(){next(i+1);});})(0);}
+function expandPhotoFiles(list){
+  var arr=[].slice.call(list),out=[],zips=[];
+  arr.forEach(function(f){if(/\.zip$/i.test(f.name))zips.push(f);else if(!/thumbs\.db$/i.test(f.name))out.push(f);});
+  if(!zips.length)return Promise.resolve(out);
+  if(typeof JSZip==='undefined'){toast('압축 모듈 로딩 실패 — 사진만 처리');return Promise.resolve(out);}
+  toast('압축 푸는 중…');
+  return Promise.all(zips.map(function(zf){
+    var dm=(zf.name||'').match(/(\d{6})/);var zdate=dm?dm[1]:'';
+    return JSZip.loadAsync(zf).then(function(zip){
+      var jobs=[];
+      zip.forEach(function(path,entry){
+        if(entry.dir)return;var base=path.split('/').pop();
+        if(/^thumbs\.db$/i.test(base)||/__macosx/i.test(path))return;
+        if(!/\.(jpe?g|png)$/i.test(base))return;
+        jobs.push(entry.async('blob').then(function(blob){var file=new File([blob],base,{type:'image/jpeg'});file._relpath=path;file._zipdate=zdate;return file;}));
+      });
+      return Promise.all(jobs);
+    });
+  })).then(function(groups){groups.forEach(function(g){out=out.concat(g);});return out;}).catch(function(err){console.error('zip',err);toast('압축 해제 실패');return out;});
+}
 function csvGroups(){var g={},order=[];(state.points||[]).forEach(function(p){var k=p._csv||'(파일명 없음)';if(g[k]==null){g[k]=0;order.push(k);}g[k]++;});return order.map(function(k){return {name:k,count:g[k]};});}
 function removeCsvGroup(name){state.points=(state.points||[]).filter(function(p){return (p._csv||'(파일명 없음)')!==name;});selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();updRegStatus();toast('"'+name+'" 측점 제거됨');}
 function openCsvList(){
@@ -5532,7 +5553,7 @@ function openCsvList(){
   ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};
   document.body.appendChild(ov);
 }
-document.getElementById('fCsv').addEventListener('change',function(e){var f=e.target.files[0];if(regOpen())regAddCsv(f);else loadCsvFile(f);e.target.value='';});
+document.getElementById('fCsv').addEventListener('change',function(e){var fs=e.target.files;if(regOpen())regAddCsvFiles(fs);else loadCsvFile(fs[0]);e.target.value='';});
 function loadDxfFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){try{var ln=parseDxfLines(decodeBuf(rd.result));ln.forEach(function(l){l.base=true;});state.lines=state.lines.filter(function(l){return !l.base;}).concat(ln);drawGeo();fitView();updMeta();if(regOpen())updRegStatus();toast('수치지도 백판 '+ln.length+'개 라인 로드');}catch(err){toast('DXF 파싱 오류');}};rd.readAsArrayBuffer(f);}
 document.getElementById('fDxf').addEventListener('change',function(e){loadDxfFile(e.target.files[0]);e.target.value='';});
 
@@ -5667,7 +5688,17 @@ function selectPoint(num){selNum=String(num);drawGeo();highlightSel();var sel=do
 function openPhotoPanel(o){photoPanelOpen=(o==null)?!photoPanelOpen:!!o;document.getElementById('photoPanel').classList.toggle('open',photoPanelOpen);if(photoPanelOpen&&typeof closeRvPanel==='function')closeRvPanel();if(photoPanelOpen)refreshPhotoPanel();setTimeout(function(){fitView();if(typeof placeCoord==='function')placeCoord();},30);}
 function loadPhotos(){photoMap={};afterMap={};if(!online||!state.projectId){if(photoPanelOpen)refreshPhotoPanel();return;}
   sb.from('survey_photos').select('point_no,url').eq('project_id',state.projectId).then(function(res){(res.data||[]).forEach(function(r){var pn=String(r.point_no);if(/_A$/.test(pn))afterMap[pn.replace(/_A$/,'')]=r.url;else photoMap[pn]=r.url;});if(photoPanelOpen)refreshPhotoPanel();});}
-function photoNoFor(f){var num=(f.name.replace(/\.[^.]+$/,'').match(/\d+/)||[''])[0];if(!num)return null;var rel=f.webkitRelativePath||'';if(rel){var parts=rel.split('/');for(var i=parts.length-2;i>=0;i--){var m=(parts[i]||'').match(/(\d{6})/);if(m)return m[1]+'-'+num;}}return num;}
+function resolvePhotoNo(f){
+  var num=(f.name.replace(/\.[^.]+$/,'').match(/\d+/)||[''])[0];if(!num)return null;
+  var rel=f.webkitRelativePath||f._relpath||'',date='';
+  if(rel){var parts=rel.split('/');for(var i=parts.length-2;i>=0;i--){var m=(parts[i]||'').match(/(\d{6})/);if(m){date=m[1];break;}}}
+  if(!date&&f._zipdate)date=f._zipdate;
+  if(date){var no=date+'-'+num;if(pointByNo(no))return {no:no,matched:true};}
+  var ms=(state.points||[]).filter(function(p){return ptNum(p)===String(num);});
+  if(ms.length===1)return {no:ms[0].no,matched:true};
+  if(date)return {no:date+'-'+num,matched:false};
+  return {no:num,matched:false};
+}
 function uploadPhotos(files){
   if(!online){toast('로컬 모드 — 사진 저장 불가');return;}
   if(!state.projectId){toast('먼저 "저장"으로 현장을 저장한 뒤 사진을 올려주세요');return;}
@@ -5675,9 +5706,9 @@ function uploadPhotos(files){
   var done=0,ok=0,unmatched=0,total=arr.length;
   function finish(){if(done<total)return;var msg=ok+'/'+total+'장 업로드 완료';if(unmatched)msg+=' · 미매칭 '+unmatched+'장(측점 없음)';toast(msg);if(photoPanelOpen)refreshPhotoPanel();}
   arr.forEach(function(f){
-    var no=photoNoFor(f);
-    if(!no){done++;finish();return;}
-    if(!pointByNo(no))unmatched++;
+    var r=resolvePhotoNo(f);
+    if(!r){done++;finish();return;}
+    if(!r.matched)unmatched++;var no=r.no;
     compressImage(f,1280,0.7).then(function(blob){
       var path=state.projectId+'/'+no+'.jpg';
       return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
@@ -5712,7 +5743,7 @@ bind('photoBtn',function(){openPhotoPanel();});
 document.getElementById('photoClose').onclick=function(){openPhotoPanel(false);};
 document.getElementById('photoUp').onclick=function(){document.getElementById('fPhotos').click();};
 document.getElementById('photoLinkBtn').onclick=function(){photoLink=!photoLink;this.textContent=photoLink?'🔗 연동':'🔓 미연동';this.classList.toggle('linkon',photoLink);toast(photoLink?'도면↔사진 연동 ON (점 클릭=사진)':'연동 OFF (점 클릭해도 사진 고정)');};
-document.getElementById('fPhotos').addEventListener('change',function(e){uploadPhotos(e.target.files);e.target.value='';});
+document.getElementById('fPhotos').addEventListener('change',function(e){expandPhotoFiles(e.target.files).then(uploadPhotos);e.target.value='';});
 document.getElementById('fAfter').addEventListener('change',function(e){if(e.target.files[0])uploadAfterPhoto(e.target.files[0],afterTargetNum);e.target.value='';});
 document.getElementById('photoSel').addEventListener('change',function(e){if(e.target.value){selNum=e.target.value;drawGeo();highlightSel();refreshPhotoPanel();}else{selNum=null;drawGeo();clearSvg(gSel);refreshPhotoPanel();}});
 /* 도면에서 점 클릭 → 선택 (이동 모드) */
