@@ -145,10 +145,14 @@
   .linkon{background:#eef6ef;border-color:#bcdcc0;color:#2a9e50;font-weight:600}
   .photo-panel.open{display:flex}
   .fbtn{background:#fff;border:1.5px solid #cfd8e3;color:#33415a;border-radius:9px;padding:9px 14px;font-size:13.5px;font-weight:700;cursor:pointer;box-shadow:0 2px 9px rgba(0,0,0,.12)}
-  .fbtn:hover{border-color:#94a8c0}
-  .fbtn.done{background:#eafaf0;border-color:#16a34a;color:#16a34a}
+  .fbtn:hover{filter:brightness(.97)}
+  #fldCsv{background:#eff4ff;border-color:#3b82f6;color:#2563eb}
+  #fldJoseo{background:#e7faf5;border-color:#0d9488;color:#0d9488}
+  #fldManhole{background:#fff7e6;border-color:#e3a008;color:#b45309}
+  .fbtn.done{background:#eafaf0!important;border-color:#16a34a!important;color:#16a34a!important}
   .fbtn-final{background:#eef2ff;border-color:#4f46e5;color:#4f46e5}
-  .fbtn-final:hover{border-color:#4f46e5}
+  .fbtn-final:hover{filter:brightness(.97)}
+  #fieldBar{border-bottom:2px solid #6aa3ff;padding-bottom:10px}
   /* 로드뷰 패널: 위=로드뷰 / 아래=측점사진 (50/50) */
   .rv-split{flex:1;display:flex;flex-direction:column;min-height:0}
   .rv-top{flex:1;position:relative;border-bottom:2px solid var(--line);min-height:0;background:#000}
@@ -266,7 +270,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 179</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 180</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5615,7 +5619,7 @@ function openFinalStatus(){
   ov.style.cssText='position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center';
   var box=document.createElement('div');
   box.style.cssText='background:#fff;border-radius:14px;width:92%;max-width:440px;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden';
-  function row(k,label){var done=!!fd[k];return '<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #f1f1f1"><span style="flex:1;font-size:15px;font-weight:600">'+label+'</span><span style="font-size:13px;font-weight:800;padding:4px 11px;border-radius:20px;'+(done?'background:#eafaf0;color:#16a34a;border:1px solid #16a34a':'background:#fff5f5;color:#d32f2f;border:1px solid #d32f2f')+'">'+(done?'등록완료':'미완료')+'</span><button class="fs-tgl" data-k="'+k+'" style="border:1px solid #ccc;background:#fff;border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer">'+(done?'미완료로':'완료로')+'</button></div>';}
+  function row(k,label){var done=!!fd[k];return '<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #f1f1f1"><span style="flex:1;font-size:15px;font-weight:600">'+label+'</span><span style="font-size:13px;font-weight:800;padding:4px 11px;border-radius:20px;'+(done?'background:#eafaf0;color:#16a34a;border:1px solid #16a34a':'background:#fff5f5;color:#d32f2f;border:1px solid #d32f2f')+'">'+(done?'등록완료':'미완료')+'</span><button class="fs-tgl" data-k="'+k+'" style="border:1px solid #ccc;background:#fff;border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer">'+(done?'미완료로':'등록완료')+'</button></div>';}
   function render(){
     var allDone=items.every(function(it){return !!fd[it[0]];});
     box.innerHTML='<div style="padding:15px 18px;border-bottom:1px solid #eee;display:flex;align-items:center"><b style="flex:1;font-size:16px;color:#4f46e5">📋 후측량 최종성과 등록</b><button id="fsClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div>'
