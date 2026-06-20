@@ -7,6 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/proj4@2.20.9/dist/proj4.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
@@ -148,6 +149,27 @@
   .photo-panel{width:37%;min-width:480px;max-width:44%;background:#fff;border-left:1px solid var(--line);display:none;flex-direction:column;flex:none}
   .linkon{background:#eef6ef;border-color:#bcdcc0;color:#2a9e50;font-weight:600}
   .photo-panel.open{display:flex}
+  .jz-panel .php-head{flex-wrap:wrap;gap:6px}
+  .jz-dlall{background:#eef6ff;border:1px solid #2563eb;color:#2563eb;border-radius:7px;padding:4px 9px;font-weight:700;cursor:pointer}
+  .jz-dldate{background:#e7faf5;border:1px solid #0d9488;color:#0d9488;border-radius:7px;padding:4px 9px;font-weight:700;cursor:pointer}
+  .jz-tabs{display:flex;flex-wrap:wrap;gap:6px;padding:8px;border-bottom:1px solid var(--line);max-height:84px;overflow-y:auto}
+  .jz-tab{padding:5px 10px;border:1px solid var(--line);border-radius:14px;background:#fff;font-size:12px;cursor:pointer;white-space:nowrap}
+  .jz-tab.on{background:#0d9488;color:#fff;border-color:#0d9488}
+  .jz-prog{display:none;padding:8px 12px;border-bottom:1px solid var(--line)}
+  .jz-progtxt{font-size:12px;color:var(--muted);margin-bottom:4px}
+  .jz-progbar{height:6px;background:#eee;border-radius:3px;overflow:hidden}
+  .jz-progbar>div{height:100%;width:0;background:#0d9488;transition:width .2s}
+  .jz-prev{flex:1;overflow:auto;padding:10px;background:#f7f8fa}
+  .jz-proj{font-weight:700;padding:8px 10px;background:#fff;border:1px solid var(--line);border-radius:6px;margin-bottom:8px}
+  .jz-block{background:#fff;border:1px solid var(--line);border-radius:6px;margin-bottom:10px;overflow:hidden}
+  .jz-r{display:flex;align-items:center;gap:6px;padding:5px 8px;border-bottom:1px solid #eee;font-size:12px;flex-wrap:wrap}
+  .jz-r span{color:var(--muted);min-width:40px}
+  .jz-r b{font-weight:700;margin-right:8px}
+  .jz-ph2{display:flex;gap:6px;padding:8px}
+  .jz-ph{flex:1;text-align:center}
+  .jz-ph img{width:100%;height:150px;object-fit:cover;border:1px solid var(--line);border-radius:4px;display:block}
+  .jz-ph i{display:flex;align-items:center;justify-content:center;height:150px;color:#bbb;border:1px dashed var(--line);border-radius:4px;font-size:12px}
+  .jz-ph em{display:block;font-size:11px;color:var(--muted);margin-top:3px}
   .fbtn{background:#fff;border:1.5px solid #cfd8e3;color:#33415a;border-radius:9px;padding:9px 14px;font-size:13.5px;font-weight:700;cursor:pointer;box-shadow:0 2px 9px rgba(0,0,0,.12)}
   .fbtn:hover{filter:brightness(.97)}
   #fldCsv{background:#eff4ff;border-color:#3b82f6;color:#2563eb}
@@ -281,7 +303,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 183</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 185</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -323,6 +345,17 @@
           <div id="rvPhotoBody" class="rv-photo-body"><div class="rv-photo-empty">측점을 찍으면 사진이 나옵니다</div></div>
         </div>
       </div>
+    </div>
+    <div id="joseoPanel" class="photo-panel jz-panel">
+      <div class="php-head">
+        <h3>실시간 사진조서</h3>
+        <button onclick="joseoDownloadAll()" class="jz-dlall">📦 전체 ZIP</button>
+        <button id="joseoDlDate" onclick="joseoDownloadDate()" class="jz-dldate">📥 날짜별 다운로드</button>
+        <button onclick="closeJoseoPanel()">✕</button>
+      </div>
+      <div id="joseoTabs" class="jz-tabs"></div>
+      <div id="joseoProgWrap" class="jz-prog"><div id="joseoProgTxt" class="jz-progtxt"></div><div class="jz-progbar"><div id="joseoProgBar"></div></div></div>
+      <div id="joseoPreview" class="jz-prev"></div>
     </div>
     <aside class="panel">
       <h2><span>검수 기록</span><span style="display:flex;gap:8px;align-items:center"><button id="recClear" class="recclr">전체삭제</button><span id="recCount">0</span></span></h2>
@@ -5653,11 +5686,175 @@ function openFinalStatus(){
     [vp,vm,vr].forEach(function(b){if(b)fb.appendChild(b);});
   }
   var c=document.getElementById('fldCsv');if(c)c.onclick=function(){toast('후측량 CSV 제작 — 다음 단계에서 연결합니다');};
-  var j=document.getElementById('fldJoseo');if(j)j.onclick=function(){toast('실시간 사진조서 — 다음 단계에서 연결합니다');};
+  var j=document.getElementById('fldJoseo');if(j)j.onclick=openJoseoPanel;
   var m=document.getElementById('fldManhole');if(m)m.onclick=function(){toast('맨홀도 제작 — 다음 단계에서 연결합니다');};
   var f=document.getElementById('fldFinal');if(f)f.onclick=openFinalStatus;
   refreshFieldBar();
 })();
+
+/* ===================== 실시간 사진조서 (관로) ===================== */
+var JOSEO_TPL_URL = encodeURI('실시간조서_템플릿.xlsx');
+var _joseoTplBuf = null, joseoState = null;
+var JOSEO_PER_PAGE = 2;
+
+function joseoEsc(s){ return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function joseoGetTemplate(){
+  if(_joseoTplBuf) return Promise.resolve(_joseoTplBuf);
+  return fetch(JOSEO_TPL_URL).then(function(r){ if(!r.ok) throw new Error('템플릿 로드 실패('+r.status+')'); return r.arrayBuffer(); }).then(function(b){ _joseoTplBuf=b; return b; });
+}
+function joseoDate(no){ var d=(no||'').toString().slice(0,6); if(d.length<6) return ''; return '20'+d.slice(0,2)+'-'+d.slice(2,4)+'-'+d.slice(4,6); }
+function joseoParseCode(code){
+  var c=(code||'').replace(/(^|\s)T(?=\s|$)/g,' ').replace(/\s+/g,' ').trim();   // 내부표시 T 제거
+  var m=/^([A-Za-z]+)\s*(.*)$/.exec(c);
+  return { mat: m?m[1]:c, dia: m?((m[2]||'').trim()):'' };
+}
+function joseoPoints(){
+  return (state.points||[]).filter(function(p){
+    if(!p||!p.no) return false;
+    if(isManhole(p)) return false;                                              // 맨홀 제외
+    if(/보강판/.test((p.no||'')+'|'+(p.code||''))) return false;                 // 보강판 제외
+    return true;
+  });
+}
+function joseoGroups(){
+  var g={}; joseoPoints().forEach(function(p){ var dk=joseoDate(p.no); if(!dk) return; (g[dk]=g[dk]||[]).push(p); });
+  Object.keys(g).forEach(function(dk){ g[dk].sort(function(a,b){ return (parseFloat(ptNum(a))||0)-(parseFloat(ptNum(b))||0); }); });
+  return g;
+}
+function joseoRec(p){
+  var pc=joseoParseCode(p.code), biz=state.bizInfo||{};
+  return {
+    date: joseoDate(p.no), name: ptNum(p),
+    x: (p.y!=null&&p.y!=='')?(+p.y).toFixed(3):'',                              // X(N)=북=p.y
+    y: (p.x!=null&&p.x!=='')?(+p.x).toFixed(3):'',                              // Y(E)=동=p.x
+    facility: biz.facility||'', mat: pc.mat, dia: pc.dia, gap:'직접측량', depth:'',
+    expUrl: photoMap[p.no]||photoMap[ptNum(p)]||null,
+    aftUrl: afterMap[p.no]||afterMap[ptNum(p)]||null,
+    expBuf:null, aftBuf:null
+  };
+}
+function joseoFetchBuf(url){
+  if(!url) return Promise.resolve(null);
+  return fetch(url).then(function(r){ return r.ok? r.arrayBuffer():null; }).catch(function(){ return null; });
+}
+
+/* ---- ExcelJS 채우기 (Node 검증 로직 그대로) ---- */
+var JOSEO_BM=['A3:C3','D3:G3','B4:C4','E4:G4','A5:B5','C5:C6','D5:D6','E5:E6','F5:F6','G5:G6','A8:C8','D8:G8','A9:C19','D9:G19']; // 블록(라벨포함 17행) 병합, row3 기준
+function joseoShift(rng,dr){ return rng.replace(/([A-G])(\d+)/g,function(_,c,n){ return c+(parseInt(n,10)+dr); }); }
+function joseoSetv(ws,a,v){ if(v!==undefined&&v!==null&&v!=='') ws.getCell(a).value=v; }
+function joseoFillBlk(ws,S,p){ joseoSetv(ws,'B'+(S+1),p.date);joseoSetv(ws,'E'+(S+1),p.name);joseoSetv(ws,'A'+(S+4),p.x);joseoSetv(ws,'B'+(S+4),p.y);joseoSetv(ws,'C'+(S+4),p.facility);joseoSetv(ws,'D'+(S+4),p.mat);joseoSetv(ws,'E'+(S+4),p.dia);joseoSetv(ws,'F'+(S+4),p.gap); }
+function joseoStampBlk(ws,S,BLK){
+  for(var k=0;k<BLK.length;k++){ var tr=S+k; ws.getRow(tr).height=BLK[k].h; for(var c=1;c<=7;c++){ var t=ws.getCell(tr,c); t.style=BLK[k].row[c-1].style; t.value=BLK[k].row[c-1].value; } }
+  JOSEO_BM.forEach(function(mm){ try{ ws.mergeCells(joseoShift(mm,S-3)); }catch(e){} });
+}
+function joseoAddPhotosBlk(wb,ws,S,p){
+  var top=S+6, bot=S+16;
+  if(p.expBuf){ var id=wb.addImage({buffer:p.expBuf,extension:'jpeg'}); ws.addImage(id,'A'+top+':C'+bot); }
+  if(p.aftBuf){ var id2=wb.addImage({buffer:p.aftBuf,extension:'jpeg'}); ws.addImage(id2,'D'+top+':G'+bot); }
+}
+async function joseoBuildWb(projectName, recs, perPage){
+  var tplBuf=await joseoGetTemplate();
+  var wb=new ExcelJS.Workbook(); await wb.xlsx.load(tplBuf);
+  var ws=wb.worksheets[0];
+  var BLK=[]; for(var r=3;r<=19;r++){ var row=[]; for(var c=1;c<=7;c++){ var s=ws.getCell(r,c); row.push({style:s.style,value:s.value}); } BLK.push({h:ws.getRow(r).height,row:row}); }
+  joseoSetv(ws,'B2',projectName||'');
+  for(var i=0;i<recs.length;i++){ var S=3+i*17; if(i>=1) joseoStampBlk(ws,S,BLK); joseoFillBlk(ws,S,recs[i]); joseoAddPhotosBlk(wb,ws,S,recs[i]); }
+  ws.pageSetup.margins={left:0.7,right:0.4,top:0.5,bottom:0.5,header:0.3,footer:0.3};
+  ws.pageSetup.fitToPage=false;
+  var K=perPage||JOSEO_PER_PAGE, N=recs.length;
+  for(var m=K;m<N;m+=K){ ws.getRow(2+m*17).addPageBreak(); }
+  return wb;
+}
+async function joseoFetchPhotos(recs,onProg){
+  var total=0; recs.forEach(function(r){ if(r.expUrl)total++; if(r.aftUrl)total++; }); var done=0;
+  for(var i=0;i<recs.length;i++){ var r=recs[i];
+    if(r.expUrl){ r.expBuf=await joseoFetchBuf(r.expUrl); done++; if(onProg)onProg(done,total); }
+    if(r.aftUrl){ r.aftBuf=await joseoFetchBuf(r.aftUrl); done++; if(onProg)onProg(done,total); }
+  }
+}
+function joseoFileName(dk){ return (state.projectName||'조서')+'_'+dk.replace(/-/g,'')+'.xlsx'; }
+function joseoSaveBlob(data,name){
+  var blob=(data instanceof Blob)?data:new Blob([data],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },2000);
+}
+
+/* ---- 패널 UI ---- */
+function joseoProg(msg,frac){
+  var w=document.getElementById('joseoProgWrap'), b=document.getElementById('joseoProgBar'), t=document.getElementById('joseoProgTxt');
+  if(!w)return; w.style.display='block'; if(t)t.textContent=msg||''; if(b)b.style.width=Math.max(0,Math.min(1,frac||0))*100+'%';
+}
+function joseoProgHide(){ var w=document.getElementById('joseoProgWrap'); if(w)w.style.display='none'; }
+function joseoEnsureLibs(){ if(typeof ExcelJS==='undefined'){ toast('엑셀 모듈 로딩 안됨 — 새로고침(Ctrl+Shift+R)'); return false; } return true; }
+function openJoseoPanel(){
+  if(!joseoEnsureLibs()) return;
+  if(!state.projectName){ toast('먼저 사업을 불러오세요'); return; }
+  var groups=joseoGroups(), dates=Object.keys(groups).sort();
+  if(!dates.length){ toast('관로 측점이 없습니다 (맨홀·보강판 제외)'); return; }
+  joseoState={ groups:groups, dates:dates, cur:dates[0] };
+  var panel=document.getElementById('joseoPanel'); panel.style.display='flex';
+  joseoProgHide(); joseoRenderTabs(); joseoRenderPreview(joseoState.cur);
+}
+function closeJoseoPanel(){ var p=document.getElementById('joseoPanel'); if(p)p.style.display='none'; }
+function joseoRenderTabs(){
+  var t=document.getElementById('joseoTabs'); if(!t)return; t.innerHTML='';
+  joseoState.dates.forEach(function(dk){
+    var b=document.createElement('button'); b.className='jz-tab'+(dk===joseoState.cur?' on':''); b.textContent=dk+' ('+joseoState.groups[dk].length+')';
+    b.onclick=function(){ joseoState.cur=dk; joseoRenderTabs(); joseoRenderPreview(dk); };
+    t.appendChild(b);
+  });
+  var dl=document.getElementById('joseoDlDate'); if(dl)dl.textContent='📥 '+joseoState.cur+' 다운로드';
+}
+function joseoRenderPreview(dk){
+  var box=document.getElementById('joseoPreview'); if(!box)return;
+  var recs=(joseoState.groups[dk]||[]).map(joseoRec);
+  var html='<div class="jz-proj">사업명 : '+joseoEsc(state.projectName||'')+'</div>';
+  recs.forEach(function(r){
+    html+='<div class="jz-block">'
+      +'<div class="jz-r"><span>측량날짜</span><b>'+joseoEsc(r.date)+'</b><span>측점명</span><b>'+joseoEsc(r.name)+'</b></div>'
+      +'<div class="jz-r"><span>X(N)</span><b>'+joseoEsc(r.x)+'</b><span>Y(E)</span><b>'+joseoEsc(r.y)+'</b></div>'
+      +'<div class="jz-r"><span>시설물</span><b>'+joseoEsc(r.facility)+'</b><span>재질</span><b>'+joseoEsc(r.mat)+'</b><span>관경</span><b>'+joseoEsc(r.dia)+'</b></div>'
+      +'<div class="jz-ph2">'
+      +'<div class="jz-ph">'+(r.expUrl?'<img src="'+joseoEsc(r.expUrl)+'">':'<i>노출 사진 없음</i>')+'<em>실시간 측량점</em></div>'
+      +'<div class="jz-ph">'+(r.aftUrl?'<img src="'+joseoEsc(r.aftUrl)+'">':'<i>공사후 사진 없음</i>')+'<em>공사 후 관로</em></div>'
+      +'</div></div>';
+  });
+  box.innerHTML=html;
+}
+async function joseoDownloadDate(){
+  if(!joseoState)return;
+  try{
+    var dk=joseoState.cur, recs=(joseoState.groups[dk]||[]).map(joseoRec);
+    joseoProg('사진 불러오는 중…',0.05);
+    await joseoFetchPhotos(recs,function(d,t){ joseoProg('사진 '+d+'/'+t, t?(d/t*0.7):0.5); });
+    joseoProg('엑셀 생성 중…',0.85);
+    var wb=await joseoBuildWb(state.projectName,recs,JOSEO_PER_PAGE);
+    var buf=await wb.xlsx.writeBuffer();
+    joseoSaveBlob(buf, joseoFileName(dk));
+    joseoProg('완료 ✓',1); setTimeout(joseoProgHide,1200);
+  }catch(e){ toast('조서 생성 실패: '+(e&&e.message||e)); joseoProgHide(); }
+}
+async function joseoDownloadAll(){
+  if(!joseoState)return;
+  try{
+    if(typeof JSZip==='undefined'){ toast('압축 모듈 없음'); return; }
+    var zip=new JSZip(), dates=joseoState.dates;
+    for(var di=0;di<dates.length;di++){
+      var dk=dates[di];
+      joseoProg('('+(di+1)+'/'+dates.length+') '+dk+' 처리 중…', di/dates.length);
+      var recs=(joseoState.groups[dk]||[]).map(joseoRec);
+      await joseoFetchPhotos(recs);
+      var wb=await joseoBuildWb(state.projectName,recs,JOSEO_PER_PAGE);
+      var buf=await wb.xlsx.writeBuffer();
+      zip.file(joseoFileName(dk), buf);
+    }
+    joseoProg('ZIP 압축 중…',0.96);
+    var blob=await zip.generateAsync({type:'blob'});
+    joseoSaveBlob(blob,(state.projectName||'조서')+'_실시간조서.zip');
+    joseoProg('완료 ✓',1); setTimeout(joseoProgHide,1500);
+  }catch(e){ toast('ZIP 생성 실패: '+(e&&e.message||e)); joseoProgHide(); }
+}
+
 // 사진 방향 화살표 클릭 → 90° 회전 (사진 패널·로드뷰 패널 공통)
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.dirArrow');if(!b)return;e.stopPropagation();e.preventDefault();var p=pointByNo(b.getAttribute('data-num'));if(!p)return;cyclePhotoDir(p);b.textContent=ARROWS[getPhotoDir(p)];drawGeo();},true);
 bind('rvClose',closeRvPanel);
