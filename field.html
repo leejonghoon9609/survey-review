@@ -186,6 +186,14 @@
     .viewer #rvPanel .rv-photo-body{flex:none}
     .viewer #rvPanel .rv-photo-body .php-main{flex:none;height:44vh;min-height:300px}
   }
+  /* 모바일 현장 전용: 탱고작업용 성과제작 버튼 숨김(PC는 유지) + 스크롤 스냅(경계에서 부드럽게 멈춤) */
+  @media(max-width:760px){
+    #tangoMakeBtn{display:none!important}
+    .viewer #rvPanel .rv-split{scroll-snap-type:y proximity}
+    .viewer #rvPanel .rv-top,.viewer #rvPanel .rv-bot{scroll-snap-align:start}
+    .viewer .php-body{scroll-snap-type:y proximity}
+    .viewer .php-body .php-main{scroll-snap-align:start}
+  }
   @media(max-width:760px){.glbl{display:none}.coordbox{font-size:11px;padding:5px 8px}.photo-panel{width:100%;min-width:0}.php-main{min-height:140px}.php-row{min-height:120px}}
   /* ===== 뷰어모드 ===== */
   .vw{display:none}
@@ -251,7 +259,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 171</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 172</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
