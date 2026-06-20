@@ -241,7 +241,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 166</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 167</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -297,6 +297,7 @@
   <input type="file" id="fPhotos" accept="image/*" multiple style="display:none">
   <input type="file" id="fAfter" accept="image/*" capture="environment" style="display:none">
   <input type="file" id="fRegPhotos" accept="image/*" multiple style="display:none">
+  <input type="file" id="fRegPhotoDir" accept="image/*" webkitdirectory multiple style="display:none">
 
   <!-- 사업 등록 모달 -->
   <div id="regModal" class="regwrap" style="display:none">
@@ -321,10 +322,11 @@
           <div class="rc-t">측점사진 로딩</div>
           <div class="rc-drop" id="dropPho">
             <span class="rc-dico">⬇</span>
-            <span class="rc-st" id="rcPho">사진 (파일명=측점번호)</span>
+            <span class="rc-st" id="rcPho">사진 — 폴더=날짜, 파일=번호</span>
             <span class="rc-hint">여러 장 끌어다 놓기</span>
           </div>
-          <button class="rc-btn" id="rcPhoBtn">직접 로딩</button>
+          <button class="rc-btn" id="rcPhoDirBtn" style="background:#f3eafc;border-color:#b07fd6;color:#7b2cbf">📁 날짜폴더 로딩</button>
+          <button class="rc-btn" id="rcPhoBtn" style="margin-top:4px">사진 직접 로딩</button>
           <button class="rc-clr" id="clrPho" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">🗑 사진별 삭제</button>
         </div>
         <div class="regcard crs">
@@ -5170,7 +5172,7 @@ function updRegStatus(){
   _tg('clrDxf', (state.lines||[]).filter(function(l){return l.base;}).length>0);
   _tg('clrPho', !!(pendingPhotos&&pendingPhotos.length));
 }
-function openRegModal(){
+function _openRegNow(){
   document.getElementById('regName').value=state.projectName||'';
   pendingPhotos=null;
   var crs=state.crs||'5186';var rc=document.querySelector('input[name="regCrs"][value="'+crs+'"]');if(rc)rc.checked=true;
@@ -5179,6 +5181,30 @@ function openRegModal(){
   document.getElementById('regModal').style.display='flex';
   updRegStatus();
   setTimeout(function(){document.getElementById('regName').focus();},30);
+}
+function clearForNew(){state.projectId=null;state.projectName='';state.points=[];state.routingDone=false;if(typeof setReadOnly==='function')setReadOnly(false);(state.markups||[]).forEach(function(m){if(m.el)m.el.remove();});state.markups=[];state.lines=[];state.manholes=[];state.photoDir={};photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);drawGeo();drawMarks();drawManholes();updMeta();}
+function regStartWarn(){
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:1001;background:rgba(0,0,0,.42);display:flex;align-items:center;justify-content:center';
+  var box=document.createElement('div');
+  box.style.cssText='background:#fff;border-radius:14px;max-width:430px;width:90%;box-shadow:0 10px 34px rgba(0,0,0,.3);overflow:hidden';
+  box.innerHTML='<div style="background:#fff5f5;border-bottom:1px solid #f3c9c4;padding:16px 18px;font-size:16px;font-weight:800;color:#c0392b">⚠ 작업 중인 사업이 열려 있습니다</div>'
+    +'<div style="padding:16px 18px;font-size:13.5px;line-height:1.7;color:#333">지금 등록 창에서 CSV를 올리면 <b>기존 측점에 합쳐져</b> 작업이 섞일 수 있습니다.<br><br>· <b>새 사업으로 시작</b> — 현재 측점·결선·특이사항을 비우고 새로 시작<br>· <b>이어서 추가</b> — 기존 사업에 측점 추가(다중 날짜 등)</div>'
+    +'<div style="display:flex;gap:8px;padding:0 18px 18px;justify-content:flex-end;flex-wrap:wrap">'
+    +'<button id="rswCancel" style="border:1px solid #ccc;background:#fff;border-radius:9px;padding:9px 14px;font-size:13px;cursor:pointer">취소</button>'
+    +'<button id="rswCont" style="border:1px solid #1f6fd6;background:#eef4fc;color:#1f6fd6;border-radius:9px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer">➕ 이어서 추가</button>'
+    +'<button id="rswNew" style="border:1px solid #c0392b;background:#c0392b;color:#fff;border-radius:9px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer">🆕 새 사업으로 시작</button>'
+    +'</div>';
+  box.querySelector('#rswCancel').onclick=function(){ov.remove();};
+  box.querySelector('#rswCont').onclick=function(){ov.remove();_openRegNow();};
+  box.querySelector('#rswNew').onclick=function(){ov.remove();clearForNew();_openRegNow();};
+  ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};
+  document.body.appendChild(ov);
+}
+function openRegModal(){
+  var work=state.projectId||(state.lines||[]).some(function(l){return l&&!l.base;})||(state.markups||[]).length||(state.manholes||[]).length;
+  if(work){regStartWarn();return;}
+  _openRegNow();
 }
 function closeRegModal(){document.getElementById('regModal').style.display='none';pendingPhotos=null;}
 function registerProject(){
@@ -5208,6 +5234,7 @@ bind('regOk',registerProject);
 document.getElementById('rcCsvBtn').onclick=function(){document.getElementById('fCsv').click();};
 document.getElementById('rcDxfBtn').onclick=function(){document.getElementById('fDxf').click();};
 document.getElementById('rcPhoBtn').onclick=function(){document.getElementById('fRegPhotos').click();};
+(function(){var b=document.getElementById('rcPhoDirBtn');if(b)b.onclick=function(){document.getElementById('fRegPhotoDir').click();};var fd=document.getElementById('fRegPhotoDir');if(fd)fd.addEventListener('change',function(e){regAddPhotos(e.target.files);e.target.value='';});})();
 (function(){
   var c1=document.getElementById('clrCsv');if(c1)c1.onclick=openCsvList;
   var c2=document.getElementById('clrPho');if(c2)c2.onclick=openPhotoList;
@@ -5597,7 +5624,7 @@ function defaultPhotoDir(p){var v=pipeDirAt(p);return v?dir4FromVec(v[0],v[1]):0
 function getPhotoDir(p){if(!p)return 0;var k=ptNum(p);if(state.photoDir&&state.photoDir[k]!=null)return state.photoDir[k];return defaultPhotoDir(p);}
 function setPhotoDir(p,d){if(!state.photoDir)state.photoDir={};state.photoDir[ptNum(p)]=((d%4)+4)%4;}
 function cyclePhotoDir(p){setPhotoDir(p,getPhotoDir(p)+1);}
-function paneImg(no,label,big){var p=no!=null?pointByNo(no):null;var bn=p?ptNum(p):null;var url=bn!=null?photoMap[bn]:null;var sub=p?(p.no+' '+((p.code||'').trim())):(no!=null?('번호 '+no):'');
+function paneImg(no,label,big){var p=no!=null?pointByNo(no):null;var bn=p?ptNum(p):null;var url=(no!=null?photoMap[no]:null)||(bn!=null?photoMap[bn]:null);var sub=p?(p.no+' '+((p.code||'').trim())):(no!=null?('번호 '+no):'');
   var cap=sub?(label+' / '+sub):label;
   var inner;
   if(url){inner=big?('<div class="zoomwrap"><img class="ph" id="zoomImg" src="'+url+'" alt=""></div>'):('<img class="ph" src="'+url+'" alt="">');}
@@ -5605,14 +5632,14 @@ function paneImg(no,label,big){var p=no!=null?pointByNo(no):null;var bn=p?ptNum(
   var arrow=p?('<button class="dirArrow" data-num="'+p.no+'" title="사진 방향 — 클릭하면 회전">'+ARROWS[getPhotoDir(p)]+'</button>'):'';
   return '<div class="'+(big?'php-main':'php-sub')+'"><div class="cap">'+arrow+'<span>'+cap+'</span></div>'+inner+'</div>';}
 /* 후측량 사진 슬롯 — afterMap 표시 + 폰:촬영 / PC:새로고침 (캡션 번호 뒤 _A) */
-function paneAfter(no,label){var p=no!=null?pointByNo(no):null;var bn=p?ptNum(p):null;var url=bn!=null?afterMap[bn]:null;
+function paneAfter(no,label){var p=no!=null?pointByNo(no):null;var bn=p?ptNum(p):null;var url=(no!=null?afterMap[no]:null)||(bn!=null?afterMap[bn]:null);var dn=(p?p.no:no);
   var sub=p?((p.no+'_A '+((p.code||'').trim())).trim()):(no!=null?('번호 '+no+'_A'):'');
   var cap=sub?(label+' / '+sub):label;
   var isMob=(typeof isMobileDevice==='function')?isMobileDevice():false;
   var btn='';
   if(no!=null){
-    if(isMob&&viewerMode)btn='<button class="afterCap" data-num="'+bn+'" style="flex:none;margin-left:auto;border:1px solid #16a34a;background:#eafaf0;color:#16a34a;border-radius:7px;padding:4px 10px;font-size:13px;font-weight:700;cursor:pointer">📷 '+(url?'재촬영':'촬영')+'</button>';
-    else if(!isMob)btn='<button class="afterRefresh" data-num="'+bn+'" style="flex:none;margin-left:auto;border:1px solid #1f6fd6;background:#eef4fc;color:#1f6fd6;border-radius:7px;padding:4px 10px;font-size:13px;font-weight:700;cursor:pointer">🔄 새로고침</button>';
+    if(isMob&&viewerMode)btn='<button class="afterCap" data-num="'+dn+'" style="flex:none;margin-left:auto;border:1px solid #16a34a;background:#eafaf0;color:#16a34a;border-radius:7px;padding:4px 10px;font-size:13px;font-weight:700;cursor:pointer">📷 '+(url?'재촬영':'촬영')+'</button>';
+    else if(!isMob)btn='<button class="afterRefresh" data-num="'+dn+'" style="flex:none;margin-left:auto;border:1px solid #1f6fd6;background:#eef4fc;color:#1f6fd6;border-radius:7px;padding:4px 10px;font-size:13px;font-weight:700;cursor:pointer">🔄 새로고침</button>';
   }
   var ph=url?('<img class="ph" src="'+url+'" alt="">'):('<div class="ph php-none">'+((isMob&&viewerMode)?'📷 촬영 버튼으로 후측량 사진을 찍어주세요':(!isMob?'🔄 새로고침으로 최신 후측량 사진을 불러오세요':'촬영 예정'))+'</div>');
   return '<div class="php-main php-after"><div class="cap"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+cap+'</span>'+btn+'</div>'+ph+'</div>';}
@@ -5640,26 +5667,27 @@ function selectPoint(num){selNum=String(num);drawGeo();highlightSel();var sel=do
 function openPhotoPanel(o){photoPanelOpen=(o==null)?!photoPanelOpen:!!o;document.getElementById('photoPanel').classList.toggle('open',photoPanelOpen);if(photoPanelOpen&&typeof closeRvPanel==='function')closeRvPanel();if(photoPanelOpen)refreshPhotoPanel();setTimeout(function(){fitView();if(typeof placeCoord==='function')placeCoord();},30);}
 function loadPhotos(){photoMap={};afterMap={};if(!online||!state.projectId){if(photoPanelOpen)refreshPhotoPanel();return;}
   sb.from('survey_photos').select('point_no,url').eq('project_id',state.projectId).then(function(res){(res.data||[]).forEach(function(r){var pn=String(r.point_no);if(/_A$/.test(pn))afterMap[pn.replace(/_A$/,'')]=r.url;else photoMap[pn]=r.url;});if(photoPanelOpen)refreshPhotoPanel();});}
+function photoNoFor(f){var num=(f.name.replace(/\.[^.]+$/,'').match(/\d+/)||[''])[0];if(!num)return null;var rel=f.webkitRelativePath||'';if(rel){var parts=rel.split('/');for(var i=parts.length-2;i>=0;i--){var m=(parts[i]||'').match(/(\d{6})/);if(m)return m[1]+'-'+num;}}return num;}
 function uploadPhotos(files){
   if(!online){toast('로컬 모드 — 사진 저장 불가');return;}
   if(!state.projectId){toast('먼저 "저장"으로 현장을 저장한 뒤 사진을 올려주세요');return;}
   var arr=[].slice.call(files);if(!arr.length)return;toast('사진 '+arr.length+'장 업로드 중…');
-  var done=0,ok=0;
+  var done=0,ok=0,unmatched=0,total=arr.length;
+  function finish(){if(done<total)return;var msg=ok+'/'+total+'장 업로드 완료';if(unmatched)msg+=' · 미매칭 '+unmatched+'장(측점 없음)';toast(msg);if(photoPanelOpen)refreshPhotoPanel();}
   arr.forEach(function(f){
-    var num=(f.name.replace(/\.[^.]+$/,'').match(/\d+/)||[''])[0];
-    if(!num){done++;if(done===arr.length)toast(ok+'/'+arr.length+'장 완료');return;}
+    var no=photoNoFor(f);
+    if(!no){done++;finish();return;}
+    if(!pointByNo(no))unmatched++;
     compressImage(f,1280,0.7).then(function(blob){
-      var path=state.projectId+'/'+num+'.jpg';
+      var path=state.projectId+'/'+no+'.jpg';
       return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
         if(up.error)throw up.error;
         var url=sb.storage.from('photos').getPublicUrl(path).data.publicUrl+'?t='+Date.now();
-        return sb.from('survey_photos').delete().eq('project_id',state.projectId).eq('point_no',num).then(function(){
-          return sb.from('survey_photos').insert({project_id:state.projectId,point_no:num,url:url}).then(function(ins){if(ins.error)throw ins.error;photoMap[num]=url;ok++;});
+        return sb.from('survey_photos').delete().eq('project_id',state.projectId).eq('point_no',no).then(function(){
+          return sb.from('survey_photos').insert({project_id:state.projectId,point_no:no,url:url}).then(function(ins){if(ins.error)throw ins.error;photoMap[no]=url;ok++;});
         });
       });
-    }).catch(function(err){console.error('photo upload',num,err);}).then(function(){
-      done++;if(done===arr.length){toast(ok+'/'+arr.length+'장 업로드 완료');if(photoPanelOpen)refreshPhotoPanel();}
-    });
+    }).catch(function(err){console.error('photo upload',no,err);}).then(function(){done++;finish();});
   });
 }
 /* 후측량 사진 — 단일 촬영/업로드 (point_no = 번호_A) */
