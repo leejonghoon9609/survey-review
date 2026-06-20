@@ -260,7 +260,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 175</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 176</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5301,11 +5301,17 @@ function openAsbuilt(){
     win.document.body.style.cssText='margin:0;font:14px sans-serif;background:#525659';
     win.document.body.innerHTML='<div style="padding:20px;color:#eee">준공도면 불러오는 중…</div>';
   }catch(e){}
-  fetch(a.url).then(function(r){return r.blob();}).then(function(blob){
+  fetch(a.url).then(function(r){return r.arrayBuffer();}).then(function(buf){
+    var isPdf=(a.ext==='pdf');
+    var blob=new Blob([buf],{type:isPdf?'application/pdf':'image/jpeg'});
     var burl=URL.createObjectURL(blob);
-    if(a.ext==='pdf'){win.location.href=burl;}
-    else{try{win.document.body.innerHTML='<img src="'+burl+'" style="display:block;max-width:100%;height:auto;margin:0 auto;background:#fff">';}catch(e){win.location.href=burl;}}
-  }).catch(function(){try{win.location.href=a.url;}catch(e){}});
+    try{
+      win.document.body.style.cssText='margin:0;background:#525659';
+      win.document.body.innerHTML=isPdf
+        ?'<embed src="'+burl+'" type="application/pdf" style="width:100%;height:100vh;border:0">'
+        :'<img src="'+burl+'" style="display:block;max-width:100%;height:auto;margin:0 auto;background:#fff">';
+    }catch(e){win.location.href=burl;}
+  }).catch(function(){try{win.document.body.innerHTML='<div style="padding:24px;font:15px sans-serif;color:#eee;line-height:1.7">도면을 창 안에서 열지 못했습니다(접근 제한).<br><br><a href="'+a.url+'" target="_blank" style="color:#9cf">여기를 눌러 새 탭에서 열기</a></div>';}catch(e){window.open(a.url,'_blank');}});
 }
 document.getElementById('rcCsvBtn').onclick=function(){document.getElementById('fCsv').click();};
 document.getElementById('rcDxfBtn').onclick=function(){document.getElementById('fDxf').click();};
