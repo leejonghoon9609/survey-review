@@ -177,6 +177,15 @@
   .php-after .ph.php-none{color:#bbb;font-size:13px;background:#f6f6f3;flex:1}
   /* 폰 현장모드: 노출/후측량 각각 풀사이즈로 세로 스택 + 패널 스크롤 */
   @media(max-width:760px){.viewer .php-split{flex:none}.viewer .php-split>.php-main{flex:none;height:42vh;min-height:300px}}
+  /* 폰 현장모드 로드뷰: 위=로드뷰 / 아래=측점사진(후측량모드처럼 풀사이즈) + 세로 스크롤 */
+  @media(max-width:760px){
+    .viewer #rvPanel.open{height:86vh}
+    .viewer #rvPanel .rv-split{overflow-y:auto}
+    .viewer #rvPanel .rv-top{flex:none;height:38vh;min-height:240px}
+    .viewer #rvPanel .rv-bot{flex:none;padding:8px}
+    .viewer #rvPanel .rv-photo-body{flex:none}
+    .viewer #rvPanel .rv-photo-body .php-main{flex:none;height:44vh;min-height:300px}
+  }
   @media(max-width:760px){.glbl{display:none}.coordbox{font-size:11px;padding:5px 8px}.photo-panel{width:100%;min-width:0}.php-main{min-height:140px}.php-row{min-height:120px}}
   /* ===== 뷰어모드 ===== */
   .vw{display:none}
@@ -242,7 +251,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 170</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 171</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -445,7 +454,7 @@ function computeLabels(){
     lay[k]=right?{lx:p.x+L,ly:p.y,anchor:'start',leader:true}
                :{lx:p.x-L,ly:p.y,anchor:'end',  leader:true};}
   // 작업자가 드래그로 옮긴 라벨은 그 위치 우선
-  for(var ii=0;ii<n;ii++){var no=ptNum(pts[ii]);if(state.labelOff&&state.labelOff[no]){var o=state.labelOff[no];lay[ii]={lx:o[0],ly:o[1],anchor:(o[0]<pts[ii].x?'end':'start'),leader:true};}}
+  for(var ii=0;ii<n;ii++){var o=state.labelOff&&(state.labelOff[pts[ii].no]||state.labelOff[ptNum(pts[ii])]);if(o){lay[ii]={lx:o[0],ly:o[1],anchor:(o[0]<pts[ii].x?'end':'start'),leader:true};}}
   return lay;
 }
 var labelDragging=false;
@@ -485,7 +494,7 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
     if(ld){ld.setAttribute('x2',lx);ld.setAttribute('y2',ly);}
     handle.setAttribute('x',anchor==='start'?(lx-3*Uh):(lx-tw+3*Uh));handle.setAttribute('y',ly-hh*0.5);});
   function up(ev){if(!dragging)return;dragging=false;setTimeout(function(){labelDragging=false;},40);
-    if(moved)state.labelOff[ptNum(p)]=[lx,-ly];
+    if(moved)state.labelOff[p.no]=[lx,-ly];
     else{var now=Date.now();if(now-(p._lastClick||0)<350){p._lastClick=0;openPtEdit(p,ls);}else{p._lastClick=now;}}
     try{handle.releasePointerCapture(ev.pointerId);}catch(e){}
     drawGeo();highlightSel();}
@@ -1056,7 +1065,7 @@ function autoConnect(){
   if(state.points.length<2){toast('측량점을 먼저 올려주세요');return;}
   pushHist();
   state.lines=state.lines.filter(function(l){return l.layer!=='통신관로';}); // 자동결선만 갱신
-  var THRESH=20, pts=state.points; // 공공측량 20m 규정 — 20m 넘는 먼 점엔 결선 안 함
+  var THRESH=20, pts=state.points.filter(function(p){return !/보강판/.test((p.no||'')+'|'+(p.code||''));}); // 공공측량 20m 규정 · 보강판=참고용(결선 제외)
   function D(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
   var edges=[];
   var ufp=new Map(); // 폐합 방지 union-find (지하관로 = 트리, 고리 없음)
@@ -5323,7 +5332,9 @@ function closeRvPanel(){document.getElementById('rvPanel').classList.remove('ope
 function setRvPhoto(pt){
   var body=document.getElementById('rvPhotoBody');
   if(!pt){body.innerHTML='<div class="rv-photo-empty">측점 위치가 아닙니다 — 사진 없음</div>';return;}
-  body.innerHTML=paneImg(ptNum(pt),'측점 사진',false);
+  var big=IS_FIELD||(typeof isMobileDevice==='function'&&isMobileDevice());
+  body.innerHTML=paneImg(pt.no,'측점 사진',big);
+  if(big&&typeof setupZoom==='function')setupZoom(document.getElementById('zoomImg'));
 }
 function pickRoadview(clientX,clientY){
   var w=toWorld(clientX,clientY),east=w[0],north=-w[1];
