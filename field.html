@@ -170,6 +170,21 @@
   .jz-ph img{width:100%;height:150px;object-fit:cover;border:1px solid var(--line);border-radius:4px;display:block}
   .jz-ph i{display:flex;align-items:center;justify-content:center;height:150px;color:#bbb;border:1px dashed var(--line);border-radius:4px;font-size:12px}
   .jz-ph em{display:block;font-size:11px;color:var(--muted);margin-top:3px}
+  /* 엑셀 조서와 동일 표 레이아웃 */
+  .jz-card{background:#fff;border:2px solid #333;margin-bottom:14px}
+  .jz-card.sel{outline:3px solid #f59e0b;outline-offset:1px}
+  table.jz-tbl{width:100%;border-collapse:collapse;table-layout:fixed}
+  table.jz-tbl td{border:1px solid #333;font-size:12px;text-align:center;padding:5px 4px;word-break:break-all}
+  table.jz-tbl td.lbl{background:#fff;font-weight:700}
+  table.jz-tbl td.val{font-weight:700}
+  table.jz-tbl td.ph{padding:0;height:200px;vertical-align:middle}
+  table.jz-tbl td.ph img{width:100%;height:200px;object-fit:cover;display:block}
+  table.jz-tbl td.ph i{display:flex;align-items:center;justify-content:center;height:200px;color:#bbb;font-size:13px;font-style:normal}
+  table.jz-tbl td.cap{font-weight:700;background:#fafafa}
+  .jz-link{border:1px solid #16a34a;border-radius:7px;padding:4px 10px;font-weight:700;cursor:pointer;background:#eafaf0;color:#16a34a}
+  .jz-link.off{border-color:#9ca3af;background:#f3f4f6;color:#6b7280}
+  .jz-done{background:#eef2ff;border:1px solid #4f46e5;color:#4f46e5;border-radius:7px;padding:4px 10px;font-weight:700;cursor:pointer}
+  .jz-done.on{background:#16a34a;border-color:#16a34a;color:#fff}
   .fbtn{background:#fff;border:1.5px solid #cfd8e3;color:#33415a;border-radius:9px;padding:9px 14px;font-size:13.5px;font-weight:700;cursor:pointer;box-shadow:0 2px 9px rgba(0,0,0,.12)}
   .fbtn:hover{filter:brightness(.97)}
   #fldCsv{background:#eff4ff;border-color:#3b82f6;color:#2563eb}
@@ -303,7 +318,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 188</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 189</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -349,8 +364,10 @@
     <div id="joseoPanel" class="photo-panel jz-panel">
       <div class="php-head">
         <h3>실시간 사진조서</h3>
+        <button id="joseoLinkBtn" class="jz-link">🔗 연동</button>
         <button onclick="joseoDownloadAll()" class="jz-dlall">📦 전체 ZIP</button>
         <button id="joseoDlDate" onclick="joseoDownloadDate()" class="jz-dldate">📥 날짜별 다운로드</button>
+        <button id="joseoDoneBtn" class="jz-done">✅ 완료등록</button>
         <button onclick="closeJoseoPanel()">✕</button>
       </div>
       <div id="joseoTabs" class="jz-tabs"></div>
@@ -773,7 +790,7 @@ function drawGeo(){
       gPts.appendChild(el('line',{x1:ax1,y1:ay1,x2:ax1-dv[0]*hl+pr[0]*hl,y2:ay1-dv[1]*hl+pr[1]*hl,stroke:AC,'stroke-width':2.6,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));
       gPts.appendChild(el('line',{x1:ax1,y1:ay1,x2:ax1-dv[0]*hl-pr[0]*hl,y2:ay1-dv[1]*hl-pr[1]*hl,stroke:AC,'stroke-width':2.6,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));})();
     var hit=el('circle',{cx:s[0],cy:s[1],r:hitR,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
-    hit.addEventListener('click',function(ev){if(mode==='ptdel'||mode==='delall2'){ev.stopPropagation();ev.preventDefault();deletePoint(p);return;}if(mode!=='pan'||labelDragging||noteMode)return;ev.stopPropagation();if(photoLink)selectPoint(p.no);else{selNum=p.no;drawGeo();highlightSel();}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
+    hit.addEventListener('click',function(ev){if(mode==='ptdel'||mode==='delall2'){ev.stopPropagation();ev.preventDefault();deletePoint(p);return;}if(mode!=='pan'||labelDragging||noteMode)return;ev.stopPropagation();if(photoLink)selectPoint(p.no);else{selNum=p.no;drawGeo();highlightSel();if(typeof joseoSyncTo==='function')joseoSyncTo(p.no);}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
     hit.addEventListener('mouseenter',function(){if(mode==='ptdel'||mode==='delall2'){hit.setAttribute('fill','rgba(211,47,47,0.28)');hit.setAttribute('stroke','#d32f2f');hit.setAttribute('stroke-width',1.6);hit.setAttribute('vector-effect','non-scaling-stroke');}});
     hit.addEventListener('mouseleave',function(){hit.setAttribute('fill','transparent');hit.removeAttribute('stroke');});
     gHit.appendChild(hit);
@@ -5036,7 +5053,7 @@ function loadProject(id,ro){ if(!online||!id)return; setReadOnly(!!ro);
     state.points=p.points||[];state.lines=p.lines||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.asbuilt=p.asbuilt||null;state.nightShift=p.nightShift||null;state.fieldDone=p.fieldDone||null;state.bizInfo=p.bizInfo||null;
     selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();loadPhotos();if(typeof refreshFieldBar==='function')refreshFieldBar();toast('현장 불러옴: '+res.data.name);
     var vs=document.getElementById('vproj');if(vs)vs.value=res.data.id;
-    if(viewerMode)setTimeout(function(){openPhotoPanel(true);},150);
+    if(viewerMode&&!IS_FIELD)setTimeout(function(){openPhotoPanel(true);},150);
   });
 }
 function deleteProject(){
@@ -5724,7 +5741,7 @@ function joseoGroups(){
 function joseoRec(p){
   var pc=joseoParseCode(p.code), biz=state.bizInfo||{};
   return {
-    date: joseoDate(p.no), name: ptNum(p),
+    date: joseoDate(p.no), name: ptNum(p), fullNo: p.no,
     x: (p.y!=null&&p.y!=='')?(+p.y).toFixed(3):'',                              // X(N)=북=p.y
     y: (p.x!=null&&p.x!=='')?(+p.x).toFixed(3):'',                              // Y(E)=동=p.x
     facility: biz.facility||'', mat: pc.mat, dia: pc.dia, gap:'직접측량', depth:'',
@@ -5794,7 +5811,39 @@ function openJoseoPanel(){
   joseoState={ groups:groups, dates:dates, cur:dates[0] };
   var panel=document.getElementById('joseoPanel'); panel.style.display='flex';
   joseoProgHide(); joseoRenderTabs(); joseoRenderPreview(joseoState.cur);
+  joseoSyncDoneBtn();
 }
+var joseoLink=true;
+function joseoSyncDoneBtn(){
+  var db=document.getElementById('joseoDoneBtn'); if(!db)return;
+  var done=!!(state.fieldDone&&state.fieldDone.joseo);
+  db.classList.toggle('on',done); db.textContent=done?'✅ 등록완료':'✅ 완료등록';
+}
+function joseoSyncTo(no){
+  if(!joseoState||!joseoLink||!no) return;
+  var panel=document.getElementById('joseoPanel'); if(!panel||panel.style.display==='none') return;
+  var p=pointByNo(no); if(!p) return;
+  var dk=joseoDate(p.no); if(!dk) return;
+  if(joseoState.cur!==dk && joseoState.groups[dk]){ joseoState.cur=dk; joseoRenderTabs(); joseoRenderPreview(dk); }
+  var box=document.getElementById('joseoPreview'); if(!box) return;
+  var cards=box.querySelectorAll('.jz-card'), hit=null;
+  [].forEach.call(cards,function(c){ c.classList.remove('sel'); if(c.getAttribute('data-no')===String(p.no)) hit=c; });
+  if(hit){ hit.classList.add('sel'); hit.scrollIntoView({behavior:'smooth',block:'center'}); }
+}
+function joseoRegisterDone(){
+  if(!state.projectId){ toast('먼저 사업을 불러오세요'); return; }
+  var fd=state.fieldDone||{csv:false,joseo:false,manhole:false}; fd.joseo=true; state.fieldDone=fd;
+  if(online&&state.projectId) saveProject();
+  if(typeof refreshFieldBar==='function') refreshFieldBar();
+  joseoSyncDoneBtn();
+  toast('실시간 사진조서 등록완료 ✓ — 최종본은 [전체 ZIP]/[날짜별 다운로드]로 받으세요');
+}
+(function(){
+  var lb=document.getElementById('joseoLinkBtn');
+  if(lb) lb.onclick=function(){ joseoLink=!joseoLink; this.textContent=joseoLink?'🔗 연동':'🔓 미연동'; this.classList.toggle('off',!joseoLink); toast(joseoLink?'측점↔조서 연동 ON (점 클릭=조서 이동)':'조서 연동 OFF'); };
+  var db=document.getElementById('joseoDoneBtn');
+  if(db) db.onclick=joseoRegisterDone;
+})();
 function closeJoseoPanel(){ var p=document.getElementById('joseoPanel'); if(p)p.style.display='none'; }
 function joseoRenderTabs(){
   var t=document.getElementById('joseoTabs'); if(!t)return; t.innerHTML='';
@@ -5810,14 +5859,17 @@ function joseoRenderPreview(dk){
   var recs=(joseoState.groups[dk]||[]).map(joseoRec);
   var html='<div class="jz-proj">사업명 : '+joseoEsc(state.projectName||'')+'</div>';
   recs.forEach(function(r){
-    html+='<div class="jz-block">'
-      +'<div class="jz-r"><span>측량날짜</span><b>'+joseoEsc(r.date)+'</b><span>측점명</span><b>'+joseoEsc(r.name)+'</b></div>'
-      +'<div class="jz-r"><span>X(N)</span><b>'+joseoEsc(r.x)+'</b><span>Y(E)</span><b>'+joseoEsc(r.y)+'</b></div>'
-      +'<div class="jz-r"><span>시설물</span><b>'+joseoEsc(r.facility)+'</b><span>재질</span><b>'+joseoEsc(r.mat)+'</b><span>관경</span><b>'+joseoEsc(r.dia)+'</b></div>'
-      +'<div class="jz-ph2">'
-      +'<div class="jz-ph">'+(r.expUrl?'<img src="'+joseoEsc(r.expUrl)+'">':'<i>노출 사진 없음</i>')+'<em>실시간 측량점</em></div>'
-      +'<div class="jz-ph">'+(r.aftUrl?'<img src="'+joseoEsc(r.aftUrl)+'">':'<i>공사후 사진 없음</i>')+'<em>공사 후 관로</em></div>'
-      +'</div></div>';
+    var exp=r.expUrl?'<img src="'+joseoEsc(r.expUrl)+'">':'<i>실시간 사진 없음</i>';
+    var aft=r.aftUrl?'<img src="'+joseoEsc(r.aftUrl)+'">':'<i>공사후 사진 없음</i>';
+    html+='<div class="jz-card" data-no="'+joseoEsc(r.fullNo||r.name)+'">'
+      +'<table class="jz-tbl">'
+      +'<tr><td class="lbl">측량날짜</td><td class="val" colspan="2">'+joseoEsc(r.date)+'</td><td class="lbl">측점명</td><td class="val" colspan="3">'+joseoEsc(r.name)+'</td></tr>'
+      +'<tr><td class="lbl" colspan="2">좌표(GRS80)</td><td class="lbl" rowspan="2">시설물종류</td><td class="lbl" rowspan="2">재질</td><td class="lbl" rowspan="2">관경</td><td class="lbl" rowspan="2">이격거리</td><td class="lbl" rowspan="2">심도</td></tr>'
+      +'<tr><td class="lbl">X(N)</td><td class="lbl">Y(E)</td></tr>'
+      +'<tr><td class="val">'+joseoEsc(r.x)+'</td><td class="val">'+joseoEsc(r.y)+'</td><td class="val">'+joseoEsc(r.facility)+'</td><td class="val">'+joseoEsc(r.mat)+'</td><td class="val">'+joseoEsc(r.dia)+'</td><td class="val">'+joseoEsc(r.gap)+'</td><td class="val">'+joseoEsc(r.depth)+'</td></tr>'
+      +'<tr><td class="ph" colspan="3">'+exp+'</td><td class="ph" colspan="4">'+aft+'</td></tr>'
+      +'<tr><td class="cap" colspan="3">실시간 측량점</td><td class="cap" colspan="4">공사 후 관로</td></tr>'
+      +'</table></div>';
   });
   box.innerHTML=html;
 }
@@ -6100,7 +6152,7 @@ function refreshPhotoPanel(){
   var ac=document.querySelector('.afterCap');if(ac)ac.onclick=function(){afterTargetNum=this.getAttribute('data-num');document.getElementById('fAfter').click();};
   var ar=document.querySelector('.afterRefresh');if(ar)ar.onclick=function(){toast('후측량 사진 새로고침…');loadPhotos();};
 }
-function selectPoint(num){selNum=String(num);drawGeo();highlightSel();var sel=document.getElementById('photoSel');if(sel)sel.value=String(num);if(photoPanelOpen)refreshPhotoPanel();}
+function selectPoint(num){selNum=String(num);drawGeo();highlightSel();var sel=document.getElementById('photoSel');if(sel)sel.value=String(num);if(photoPanelOpen)refreshPhotoPanel();if(typeof joseoSyncTo==='function')joseoSyncTo(num);}
 function openPhotoPanel(o){photoPanelOpen=(o==null)?!photoPanelOpen:!!o;document.getElementById('photoPanel').classList.toggle('open',photoPanelOpen);if(photoPanelOpen&&typeof closeRvPanel==='function')closeRvPanel();if(photoPanelOpen)refreshPhotoPanel();setTimeout(function(){fitView();if(typeof placeCoord==='function')placeCoord();},30);}
 function loadPhotos(){photoMap={};afterMap={};if(!online||!state.projectId){if(photoPanelOpen)refreshPhotoPanel();return;}
   sb.from('survey_photos').select('point_no,url').eq('project_id',state.projectId).then(function(res){(res.data||[]).forEach(function(r){var pn=String(r.point_no);if(/_A$/.test(pn))afterMap[pn.replace(/_A$/,'')]=r.url;else photoMap[pn]=r.url;});if(photoPanelOpen)refreshPhotoPanel();});}
@@ -6185,7 +6237,7 @@ cv.addEventListener('click',function(e){
   var nr=nearestPointWorld(w[0],w[1]);
   if(nr.p&&nr.d<40*wpp){
     if(photoLink){selectPoint(nr.p.no);}
-    else{selNum=nr.p.no;drawGeo();highlightSel();}
+    else{selNum=nr.p.no;drawGeo();highlightSel();if(typeof joseoSyncTo==='function')joseoSyncTo(nr.p.no);}
     toast('측점 '+nr.p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));
   }
 });
