@@ -242,7 +242,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 168</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 169</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5688,16 +5688,30 @@ function selectPoint(num){selNum=String(num);drawGeo();highlightSel();var sel=do
 function openPhotoPanel(o){photoPanelOpen=(o==null)?!photoPanelOpen:!!o;document.getElementById('photoPanel').classList.toggle('open',photoPanelOpen);if(photoPanelOpen&&typeof closeRvPanel==='function')closeRvPanel();if(photoPanelOpen)refreshPhotoPanel();setTimeout(function(){fitView();if(typeof placeCoord==='function')placeCoord();},30);}
 function loadPhotos(){photoMap={};afterMap={};if(!online||!state.projectId){if(photoPanelOpen)refreshPhotoPanel();return;}
   sb.from('survey_photos').select('point_no,url').eq('project_id',state.projectId).then(function(res){(res.data||[]).forEach(function(r){var pn=String(r.point_no);if(/_A$/.test(pn))afterMap[pn.replace(/_A$/,'')]=r.url;else photoMap[pn]=r.url;});if(photoPanelOpen)refreshPhotoPanel();});}
+function _normTxt(s){return (s||'').toString().replace(/\s+/g,'').toLowerCase();}
+function _dateOfPt(p){var m=/^(\d{6})-/.exec(p.no||'');return m?m[1]:'';}
 function resolvePhotoNo(f){
-  var num=(f.name.replace(/\.[^.]+$/,'').match(/\d+/)||[''])[0];if(!num)return null;
+  var base=f.name.replace(/\.[^.]+$/,'').trim();if(!base)return null;
   var rel=f.webkitRelativePath||f._relpath||'',date='';
   if(rel){var parts=rel.split('/');for(var i=parts.length-2;i>=0;i--){var m=(parts[i]||'').match(/(\d{6})/);if(m){date=m[1];break;}}}
   if(!date&&f._zipdate)date=f._zipdate;
-  if(date){var no=date+'-'+num;if(pointByNo(no))return {no:no,matched:true};}
-  var ms=(state.points||[]).filter(function(p){return ptNum(p)===String(num);});
-  if(ms.length===1)return {no:ms[0].no,matched:true};
-  if(date)return {no:date+'-'+num,matched:false};
-  return {no:num,matched:false};
+  var pool=(state.points||[]);
+  var dpool=date?pool.filter(function(p){return _dateOfPt(p)===date;}):[];
+  var cand=(date&&dpool.length)?dpool:pool;
+  if(/^\d+$/.test(base)){
+    // 순수 숫자 → 번호 매칭
+    if(date){var no=date+'-'+base;if(pointByNo(no))return {no:no,matched:true};}
+    var ms=cand.filter(function(p){return ptNum(p)===base;});
+    if(ms.length===1)return {no:ms[0].no,matched:true};
+    return {no:(date?date+'-'+base:base),matched:false}; // ASCII 키 — 추후 측점 들어오면 매칭
+  }
+  // 글자 → 공백 무시하고 코드칸(없으면 이름) 대조
+  var nb=_normTxt(base);
+  var cm=cand.filter(function(p){return _normTxt(p.code)===nb;});
+  if(cm.length===1)return {no:cm[0].no,matched:true};
+  var im=cand.filter(function(p){return _normTxt(ptNum(p))===nb;});
+  if(im.length===1)return {no:im[0].no,matched:true};
+  return null; // 글자인데 못 찾음(또는 중복) → 미매칭
 }
 function uploadPhotos(files){
   if(!online){toast('로컬 모드 — 사진 저장 불가');return;}
@@ -5707,7 +5721,7 @@ function uploadPhotos(files){
   function finish(){if(done<total)return;var msg=ok+'/'+total+'장 업로드 완료';if(unmatched)msg+=' · 미매칭 '+unmatched+'장(측점 없음)';toast(msg);if(photoPanelOpen)refreshPhotoPanel();}
   arr.forEach(function(f){
     var r=resolvePhotoNo(f);
-    if(!r){done++;finish();return;}
+    if(!r){unmatched++;done++;finish();return;}
     if(!r.matched)unmatched++;var no=r.no;
     compressImage(f,1280,0.7).then(function(blob){
       var path=state.projectId+'/'+no+'.jpg';
