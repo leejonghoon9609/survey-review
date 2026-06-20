@@ -144,6 +144,11 @@
   .photo-panel{width:37%;min-width:480px;max-width:44%;background:#fff;border-left:1px solid var(--line);display:none;flex-direction:column;flex:none}
   .linkon{background:#eef6ef;border-color:#bcdcc0;color:#2a9e50;font-weight:600}
   .photo-panel.open{display:flex}
+  .fbtn{background:#fff;border:1.5px solid #cfd8e3;color:#33415a;border-radius:9px;padding:9px 14px;font-size:13.5px;font-weight:700;cursor:pointer;box-shadow:0 2px 9px rgba(0,0,0,.12)}
+  .fbtn:hover{border-color:#94a8c0}
+  .fbtn.done{background:#eafaf0;border-color:#16a34a;color:#16a34a}
+  .fbtn-final{background:#eef2ff;border-color:#4f46e5;color:#4f46e5}
+  .fbtn-final:hover{border-color:#4f46e5}
   /* 로드뷰 패널: 위=로드뷰 / 아래=측점사진 (50/50) */
   .rv-split{flex:1;display:flex;flex-direction:column;min-height:0}
   .rv-top{flex:1;position:relative;border-bottom:2px solid var(--line);min-height:0;background:#000}
@@ -189,7 +194,7 @@
   }
   /* 모바일 현장 전용: 탱고작업용 성과제작 버튼 숨김(PC는 유지) + 스크롤 스냅(경계에서 부드럽게 멈춤) */
   @media(max-width:760px){
-    #tangoMakeBtn{display:none!important}
+    #fieldBar{display:none!important}
     .viewer #rvPanel .rv-split{scroll-snap-type:y proximity}
     .viewer #rvPanel .rv-top,.viewer #rvPanel .rv-bot{scroll-snap-align:start}
     .viewer .php-body{scroll-snap-type:y proximity}
@@ -261,7 +266,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 178</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 179</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -274,7 +279,12 @@
       <svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg>
       <div id="lblOverlay" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:5"></div>
       <div id="coordBox" class="coordbox">X <b>–</b>　Y <b>–</b></div>
-      <button id="tangoMakeBtn" style="position:absolute;top:10px;left:10px;z-index:6;display:none;background:#f3eafc;border:1px solid #8e44ad;color:#7b2cbf;font-weight:800;border-radius:9px;padding:9px 14px;font-size:13.5px;box-shadow:0 2px 9px rgba(0,0,0,.14);cursor:pointer">🎵 탱고작업용 성과제작</button>
+      <div id="fieldBar" style="position:absolute;top:10px;left:10px;right:10px;z-index:6;display:none;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="fbtn" id="fldCsv">후측량 csv</button>
+        <button class="fbtn" id="fldJoseo">실시간 사진조서</button>
+        <button class="fbtn" id="fldManhole">맨홀도 제작</button>
+        <button class="fbtn fbtn-final" id="fldFinal" style="margin-left:auto">📋 후측량 최종성과 등록</button>
+      </div>
       <div id="toast" class="toast"></div>
     </div>
     </div>
@@ -411,7 +421,7 @@ var gHit=document.createElementNS(SVGNS,'g'); // 측점 클릭 hit (최상위 �
 cv.appendChild(gGeo); cv.appendChild(gMark); cv.appendChild(gDraft); cv.appendChild(gPts); cv.appendChild(gMH); cv.appendChild(gHit);
 
 /* 상태 */
-var state={ projectId:null, projectName:null, points:[], lines:[], markups:[], labelOff:{}, manholes:[], photoDir:{}, asbuilt:null, nightShift:null };
+var state={ projectId:null, projectName:null, points:[], lines:[], markups:[], labelOff:{}, manholes:[], photoDir:{}, asbuilt:null, nightShift:null, fieldDone:null };
 // manhole 구조: {id, wx, wy, label, lx, ly}
 // wx,wy = 맨홀 중심 세계좌표(x=동,y=북)
 // lx,ly = 라벨 앵커 세계좌표
@@ -4960,7 +4970,7 @@ function refreshProjects(){ if(!online)return;
   });
 }
 function saveProject(){
-  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,nightShift:state.nightShift||null};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
+  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,nightShift:state.nightShift||null,fieldDone:state.fieldDone||null};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
   if(!state.projectName){toast('사업명을 먼저 정하세요(새 사업)');return;}
   var row={name:state.projectName,payload:payload,updated_at:new Date().toISOString()};
   if(state.projectId)row.id=state.projectId;
@@ -4975,8 +4985,8 @@ function loadProject(id,ro){ if(!online||!id)return; setReadOnly(!!ro);
   sb.from('survey_projects').select('*').eq('id',id).single().then(function(res){
     if(res.error||!res.data){toast('불러오기 실패');return;}
     var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;
-    state.points=p.points||[];state.lines=p.lines||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.asbuilt=p.asbuilt||null;state.nightShift=p.nightShift||null;
-    selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();loadPhotos();toast('현장 불러옴: '+res.data.name);
+    state.points=p.points||[];state.lines=p.lines||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.asbuilt=p.asbuilt||null;state.nightShift=p.nightShift||null;state.fieldDone=p.fieldDone||null;
+    selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();loadPhotos();if(typeof refreshFieldBar==='function')refreshFieldBar();toast('현장 불러옴: '+res.data.name);
     var vs=document.getElementById('vproj');if(vs)vs.value=res.data.id;
     if(viewerMode)setTimeout(function(){openPhotoPanel(true);},150);
   });
@@ -5234,7 +5244,7 @@ function _openRegNow(){
   updRegStatus();
   setTimeout(function(){document.getElementById('regName').focus();},30);
 }
-function clearForNew(){state.projectId=null;state.projectName='';state.points=[];state.routingDone=false;state.asbuilt=null;state.nightShift=null;if(typeof setReadOnly==='function')setReadOnly(false);(state.markups||[]).forEach(function(m){if(m.el)m.el.remove();});state.markups=[];state.lines=[];state.manholes=[];state.photoDir={};photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);drawGeo();drawMarks();drawManholes();updMeta();}
+function clearForNew(){state.projectId=null;state.projectName='';state.points=[];state.routingDone=false;state.asbuilt=null;state.nightShift=null;state.fieldDone=null;if(typeof refreshFieldBar==='function')refreshFieldBar();if(typeof setReadOnly==='function')setReadOnly(false);(state.markups||[]).forEach(function(m){if(m.el)m.el.remove();});state.markups=[];state.lines=[];state.manholes=[];state.photoDir={};photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);drawGeo();drawMarks();drawManholes();updMeta();}
 function regStartWarn(){
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;z-index:1001;background:rgba(0,0,0,.42);display:flex;align-items:center;justify-content:center';
@@ -5265,7 +5275,7 @@ function registerProject(){
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
   state.projectName=name;
   var crsEl=document.querySelector('input[name="regCrs"]:checked');state.crs=crsEl?crsEl.value:'5186';
-  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,nightShift:state.nightShift||null};
+  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,nightShift:state.nightShift||null,fieldDone:state.fieldDone||null};
   var row={name:name,payload:payload,updated_at:new Date().toISOString()};
   if(state.projectId)row.id=state.projectId;
   var photos=pendingPhotos; // 모달 닫으면 null되므로 미리 캡쳐
@@ -5592,7 +5602,40 @@ var _rob=document.getElementById('roBadge');if(_rob)_rob.onclick=function(){if(r
 /* 페이지 분리 — 이동은 랜딩에서. 결선/현장은 모드이동버튼 제거(탱고 in-page 토글만 유지), 시스템이동버튼은 전 페이지 제거 */
 (function(){var mt=document.getElementById('modeToggle');if(mt&&!IS_TANGO)mt.remove();var ss=document.getElementById('sysSwitch');if(ss)ss.remove();})();
 /* 측량(현장) 전용: 탱고작업용 성과제작 버튼 (기능은 다음 단계에서 연결) */
-(function(){var tb=document.getElementById('tangoMakeBtn');if(!tb)return;if(IS_FIELD){tb.style.display='block';tb.onclick=function(){toast('탱고작업용 성과제작 — 다음 단계에서 기능을 연결합니다');};}else{tb.remove();}})();
+function refreshFieldBar(){
+  var fd=state.fieldDone||{};
+  [['fldCsv','csv','후측량 csv'],['fldJoseo','joseo','실시간 사진조서'],['fldManhole','manhole','맨홀도 제작']].forEach(function(m){
+    var b=document.getElementById(m[0]);if(!b)return;var done=!!fd[m[1]];b.classList.toggle('done',done);b.textContent=(done?'✓ ':'')+m[2];
+  });
+}
+function openFinalStatus(){
+  var fd=state.fieldDone||{csv:false,joseo:false,manhole:false};state.fieldDone=fd;
+  var items=[['csv','후측량 csv'],['joseo','실시간 사진조서'],['manhole','맨홀도 제작']];
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center';
+  var box=document.createElement('div');
+  box.style.cssText='background:#fff;border-radius:14px;width:92%;max-width:440px;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden';
+  function row(k,label){var done=!!fd[k];return '<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #f1f1f1"><span style="flex:1;font-size:15px;font-weight:600">'+label+'</span><span style="font-size:13px;font-weight:800;padding:4px 11px;border-radius:20px;'+(done?'background:#eafaf0;color:#16a34a;border:1px solid #16a34a':'background:#fff5f5;color:#d32f2f;border:1px solid #d32f2f')+'">'+(done?'등록완료':'미완료')+'</span><button class="fs-tgl" data-k="'+k+'" style="border:1px solid #ccc;background:#fff;border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer">'+(done?'미완료로':'완료로')+'</button></div>';}
+  function render(){
+    var allDone=items.every(function(it){return !!fd[it[0]];});
+    box.innerHTML='<div style="padding:15px 18px;border-bottom:1px solid #eee;display:flex;align-items:center"><b style="flex:1;font-size:16px;color:#4f46e5">📋 후측량 최종성과 등록</b><button id="fsClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div>'
+      +items.map(function(it){return row(it[0],it[1]);}).join('')
+      +'<div style="padding:13px 18px;font-size:13px;'+(allDone?'color:#16a34a;font-weight:700':'color:#888')+'">'+(allDone?'✅ 모든 성과 등록완료':'각 항목을 등록완료로 표시하세요 (성과 제작 연결은 다음 단계)')+'</div>';
+    box.querySelector('#fsClose').onclick=function(){ov.remove();};
+    [].forEach.call(box.querySelectorAll('.fs-tgl'),function(b){b.onclick=function(){var k=this.getAttribute('data-k');fd[k]=!fd[k];state.fieldDone=fd;if(online&&state.projectId)saveProject();refreshFieldBar();render();};});
+  }
+  render();ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};document.body.appendChild(ov);
+}
+(function(){
+  var fb=document.getElementById('fieldBar');if(!fb)return;
+  if(!IS_FIELD){fb.remove();return;}
+  fb.style.display='flex';
+  var c=document.getElementById('fldCsv');if(c)c.onclick=function(){toast('후측량 CSV 제작 — 다음 단계에서 연결합니다');};
+  var j=document.getElementById('fldJoseo');if(j)j.onclick=function(){toast('실시간 사진조서 — 다음 단계에서 연결합니다');};
+  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){toast('맨홀도 제작 — 다음 단계에서 연결합니다');};
+  var f=document.getElementById('fldFinal');if(f)f.onclick=openFinalStatus;
+  refreshFieldBar();
+})();
 // 사진 방향 화살표 클릭 → 90° 회전 (사진 패널·로드뷰 패널 공통)
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.dirArrow');if(!b)return;e.stopPropagation();e.preventDefault();var p=pointByNo(b.getAttribute('data-num'));if(!p)return;cyclePhotoDir(p);b.textContent=ARROWS[getPhotoDir(p)];drawGeo();},true);
 bind('rvClose',closeRvPanel);
