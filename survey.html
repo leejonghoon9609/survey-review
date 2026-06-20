@@ -256,10 +256,11 @@
     <span id="globalbtns" class="hgbtns wk"></span>
     <button id="doneListBtn" class="wk" style="background:#eafaf0;color:#16a34a;border:1px solid #16a34a;font-weight:700">✅ 결선 완료사업</button>
     <span id="doneSummary" class="wk" style="display:none;color:#d32f2f;border:1px solid #d32f2f;background:#fff5f5;border-radius:7px;padding:3px 10px;font-size:12.5px;font-weight:800"></span>
+    <button id="asbuiltBtn" class="wk" style="background:#eef2ff;color:#4f46e5;border:1px solid #7c83e8;font-weight:700">📐 준공도면</button>
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 172</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 174</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -315,6 +316,8 @@
   <input type="file" id="fPhotos" accept="image/*" multiple style="display:none">
   <input type="file" id="fAfter" accept="image/*" capture="environment" style="display:none">
   <input type="file" id="fRegPhotos" accept="image/*,.zip" multiple style="display:none">
+  <input type="file" id="fAsbuilt" accept="application/pdf,image/*" style="display:none">
+  <input type="file" id="fAsbuiltDirect" accept="application/pdf,image/*" style="display:none">
 
   <!-- 사업 등록 모달 -->
   <div id="regModal" class="regwrap" style="display:none">
@@ -367,9 +370,16 @@
           <button class="rc-clr" id="clrDxf" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">✕ 제거</button>
         </div>
       </div>
-      <div class="regfoot">
-        <button id="regCancel" class="rf-cancel">취소</button>
-        <button id="regOk" class="rf-ok">등록</button>
+      <div class="regfoot" style="justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:7px">
+          <button class="rc-btn" id="rcAsbuiltBtn" style="background:#eef2ff;border-color:#7c83e8;color:#4f46e5;padding:6px 11px;width:auto">📐 준공도면 첨부 (PDF·이미지)</button>
+          <span id="asbuiltName" style="font-size:12px;color:#4f46e5;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+          <button id="clrAsbuilt" style="display:none;border:1px solid #e3b4ae;background:#fff;color:#c0392b;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer">✕</button>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button id="regCancel" class="rf-cancel">취소</button>
+          <button id="regOk" class="rf-ok">등록</button>
+        </div>
       </div>
     </div>
   </div>
@@ -394,7 +404,7 @@ var gHit=document.createElementNS(SVGNS,'g'); // 측점 클릭 hit (최상위 �
 cv.appendChild(gGeo); cv.appendChild(gMark); cv.appendChild(gDraft); cv.appendChild(gPts); cv.appendChild(gMH); cv.appendChild(gHit);
 
 /* 상태 */
-var state={ projectId:null, projectName:null, points:[], lines:[], markups:[], labelOff:{}, manholes:[], photoDir:{} };
+var state={ projectId:null, projectName:null, points:[], lines:[], markups:[], labelOff:{}, manholes:[], photoDir:{}, asbuilt:null };
 // manhole 구조: {id, wx, wy, label, lx, ly}
 // wx,wy = 맨홀 중심 세계좌표(x=동,y=북)
 // lx,ly = 라벨 앵커 세계좌표
@@ -4925,7 +4935,7 @@ function refreshProjects(){ if(!online)return;
   });
 }
 function saveProject(){
-  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
+  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
   if(!state.projectName){toast('사업명을 먼저 정하세요(새 사업)');return;}
   var row={name:state.projectName,payload:payload,updated_at:new Date().toISOString()};
   if(state.projectId)row.id=state.projectId;
@@ -4940,7 +4950,7 @@ function loadProject(id,ro){ if(!online||!id)return; setReadOnly(!!ro);
   sb.from('survey_projects').select('*').eq('id',id).single().then(function(res){
     if(res.error||!res.data){toast('불러오기 실패');return;}
     var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;
-    state.points=p.points||[];state.lines=p.lines||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;
+    state.points=p.points||[];state.lines=p.lines||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.asbuilt=p.asbuilt||null;
     selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();loadPhotos();toast('현장 불러옴: '+res.data.name);
     var vs=document.getElementById('vproj');if(vs)vs.value=res.data.id;
     if(viewerMode)setTimeout(function(){openPhotoPanel(true);},150);
@@ -5169,7 +5179,7 @@ bind('save',saveProject);
 bind('delProj',deleteProject);
 
 /* ====== 사업 등록 모달 ====== */
-var pendingPhotos=null;
+var pendingPhotos=null, pendingAsbuilt=null;
 function regOpen(){return document.getElementById('regModal').style.display!=='none';}
 function updRegStatus(){
   var c=document.getElementById('rcCsv');
@@ -5190,7 +5200,7 @@ function updRegStatus(){
 }
 function _openRegNow(){
   document.getElementById('regName').value=state.projectName||'';
-  pendingPhotos=null;
+  pendingPhotos=null;pendingAsbuilt=null;if(typeof asbuiltStageUI==='function')asbuiltStageUI();
   var crs=state.crs||'5186';var rc=document.querySelector('input[name="regCrs"][value="'+crs+'"]');if(rc)rc.checked=true;
   var out=document.getElementById('crsResult');out.textContent='CSV 로딩 후 변환 확인';out.style.color='';
   document.getElementById('crsMapLink').style.display='none';
@@ -5198,7 +5208,7 @@ function _openRegNow(){
   updRegStatus();
   setTimeout(function(){document.getElementById('regName').focus();},30);
 }
-function clearForNew(){state.projectId=null;state.projectName='';state.points=[];state.routingDone=false;if(typeof setReadOnly==='function')setReadOnly(false);(state.markups||[]).forEach(function(m){if(m.el)m.el.remove();});state.markups=[];state.lines=[];state.manholes=[];state.photoDir={};photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);drawGeo();drawMarks();drawManholes();updMeta();}
+function clearForNew(){state.projectId=null;state.projectName='';state.points=[];state.routingDone=false;state.asbuilt=null;if(typeof setReadOnly==='function')setReadOnly(false);(state.markups||[]).forEach(function(m){if(m.el)m.el.remove();});state.markups=[];state.lines=[];state.manholes=[];state.photoDir={};photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);drawGeo();drawMarks();drawManholes();updMeta();}
 function regStartWarn(){
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;z-index:1001;background:rgba(0,0,0,.42);display:flex;align-items:center;justify-content:center';
@@ -5222,17 +5232,18 @@ function openRegModal(){
   if(work){regStartWarn();return;}
   _openRegNow();
 }
-function closeRegModal(){document.getElementById('regModal').style.display='none';pendingPhotos=null;}
+function closeRegModal(){document.getElementById('regModal').style.display='none';pendingPhotos=null;pendingAsbuilt=null;if(typeof asbuiltStageUI==='function')asbuiltStageUI();}
 function registerProject(){
   var name=document.getElementById('regName').value.trim();
   if(!name){toast('사업명을 입력하세요');document.getElementById('regName').focus();return;}
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
   state.projectName=name;
   var crsEl=document.querySelector('input[name="regCrs"]:checked');state.crs=crsEl?crsEl.value:'5186';
-  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone};
+  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null};
   var row={name:name,payload:payload,updated_at:new Date().toISOString()};
   if(state.projectId)row.id=state.projectId;
   var photos=pendingPhotos; // 모달 닫으면 null되므로 미리 캡쳐
+  var asb=pendingAsbuilt;
   toast('등록 중…');
   sb.from('survey_projects').upsert(row).select().then(function(res){
     if(res.error){toast('등록 오류: '+res.error.message);return;}
@@ -5241,12 +5252,65 @@ function registerProject(){
     refreshProjects();
     closeRegModal();
     if(photos&&photos.length)uploadPhotos(photos); // projectId 확보 후 사진 업로드
+    if(asb)uploadAsbuilt(asb,function(){saveProject();}); // 준공도면 업로드 후 URL 저장
     toast('사업 등록 완료: '+name);
   });
 }
 bind('regX',closeRegModal);
 bind('regCancel',closeRegModal);
 bind('regOk',registerProject);
+/* ===== 준공도면 (as-built) ===== */
+function asbuiltStageUI(){var n=document.getElementById('asbuiltName'),c=document.getElementById('clrAsbuilt');if(!n)return;if(pendingAsbuilt){n.textContent=pendingAsbuilt.name;c.style.display='inline-block';}else{n.textContent='';c.style.display='none';}}
+(function(){
+  var b=document.getElementById('rcAsbuiltBtn');if(b)b.onclick=function(){document.getElementById('fAsbuilt').click();};
+  var f=document.getElementById('fAsbuilt');if(f)f.addEventListener('change',function(e){var file=e.target.files[0];if(file){pendingAsbuilt=file;asbuiltStageUI();toast('준공도면 선택: '+file.name+' (등록 시 업로드)');}e.target.value='';});
+  var c=document.getElementById('clrAsbuilt');if(c)c.onclick=function(){pendingAsbuilt=null;asbuiltStageUI();};
+  var fd=document.getElementById('fAsbuiltDirect');if(fd)fd.addEventListener('change',function(e){var file=e.target.files[0];if(file)uploadAsbuilt(file,function(){saveProject();openAsbuilt();});e.target.value='';});
+  var ab=document.getElementById('asbuiltBtn');if(ab)ab.onclick=openAsbuilt;
+})();
+function uploadAsbuilt(file,cb){
+  if(!online){toast('로컬 모드 — 준공도면 저장 불가');return;}
+  if(!state.projectId){toast('먼저 사업을 저장한 뒤 준공도면을 올려주세요');return;}
+  var ext=((file.name.match(/\.([A-Za-z0-9]+)$/)||[])[1]||'').toLowerCase();
+  var isPdf=ext==='pdf'||(file.type||'').indexOf('pdf')>=0;
+  var put=function(blob,outExt,ctype){
+    var path=state.projectId+'/_asbuilt.'+outExt;
+    sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:ctype}).then(function(up){
+      if(up.error){toast('준공도면 업로드 오류: '+up.error.message);return;}
+      var url=sb.storage.from('photos').getPublicUrl(path).data.publicUrl+'?t='+Date.now();
+      state.asbuilt={url:url,ext:outExt};
+      toast('준공도면 업로드 완료'+(outExt==='jpg'?' (자동 압축)':''));
+      if(cb)cb();
+    });
+  };
+  toast('준공도면 업로드 중…');
+  if(isPdf){put(file,'pdf','application/pdf');}
+  else{compressImage(file,2400,0.85).then(function(blob){put(blob,'jpg','image/jpeg');}).catch(function(){put(file,(ext||'jpg'),file.type||'image/jpeg');});}
+}
+function openAsbuilt(){
+  var a=state.asbuilt;
+  if(!a||!a.url){
+    if(state.projectId){if(confirm('이 사업에 등록된 준공도면이 없습니다.\n지금 올릴까요? (PDF·이미지)'))document.getElementById('fAsbuiltDirect').click();}
+    else toast('먼저 사업을 저장한 뒤 준공도면을 올려주세요');
+    return;
+  }
+  var isImg=(a.ext&&a.ext!=='pdf')||/\.(png|jpe?g|gif|webp)(\?|$)/i.test(a.url);
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:2vh';
+  var box=document.createElement('div');
+  box.style.cssText='background:#fff;border-radius:12px;width:94vw;height:92vh;max-width:1400px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.4)';
+  box.innerHTML='<div style="display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid #eee"><b style="flex:1;font-size:15px;color:#4f46e5">📐 준공도면 — '+(state.projectName||'')+'</b>'
+    +'<a href="'+a.url+'" target="_blank" rel="noopener" style="text-decoration:none;border:1px solid #7c83e8;color:#4f46e5;border-radius:7px;padding:5px 11px;font-size:13px">↗ 새 탭</a>'
+    +'<button id="asbReplace" style="border:1px solid #ccc;background:#fff;border-radius:7px;padding:5px 11px;font-size:13px;cursor:pointer">교체</button>'
+    +'<button id="asbClose" style="border:none;background:#f2f2f2;border-radius:7px;padding:5px 11px;cursor:pointer">닫기</button></div>'
+    +'<div style="flex:1;min-height:0;overflow:auto;background:#525659;display:flex">'
+    +(isImg?('<img src="'+a.url+'" style="max-width:100%;height:auto;margin:auto;display:block">'):('<iframe src="'+a.url+'" style="width:100%;height:100%;border:0;background:#fff"></iframe>'))
+    +'</div>';
+  box.querySelector('#asbClose').onclick=function(){ov.remove();};
+  box.querySelector('#asbReplace').onclick=function(){ov.remove();document.getElementById('fAsbuiltDirect').click();};
+  ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};
+  document.body.appendChild(ov);
+}
 document.getElementById('rcCsvBtn').onclick=function(){document.getElementById('fCsv').click();};
 document.getElementById('rcDxfBtn').onclick=function(){document.getElementById('fDxf').click();};
 document.getElementById('rcPhoBtn').onclick=function(){document.getElementById('fRegPhotos').click();};
