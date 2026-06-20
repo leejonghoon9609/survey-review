@@ -326,7 +326,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 192</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 194</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5788,8 +5788,8 @@ async function joseoBuildWb(projectName, recs, perPage){
   var BLK=[]; for(var r=3;r<=19;r++){ var row=[]; for(var c=1;c<=7;c++){ var s=ws.getCell(r,c); row.push({style:s.style,value:s.value}); } BLK.push({h:ws.getRow(r).height,row:row}); }
   joseoSetv(ws,'B2',projectName||'');
   for(var i=0;i<recs.length;i++){ var S=3+i*17; if(i>=1) joseoStampBlk(ws,S,BLK); joseoFillBlk(ws,S,recs[i]); joseoAddPhotosBlk(wb,ws,S,recs[i]); }
-  ws.pageSetup.margins={left:0.7,right:0.4,top:0.3,bottom:0.3,header:0.2,footer:0.2};
-  ws.pageSetup.fitToPage=false;
+  ws.pageSetup.margins={left:0.2,right:0.2,top:0.3,bottom:0.3,header:0.2,footer:0.2};
+  ws.pageSetup.fitToPage=true; ws.pageSetup.fitToWidth=1; ws.pageSetup.fitToHeight=0;
   var K=perPage||JOSEO_PER_PAGE, N=recs.length;
   for(var m=K;m<N;m+=K){ ws.getRow(2+m*17).addPageBreak(); }
   return wb;
