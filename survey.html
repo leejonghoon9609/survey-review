@@ -260,7 +260,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 174</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 175</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5294,22 +5294,18 @@ function openAsbuilt(){
     else toast('먼저 사업을 저장한 뒤 준공도면을 올려주세요');
     return;
   }
-  var isImg=(a.ext&&a.ext!=='pdf')||/\.(png|jpe?g|gif|webp)(\?|$)/i.test(a.url);
-  var ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:2vh';
-  var box=document.createElement('div');
-  box.style.cssText='background:#fff;border-radius:12px;width:94vw;height:92vh;max-width:1400px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.4)';
-  box.innerHTML='<div style="display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid #eee"><b style="flex:1;font-size:15px;color:#4f46e5">📐 준공도면 — '+(state.projectName||'')+'</b>'
-    +'<a href="'+a.url+'" target="_blank" rel="noopener" style="text-decoration:none;border:1px solid #7c83e8;color:#4f46e5;border-radius:7px;padding:5px 11px;font-size:13px">↗ 새 탭</a>'
-    +'<button id="asbReplace" style="border:1px solid #ccc;background:#fff;border-radius:7px;padding:5px 11px;font-size:13px;cursor:pointer">교체</button>'
-    +'<button id="asbClose" style="border:none;background:#f2f2f2;border-radius:7px;padding:5px 11px;cursor:pointer">닫기</button></div>'
-    +'<div style="flex:1;min-height:0;overflow:auto;background:#525659;display:flex">'
-    +(isImg?('<img src="'+a.url+'" style="max-width:100%;height:auto;margin:auto;display:block">'):('<iframe src="'+a.url+'" style="width:100%;height:100%;border:0;background:#fff"></iframe>'))
-    +'</div>';
-  box.querySelector('#asbClose').onclick=function(){ov.remove();};
-  box.querySelector('#asbReplace').onclick=function(){ov.remove();document.getElementById('fAsbuiltDirect').click();};
-  ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};
-  document.body.appendChild(ov);
+  var win=window.open('','asbuilt','width=1000,height=1200,resizable=yes,scrollbars=yes');
+  if(!win){toast('팝업이 차단됨 — 팝업 허용 후 다시 누르세요');window.open(a.url,'_blank');return;}
+  try{
+    win.document.title='준공도면 — '+(state.projectName||'');
+    win.document.body.style.cssText='margin:0;font:14px sans-serif;background:#525659';
+    win.document.body.innerHTML='<div style="padding:20px;color:#eee">준공도면 불러오는 중…</div>';
+  }catch(e){}
+  fetch(a.url).then(function(r){return r.blob();}).then(function(blob){
+    var burl=URL.createObjectURL(blob);
+    if(a.ext==='pdf'){win.location.href=burl;}
+    else{try{win.document.body.innerHTML='<img src="'+burl+'" style="display:block;max-width:100%;height:auto;margin:0 auto;background:#fff">';}catch(e){win.location.href=burl;}}
+  }).catch(function(){try{win.location.href=a.url;}catch(e){}});
 }
 document.getElementById('rcCsvBtn').onclick=function(){document.getElementById('fCsv').click();};
 document.getElementById('rcDxfBtn').onclick=function(){document.getElementById('fDxf').click();};
