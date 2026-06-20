@@ -112,7 +112,7 @@
   .krvhd #krvpt{font-size:12px;color:var(--muted)}
   .krvhd .mapbtn2{margin-left:auto}
   #krvmsg{display:none;position:absolute;inset:40px 0 0 0;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:var(--muted);font-size:13px;background:#f7f7f5;text-align:center;padding:20px}
-  .stage{flex:1;display:flex;min-height:0}
+  .stage{flex:1;display:flex;min-height:0;position:relative}
   .maincol{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
   .canvas-wrap{flex:1;position:relative;background:#fff;min-width:0;overflow:hidden}
   .kmapbg{position:absolute;top:-30%;left:-30%;width:160%;height:160%;z-index:1;transform-origin:center center}
@@ -237,7 +237,7 @@
   .viewer .php-body .php-main{flex:1}
   /* PC(넓은 화면) 측량(현장) 전용: 사진/로드뷰 패널을 아래 대신 오른쪽에 (결선 DB·탱고는 영향 없음) */
   @media(min-width:761px){
-    .fpage .stage{flex-direction:row}
+    .fpage .stage{flex-direction:row;padding-top:54px}
     .fpage .photo-panel{width:38%!important;min-width:420px!important;max-width:46%!important;border-left:1px solid var(--line)!important;border-top:none!important}
     .fpage .photo-panel.open{height:auto!important}
     .fpage #rvPanel.open{width:42%!important;min-width:440px!important;max-width:50%!important;height:auto!important;border-left:1px solid var(--line)!important;border-top:none!important}
@@ -270,11 +270,17 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 180</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 181</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
   <div class="stage">
+    <div id="fieldBar" style="position:absolute;top:10px;left:12px;right:12px;z-index:20;display:none;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="fbtn" id="fldCsv">후측량 csv</button>
+      <button class="fbtn" id="fldJoseo">실시간 사진조서</button>
+      <button class="fbtn" id="fldManhole">맨홀도 제작</button>
+      <button class="fbtn fbtn-final" id="fldFinal" style="margin-left:auto">📋 후측량 최종성과 등록</button>
+    </div>
     <div class="rail" id="rail"></div>
     <div class="maincol">
       <div class="subbar" id="subbar"></div>
@@ -283,12 +289,6 @@
       <svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg>
       <div id="lblOverlay" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:5"></div>
       <div id="coordBox" class="coordbox">X <b>–</b>　Y <b>–</b></div>
-      <div id="fieldBar" style="position:absolute;top:10px;left:10px;right:10px;z-index:6;display:none;gap:8px;align-items:center;flex-wrap:wrap">
-        <button class="fbtn" id="fldCsv">후측량 csv</button>
-        <button class="fbtn" id="fldJoseo">실시간 사진조서</button>
-        <button class="fbtn" id="fldManhole">맨홀도 제작</button>
-        <button class="fbtn fbtn-final" id="fldFinal" style="margin-left:auto">📋 후측량 최종성과 등록</button>
-      </div>
       <div id="toast" class="toast"></div>
     </div>
     </div>
@@ -5634,6 +5634,11 @@ function openFinalStatus(){
   var fb=document.getElementById('fieldBar');if(!fb)return;
   if(!IS_FIELD){fb.remove();return;}
   fb.style.display='flex';
+  if(window.innerWidth>760){
+    var vp=document.getElementById('vPhoto'),vm=document.getElementById('vMap'),vr=document.getElementById('vRv');
+    if(vp)vp.style.marginLeft='auto';
+    [vp,vm,vr].forEach(function(b){if(b)fb.appendChild(b);});
+  }
   var c=document.getElementById('fldCsv');if(c)c.onclick=function(){toast('후측량 CSV 제작 — 다음 단계에서 연결합니다');};
   var j=document.getElementById('fldJoseo');if(j)j.onclick=function(){toast('실시간 사진조서 — 다음 단계에서 연결합니다');};
   var m=document.getElementById('fldManhole');if(m)m.onclick=function(){toast('맨홀도 제작 — 다음 단계에서 연결합니다');};
