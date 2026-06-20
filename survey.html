@@ -303,7 +303,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 185</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 187</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5739,16 +5739,16 @@ function joseoFetchBuf(url){
 }
 
 /* ---- ExcelJS 채우기 (Node 검증 로직 그대로) ---- */
-var JOSEO_BM=['A3:C3','D3:G3','B4:C4','E4:G4','A5:B5','C5:C6','D5:D6','E5:E6','F5:F6','G5:G6','A8:C8','D8:G8','A9:C19','D9:G19']; // 블록(라벨포함 17행) 병합, row3 기준
+var JOSEO_BM=['B3:C3','E3:G3','A4:B4','C4:C5','D4:D5','E4:E5','F4:F5','G4:G5','A7:C7','D7:G7','A8:C18','D8:G18','A19:C19','D19:G19']; // 블록(17행, 라벨=사진아래) 병합, row3 기준
 function joseoShift(rng,dr){ return rng.replace(/([A-G])(\d+)/g,function(_,c,n){ return c+(parseInt(n,10)+dr); }); }
 function joseoSetv(ws,a,v){ if(v!==undefined&&v!==null&&v!=='') ws.getCell(a).value=v; }
-function joseoFillBlk(ws,S,p){ joseoSetv(ws,'B'+(S+1),p.date);joseoSetv(ws,'E'+(S+1),p.name);joseoSetv(ws,'A'+(S+4),p.x);joseoSetv(ws,'B'+(S+4),p.y);joseoSetv(ws,'C'+(S+4),p.facility);joseoSetv(ws,'D'+(S+4),p.mat);joseoSetv(ws,'E'+(S+4),p.dia);joseoSetv(ws,'F'+(S+4),p.gap); }
+function joseoFillBlk(ws,S,p){ joseoSetv(ws,'B'+S,p.date);joseoSetv(ws,'E'+S,p.name);joseoSetv(ws,'A'+(S+3),p.x);joseoSetv(ws,'B'+(S+3),p.y);joseoSetv(ws,'C'+(S+3),p.facility);joseoSetv(ws,'D'+(S+3),p.mat);joseoSetv(ws,'E'+(S+3),p.dia);joseoSetv(ws,'F'+(S+3),p.gap); }
 function joseoStampBlk(ws,S,BLK){
   for(var k=0;k<BLK.length;k++){ var tr=S+k; ws.getRow(tr).height=BLK[k].h; for(var c=1;c<=7;c++){ var t=ws.getCell(tr,c); t.style=BLK[k].row[c-1].style; t.value=BLK[k].row[c-1].value; } }
   JOSEO_BM.forEach(function(mm){ try{ ws.mergeCells(joseoShift(mm,S-3)); }catch(e){} });
 }
 function joseoAddPhotosBlk(wb,ws,S,p){
-  var top=S+6, bot=S+16;
+  var top=S+5, bot=S+15;
   if(p.expBuf){ var id=wb.addImage({buffer:p.expBuf,extension:'jpeg'}); ws.addImage(id,'A'+top+':C'+bot); }
   if(p.aftBuf){ var id2=wb.addImage({buffer:p.aftBuf,extension:'jpeg'}); ws.addImage(id2,'D'+top+':G'+bot); }
 }
@@ -5759,7 +5759,7 @@ async function joseoBuildWb(projectName, recs, perPage){
   var BLK=[]; for(var r=3;r<=19;r++){ var row=[]; for(var c=1;c<=7;c++){ var s=ws.getCell(r,c); row.push({style:s.style,value:s.value}); } BLK.push({h:ws.getRow(r).height,row:row}); }
   joseoSetv(ws,'B2',projectName||'');
   for(var i=0;i<recs.length;i++){ var S=3+i*17; if(i>=1) joseoStampBlk(ws,S,BLK); joseoFillBlk(ws,S,recs[i]); joseoAddPhotosBlk(wb,ws,S,recs[i]); }
-  ws.pageSetup.margins={left:0.7,right:0.4,top:0.5,bottom:0.5,header:0.3,footer:0.3};
+  ws.pageSetup.margins={left:0.7,right:0.4,top:0.3,bottom:0.3,header:0.2,footer:0.2};
   ws.pageSetup.fitToPage=false;
   var K=perPage||JOSEO_PER_PAGE, N=recs.length;
   for(var m=K;m<N;m+=K){ ws.getRow(2+m*17).addPageBreak(); }
