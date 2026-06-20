@@ -261,7 +261,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 177</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 178</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -371,6 +371,12 @@
           <button class="rc-clr" id="clrDxf" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">✕ 제거</button>
         </div>
       </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:2px 20px 0;font-size:13px;color:#444;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:600;color:#4f46e5"><input type="checkbox" id="regNight"> 🌙 야간작업 보정</label>
+        <span style="color:#888">— 새벽</span>
+        <input type="time" id="regNightCut" value="06:00" style="border:1px solid var(--line);border-radius:6px;padding:2px 6px;font-size:13px">
+        <span style="color:#888">이전 측점을 전날(작업일)로 이동 → 사진 매칭</span>
+      </div>
       <div class="regfoot" style="justify-content:space-between">
         <div style="display:flex;align-items:center;gap:7px">
           <button class="rc-btn" id="rcAsbuiltBtn" style="background:#eef2ff;border-color:#7c83e8;color:#4f46e5;padding:6px 11px;width:auto">📐 준공도면 첨부 (PDF·이미지)</button>
@@ -405,7 +411,7 @@ var gHit=document.createElementNS(SVGNS,'g'); // 측점 클릭 hit (최상위 �
 cv.appendChild(gGeo); cv.appendChild(gMark); cv.appendChild(gDraft); cv.appendChild(gPts); cv.appendChild(gMH); cv.appendChild(gHit);
 
 /* 상태 */
-var state={ projectId:null, projectName:null, points:[], lines:[], markups:[], labelOff:{}, manholes:[], photoDir:{}, asbuilt:null };
+var state={ projectId:null, projectName:null, points:[], lines:[], markups:[], labelOff:{}, manholes:[], photoDir:{}, asbuilt:null, nightShift:null };
 // manhole 구조: {id, wx, wy, label, lx, ly}
 // wx,wy = 맨홀 중심 세계좌표(x=동,y=북)
 // lx,ly = 라벨 앵커 세계좌표
@@ -4881,21 +4887,39 @@ cv.addEventListener('dblclick',function(e){if(viewerMode||readOnly)return;var ni
 /* ====== CSV / DXF 파싱 ====== */
 function decodeBuf(buf){var u=new TextDecoder('utf-8',{fatal:false}).decode(buf);if(u.indexOf('\uFFFD')>=0){try{return new TextDecoder('euc-kr').decode(buf);}catch(e){return u;}}return u;}
 function splitCsvLine(s){var out=[],cur='',q=false;for(var i=0;i<s.length;i++){var c=s[i];if(c==='"'){q=!q;}else if(c===','&&!q){out.push(cur);cur='';}else cur+=c;}out.push(cur);return out;}
+function timeMin(s){var m=(s||'').match(/(\d{1,2}):(\d{2})/);return m?(+m[1]*60+ +m[2]):null;}
+function prevDayYMD(ymd){if(!ymd||ymd.length<6)return ymd;var dt=new Date(2000+ +ymd.slice(0,2),+ymd.slice(2,4)-1,+ymd.slice(4,6));dt.setDate(dt.getDate()-1);return (''+dt.getFullYear()).slice(2)+('0'+(dt.getMonth()+1)).slice(-2)+('0'+dt.getDate()).slice(-2);}
 function parseCsv(text,fname){
   var rows=text.replace(/\r/g,'').split('\n').filter(function(l){return l.trim().length;});
   if(!rows.length)return [];
   var head=splitCsvLine(rows[0]).map(function(s){return s.trim();});
   function col(){for(var a=0;a<arguments.length;a++){var i=head.indexOf(arguments[a]);if(i>=0)return i;}return -1;}
-  var ci={name:col('이름','번호'),x:col('X'),y:col('Y'),z:col('Z(레벨)','Z','Z(레벨)'),code:col('코드'),date:col('현재날짜')};
+  var ci={name:col('이름','번호'),x:col('X'),y:col('Y'),z:col('Z(레벨)','Z'),code:col('코드'),date:col('현재날짜'),time:col('현재시간','시간','관측시간','측정시간','시작시간','데이터 시작시간','GPS시간','UTC시간','TIME')};
+  if(ci.time<0){var smp=splitCsvLine(rows[1]||'');for(var c0=0;c0<head.length;c0++){if(/^\s*\d{1,2}:\d{2}(:\d{2})?\s*$/.test(smp[c0]||'')){ci.time=c0;break;}}}
   var dm=(fname||'').match(/20(\d{6})/);var fdate=dm?dm[1]:'';
+  var ns=state.nightShift, nsCut=(ns&&ns.on)?ns.cut:null;
   var pts=[];
   for(var r=1;r<rows.length;r++){var f=splitCsvLine(rows[r]);
     var cx=parseFloat(f[ci.x]),cy=parseFloat(f[ci.y]);if(isNaN(cx)||isNaN(cy))continue;
-    var dt=fdate; if(ci.date>=0&&f[ci.date]){var m=f[ci.date].match(/(\d{2})(\d{2})-?(\d{2})-?(\d{2})|\d{4}-(\d{2})-(\d{2})/);var raw=(f[ci.date]||'').replace(/[^0-9]/g,'');if(raw.length>=8)dt=raw.slice(2,8);}
+    var d0=fdate; if(ci.date>=0&&f[ci.date]){var raw=(f[ci.date]||'').replace(/[^0-9]/g,'');if(raw.length>=8)d0=raw.slice(2,8);}
+    var tmin=ci.time>=0?timeMin(f[ci.time]):null;
+    var dt=d0; if(nsCut!=null&&tmin!=null&&tmin<nsCut&&d0)dt=prevDayYMD(d0);
     var name=ci.name>=0?(f[ci.name]||'').trim():String(r);
-    pts.push({no:(dt?dt+'-':'')+name, x:cy, y:cx, z:ci.z>=0?parseFloat(f[ci.z]):null, code:ci.code>=0?(f[ci.code]||'').trim():'', _csv:(fname||'')});
+    pts.push({no:(dt?dt+'-':'')+name, x:cy, y:cx, z:ci.z>=0?parseFloat(f[ci.z]):null, code:ci.code>=0?(f[ci.code]||'').trim():'', _csv:(fname||''), _d0:d0, _tm:tmin, _nm:name});
   }
   return pts;
+}
+function applyNightShift(){
+  var ns=state.nightShift, cut=(ns&&ns.on)?ns.cut:null, n=0;
+  (state.points||[]).forEach(function(p){
+    if(p._d0==null||p._nm==null)return;
+    var dt=p._d0;
+    if(cut!=null&&p._tm!=null&&p._tm<cut&&p._d0)dt=prevDayYMD(p._d0);
+    var nu=(dt?dt+'-':'')+p._nm; if(nu!==p.no){p.no=nu;n++;}
+  });
+  selNum=null;if(typeof clearSvg==='function'&&typeof gSel!=='undefined')clearSvg(gSel);
+  if(typeof drawGeo==='function')drawGeo();if(typeof drawMarks==='function')drawMarks();if(typeof updMeta==='function')updMeta();
+  return n;
 }
 function parseDxfLines(text){
   var L=text.replace(/\r/g,'').split('\n'),pairs=[];
@@ -4936,7 +4960,7 @@ function refreshProjects(){ if(!online)return;
   });
 }
 function saveProject(){
-  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
+  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,nightShift:state.nightShift||null};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
   if(!state.projectName){toast('사업명을 먼저 정하세요(새 사업)');return;}
   var row={name:state.projectName,payload:payload,updated_at:new Date().toISOString()};
   if(state.projectId)row.id=state.projectId;
@@ -4951,7 +4975,7 @@ function loadProject(id,ro){ if(!online||!id)return; setReadOnly(!!ro);
   sb.from('survey_projects').select('*').eq('id',id).single().then(function(res){
     if(res.error||!res.data){toast('불러오기 실패');return;}
     var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;
-    state.points=p.points||[];state.lines=p.lines||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.asbuilt=p.asbuilt||null;
+    state.points=p.points||[];state.lines=p.lines||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.asbuilt=p.asbuilt||null;state.nightShift=p.nightShift||null;
     selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();loadPhotos();toast('현장 불러옴: '+res.data.name);
     var vs=document.getElementById('vproj');if(vs)vs.value=res.data.id;
     if(viewerMode)setTimeout(function(){openPhotoPanel(true);},150);
@@ -5202,6 +5226,7 @@ function updRegStatus(){
 function _openRegNow(){
   document.getElementById('regName').value=state.projectName||'';
   pendingPhotos=null;pendingAsbuilt=null;if(typeof asbuiltStageUI==='function')asbuiltStageUI();
+  (function(){var rn=document.getElementById('regNight'),rnc=document.getElementById('regNightCut');if(rn)rn.checked=!!(state.nightShift&&state.nightShift.on);if(rnc&&state.nightShift&&state.nightShift.cut!=null)rnc.value=('0'+Math.floor(state.nightShift.cut/60)).slice(-2)+':'+('0'+(state.nightShift.cut%60)).slice(-2);})();
   var crs=state.crs||'5186';var rc=document.querySelector('input[name="regCrs"][value="'+crs+'"]');if(rc)rc.checked=true;
   var out=document.getElementById('crsResult');out.textContent='CSV 로딩 후 변환 확인';out.style.color='';
   document.getElementById('crsMapLink').style.display='none';
@@ -5209,7 +5234,7 @@ function _openRegNow(){
   updRegStatus();
   setTimeout(function(){document.getElementById('regName').focus();},30);
 }
-function clearForNew(){state.projectId=null;state.projectName='';state.points=[];state.routingDone=false;state.asbuilt=null;if(typeof setReadOnly==='function')setReadOnly(false);(state.markups||[]).forEach(function(m){if(m.el)m.el.remove();});state.markups=[];state.lines=[];state.manholes=[];state.photoDir={};photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);drawGeo();drawMarks();drawManholes();updMeta();}
+function clearForNew(){state.projectId=null;state.projectName='';state.points=[];state.routingDone=false;state.asbuilt=null;state.nightShift=null;if(typeof setReadOnly==='function')setReadOnly(false);(state.markups||[]).forEach(function(m){if(m.el)m.el.remove();});state.markups=[];state.lines=[];state.manholes=[];state.photoDir={};photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);drawGeo();drawMarks();drawManholes();updMeta();}
 function regStartWarn(){
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;z-index:1001;background:rgba(0,0,0,.42);display:flex;align-items:center;justify-content:center';
@@ -5240,7 +5265,7 @@ function registerProject(){
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
   state.projectName=name;
   var crsEl=document.querySelector('input[name="regCrs"]:checked');state.crs=crsEl?crsEl.value:'5186';
-  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null};
+  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,nightShift:state.nightShift||null};
   var row={name:name,payload:payload,updated_at:new Date().toISOString()};
   if(state.projectId)row.id=state.projectId;
   var photos=pendingPhotos; // 모달 닫으면 null되므로 미리 캡쳐
@@ -5260,6 +5285,11 @@ function registerProject(){
 bind('regX',closeRegModal);
 bind('regCancel',closeRegModal);
 bind('regOk',registerProject);
+(function(){
+  function setNS(){var on=document.getElementById('regNight').checked;var t=document.getElementById('regNightCut').value||'06:00';var cut=timeMin(t);state.nightShift={on:on,cut:(cut==null?360:cut)};var n=applyNightShift();toast(on?('야간 보정 ON — 새벽 '+t+' 이전 '+n+'점을 전날로'):'야간 보정 OFF ('+n+'점 복귀)');}
+  var n=document.getElementById('regNight');if(n)n.onchange=setNS;
+  var nc=document.getElementById('regNightCut');if(nc)nc.onchange=function(){if(document.getElementById('regNight').checked)setNS();};
+})();
 /* ===== 준공도면 (as-built) ===== */
 function asbuiltStageUI(){var n=document.getElementById('asbuiltName'),c=document.getElementById('clrAsbuilt');if(!n)return;if(pendingAsbuilt){n.textContent=pendingAsbuilt.name;c.style.display='inline-block';}else{n.textContent='';c.style.display='none';}}
 (function(){
