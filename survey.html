@@ -326,7 +326,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 198</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 199</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5153,10 +5153,10 @@ function renderRail(){
     }
     html+='<button data-k="'+c.k+'" style="'+railStyle(c.c,c.k===activeCat)+'">'+c.icon+' '+c.label+bdg+'</button>';});
   html+='</div>';
-  html+='<div class="sep"></div><button id="dxfExport" style="background:#fff;color:#c0392b;border:1px solid #c0392b;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#c0392b">📐</span> DXF로 내보내기</button>';
+  html+='<div class="sep"'+(IS_TANGO?' style="margin-top:auto"':'')+'></div><button id="dxfExport" style="background:#fff;color:#c0392b;border:1px solid #c0392b;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#c0392b">📐</span> DXF로 내보내기</button>';
   if(!IS_TANGO)html+='<button id="csvExport" style="background:#fff;color:#0d7a52;border:1px solid #0d7a52;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#0d7a52">📄</span> 측설용 CSV 내보내기</button>';
-  html+='<button id="doneReg" style="background:#16a34a;color:#fff;border:1px solid #16a34a;border-radius:8px;font-weight:700;justify-content:flex-start">✅ 결선완료사업 등록</button>';
-  html+='<button id="hkOpen" style="margin-top:auto;background:#fff;color:#555;border:1px solid #e3e3df;border-radius:8px;font-weight:600;justify-content:flex-start"><span style="color:#1f6fd6;font-size:16px">⌨</span> 단축키 설정</button>';
+  html+='<button id="doneReg" style="background:#16a34a;color:#fff;border:1px solid #16a34a;border-radius:8px;font-weight:700;justify-content:flex-start">✅ '+(IS_TANGO?'탱고':'결선')+'완료사업 등록</button>';
+  html+='<button id="hkOpen" style="'+(IS_TANGO?'':'margin-top:auto;')+'background:#fff;color:#555;border:1px solid #e3e3df;border-radius:8px;font-weight:600;justify-content:flex-start"><span style="color:#1f6fd6;font-size:16px">⌨</span> 단축키 설정</button>';
   r.innerHTML=html;
   var tt=document.getElementById('toolToggle');if(tt)tt.onclick=function(){toolsOpen=!toolsOpen;try{localStorage.setItem('toolsOpen',toolsOpen?'1':'0');}catch(e){}renderRail();renderSub();};
   r.querySelectorAll('button[data-k]').forEach(function(b){b.onclick=function(){
@@ -5665,8 +5665,8 @@ function openDoneList(){
           +'<button class="done-row" data-id="'+p.id+'" style="flex:1;text-align:left;padding:10px 12px;border:1px solid '+bd+';border-radius:9px;background:'+bg+';cursor:pointer;font-size:14px;font-weight:700;color:'+col+'">'+badge+(n>0?'⚠':'✅')+' '+p.name+'</button>'
           +'<button class="done-del" data-id="'+p.id+'" data-nm="'+(''+p.name).replace(/"/g,'&quot;')+'" title="사업 삭제" style="flex:none;padding:0 13px;border:1px solid #f0c4c4;border-radius:9px;background:#fdf3f3;color:#d32f2f;cursor:pointer;font-size:15px">🗑</button>'
           +'</div>';}).join('')+'</div><div style="color:#999;font-size:12px;margin-top:6px">불러오면 <b>보기 전용</b> · 수정은 상단 <b>사업 선택</b>으로 · 🗑 = 삭제</div>'
-      : '<div style="color:#999;padding:6px">등록된 결선완료 사업이 없습니다.<br>좌측 레일 하단 <b style="color:#16a34a">✅ 결선완료사업 등록</b>으로 등록하세요.</div>';
-    var card=showModal({title:'✅ 결선 완료사업',tone:'ok',body:body,buttons:[{label:'닫기'}]});
+      : '<div style="color:#999;padding:6px">등록된 '+(IS_TANGO?'탱고':'결선')+'완료 사업이 없습니다.<br>좌측 레일 하단 <b style="color:#16a34a">✅ '+(IS_TANGO?'탱고':'결선')+'완료사업 등록</b>으로 등록하세요.</div>';
+    var card=showModal({title:(IS_TANGO?'✅ 측량(현장) 완료 목록':'✅ 결선 완료사업'),tone:'ok',body:body,buttons:[{label:'닫기'}]});
     card.querySelectorAll('.done-row').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-id');card.remove();loadProject(id,true);};});
     card.querySelectorAll('.done-del').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-id'),nm=b.getAttribute('data-nm')||'(이름없음)';
       if(!confirm("'"+nm+"' 사업을 완전히 삭제할까요?\n측점·결선·검수·사진이 모두 지워지며 되돌릴 수 없습니다."))return;
@@ -5674,7 +5674,7 @@ function openDoneList(){
     };});
   });
 }
-var _dlb=document.getElementById('doneListBtn');if(_dlb)_dlb.onclick=openDoneList;
+var _dlb=document.getElementById('doneListBtn');if(_dlb){_dlb.onclick=openDoneList;if(IS_TANGO)_dlb.textContent='✅ 측량(현장) 완료 목록';}
 var _rob=document.getElementById('roBadge');if(_rob)_rob.onclick=function(){if(readOnly&&state.projectId){setReadOnly(false);var ps=document.getElementById('proj');if(ps)ps.value=state.projectId;toast('수정 가능 모드로 전환 (사업 선택)');}};
 (function(){if(IS_FIELD){setViewer(true);return;}if(IS_TANGO){var saved=null;try{saved=localStorage.getItem('viewMode');}catch(e){}setViewer(saved!=null?(saved==='1'):isMobileDevice());return;}setViewer(false);})();
 /* 페이지 분리 — 이동은 랜딩에서. 결선/현장은 모드이동버튼 제거(탱고 in-page 토글만 유지), 시스템이동버튼은 전 페이지 제거 */
