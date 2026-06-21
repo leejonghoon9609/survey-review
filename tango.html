@@ -326,7 +326,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 200</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 201</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -394,6 +394,7 @@
 
   <input type="file" id="fCsv" accept=".csv" multiple style="display:none">
   <input type="file" id="fDxf" accept=".dxf" style="display:none">
+  <input type="file" id="fAft" accept=".csv" style="display:none">
   <input type="file" id="fPhotos" accept="image/*" multiple style="display:none">
   <input type="file" id="fAfter" accept="image/*" capture="environment" style="display:none">
   <input type="file" id="fRegPhotos" accept="image/*,.zip" multiple style="display:none">
@@ -425,7 +426,7 @@
           <button class="rc-btn" id="rcCsvBtn">직접 로딩</button>
           <button class="rc-clr" id="clrCsv" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">🗑 CSV별 삭제</button>
         </div>
-        <div class="regcard pho">
+        <div class="regcard aft" id="regAftCard"><div class="rc-t">후측량 CSV (심도)</div><div class="rc-drop" id="dropAft"><span class="rc-dico">⬇</span><span class="rc-st" id="rcAft">복구후 후측량 (.csv)</span><span class="rc-hint">파일을 끌어다 놓기</span></div><button class="rc-btn" id="rcAftBtn">직접 로딩</button><div id="rcAftOut" style="margin-top:6px;font-size:11px;color:#7a52e0;font-weight:700"></div><button class="rc-clr" id="clrAft" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">🗑 심도 삭제</button></div><div class="regcard pho">
           <div class="rc-t">측점사진 로딩</div>
           <div class="rc-drop" id="dropPho">
             <span class="rc-dico">⬇</span>
@@ -518,7 +519,74 @@ function el(t,a){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAtt
 function S(x,y){return [x,-y];}                 // 화면좌표(북쪽 위)
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1800);}
 // 커스텀 팝업: 드래그 이동 가능, 항상 앞, 도면(팝업 밖)은 그대로 조작 가능(non-blocking)
+function parseAftCsv(txt){
+  var lines=txt.replace(/\r/g,'').split('\n').filter(function(l){return l.trim().length;});
+  if(!lines.length)return {ground:[],align:[]};
+  var h=lines[0].split(',');
+  function ci(ns){for(var k=0;k<ns.length;k++){var x=h.indexOf(ns[k]);if(x>=0)return x;}return -1;}
+  var iN=ci(['\uC774\uB984']),iX=ci(['X']),iY=ci(['Y']),iZ=ci(['Z(\uB808\uBCA8)','Z']);
+  var g=[],a=[];
+  for(var r=1;r<lines.length;r++){
+    var c=lines[r].split(',');
+    var X=parseFloat(c[iX]),Y=parseFloat(c[iY]),Z=parseFloat(c[iZ]);
+    if(isNaN(X)||isNaN(Y)||isNaN(Z))continue;
+    var nm=(c[iN]||'').trim();
+    if(nm.indexOf('(')>=0)g.push({name:nm,X:X,Y:Y,z:Z});
+    else a.push({X:X,Y:Y,z:Z});
+  }
+  return {ground:g,align:a};
+}
+function computeDepth(){
+  var ref;
+  if(state.points&&state.points.length){ref=state.points.map(function(p){return {X:+p.y,Y:+p.x,z:+p.z};});}
+  else{ref=state._depthAlign||[];}
+  var g=state.depthGround||[],sum=0,ok=0;
+  g.forEach(function(gp){
+    var b=null,bd=1e18;
+    for(var i=0;i<ref.length;i++){var d=Math.hypot(ref[i].X-gp.X,ref[i].Y-gp.Y);if(d<bd){bd=d;b=ref[i];}}
+    if(b&&bd<=0.5){gp.ref=b.z;gp.dep=gp.z-b.z;gp.dist=bd;sum+=gp.dep;ok++;}
+    else{gp.ref=null;gp.dep=null;gp.dist=(b?bd:null);}
+  });
+  return {avg:ok?sum/ok:0,ok:ok,total:g.length};
+}
+function loadAfterCsv(f){
+  if(!f)return;
+  var rd=new FileReader();
+  rd.onload=function(){
+    var pr;
+    try{pr=parseAftCsv(decodeBuf(rd.result));}catch(e){toast('CSV \uC77D\uAE30 \uC2E4\uD328');return;}
+    if(!pr.ground.length){toast('(1) \uC9C0\uBC18\uC810\uC744 \uBABB \uCC3E\uC74C \u2014 \uBCF5\uAD6C\uD6C4 \uD6C4\uCE21\uB7C9 CSV\uAC00 \uB9DE\uB294\uC9C0 \uD655\uC778');return;}
+    state.depthGround=pr.ground;state._depthAlign=pr.align;
+    var res=computeDepth();
+    var st=document.getElementById('rcAft');if(st)st.textContent='\uBCF5\uAD6C\uD6C4 '+pr.ground.length+'\uC810 \uB4F1\uB85D\uB428';
+    var o=document.getElementById('rcAftOut');if(o)o.textContent='\u2705 \uD3C9\uADE0\uC2EC\uB3C4 '+res.avg.toFixed(2)+'m \u00B7 '+res.ok+'/'+res.total+'\uC810 \uB9E4\uCE6D';
+    var cl=document.getElementById('clrAft');if(cl)cl.style.display='inline-block';
+    toast('\uC2EC\uB3C4 \uACC4\uC0B0 \uC644\uB8CC \u2014 \uD3C9\uADE0 '+res.avg.toFixed(2)+'m');
+  };
+  rd.readAsArrayBuffer(f);
+}
+function depthTableHtml(rows){
+  var html='<table style="border-collapse:collapse;width:100%;font-size:12px"><thead><tr style="background:#f3f0fb"><th style="border:1px solid #e3e3df;padding:5px">\uC9C0\uBC18\uC810</th><th style="border:1px solid #e3e3df;padding:5px">\uB178\uCD9C/\uAD00\uB85CZ</th><th style="border:1px solid #e3e3df;padding:5px">\uC9C0\uBC18Z</th><th style="border:1px solid #e3e3df;padding:5px">\uC2EC\uB3C4(m)</th><th style="border:1px solid #e3e3df;padding:5px">\uC218\uD3C9</th></tr></thead><tbody>';
+  rows.forEach(function(r){
+    html+='<tr><td style="border:1px solid #eee;padding:4px">'+(r.name||'')+'</td><td style="border:1px solid #eee;padding:4px;text-align:right">'+(r.ref!=null?r.ref.toFixed(3):'\u2014')+'</td><td style="border:1px solid #eee;padding:4px;text-align:right">'+r.z.toFixed(3)+'</td><td style="border:1px solid #eee;padding:4px;text-align:right;font-weight:700;color:'+(r.dep!=null?'#7a52e0':'#c0392b')+'">'+(r.dep!=null?r.dep.toFixed(2):'\uB9E4\uCE6D\uC2E4\uD328')+'</td><td style="border:1px solid #eee;padding:4px;text-align:right;color:#999">'+(r.dist!=null?(r.dist*100).toFixed(1)+'cm':'\u2014')+'</td></tr>';
+  });
+  return html+'</tbody></table>';
+}
+function renderDepthOverlay(){
+  computeDepth();
+  var g=(state.depthGround||[]).slice().sort(function(a,b){return (a.name||'').localeCompare((b.name||''),undefined,{numeric:true});});
+  var ok=g.filter(function(r){return r.dep!=null;});
+  var avg=ok.length?ok.reduce(function(s,r){return s+r.dep;},0)/ok.length:0;
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:1300;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:16px';
+  ov.innerHTML='<div style="background:#fff;border-radius:12px;max-width:780px;width:100%;max-height:88vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.2)"><div style="display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid #eee"><b style="font-size:15px">\u{1F4D0} \uC2EC\uB3C4 (\uC9C0\uBC18Z \u2212 \uB178\uCD9C\uAD00\uB85CZ)</b><button id="dpX2" style="margin-left:auto;background:#fff;border:1px solid #e3e3df;border-radius:7px;padding:4px 10px;cursor:pointer">\u2715</button></div><div style="padding:16px"><div style="margin-bottom:8px">\uC9C0\uBC18\uC810 <b>'+g.length+'</b>\uAC1C \u00B7 \uB9E4\uCE6D <b>'+ok.length+'</b> \u00B7 \uD3C9\uADE0\uC2EC\uB3C4 <b style="color:#7a52e0">'+avg.toFixed(2)+' m</b></div>'+depthTableHtml(g)+'</div></div>';
+  document.body.appendChild(ov);
+  ov.querySelector('#dpX2').onclick=function(){ov.remove();};
+  ov.onclick=function(e){if(e.target===ov)ov.remove();};
+}
+
 function openDepthCalc(){
+  if(state.depthGround&&state.depthGround.length){renderDepthOverlay();return;}
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;z-index:1300;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;padding:16px';
   ov.innerHTML='<div style="background:#fff;border-radius:12px;max-width:780px;width:100%;max-height:88vh;overflow:auto;box-shadow:0 10px 40px rgba(0,0,0,.2)"><div style="display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid #eee"><b style="font-size:15px">\u{1F4D0} \uC2EC\uB3C4 \uACC4\uC0B0 (\uC9C0\uBC18Z \u2212 \uB178\uCD9C\uAD00\uB85CZ)</b><button id="dpX" style="margin-left:auto;background:#fff;border:1px solid #e3e3df;border-radius:7px;padding:4px 10px;cursor:pointer">\u2715</button></div><div style="padding:16px"><div style="display:flex;flex-direction:column;gap:10px"><label style="font-size:13px;color:#444">\u2460 \uD6C4\uCE21\uB7C9 CSV <span style="color:#c0392b">(\uD544\uC218 \u00B7 (1)\uC9C0\uBC18\uC810 \uD3EC\uD568)</span><br><input type="file" id="dpFa" accept=".csv"></label><label style="font-size:13px;color:#444">\u2461 \uB178\uCD9C\uAD00\uB85C CSV <span style="color:#16a34a">(\uC815\uD655\uB3C4\u2191 \u00B7 \uAD8C\uC7A5)</span><br><input type="file" id="dpFb" accept=".csv"></label><button id="dpRun" style="background:#7a52e0;color:#fff;border:none;border-radius:8px;font-weight:700;padding:10px;cursor:pointer">\uC2EC\uB3C4 \uACC4\uC0B0</button></div><div id="dpOut" style="margin-top:14px;font-size:13px"></div></div></div>';
@@ -5102,7 +5170,7 @@ function refreshProjects(){ if(!online)return;
   });
 }
 function saveProject(){
-  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,bizInfo:state.bizInfo||null};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
+  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
   if(!state.projectName){toast('사업명을 먼저 정하세요(새 사업)');return;}
   var row={name:state.projectName,payload:payload,updated_at:new Date().toISOString()};
   if(state.projectId)row.id=state.projectId;
@@ -5117,7 +5185,7 @@ function loadProject(id,ro){ if(!online||!id)return; setReadOnly(!!ro);
   sb.from('survey_projects').select('*').eq('id',id).single().then(function(res){
     if(res.error||!res.data){toast('불러오기 실패');return;}
     var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;
-    state.points=p.points||[];state.lines=p.lines||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.asbuilt=p.asbuilt||null;state.nightShift=p.nightShift||null;state.fieldDone=p.fieldDone||null;state.bizInfo=p.bizInfo||null;
+    state.points=p.points||[];state.lines=p.lines||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.depthGround=p.depthGround||null;state._depthAlign=null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.asbuilt=p.asbuilt||null;state.nightShift=p.nightShift||null;state.fieldDone=p.fieldDone||null;state.bizInfo=p.bizInfo||null;
     selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();loadPhotos();if(typeof refreshFieldBar==='function')refreshFieldBar();toast('현장 불러옴: '+res.data.name);
     var vs=document.getElementById('vproj');if(vs)vs.value=res.data.id;
     if(viewerMode&&!IS_FIELD)setTimeout(function(){openPhotoPanel(true);},150);
@@ -5364,6 +5432,7 @@ function updRegStatus(){
   if(state.points&&state.points.length&&typeof crsCheck==='function')crsCheck();
   var _tg=function(id,on){var b=document.getElementById(id);if(b)b.style.display=on?'inline-block':'none';};
   _tg('clrCsv', !!(state.points&&state.points.length));
+  _tg('clrAft', !!(state.depthGround&&state.depthGround.length));
   _tg('clrDxf', (state.lines||[]).filter(function(l){return l.base;}).length>0);
   _tg('clrPho', !!(pendingPhotos&&pendingPhotos.length));
 }
@@ -5411,7 +5480,7 @@ function registerProject(){
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
   state.projectName=name;state.bizInfo=readBizInfo();
   var crsEl=document.querySelector('input[name="regCrs"]:checked');state.crs=crsEl?crsEl.value:'5186';
-  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,bizInfo:state.bizInfo||null};
+  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null};
   var row={name:name,payload:payload,updated_at:new Date().toISOString()};
   if(state.projectId)row.id=state.projectId;
   var photos=pendingPhotos; // 모달 닫으면 null되므로 미리 캡쳐
@@ -5528,7 +5597,7 @@ function openAsbuilt(){
     }
   }).catch(function(){try{win.document.body.innerHTML='<div style="padding:24px;font:15px sans-serif;color:#eee;line-height:1.7">도면을 창 안에서 열지 못했습니다(접근 제한).<br><br><a href="'+a.url+'" target="_blank" style="color:#9cf">여기를 눌러 새 탭에서 열기</a></div>';}catch(e){window.open(a.url,'_blank');}});
 }
-document.getElementById('rcCsvBtn').onclick=function(){document.getElementById('fCsv').click();};
+document.getElementById('rcCsvBtn').onclick=function(){document.getElementById('fCsv').click();};document.getElementById('rcAftBtn').onclick=function(){document.getElementById('fAft').click();};var _clrAft=document.getElementById('clrAft');if(_clrAft)_clrAft.onclick=function(){state.depthGround=null;state._depthAlign=null;var st=document.getElementById('rcAft');if(st)st.textContent='복구후 후측량 (.csv)';var o=document.getElementById('rcAftOut');if(o)o.textContent='';this.style.display='none';toast('심도 데이터 삭제');};(function(){if(!IS_TANGO){var c=document.getElementById('regAftCard');if(c)c.style.display='none';}})();
 document.getElementById('rcDxfBtn').onclick=function(){document.getElementById('fDxf').click();};
 document.getElementById('rcPhoBtn').onclick=function(){document.getElementById('fRegPhotos').click();};
 (function(){
@@ -5562,8 +5631,8 @@ function setupDrop(zid,onfiles){var z=document.getElementById(zid);if(!z)return;
 }
 setupDrop('dropCsv',function(fs){if(regOpen())regAddCsvFiles(fs);else loadCsvFile(fs[0]);});
 setupDrop('dropDxf',function(fs){loadDxfFile(fs[0]);});
-setupDrop('dropPho',function(fs){regAddPhotos(fs);});
-document.getElementById('dropCsv').addEventListener('click',function(){document.getElementById('fCsv').click();});
+setupDrop('dropPho',function(fs){regAddPhotos(fs);});setupDrop('dropAft',function(fs){loadAfterCsv(fs[0]);});
+document.getElementById('dropCsv').addEventListener('click',function(){document.getElementById('fCsv').click();});document.getElementById('dropAft').addEventListener('click',function(){document.getElementById('fAft').click();});
 document.getElementById('dropDxf').addEventListener('click',function(){document.getElementById('fDxf').click();});
 document.getElementById('dropPho').addEventListener('click',function(){document.getElementById('fRegPhotos').click();});
 document.getElementById('regModal').addEventListener('dragover',function(e){e.preventDefault();});
@@ -6122,7 +6191,7 @@ function openCsvList(){
   ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};
   document.body.appendChild(ov);
 }
-document.getElementById('fCsv').addEventListener('change',function(e){var fs=e.target.files;if(regOpen())regAddCsvFiles(fs);else loadCsvFile(fs[0]);e.target.value='';});
+document.getElementById('fCsv').addEventListener('change',function(e){var fs=e.target.files;if(regOpen())regAddCsvFiles(fs);else loadCsvFile(fs[0]);e.target.value='';});document.getElementById('fAft').addEventListener('change',function(e){loadAfterCsv(e.target.files[0]);e.target.value='';});
 function loadDxfFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){try{var ln=parseDxfLines(decodeBuf(rd.result));ln.forEach(function(l){l.base=true;});state.lines=state.lines.filter(function(l){return !l.base;}).concat(ln);drawGeo();fitView();updMeta();if(regOpen())updRegStatus();toast('수치지도 백판 '+ln.length+'개 라인 로드');}catch(err){toast('DXF 파싱 오류');}};rd.readAsArrayBuffer(f);}
 document.getElementById('fDxf').addEventListener('change',function(e){loadDxfFile(e.target.files[0]);e.target.value='';});
 
