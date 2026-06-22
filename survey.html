@@ -326,7 +326,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 208</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 209</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -920,7 +920,7 @@ function drawGeo(){
     // 측점 심벌(속빈 사각) — 월드고정 정사각: 줌하면 크기는 변하지만 절대 안 찌그러짐, 위치 정확
     gPts.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:isManhole(p)?'#0d47a1':(isTpoint(p)?'#13803a':'#111'),'stroke-width':isManhole(p)?3.8:2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     gPts.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#111','stroke-width':4,'stroke-linecap':'square','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // 중심 점(박스와 동일 vector-effect → 줌 고정)
-    if(showDirArrows!==false)(function(){var d4=getPhotoDir(p),dv=[[0,-1],[1,0],[0,1],[-1,0]][d4],pr=[-dv[1],dv[0]],hl=0.16,AC='#d500f2';
+    if(showDirArrows!==false)(function(){var d4=getPhotoDir(p),dv=photoDirVec(p,d4),pr=[-dv[1],dv[0]],hl=0.16,AC='#d500f2';
       var ax0=s[0]+dv[0]*0.22,ay0=s[1]+dv[1]*0.22,ax1=s[0]+dv[0]*0.62,ay1=s[1]+dv[1]*0.62;
       gPts.appendChild(el('line',{x1:ax0,y1:ay0,x2:ax1,y2:ay1,stroke:AC,'stroke-width':2.6,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));
       gPts.appendChild(el('line',{x1:ax1,y1:ay1,x2:ax1-dv[0]*hl+pr[0]*hl,y2:ay1-dv[1]*hl+pr[1]*hl,stroke:AC,'stroke-width':2.6,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));
@@ -6380,7 +6380,8 @@ function pipeDirAt(p){
   return null;
 }
 function dir4FromVec(dE,dN){return (Math.abs(dN)>=Math.abs(dE))?(dN>=0?0:2):(dE>=0?1:3);}
-function defaultPhotoDir(p){var v=pipeDirAt(p);return v?dir4FromVec(v[0],v[1]):0;}
+function defaultPhotoDir(p){return 0;}
+function photoDirVec(p,d4){var w=pipeDirAt(p);if(w){var tx=w[0],ty=-w[1],m=Math.hypot(tx,ty)||1;tx/=m;ty/=m;return [[tx,ty],[-ty,tx],[-tx,-ty],[ty,-tx]][d4];}return [[0,-1],[1,0],[0,1],[-1,0]][d4];}
 function getPhotoDir(p){if(!p)return 0;var k=ptNum(p);if(state.photoDir&&state.photoDir[k]!=null)return state.photoDir[k];return defaultPhotoDir(p);}
 function setPhotoDir(p,d){if(!state.photoDir)state.photoDir={};state.photoDir[ptNum(p)]=((d%4)+4)%4;}
 function cyclePhotoDir(p){setPhotoDir(p,getPhotoDir(p)+1);}
