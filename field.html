@@ -327,7 +327,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 219</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 220</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1338,7 +1338,7 @@ function applyBpCrop(c){
   drawGeo();toast('백판 크롭 완료 — 영역 안만 남기고 테두리선 추가');
 }
 var BP_APP={'통신관로':1,'지거':1,'압입구간':1,'주입상인출선':1};
-function bpHit(cw){
+function bpHit(cw,noCap){
   var best=null,bd=1e18,lim=vb.w*0.05;
   (state.lines||[]).forEach(function(L,li){
     if(!L.pts||!(L.base||!BP_APP[L.layer]))return;
@@ -1352,11 +1352,11 @@ function bpHit(cw){
     var p=S(tx.x||0,tx.y||0);var d=Math.hypot(cw[0]-p[0],cw[1]-p[1]);
     if(d<bd){bd=d;best={t:'text',i:ti};}
   });
-  return (best&&bd<=lim)?best:null;
+  return (best&&(noCap||bd<=lim))?best:null;
 }
 function bpHover(cw){
   clearSvg(gDraw);
-  var best=bpHit(cw); if(!best)return;
+  var best=bpHit(cw,true); if(!best)return;
   gDraw.appendChild(el('circle',{cx:cw[0],cy:cw[1],r:9,fill:'rgba(255,23,68,0.2)',stroke:'#ff1744','stroke-width':2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
   if(best.t==='line'){
     var L=state.lines[best.i];
@@ -1370,8 +1370,8 @@ function bpHover(cw){
   }
 }
 function bpEraseAt(cw){
-  var best=bpHit(cw);
-  if(!best){toast('지울 백판 요소가 없습니다 (선·글씨 가까이)');return;}
+  var best=bpHit(cw,true);
+  if(!best){toast('지울 백판 요소가 없습니다');return;}
   pushHist();
   if(best.t==='line'){state.lines.splice(best.i,1);drawGeo();toast('백판 선 삭제');}
   else{state.baseTexts.splice(best.i,1);drawGeo();toast('백판 텍스트 삭제');}
@@ -5474,7 +5474,7 @@ function renderSub(){
       if(tool.delLayer)delLayer=tool.delLayer;
       if(tool.fn)tool.fn();
       if(tool.setmode){mode=tool.setmode;setModeUI();if(tool.hint)toast(tool.hint);}
-      if(tool.mode){if(mode===tool.mode){mode='pan';}else{mode=tool.mode;if(mode==='bperase'){var _bl=(state.lines||[]).filter(function(l){return l.pts&&(l.base||!BP_APP[l.layer]);});clearSvg(gDraw);if(_bl.length){var _xn=1e18,_yn=1e18,_xx=-1e18,_yx=-1e18;_bl.forEach(function(L){L.pts.forEach(function(p){if(p[0]<_xn)_xn=p[0];if(p[0]>_xx)_xx=p[0];if(p[1]<_yn)_yn=p[1];if(p[1]>_yx)_yx=p[1];});});var _c1=S(_xn,_yn),_c2=S(_xx,_yx);gDraw.appendChild(el('rect',{x:Math.min(_c1[0],_c2[0]),y:Math.min(_c1[1],_c2[1]),width:Math.abs(_c2[0]-_c1[0]),height:Math.abs(_c2[1]-_c1[1]),fill:'rgba(255,23,68,0.22)',stroke:'#ff1744','stroke-width':3,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));_bl.forEach(function(L){for(var _k=0;_k<L.pts.length-1;_k++){var a=S(L.pts[_k][0],L.pts[_k][1]),b=S(L.pts[_k+1][0],L.pts[_k+1][1]);gDraw.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:'#ff1744','stroke-width':2.5,'stroke-opacity':0.7,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}});}toast('빽판 '+_bl.length+'개 — 빨간 박스/선 보이나요? (2초)');setTimeout(function(){if(mode==='bperase')clearSvg(gDraw);},2000);}else if(tool.hint){toast(tool.hint);}}setModeUI();}
+      if(tool.mode){if(mode===tool.mode){mode='pan';}else{mode=tool.mode;if(mode==='bperase'){toast('지우기: 건물선·글씨 근처에 올리면 가장 가까운 선이 빨갛게 — 클릭해 삭제');}else if(tool.hint){toast(tool.hint);}}setModeUI();}
       if(tool.status){status=tool.status;setStatusUI();}
     };});
   s.querySelectorAll('button.soon').forEach(function(b){b.onclick=function(){toast(b.textContent+' — 다음 단계에서 추가 예정');};});
