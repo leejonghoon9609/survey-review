@@ -327,7 +327,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 229</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 230</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -6000,7 +6000,7 @@ function countNotes(pl){return ((pl&&pl.markups)||[]).filter(function(m){return 
 function setReadOnly(v){readOnly=!!v;document.body.classList.toggle('readonly',readOnly);var b=document.getElementById('roBadge');if(b)b.style.display=readOnly?'':'none';}
 function refreshDoneProjects(){ if(!online)return;
   sb.from('survey_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
-    var rows=(res.data||[]).filter(function(p){return p.payload&&p.payload.routingDone;});
+    var rows=(res.data||[]).filter(function(p){return p.payload&&p.payload.routingDone&&((p.payload.stage||'survey')===STAGE);});
     var vsel=document.getElementById('vproj');
     if(vsel){vsel.innerHTML='<option value="">결선완료사업목록</option>'+rows.map(function(p){return '<option value="'+p.id+'">'+p.name+'</option>';}).join('');if(state.projectId)vsel.value=state.projectId;}
     var pw=0,tn=0;rows.forEach(function(p){var n=countNotes(p.payload);if(n>0){pw++;tn+=n;}});
@@ -6011,7 +6011,7 @@ function refreshDoneProjects(){ if(!online)return;
 function openDoneList(){
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
   sb.from('survey_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
-    var rows=(res.data||[]).filter(function(p){return p.payload&&p.payload.routingDone;});
+    var rows=(res.data||[]).filter(function(p){return p.payload&&p.payload.routingDone&&((p.payload.stage||'survey')===STAGE);});
     var body=rows.length
       ? '<div style="max-height:320px;overflow:auto;text-align:left">'+rows.map(function(p){var n=countNotes(p.payload);
           var bg=n>0?'#fdecec':'#f6fcf8',bd=n>0?'#eaa':'#d6eede',col=n>0?'#c0392b':'#15803d';
