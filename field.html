@@ -326,7 +326,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 202</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 203</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5136,16 +5136,38 @@ function parseDxfLines(text){
   for(var i=0;i+1<L.length;i+=2)pairs.push([L[i].trim(),L[i+1]]);
   var lines=[],i2=0;
   while(i2<pairs.length){
-    var code=pairs[i2][0],val=pairs[i2][1];
-    if(code==='0'&&(val.trim()==='LWPOLYLINE'||val.trim()==='POLYLINE'||val.trim()==='LINE')){
-      var type=val.trim(),layer='0',xs=[],ys=[],j=i2+1,ent={};
+    var code=pairs[i2][0],val=(pairs[i2][1]||'').trim();
+    if(code==='0'&&val==='LINE'){
+      var layer='0',ent={},j=i2+1;
       while(j<pairs.length&&pairs[j][0]!=='0'){var c=pairs[j][0],v=pairs[j][1];
         if(c==='8')layer=v.trim();
-        if(type==='LINE'){if(c==='10')ent.x1=parseFloat(v);if(c==='20')ent.y1=parseFloat(v);if(c==='11')ent.x2=parseFloat(v);if(c==='21')ent.y2=parseFloat(v);}
-        else{if(c==='10')xs.push(parseFloat(v));if(c==='20')ys.push(parseFloat(v));}
-        j++;}
-      if(type==='LINE'&&ent.x1!=null)lines.push({layer:layer,pts:[[ent.x1,ent.y1],[ent.x2,ent.y2]]});
-      else if(xs.length>=2){var pp=[];for(var k=0;k<xs.length;k++)pp.push([xs[k],ys[k]]);lines.push({layer:layer,pts:pp});}
+        if(c==='10')ent.x1=parseFloat(v);if(c==='20')ent.y1=parseFloat(v);
+        if(c==='11')ent.x2=parseFloat(v);if(c==='21')ent.y2=parseFloat(v);j++;}
+      if(ent.x1!=null)lines.push({layer:layer,pts:[[ent.x1,ent.y1],[ent.x2,ent.y2]]});
+      i2=j;
+    } else if(code==='0'&&val==='LWPOLYLINE'){
+      var layer='0',xs=[],ys=[],j=i2+1;
+      while(j<pairs.length&&pairs[j][0]!=='0'){var c=pairs[j][0],v=pairs[j][1];
+        if(c==='8')layer=v.trim();
+        if(c==='10')xs.push(parseFloat(v));if(c==='20')ys.push(parseFloat(v));j++;}
+      if(xs.length>=2){var pp=[];for(var k=0;k<xs.length;k++)pp.push([xs[k],ys[k]]);lines.push({layer:layer,pts:pp});}
+      i2=j;
+    } else if(code==='0'&&val==='POLYLINE'){
+      var layer='0',j=i2+1;
+      while(j<pairs.length&&pairs[j][0]!=='0'){if(pairs[j][0]==='8')layer=pairs[j][1].trim();j++;}
+      var xs=[],ys=[];
+      while(j<pairs.length){
+        var v0=(pairs[j][1]||'').trim();
+        if(pairs[j][0]==='0'&&v0==='VERTEX'){
+          var k=j+1,vx=null,vy=null;
+          while(k<pairs.length&&pairs[k][0]!=='0'){if(pairs[k][0]==='10')vx=parseFloat(pairs[k][1]);if(pairs[k][0]==='20')vy=parseFloat(pairs[k][1]);k++;}
+          if(vx!=null&&!isNaN(vx)){xs.push(vx);ys.push(vy);}
+          j=k;
+        } else if(pairs[j][0]==='0'&&v0==='SEQEND'){j++;break;}
+        else if(pairs[j][0]==='0'){break;}
+        else j++;
+      }
+      if(xs.length>=2){var pp=[];for(var k2=0;k2<xs.length;k2++)pp.push([xs[k2],ys[k2]]);lines.push({layer:layer,pts:pp});}
       i2=j;
     } else i2++;
   }
