@@ -332,7 +332,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 236</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 237</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -527,6 +527,35 @@ function el(t,a){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAtt
 function S(x,y){return [x,-y];}                 // 화면좌표(북쪽 위)
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1800);}
 // 커스텀 팝업: 드래그 이동 가능, 항상 앞, 도면(팝업 밖)은 그대로 조작 가능(non-blocking)
+function parseDepthL(txt){
+  var lines=txt.replace(/\r/g,'').split('\n').filter(function(l){return l.trim().length;});
+  if(!lines.length)return [];
+  var h=lines[0].split(',');
+  function ci(ns){for(var k=0;k<ns.length;k++){var x=h.indexOf(ns[k]);if(x>=0)return x;}return -1;}
+  var iN=ci(['이름']),iX=ci(['X']),iY=ci(['Y']),iZ=ci(['Z(레벨)','Z']),iC=ci(['코드']);
+  var out=[];
+  for(var r=1;r<lines.length;r++){
+    var c=lines[r].split(',');
+    var X=parseFloat(c[iX]),Y=parseFloat(c[iY]),Z=parseFloat(c[iZ]);
+    if(isNaN(X)||isNaN(Y)||isNaN(Z))continue;
+    var code=(iC>=0?(c[iC]||''):'').trim();
+    if(code.toLowerCase()!=='l')continue;   /* L 코드 점만 */
+    out.push({name:(c[iN]||'').trim(),X:X,Y:Y,z:Z,code:code});
+  }
+  return out;
+}
+function drawDepthMarks(){
+  if(!state._showDepthMarks)return;
+  (state.depthGround||[]).forEach(function(gp){
+    if(gp.dep!=null)return;                 /* 매칭된 점은 패스 */
+    var s=S(gp.Y,gp.X);
+    gPts.appendChild(el('circle',{cx:s[0],cy:s[1],r:1.1,fill:'none',stroke:'#e11','stroke-width':2.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+  });
+  (state._depthRefUnused||[]).forEach(function(rf){
+    var s=S(rf.Y,rf.X);
+    gPts.appendChild(el('circle',{cx:s[0],cy:s[1],r:1.1,fill:'none',stroke:'#e80','stroke-width':2.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+  });
+}
 function parseAftCsv(txt){
   var lines=txt.replace(/\r/g,'').split('\n').filter(function(l){return l.trim().length;});
   if(!lines.length)return {ground:[],align:[]};
@@ -603,16 +632,20 @@ function buildInspData(){
 }
 
 function computeDepth(){
-  var ref;
-  if(state.points&&state.points.length){ref=state.points.map(function(p){return {X:+p.y,Y:+p.x,z:+p.z};});}
-  else{ref=state._depthAlign||[];}
+  var ref=[];
+  (state.points||[]).forEach(function(p){
+    if(isManhole(p))return;                       /* 맨홀 제외 */
+    if(!/[xX\u00D7]\s*\d+/.test(p.code||''))return;    /* 관공정보(관경x관수) 있는 파이프점만 */
+    ref.push({X:+p.y,Y:+p.x,z:+p.z,no:p.no,used:false});
+  });
   var g=state.depthGround||[],sum=0,ok=0;
   g.forEach(function(gp){
-    var b=null,bd=1e18;
-    for(var i=0;i<ref.length;i++){var d=Math.hypot(ref[i].X-gp.X,ref[i].Y-gp.Y);if(d<bd){bd=d;b=ref[i];}}
-    if(b&&bd<=0.5){gp.ref=b.z;gp.dep=gp.z-b.z;gp.dist=bd;sum+=gp.dep;ok++;}
+    var b=null,bi=-1,bd=1e18;
+    for(var i=0;i<ref.length;i++){var d=Math.hypot(ref[i].X-gp.X,ref[i].Y-gp.Y);if(d<bd){bd=d;b=ref[i];bi=i;}}
+    if(b&&bd<=0.5){gp.ref=b.z;gp.dep=gp.z-b.z;gp.dist=bd;gp.refNo=b.no;sum+=gp.dep;ok++;ref[bi].used=true;}
     else{gp.ref=null;gp.dep=null;gp.dist=(b?bd:null);}
   });
+  state._depthRefUnused=ref.filter(function(r){return !r.used;});
   return {avg:ok?sum/ok:0,ok:ok,total:g.length};
 }
 function loadAfterCsv(f){
@@ -640,6 +673,7 @@ function depthTableHtml(rows){
 }
 function renderDepthOverlay(){
   computeDepth();
+  state._showDepthMarks=true;if(typeof drawGeo==='function')drawGeo();
   var g=(state.depthGround||[]).slice().sort(function(a,b){return (a.name||'').localeCompare((b.name||''),undefined,{numeric:true});});
   var ok=g.filter(function(r){return r.dep!=null;});
   var avg=ok.length?ok.reduce(function(s,r){return s+r.dep;},0)/ok.length:0;
@@ -1014,6 +1048,7 @@ function drawGeo(){
     var ct=nt; // 핸들 호환
     addLabelHandle(p,L,ls,nt,ct,ld,p.no===selNum);
   });
+  drawDepthMarks();
 }
 /* ====== 맨홀 심벌 렌더 ====== */
 // 가장 가까운 통신관로 세그먼트 찾기 → 관로 반대편 단위방향 [ux,uy,거리] (maxR 밖이면 null)
@@ -6113,9 +6148,9 @@ function refreshFieldBar(){
 function finalCsvArr(){var f=state.finalCsv;if(!f)return [];return Array.isArray(f)?f:[f];}
 function finalCsvDepthSync(){
   var arr=finalCsvArr(); if(!arr.length){return;}
-  var g=[],al=[];
-  arr.forEach(function(it){try{var pr=parseAftCsv(it.text||'');if(pr){g=g.concat(pr.ground||[]);al=al.concat(pr.align||[]);}}catch(e){}});
-  if(g.length){state.depthGround=g;state._depthAlign=al;try{computeDepth();}catch(e){}}
+  var L=[];
+  arr.forEach(function(it){try{L=L.concat(parseDepthL(it.text||''));}catch(e){}});
+  if(L.length){state.depthGround=L;state._depthAlign=null;try{computeDepth();}catch(e){}}
 }
 function openFinalCsvUpload(){
   var ov=document.createElement('div');
