@@ -310,6 +310,7 @@
       <button id="vRv" class="photoBtn">로드뷰</button>
     </span>
     <div id="fieldBar" style="order:3;flex:1;min-width:0;display:none;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="fbtn" id="fldSave">💾 저장</button>
       <button class="fbtn" id="fldCsv">후측량 csv</button>
       <button class="fbtn" id="fldJoseo">실시간 사진조서</button>
       <button class="fbtn" id="fldManhole">맨홀도 제작</button>
@@ -326,7 +327,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 212</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 213</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5989,6 +5990,7 @@ function openFinalStatus(){
     if(vp)vp.style.marginLeft='auto';
     [vp,vm,vr].forEach(function(b){if(b)fb.appendChild(b);});
   }
+  var sv=document.getElementById('fldSave');if(sv)sv.onclick=function(){saveProject();};
   var c=document.getElementById('fldCsv');if(c)c.onclick=openFinalCsvUpload;
   var j=document.getElementById('fldJoseo');if(j)j.onclick=openJoseoPanel;
   var m=document.getElementById('fldManhole');if(m)m.onclick=function(){toast('맨홀도 제작 — 다음 단계에서 연결합니다');};
@@ -6006,6 +6008,7 @@ function joseoGetTemplate(){
   if(_joseoTplBuf) return Promise.resolve(_joseoTplBuf);
   return fetch(JOSEO_TPL_URL).then(function(r){ if(!r.ok) throw new Error('템플릿 로드 실패('+r.status+')'); return r.arrayBuffer(); }).then(function(b){ _joseoTplBuf=b; return b; });
 }
+function joseoDateK(d){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d||'');return m?(m[1]+'년 '+(+m[2])+'월 '+(+m[3])+'일'):(d||'');}
 function joseoDate(no){ var d=(no||'').toString().slice(0,6); if(d.length<6) return ''; return '20'+d.slice(0,2)+'-'+d.slice(2,4)+'-'+d.slice(4,6); }
 function joseoParseCode(code){
   var c=(code||'').replace(/(^|\s)T(?=\s|$)/g,' ').replace(/\s+/g,' ').trim();   // 내부표시 T 제거
@@ -6046,7 +6049,7 @@ function joseoFetchBuf(url){
 var JOSEO_BM=['B3:C3','E3:G3','A4:B4','C4:C5','D4:D5','E4:E5','F4:F5','G4:G5','A7:C7','D7:G7','A8:C18','D8:G18','A19:C19','D19:G19']; // 블록(17행, 라벨=사진아래) 병합, row3 기준
 function joseoShift(rng,dr){ return rng.replace(/([A-G])(\d+)/g,function(_,c,n){ return c+(parseInt(n,10)+dr); }); }
 function joseoSetv(ws,a,v){ if(v!==undefined&&v!==null&&v!=='') ws.getCell(a).value=v; }
-function joseoFillBlk(ws,S,p){ joseoSetv(ws,'B'+S,p.date);joseoSetv(ws,'E'+S,p.name);joseoSetv(ws,'A'+(S+3),p.x);joseoSetv(ws,'B'+(S+3),p.y);joseoSetv(ws,'C'+(S+3),p.facility);joseoSetv(ws,'D'+(S+3),p.mat);joseoSetv(ws,'E'+(S+3),p.dia);joseoSetv(ws,'F'+(S+3),p.gap); }
+function joseoFillBlk(ws,S,p){ joseoSetv(ws,'B'+S,joseoDateK(p.date));joseoSetv(ws,'E'+S,p.name);joseoSetv(ws,'A'+(S+3),p.x);joseoSetv(ws,'B'+(S+3),p.y);joseoSetv(ws,'C'+(S+3),p.facility);joseoSetv(ws,'D'+(S+3),p.mat);joseoSetv(ws,'E'+(S+3),p.dia);joseoSetv(ws,'F'+(S+3),p.gap); }
 function joseoStampBlk(ws,S,BLK){
   for(var k=0;k<BLK.length;k++){ var tr=S+k; ws.getRow(tr).height=BLK[k].h; for(var c=1;c<=7;c++){ var t=ws.getCell(tr,c); t.style=BLK[k].row[c-1].style; t.value=BLK[k].row[c-1].value; } }
   JOSEO_BM.forEach(function(mm){ try{ ws.mergeCells(joseoShift(mm,S-3)); }catch(e){} });
@@ -6155,7 +6158,7 @@ function joseoRenderPreview(dk){
     html+='<div class="jz-card" data-no="'+joseoEsc(r.fullNo||r.name)+'">'
       +'<table class="jz-tbl">'
       +'<colgroup><col style="width:17%"><col style="width:16.5%"><col style="width:16.5%"><col style="width:12.5%"><col style="width:12.5%"><col style="width:12.5%"><col style="width:12.5%"></colgroup>'
-      +'<tr><td class="lbl">측량날짜</td><td class="val" colspan="2">'+joseoEsc(r.date)+'</td><td class="lbl">측점명</td><td class="val" colspan="3">'+joseoEsc(r.name)+'</td></tr>'
+      +'<tr><td class="lbl">측량날짜</td><td class="val" colspan="2">'+joseoEsc(joseoDateK(r.date))+'</td><td class="lbl">측점명</td><td class="val" colspan="3">'+joseoEsc(r.name)+'</td></tr>'
       +'<tr><td class="lbl" colspan="2">좌표(GRS80)</td><td class="lbl" rowspan="2">시설물종류</td><td class="lbl" rowspan="2">재질</td><td class="lbl" rowspan="2">관경</td><td class="lbl" rowspan="2">이격거리</td><td class="lbl" rowspan="2">심도</td></tr>'
       +'<tr><td class="lbl">X(N)</td><td class="lbl">Y(E)</td></tr>'
       +'<tr><td class="val">'+joseoEsc(r.x)+'</td><td class="val">'+joseoEsc(r.y)+'</td><td class="val">'+joseoEsc(r.facility)+'</td><td class="val">'+joseoEsc(r.mat)+'</td><td class="val">'+joseoEsc(r.dia)+'</td><td class="val">'+joseoEsc(r.gap)+'</td><td class="val">'+joseoEsc(r.depth)+'</td></tr>'
