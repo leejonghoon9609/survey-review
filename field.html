@@ -297,6 +297,17 @@
   }
   /* ===== 보기 전용(결선완료 로딩) ===== */
   .readonly #rail{opacity:.45;pointer-events:none;filter:grayscale(.35)}
+
+  /* ── 검수데이터 제작: 레이어 토글 ── */
+  .hide-no .L-no{display:none}
+  .hide-date .L-date{display:none}
+  .hide-code .L-code{display:none}
+  .hide-depth .L-depth{display:none}
+  .hide-mh .lbl-mh{display:none}
+  .hide-riser .sym-riser{display:none}
+  .hide-hyun .insp-line{display:none}
+  .lvchk{display:inline-flex;align-items:center;gap:3px;font-size:12px;color:#444;font-weight:600;white-space:nowrap;cursor:pointer;margin:0 2px}
+  .lvchk input{cursor:pointer;margin:0}
 </style>
 </head>
 <body>
@@ -332,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 238</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 239</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -646,6 +657,7 @@ function computeDepth(){
     else{gp.ref=null;gp.dep=null;gp.dist=(b?bd:null);}
   });
   state._depthRefUnused=ref.filter(function(r){return !r.used;});
+  state._depthByNo={};g.forEach(function(gp){if(gp.refNo!=null&&gp.dep!=null)state._depthByNo[gp.refNo]=gp.dep;});
   return {avg:ok?sum/ok:0,ok:ok,total:g.length};
 }
 function loadAfterCsv(f){
@@ -994,6 +1006,7 @@ function drawGeo(){
     var pts=L.pts.map(function(p){var s=S(p[0],p[1]);return s[0]+','+s[1];}).join(' ');
     var pl=el('polyline',{points:pts,fill:'none',stroke:def.c,'stroke-width':def.w,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':def.dash?'butt':'round'});
     if(def.dash)pl.setAttribute('stroke-dasharray',def.dash);
+    if(L.insp)pl.setAttribute('class','insp-line');
     gGeo.appendChild(pl);
   });
   var lay=computeLabels();
@@ -1035,16 +1048,17 @@ function drawGeo(){
     var nt=mkLabel(ls[0]+off, ls[1], p.no, {fill:'#1a7a3a',weight:'400',anchor:L.anchor,grp:'pt',px:15});
     // 윗줄 날짜-번호에서 번호(마지막 - 뒤)만 빨간색
     var noStr=(p.no||''), dpos=noStr.lastIndexOf('-');
-    if(dpos>=0)nt.innerHTML=noStr.slice(0,dpos+1)+'<span style="color:#d32f2f;font-weight:700">'+noStr.slice(dpos+1)+'</span>';
+    if(dpos>=0)nt.innerHTML='<span class="L-date">'+noStr.slice(0,dpos+1)+'</span><span class="L-no" style="color:#d32f2f;font-weight:700">'+noStr.slice(dpos+1)+'</span>';else nt.innerHTML='<span class="L-no">'+noStr+'</span>';
     // 코드는 번호 아래 줄로 같은 div에 추가
     if((p.code||'').trim()){
-      var sub=document.createElement('div');
+      var sub=document.createElement('div');sub.className='L-code';
       var code=(p.code||'').trim();
       if(isTpoint(p)){sub.innerHTML=code.replace(/(^|\s)(T)(?=\s|$)/,'$1<span style="color:#d32f2f;font-weight:700">T</span>');}
       else{sub.textContent=code;}
       sub.style.cssText='color:#0f7a86;font-weight:400;margin-top:2px;';
       nt.appendChild(sub);
     }
+    var _dp=(state._depthByNo&&state._depthByNo[p.no]);if(_dp!=null&&isFinite(_dp)){var dd=document.createElement('div');dd.className='L-depth';dd.textContent='\uC2EC\uB3C4 '+(Math.round(_dp*100)/100).toFixed(2)+'m';dd.style.cssText='color:#7a52e0;font-weight:700;margin-top:2px;';nt.appendChild(dd);}
     var ct=nt; // 핸들 호환
     addLabelHandle(p,L,ls,nt,ct,ld,p.no===selNum);
   });
@@ -1116,11 +1130,12 @@ function drawManholes(){
     if(isRiser){
       // 입상주 = 테이퍼 목주(전봇대): 밑동이 넓고 위로 갈수록 좁아짐. 중심점=밑동(mx,my). 색=파랑
       var H=0.9, wB=0.16, wT=0.05, armW=0.27, armY=my-H*0.74, RC='#1f6fd6';
-      gMH.appendChild(el('line',{x1:mx-wB,y1:my,x2:mx-wT,y2:my-H,stroke:RC,'stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-      gMH.appendChild(el('line',{x1:mx+wB,y1:my,x2:mx+wT,y2:my-H,stroke:RC,'stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-      gMH.appendChild(el('line',{x1:mx-armW,y1:armY,x2:mx+armW,y2:armY,stroke:RC,'stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-      gMH.appendChild(el('ellipse',{cx:mx,cy:my-H,rx:wT+0.05,ry:0.05,fill:'none',stroke:RC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-      gMH.appendChild(el('line',{x1:mx,y1:my,x2:mx,y2:my,stroke:RC,'stroke-width':5,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // 밑동 중심점(화면고정)
+      var gR=el('g',{'class':'sym-riser'});gMH.appendChild(gR);
+      gR.appendChild(el('line',{x1:mx-wB,y1:my,x2:mx-wT,y2:my-H,stroke:RC,'stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gR.appendChild(el('line',{x1:mx+wB,y1:my,x2:mx+wT,y2:my-H,stroke:RC,'stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gR.appendChild(el('line',{x1:mx-armW,y1:armY,x2:mx+armW,y2:armY,stroke:RC,'stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gR.appendChild(el('ellipse',{cx:mx,cy:my-H,rx:wT+0.05,ry:0.05,fill:'none',stroke:RC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gR.appendChild(el('line',{x1:mx,y1:my,x2:mx,y2:my,stroke:RC,'stroke-width':5,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // 밑동 중심점(화면고정)
     } else {
       // 맨홀 = 이중원(◎) + 중심점
       gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.294,fill:'none',stroke:'#1f6fd6','stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
@@ -5524,18 +5539,21 @@ var TB=[
   {k:'insp',label:'검수',icon:'✓',c:{bg:'#fbe9e9',fg:'#df524b'},tools:[
     {t:'관공수 검수',tone:'insp1',fn:inspectPipeCount,hint:'관수 규칙 자동 점검 — 연속성(맨홀 제외) + T점 분기 합산'},
     {t:'중복선 검수',tone:'insp2',fn:inspectDupLines,hint:'중복 관로선을 찾아 빨간 써클로 표시'},
-    {t:'끝점 검수',tone:'insp3',fn:inspectEndpoints,hint:'결선 끝점이 측점·맨홀에 붙어있는지 검수'}]}
+    {t:'끝점 검수',tone:'insp3',fn:inspectEndpoints,hint:'결선 끝점이 측점·맨홀에 붙어있는지 검수'}]},
+  {k:'inspmk',label:'검수데이터 제작',icon:'\uD83E\uDDFE',c:{bg:'#fbe9e9',fg:'#df524b'},tools:[],custom:1}
 ];
 var TONE={data:{bg:'#eceef1',fg:'#6e757f'},draw:{bg:'#e7f3ea',fg:'#2a9e50'},del:{bg:'#fdf1dd',fg:'#d98200'},delall:{bg:'#fbe9e9',fg:'#df524b'},pick:{bg:'#e6effb',fg:'#2f7fe0'},shape:{bg:'#e6effb',fg:'#2f7fe0'},ok:{bg:'#e7f3ea',fg:'#2a9e50'},bad:{bg:'#fbe9e9',fg:'#df524b'},pt:{bg:'#efeafa',fg:'#7a52e0'},insp1:{bg:'#e6effb',fg:'#2f7fe0'},insp2:{bg:'#efeafa',fg:'#7a52e0'},insp3:{bg:'#e3f4ef',fg:'#109a82'}};
 function toneStyle(tone,active){var c=TONE[tone]||{bg:'#f3f3f0',fg:'#333'};return active?('background:'+c.fg+';color:#fff;border:1px solid '+c.fg+';border-left:4px solid '+c.fg+';border-radius:0 8px 8px 0;font-weight:700;'):('background:#fff;color:'+c.fg+';border:1px solid #e3e3df;border-left:4px solid '+c.fg+';border-radius:0 8px 8px 0;font-weight:600;');}
 function railStyle(col,active){col=col||{bg:'#f3f3f0',fg:'#333'};return active?('background:'+col.bg+';color:'+col.fg+';border:1px solid '+col.fg+';border-left:4px solid '+col.fg+';border-radius:0 8px 8px 0;font-weight:700;'):('background:#fff;color:'+col.fg+';border:1px solid #e3e3df;border-left:4px solid '+col.fg+';border-radius:0 8px 8px 0;font-weight:600;');}
 var activeCat='pan';
 var toolsOpen=false;try{toolsOpen=(localStorage.getItem('toolsOpen')==='1');}catch(e){}
+var LV=(function(){try{return JSON.parse(localStorage.getItem('layerVis'))||{};}catch(e){return {};}})();['no','date','code','depth','mh','riser','hyun'].forEach(function(k){if(LV[k]==null)LV[k]=1;});function applyLayerVis(){var b=document.body;if(!b)return;['no','date','code','depth','mh','riser','hyun'].forEach(function(k){b.classList.toggle('hide-'+k,!LV[k]);});}function setLayerVis(k,on){LV[k]=on?1:0;try{localStorage.setItem('layerVis',JSON.stringify(LV));}catch(e){}applyLayerVis();}
 function curCat(){for(var i=0;i<TB.length;i++)if(TB[i].k===activeCat)return TB[i];return TB[0];}
 function renderRail(){
   var r=document.getElementById('rail'),html='';
   TB.forEach(function(c){
     var kb=keyForAction('cat:'+c.k),bdg=kb?'<span class="hk-badge">'+kb+'</span>':'';
+    if(c.custom)return;
     if(c.k==='data'){
       html+='<button data-k="'+c.k+'" style="'+railStyle(c.c,c.k===activeCat)+'">'+c.icon+' '+c.label+bdg+'</button>';
       html+='<div class="sep"></div>';
@@ -5545,12 +5563,14 @@ function renderRail(){
     }
     html+='<button data-k="'+c.k+'" style="'+railStyle(c.c,c.k===activeCat)+'">'+c.icon+' '+c.label+bdg+'</button>';});
   html+='</div>';
+  if(IS_TANGO)html+='<button data-k="inspmk" style="'+railStyle({bg:'#fbe9e9',fg:'#df524b'},activeCat==='inspmk')+'">\uD83E\uDDFE \uAC80\uC218\uB370\uC774\uD130 \uC81C\uC791</button>';
   html+='<div class="sep"'+(IS_TANGO?' style="margin-top:auto"':'')+'></div><button id="dxfExport" style="background:#fff;color:#c0392b;border:1px solid #c0392b;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#c0392b">📐</span> DXF로 내보내기</button>';
-  if(IS_TANGO)html+='<button id="depthCalc" style="background:#fff;color:#7a52e0;border:1px solid #7a52e0;border-radius:8px;font-weight:700;justify-content:flex-start">📐 심도 계산</button>';if(IS_TANGO)html+='<button id="inspBuild" style="background:#fff;color:#16a34a;border:1px solid #16a34a;border-radius:8px;font-weight:700;justify-content:flex-start">📋 검수데이터 생성</button>';
+  
   if(!IS_TANGO)html+='<button id="csvExport" style="background:#fff;color:#0d7a52;border:1px solid #0d7a52;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#0d7a52">📄</span> 측설용 CSV 내보내기</button>';
   html+='<button id="doneReg" style="background:#16a34a;color:#fff;border:1px solid #16a34a;border-radius:8px;font-weight:700;justify-content:flex-start">✅ '+(IS_TANGO?'탱고':'결선')+'완료사업 등록</button>';
   html+='<button id="hkOpen" style="'+(IS_TANGO?'':'margin-top:auto;')+'background:#fff;color:#555;border:1px solid #e3e3df;border-radius:8px;font-weight:600;justify-content:flex-start"><span style="color:#1f6fd6;font-size:16px">⌨</span> 단축키 설정</button>';
   r.innerHTML=html;
+  try{applyLayerVis();}catch(e){}
   var tt=document.getElementById('toolToggle');if(tt)tt.onclick=function(){toolsOpen=!toolsOpen;try{localStorage.setItem('toolsOpen',toolsOpen?'1':'0');}catch(e){}renderRail();renderSub();};
   r.querySelectorAll('button[data-k]').forEach(function(b){b.onclick=function(){
     var bk=b.getAttribute('data-k');
@@ -5577,9 +5597,10 @@ function mkBtn(tool,i){
   var kb=keyForAction('tool:'+curCat().k+':'+i),bdg=kb?'<span class="hk-badge">'+kb+'</span>':'';
   return '<button data-i="'+i+'" class="sub-b" style="'+toneStyle(tool.tone,active)+'">'+tool.t+bdg+'</button>';
 }
+function inspmkBar(){var btn='<button id="mkInsp" style="border:1px solid #16a34a;color:#16a34a;font-weight:700">\uD83D\uDCCB \uAC80\uC218\uB370\uC774\uD130 \uC0DD\uC131</button>'+'<button id="mkDepth" style="border:1px solid #7a52e0;color:#7a52e0;font-weight:700">\uD83D\uDCD0 \uC2EC\uB3C4 \uACC4\uC0B0</button>';var defs=[['no','\uC810\uBC88\uD638'],['code','\uAD00\uC815\uBCF4'],['depth','\uC2EC\uB3C4'],['date','\uB0A0\uC9DC'],['mh','\uB9E8\uD640 \uC815\uBCF4'],['riser','\uC785\uC0C1\uC8FC'],['hyun','\uD604\uD669 \uCE21\uB7C9(\uB3C4\uB85C)']];var chk=defs.map(function(d){return '<label class="lvchk"><input type="checkbox" data-lv="'+d[0]+'"'+(LV[d[0]]?' checked':'')+'>'+d[1]+'</label>';}).join('');return btn+'<span class="subhint">\uB808\uC774\uC5B4</span>'+chk;}function wireInspmk(sb){var a=document.getElementById('mkInsp');if(a)a.onclick=function(){if(typeof buildInspData==='function')buildInspData();};var b=document.getElementById('mkDepth');if(b)b.onclick=function(){if(typeof openDepthCalc==='function')openDepthCalc();};sb.querySelectorAll('input[data-lv]').forEach(function(inp){inp.onchange=function(){setLayerVis(inp.getAttribute('data-lv'),inp.checked);};});}
 function renderSub(){
   var c=curCat(),s=document.getElementById('subbar'),html='';
-  if(c.tools.length)html+=c.tools.map(mkBtn).join('');
+  if(c.k==='inspmk')html+=inspmkBar();else if(c.tools.length)html+=c.tools.map(mkBtn).join('');
   else if(c.hint)html+='<span class="subhint">'+c.hint+'</span>';
   if(mode==='line')html+='<button id="lineDone" class="on">완료</button>';
   var kbM=keyForAction('fixed:measure'),kbU=keyForAction('fixed:undo'),kbR=keyForAction('fixed:redo'),kbC=keyForAction('fixed:clearsym');
@@ -5587,6 +5608,7 @@ function renderSub(){
   var vhtml='<button data-g="delall2" style="border:1px solid #c0392b;color:#c0392b;font-weight:700">🧹 지우기(통합)'+bdg(kbC)+'</button><button data-g="measure" style="border:1px solid #d32f2f;color:#d32f2f;font-weight:700"><span style="color:#f2b400">📏</span> 거리산출'+bdg(kbM)+'</button><button data-g="undo">← 되돌리기'+bdg(kbU)+'</button><button data-g="redo">다시 실행 →'+bdg(kbR)+'</button>'
       +'<span class="subhint">보기</span><button data-g="fit">전체</button>';
   s.innerHTML=html;
+  if(c.k==='inspmk')wireInspmk(s);
   var gb=document.getElementById('globalbtns'); if(gb)gb.innerHTML=vhtml;
   c.tools.forEach(function(tool,i){if(tool.soon)return;var b=s.querySelector('button[data-i="'+i+'"]');if(!b)return;
     b.onclick=function(){
