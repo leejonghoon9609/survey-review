@@ -327,7 +327,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 222</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 223</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -555,8 +555,6 @@ function loadAfterCsv(f){
   var rd=new FileReader();
   rd.onload=function(){
     var txt;try{txt=decodeBuf(rd.result);}catch(e){txt=''+rd.result;}
-    var pr;try{pr=parseAftCsv(txt);}catch(e){toast('CSV 읽기 실패');return;}
-    if(!pr.ground.length){toast('(1) 지반점을 못 찾음 — 복구후 후측량 CSV가 맞는지 확인');return;}
     var a=finalCsvArr();a.push({name:f.name,text:txt});state.finalCsv=a;
     if(!state.fieldDone)state.fieldDone={csv:false,joseo:false,manhole:false};state.fieldDone.csv=true;
     finalCsvDepthSync();
