@@ -328,7 +328,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 232</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 233</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5374,7 +5374,7 @@ function refreshProjects(){ if(!online)return;
     if(typeof refreshDoneProjects==='function')refreshDoneProjects();
   });
 }
-function saveProject(){
+function saveProject(cb){
   var payload={points:state.points,lines:state.lines,baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:state.finalCsv||null,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
   if(!state.projectName){toast('사업명을 먼저 정하세요(새 사업)');return;}
   payload.stage=STAGE;
@@ -5385,7 +5385,7 @@ function saveProject(){
     if(res.error){toast('저장 오류: '+res.error.message);return;}
     var saved=res.data&&res.data[0];if(saved){state.projectId=saved.id;state.loadedStage=STAGE;}
     sb.from('survey_history').insert({project_id:state.projectId,payload:payload}); // 이력
-    refreshProjects();loadPhotos();toast('저장 완료');
+    refreshProjects();loadPhotos();toast('저장 완료');if(typeof cb==='function')cb(state.projectId);
   });
 }
 function pickProject(id){ if(!id)return;
@@ -6010,6 +6010,15 @@ function refreshDoneProjects(){ if(!online)return;
     if(sm){if(tn>0){sm.style.display='';sm.textContent='⚠ 수정 '+pw+'사업 · '+tn+'건';}else{sm.style.display='none';}}
   });
 }
+function copyPhotos(fromId,toId){
+  if(!online||!fromId||!toId||fromId===toId)return;
+  sb.from('survey_photos').select('point_no,url').eq('project_id',fromId).then(function(res){
+    var rows=(res.data||[]);if(!rows.length)return;
+    var ins=rows.map(function(r){return {project_id:toId,point_no:r.point_no,url:r.url};});
+    sb.from('survey_photos').insert(ins).then(function(rr){if(rr&&rr.error){toast('사진 복사 오류: '+rr.error.message);return;}loadPhotos();toast('사진 '+rows.length+'장 가져옴');});
+  });
+}
+
 function doImport(id,srcStage,autosave){
   if(!online||!id)return;
   if(srcStage==='field'){
@@ -6025,7 +6034,7 @@ function doImport(id,srcStage,autosave){
       toast('현장 후측량 CSV '+fc.length+'개 가져옴 — 저장하세요');
     });
   }else{
-    if(autosave){loadProject(id,false,function(){saveProject();});} /* 현장: 결선완료 사본을 즉시 현장으로 저장 */
+    if(autosave){var _src=id;loadProject(id,false,function(){saveProject(function(nid){if(nid&&nid!==_src)copyPhotos(_src,nid);});});} /* 현장: 결선완료 사본을 즉시 현장으로 저장(+사진 복사) */
     else{loadProject(id);} /* 탱고: 시드만(조립 후 수동저장) */
   }
 }
