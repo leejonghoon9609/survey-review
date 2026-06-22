@@ -327,7 +327,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 223</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 224</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -505,7 +505,7 @@ var state={ projectId:null, projectName:null, points:[], lines:[], markups:[], l
 // lx,ly = 라벨 앵커 세계좌표
 // label = '2M(SKB)' 등
 var mode='pan', status='ok', bpCrop=null;
-var LINECOL={"통신관로":{c:"#d92b2b",w:1.6},"압입구간":{c:"#1f6fd6",w:3.0,dash:"10 7"},"지거":{c:"#f2b400",w:2.4},"주입상인출선":{c:"#999",w:1}};
+var LINECOL={"통신관로":{c:"#d92b2b",w:1.6},"압입구간":{c:"#1f6fd6",w:3.0,dash:"10 7"},"지거":{c:"#f2b400",w:2.4},"주입상인출선":{c:"#999",w:1},"보도":{c:"#0aa37a",w:1.4},"도로":{c:"#6b7280",w:1.4}};
 function isTpoint(p){return /(^|\s)T(\s|$)/.test((p&&p.code)||'');}
 function pipeCount(p){var m=/[xX×]\s*(\d+)/.exec((p&&p.code)||'');return m?+m[1]:null;}
 function isManhole(p){return /^\s*M/.test((p&&p.code)||'');}
@@ -537,6 +537,64 @@ function parseAftCsv(txt){
   }
   return {ground:g,align:a};
 }
+// ===== 검수데이터(탱고): 후측량/현황 CSV 코드 분류 =====
+// l=관로측설점(심도) · SKTM=맨홀 · B=보도 · D=도로 · BD=도로/인도경계 · 100x6=측설용성과(무시)
+function parseInspCsv(txt){
+  var lines=txt.replace(/\r/g,'').split('\n').filter(function(l){return l.trim().length;});
+  if(!lines.length)return [];
+  var h=lines[0].split(',');
+  function ci(ns){for(var k=0;k<ns.length;k++){var x=h.indexOf(ns[k]);if(x>=0)return x;}return -1;}
+  var iN=ci(['이름']),iX=ci(['X']),iY=ci(['Y']),iZ=ci(['Z(레벨)','Z']),iC=ci(['코드']),iP=ci(['PDOP']);
+  var out=[];
+  for(var r=1;r<lines.length;r++){
+    var c=lines[r].split(',');
+    var X=parseFloat(c[iX]),Y=parseFloat(c[iY]),Z=parseFloat(c[iZ]);
+    if(isNaN(X)||isNaN(Y))continue;
+    var code=(iC>=0?(c[iC]||''):'').trim();
+    var pdop=(iP>=0?(c[iP]||''):'').trim();
+    if(code==='100x6'){out.push({code:'100x6',skip:true});continue;}   // 측설용 노출관로 성과 = 무시
+    if(code===''&&pdop==='')continue;                                   // 품질 빈칸·코드 없음 = 무시
+    out.push({name:(c[iN]||'').trim(),ex:Y,no:X,z:Z,code:code});        // ex=동(앱x)=CSV Y, no=북(앱y)=CSV X
+  }
+  return out;
+}
+function buildInspData(){
+  var arr=(typeof finalCsvArr==='function')?finalCsvArr():[];
+  var csvs=arr.map(function(it){return parseInspCsv(it.text||'');})
+              .filter(function(p){return p.some(function(x){return x.code==='l'||x.code==='SKTM'||x.code==='B'||x.code==='D'||x.code==='BD';});});
+  if(!csvs.length){toast('후측량/현황 CSV(코드 l/SKTM/B/D)를 먼저 등록하세요');return;}
+  if(typeof pushHist==='function')pushHist();
+  if(!state.markups)state.markups=[];
+  if(!state.manholes)state.manholes=[];
+  // 기존 검수 생성물 정리 후 재생성
+  state.lines=(state.lines||[]).filter(function(l){return !l.insp;});
+  state.markups=state.markups.filter(function(m){return m.near!=='경계';});
+  state.manholes=state.manholes.filter(function(m){return !m.insp;});
+  var nB=0,nD=0,nBD=0,nM=0,nL=0,nIg=0;
+  function buildLinesIn(seq,code,layer){
+    var pp=seq.filter(function(p){return p.code===code;}),run=[],n=0;
+    function flush(){if(run.length>=2){state.lines.push({layer:layer,pts:run.map(function(p){return [p.ex,p.no];}),insp:true});n++;}run=[];}
+    for(var i=0;i<pp.length;i++){if(run.length){var pv=run[run.length-1];if(Math.hypot(pp[i].ex-pv.ex,pp[i].no-pv.no)>8)flush();}run.push(pp[i]);}
+    flush();return n;
+  }
+  csvs.forEach(function(seq){
+    nB+=buildLinesIn(seq,'B','보도');
+    nD+=buildLinesIn(seq,'D','도로');
+    seq.forEach(function(p){
+      if(p.skip){nIg++;return;}
+      if(p.code==='BD'){var s=S(p.ex,p.no);state.markups.push({type:'cir',cx:s[0],cy:s[1],rx:0.5,ry:0.5,status:'bad',near:'경계'});nBD++;}
+      else if(p.code==='SKTM'){state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+nM)),wx:p.ex,wy:p.no,label:'M (SKT )',kind:'신',lx:null,ly:null,type:'mh',insp:true});nM++;}
+      else if(p.code==='l')nL++;
+    });
+  });
+  drawGeo();
+  if(typeof drawManholes==='function')drawManholes();
+  if(typeof drawMarks==='function')drawMarks();
+  if(typeof updMeta==='function')updMeta();
+  if(online&&state.projectId&&typeof saveProject==='function')saveProject();
+  toast('검수데이터 생성 — 보도 '+nB+'선·도로 '+nD+'선·경계 '+nBD+'·맨홀 '+nM+'·측설 '+nL+'점(심도 다음)'+(nIg?(' · 측설용 '+nIg+' 무시'):''));
+}
+
 function computeDepth(){
   var ref;
   if(state.points&&state.points.length){ref=state.points.map(function(p){return {X:+p.y,Y:+p.x,z:+p.z};});}
@@ -5427,7 +5485,7 @@ function renderRail(){
     html+='<button data-k="'+c.k+'" style="'+railStyle(c.c,c.k===activeCat)+'">'+c.icon+' '+c.label+bdg+'</button>';});
   html+='</div>';
   html+='<div class="sep"'+(IS_TANGO?' style="margin-top:auto"':'')+'></div><button id="dxfExport" style="background:#fff;color:#c0392b;border:1px solid #c0392b;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#c0392b">📐</span> DXF로 내보내기</button>';
-  if(IS_TANGO)html+='<button id="depthCalc" style="background:#fff;color:#7a52e0;border:1px solid #7a52e0;border-radius:8px;font-weight:700;justify-content:flex-start">📐 심도 계산</button>';
+  if(IS_TANGO)html+='<button id="depthCalc" style="background:#fff;color:#7a52e0;border:1px solid #7a52e0;border-radius:8px;font-weight:700;justify-content:flex-start">📐 심도 계산</button>';if(IS_TANGO)html+='<button id="inspBuild" style="background:#fff;color:#16a34a;border:1px solid #16a34a;border-radius:8px;font-weight:700;justify-content:flex-start">📋 검수데이터 생성</button>';
   if(!IS_TANGO)html+='<button id="csvExport" style="background:#fff;color:#0d7a52;border:1px solid #0d7a52;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#0d7a52">📄</span> 측설용 CSV 내보내기</button>';
   html+='<button id="doneReg" style="background:#16a34a;color:#fff;border:1px solid #16a34a;border-radius:8px;font-weight:700;justify-content:flex-start">✅ '+(IS_TANGO?'탱고':'결선')+'완료사업 등록</button>';
   html+='<button id="hkOpen" style="'+(IS_TANGO?'':'margin-top:auto;')+'background:#fff;color:#555;border:1px solid #e3e3df;border-radius:8px;font-weight:600;justify-content:flex-start"><span style="color:#1f6fd6;font-size:16px">⌨</span> 단축키 설정</button>';
@@ -5450,7 +5508,7 @@ function renderRail(){
   var dx=document.getElementById('dxfExport');if(dx)dx.onclick=exportDXF;
   var ce=document.getElementById('csvExport');if(ce)ce.onclick=exportSurveyCsv;
   var dr=document.getElementById('doneReg');if(dr)dr.onclick=registerDone;
-  var dc=document.getElementById('depthCalc');if(dc)dc.onclick=openDepthCalc;
+  var dc=document.getElementById('depthCalc');if(dc)dc.onclick=openDepthCalc;var ib=document.getElementById('inspBuild');if(ib)ib.onclick=buildInspData;
 }
 function mkBtn(tool,i){
   var active=(tool.mode&&mode===tool.mode)||(tool.activeMode&&mode===tool.activeMode)||(tool.status&&status===tool.status);
