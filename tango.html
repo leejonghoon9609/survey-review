@@ -326,7 +326,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 210</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 211</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -969,6 +969,7 @@ function nearestPipeDir(wx,wy,maxR){
   return [vx/vl,vy/vl,bd];
 }
 // 맨홀/입상주 라벨 기본 위치(world) — 화면·DXF 공용. txtW=라벨 폭(각자 단위)
+function mhDisp(mh){return (mh.kind?mh.kind+' ':'')+(mh.label||'');}
 function mhLabelBase(mh, txtW){
   var isRiser=(mh.type==='riser');
   var mp=null,md=1e18;
@@ -1027,7 +1028,7 @@ function drawManholes(){
     }
 
     // 라벨 글자 폭 (텍스트 길이 기준 월드값)
-    var txtW=0,_lb=(mh.label||'');for(var _i=0;_i<_lb.length;_i++){txtW+=(_lb.charCodeAt(_i)>127?EM*1.0:EM*0.55);}txtW+=EM*0.5;txtW*=1.33; // 한글=한칸,영문=0.55칸+여유, 라벨 px20 기준 1.33배(맨홀·입상주 동일)
+    var txtW=0,_lb=mhDisp(mh);for(var _i=0;_i<_lb.length;_i++){txtW+=(_lb.charCodeAt(_i)>127?EM*1.0:EM*0.55);}txtW+=EM*0.5;txtW*=1.33; // 한글=한칸,영문=0.55칸+여유, 라벨 px20 기준 1.33배(맨홀·입상주 동일)
 
     // 라벨 기본 위치(관로 방향 피해서) — 공통 함수
     var _lp=mhLabelBase(mh, txtW); var lx=_lp.lx, ly=_lp.ly;
@@ -1103,13 +1104,15 @@ function drawManholes(){
       var inpIn=document.createElement('input');
       inpIn.value=inner; inpIn.placeholder='SK';
       inpIn.style.cssText='font-size:18px;font-weight:600;color:#333;border:none;background:transparent;outline:none;width:90px;text-align:center;';
-      var spR=document.createElement('span');spR.textContent=')';
-      wrap.appendChild(inpPre);wrap.appendChild(spM);wrap.appendChild(inpIn);wrap.appendChild(spR);
+      var spR=document.createElement('span');var selKind=document.createElement('select');selKind.innerHTML='<option value="신">신설</option><option value="기">기설</option>';selKind.value=(mh.kind==='기'?'기':'신');selKind.style.cssText='font-size:15px;font-weight:700;color:#333;border:1px solid #bbb;border-radius:4px;background:#fff;outline:none;margin-right:5px;padding:1px 2px;cursor:pointer';
+      spR.textContent=')';
+      wrap.appendChild(selKind);wrap.appendChild(inpPre);wrap.appendChild(spM);wrap.appendChild(inpIn);wrap.appendChild(spR);
       document.body.appendChild(wrap);inpPre.focus();inpPre.select();
       var done=function(){if(wrap.parentNode){
         pushHist();
         var p=inpPre.value.trim(), v=inpIn.value.trim();
         mh.label=p+'M ('+v+(v?' ':'')+')';
+        mh.kind=selKind.value;
         mh._edited=true; // 사용자가 직접 고침 → 자동정리 안 함
         wrap.remove();drawManholes();}};
       var onKey=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();};
@@ -1123,7 +1126,7 @@ function drawManholes(){
     }
 
     // 라벨 텍스트 — 파란 밑줄 중앙 바로 위에 (글자가 밑줄을 덮지 않게 위로)
-    var mhLbl=mkLabel(txtCx, uly-EM*0.95, mh.label||'', {fill:isRiser?'#1f6fd6':'#333',weight:'600',anchor:'middle',grp:'mh',px:20});
+    var mhLbl=mkLabel(txtCx, uly-EM*0.95, mhDisp(mh), {fill:isRiser?'#1f6fd6':'#333',weight:'600',anchor:'middle',grp:'mh',px:20});
     // 라벨 div에 직접 더블클릭(수정) — 오버레이라 글자 위에서 바로 동작
     mhLbl.style.pointerEvents='auto';
     mhLbl.style.cursor='text';
@@ -4932,12 +4935,12 @@ EOF
       line(mh.wx-wB,mh.wy,mh.wx-wT,mh.wy+RH,lyr,5);line(mh.wx+wB,mh.wy,mh.wx+wT,mh.wy+RH,lyr,5);
       line(mh.wx-armW,armY,mh.wx+armW,armY,lyr,5);circle(mh.wx,mh.wy+RH,wT+0.05,lyr,5);
     } else {circle(mh.wx,mh.wy,RO,lyr,7);circle(mh.wx,mh.wy,RI,lyr,7);}
-    var w=tw(mh.label||'',TH);
+    var w=tw(mhDisp(mh),TH);
     var _p=mhLabelBase(mh,w); var lx=_p.lx, lyy=_p.ly;
     var isRight=(lx>=mh.wx);
     var uw=w+TH*0.12+1.2; var ux2=isRight?lx+uw:lx-uw; // 밑줄=글자폭+여유 +1.2m 연장(종훈님 CAD 실측)
     pline([[mh.wx,mh.wy],[lx,lyy],[ux2,lyy]],lyr,col,false); // 대각선+밑줄=폴리선 1개(붙음)
-    if(mh.label)text(lx,lyy+TH*0.45,TH,mh.label,lyr+'_LABEL',col,isRight?0:2); // 꺾임점 기준 정렬(R=좌0,L=우2)
+    if(mh.label)text(lx,lyy+TH*0.45,TH,mhDisp(mh),lyr+'_LABEL',col,isRight?0:2); // 꺾임점 기준 정렬(R=좌0,L=우2)
   });
   // ===== 백판(수치지도)을 단일 블록 BACKDROP 으로 묶기 (CAD에서 통째로 선택) =====
   var PREx=PRE;
