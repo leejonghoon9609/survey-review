@@ -327,7 +327,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 227</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 228</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5387,7 +5387,23 @@ function saveProject(){
     refreshProjects();loadPhotos();toast('저장 완료');
   });
 }
-function loadProject(id,ro){ if(!online||!id)return; setReadOnly(!!ro);
+function pickProject(id){ if(!id)return;
+  if(STAGE==='survey'||!online){ loadProject(id); return; }
+  /* 다운스트림(현장/탱고): 사업 선택 즉시 내 단계 사본으로 전환 */
+  sb.from('survey_projects').select('id,name,stage:payload->>stage').eq('id',id).single().then(function(r){
+    if(r.error||!r.data){ loadProject(id); return; }
+    var nm=r.data.name, st=r.data.stage||'survey';
+    if(st===STAGE){ loadProject(id); return; } /* 이미 내 단계 사본 */
+    sb.from('survey_projects').select('id,updated_at,stage:payload->>stage').eq('name',nm).order('updated_at',{ascending:false}).then(function(r2){
+      var rows=r2.data||[],mine=null;
+      for(var k=0;k<rows.length;k++){ if((rows[k].stage||'survey')===STAGE){ mine=rows[k]; break; } }
+      if(mine){ loadProject(mine.id); return; } /* 기존 내 단계 사본 로딩 */
+      var _lab=({survey:'결선',field:'현장',tango:'탱고'})[STAGE]||STAGE;
+      loadProject(id,false,function(){ saveProject(); toast(_lab+' 사본 생성'); }); /* 업스트림 가져와 즉시 내 단계로 저장 */
+    });
+  });
+}
+function loadProject(id,ro,cb){ if(!online||!id)return; setReadOnly(!!ro);
   sb.from('survey_projects').select('*').eq('id',id).single().then(function(res){
     if(res.error||!res.data){toast('불러오기 실패');return;}
     var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;state.loadedStage=p.stage||'survey';
@@ -5395,6 +5411,7 @@ function loadProject(id,ro){ if(!online||!id)return; setReadOnly(!!ro);
     selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();loadPhotos();if(typeof refreshFieldBar==='function')refreshFieldBar();toast('현장 불러옴: '+res.data.name);
     var vs=document.getElementById('vproj');if(vs)vs.value=res.data.id;
     if(viewerMode&&!IS_FIELD)setTimeout(function(){openPhotoPanel(true);},150);
+    if(typeof cb==='function')cb();
   });
 }
 function deleteProject(){
@@ -6389,7 +6406,7 @@ function toggleBgMap(){
 bind('bgBtn',toggleBgMap);
 bind('newProj',function(){var n=prompt('새 사업명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.routingDone=false;setReadOnly(false);state.manholes=[];state.photoDir={};photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 사업: '+n+' (CSV 업로드 후 저장)');});
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){pushHist();if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
-document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)loadProject(e.target.value);});
+document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)pickProject(e.target.value);});
 function loadCsvFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.manholes=[];state.projectId=null;state.routingDone=false;setReadOnly(false);state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatus();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화)');};rd.readAsArrayBuffer(f);}
 function regAddCsv(f,cb){if(!f){if(cb)cb();return;}var rd=new FileReader();rd.onload=function(){
   var pts=parseCsv(decodeBuf(rd.result),f.name);
