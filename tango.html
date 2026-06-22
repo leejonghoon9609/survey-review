@@ -13,7 +13,8 @@
   *{box-sizing:border-box;margin:0;padding:0}
   :root{--line:#e3e3e0;--ink:#1c1c1a;--muted:#6b6b66;--bg:#fafaf8;--ok:#2a9e50;--bad:#d32f2f;--accent:#1f6fd6}
   body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);background:var(--bg);height:100vh;display:flex;flex-direction:column;overflow:hidden}
-  header{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 14px;border-bottom:1px solid var(--line);background:#fff}
+  header{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:9px 14px;border-bottom:1px solid var(--line);background:#fff}
+  header>button,header>select{padding:5px 8px;font-size:12.5px}
   header h1{font-size:14px;font-weight:600;margin-right:6px}
   select,input[type=text]{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink)}
   .conn{font-size:12px;padding:4px 8px;border-radius:6px;margin-left:auto}
@@ -317,7 +318,6 @@
       <button class="fbtn fbtn-final" id="fldFinal" style="margin-left:auto">📋 후측량 최종성과 등록</button>
     </div>
     <select id="proj" class="wk"><option value="">사업 선택…</option></select>
-    <button id="newProj" class="wk">＋ 새 사업</button>
     <button id="save" class="pri wk">저장</button>
     <button id="delProj" class="dgr wk">사업 삭제</button>
     <span id="globalbtns" class="hgbtns wk"></span>
@@ -327,7 +327,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 228</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 229</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5368,7 +5368,7 @@ function initSb(){
 function refreshProjects(){ if(!online)return;
   sb.from('survey_projects').select('id,name,updated_at,stage:payload->>stage').order('updated_at',{ascending:false}).then(function(res){
     var sel=document.getElementById('proj');sel.innerHTML='<option value="">사업 선택…</option>';
-    (res.data||[]).forEach(function(p){var o=document.createElement('option');o.value=p.id;var _sl=({survey:'결선',field:'현장',tango:'탱고'})[p.stage||'survey']||'결선';o.textContent='['+_sl+'] '+p.name;sel.appendChild(o);});
+    (res.data||[]).forEach(function(p){if((p.stage||'survey')!==STAGE)return;var o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
     if(state.projectId)sel.value=state.projectId;
     if(typeof refreshDoneProjects==='function')refreshDoneProjects();
   });
@@ -5445,7 +5445,7 @@ function deleteProjectById(id,nm){
 }
 
 /* ====== 버튼 바인딩 ====== */
-function bind(id,fn){document.getElementById(id).onclick=fn;}
+function bind(id,fn){var e=document.getElementById(id);if(e)e.onclick=fn;}
 /* ====== 데이터 기반 툴바 (좌측 카테고리 + 상단 세부도구) ====== */
 var TB=[
   {k:'data',label:'사업등록',icon:'📋',c:{bg:'#eceef1',fg:'#6e757f'},tools:[
