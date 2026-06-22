@@ -326,7 +326,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 205</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 206</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -4864,6 +4864,7 @@ EOF
   var appLay={'통신관로':1,'지거':1,'압입구간':1,'주입상인출선':1};
   // 백판(수치지도)=앱 레이어 외 라인 → 블록으로 따로 처리(여기선 제외)
   var baseLines=state.lines.filter(function(l){return (l.base||!appLay[l.layer])&&l.pts&&l.pts.length>=2;});
+  (state.baseTexts||[]).forEach(function(t){if(t&&t.text)text(t.x,t.y,t.h||0.5,t.text,'0',8,0);});
   state.lines.forEach(function(Ln){if(!Ln.pts||Ln.pts.length<2)return;if(Ln.base||!appLay[Ln.layer])return;var lm=LM[Ln.layer]||['PIPE',1];
     if(Ln.layer==='압입구간'){pline(Ln.pts,'PUSH',5,false,'DASHED');} // 압입=DASHED 선종 1폴리라인(첨부2 스타일, 가는 점선)
     else pline(Ln.pts,lm[0],lm[1],false);
