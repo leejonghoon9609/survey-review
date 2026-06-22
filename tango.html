@@ -326,7 +326,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 209</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 210</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5269,7 +5269,7 @@ function refreshProjects(){ if(!online)return;
   });
 }
 function saveProject(){
-  var payload={points:state.points,lines:state.lines,baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
+  var payload={points:state.points,lines:state.lines,baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:state.finalCsv||null,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
   if(!state.projectName){toast('사업명을 먼저 정하세요(새 사업)');return;}
   var row={name:state.projectName,payload:payload,updated_at:new Date().toISOString()};
   if(state.projectId)row.id=state.projectId;
@@ -5284,7 +5284,7 @@ function loadProject(id,ro){ if(!online||!id)return; setReadOnly(!!ro);
   sb.from('survey_projects').select('*').eq('id',id).single().then(function(res){
     if(res.error||!res.data){toast('불러오기 실패');return;}
     var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;
-    state.points=p.points||[];state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.depthGround=p.depthGround||null;state._depthAlign=null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.asbuilt=p.asbuilt||null;state.nightShift=p.nightShift||null;state.fieldDone=p.fieldDone||null;state.bizInfo=p.bizInfo||null;
+    state.points=p.points||[];state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.depthGround=p.depthGround||null;state._depthAlign=null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.asbuilt=p.asbuilt||null;state.nightShift=p.nightShift||null;state.fieldDone=p.fieldDone||null;state.finalCsv=p.finalCsv||null;state.bizInfo=p.bizInfo||null;
     selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();loadPhotos();if(typeof refreshFieldBar==='function')refreshFieldBar();toast('현장 불러옴: '+res.data.name);
     var vs=document.getElementById('vproj');if(vs)vs.value=res.data.id;
     if(viewerMode&&!IS_FIELD)setTimeout(function(){openPhotoPanel(true);},150);
@@ -5581,7 +5581,7 @@ function registerProject(){
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
   state.projectName=name;state.bizInfo=readBizInfo();
   var crsEl=document.querySelector('input[name="regCrs"]:checked');state.crs=crsEl?crsEl.value:'5186';
-  var payload={points:state.points,lines:state.lines,baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null};
+  var payload={points:state.points,lines:state.lines,baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:state.finalCsv||null,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null};
   var row={name:name,payload:payload,updated_at:new Date().toISOString()};
   if(state.projectId)row.id=state.projectId;
   var photos=pendingPhotos; // 모달 닫으면 null되므로 미리 캡쳐
@@ -5914,6 +5914,29 @@ function refreshFieldBar(){
     var b=document.getElementById(m[0]);if(!b)return;var done=!!fd[m[1]];b.classList.toggle('done',done);b.textContent=(done?'✓ ':'')+m[2];
   });
 }
+function openFinalCsvUpload(){
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:1250;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;padding:16px';
+  var cur=state.finalCsv?('<div style="margin-top:10px;font-size:13px;color:#16a34a;font-weight:700">\u2705 '+state.finalCsv.name+' \uB4F1\uB85D\uB428</div>'):'';
+  ov.innerHTML='<div style="background:#fff;border-radius:14px;width:92%;max-width:440px;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden"><div style="padding:15px 18px;border-bottom:1px solid #eee;display:flex;align-items:center"><b style="flex:1;font-size:16px;color:#2563eb">\uD83D\uDCC4 \uD6C4\uCE21\uB7C9 CSV \uB4F1\uB85D</b><button id="fcX" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">\uB2EB\uAE30</button></div><div style="padding:18px"><div id="fcDrop" style="border:1.5px dashed #cdd6e6;border-radius:10px;padding:26px;text-align:center;cursor:pointer;color:#5b6b86"><div style="font-size:24px">\u2B07</div><div style="margin-top:6px">\uD6C4\uCE21\uB7C9 CSV (.csv) \uB04C\uC5B4\uB2E4 \uB193\uAE30 / \uD074\uB9AD</div></div><button id="fcBtn" style="margin-top:12px;width:100%;background:#2563eb;color:#fff;border:none;border-radius:9px;padding:11px;font-weight:700;cursor:pointer">\uD30C\uC77C \uC120\uD0DD</button><div id="fcOut">'+cur+'</div></div></div>';
+  document.body.appendChild(ov);
+  var inp=document.createElement('input');inp.type='file';inp.accept='.csv';inp.style.display='none';ov.appendChild(inp);
+  function handle(f){if(!f)return;var rd=new FileReader();rd.onload=function(){var txt;try{txt=decodeBuf(rd.result);}catch(e){txt=''+rd.result;}state.finalCsv={name:f.name,text:txt};if(!state.fieldDone)state.fieldDone={csv:false,joseo:false,manhole:false};state.fieldDone.csv=true;if(online&&state.projectId)saveProject();if(typeof refreshFieldBar==='function')refreshFieldBar();var o=document.getElementById('fcOut');if(o)o.innerHTML='<div style="margin-top:10px;font-size:13px;color:#16a34a;font-weight:700">\u2705 '+f.name+' \uB4F1\uB85D\uB428</div>';toast('\uD6C4\uCE21\uB7C9 CSV \uB4F1\uB85D \uC644\uB8CC \u2014 \uCD5C\uC885\uC131\uACFC\uC5D0 \uC5F0\uB3D9\uB428');};rd.readAsArrayBuffer(f);}
+  ov.querySelector('#fcX').onclick=function(){ov.remove();};
+  ov.querySelector('#fcBtn').onclick=function(){inp.click();};
+  ov.querySelector('#fcDrop').onclick=function(){inp.click();};
+  inp.addEventListener('change',function(e){handle(e.target.files[0]);e.target.value='';});
+  var dz=ov.querySelector('#fcDrop');
+  dz.addEventListener('dragover',function(e){e.preventDefault();dz.style.background='#eef4ff';});
+  dz.addEventListener('dragleave',function(){dz.style.background='';});
+  dz.addEventListener('drop',function(e){e.preventDefault();dz.style.background='';if(e.dataTransfer.files[0])handle(e.dataTransfer.files[0]);});
+  ov.onclick=function(e){if(e.target===ov)ov.remove();};
+}
+function downloadFinalCsv(){
+  if(!state.finalCsv){toast('\uB4F1\uB85D\uB41C \uD6C4\uCE21\uB7C9 CSV\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4');return;}
+  var blob=new Blob(['\uFEFF'+state.finalCsv.text],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=state.finalCsv.name||'\uD6C4\uCE21\uB7C9.csv';document.body.appendChild(a);a.click();a.remove();
+}
 function openFinalStatus(){
   var fd=state.fieldDone||{csv:false,joseo:false,manhole:false};state.fieldDone=fd;
   var items=[['csv','후측량 csv'],['joseo','실시간 사진조서'],['manhole','맨홀도 제작']];
@@ -5921,7 +5944,7 @@ function openFinalStatus(){
   ov.style.cssText='position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center';
   var box=document.createElement('div');
   box.style.cssText='background:#fff;border-radius:14px;width:92%;max-width:440px;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden';
-  function row(k,label){var done=!!fd[k];var btn=(k==='joseo'&&done)?'<button class="fs-dl" style="border:1px solid #0d9488;background:#e7faf5;color:#0d9488;border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer;font-weight:700">📥 다운로드</button>':'<button class="fs-tgl" data-k="'+k+'" style="border:1px solid #ccc;background:#fff;border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer">'+(done?'미완료로':'등록완료')+'</button>';return '<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #f1f1f1"><span style="flex:1;font-size:15px;font-weight:600">'+label+'</span><span style="font-size:13px;font-weight:800;padding:4px 11px;border-radius:20px;'+(done?'background:#eafaf0;color:#16a34a;border:1px solid #16a34a':'background:#fff5f5;color:#d32f2f;border:1px solid #d32f2f')+'">'+(done?'등록완료':'미완료')+'</span>'+btn+'</div>';}
+  function row(k,label){var done=!!fd[k];var btn;if(((k==='joseo')||(k==='csv'&&state.finalCsv))&&done){btn='<button class="fs-dl" data-k="'+k+'" style="border:1px solid #0d9488;background:#e7faf5;color:#0d9488;border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer;font-weight:700">📥 다운로드</button>';}else if(k==='csv'){btn='<span style="font-size:12px;color:#888">상단 \'후측량 csv\'로 업로드</span>';}else{btn='<button class="fs-tgl" data-k="'+k+'" style="border:1px solid #ccc;background:#fff;border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer">'+(done?'미완료로':'등록완료')+'</button>';}return '<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #f1f1f1"><span style="flex:1;font-size:15px;font-weight:600">'+label+'</span><span style="font-size:13px;font-weight:800;padding:4px 11px;border-radius:20px;'+(done?'background:#eafaf0;color:#16a34a;border:1px solid #16a34a':'background:#fff5f5;color:#d32f2f;border:1px solid #d32f2f')+'">'+(done?'등록완료':'미완료')+'</span>'+btn+'</div>';}
   function render(){
     var allDone=items.every(function(it){return !!fd[it[0]];});
     box.innerHTML='<div style="padding:15px 18px;border-bottom:1px solid #eee;display:flex;align-items:center"><b style="flex:1;font-size:16px;color:#4f46e5">📋 후측량 최종성과 등록</b><button id="fsClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div>'
@@ -5929,7 +5952,7 @@ function openFinalStatus(){
       +'<div style="padding:13px 18px;font-size:13px;'+(allDone?'color:#16a34a;font-weight:700':'color:#888')+'">'+(allDone?'✅ 모든 성과 등록완료':'각 항목을 등록완료로 표시하세요 (성과 제작 연결은 다음 단계)')+'</div>';
     box.querySelector('#fsClose').onclick=function(){ov.remove();};
     [].forEach.call(box.querySelectorAll('.fs-tgl'),function(b){b.onclick=function(){var k=this.getAttribute('data-k');fd[k]=!fd[k];state.fieldDone=fd;if(online&&state.projectId)saveProject();refreshFieldBar();render();};});
-    var dlb=box.querySelector('.fs-dl'); if(dlb)dlb.onclick=function(){ joseoDownloadFinal(); };
+    [].forEach.call(box.querySelectorAll('.fs-dl'),function(b){b.onclick=function(){var dk=this.getAttribute('data-k');if(dk==='csv'){downloadFinalCsv();}else{joseoDownloadFinal();}};});
   }
   render();ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};document.body.appendChild(ov);
 }
@@ -5942,7 +5965,7 @@ function openFinalStatus(){
     if(vp)vp.style.marginLeft='auto';
     [vp,vm,vr].forEach(function(b){if(b)fb.appendChild(b);});
   }
-  var c=document.getElementById('fldCsv');if(c)c.onclick=function(){toast('후측량 CSV 제작 — 다음 단계에서 연결합니다');};
+  var c=document.getElementById('fldCsv');if(c)c.onclick=openFinalCsvUpload;
   var j=document.getElementById('fldJoseo');if(j)j.onclick=openJoseoPanel;
   var m=document.getElementById('fldManhole');if(m)m.onclick=function(){toast('맨홀도 제작 — 다음 단계에서 연결합니다');};
   var f=document.getElementById('fldFinal');if(f)f.onclick=openFinalStatus;
