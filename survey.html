@@ -327,7 +327,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 216</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 217</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1337,10 +1337,11 @@ function applyBpCrop(c){
   mode='pan';if(typeof setModeUI==='function')setModeUI();
   drawGeo();toast('백판 크롭 완료 — 영역 안만 남기고 테두리선 추가');
 }
+var BP_APP={'통신관로':1,'지거':1,'압입구간':1,'주입상인출선':1};
 function bpHit(cw){
   var best=null,bd=1e18,lim=vb.w*0.03;
   (state.lines||[]).forEach(function(L,li){
-    if(!L.base||!L.pts)return;
+    if(!L.pts||!(L.base||!BP_APP[L.layer]))return;
     for(var sg=0;sg<L.pts.length-1;sg++){
       var a=S(L.pts[sg][0],L.pts[sg][1]),b=S(L.pts[sg+1][0],L.pts[sg+1][1]);
       var d=segDist(cw[0],cw[1],a[0],a[1],b[0],b[1]);
@@ -5971,7 +5972,7 @@ function finalCsvDepthSync(){
 function openFinalCsvUpload(){
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;z-index:1250;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;padding:16px';
-  ov.innerHTML='<div style="background:#fff;border-radius:14px;width:92%;max-width:460px;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden"><div style="padding:15px 18px;border-bottom:1px solid #eee;display:flex;align-items:center"><b style="flex:1;font-size:16px;color:#2563eb">📄 후측량 CSV 등록</b><button id="fcX" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div><div style="padding:18px"><div id="fcDrop" style="border:1.5px dashed #cdd6e6;border-radius:10px;padding:24px;text-align:center;cursor:pointer;color:#5b6b86"><div style="font-size:24px">⬇</div><div style="margin-top:6px">후측량 CSV (.csv) 끌어다 놓기 / 클릭 (여러 개 가능)</div></div><button id="fcBtn" style="margin-top:12px;width:100%;background:#2563eb;color:#fff;border:none;border-radius:9px;padding:11px;font-weight:700;cursor:pointer">파일 선택</button><div id="fcList" style="margin-top:12px"></div></div></div>';
+  ov.innerHTML='<div style="background:#fff;border-radius:14px;width:92%;max-width:460px;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden"><div style="padding:15px 18px;border-bottom:1px solid #eee;display:flex;align-items:center"><b style="flex:1;font-size:16px;color:#2563eb">📄 후측량 CSV 등록</b><button id="fcX" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div><div style="padding:18px"><div id="fcDrop" style="border:1.5px dashed #cdd6e6;border-radius:10px;padding:24px;text-align:center;cursor:pointer;color:#5b6b86"><div style="font-size:24px">⬇</div><div style="margin-top:6px">후측량 CSV (.csv) 끌어다 놓기 / 클릭 (여러 개 가능)</div></div><button id="fcBtn" style="margin-top:12px;width:100%;background:#2563eb;color:#fff;border:none;border-radius:9px;padding:11px;font-weight:700;cursor:pointer">파일 선택</button><div id="fcList" style="margin-top:12px"></div><button id="fcDone" style="margin-top:14px;width:100%;background:#16a34a;color:#fff;border:none;border-radius:9px;padding:11px;font-weight:700;cursor:pointer">✅ 등록 완료</button></div></div>';
   document.body.appendChild(ov);
   var inp=document.createElement('input');inp.type='file';inp.accept='.csv';inp.multiple=true;inp.style.display='none';ov.appendChild(inp);
   function renderList(){
@@ -5982,6 +5983,7 @@ function openFinalCsvUpload(){
   }
   function handle(f){if(!f)return;var rd=new FileReader();rd.onload=function(){var txt;try{txt=decodeBuf(rd.result);}catch(e){txt=''+rd.result;}var a=finalCsvArr();a.push({name:f.name,text:txt});state.finalCsv=a;if(!state.fieldDone)state.fieldDone={csv:false,joseo:false,manhole:false};state.fieldDone.csv=true;finalCsvDepthSync();if(online&&state.projectId)saveProject();if(typeof refreshFieldBar==='function')refreshFieldBar();renderList();toast('후측량 CSV 등록 ('+finalCsvArr().length+'개) — 최종성과·심도 연동됨');};rd.readAsArrayBuffer(f);}
   ov.querySelector('#fcX').onclick=function(){ov.remove();};
+  var _fd=ov.querySelector('#fcDone');if(_fd)_fd.onclick=function(){if(finalCsvArr().length){if(!state.fieldDone)state.fieldDone={csv:false,joseo:false,manhole:false};state.fieldDone.csv=true;finalCsvDepthSync();if(online&&state.projectId)saveProject();if(typeof refreshFieldBar==='function')refreshFieldBar();toast('후측량 CSV 등록 완료 ('+finalCsvArr().length+'개)');}ov.remove();};
   ov.querySelector('#fcBtn').onclick=function(){inp.click();};
   ov.querySelector('#fcDrop').onclick=function(){inp.click();};
   inp.addEventListener('change',function(e){[].forEach.call(e.target.files,function(f){handle(f);});e.target.value='';});
