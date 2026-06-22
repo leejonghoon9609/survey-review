@@ -326,7 +326,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 206</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 207</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -503,7 +503,7 @@ var state={ projectId:null, projectName:null, points:[], lines:[], markups:[], l
 // wx,wy = 맨홀 중심 세계좌표(x=동,y=북)
 // lx,ly = 라벨 앵커 세계좌표
 // label = '2M(SKB)' 등
-var mode='pan', status='ok';
+var mode='pan', status='ok', bpCrop=null;
 var LINECOL={"통신관로":{c:"#d92b2b",w:1.6},"압입구간":{c:"#1f6fd6",w:3.0,dash:"10 7"},"지거":{c:"#f2b400",w:2.4},"주입상인출선":{c:"#999",w:1}};
 function isTpoint(p){return /(^|\s)T(\s|$)/.test((p&&p.code)||'');}
 function pipeCount(p){var m=/[xX×]\s*(\d+)/.exec((p&&p.code)||'');return m?+m[1]:null;}
@@ -890,7 +890,7 @@ function pxToWorld(){
 function drawGeo(){
   clearSvg(gGeo); clearSvg(gPts); clearSvg(gHit); clearSvg(gAnc); clearLabels('pt');
   (state.baseTexts||[]).forEach(function(t){var sc=S(t.x,t.y);var tn=el('text',{x:sc[0],y:sc[1],'font-size':Math.max(t.h*2,1.1),fill:'#888','text-anchor':'start','pointer-events':'none'});if(t.rot){tn.setAttribute('transform','rotate('+(-t.rot)+' '+sc[0]+' '+sc[1]+')');}tn.textContent=t.text;gGeo.appendChild(tn);});
-  state.lines.forEach(function(L){var def=LINECOL[L.layer]||{c:"#888",w:1.2};
+  state.lines.forEach(function(L){var def=LINECOL[L.layer]||{c:"#888",w:1.2};if(L.crop)def={c:"#000",w:1.4};
     var pts=L.pts.map(function(p){var s=S(p[0],p[1]);return s[0]+','+s[1];}).join(' ');
     var pl=el('polyline',{points:pts,fill:'none',stroke:def.c,'stroke-width':def.w,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':def.dash?'butt':'round'});
     if(def.dash)pl.setAttribute('stroke-dasharray',def.dash);
@@ -1286,6 +1286,52 @@ function fitView(){
   var pad=5,minx=Math.min.apply(0,xs),maxx=Math.max.apply(0,xs),miny=Math.min.apply(0,ys),maxy=Math.max.apply(0,ys);
   vb0={x:minx-pad,y:miny-pad,w:(maxx-minx)+2*pad,h:(maxy-miny)+2*pad};
   vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};fixAspect();applyVB();drawGeo();drawManholes();highlightSel();
+}
+function clipSegRect(p1,p2,xmin,ymin,xmax,ymax){
+  var x0=p1[0],y0=p1[1],dx=p2[0]-p1[0],dy=p2[1]-p1[1];
+  var t0=0,t1=1,P=[-dx,dx,-dy,dy],Q=[x0-xmin,xmax-x0,y0-ymin,ymax-y0];
+  for(var i=0;i<4;i++){
+    if(P[i]===0){if(Q[i]<0)return null;}
+    else{var r=Q[i]/P[i];if(P[i]<0){if(r>t1)return null;if(r>t0)t0=r;}else{if(r<t0)return null;if(r<t1)t1=r;}}
+  }
+  return [[x0+t0*dx,y0+t0*dy],[x0+t1*dx,y0+t1*dy]];
+}
+function clipPolyRect(pts,xmin,ymin,xmax,ymax){
+  var out=[],cur=[],eps=1e-6;
+  for(var i=0;i<pts.length-1;i++){
+    var seg=clipSegRect(pts[i],pts[i+1],xmin,ymin,xmax,ymax);
+    if(!seg){if(cur.length>=2)out.push(cur);cur=[];continue;}
+    if(cur.length===0){cur=[seg[0],seg[1]];}
+    else{var last=cur[cur.length-1];
+      if(Math.abs(last[0]-seg[0][0])<eps&&Math.abs(last[1]-seg[0][1])<eps){cur.push(seg[1]);}
+      else{if(cur.length>=2)out.push(cur);cur=[seg[0],seg[1]];}}
+  }
+  if(cur.length>=2)out.push(cur);
+  return out;
+}
+function drawBpRect(){
+  if(!bpCrop)return;clearSvg(gDraft);
+  var x=Math.min(bpCrop.sx,bpCrop.ex),y=Math.min(bpCrop.sy,bpCrop.ey),
+      w=Math.abs(bpCrop.ex-bpCrop.sx),h=Math.abs(bpCrop.ey-bpCrop.sy);
+  var r=el('rect',{x:x,y:y,width:w,height:h,fill:'rgba(122,82,224,0.06)',stroke:'#000','stroke-width':1.2,'vector-effect':'non-scaling-stroke','stroke-dasharray':'4 3','pointer-events':'none'});
+  gDraft.appendChild(r);
+}
+function applyBpCrop(c){
+  var x1=Math.min(c.sx,c.ex),x2=Math.max(c.sx,c.ex),Y1=Math.min(c.sy,c.ey),Y2=Math.max(c.sy,c.ey);
+  if((x2-x1)<0.3||(Y2-Y1)<0.3){toast('영역이 너무 작습니다');return;}
+  var xmin=x1,xmax=x2,ymin=-Y2,ymax=-Y1; // SVG y=-worldY 변환
+  if(typeof pushHist==='function')pushHist();
+  var nb=[];
+  (state.lines||[]).forEach(function(l){
+    if(!l.base){nb.push(l);return;}
+    var subs=clipPolyRect(l.pts,xmin,ymin,xmax,ymax);
+    subs.forEach(function(pp){if(pp.length>=2)nb.push({layer:l.layer,pts:pp,base:true});});
+  });
+  nb.push({layer:'CROP',pts:[[xmin,ymin],[xmax,ymin],[xmax,ymax],[xmin,ymax],[xmin,ymin]],base:true,crop:true});
+  state.lines=nb;
+  state.baseTexts=(state.baseTexts||[]).filter(function(t){return t.x>=xmin&&t.x<=xmax&&t.y>=ymin&&t.y<=ymax;});
+  mode='pan';if(typeof setModeUI==='function')setModeUI();
+  drawGeo();toast('백판 크롭 완료 — 영역 안만 남기고 테두리선 추가');
 }
 function toWorld(cx,cy){var m=null;try{m=cv.getScreenCTM();}catch(e){}if(m&&m.a){var im=m.inverse();return [im.a*cx+im.c*cy+im.e, im.b*cx+im.d*cy+im.f];}var r=cv.getBoundingClientRect();return [vb.x+(cx-r.left)/r.width*vb.w, vb.y+(cy-r.top)/r.height*vb.h];}
 function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*=f;vb.h*=f;vb.x=w[0]-(cx-r.left)/r.width*vb.w;vb.y=w[1]-(cy-r.top)/r.height*vb.h;applyVB();drawGeo();drawManholes();highlightSel();}
@@ -4900,7 +4946,7 @@ EOF
     var BR='F0',BK='F1',EB='F2';                 // 미사용 핸들(충돌 검증됨)
     var bent=[];                                 // 블록 내부 폴리라인(owner=BLOCK_RECORD BR, 회색8, 레이어0)
     baseLines.forEach(function(L){
-      var a=['  0','LWPOLYLINE','  5',H(),'330',BR,'100','AcDbEntity','  8','0',' 62','8','100','AcDbPolyline',' 90',String(L.pts.length),' 70','0'];
+      var a=['  0','LWPOLYLINE','  5',H(),'330',BR,'100','AcDbEntity','  8','0',' 62',(L.crop?'7':'8'),'100','AcDbPolyline',' 90',String(L.pts.length),' 70','0'];
       for(var i=0;i<L.pts.length;i++){a.push(' 10',N(L.pts[i][0]),' 20',N(L.pts[i][1]));}
       bent.push(a.join('\n'));
     });
@@ -4998,7 +5044,7 @@ function setModeUI(){
   if(mode==='mhplace')lastStartAction=function(){mode='mhplace';setModeUI();toast('맨홀심기 — 클릭해 심기');};
   else if(mode==='riserplace')lastStartAction=function(){mode='riserplace';setModeUI();toast('입상주심기 — 클릭해 심기');};
   else if(mode==='line')lastStartAction=function(){startDraw(drawLayer);};
-  if(mode!=='measure'){measurePts=[];if(typeof gMeasure!=='undefined'&&gMeasure)clearSvg(gMeasure);clearLabels('measure');}renderSub();cv.classList.toggle('draw',mode!=='pan'&&mode!=='mhplace'&&mode!=='delmh'&&mode!=='riserplace'&&mode!=='delriser'&&mode!=='delall2'&&mode!=='ptins'&&mode!=='ptdel');if(mode==='ptins'){cv.style.cursor='crosshair';}else if(mode==='mhplace'||mode==='delmh'||mode==='riserplace'||mode==='delriser'||mode==='delall2'||mode==='ptdel'){cv.style.cursor='default';}else{cv.style.cursor='';}}
+  if(mode!=='measure'){measurePts=[];if(typeof gMeasure!=='undefined'&&gMeasure)clearSvg(gMeasure);clearLabels('measure');}renderSub();cv.classList.toggle('draw',mode!=='pan'&&mode!=='mhplace'&&mode!=='delmh'&&mode!=='riserplace'&&mode!=='delriser'&&mode!=='delall2'&&mode!=='ptins'&&mode!=='ptdel');if(mode==='ptins'||mode==='bpcrop'){cv.style.cursor='crosshair';}else if(mode==='mhplace'||mode==='delmh'||mode==='riserplace'||mode==='delriser'||mode==='delall2'||mode==='ptdel'){cv.style.cursor='default';}else{cv.style.cursor='';}}
 function setStatusUI(){renderSub();}
 
 /* ====== 포인터 ====== */
@@ -5006,6 +5052,7 @@ var dragging=false,startC=null,startVB=null,drawing=false,cur=null,sx=0,sy=0,mid
 var activePtrs={},pinch=null,noteDrag=null,_lastNoteTap={i:-1,t:0};
 function hitNote(clientX,clientY){var w=toWorld(clientX,clientY),tol=pxToWorld()*18;for(var i=0;i<state.markups.length;i++){var m=state.markups[i];if(m.near==='특이사항'&&Math.hypot(m.cx-w[0],m.cy-w[1])<((m.rx||1.2)+tol))return i;}return -1;}
 cv.addEventListener('pointerdown',function(e){
+  if(mode==='bpcrop'&&e.button!==2){var w=toWorld(e.clientX,e.clientY);bpCrop={sx:w[0],sy:w[1],ex:w[0],ey:w[1]};try{cv.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();return;}
   if(e.pointerType==='touch'){activePtrs[e.pointerId]={x:e.clientX,y:e.clientY};
     var pids=Object.keys(activePtrs);
     if(pids.length>=2){ // 두 손가락 = 핀치 확대/축소(+이동)
@@ -5048,6 +5095,7 @@ cv.addEventListener('pointerdown',function(e){
   if(mode!=='pan')try{cv.setPointerCapture(e.pointerId);}catch(x){}
 });
 cv.addEventListener('pointermove',function(e){
+  if(bpCrop){var w=toWorld(e.clientX,e.clientY);bpCrop.ex=w[0];bpCrop.ey=w[1];drawBpRect();return;}
   if(e.pointerType==='touch'&&activePtrs[e.pointerId]){activePtrs[e.pointerId].x=e.clientX;activePtrs[e.pointerId].y=e.clientY;}
   if(noteDrag){var m=state.markups[noteDrag.i];
     if(!noteDrag.moved){if(Math.hypot(e.clientX-noteDrag.sx0,e.clientY-noteDrag.sy0)<8)return;noteDrag.moved=true;noteDrag.lastW=toWorld(e.clientX,e.clientY);}
@@ -5072,6 +5120,7 @@ cv.addEventListener('pointermove',function(e){
     else{cur.setAttribute('cx',(sx+x)/2);cur.setAttribute('cy',(sy+y)/2);cur.setAttribute('rx',Math.abs(x-sx)/2);cur.setAttribute('ry',Math.abs(y-sy)/2);}}
 });
 function endPtr(e){
+  if(bpCrop){var _c=bpCrop;bpCrop=null;clearSvg(gDraft);applyBpCrop(_c);return;}
   if(e&&e.pointerType==='touch'&&e.pointerId!=null&&activePtrs[e.pointerId]){delete activePtrs[e.pointerId];}
   if(pinch&&Object.keys(activePtrs).length<2){pinch=null;drawGeo();drawManholes();highlightSel();return;}
   if(noteDrag){var nd=noteDrag;noteDrag=null;
@@ -5303,6 +5352,8 @@ var TB=[
   {k:'ptins',label:'측점삽입',icon:'＋',c:{bg:'#e6effb',fg:'#2f7fe0'},tools:[
     {t:'측점삽입',tone:'pick',mode:'ptins',hint:'클릭한 위치에 측점 생성 → 번호·코드 입력'},
     {t:'측점 삭제',tone:'del',mode:'ptdel',hint:'삭제할 측점을 클릭 (빨갛게 표시되면 클릭)'}]},
+  {k:'bpedit',label:'빽판편집',icon:'✂️',c:{bg:'#f0eef7',fg:'#7a52e0'},tools:[
+    {t:'영역 크롭',tone:'pick',mode:'bpcrop',hint:'한 점 찍고 드래그→사각형. 떼면 그 영역 안 백판만 남고 검정 테두리선 추가'}]},
   {k:'insp',label:'검수',icon:'✓',c:{bg:'#fbe9e9',fg:'#df524b'},tools:[
     {t:'관공수 검수',tone:'insp1',fn:inspectPipeCount,hint:'관수 규칙 자동 점검 — 연속성(맨홀 제외) + T점 분기 합산'},
     {t:'중복선 검수',tone:'insp2',fn:inspectDupLines,hint:'중복 관로선을 찾아 빨간 써클로 표시'},
