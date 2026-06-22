@@ -326,7 +326,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 204</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 205</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -889,7 +889,8 @@ function pxToWorld(){
 }
 function drawGeo(){
   clearSvg(gGeo); clearSvg(gPts); clearSvg(gHit); clearSvg(gAnc); clearLabels('pt');
-  state.lines.forEach(function(L){var def=LINECOL[L.layer]||{c:"#888",w:1.2};if(L.base)def={c:"#000",w:def.w};
+  (state.baseTexts||[]).forEach(function(t){var sc=S(t.x,t.y);var tn=el('text',{x:sc[0],y:sc[1],'font-size':Math.max(t.h*2,1.1),fill:'#888','text-anchor':'start','pointer-events':'none'});if(t.rot){tn.setAttribute('transform','rotate('+(-t.rot)+' '+sc[0]+' '+sc[1]+')');}tn.textContent=t.text;gGeo.appendChild(tn);});
+  state.lines.forEach(function(L){var def=LINECOL[L.layer]||{c:"#888",w:1.2};
     var pts=L.pts.map(function(p){var s=S(p[0],p[1]);return s[0]+','+s[1];}).join(' ');
     var pl=el('polyline',{points:pts,fill:'none',stroke:def.c,'stroke-width':def.w,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':def.dash?'butt':'round'});
     if(def.dash)pl.setAttribute('stroke-dasharray',def.dash);
@@ -5173,6 +5174,32 @@ function parseDxfLines(text){
   }
   return lines;
 }
+function parseDxfTexts(text){
+  var L=text.replace(/\r/g,'').split('\n'),pairs=[];
+  for(var i=0;i+1<L.length;i+=2)pairs.push([L[i].trim(),L[i+1]]);
+  var out=[],i2=0;
+  while(i2<pairs.length){
+    var code=pairs[i2][0],val=(pairs[i2][1]||'').trim();
+    if(code==='0'&&(val==='TEXT'||val==='MTEXT')){
+      var isM=(val==='MTEXT'),layer='0',x=null,y=null,h=1,rot=0,txt='',pre='',j=i2+1;
+      while(j<pairs.length&&pairs[j][0]!=='0'){var c=pairs[j][0],v=pairs[j][1];
+        if(c==='8')layer=v.trim();
+        else if(c==='10')x=parseFloat(v);
+        else if(c==='20')y=parseFloat(v);
+        else if(c==='40'){var hh=parseFloat(v);if(hh)h=hh;}
+        else if(c==='50'){var rr=parseFloat(v);if(rr)rot=rr;}
+        else if(c==='1')txt=v;
+        else if(c==='3'&&isM)pre+=v;
+        j++;}
+      var full=pre+txt;
+      if(isM){full=full.replace(/\\P/g,' ').replace(/\\[A-Za-z][^;]*;/g,'').replace(/[{}]/g,'');}
+      full=(full||'').replace(/^\s+|\s+$/g,'');
+      if(x!=null&&!isNaN(x)&&full)out.push({x:x,y:y,text:full,h:h,layer:layer,rot:rot});
+      i2=j;
+    } else i2++;
+  }
+  return out;
+}
 
 /* ====== Supabase ====== */
 var sb=null, online=false;
@@ -5192,7 +5219,7 @@ function refreshProjects(){ if(!online)return;
   });
 }
 function saveProject(){
-  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
+  var payload={points:state.points,lines:state.lines,baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
   if(!state.projectName){toast('사업명을 먼저 정하세요(새 사업)');return;}
   var row={name:state.projectName,payload:payload,updated_at:new Date().toISOString()};
   if(state.projectId)row.id=state.projectId;
@@ -5207,7 +5234,7 @@ function loadProject(id,ro){ if(!online||!id)return; setReadOnly(!!ro);
   sb.from('survey_projects').select('*').eq('id',id).single().then(function(res){
     if(res.error||!res.data){toast('불러오기 실패');return;}
     var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;
-    state.points=p.points||[];state.lines=p.lines||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.depthGround=p.depthGround||null;state._depthAlign=null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.asbuilt=p.asbuilt||null;state.nightShift=p.nightShift||null;state.fieldDone=p.fieldDone||null;state.bizInfo=p.bizInfo||null;
+    state.points=p.points||[];state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.depthGround=p.depthGround||null;state._depthAlign=null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.asbuilt=p.asbuilt||null;state.nightShift=p.nightShift||null;state.fieldDone=p.fieldDone||null;state.bizInfo=p.bizInfo||null;
     selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();loadPhotos();if(typeof refreshFieldBar==='function')refreshFieldBar();toast('현장 불러옴: '+res.data.name);
     var vs=document.getElementById('vproj');if(vs)vs.value=res.data.id;
     if(viewerMode&&!IS_FIELD)setTimeout(function(){openPhotoPanel(true);},150);
@@ -5502,7 +5529,7 @@ function registerProject(){
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
   state.projectName=name;state.bizInfo=readBizInfo();
   var crsEl=document.querySelector('input[name="regCrs"]:checked');state.crs=crsEl?crsEl.value:'5186';
-  var payload={points:state.points,lines:state.lines,labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null};
+  var payload={points:state.points,lines:state.lines,baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null};
   var row={name:name,payload:payload,updated_at:new Date().toISOString()};
   if(state.projectId)row.id=state.projectId;
   var photos=pendingPhotos; // 모달 닫으면 null되므로 미리 캡쳐
@@ -5625,7 +5652,7 @@ document.getElementById('rcPhoBtn').onclick=function(){document.getElementById('
 (function(){
   var c1=document.getElementById('clrCsv');if(c1)c1.onclick=openCsvList;
   var c2=document.getElementById('clrPho');if(c2)c2.onclick=openPhotoList;
-  var c3=document.getElementById('clrDxf');if(c3)c3.onclick=function(){state.lines=(state.lines||[]).filter(function(l){return !l.base;});drawGeo();updMeta();updRegStatus();toast('수치지도(백판) 제거됨');};
+  var c3=document.getElementById('clrDxf');if(c3)c3.onclick=function(){state.lines=(state.lines||[]).filter(function(l){return !l.base;});state.baseTexts=[];drawGeo();updMeta();updRegStatus();toast('수치지도(백판) 제거됨');};
 })();
 function openPhotoList(){
   if(!pendingPhotos||!pendingPhotos.length){toast('선택된 사진이 없습니다');return;}
@@ -6214,7 +6241,7 @@ function openCsvList(){
   document.body.appendChild(ov);
 }
 document.getElementById('fCsv').addEventListener('change',function(e){var fs=e.target.files;if(regOpen())regAddCsvFiles(fs);else loadCsvFile(fs[0]);e.target.value='';});document.getElementById('fAft').addEventListener('change',function(e){loadAfterCsv(e.target.files[0]);e.target.value='';});
-function loadDxfFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){try{var ln=parseDxfLines(decodeBuf(rd.result));ln.forEach(function(l){l.base=true;});state.lines=state.lines.filter(function(l){return !l.base;}).concat(ln);drawGeo();fitView();updMeta();if(regOpen())updRegStatus();toast('수치지도 백판 '+ln.length+'개 라인 로드');}catch(err){toast('DXF 파싱 오류');}};rd.readAsArrayBuffer(f);}
+function loadDxfFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){try{var _tt=decodeBuf(rd.result);var ln=parseDxfLines(_tt);ln.forEach(function(l){l.base=true;});state.lines=state.lines.filter(function(l){return !l.base;}).concat(ln);state.baseTexts=parseDxfTexts(_tt);drawGeo();fitView();updMeta();if(regOpen())updRegStatus();toast('수치지도 백판 '+ln.length+'개 라인 · '+state.baseTexts.length+'개 텍스트 로드');}catch(err){toast('DXF 파싱 오류');}};rd.readAsArrayBuffer(f);}
 document.getElementById('fDxf').addEventListener('change',function(e){loadDxfFile(e.target.files[0]);e.target.value='';});
 
 /* ====== 샘플 데이터 (수원 권선동 1041-6) ====== */
