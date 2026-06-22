@@ -327,7 +327,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 213</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 214</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1336,6 +1336,32 @@ function applyBpCrop(c){
   state.baseTexts=(state.baseTexts||[]).filter(function(t){return t.x>=xmin&&t.x<=xmax&&t.y>=ymin&&t.y<=ymax;});
   mode='pan';if(typeof setModeUI==='function')setModeUI();
   drawGeo();toast('백판 크롭 완료 — 영역 안만 남기고 테두리선 추가');
+}
+function bpHover(wx,wy){
+  clearSvg(gDraw);
+  var th=pxToWorld()*12, best=null, bd=1e18;
+  (state.lines||[]).forEach(function(L,li){
+    if(!L.base||!L.pts)return;
+    for(var sg=0;sg<L.pts.length-1;sg++){
+      var d=segDist(wx,wy,L.pts[sg][0],L.pts[sg][1],L.pts[sg+1][0],L.pts[sg+1][1]);
+      if(d<bd){bd=d;best={t:'line',i:li};}
+    }
+  });
+  (state.baseTexts||[]).forEach(function(tx,ti){
+    var d=Math.hypot((tx.x||0)-wx,(tx.y||0)-wy);
+    if(d<bd){bd=d;best={t:'text',i:ti};}
+  });
+  if(!best||bd>th)return;
+  if(best.t==='line'){
+    var L=state.lines[best.i];
+    for(var k=0;k<L.pts.length-1;k++){
+      var a=S(L.pts[k][0],L.pts[k][1]),b=S(L.pts[k+1][0],L.pts[k+1][1]);
+      gDraw.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:'#ff1744','stroke-width':6,'stroke-opacity':0.55,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));
+    }
+  }else{
+    var t=state.baseTexts[best.i],p=S(t.x||0,t.y||0);
+    gDraw.appendChild(el('circle',{cx:p[0],cy:p[1],r:10,fill:'rgba(255,23,68,0.12)',stroke:'#ff1744','stroke-width':3,'stroke-opacity':0.85,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+  }
 }
 function bpEraseAt(wx,wy){
   var th=pxToWorld()*12, best=null, bd=1e18;
@@ -5074,8 +5100,8 @@ var dragging=false,startC=null,startVB=null,drawing=false,cur=null,sx=0,sy=0,mid
 var activePtrs={},pinch=null,noteDrag=null,_lastNoteTap={i:-1,t:0};
 function hitNote(clientX,clientY){var w=toWorld(clientX,clientY),tol=pxToWorld()*18;for(var i=0;i<state.markups.length;i++){var m=state.markups[i];if(m.near==='특이사항'&&Math.hypot(m.cx-w[0],m.cy-w[1])<((m.rx||1.2)+tol))return i;}return -1;}
 cv.addEventListener('pointerdown',function(e){
-  if(mode==='bpcrop'&&e.button!==2){var w=toWorld(e.clientX,e.clientY);bpCrop={sx:w[0],sy:w[1],ex:w[0],ey:w[1]};try{cv.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();return;}
-  if(mode==='bperase'&&e.button!==2){var w=toWorld(e.clientX,e.clientY);bpEraseAt(w[0],-w[1]);e.preventDefault();return;}
+  if(mode==='bpcrop'&&e.button===0){var w=toWorld(e.clientX,e.clientY);bpCrop={sx:w[0],sy:w[1],ex:w[0],ey:w[1]};try{cv.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();return;}
+  if(mode==='bperase'&&e.button===0){var w=toWorld(e.clientX,e.clientY);bpEraseAt(w[0],-w[1]);clearSvg(gDraw);e.preventDefault();return;}
   if(e.pointerType==='touch'){activePtrs[e.pointerId]={x:e.clientX,y:e.clientY};
     var pids=Object.keys(activePtrs);
     if(pids.length>=2){ // 두 손가락 = 핀치 확대/축소(+이동)
@@ -5119,6 +5145,7 @@ cv.addEventListener('pointerdown',function(e){
 });
 cv.addEventListener('pointermove',function(e){
   if(bpCrop){var w=toWorld(e.clientX,e.clientY);bpCrop.ex=w[0];bpCrop.ey=w[1];drawBpRect();return;}
+  if(mode==='bperase'&&!midPanning){var w=toWorld(e.clientX,e.clientY);bpHover(w[0],-w[1]);return;}
   if(e.pointerType==='touch'&&activePtrs[e.pointerId]){activePtrs[e.pointerId].x=e.clientX;activePtrs[e.pointerId].y=e.clientY;}
   if(noteDrag){var m=state.markups[noteDrag.i];
     if(!noteDrag.moved){if(Math.hypot(e.clientX-noteDrag.sx0,e.clientY-noteDrag.sy0)<8)return;noteDrag.moved=true;noteDrag.lastW=toWorld(e.clientX,e.clientY);}
