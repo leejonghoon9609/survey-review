@@ -302,8 +302,8 @@
   .hide-no .L-no{display:none}
   .hide-date .L-date{display:none}
   .hide-code .L-code{display:none}
-  .hide-depth .L-depth{display:none}
-  .hide-mh .lbl-mh{display:none}
+  .hide-depth .lbl-depth,.hide-depth .depth-lead{display:none}
+  .hide-mh .lbl-mh,.hide-mh .mh-lead{display:none}
   .hide-riser .sym-riser{display:none}
   .hide-hyun .insp-line{display:none}
   .lvchk{display:inline-flex;align-items:center;gap:3px;font-size:12px;color:#444;font-weight:600;white-space:nowrap;cursor:pointer;margin:0 2px}
@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 242</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 243</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -616,7 +616,7 @@ function buildInspData(){
   // 기존 검수 생성물 정리 후 재생성
   state.lines=(state.lines||[]).filter(function(l){return !l.insp;});
   state.markups=state.markups.filter(function(m){return m.near!=='경계';});
-  state.manholes=state.manholes.filter(function(m){return !m.insp;});
+  state.manholes=state.manholes.filter(function(m){return !m.insp;});state.manholes.forEach(function(m){m._mhMatched=false;});
   var nB=0,nD=0,nBD=0,nM=0,nL=0,nIg=0;
   function buildLinesIn(seq,code,layer){
     var pp=seq.filter(function(p){return p.code===code;}),run=[],n=0;
@@ -630,7 +630,7 @@ function buildInspData(){
     seq.forEach(function(p){
       if(p.skip){nIg++;return;}
       if(p.code==='BD'){var s=S(p.ex,p.no);state.markups.push({type:'cir',cx:s[0],cy:s[1],rx:0.5,ry:0.5,status:'bad',near:'경계'});nBD++;}
-      else if(p.code==='SKTM'){state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+nM)),wx:p.ex,wy:p.no,label:'M (SKT )',kind:'신',lx:null,ly:null,type:'mh',insp:true});nM++;}
+      else if(p.code==='SKTM'){var _ex=p.ex,_no=p.no,_bm=null,_bd=4;(state.manholes||[]).forEach(function(m){if(m._mhMatched)return;var _d=Math.hypot((m.wx||0)-_ex,(m.wy||0)-_no);if(_d<=_bd){_bd=_d;_bm=m;}});if(_bm){_bm.wx=_ex;_bm.wy=_no;_bm._aft=true;_bm._mhMatched=true;}else{state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+nM)),wx:_ex,wy:_no,label:'M (SKT )',kind:'신',lx:null,ly:null,type:'mh',insp:true,_aft:true,_mhMatched:true});}nM++;}
       else if(p.code==='l')nL++;
     });
   });
@@ -1000,7 +1000,7 @@ function pxToWorld(){
   return Math.max(vb.w/Math.max(r.width,1), vb.h/Math.max(r.height,1));
 }
 function drawGeo(){
-  clearSvg(gGeo); clearSvg(gPts); clearSvg(gHit); clearSvg(gAnc); clearLabels('pt');
+  clearSvg(gGeo); clearSvg(gPts); clearSvg(gHit); clearSvg(gAnc); clearLabels('pt');clearLabels('depth');
   if(!bpOff)(state.baseTexts||[]).forEach(function(t){var sc=S(t.x,t.y);var tn=el('text',{x:sc[0],y:sc[1],'font-size':Math.max(t.h*2,1.1),fill:'#888','text-anchor':'start','pointer-events':'none'});if(t.rot){tn.setAttribute('transform','rotate('+(-t.rot)+' '+sc[0]+' '+sc[1]+')');}tn.textContent=t.text;gGeo.appendChild(tn);});
   state.lines.forEach(function(L){if(bpOff&&L.base)return;var def=LINECOL[L.layer]||{c:"#888",w:1.2};if(L.crop)def={c:"#000",w:1.4};
     var pts=L.pts.map(function(p){var s=S(p[0],p[1]);return s[0]+','+s[1];}).join(' ');
@@ -1058,8 +1058,9 @@ function drawGeo(){
       sub.style.cssText='color:#0f7a86;font-weight:400;margin-top:2px;';
       nt.appendChild(sub);
     }
-    var _dp=(state._depthByNo&&state._depthByNo[p.no]);if(_dp!=null&&isFinite(_dp)){var dd=document.createElement('div');dd.className='L-depth';dd.textContent='\uC2EC\uB3C4 '+(Math.round(_dp*100)/100).toFixed(2)+'m';dd.style.cssText='color:#7a52e0;font-weight:700;margin-top:2px;';nt.appendChild(dd);}
-    if(ld){var _lvis=((LV.no!==0)&&(p.no||'').length>0)||((LV.date!==0)&&dpos>=0)||((LV.code!==0)&&(p.code||'').trim().length>0)||((LV.depth!==0)&&_dp!=null&&isFinite(_dp));ld.style.display=_lvis?'':'none';}
+    var _dp=(state._depthByNo&&state._depthByNo[p.no]);
+    if(_dp!=null&&isFinite(_dp)){var _ds=S(p.x,p.y-0.3);gPts.appendChild(el('line',{x1:s[0],y1:s[1],x2:_ds[0],y2:_ds[1],stroke:'#7a52e0','stroke-width':1.2,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none','class':'depth-lead'}));mkLabel(_ds[0],_ds[1],'\uC2EC\uB3C4 '+(Math.round(_dp*100)/100).toFixed(2)+'m',{fill:'#7a52e0',weight:'700',anchor:'middle',grp:'depth',px:13});}
+    if(ld){var _lvis=((LV.no!==0)&&(p.no||'').length>0)||((LV.date!==0)&&dpos>=0)||((LV.code!==0)&&(p.code||'').trim().length>0);ld.style.display=_lvis?'':'none';}
     var ct=nt; // 핸들 호환
     addLabelHandle(p,L,ls,nt,ct,ld,p.no===selNum);
   });
@@ -1087,7 +1088,7 @@ function nearestPipeDir(wx,wy,maxR){
 // 맨홀/입상주 라벨 기본 위치(world) — 화면·DXF 공용. txtW=라벨 폭(각자 단위)
 function mhDisp(mh){return (mh.kind?mh.kind+' ':'')+(mh.label||'');}
 function mhLabelBase(mh, txtW){
-  var isRiser=(mh.type==='riser');
+  var isRiser=(mh.type==='riser');var MHC=mh._aft?'#111':'#1f6fd6';
   var mp=null,md=1e18;
   if(!isRiser)state.points.forEach(function(p){if(!isManhole(p))return;var d=Math.hypot(p.x-mh.wx,p.y-mh.wy);if(d<md){md=d;mp=p;}});
   var pdirs=[];
@@ -1130,7 +1131,7 @@ function drawManholes(){
 
     if(isRiser){
       // 입상주 = 테이퍼 목주(전봇대): 밑동이 넓고 위로 갈수록 좁아짐. 중심점=밑동(mx,my). 색=파랑
-      var H=0.9, wB=0.16, wT=0.05, armW=0.27, armY=my-H*0.74, RC='#1f6fd6';
+      var H=0.9, wB=0.16, wT=0.05, armW=0.27, armY=my-H*0.74, RC=MHC;
       var gR=el('g',{'class':'sym-riser'});gMH.appendChild(gR);
       gR.appendChild(el('line',{x1:mx-wB,y1:my,x2:mx-wT,y2:my-H,stroke:RC,'stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
       gR.appendChild(el('line',{x1:mx+wB,y1:my,x2:mx+wT,y2:my-H,stroke:RC,'stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
@@ -1139,9 +1140,9 @@ function drawManholes(){
       gR.appendChild(el('line',{x1:mx,y1:my,x2:mx,y2:my,stroke:RC,'stroke-width':5,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // 밑동 중심점(화면고정)
     } else {
       // 맨홀 = 이중원(◎) + 중심점
-      gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.294,fill:'none',stroke:'#1f6fd6','stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-      gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.133,fill:'none',stroke:'#1f6fd6','stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-      gMH.appendChild(el('line',{x1:mx,y1:my,x2:mx,y2:my,stroke:'#1f6fd6','stroke-width':4.5,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.294,fill:'none',stroke:MHC,'stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.133,fill:'none',stroke:MHC,'stroke-width':1.0,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      gMH.appendChild(el('line',{x1:mx,y1:my,x2:mx,y2:my,stroke:MHC,'stroke-width':4.5,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     }
 
     // 라벨 글자 폭 (텍스트 길이 기준 월드값)
@@ -1170,10 +1171,10 @@ function drawManholes(){
     var uly=kinkY;
 
     // 대각선 (맨홀중심 → 꺾임점) — 맨홀 검정, 입상주 파랑
-    var LDC='#1f6fd6';
-    gMH.appendChild(el('line',{x1:mx,y1:my,x2:kinkX,y2:kinkY,stroke:LDC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    var LDC=MHC;
+    gMH.appendChild(el('line',{x1:mx,y1:my,x2:kinkX,y2:kinkY,stroke:LDC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none','class':isRiser?'sym-riser':'mh-lead'}));
     // 수평 밑줄
-    gMH.appendChild(el('line',{x1:ulx1,y1:uly,x2:ulx2,y2:uly,stroke:LDC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    gMH.appendChild(el('line',{x1:ulx1,y1:uly,x2:ulx2,y2:uly,stroke:LDC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none','class':isRiser?'sym-riser':'mh-lead'}));
 
     // 라벨 텍스트 위치: 밑줄 중앙 위에 올라오게
     var labelW=txtW, labelH=EM*1.15;
@@ -1243,7 +1244,7 @@ function drawManholes(){
     }
 
     // 라벨 텍스트 — 파란 밑줄 중앙 바로 위에 (글자가 밑줄을 덮지 않게 위로)
-    var mhLbl=mkLabel(txtCx, uly-EM*0.95, mhDisp(mh), {fill:'#1f6fd6',weight:'600',anchor:'middle',grp:'mh',px:20});
+    var mhLbl=mkLabel(txtCx, uly-EM*0.95, mhDisp(mh), {fill:MHC,weight:'600',anchor:'middle',grp:'mh',px:20});
     // 라벨 div에 직접 더블클릭(수정) — 오버레이라 글자 위에서 바로 동작
     mhLbl.style.pointerEvents='auto';
     mhLbl.style.cursor='text';
