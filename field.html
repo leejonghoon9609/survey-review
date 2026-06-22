@@ -327,7 +327,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 224</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 225</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -427,7 +427,7 @@
           <button class="rc-btn" id="rcCsvBtn">직접 로딩</button>
           <button class="rc-clr" id="clrCsv" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">🗑 CSV별 삭제</button>
         </div>
-        <div class="regcard aft" id="regAftCard"><div class="rc-t">후측량 CSV (심도)</div><div class="rc-drop" id="dropAft"><span class="rc-dico">⬇</span><span class="rc-st" id="rcAft">복구후 후측량 (.csv)</span><span class="rc-hint">파일을 끌어다 놓기</span></div><button class="rc-btn" id="rcAftBtn">직접 로딩</button><div id="rcAftOut" style="margin-top:6px;font-size:11px;color:#7a52e0;font-weight:700"></div><button class="rc-clr" id="clrAft" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">🗑 심도 삭제</button></div><div class="regcard pho">
+        <div class="regcard aft" id="regAftCard"><div class="rc-t">후측량 CSV (심도)</div><div class="rc-drop" id="dropAft"><span class="rc-dico">⬇</span><span class="rc-st" id="rcAft">복구후 후측량 (.csv)</span><span class="rc-hint">파일을 끌어다 놓기</span></div><button class="rc-btn" id="rcAftBtn">직접 로딩</button><div id="rcAftOut" style="margin-top:6px;font-size:11px;color:#7a52e0;font-weight:700"></div><div id="rcAftCnt" style="margin-top:3px;font-size:11px;color:#16a34a;font-weight:700"></div><button class="rc-clr" id="clrAft" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">🗑 심도 삭제</button></div><div class="regcard pho">
           <div class="rc-t">측점사진 로딩</div>
           <div class="rc-drop" id="dropPho">
             <span class="rc-dico">⬇</span>
@@ -5640,7 +5640,7 @@ function updRegStatus(){
   var _tg=function(id,on){var b=document.getElementById(id);if(b)b.style.display=on?'inline-block':'none';};
   _tg('clrCsv', !!(state.points&&state.points.length));
   _tg('clrAft', !!(state.depthGround&&state.depthGround.length));
-  (function(){var _st=document.getElementById('rcAft'),_o=document.getElementById('rcAftOut');if(state.depthGround&&state.depthGround.length){var _r=(typeof computeDepth==='function')?computeDepth():{avg:0,ok:0,total:state.depthGround.length};if(_st)_st.textContent='복구후 '+state.depthGround.length+'점 등록됨'+((typeof finalCsvArr==='function'&&finalCsvArr().length)?(' ('+finalCsvArr().length+'CSV)'):'');if(_o&&_r)_o.textContent='✅ 평균심도 '+(_r.avg||0).toFixed(2)+'m · '+_r.ok+'/'+_r.total+'점 매칭';}})();
+  (function(){var _st=document.getElementById('rcAft'),_o=document.getElementById('rcAftOut'),_cnt=document.getElementById('rcAftCnt');if(_cnt){var _nL=0,_nH=0,_nM=0;(typeof finalCsvArr==='function'?finalCsvArr():[]).forEach(function(it){var _pp=(typeof parseInspCsv==='function')?parseInspCsv(it.text||''):[];_pp.forEach(function(p){if(p.skip)return;if(p.code==='l')_nL++;else if(p.code==='SKTM')_nM++;else if(p.code==='B'||p.code==='D'||p.code==='BD')_nH++;});});_cnt.textContent=(_nL||_nH||_nM)?('측점 '+_nL+'점 · 현황 '+_nH+'점 · 맨홀 '+_nM+'개'):'';}if(state.depthGround&&state.depthGround.length){var _r=(typeof computeDepth==='function')?computeDepth():{avg:0,ok:0,total:state.depthGround.length};if(_st)_st.textContent='복구후 '+state.depthGround.length+'점 등록됨'+((typeof finalCsvArr==='function'&&finalCsvArr().length)?(' ('+finalCsvArr().length+'CSV)'):'');if(_o&&_r)_o.textContent='✅ 평균심도 '+(_r.avg||0).toFixed(2)+'m · '+_r.ok+'/'+_r.total+'점 매칭';}})();
   _tg('clrDxf', (state.lines||[]).filter(function(l){return l.base;}).length>0);
   _tg('clrPho', !!(pendingPhotos&&pendingPhotos.length));
 }
@@ -5805,7 +5805,7 @@ function openAsbuilt(){
     }
   }).catch(function(){try{win.document.body.innerHTML='<div style="padding:24px;font:15px sans-serif;color:#eee;line-height:1.7">도면을 창 안에서 열지 못했습니다(접근 제한).<br><br><a href="'+a.url+'" target="_blank" style="color:#9cf">여기를 눌러 새 탭에서 열기</a></div>';}catch(e){window.open(a.url,'_blank');}});
 }
-document.getElementById('rcCsvBtn').onclick=function(){document.getElementById('fCsv').click();};document.getElementById('rcAftBtn').onclick=function(){document.getElementById('fAft').click();};var _clrAft=document.getElementById('clrAft');if(_clrAft)_clrAft.onclick=function(){state.finalCsv=[];if(state.fieldDone)state.fieldDone.csv=false;state.depthGround=null;state._depthAlign=null;if(online&&state.projectId)saveProject();if(typeof refreshFieldBar==='function')refreshFieldBar();var st=document.getElementById('rcAft');if(st)st.textContent='복구후 후측량 (.csv)';var o=document.getElementById('rcAftOut');if(o)o.textContent='';this.style.display='none';toast('심도 데이터 삭제');};(function(){if(!IS_TANGO){var c=document.getElementById('regAftCard');if(c)c.style.display='none';}})();
+document.getElementById('rcCsvBtn').onclick=function(){document.getElementById('fCsv').click();};document.getElementById('rcAftBtn').onclick=function(){if(typeof openFinalCsvUpload==='function')openFinalCsvUpload();else document.getElementById('fAft').click();};var _clrAft=document.getElementById('clrAft');if(_clrAft)_clrAft.onclick=function(){state.finalCsv=[];if(state.fieldDone)state.fieldDone.csv=false;state.depthGround=null;state._depthAlign=null;if(online&&state.projectId)saveProject();if(typeof refreshFieldBar==='function')refreshFieldBar();var st=document.getElementById('rcAft');if(st)st.textContent='복구후 후측량 (.csv)';var o=document.getElementById('rcAftOut');if(o)o.textContent='';this.style.display='none';toast('심도 데이터 삭제');};(function(){if(!IS_TANGO){var c=document.getElementById('regAftCard');if(c)c.style.display='none';}})();
 document.getElementById('rcDxfBtn').onclick=function(){document.getElementById('fDxf').click();};
 document.getElementById('rcPhoBtn').onclick=function(){document.getElementById('fRegPhotos').click();};
 (function(){
