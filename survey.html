@@ -16,6 +16,7 @@
   header{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:9px 14px;border-bottom:1px solid var(--line);background:#fff}
   header>button,header>select{padding:5px 8px;font-size:12.5px}
   header h1{font-size:14px;font-weight:600;margin-right:6px}
+  #bpToggle.off{background:#f3f3f0;color:#999;opacity:.75}
   select,input[type=text]{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink)}
   .conn{font-size:12px;padding:4px 8px;border-radius:6px;margin-left:auto}
   .conn.on{background:#eef6ef;color:var(--ok)} .conn.off{background:#f3f3f0;color:var(--muted)}
@@ -324,13 +325,14 @@
     <button id="save" class="pri wk">저장</button>
     <button id="delProj" class="dgr wk">사업 삭제</button>
     <span id="globalbtns" class="hgbtns wk"></span>
+    <button id="bpToggle" class="wk" title="백판(수치지도) 표시/숨김">🗺 백판 ON</button>
     <button id="doneListBtn" class="wk" style="background:#eafaf0;color:#16a34a;border:1px solid #16a34a;font-weight:700">✅ 결선 완료사업</button>
     <span id="doneSummary" class="wk" style="display:none;color:#d32f2f;border:1px solid #d32f2f;background:#fff5f5;border-radius:7px;padding:3px 10px;font-size:12.5px;font-weight:800"></span>
     <button id="asbuiltBtn" class="wk" style="background:#eef2ff;color:#4f46e5;border:1px solid #7c83e8;font-weight:700">📐 준공도면</button>
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 235</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 236</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -509,6 +511,7 @@ var state={ projectId:null, projectName:null, loadedStage:STAGE, _importSrc:[], 
 // lx,ly = 라벨 앵커 세계좌표
 // label = '2M(SKB)' 등
 var mode='pan', status='ok', bpCrop=null;
+var bpOff=false; /* 백판(수치지도) 숨김 여부 */
 var LINECOL={"통신관로":{c:"#d92b2b",w:1.6},"압입구간":{c:"#1f6fd6",w:3.0,dash:"10 7"},"지거":{c:"#f2b400",w:2.4},"주입상인출선":{c:"#999",w:1},"보도":{c:"#0aa37a",w:1.4},"도로":{c:"#6b7280",w:1.4}};
 function isTpoint(p){return /(^|\s)T(\s|$)/.test((p&&p.code)||'');}
 function pipeCount(p){var m=/[xX×]\s*(\d+)/.exec((p&&p.code)||'');return m?+m[1]:null;}
@@ -952,8 +955,8 @@ function pxToWorld(){
 }
 function drawGeo(){
   clearSvg(gGeo); clearSvg(gPts); clearSvg(gHit); clearSvg(gAnc); clearLabels('pt');
-  (state.baseTexts||[]).forEach(function(t){var sc=S(t.x,t.y);var tn=el('text',{x:sc[0],y:sc[1],'font-size':Math.max(t.h*2,1.1),fill:'#888','text-anchor':'start','pointer-events':'none'});if(t.rot){tn.setAttribute('transform','rotate('+(-t.rot)+' '+sc[0]+' '+sc[1]+')');}tn.textContent=t.text;gGeo.appendChild(tn);});
-  state.lines.forEach(function(L){var def=LINECOL[L.layer]||{c:"#888",w:1.2};if(L.crop)def={c:"#000",w:1.4};
+  if(!bpOff)(state.baseTexts||[]).forEach(function(t){var sc=S(t.x,t.y);var tn=el('text',{x:sc[0],y:sc[1],'font-size':Math.max(t.h*2,1.1),fill:'#888','text-anchor':'start','pointer-events':'none'});if(t.rot){tn.setAttribute('transform','rotate('+(-t.rot)+' '+sc[0]+' '+sc[1]+')');}tn.textContent=t.text;gGeo.appendChild(tn);});
+  state.lines.forEach(function(L){if(bpOff&&L.base)return;var def=LINECOL[L.layer]||{c:"#888",w:1.2};if(L.crop)def={c:"#000",w:1.4};
     var pts=L.pts.map(function(p){var s=S(p[0],p[1]);return s[0]+','+s[1];}).join(' ');
     var pl=el('polyline',{points:pts,fill:'none',stroke:def.c,'stroke-width':def.w,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':def.dash?'butt':'round'});
     if(def.dash)pl.setAttribute('stroke-dasharray',def.dash);
@@ -5439,7 +5442,7 @@ function deleteProjectById(id,nm){
     .then(function(res){
       if(res&&res.error){toast('삭제 오류: '+res.error.message);return;}
       if(state.projectId===id){ // 현재 열려있던 사업이면 화면 초기화
-        state.projectId=null;state.projectName=null;state.points=[];state.lines=[];state.markups=[];state.manholes=[];state.labelOff={};photoMap={};afterMap={};selNum=null;
+        state.projectId=null;state.projectName=null;state.points=[];state.lines=[];state.baseTexts=[];state.markups=[];state.manholes=[];state.labelOff={};state.depthGround=null;state.finalCsv=[];state.photoDir={};state.bizInfo=null;state.routingDone=false;state.asbuilt=null;state.fieldDone=null;state._importSrc=[];photoMap={};afterMap={};selNum=null;
         clearSvg(gSel);clearSvg(gMH);drawGeo();drawMarks();drawManholes();updMeta();if(photoPanelOpen)refreshPhotoPanel();
       }
       refreshProjects();
@@ -5644,6 +5647,7 @@ window.addEventListener('keydown',function(e){
 renderRail();renderSub();
 bind('save',saveProject);
 bind('delProj',deleteProject);
+bind('bpToggle',function(){bpOff=!bpOff;var b=document.getElementById('bpToggle');if(b){b.classList.toggle('off',bpOff);b.textContent=bpOff?'🗺 백판 OFF':'🗺 백판 ON';}drawGeo();});
 
 /* ====== 사업 등록 모달 ====== */
 var pendingPhotos=null, pendingAsbuilt=null;
