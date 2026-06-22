@@ -327,7 +327,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 217</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 218</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5473,7 +5473,7 @@ function renderSub(){
       if(tool.delLayer)delLayer=tool.delLayer;
       if(tool.fn)tool.fn();
       if(tool.setmode){mode=tool.setmode;setModeUI();if(tool.hint)toast(tool.hint);}
-      if(tool.mode){if(mode===tool.mode){mode='pan';}else{mode=tool.mode;if(tool.hint)toast(tool.hint);}setModeUI();}
+      if(tool.mode){if(mode===tool.mode){mode='pan';}else{mode=tool.mode;if(mode==='bperase'){var _bl=(state.lines||[]).filter(function(l){return l.pts&&(l.base||!BP_APP[l.layer]);});toast('빽판 '+_bl.length+'개 선 인식 — 빨강 깜빡 후, 위에 올리면 빨갛게');clearSvg(gDraw);_bl.forEach(function(L){for(var _k=0;_k<L.pts.length-1;_k++){var a=S(L.pts[_k][0],L.pts[_k][1]),b=S(L.pts[_k+1][0],L.pts[_k+1][1]);gDraw.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:'#ff1744','stroke-width':2.5,'stroke-opacity':0.55,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}});setTimeout(function(){if(mode==='bperase')clearSvg(gDraw);},1200);}else if(tool.hint){toast(tool.hint);}}setModeUI();}
       if(tool.status){status=tool.status;setStatusUI();}
     };});
   s.querySelectorAll('button.soon').forEach(function(b){b.onclick=function(){toast(b.textContent+' — 다음 단계에서 추가 예정');};});
