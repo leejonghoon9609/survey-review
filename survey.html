@@ -289,6 +289,7 @@
     .fpage .stage{flex-direction:row}
     .fpage #viewerBar{flex:none}
     .fpage header{border-bottom:2px solid #6aa3ff}
+  .fpage #buildno{display:inline-block!important;margin-left:auto}
     .fpage .photo-panel{width:38%!important;min-width:420px!important;max-width:46%!important;border-left:1px solid var(--line)!important;border-top:none!important}
     .fpage .photo-panel.open{height:auto!important}
     .fpage #rvPanel.open{width:42%!important;min-width:440px!important;max-width:50%!important;height:auto!important;border-left:1px solid var(--line)!important;border-top:none!important}
@@ -312,6 +313,7 @@
     </span>
     <div id="fieldBar" style="order:3;flex:1;min-width:0;display:none;gap:8px;align-items:center;flex-wrap:wrap">
       <button class="fbtn" id="fldSave">💾 저장</button>
+      <button class="fbtn" id="fldDel" style="color:#d32f2f;border-color:#f0c4c4">🗑 사업 삭제</button>
       <button class="fbtn" id="fldCsv">후측량 csv</button>
       <button class="fbtn" id="fldJoseo">실시간 사진조서</button>
       <button class="fbtn" id="fldManhole">맨홀도 제작</button>
@@ -328,7 +330,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 233</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 234</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -6019,6 +6021,14 @@ function copyPhotos(fromId,toId){
   });
 }
 
+function fieldDelProject(){
+  if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
+  if(!state.projectId){toast('삭제할 사업을 먼저 선택하세요');return;}
+  var nm=state.projectName||'(이름없음)';
+  if(!confirm("'"+nm+"' 사업을 삭제할까요?\n측점·결선·검수·사진 기록이 모두 지워지며 되돌릴 수 없습니다."))return;
+  deleteProjectById(state.projectId,nm);
+}
+
 function doImport(id,srcStage,autosave){
   if(!online||!id)return;
   if(srcStage==='field'){
@@ -6163,7 +6173,7 @@ function openFinalStatus(){
   var sv=document.getElementById('fldSave');if(sv)sv.onclick=function(){saveProject();};
   var c=document.getElementById('fldCsv');if(c)c.onclick=openFinalCsvUpload;
   var j=document.getElementById('fldJoseo');if(j)j.onclick=openJoseoPanel;
-  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){toast('맨홀도 제작 — 다음 단계에서 연결합니다');};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){openImportList('survey');};
+  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){toast('맨홀도 제작 — 다음 단계에서 연결합니다');};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){openImportList('survey');};var _fdd=document.getElementById('fldDel');if(_fdd)_fdd.onclick=fieldDelProject;
   var f=document.getElementById('fldFinal');if(f)f.onclick=openFinalStatus;
   refreshFieldBar();
 })();
