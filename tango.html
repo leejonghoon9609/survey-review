@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 239</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 240</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5464,7 +5464,7 @@ function loadProject(id,ro,cb){ if(!online||!id)return; setReadOnly(!!ro);
     if(res.error||!res.data){toast('불러오기 실패');return;}
     var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;state.loadedStage=p.stage||'survey';state._importSrc=[];
     state.points=p.points||[];state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.depthGround=p.depthGround||null;state._depthAlign=null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.asbuilt=p.asbuilt||null;state.nightShift=p.nightShift||null;state.fieldDone=p.fieldDone||null;state.finalCsv=p.finalCsv?(Array.isArray(p.finalCsv)?p.finalCsv:[p.finalCsv]):[];state.bizInfo=p.bizInfo||null;
-    selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();loadPhotos();if(typeof refreshFieldBar==='function')refreshFieldBar();toast('현장 불러옴: '+res.data.name);
+    selNum=null;clearSvg(gSel);try{if(state.finalCsv&&state.finalCsv.length&&typeof finalCsvDepthSync==='function')finalCsvDepthSync();if(state.depthGround&&state.depthGround.length&&typeof computeDepth==='function')computeDepth();}catch(e){}drawGeo();drawMarks();drawManholes();fitView();updMeta();loadPhotos();if(typeof refreshFieldBar==='function')refreshFieldBar();toast('현장 불러옴: '+res.data.name);
     var vs=document.getElementById('vproj');if(vs)vs.value=res.data.id;
     if(viewerMode&&!IS_FIELD)setTimeout(function(){openPhotoPanel(true);},150);
     if(typeof cb==='function')cb();
