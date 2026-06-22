@@ -315,6 +315,7 @@
       <button class="fbtn" id="fldCsv">후측량 csv</button>
       <button class="fbtn" id="fldJoseo">실시간 사진조서</button>
       <button class="fbtn" id="fldManhole">맨홀도 제작</button>
+      <button class="fbtn" id="fldImport">📥 결선완료 성과목록</button>
       <button class="fbtn fbtn-final" id="fldFinal" style="margin-left:auto">📋 후측량 최종성과 등록</button>
     </div>
     <select id="proj" class="wk"><option value="">사업 선택…</option></select>
@@ -327,7 +328,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 230</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 231</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5999,6 +6000,7 @@ function registerDone(){
 function countNotes(pl){return ((pl&&pl.markups)||[]).filter(function(m){return m.near==='특이사항';}).length;}
 function setReadOnly(v){readOnly=!!v;document.body.classList.toggle('readonly',readOnly);var b=document.getElementById('roBadge');if(b)b.style.display=readOnly?'':'none';}
 function refreshDoneProjects(){ if(!online)return;
+  if(IS_FIELD){var _vf=document.getElementById('vproj');if(_vf){sb.from('survey_projects').select('id,name,updated_at,stage:payload->>stage').order('updated_at',{ascending:false}).then(function(rr){var fr=(rr.data||[]).filter(function(p){return (p.stage||'survey')==='field';});_vf.innerHTML='<option value="">현장 사업목록</option>'+fr.map(function(p){return '<option value="'+p.id+'">'+p.name+'</option>';}).join('');if(state.projectId)_vf.value=state.projectId;});}return;}
   sb.from('survey_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
     var rows=(res.data||[]).filter(function(p){return p.payload&&p.payload.routingDone&&((p.payload.stage||'survey')===STAGE);});
     var vsel=document.getElementById('vproj');
@@ -6008,6 +6010,44 @@ function refreshDoneProjects(){ if(!online)return;
     if(sm){if(tn>0){sm.style.display='';sm.textContent='⚠ 수정 '+pw+'사업 · '+tn+'건';}else{sm.style.display='none';}}
   });
 }
+function doImport(id,srcStage){
+  if(!online||!id)return;
+  if(srcStage==='field'){
+    sb.from('survey_projects').select('payload,name').eq('id',id).single().then(function(r){
+      if(r.error||!r.data){toast('가져오기 실패');return;}
+      var p=r.data.payload||{};
+      var fc=p.finalCsv?(Array.isArray(p.finalCsv)?p.finalCsv:[p.finalCsv]):[];
+      state.finalCsv=fc;
+      if(p.depthGround)state.depthGround=p.depthGround;
+      if(p.fieldDone)state.fieldDone=p.fieldDone;
+      if(typeof finalCsvDepthSync==='function')finalCsvDepthSync();
+      drawGeo();drawMarks();drawManholes();if(typeof updMeta==='function')updMeta();
+      toast('현장 후측량 CSV '+fc.length+'개 가져옴 — 저장하세요');
+    });
+  }else{
+    loadProject(id); /* 결선 통째 시드(노출관로 측점 X,Y,Z + 결선). 저장 시 내 단계 사본 생성 */
+  }
+}
+function openImportList(scope){
+  if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
+  sb.from('survey_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
+    var rows=(res.data||[]).filter(function(p){
+      if(!p.payload||!p.payload.routingDone)return false;
+      var st=(p.payload.stage||'survey');
+      return scope==='survey'?(st==='survey'):(st==='survey'||st==='field');
+    });
+    var LB={survey:'결선',field:'현장'};
+    var body=rows.length
+      ? '<div style="max-height:340px;overflow:auto;text-align:left">'+rows.map(function(p){
+          var st=(p.payload.stage||'survey');var bg=st==='field'?'#eafff2':'#eef5ff',col=st==='field'?'#15803d':'#1d4ed8';
+          return '<button class="imp-row" data-id="'+p.id+'" data-stage="'+st+'" style="display:block;width:100%;text-align:left;margin:4px 0;padding:10px 12px;border:1px solid #d7dee8;border-radius:9px;background:'+bg+';cursor:pointer;font-size:14px;font-weight:700;color:'+col+'"><span style="font-size:11px;background:'+col+';color:#fff;padding:2px 7px;border-radius:9px;margin-right:7px">'+LB[st]+'</span>'+p.name+'</button>';
+        }).join('')+'</div><div style="color:#999;font-size:12px;margin-top:6px">결선=통째 가져오기 · 현장=후측량 CSV만 추가 · 가져온 뒤 <b>저장</b> (탱고는 결선 먼저, 현장 나중)</div>'
+      : '<div style="color:#999;padding:8px">가져올 완료 사업이 없습니다.</div>';
+    var card=showModal({title:(scope==='survey'?'📥 결선완료 성과목록':'📥 결선/현장 완료목록'),tone:'ok',body:body,buttons:[{label:'닫기'}]});
+    card.querySelectorAll('.imp-row').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-id'),st=b.getAttribute('data-stage');card.remove();doImport(id,st);};});
+  });
+}
+
 function openDoneList(){
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
   sb.from('survey_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
@@ -6029,7 +6069,7 @@ function openDoneList(){
     };});
   });
 }
-var _dlb=document.getElementById('doneListBtn');if(_dlb){_dlb.onclick=openDoneList;if(IS_TANGO)_dlb.textContent='✅ 측량(현장) 완료 목록';}
+var _dlb=document.getElementById('doneListBtn');if(_dlb){if(IS_TANGO){_dlb.onclick=function(){openImportList('both');};_dlb.textContent='📥 결선/현장 완료목록';}else{_dlb.onclick=openDoneList;}}
 var _rob=document.getElementById('roBadge');if(_rob)_rob.onclick=function(){if(readOnly&&state.projectId){setReadOnly(false);var ps=document.getElementById('proj');if(ps)ps.value=state.projectId;toast('수정 가능 모드로 전환 (사업 선택)');}};
 (function(){if(IS_FIELD){setViewer(true);return;}if(IS_TANGO){var saved=null;try{saved=localStorage.getItem('viewMode');}catch(e){}setViewer(saved!=null?(saved==='1'):isMobileDevice());return;}setViewer(false);})();
 /* 페이지 분리 — 이동은 랜딩에서. 결선/현장은 모드이동버튼 제거(탱고 in-page 토글만 유지), 시스템이동버튼은 전 페이지 제거 */
@@ -6113,7 +6153,7 @@ function openFinalStatus(){
   var sv=document.getElementById('fldSave');if(sv)sv.onclick=function(){saveProject();};
   var c=document.getElementById('fldCsv');if(c)c.onclick=openFinalCsvUpload;
   var j=document.getElementById('fldJoseo');if(j)j.onclick=openJoseoPanel;
-  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){toast('맨홀도 제작 — 다음 단계에서 연결합니다');};
+  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){toast('맨홀도 제작 — 다음 단계에서 연결합니다');};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){openImportList('survey');};
   var f=document.getElementById('fldFinal');if(f)f.onclick=openFinalStatus;
   refreshFieldBar();
 })();
