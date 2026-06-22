@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 241</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 242</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1029,7 +1029,7 @@ function drawGeo(){
   });
   var Up=pxToWorld();
   var hitR=Math.min(0.45, 9*Up);   // 클릭 히트: 작은 줌에선 화면 고정, 큰 줌에선 월드 0.45 상한
-  state.points.forEach(function(p,i){var s=S(p.x,p.y);
+  state.points.forEach(function(p,i){if((typeof LV!=='undefined')&&LV.bp===0&&/보강판/.test((p.no||'')+'|'+(p.code||'')))return;var s=S(p.x,p.y);
     // 측점 심벌(속빈 사각) — 월드고정 정사각: 줌하면 크기는 변하지만 절대 안 찌그러짐, 위치 정확
     gPts.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:isManhole(p)?'#0d47a1':(isTpoint(p)?'#13803a':'#111'),'stroke-width':isManhole(p)?3.8:2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     gPts.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#111','stroke-width':4,'stroke-linecap':'square','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // 중심 점(박스와 동일 vector-effect → 줌 고정)
@@ -5548,7 +5548,7 @@ function toneStyle(tone,active){var c=TONE[tone]||{bg:'#f3f3f0',fg:'#333'};retur
 function railStyle(col,active){col=col||{bg:'#f3f3f0',fg:'#333'};return active?('background:'+col.bg+';color:'+col.fg+';border:1px solid '+col.fg+';border-left:4px solid '+col.fg+';border-radius:0 8px 8px 0;font-weight:700;'):('background:#fff;color:'+col.fg+';border:1px solid #e3e3df;border-left:4px solid '+col.fg+';border-radius:0 8px 8px 0;font-weight:600;');}
 var activeCat='pan';
 var toolsOpen=false;try{toolsOpen=(localStorage.getItem('toolsOpen')==='1');}catch(e){}
-var LV=(function(){try{return JSON.parse(localStorage.getItem('layerVis'))||{};}catch(e){return {};}})();['no','date','code','depth','mh','riser','hyun'].forEach(function(k){if(LV[k]==null)LV[k]=1;});function applyLayerVis(){var b=document.body;if(!b)return;['no','date','code','depth','mh','riser','hyun'].forEach(function(k){b.classList.toggle('hide-'+k,!LV[k]);});}function setLayerVis(k,on){LV[k]=on?1:0;try{localStorage.setItem('layerVis',JSON.stringify(LV));}catch(e){}applyLayerVis();if(typeof drawGeo==='function')drawGeo();}
+var LV=(function(){try{return JSON.parse(localStorage.getItem('layerVis'))||{};}catch(e){return {};}})();['no','date','code','depth','mh','riser','hyun','bp'].forEach(function(k){if(LV[k]==null)LV[k]=1;});function applyLayerVis(){var b=document.body;if(!b)return;['no','date','code','depth','mh','riser','hyun'].forEach(function(k){b.classList.toggle('hide-'+k,!LV[k]);});}function setLayerVis(k,on){LV[k]=on?1:0;try{localStorage.setItem('layerVis',JSON.stringify(LV));}catch(e){}applyLayerVis();if(typeof drawGeo==='function')drawGeo();}
 function curCat(){for(var i=0;i<TB.length;i++)if(TB[i].k===activeCat)return TB[i];return TB[0];}
 function renderRail(){
   var r=document.getElementById('rail'),html='';
@@ -5598,7 +5598,7 @@ function mkBtn(tool,i){
   var kb=keyForAction('tool:'+curCat().k+':'+i),bdg=kb?'<span class="hk-badge">'+kb+'</span>':'';
   return '<button data-i="'+i+'" class="sub-b" style="'+toneStyle(tool.tone,active)+'">'+tool.t+bdg+'</button>';
 }
-function inspmkBar(){var btn='<button id="mkInsp" style="border:1px solid #16a34a;color:#16a34a;font-weight:700">\uD83D\uDCCB \uAC80\uC218\uB370\uC774\uD130 \uC0DD\uC131</button>'+'<button id="mkDepth" style="border:1px solid #7a52e0;color:#7a52e0;font-weight:700">\uD83D\uDCD0 \uC2EC\uB3C4 \uACC4\uC0B0</button>';var defs=[['no','\uC810\uBC88\uD638'],['code','\uAD00\uC815\uBCF4'],['depth','\uC2EC\uB3C4'],['date','\uB0A0\uC9DC'],['mh','\uB9E8\uD640 \uC815\uBCF4'],['riser','\uC785\uC0C1\uC8FC'],['hyun','\uD604\uD669 \uCE21\uB7C9(\uB3C4\uB85C)']];var chk=defs.map(function(d){return '<label class="lvchk"><input type="checkbox" data-lv="'+d[0]+'"'+(LV[d[0]]?' checked':'')+'>'+d[1]+'</label>';}).join('');return btn+'<span class="subhint">\uB808\uC774\uC5B4</span>'+chk;}function wireInspmk(sb){var a=document.getElementById('mkInsp');if(a)a.onclick=function(){if(typeof buildInspData==='function')buildInspData();};var b=document.getElementById('mkDepth');if(b)b.onclick=function(){if(typeof openDepthCalc==='function')openDepthCalc();};sb.querySelectorAll('input[data-lv]').forEach(function(inp){inp.onchange=function(){setLayerVis(inp.getAttribute('data-lv'),inp.checked);};});}
+function inspmkBar(){var btn='<button id="mkInsp" style="border:1px solid #16a34a;color:#16a34a;font-weight:700">\uD83D\uDCCB \uAC80\uC218\uB370\uC774\uD130 \uC0DD\uC131</button>'+'<button id="mkDepth" style="border:1px solid #7a52e0;color:#7a52e0;font-weight:700">\uD83D\uDCD0 \uC2EC\uB3C4 \uACC4\uC0B0</button>';var defs=[['no','\uC810\uBC88\uD638'],['code','\uAD00\uC815\uBCF4'],['depth','\uC2EC\uB3C4'],['date','\uB0A0\uC9DC'],['mh','\uB9E8\uD640 \uC815\uBCF4'],['riser','\uC785\uC0C1\uC8FC'],['bp','\uBCF4\uAC15\uD310'],['hyun','\uD604\uD669 \uCE21\uB7C9(\uB3C4\uB85C)']];var chk=defs.map(function(d){return '<label class="lvchk"><input type="checkbox" data-lv="'+d[0]+'"'+(LV[d[0]]?' checked':'')+'>'+d[1]+'</label>';}).join('');return btn+'<span class="subhint">\uB808\uC774\uC5B4</span>'+chk;}function wireInspmk(sb){var a=document.getElementById('mkInsp');if(a)a.onclick=function(){if(typeof buildInspData==='function')buildInspData();};var b=document.getElementById('mkDepth');if(b)b.onclick=function(){if(typeof openDepthCalc==='function')openDepthCalc();};sb.querySelectorAll('input[data-lv]').forEach(function(inp){inp.onchange=function(){setLayerVis(inp.getAttribute('data-lv'),inp.checked);};});}
 function renderSub(){
   var c=curCat(),s=document.getElementById('subbar'),html='';
   if(c.k==='inspmk')html+=inspmkBar();else if(c.tools.length)html+=c.tools.map(mkBtn).join('');
