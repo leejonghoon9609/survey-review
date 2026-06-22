@@ -288,8 +288,8 @@
   @media(min-width:761px){
     .fpage .stage{flex-direction:row}
     .fpage #viewerBar{flex:none}
-    .fpage header{border-bottom:2px solid #6aa3ff}
-  .fpage #buildno{display:inline-block!important;margin-left:auto}
+    .fpage header{border-bottom:2px solid #6aa3ff;position:relative}
+  .fpage #buildno{display:inline-block!important;position:absolute;top:8px;right:12px}
     .fpage .photo-panel{width:38%!important;min-width:420px!important;max-width:46%!important;border-left:1px solid var(--line)!important;border-top:none!important}
     .fpage .photo-panel.open{height:auto!important}
     .fpage #rvPanel.open{width:42%!important;min-width:440px!important;max-width:50%!important;height:auto!important;border-left:1px solid var(--line)!important;border-top:none!important}
@@ -330,7 +330,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 234</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 235</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -503,7 +503,7 @@ var gHit=document.createElementNS(SVGNS,'g'); // 측점 클릭 hit (최상위 �
 cv.appendChild(gGeo); cv.appendChild(gMark); cv.appendChild(gDraft); cv.appendChild(gPts); cv.appendChild(gMH); cv.appendChild(gHit);
 
 /* 상태 */
-var state={ projectId:null, projectName:null, loadedStage:STAGE, points:[], lines:[], markups:[], labelOff:{}, manholes:[], photoDir:{}, asbuilt:null, nightShift:null, fieldDone:null, bizInfo:null };
+var state={ projectId:null, projectName:null, loadedStage:STAGE, _importSrc:[], points:[], lines:[], markups:[], labelOff:{}, manholes:[], photoDir:{}, asbuilt:null, nightShift:null, fieldDone:null, bizInfo:null };
 // manhole 구조: {id, wx, wy, label, lx, ly}
 // wx,wy = 맨홀 중심 세계좌표(x=동,y=북)
 // lx,ly = 라벨 앵커 세계좌표
@@ -5387,7 +5387,7 @@ function saveProject(cb){
     if(res.error){toast('저장 오류: '+res.error.message);return;}
     var saved=res.data&&res.data[0];if(saved){state.projectId=saved.id;state.loadedStage=STAGE;}
     sb.from('survey_history').insert({project_id:state.projectId,payload:payload}); // 이력
-    refreshProjects();loadPhotos();toast('저장 완료');if(typeof cb==='function')cb(state.projectId);
+    refreshProjects();loadPhotos();toast('저장 완료');if(state._importSrc&&state._importSrc.length&&state.projectId){var _srcs=state._importSrc.slice();state._importSrc=[];(function _nx(){if(!_srcs.length)return;var _sid=_srcs.shift();copyPhotos(_sid,state.projectId,_nx);})();}if(typeof cb==='function')cb(state.projectId);
   });
 }
 function pickProject(id){ if(!id)return;
@@ -5409,7 +5409,7 @@ function pickProject(id){ if(!id)return;
 function loadProject(id,ro,cb){ if(!online||!id)return; setReadOnly(!!ro);
   sb.from('survey_projects').select('*').eq('id',id).single().then(function(res){
     if(res.error||!res.data){toast('불러오기 실패');return;}
-    var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;state.loadedStage=p.stage||'survey';
+    var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;state.loadedStage=p.stage||'survey';state._importSrc=[];
     state.points=p.points||[];state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.depthGround=p.depthGround||null;state._depthAlign=null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.asbuilt=p.asbuilt||null;state.nightShift=p.nightShift||null;state.fieldDone=p.fieldDone||null;state.finalCsv=p.finalCsv?(Array.isArray(p.finalCsv)?p.finalCsv:[p.finalCsv]):[];state.bizInfo=p.bizInfo||null;
     selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();loadPhotos();if(typeof refreshFieldBar==='function')refreshFieldBar();toast('현장 불러옴: '+res.data.name);
     var vs=document.getElementById('vproj');if(vs)vs.value=res.data.id;
@@ -6012,12 +6012,17 @@ function refreshDoneProjects(){ if(!online)return;
     if(sm){if(tn>0){sm.style.display='';sm.textContent='⚠ 수정 '+pw+'사업 · '+tn+'건';}else{sm.style.display='none';}}
   });
 }
-function copyPhotos(fromId,toId){
-  if(!online||!fromId||!toId||fromId===toId)return;
+function copyPhotos(fromId,toId,done){
+  function fin(){if(typeof done==='function')done();}
+  if(!online||!fromId||!toId||fromId===toId){fin();return;}
   sb.from('survey_photos').select('point_no,url').eq('project_id',fromId).then(function(res){
-    var rows=(res.data||[]);if(!rows.length)return;
-    var ins=rows.map(function(r){return {project_id:toId,point_no:r.point_no,url:r.url};});
-    sb.from('survey_photos').insert(ins).then(function(rr){if(rr&&rr.error){toast('사진 복사 오류: '+rr.error.message);return;}loadPhotos();toast('사진 '+rows.length+'장 가져옴');});
+    var rows=(res.data||[]);if(!rows.length){fin();return;}
+    sb.from('survey_photos').select('point_no').eq('project_id',toId).then(function(ex){
+      var have={};((ex&&ex.data)||[]).forEach(function(r){have[String(r.point_no)]=1;});
+      var ins=rows.filter(function(r){return !have[String(r.point_no)];}).map(function(r){return {project_id:toId,point_no:r.point_no,url:r.url};});
+      if(!ins.length){loadPhotos();fin();return;}
+      sb.from('survey_photos').insert(ins).then(function(rr){if(rr&&rr.error){toast('사진 복사 오류: '+rr.error.message);fin();return;}loadPhotos();toast('사진 '+ins.length+'장 가져옴');fin();});
+    });
   });
 }
 
@@ -6039,13 +6044,13 @@ function doImport(id,srcStage,autosave){
       state.finalCsv=fc;
       if(p.depthGround)state.depthGround=p.depthGround;
       if(p.fieldDone)state.fieldDone=p.fieldDone;
+      state._importSrc=state._importSrc||[];if(state._importSrc.indexOf(id)<0)state._importSrc.push(id);
       if(typeof finalCsvDepthSync==='function')finalCsvDepthSync();
       drawGeo();drawMarks();drawManholes();if(typeof updMeta==='function')updMeta();
       toast('현장 후측량 CSV '+fc.length+'개 가져옴 — 저장하세요');
     });
   }else{
-    if(autosave){var _src=id;loadProject(id,false,function(){saveProject(function(nid){if(nid&&nid!==_src)copyPhotos(_src,nid);});});} /* 현장: 결선완료 사본을 즉시 현장으로 저장(+사진 복사) */
-    else{loadProject(id);} /* 탱고: 시드만(조립 후 수동저장) */
+    loadProject(id,false,function(){ state._importSrc=[id]; if(autosave)saveProject(); }); /* 결선 시드(+사진 출처 기록). 현장이면 즉시 저장 */
   }
 }
 function openImportList(scope){
