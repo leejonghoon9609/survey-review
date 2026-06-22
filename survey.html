@@ -327,7 +327,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 221</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 222</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -395,7 +395,7 @@
 
   <input type="file" id="fCsv" accept=".csv" multiple style="display:none">
   <input type="file" id="fDxf" accept=".dxf" style="display:none">
-  <input type="file" id="fAft" accept=".csv" style="display:none">
+  <input type="file" id="fAft" accept=".csv" multiple style="display:none">
   <input type="file" id="fPhotos" accept="image/*" multiple style="display:none">
   <input type="file" id="fAfter" accept="image/*" capture="environment" style="display:none">
   <input type="file" id="fRegPhotos" accept="image/*,.zip" multiple style="display:none">
@@ -554,15 +554,17 @@ function loadAfterCsv(f){
   if(!f)return;
   var rd=new FileReader();
   rd.onload=function(){
-    var pr;
-    try{pr=parseAftCsv(decodeBuf(rd.result));}catch(e){toast('CSV \uC77D\uAE30 \uC2E4\uD328');return;}
-    if(!pr.ground.length){toast('(1) \uC9C0\uBC18\uC810\uC744 \uBABB \uCC3E\uC74C \u2014 \uBCF5\uAD6C\uD6C4 \uD6C4\uCE21\uB7C9 CSV\uAC00 \uB9DE\uB294\uC9C0 \uD655\uC778');return;}
-    state.depthGround=pr.ground;state._depthAlign=pr.align;
-    var res=computeDepth();
-    var st=document.getElementById('rcAft');if(st)st.textContent='\uBCF5\uAD6C\uD6C4 '+pr.ground.length+'\uC810 \uB4F1\uB85D\uB428';
-    var o=document.getElementById('rcAftOut');if(o)o.textContent='\u2705 \uD3C9\uADE0\uC2EC\uB3C4 '+res.avg.toFixed(2)+'m \u00B7 '+res.ok+'/'+res.total+'\uC810 \uB9E4\uCE6D';
+    var txt;try{txt=decodeBuf(rd.result);}catch(e){txt=''+rd.result;}
+    var pr;try{pr=parseAftCsv(txt);}catch(e){toast('CSV 읽기 실패');return;}
+    if(!pr.ground.length){toast('(1) 지반점을 못 찾음 — 복구후 후측량 CSV가 맞는지 확인');return;}
+    var a=finalCsvArr();a.push({name:f.name,text:txt});state.finalCsv=a;
+    if(!state.fieldDone)state.fieldDone={csv:false,joseo:false,manhole:false};state.fieldDone.csv=true;
+    finalCsvDepthSync();
+    if(online&&state.projectId)saveProject();
+    if(typeof refreshFieldBar==='function')refreshFieldBar();
+    if(typeof updRegStatus==='function')updRegStatus();
     var cl=document.getElementById('clrAft');if(cl)cl.style.display='inline-block';
-    toast('\uC2EC\uB3C4 \uACC4\uC0B0 \uC644\uB8CC \u2014 \uD3C9\uADE0 '+res.avg.toFixed(2)+'m');
+    toast('후측량 CSV 등록 ('+finalCsvArr().length+'개) — 심도 연동됨');
   };
   rd.readAsArrayBuffer(f);
 }
@@ -5747,7 +5749,7 @@ function openAsbuilt(){
     }
   }).catch(function(){try{win.document.body.innerHTML='<div style="padding:24px;font:15px sans-serif;color:#eee;line-height:1.7">도면을 창 안에서 열지 못했습니다(접근 제한).<br><br><a href="'+a.url+'" target="_blank" style="color:#9cf">여기를 눌러 새 탭에서 열기</a></div>';}catch(e){window.open(a.url,'_blank');}});
 }
-document.getElementById('rcCsvBtn').onclick=function(){document.getElementById('fCsv').click();};document.getElementById('rcAftBtn').onclick=function(){document.getElementById('fAft').click();};var _clrAft=document.getElementById('clrAft');if(_clrAft)_clrAft.onclick=function(){state.depthGround=null;state._depthAlign=null;var st=document.getElementById('rcAft');if(st)st.textContent='복구후 후측량 (.csv)';var o=document.getElementById('rcAftOut');if(o)o.textContent='';this.style.display='none';toast('심도 데이터 삭제');};(function(){if(!IS_TANGO){var c=document.getElementById('regAftCard');if(c)c.style.display='none';}})();
+document.getElementById('rcCsvBtn').onclick=function(){document.getElementById('fCsv').click();};document.getElementById('rcAftBtn').onclick=function(){document.getElementById('fAft').click();};var _clrAft=document.getElementById('clrAft');if(_clrAft)_clrAft.onclick=function(){state.finalCsv=[];if(state.fieldDone)state.fieldDone.csv=false;state.depthGround=null;state._depthAlign=null;if(online&&state.projectId)saveProject();if(typeof refreshFieldBar==='function')refreshFieldBar();var st=document.getElementById('rcAft');if(st)st.textContent='복구후 후측량 (.csv)';var o=document.getElementById('rcAftOut');if(o)o.textContent='';this.style.display='none';toast('심도 데이터 삭제');};(function(){if(!IS_TANGO){var c=document.getElementById('regAftCard');if(c)c.style.display='none';}})();
 document.getElementById('rcDxfBtn').onclick=function(){document.getElementById('fDxf').click();};
 document.getElementById('rcPhoBtn').onclick=function(){document.getElementById('fRegPhotos').click();};
 (function(){
@@ -6384,7 +6386,7 @@ function openCsvList(){
   ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};
   document.body.appendChild(ov);
 }
-document.getElementById('fCsv').addEventListener('change',function(e){var fs=e.target.files;if(regOpen())regAddCsvFiles(fs);else loadCsvFile(fs[0]);e.target.value='';});document.getElementById('fAft').addEventListener('change',function(e){loadAfterCsv(e.target.files[0]);e.target.value='';});
+document.getElementById('fCsv').addEventListener('change',function(e){var fs=e.target.files;if(regOpen())regAddCsvFiles(fs);else loadCsvFile(fs[0]);e.target.value='';});document.getElementById('fAft').addEventListener('change',function(e){[].forEach.call(e.target.files,function(f){loadAfterCsv(f);});e.target.value='';});
 function loadDxfFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){try{var _tt=decodeBuf(rd.result);var ln=parseDxfLines(_tt);ln.forEach(function(l){l.base=true;});state.lines=state.lines.filter(function(l){return !l.base;}).concat(ln);state.baseTexts=parseDxfTexts(_tt);drawGeo();fitView();updMeta();if(regOpen())updRegStatus();toast('수치지도 백판 '+ln.length+'개 라인 · '+state.baseTexts.length+'개 텍스트 로드');}catch(err){toast('DXF 파싱 오류');}};rd.readAsArrayBuffer(f);}
 document.getElementById('fDxf').addEventListener('change',function(e){loadDxfFile(e.target.files[0]);e.target.value='';});
 
