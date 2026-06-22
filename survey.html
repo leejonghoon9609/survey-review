@@ -315,8 +315,8 @@
       <button class="fbtn" id="fldCsv">후측량 csv</button>
       <button class="fbtn" id="fldJoseo">실시간 사진조서</button>
       <button class="fbtn" id="fldManhole">맨홀도 제작</button>
-      <button class="fbtn" id="fldImport">📥 결선완료 성과목록</button>
-      <button class="fbtn fbtn-final" id="fldFinal" style="margin-left:auto">📋 후측량 최종성과 등록</button>
+      <button class="fbtn" id="fldImport" style="margin-left:auto">📥 결선완료 성과목록</button>
+      <button class="fbtn fbtn-final" id="fldFinal">📋 후측량 최종성과 등록</button>
     </div>
     <select id="proj" class="wk"><option value="">사업 선택…</option></select>
     <button id="save" class="pri wk">저장</button>
@@ -328,7 +328,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 231</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 232</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -6010,7 +6010,7 @@ function refreshDoneProjects(){ if(!online)return;
     if(sm){if(tn>0){sm.style.display='';sm.textContent='⚠ 수정 '+pw+'사업 · '+tn+'건';}else{sm.style.display='none';}}
   });
 }
-function doImport(id,srcStage){
+function doImport(id,srcStage,autosave){
   if(!online||!id)return;
   if(srcStage==='field'){
     sb.from('survey_projects').select('payload,name').eq('id',id).single().then(function(r){
@@ -6025,7 +6025,8 @@ function doImport(id,srcStage){
       toast('현장 후측량 CSV '+fc.length+'개 가져옴 — 저장하세요');
     });
   }else{
-    loadProject(id); /* 결선 통째 시드(노출관로 측점 X,Y,Z + 결선). 저장 시 내 단계 사본 생성 */
+    if(autosave){loadProject(id,false,function(){saveProject();});} /* 현장: 결선완료 사본을 즉시 현장으로 저장 */
+    else{loadProject(id);} /* 탱고: 시드만(조립 후 수동저장) */
   }
 }
 function openImportList(scope){
@@ -6041,10 +6042,10 @@ function openImportList(scope){
       ? '<div style="max-height:340px;overflow:auto;text-align:left">'+rows.map(function(p){
           var st=(p.payload.stage||'survey');var bg=st==='field'?'#eafff2':'#eef5ff',col=st==='field'?'#15803d':'#1d4ed8';
           return '<button class="imp-row" data-id="'+p.id+'" data-stage="'+st+'" style="display:block;width:100%;text-align:left;margin:4px 0;padding:10px 12px;border:1px solid #d7dee8;border-radius:9px;background:'+bg+';cursor:pointer;font-size:14px;font-weight:700;color:'+col+'"><span style="font-size:11px;background:'+col+';color:#fff;padding:2px 7px;border-radius:9px;margin-right:7px">'+LB[st]+'</span>'+p.name+'</button>';
-        }).join('')+'</div><div style="color:#999;font-size:12px;margin-top:6px">결선=통째 가져오기 · 현장=후측량 CSV만 추가 · 가져온 뒤 <b>저장</b> (탱고는 결선 먼저, 현장 나중)</div>'
+        }).join('')+'</div><div style="color:#999;font-size:12px;margin-top:6px">'+(scope==='survey'?'고르면 현장 사본으로 <b>바로 저장</b>됩니다':'결선=통째 시드 · 현장=후측량 CSV만 추가 · 결선 먼저→현장 나중, 가져온 뒤 <b>저장</b>')+'</div>'
       : '<div style="color:#999;padding:8px">가져올 완료 사업이 없습니다.</div>';
     var card=showModal({title:(scope==='survey'?'📥 결선완료 성과목록':'📥 결선/현장 완료목록'),tone:'ok',body:body,buttons:[{label:'닫기'}]});
-    card.querySelectorAll('.imp-row').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-id'),st=b.getAttribute('data-stage');card.remove();doImport(id,st);};});
+    card.querySelectorAll('.imp-row').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-id'),st=b.getAttribute('data-stage');card.remove();doImport(id,st,scope==='survey');};});
   });
 }
 
