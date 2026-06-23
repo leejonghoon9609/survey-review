@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 256</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 257</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -636,6 +636,7 @@ function buildInspData(){
     });
   });
   _bdPts.forEach(function(bd){var bx=bd[0],by=bd[1],bL=null,bIdx=-1,bD=1e18;state.lines.forEach(function(L){if(L.layer!=='보도'||!L.pts||L.pts.length<2)return;for(var i=0;i<L.pts.length-1;i++){var a=L.pts[i],c=L.pts[i+1],dx=c[0]-a[0],dy=c[1]-a[1],L2=dx*dx+dy*dy;var t=L2?((bx-a[0])*dx+(by-a[1])*dy)/L2:0;t=Math.max(0,Math.min(1,t));var cx=a[0]+t*dx,cy=a[1]+t*dy,d=Math.hypot(bx-cx,by-cy);if(d<bD){bD=d;bL=L;bIdx=i;}}});if(bL&&bD<=8){bL.pts.splice(bIdx+1,0,[bx,by]);}});
+  (state.manholes||[]).forEach(function(m){if(m._aft&&typeof restitchManhole==='function')restitchManhole(m);});
   drawGeo();
   if(typeof drawManholes==='function')drawManholes();
   if(typeof drawMarks==='function')drawMarks();
@@ -1260,6 +1261,7 @@ function drawManholes(){
         var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);if(!isRiser)removeManholePassLines(mh);drawManholes();drawGeo();toast(isRiser?'입상주 삭제':'맨홀 삭제(통과결선 포함)');return;}
       if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace'||viewerMode||readOnly)return;
       ev.stopPropagation();ev.preventDefault();
+      if(mh._aft){toast('후측량 맨홀 — 위치 고정(라벨만 이동 가능)');return;}
       pushHist();
       if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
       var w=toWorld(ev.clientX,ev.clientY);
@@ -1363,6 +1365,37 @@ function addManholePassLine(mh){
   for(var i=1;i<nr.length;i++){var q=nr[i].p;if((q.x-mh.wx)*ax+(q.y-mh.wy)*ay<0){B=q;break;}}
   if(B)state.lines.push({layer:'통신관로',pts:[[A.x,A.y],[mh.wx,mh.wy],[B.x,B.y]],mhId:mh.id});
   else state.lines.push({layer:'통신관로',pts:[[A.x,A.y],[mh.wx,mh.wy]],mhId:mh.id});
+}
+// 후측량 맨홀: 양옆 진짜 가까운 관로점(앞·뒤,반대방향)에 재결선 — 바로앞점 건너뛰기 방지
+function restitchManhole(mh){
+  if(!mh||mh.type==='riser')return;
+  var MHR=5,T=0.35;
+  function nearp(pt,X,Y){return Math.hypot(pt[0]-X,pt[1]-Y)<T;}
+  var cand=(state.points||[]).filter(function(p){
+    if(isManhole(p))return false;
+    if(/보강판/.test((p.no||'')+'|'+(p.code||'')))return false;
+    if(!/[xX\u00D7]\s*\d+/.test(p.code||''))return false;
+    return Math.hypot(p.x-mh.wx,p.y-mh.wy)<=MHR;
+  }).map(function(p){return {p:p,d:Math.hypot(p.x-mh.wx,p.y-mh.wy)};}).sort(function(a,b){return a.d-b.d;});
+  if(!cand.length)return;
+  var A=cand[0].p, B=null, ax=A.x-mh.wx, ay=A.y-mh.wy;
+  for(var i=1;i<cand.length;i++){var q=cand[i].p;if((q.x-mh.wx)*ax+(q.y-mh.wy)*ay<0){B=q;break;}}
+  (state.lines||[]).forEach(function(L){
+    if(L.layer!=='\ud1b5\uc2e0\uad00\ub85c'||!L.pts)return;
+    var np=[];L.pts.forEach(function(v){if(!np.length||Math.hypot(np[np.length-1][0]-v[0],np[np.length-1][1]-v[1])>1e-6)np.push([v[0],v[1]]);});L.pts=np;
+    for(var k=0;k<L.pts.length;k++){
+      if(!nearp(L.pts[k],mh.wx,mh.wy))continue;
+      var nb=(k>0)?L.pts[k-1]:((k<L.pts.length-1)?L.pts[k+1]:null);
+      if(!nb)continue;
+      if(nearp(nb,A.x,A.y)||(B&&nearp(nb,B.x,B.y)))continue;
+      var side=(nb[0]-mh.wx)*ax+(nb[1]-mh.wy)*ay;
+      var tgt=(side>0||!B)?A:B;
+      L.pts[k][0]=tgt.x;L.pts[k][1]=tgt.y;
+    }
+  });
+  function hasSeg(P){return (state.lines||[]).some(function(L){if(L.layer!=='\ud1b5\uc2e0\uad00\ub85c'||!L.pts)return false;for(var k=0;k<L.pts.length-1;k++){var a=L.pts[k],b=L.pts[k+1];if((nearp(a,P.x,P.y)&&nearp(b,mh.wx,mh.wy))||(nearp(b,P.x,P.y)&&nearp(a,mh.wx,mh.wy)))return true;}return false;});}
+  if(!hasSeg(A))state.lines.push({layer:'\ud1b5\uc2e0\uad00\ub85c',pts:[[A.x,A.y],[mh.wx,mh.wy]],mhId:mh.id});
+  if(B&&!hasSeg(B))state.lines.push({layer:'\ud1b5\uc2e0\uad00\ub85c',pts:[[B.x,B.y],[mh.wx,mh.wy]],mhId:mh.id});
 }
 // 맨홀 삭제 시 그 맨홀을 지나는 통신관로 결선도 함께 제거 (맨홀좌표 포함 선)
 function removeManholePassLines(mh){
