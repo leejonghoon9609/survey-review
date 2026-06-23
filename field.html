@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 248</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 249</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -630,7 +630,7 @@ function buildInspData(){
     seq.forEach(function(p){
       if(p.skip){nIg++;return;}
       if(p.code==='BD'){var s=S(p.ex,p.no);state.markups.push({type:'cir',cx:s[0],cy:s[1],rx:0.5,ry:0.5,status:'bad',near:'경계'});nBD++;}
-      else if(p.code==='SKTM'){var _ex=p.ex,_no=p.no,_bm=null,_bd=4;(state.manholes||[]).forEach(function(m){if(m._mhMatched)return;var _d=Math.hypot((m.wx||0)-_ex,(m.wy||0)-_no);if(_d<=_bd){_bd=_d;_bm=m;}});if(_bm){_bm.wx=_ex;_bm.wy=_no;_bm._aft=true;_bm._mhMatched=true;}else{state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+nM)),wx:_ex,wy:_no,label:'M (SKT )',kind:'신',lx:null,ly:null,type:'mh',insp:true,_aft:true,_mhMatched:true});}nM++;}
+      else if(p.code==='SKTM'){var _ex=p.ex,_no=p.no,_bm=null,_bd=4;(state.manholes||[]).forEach(function(m){if(m._mhMatched)return;var _d=Math.hypot((m.wx||0)-_ex,(m.wy||0)-_no);if(_d<=_bd){_bd=_d;_bm=m;}});if(_bm){var _ox2=_bm.wx,_oy2=_bm.wy;_bm.wx=_ex;_bm.wy=_no;_bm._aft=true;_bm._mhMatched=true;if(typeof moveMhLines==='function')moveMhLines(_bm,_ox2,_oy2);}else{state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+nM)),wx:_ex,wy:_no,label:'M (SKT )',kind:'신',lx:null,ly:null,type:'mh',insp:true,_aft:true,_mhMatched:true});}nM++;}
       else if(p.code==='l')nL++;
     });
   });
@@ -1113,7 +1113,7 @@ function mhLabelBase(mh, txtW){
   else {defLx=mh.wx+1.0;defLy=mh.wy+1.2;}
   return {lx:(mh.lx!=null?mh.lx:defLx), ly:(mh.ly!=null?mh.ly:defLy)};
 }
-function mergeAftMh(){var mhs=state.manholes||[];if(!mhs.length)return;mhs.forEach(function(m){m._used=false;m._del=false;});mhs.filter(function(m){return m.insp;}).forEach(function(a){var best=null,bd=4;mhs.forEach(function(b){if(b===a||b.insp||b._used)return;var d=Math.hypot((b.wx||0)-(a.wx||0),(b.wy||0)-(a.wy||0));if(d<=bd){bd=d;best=b;}});if(best){best.wx=a.wx;best.wy=a.wy;best._aft=true;best._used=true;a._del=true;}});state.manholes=mhs.filter(function(m){return !m._del;});}
+function mergeAftMh(){var mhs=state.manholes||[];if(!mhs.length)return;mhs.forEach(function(m){m._used=false;m._del=false;});mhs.filter(function(m){return m.insp;}).forEach(function(a){var best=null,bd=4;mhs.forEach(function(b){if(b===a||b.insp||b._used)return;var d=Math.hypot((b.wx||0)-(a.wx||0),(b.wy||0)-(a.wy||0));if(d<=bd){bd=d;best=b;}});if(best){var _ox=best.wx,_oy=best.wy;best.wx=a.wx;best.wy=a.wy;best._aft=true;best._used=true;a._del=true;if(typeof moveMhLines==='function')moveMhLines(best,_ox,_oy);}});state.manholes=mhs.filter(function(m){return !m._del;});}
 function drawManholes(){
   clearSvg(gMH); clearLabels('mh');
   (state.manholes||[]).forEach(function(mh){
@@ -1351,6 +1351,7 @@ function deletePoint(p){
   toast('측점 '+(p.no||'')+' 삭제');
 }
 // 맨홀 통과 결선 1개 추가 (반경 안 가장 가까운 M점 + 건너편 M점 → A·맨홀·B)
+function moveMhLines(mh,ox,oy){(state.lines||[]).forEach(function(L){if(!L.pts)return;L.pts.forEach(function(pt){if((L.mhId===mh.id||L.layer==='통신관로')&&Math.abs(pt[0]-ox)<1&&Math.abs(pt[1]-oy)<1){pt[0]=mh.wx;pt[1]=mh.wy;}});});}
 function addManholePassLine(mh){
   var MHR=4; // 맨홀·입상주 M점 관로선붙이기 반경(4m)
   var nr=state.points.filter(function(p){return isManhole(p)&&Math.hypot(p.x-mh.wx,p.y-mh.wy)<=MHR;})
