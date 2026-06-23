@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 255</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 256</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5058,6 +5058,7 @@ EOF
   function circle(cx,cy,r,layer,col){push(['0','CIRCLE','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbCircle','10',N(cx),'20',N(cy),'30','0','40',N(r)]);}
   function line(x1,y1,x2,y2,layer,col,lt){var a=['0','LINE','5',H(),'330','17','100','AcDbEntity','8',layer];if(lt)a.push('6',lt);a.push('62',String(col),'100','AcDbLine','10',N(x1),'20',N(y1),'30','0','11',N(x2),'21',N(y2),'31','0');push(a);}
   function box(cx,cy,sz,layer,col){var h=sz/2;pline([[cx-h,cy-h],[cx+h,cy-h],[cx+h,cy+h],[cx-h,cy+h]],layer,col,true);}
+  function insert(name,x,y,sc,layer,col){push(['0','INSERT','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbBlockReference','2',name,'10',N(x),'20',N(y),'30','0','41',N(sc),'42',N(sc),'43',N(sc),'50','0']);}
   function text(x,y,h,s,layer,col,align){var hangul=/[^\x00-\x7F]/.test(s);var es=uesc(s);var a=['0','TEXT','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbText','10',N(x),'20',N(y),'30','0','40',N(h),'1',es];if(hangul)a.push('7','HANGUL');a.push('72',String(align||0),'11',N(x),'21',N(y),'31','0','100','AcDbText');push(a);}
   function tw(label,unit){function gw(ch){var c=ch.charCodeAt(0);if(c>127)return 1.1;if(ch===' ')return 0.392;if(ch==='M')return 1.065;if(ch==='W')return 1.22;if(ch>='0'&&ch<='9')return 0.785;if('()[]{}'.indexOf(ch)>=0)return 0.482;if('Iilj|!.,:;'.indexOf(ch)>=0)return 0.36;if('TY'.indexOf(ch)>=0)return 0.755;if(ch>='A'&&ch<='Z')return 0.8;if(ch>='a'&&ch<='z')return 0.6;return 0.5;}var w=0;for(var i=0;i<label.length;i++)w+=gw(label.charAt(i))*unit;return w+unit*0.05;}
   // 측점: 박스 + 인출선(검정 점선) + 번호/코드
@@ -5066,7 +5067,7 @@ EOF
     var _bp=/보강판/.test((p.no||'')+'|'+(p.code||''));
     var _LV=(typeof LV!=='undefined')?LV:{};
     if(_bp&&_LV.bp===0)return;
-    box(p.x,p.y,BOX,'POINT',_bp?2:(isTpoint(p)?3:7));
+    insert('SD901',p.x,p.y,0.3,'SD901',_bp?2:(isTpoint(p)?3:7));
     var lo=lay[k]||{lx:p.x+1,ly:p.y,anchor:'start'};
     var al=(lo.anchor==='end')?2:0;
     var no=(p.no||'')+'', cd=((p.code||'').trim());
@@ -5106,7 +5107,7 @@ EOF
     if(isRiser){var wB=0.14,wT=0.04,armW=0.24,armY=mh.wy+RH*0.74;
       line(mh.wx-wB,mh.wy,mh.wx-wT,mh.wy+RH,lyr,5);line(mh.wx+wB,mh.wy,mh.wx+wT,mh.wy+RH,lyr,5);
       line(mh.wx-armW,armY,mh.wx+armW,armY,lyr,5);circle(mh.wx,mh.wy+RH,wT+0.05,lyr,5);
-    } else {circle(mh.wx,mh.wy,RO,lyr,7);circle(mh.wx,mh.wy,RI,lyr,7);}
+    } else {insert('SD100',mh.wx,mh.wy,0.5,'SD100',7);}
     var w=tw(mhDisp(mh),TH);
     var _p=mhLabelBase(mh,w); var lx=_p.lx, lyy=_p.ly;
     var isRight=(lx>=mh.wx);
@@ -5136,6 +5137,18 @@ EOF
     var blkStr=blkBegin+'\n'+bent.join('\n')+'\n'+blkEnd+'\n';
     PREx=PREx.replace('AcDbBlockEnd\n  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES','AcDbBlockEnd\n'+blkStr+'  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES');
   }
+  // ===== 측점/맨홀 표준 블럭 SD901(X자)/SD100(이중원) 주입 — 중앙 POINT로 Node 스냅 =====
+  (function(){
+    var L1='  0\nLAYER\n  5\nDC\n330\n1\n100\nAcDbSymbolTableRecord\n100\nAcDbLayerTableRecord\n  2\nSD901\n 70\n0\n 62\n7\n  6\nContinuous\n370\n-3\n390\n13\n';
+    var L2='  0\nLAYER\n  5\nDD\n330\n1\n100\nAcDbSymbolTableRecord\n100\nAcDbLayerTableRecord\n  2\nSD100\n 70\n0\n 62\n7\n  6\nContinuous\n370\n-3\n390\n13\n';
+    PREx=PREx.replace('390\n13\n  0\nENDTAB','390\n13\n'+L1+L2+'  0\nENDTAB');
+    var BR1='  0\nBLOCK_RECORD\n  5\nD0\n330\n9\n100\nAcDbSymbolTableRecord\n100\nAcDbBlockTableRecord\n  2\nSD901\n';
+    var BR2='  0\nBLOCK_RECORD\n  5\nD6\n330\n9\n100\nAcDbSymbolTableRecord\n100\nAcDbBlockTableRecord\n  2\nSD100\n';
+    PREx=PREx.replace('  0\nENDTAB\n  0\nENDSEC\n  0\nSECTION\n  2\nBLOCKS',BR1+BR2+'  0\nENDTAB\n  0\nENDSEC\n  0\nSECTION\n  2\nBLOCKS');
+    var DEF1='  0\nBLOCK\n  5\nD1\n330\nD0\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockBegin\n  2\nSD901\n 70\n0\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  3\nSD901\n  1\n\n'+'  0\nLINE\n  5\nD3\n330\nD0\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbLine\n 10\n-0.19\n 20\n0.19\n 30\n0\n 11\n0.19\n 21\n-0.19\n 31\n0\n'+'  0\nLINE\n  5\nD4\n330\nD0\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbLine\n 10\n-0.19\n 20\n-0.19\n 30\n0\n 11\n0.19\n 21\n0.19\n 31\n0\n'+'  0\nPOINT\n  5\nD5\n330\nD0\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbPoint\n 10\n0\n 20\n0\n 30\n0\n'+'  0\nENDBLK\n  5\nD2\n330\nD0\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockEnd\n';
+    var DEF2='  0\nBLOCK\n  5\nD7\n330\nD6\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockBegin\n  2\nSD100\n 70\n0\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  3\nSD100\n  1\n\n'+'  0\nCIRCLE\n  5\nD9\n330\nD6\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbCircle\n 10\n0\n 20\n0\n 30\n0\n 40\n0.504\n'+'  0\nCIRCLE\n  5\nDA\n330\nD6\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbCircle\n 10\n0\n 20\n0\n 30\n0\n 40\n0.75\n'+'  0\nPOINT\n  5\nDB\n330\nD6\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbPoint\n 10\n0\n 20\n0\n 30\n0\n'+'  0\nENDBLK\n  5\nD8\n330\nD6\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockEnd\n';
+    PREx=PREx.replace('  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES',DEF1+DEF2+'  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES');
+  })();
   var dxf=PREx+E.join('\n')+'\n'+SUF;
   var blob=new Blob([dxf],{type:'application/dxf'});
   var url=URL.createObjectURL(blob);
