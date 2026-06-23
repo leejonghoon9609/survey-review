@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 265</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 266</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -672,6 +672,7 @@ function loadAfterCsv(f){
     var a=finalCsvArr();a.push({name:f.name,text:txt});state.finalCsv=a;
     if(!state.fieldDone)state.fieldDone={csv:false,joseo:false,manhole:false};state.fieldDone.csv=true;
     finalCsvDepthSync();
+    try{if(typeof IS_TANGO!=='undefined'&&IS_TANGO&&typeof buildInspData==='function')buildInspData();}catch(_bi){}
     if(online&&state.projectId)saveProject();
     if(typeof refreshFieldBar==='function')refreshFieldBar();
     if(typeof updRegStatus==='function')updRegStatus();
@@ -6179,6 +6180,7 @@ function importFromStage(id,srcStage){
     state.points=p.points||[];state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.depthGround=p.depthGround||null;state._depthAlign=null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=false;state.asbuilt=p.asbuilt||null;state.nightShift=p.nightShift||null;state.fieldDone=p.fieldDone||null;state.finalCsv=p.finalCsv?(Array.isArray(p.finalCsv)?p.finalCsv:[p.finalCsv]):[];state.bizInfo=p.bizInfo||null;
     selNum=null;clearSvg(gSel);
     try{if(state.finalCsv&&state.finalCsv.length&&typeof finalCsvDepthSync==='function')finalCsvDepthSync();if(state.depthGround&&state.depthGround.length&&typeof computeDepth==='function')computeDepth();}catch(e){}
+    try{if(typeof IS_TANGO!=='undefined'&&IS_TANGO&&state.finalCsv&&state.finalCsv.length&&typeof buildInspData==='function')buildInspData();}catch(_bi){}
     try{mergeAftMh();}catch(_me){}
     drawGeo();drawMarks();drawManholes();try{fitView();}catch(_e0){}updMeta();
     if(typeof refreshFieldBar==='function')refreshFieldBar();
