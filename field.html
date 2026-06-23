@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 258</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 259</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1034,7 +1034,7 @@ function drawGeo(){
   var hitR=Math.min(0.45, 9*Up);   // 클릭 히트: 작은 줌에선 화면 고정, 큰 줌에선 월드 0.45 상한
   state.points.forEach(function(p,i){if((typeof LV!=='undefined')&&LV.bp===0&&/보강판/.test((p.no||'')+'|'+(p.code||'')))return;var isBp=/보강판/.test((p.no||'')+'|'+(p.code||''));var s=S(p.x,p.y);
     // 측점 심벌(속빈 사각) — 월드고정 정사각: 줌하면 크기는 변하지만 절대 안 찌그러짐, 위치 정확
-    var _sc=isBp?'#b8860b':(isManhole(p)?'#0d47a1':(isTpoint(p)?'#13803a':'#111')),_sw=isManhole(p)?3.8:2.5,_hh=0.147;if(isBp){gPts.appendChild(el('rect',{x:s[0]-_hh,y:s[1]-_hh,width:0.294,height:0.294,fill:'none',stroke:_sc,'stroke-width':_sw,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}else{gPts.appendChild(el('line',{x1:s[0]-_hh,y1:s[1]-_hh,x2:s[0]+_hh,y2:s[1]+_hh,stroke:_sc,'stroke-width':_sw,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));gPts.appendChild(el('line',{x1:s[0]-_hh,y1:s[1]+_hh,x2:s[0]+_hh,y2:s[1]-_hh,stroke:_sc,'stroke-width':_sw,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));}
+    gPts.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:isBp?'#b8860b':(isManhole(p)?'#0d47a1':(isTpoint(p)?'#13803a':'#111')),'stroke-width':isManhole(p)?3.8:2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     gPts.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#111','stroke-width':4,'stroke-linecap':'square','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // 중심 점(박스와 동일 vector-effect → 줌 고정)
     if(showDirArrows!==false)(function(){var d4=getPhotoDir(p),dv=photoDirVec(p,d4),pr=[-dv[1],dv[0]],hl=0.16,AC='#d500f2';
       var ax0=s[0]+dv[0]*0.22,ay0=s[1]+dv[1]*0.22,ax1=s[0]+dv[0]*0.62,ay1=s[1]+dv[1]*0.62;
