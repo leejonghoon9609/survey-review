@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 261</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 262</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -6116,13 +6116,15 @@ bind('vNote2',toggleNoteMode);
 var _vproj=document.getElementById('vproj');if(_vproj)_vproj.addEventListener('change',function(){if(this.value)loadProject(this.value);});
 
 /* ===== 결선완료 사업 ===== */
+function baseName(n){return (''+(n||'')).replace(/_(A|C|T)$/,'');}
 function registerDone(){
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
   if(!state.projectName){toast('등록할 사업을 먼저 선택/저장하세요');return;}
+  var _aName=baseName(state.projectName)+'_A';
   showModal({title:'결선완료 사업 등록',tone:'warn',
-    body:'<b>'+state.projectName+'</b><br>이 사업을 <b style="color:#16a34a">결선 완료</b> 상태로 등록할까요?<br><span style="color:#888;font-size:13px">완료목록·뷰어모드에 나타납니다. (해제하려면 다시 눌러 취소)</span>',
-    buttons:[{label:(state.routingDone?'완료 해제':'취소')+'',onClick:function(){if(state.routingDone){state.routingDone=false;saveProject();toast('결선완료 해제됨');}}},
-             {label:'등록',primary:true,onClick:function(){state.routingDone=true;saveProject();toast('결선완료 사업으로 등록됨');}}]});
+    body:'<b>'+state.projectName+'</b><br>이 사업을 <b style="color:#16a34a">결선 완료</b> 상태로 등록할까요?<br><span style="color:#888;font-size:13px">완료 시 이름이 <b>'+_aName+'</b> 로 바뀌고 현장에서 가져갈 수 있습니다. (해제하려면 다시 눌러 취소)</span>',
+    buttons:[{label:(state.routingDone?'완료 해제':'취소')+'',onClick:function(){if(state.routingDone){state.routingDone=false;state.projectName=baseName(state.projectName);saveProject();toast('결선완료 해제됨');}}},
+             {label:'등록',primary:true,onClick:function(){state.routingDone=true;state.projectName=_aName;saveProject();toast('결선완료 사업으로 등록됨 ('+_aName+')');}}]});
 }
 function countNotes(pl){return ((pl&&pl.markups)||[]).filter(function(m){return m.near==='특이사항';}).length;}
 function setReadOnly(v){readOnly=!!v;document.body.classList.toggle('readonly',readOnly);var b=document.getElementById('roBadge');if(b)b.style.display=readOnly?'':'none';}
@@ -6137,10 +6139,11 @@ function refreshDoneProjects(){ if(!online)return;
     if(sm){if(tn>0){sm.style.display='';sm.textContent='⚠ 수정 '+pw+'사업 · '+tn+'건';}else{sm.style.display='none';}}
   });
 }
-function copyPhotos(fromId,toId,done){
+function copyPhotos(fromId,toId,done,srcStage){
   function fin(){if(typeof done==='function')done();}
   if(!online||!fromId||!toId||fromId===toId){fin();return;}
-  sb.from(DB+'_photos').select('point_no,url').eq('project_id',fromId).then(function(res){
+  var _srcPT=(srcStage||STAGE)+'_photos';
+  sb.from(_srcPT).select('point_no,url').eq('project_id',fromId).then(function(res){
     var rows=(res.data||[]);if(!rows.length){fin();return;}
     sb.from(DB+'_photos').select('point_no').eq('project_id',toId).then(function(ex){
       var have={};((ex&&ex.data)||[]).forEach(function(r){have[String(r.point_no)]=1;});
@@ -6159,42 +6162,43 @@ function fieldDelProject(){
   deleteProjectById(state.projectId,nm);
 }
 
-function doImport(id,srcStage,autosave){
+/* 상위 단계 사업을 통째로 복사 → 내 단계 사본으로 자동저장 (연동X·복사O, 원본 보존). 이름 뒤 _C/_T */
+function importFromStage(id,srcStage){
   if(!online||!id)return;
-  if(srcStage==='field'){
-    sb.from(DB+'_projects').select('payload,name').eq('id',id).single().then(function(r){
-      if(r.error||!r.data){toast('가져오기 실패');return;}
-      var p=r.data.payload||{};
-      var fc=p.finalCsv?(Array.isArray(p.finalCsv)?p.finalCsv:[p.finalCsv]):[];
-      state.finalCsv=fc;
-      if(p.depthGround)state.depthGround=p.depthGround;
-      if(p.fieldDone)state.fieldDone=p.fieldDone;
-      state._importSrc=state._importSrc||[];if(state._importSrc.indexOf(id)<0)state._importSrc.push(id);
-      if(typeof finalCsvDepthSync==='function')finalCsvDepthSync();
-      drawGeo();drawMarks();drawManholes();if(typeof updMeta==='function')updMeta();
-      toast('현장 후측량 CSV '+fc.length+'개 가져옴 — 저장하세요');
-    });
-  }else{
-    loadProject(id,false,function(){ state._importSrc=[id]; if(autosave)saveProject(); }); /* 결선 시드(+사진 출처 기록). 현장이면 즉시 저장 */
-  }
+  var srcTbl=srcStage+'_projects';
+  sb.from(srcTbl).select('*').eq('id',id).single().then(function(res){
+    if(res.error||!res.data){toast('가져오기 실패 — '+(res.error?res.error.message:'없음'));return;}
+    var p=res.data.payload||{};
+    var suffix=(STAGE==='tango'?'_T':(STAGE==='field'?'_C':''));
+    var newName=baseName(res.data.name)+suffix;
+    state.projectId=null;state.projectName=newName;state.loadedStage=srcStage;state._importSrc=[];
+    state.points=p.points||[];state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.depthGround=p.depthGround||null;state._depthAlign=null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=false;state.asbuilt=p.asbuilt||null;state.nightShift=p.nightShift||null;state.fieldDone=p.fieldDone||null;state.finalCsv=p.finalCsv?(Array.isArray(p.finalCsv)?p.finalCsv:[p.finalCsv]):[];state.bizInfo=p.bizInfo||null;
+    selNum=null;clearSvg(gSel);
+    try{if(state.finalCsv&&state.finalCsv.length&&typeof finalCsvDepthSync==='function')finalCsvDepthSync();if(state.depthGround&&state.depthGround.length&&typeof computeDepth==='function')computeDepth();}catch(e){}
+    try{mergeAftMh();}catch(_me){}
+    drawGeo();drawMarks();drawManholes();try{fitView();}catch(_e0){}updMeta();
+    if(typeof refreshFieldBar==='function')refreshFieldBar();
+    saveProject(function(newId){ copyPhotos(id,newId,function(){toast('✅ '+newName+' — 사본 저장 완료');},srcStage); });
+  });
 }
 function openImportList(scope){
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
-  sb.from(DB+'_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
+  var srcTbl=(scope==='survey'?'survey':'field')+'_projects';
+  sb.from(srcTbl).select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
     var rows=(res.data||[]).filter(function(p){
-      if(!p.payload||!p.payload.routingDone)return false;
-      var st=(p.payload.stage||'survey');
-      return scope==='survey'?(st==='survey'):(st==='survey'||st==='field');
+      if(!p.payload)return false;
+      if(scope==='survey')return !!p.payload.routingDone;            /* 결선완료(_A)만 */
+      var fd=p.payload.fieldDone||{};return !!fd.csv;                /* 현장 후측량성과 등록된 것 */
     });
     var LB={survey:'결선',field:'현장'};
     var body=rows.length
       ? '<div style="max-height:340px;overflow:auto;text-align:left">'+rows.map(function(p){
-          var st=(p.payload.stage||'survey');var bg=st==='field'?'#eafff2':'#eef5ff',col=st==='field'?'#15803d':'#1d4ed8';
+          var st=(p.payload.stage||(scope==='survey'?'survey':'field'));var bg=st==='field'?'#eafff2':'#eef5ff',col=st==='field'?'#15803d':'#1d4ed8';
           return '<button class="imp-row" data-id="'+p.id+'" data-stage="'+st+'" style="display:block;width:100%;text-align:left;margin:4px 0;padding:10px 12px;border:1px solid #d7dee8;border-radius:9px;background:'+bg+';cursor:pointer;font-size:14px;font-weight:700;color:'+col+'"><span style="font-size:11px;background:'+col+';color:#fff;padding:2px 7px;border-radius:9px;margin-right:7px">'+LB[st]+'</span>'+p.name+'</button>';
-        }).join('')+'</div><div style="color:#999;font-size:12px;margin-top:6px">'+(scope==='survey'?'고르면 현장 사본으로 <b>바로 저장</b>됩니다':'결선=통째 시드 · 현장=후측량 CSV만 추가 · 결선 먼저→현장 나중, 가져온 뒤 <b>저장</b>')+'</div>'
+        }).join('')+'</div><div style="color:#999;font-size:12px;margin-top:6px">고르면 <b>사본으로 복사</b>되어 '+(scope==='survey'?'<b>_C</b>':'<b>_T</b>')+' 이름으로 <b>자동 저장</b>됩니다 (원본은 그대로 보존)</div>'
       : '<div style="color:#999;padding:8px">가져올 완료 사업이 없습니다.</div>';
     var card=showModal({title:(scope==='survey'?'📥 결선완료 성과목록':'📥 결선/현장 완료목록'),tone:'ok',body:body,buttons:[{label:'닫기'}]});
-    card.querySelectorAll('.imp-row').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-id'),st=b.getAttribute('data-stage');card.remove();doImport(id,st,scope==='survey');};});
+    card.querySelectorAll('.imp-row').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-id'),st=b.getAttribute('data-stage');card.remove();importFromStage(id,st);};});
   });
 }
 
