@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 251</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 253</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -560,11 +560,11 @@ function drawDepthMarks(){
   (state.depthGround||[]).forEach(function(gp){
     if(gp.dep!=null)return;                 /* 매칭된 점은 패스 */
     var s=S(gp.Y,gp.X);
-    gPts.appendChild(el('circle',{cx:s[0],cy:s[1],r:1.1,fill:'none',stroke:'#e11','stroke-width':2.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    gPts.appendChild(el('circle',{cx:s[0],cy:s[1],r:1.1,fill:'none',stroke:'#e11','stroke-width':2.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));if(gp.name&&typeof mkLabel==='function')mkLabel(s[0]+1.5,s[1],gp.name+'(l)',{fill:'#e11',weight:'700',px:11,grp:'depth',anchor:'start'});
   });
   (state._depthRefUnused||[]).forEach(function(rf){
     var s=S(rf.Y,rf.X);
-    gPts.appendChild(el('circle',{cx:s[0],cy:s[1],r:1.1,fill:'none',stroke:'#e80','stroke-width':2.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    gPts.appendChild(el('circle',{cx:s[0],cy:s[1],r:1.1,fill:'none',stroke:'#e80','stroke-width':2.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));if(rf.no&&typeof mkLabel==='function')mkLabel(s[0]+1.5,s[1],rf.no,{fill:'#e80',weight:'700',px:11,grp:'depth',anchor:'start'});
   });
 }
 function parseAftCsv(txt){
