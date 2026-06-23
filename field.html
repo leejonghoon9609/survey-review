@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 249</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 250</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5072,7 +5072,7 @@ EOF
     if(_bp){noOut=no;}else{var _dp2=no.lastIndexOf('-'),_dt=_dp2>=0?no.slice(0,_dp2):'',_nm=_dp2>=0?no.slice(_dp2+1):no,_sN=(_LV.no!==0),_sD=(_LV.date!==0);if(_dp2>=0){if(_sN&&_sD)noOut=no;else if(_sN)noOut=_nm;else if(_sD)noOut=_dt;}else if(_sN)noOut=no;}
     var cdOut=(cd&&(_bp||_LV.code!==0))?cd:'';
     var _dep=(_bp||_LV.depth===0)?null:(state._depthByNo&&state._depthByNo[p.no]);var _hasDep=(_dep!=null&&isFinite(_dep));
-    if(noOut||cdOut||_hasDep)line(p.x,p.y,lo.lx,lo.ly,'PT_LEADER',7,'DASHED');
+    if(noOut||cdOut)line(p.x,p.y,lo.lx,lo.ly,'PT_LEADER',7,'DASHED');
     if(noOut)text(lo.lx,lo.ly+TH*0.1,TH,noOut,'PT_LABEL',_bp?2:3,al);
     if(cdOut)text(lo.lx,lo.ly-TH*1.1,TH,cdOut,'PT_CODE',_bp?2:4,al);
     if(_hasDep){var _w3=(typeof pipeDirAt==='function')?pipeDirAt(p):null,_dx=0,_dy=-0.7;if(_w3){var _mm=Math.hypot(_w3[0],_w3[1])||1,_ue=_w3[0]/_mm,_un=_w3[1]/_mm,_pe=-_un,_pn=_ue,_lx2=(lo.lx-p.x),_ly2=(lo.ly-p.y);if(_pe*_lx2+_pn*_ly2>0){_pe=-_pe;_pn=-_pn;}_dx=_pe*0.7;_dy=_pn*0.7;}line(p.x,p.y,p.x+_dx,p.y+_dy,'PT_DEPTH',5,'DASHED');text(p.x+_dx,p.y+_dy,TH,'심도 '+(Math.round(_dep*100)/100).toFixed(2)+'m','PT_DEPTH',5,1);}
