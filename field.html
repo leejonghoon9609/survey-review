@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 245</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 246</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1029,7 +1029,7 @@ function drawGeo(){
   });
   var Up=pxToWorld();
   var hitR=Math.min(0.45, 9*Up);   // 클릭 히트: 작은 줌에선 화면 고정, 큰 줌에선 월드 0.45 상한
-  state.points.forEach(function(p,i){if((typeof LV!=='undefined')&&LV.bp===0&&/보강판/.test((p.no||'')+'|'+(p.code||'')))return;var s=S(p.x,p.y);
+  state.points.forEach(function(p,i){if((typeof LV!=='undefined')&&LV.bp===0&&/보강판/.test((p.no||'')+'|'+(p.code||'')))return;var isBp=/보강판/.test((p.no||'')+'|'+(p.code||''));var s=S(p.x,p.y);
     // 측점 심벌(속빈 사각) — 월드고정 정사각: 줌하면 크기는 변하지만 절대 안 찌그러짐, 위치 정확
     gPts.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:isManhole(p)?'#0d47a1':(isTpoint(p)?'#13803a':'#111'),'stroke-width':isManhole(p)?3.8:2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     gPts.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#111','stroke-width':4,'stroke-linecap':'square','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // 중심 점(박스와 동일 vector-effect → 줌 고정)
@@ -1048,10 +1048,10 @@ function drawGeo(){
     var nt=mkLabel(ls[0]+off, ls[1], p.no, {fill:'#1a7a3a',weight:'400',anchor:L.anchor,grp:'pt',px:15});
     // 윗줄 날짜-번호에서 번호(마지막 - 뒤)만 빨간색
     var noStr=(p.no||''), dpos=noStr.lastIndexOf('-');
-    if(dpos>=0)nt.innerHTML='<span class="L-date">'+noStr.slice(0,dpos+1)+'</span><span class="L-no" style="color:#d32f2f;font-weight:700">'+noStr.slice(dpos+1)+'</span>';else nt.innerHTML='<span class="L-no">'+noStr+'</span>';
+    if(isBp)nt.innerHTML='<span class="L-bp">'+noStr+'</span>';else if(dpos>=0)nt.innerHTML='<span class="L-date">'+noStr.slice(0,dpos+1)+'</span><span class="L-no" style="color:#d32f2f;font-weight:700">'+noStr.slice(dpos+1)+'</span>';else nt.innerHTML='<span class="L-no">'+noStr+'</span>';
     // 코드는 번호 아래 줄로 같은 div에 추가
     if((p.code||'').trim()){
-      var sub=document.createElement('div');sub.className='L-code';
+      var sub=document.createElement('div');sub.className=isBp?'L-bp':'L-code';
       var code=(p.code||'').trim();
       if(isTpoint(p)){sub.innerHTML=code.replace(/(^|\s)(T)(?=\s|$)/,'$1<span style="color:#d32f2f;font-weight:700">T</span>');}
       else{sub.textContent=code;}
@@ -1059,8 +1059,8 @@ function drawGeo(){
       nt.appendChild(sub);
     }
     var _dp=(state._depthByNo&&state._depthByNo[p.no]);
-    if(_dp!=null&&isFinite(_dp)){var _w=(typeof pipeDirAt==='function')?pipeDirAt(p):null,_ddx=0,_ddy=-0.3;if(_w){var _m=Math.hypot(_w[0],_w[1])||1,_ue=_w[0]/_m,_un=_w[1]/_m,_pe=-_un,_pn=_ue,_lox=(L.lx-p.x),_loy=(L.ly-p.y);if(_pe*_lox+_pn*_loy>0){_pe=-_pe;_pn=-_pn;}_ddx=_pe*0.3;_ddy=_pn*0.3;}var _ds=S(p.x+_ddx,p.y+_ddy);gPts.appendChild(el('line',{x1:s[0],y1:s[1],x2:_ds[0],y2:_ds[1],stroke:'#7a52e0','stroke-width':1.2,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none','class':'depth-lead'}));mkLabel(_ds[0],_ds[1],'\uC2EC\uB3C4 '+(Math.round(_dp*100)/100).toFixed(2)+'m',{fill:'#7a52e0',weight:'700',anchor:'middle',grp:'depth',px:13});}
-    if(ld){var _lvis=((LV.no!==0)&&(p.no||'').length>0)||((LV.date!==0)&&dpos>=0)||((LV.code!==0)&&(p.code||'').trim().length>0);ld.style.display=_lvis?'':'none';}
+    if(_dp!=null&&isFinite(_dp)){var _w=(typeof pipeDirAt==='function')?pipeDirAt(p):null,_ddx=0,_ddy=-0.3;if(_w){var _m=Math.hypot(_w[0],_w[1])||1,_ue=_w[0]/_m,_un=_w[1]/_m,_pe=-_un,_pn=_ue,_lox=(L.lx-p.x),_loy=(L.ly-p.y);if(_pe*_lox+_pn*_loy>0){_pe=-_pe;_pn=-_pn;}_ddx=_pe*0.3;_ddy=_pn*0.3;}var _ds=S(p.x+_ddx,p.y+_ddy);gPts.appendChild(el('line',{x1:s[0],y1:s[1],x2:_ds[0],y2:_ds[1],stroke:'#0d47a1','stroke-width':1.2,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none','class':'depth-lead'}));mkLabel(_ds[0],_ds[1],'\uC2EC\uB3C4 '+(Math.round(_dp*100)/100).toFixed(2)+'m',{fill:'#0d47a1',weight:'700',anchor:'middle',grp:'depth',px:13});}
+    if(ld){var _lvis=isBp||((LV.no!==0)&&(p.no||'').length>0)||((LV.date!==0)&&dpos>=0)||((LV.code!==0)&&(p.code||'').trim().length>0);ld.style.display=_lvis?'':'none';}
     var ct=nt; // 핸들 호환
     addLabelHandle(p,L,ls,nt,ct,ld,p.no===selNum);
   });
@@ -1399,6 +1399,7 @@ var vb={x:0,y:0,w:100,h:100}, vb0={x:0,y:0,w:100,h:100}, _vbwLast=null;
 function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);repositionLabels();if(bgMapOn)syncMapBg();}
 // 뷰박스 종횡비를 화면(canvas) 종횡비에 맞춰 확장(중심유지) → meet 여백 제거 → 줌·팬 좌표 정확
 function fixAspect(){var r=cv.getBoundingClientRect();if(r.width<1||r.height<1)return;var car=r.width/r.height,cx=vb.x+vb.w/2,cy=vb.y+vb.h/2;if(vb.w/vb.h<car)vb.w=vb.h*car;else vb.h=vb.w/car;vb.x=cx-vb.w/2;vb.y=cy-vb.h/2;}
+function fitSoon(){var n=0;(function go(){var done=false;try{var r=cv.getBoundingClientRect();if(r.width>=1&&r.height>=1){fitView();done=true;}}catch(e){}if(!done&&n++<50)requestAnimationFrame(go);})();}
 function fitView(){
   var xs=[],ys=[];function add(x,y){var s=S(x,y);xs.push(s[0]);ys.push(s[1]);}
   state.points.forEach(function(p){add(p.x,p.y);});
@@ -5466,7 +5467,7 @@ function loadProject(id,ro,cb){ if(!online||!id)return; setReadOnly(!!ro);
     if(res.error||!res.data){toast('불러오기 실패');return;}
     var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;state.loadedStage=p.stage||'survey';state._importSrc=[];
     state.points=p.points||[];state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.depthGround=p.depthGround||null;state._depthAlign=null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.asbuilt=p.asbuilt||null;state.nightShift=p.nightShift||null;state.fieldDone=p.fieldDone||null;state.finalCsv=p.finalCsv?(Array.isArray(p.finalCsv)?p.finalCsv:[p.finalCsv]):[];state.bizInfo=p.bizInfo||null;
-    selNum=null;clearSvg(gSel);try{if(state.finalCsv&&state.finalCsv.length&&typeof finalCsvDepthSync==='function')finalCsvDepthSync();if(state.depthGround&&state.depthGround.length&&typeof computeDepth==='function')computeDepth();}catch(e){}drawGeo();drawMarks();drawManholes();fitView();updMeta();loadPhotos();setTimeout(function(){try{fitView();}catch(_e){}},80);requestAnimationFrame(function(){try{fitView();}catch(_e){}});if(typeof refreshFieldBar==='function')refreshFieldBar();toast('현장 불러옴: '+res.data.name);
+    selNum=null;clearSvg(gSel);try{if(state.finalCsv&&state.finalCsv.length&&typeof finalCsvDepthSync==='function')finalCsvDepthSync();if(state.depthGround&&state.depthGround.length&&typeof computeDepth==='function')computeDepth();}catch(e){}drawGeo();drawMarks();drawManholes();try{fitView();}catch(_e0){}updMeta();loadPhotos();fitSoon();if(typeof refreshFieldBar==='function')refreshFieldBar();toast('현장 불러옴: '+res.data.name);
     var vs=document.getElementById('vproj');if(vs)vs.value=res.data.id;
     if(viewerMode&&!IS_FIELD)setTimeout(function(){openPhotoPanel(true);},150);
     if(typeof cb==='function')cb();
