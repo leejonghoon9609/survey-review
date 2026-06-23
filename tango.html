@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 260</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 261</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5610,7 +5610,7 @@ function toneStyle(tone,active){var c=TONE[tone]||{bg:'#f3f3f0',fg:'#333'};retur
 function railStyle(col,active){col=col||{bg:'#f3f3f0',fg:'#333'};return active?('background:'+col.bg+';color:'+col.fg+';border:1px solid '+col.fg+';border-left:4px solid '+col.fg+';border-radius:0 8px 8px 0;font-weight:700;'):('background:#fff;color:'+col.fg+';border:1px solid #e3e3df;border-left:4px solid '+col.fg+';border-radius:0 8px 8px 0;font-weight:600;');}
 var activeCat='pan';
 var toolsOpen=false;try{toolsOpen=(localStorage.getItem('toolsOpen')==='1');}catch(e){}
-var LV=(function(){try{return JSON.parse(localStorage.getItem('layerVis'))||{};}catch(e){return {};}})();['no','date','code','depth','mh','riser','hyun','bp'].forEach(function(k){if(LV[k]==null)LV[k]=1;});function applyLayerVis(){var b=document.body;if(!b)return;['no','date','code','depth','mh','riser','hyun'].forEach(function(k){b.classList.toggle('hide-'+k,!LV[k]);});}function setLayerVis(k,on){LV[k]=on?1:0;try{localStorage.setItem('layerVis',JSON.stringify(LV));}catch(e){}applyLayerVis();if(typeof drawGeo==='function')drawGeo();}
+var LV=(function(){try{return JSON.parse(localStorage.getItem('layerVis'))||{};}catch(e){return {};}})();['no','date','code','depth','mh','riser','hyun','bp'].forEach(function(k){if(LV[k]==null)LV[k]=1;});if(typeof IS_TANGO!=='undefined'&&!IS_TANGO){['no','date','code','depth','mh','riser','hyun','bp'].forEach(function(k){LV[k]=1;});} /* 결선/현장: 레이어체크바와 무관하게 전부 표시(탱고 전용 기능) */function applyLayerVis(){var b=document.body;if(!b)return;['no','date','code','depth','mh','riser','hyun'].forEach(function(k){b.classList.toggle('hide-'+k,!LV[k]);});}function setLayerVis(k,on){LV[k]=on?1:0;try{localStorage.setItem('layerVis',JSON.stringify(LV));}catch(e){}applyLayerVis();if(typeof drawGeo==='function')drawGeo();}
 function curCat(){for(var i=0;i<TB.length;i++)if(TB[i].k===activeCat)return TB[i];return TB[0];}
 function renderRail(){
   var r=document.getElementById('rail'),html='';
