@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 250</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 251</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -523,7 +523,7 @@ var state={ projectId:null, projectName:null, loadedStage:STAGE, _importSrc:[], 
 // label = '2M(SKB)' 등
 var mode='pan', status='ok', bpCrop=null;
 var bpOff=false; /* 백판(수치지도) 숨김 여부 */
-var LINECOL={"통신관로":{c:"#d92b2b",w:1.6},"압입구간":{c:"#1f6fd6",w:3.0,dash:"10 7"},"지거":{c:"#f2b400",w:2.4},"주입상인출선":{c:"#999",w:1},"보도":{c:"#0aa37a",w:1.4},"도로":{c:"#6b7280",w:1.4}};
+var LINECOL={"통신관로":{c:"#d92b2b",w:1.6},"압입구간":{c:"#1f6fd6",w:3.0,dash:"10 7"},"지거":{c:"#f2b400",w:2.4},"주입상인출선":{c:"#999",w:1},"보도":{c:"#29b6f6",w:1.4},"도로":{c:"#29b6f6",w:1.4}};
 function isTpoint(p){return /(^|\s)T(\s|$)/.test((p&&p.code)||'');}
 function pipeCount(p){var m=/[xX×]\s*(\d+)/.exec((p&&p.code)||'');return m?+m[1]:null;}
 function isManhole(p){return /^\s*M/.test((p&&p.code)||'');}
@@ -619,7 +619,7 @@ function buildInspData(){
   state.manholes=state.manholes.filter(function(m){return !m.insp;});state.manholes.forEach(function(m){m._mhMatched=false;});
   var nB=0,nD=0,nBD=0,nM=0,nL=0,nIg=0;
   function buildLinesIn(seq,code,layer){
-    var pp=seq.filter(function(p){return p.code===code;}),run=[],n=0;
+    var pp=seq.filter(function(p){return p.code===code||(code==='B'&&p.code==='BD');}),run=[],n=0;
     function flush(){if(run.length>=2){state.lines.push({layer:layer,pts:run.map(function(p){return [p.ex,p.no];}),insp:true});n++;}run=[];}
     for(var i=0;i<pp.length;i++){if(run.length){var pv=run[run.length-1];if(Math.hypot(pp[i].ex-pv.ex,pp[i].no-pv.no)>8)flush();}run.push(pp[i]);}
     flush();return n;
@@ -629,7 +629,7 @@ function buildInspData(){
     nD+=buildLinesIn(seq,'D','도로');
     seq.forEach(function(p){
       if(p.skip){nIg++;return;}
-      if(p.code==='BD'){var s=S(p.ex,p.no);state.markups.push({type:'cir',cx:s[0],cy:s[1],rx:0.5,ry:0.5,status:'bad',near:'경계'});nBD++;}
+      if(p.code==='BD'){nBD++;}
       else if(p.code==='SKTM'){var _ex=p.ex,_no=p.no,_bm=null,_bd=4;(state.manholes||[]).forEach(function(m){if(m._mhMatched)return;var _d=Math.hypot((m.wx||0)-_ex,(m.wy||0)-_no);if(_d<=_bd){_bd=_d;_bm=m;}});if(_bm){var _ox2=_bm.wx,_oy2=_bm.wy;_bm.wx=_ex;_bm.wy=_no;_bm._aft=true;_bm._mhMatched=true;if(typeof moveMhLines==='function')moveMhLines(_bm,_ox2,_oy2);}else{state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+nM)),wx:_ex,wy:_no,label:'M (SKT )',kind:'신',lx:null,ly:null,type:'mh',insp:true,_aft:true,_mhMatched:true});}nM++;}
       else if(p.code==='l')nL++;
     });
