@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 282</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 283</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1007,22 +1007,51 @@ function pxToWorld(){
   return Math.max(vb.w/Math.max(r.width,1), vb.h/Math.max(r.height,1));
 }
 
-/* ===== 보강판 구역(±7M 박스 + 연한 해치 + 태그/인출선) ===== */
+/* ===== 보강판 구역(관로결선 ±5M 밴드 + 연한 해치 + 태그/인출선) ===== */
 var bpFirst=null;
-function bpCorners(z){var dx=z.p2[0]-z.p1[0],dy=z.p2[1]-z.p1[1],L=Math.hypot(dx,dy)||1,nx=dx/L,ny=dy/L,px=-ny*7,py=nx*7;return [[z.p1[0]+px,z.p1[1]+py],[z.p2[0]+px,z.p2[1]+py],[z.p2[0]-px,z.p2[1]-py],[z.p1[0]-px,z.p1[1]-py]];}
-function bpDefLeader(z){var mx=(z.p1[0]+z.p2[0])/2,my=(z.p1[1]+z.p2[1])/2,dx=z.p2[0]-z.p1[0],dy=z.p2[1]-z.p1[1],L=Math.hypot(dx,dy)||1;z.lx=mx-dy/L*10;z.ly=my+dx/L*10;}
+function bpKey(pt){return (Math.round(pt[0]*100)/100)+','+(Math.round(pt[1]*100)/100);}
+function bpTracePath(p1,p2){
+  var segs=[];(state.lines||[]).forEach(function(L){if(L.layer!=='\uD1B5\uC2E0\uAD00\uB85C'||!L.pts||L.pts.length<2)return;for(var i=0;i<L.pts.length-1;i++)segs.push([L.pts[i],L.pts[i+1]]);});
+  if(!segs.length)return [p1,p2];
+  var adj={},vmap={};segs.forEach(function(sg){var a=bpKey(sg[0]),b=bpKey(sg[1]);vmap[a]=sg[0];vmap[b]=sg[1];(adj[a]=adj[a]||[]).push(b);(adj[b]=adj[b]||[]).push(a);});
+  function nk(pt){var best=null,bd=1e18;for(var k in vmap){var v=vmap[k],d=Math.hypot(v[0]-pt[0],v[1]-pt[1]);if(d<bd){bd=d;best=k;}}return best;}
+  var sk=nk(p1),ek=nk(p2);if(!sk||!ek)return [p1,p2];
+  var q=[sk],prev={};prev[sk]='_root';var found=false;
+  while(q.length){var cur=q.shift();if(cur===ek){found=true;break;}(adj[cur]||[]).forEach(function(nb){if(!(nb in prev)){prev[nb]=cur;q.push(nb);}});}
+  if(!found)return [p1,p2];
+  var path=[],c=ek;while(c&&c!=='_root'){path.unshift(vmap[c]);c=prev[c];}
+  return path.length>=2?path:[p1,p2];
+}
+function bpOffsetBand(path,off){
+  var n=path.length;if(n<2)return null;
+  function un(ax,ay){var l=Math.hypot(ax,ay)||1;return [ax/l,ay/l];}
+  var left=[],right=[];
+  for(var i=0;i<n;i++){var nx,ny;
+    if(i===0){var d=un(path[1][0]-path[0][0],path[1][1]-path[0][1]);nx=-d[1];ny=d[0];}
+    else if(i===n-1){var e=un(path[n-1][0]-path[n-2][0],path[n-1][1]-path[n-2][1]);nx=-e[1];ny=e[0];}
+    else{var a=un(path[i][0]-path[i-1][0],path[i][1]-path[i-1][1]),b=un(path[i+1][0]-path[i][0],path[i+1][1]-path[i][1]);var n1=[-a[1],a[0]],n2=[-b[1],b[0]];var bx=n1[0]+n2[0],by=n1[1]+n2[1],bl=Math.hypot(bx,by)||1;bx/=bl;by/=bl;var ch=bx*n1[0]+by*n1[1];var m=ch>0.25?1/ch:4;nx=bx*m;ny=by*m;}
+    left.push([path[i][0]+nx*off,path[i][1]+ny*off]);right.push([path[i][0]-nx*off,path[i][1]-ny*off]);
+  }
+  return left.concat(right.reverse());
+}
+function bpPathOf(z){return (z.path&&z.path.length>=2)?z.path:[z.p1,z.p2];}
+function bpPtInPoly(x,y,poly){var inside=false;for(var i=0,j=poly.length-1;i<poly.length;j=i++){var xi=poly[i][0],yi=poly[i][1],xj=poly[j][0],yj=poly[j][1];if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))inside=!inside;}return inside;}
+function bpPtHidden(p){
+  if(!state.bpzones||!state.bpzones.length)return false;
+  for(var zi=0;zi<state.bpzones.length;zi++){var poly=bpOffsetBand(bpPathOf(state.bpzones[zi]),5);if(poly&&bpPtInPoly(p.x,p.y,poly))return true;}
+  return false;
+}
 function drawBpZones(){
   if(!state.bpzones||!state.bpzones.length)return;
   if((typeof LV!=='undefined')&&LV.bpbox===0)return;
   state.bpzones.forEach(function(z){
-    var cs=bpCorners(z);
-    var d='M'+cs.map(function(c){var sp=S(c[0],c[1]);return sp[0]+' '+sp[1];}).join(' L')+' Z';
+    var path=bpPathOf(z), poly=bpOffsetBand(path,5);if(!poly)return;
+    var d='M'+poly.map(function(c){var sp=S(c[0],c[1]);return sp[0]+' '+sp[1];}).join(' L')+' Z';
     gGeo.appendChild(el('path',{d:d,fill:'#b8860b','fill-opacity':'0.10',stroke:'#b8860b','stroke-width':'1.6','stroke-opacity':'0.85','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-    var dx=z.p2[0]-z.p1[0],dy=z.p2[1]-z.p1[1],Ln=Math.hypot(dx,dy)||1,nx=dx/Ln,ny=dy/Ln,px=-ny*7,py=nx*7;
-    var step=1.5,n=Math.max(1,Math.round(Ln/step));
-    for(var i=1;i<n;i++){var t=i/n,bx=z.p1[0]+dx*t,by=z.p1[1]+dy*t,a=S(bx+px,by+py),b=S(bx-px,by-py);gGeo.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:'#b8860b','stroke-width':'1','stroke-opacity':'0.35','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}
-    if(z.lx==null||z.ly==null)bpDefLeader(z);
-    var mc=S((z.p1[0]+z.p2[0])/2,(z.p1[1]+z.p2[1])/2), ts=S(z.lx,z.ly);
+    for(var si=0;si<path.length-1;si++){var ax=path[si][0],ay=path[si][1],dx=path[si+1][0]-ax,dy=path[si+1][1]-ay,Lg=Math.hypot(dx,dy)||1,ux=dx/Lg,uy=dy/Lg,pxp=-uy,pyp=ux,nn=Math.max(1,Math.round(Lg/1.5));for(var i=0;i<nn;i++){var t=(i+0.5)/nn,ccx=ax+dx*t,ccy=ay+dy*t,A=S(ccx+pxp*5,ccy+pyp*5),B=S(ccx-pxp*5,ccy-pyp*5);gGeo.appendChild(el('line',{x1:A[0],y1:A[1],x2:B[0],y2:B[1],stroke:'#b8860b','stroke-width':'1','stroke-opacity':'0.30','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}}
+    var mid=path[Math.floor(path.length/2)];
+    if(z.lx==null||z.ly==null){z.lx=mid[0];z.ly=mid[1]+10;}
+    var mc=S(mid[0],mid[1]), ts=S(z.lx,z.ly);
     gGeo.appendChild(el('line',{x1:mc[0],y1:mc[1],x2:ts[0],y2:ts[1],stroke:'#b8860b','stroke-width':'1.6','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     var lbl=mkLabel(ts[0],ts[1],z.note||'\uBCF4\uAC15\uD310 \uC9C0\uC5ED',{fill:'#b8860b',weight:'700',anchor:'middle',grp:'pt',px:15});
     if(!viewerMode&&!readOnly){
@@ -1031,7 +1060,7 @@ function drawBpZones(){
       var ah=el('circle',{cx:ts[0],cy:ts[1],r:0.7,fill:'rgba(184,134,11,0.001)',stroke:'none',cursor:'move'});gAnc.appendChild(ah);
       (function(zz,handle){var drag=false;
         handle.addEventListener('pointerdown',function(ev){if(mode==='bpzdel'){ev.stopPropagation();ev.preventDefault();var bi=state.bpzones.indexOf(zz);if(bi>=0){pushHist();state.bpzones.splice(bi,1);drawGeo();updMeta();toast('\uBCF4\uAC15\uD310 \uAD6C\uC5ED \uC0AD\uC81C');}return;}if(mode!=='pan'||viewerMode||readOnly)return;ev.stopPropagation();drag=true;labelDragging=true;try{handle.setPointerCapture(ev.pointerId);}catch(e){}});
-        handle.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();var ww=toWorld(ev.clientX,ev.clientY);zz.lx=ww[0];zz.ly=-ww[1];var sp=S(zz.lx,zz.ly);handle.setAttribute('cx',sp[0]);handle.setAttribute('cy',sp[1]);drawGeo();});
+        handle.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();var ww=toWorld(ev.clientX,ev.clientY);zz.lx=ww[0];zz.ly=-ww[1];drawGeo();});
         function up(ev){if(!drag)return;drag=false;setTimeout(function(){labelDragging=false;},40);try{handle.releasePointerCapture(ev.pointerId);}catch(e){}drawGeo();}
         handle.addEventListener('pointerup',up);handle.addEventListener('pointercancel',up);
       })(z,ah);
@@ -1082,7 +1111,7 @@ function drawGeo(){
   });
   var Up=pxToWorld();
   var hitR=Math.min(0.45, 9*Up);   // 클릭 히트: 작은 줌에선 화면 고정, 큰 줌에선 월드 0.45 상한
-  state.points.forEach(function(p,i){if((typeof LV!=='undefined')&&LV.bp===0&&/보강판/.test((p.no||'')+'|'+(p.code||'')))return;var isBp=/보강판/.test((p.no||'')+'|'+(p.code||''));var s=S(p.x,p.y);
+  state.points.forEach(function(p,i){if((typeof LV!=='undefined')&&LV.bp===0&&/보강판/.test((p.no||'')+'|'+(p.code||'')))return;var isBp=/보강판/.test((p.no||'')+'|'+(p.code||''));var bpHide=isBp&&(typeof bpPtHidden==='function')&&bpPtHidden(p);var s=S(p.x,p.y);
     // 측점 심벌(속빈 사각) — 월드고정 정사각: 줌하면 크기는 변하지만 절대 안 찌그러짐, 위치 정확
     gPts.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:isBp?'#b8860b':(isManhole(p)?'#0d47a1':(isTpoint(p)?'#13803a':'#111')),'stroke-width':isManhole(p)?3.8:2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     gPts.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#111','stroke-width':4,'stroke-linecap':'square','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // 중심 점(박스와 동일 vector-effect → 줌 고정)
@@ -1097,7 +1126,7 @@ function drawGeo(){
     hit.addEventListener('mouseleave',function(){hit.setAttribute('fill','transparent');hit.removeAttribute('stroke');});
     gHit.appendChild(hit);
     var L=lay[i],ls=S(L.lx,L.ly),off=L.anchor==='start'?0.15:-0.15;
-    var ld=null;if(L.leader){ld=el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':1.3,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);}
+    var ld=null;if(L.leader&&!bpHide){ld=el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':1.3,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);}
     var nt=mkLabel(ls[0]+off, ls[1], p.no, {fill:'#1a7a3a',weight:'400',anchor:L.anchor,grp:'pt',px:15});
     // 윗줄 날짜-번호에서 번호(마지막 - 뒤)만 빨간색
     var noStr=(p.no||''), dpos=noStr.lastIndexOf('-');
@@ -1114,6 +1143,7 @@ function drawGeo(){
     var _dp=(state._depthByNo&&state._depthByNo[p.no]);
     if(_dp!=null&&isFinite(_dp)){var _w=(typeof pipeDirAt==='function')?pipeDirAt(p):null,_ddx=0,_ddy=-0.45,_drot=0;if(_w){var _m=Math.hypot(_w[0],_w[1])||1,_ue=_w[0]/_m,_un=_w[1]/_m,_pe=-_un,_pn=_ue,_lox=(L.lx-p.x),_loy=(L.ly-p.y);if(_pe*_lox+_pn*_loy>0){_pe=-_pe;_pn=-_pn;}_ddx=_pe*0.45;_ddy=_pn*0.45;_drot=Math.atan2(-_w[1],_w[0])*180/Math.PI;if(_drot>90)_drot-=180;if(_drot<-90)_drot+=180;}var _ds=S(p.x+_ddx,p.y+_ddy);mkLabel(_ds[0],_ds[1],(Math.round(_dp*100)/100).toFixed(2),{fill:'#2196f3',weight:'700',anchor:'middle',grp:'depth',px:14,rot:_drot});}
     if(ld){var _lvis=isBp||((LV.no!==0)&&(p.no||'').length>0)||((LV.date!==0)&&dpos>=0)||((LV.code!==0)&&(p.code||'').trim().length>0);ld.style.display=_lvis?'':'none';}
+    if(bpHide){nt.style.display='none';if(ld)ld.style.display='none';}
     var ct=nt; // 핸들 호환
     addLabelHandle(p,L,ls,nt,ct,ld,p.no===selNum);
   });
@@ -5150,7 +5180,7 @@ EOF
   // 측점: 박스 + 인출선(검정 점선) + 번호/코드
   var lay=computeLabels();
   state.points.forEach(function(p,k){
-    var _bp=/보강판/.test((p.no||'')+'|'+(p.code||''));
+    var _bp=/보강판/.test((p.no||'')+'|'+(p.code||''));var _bpHide=_bp&&(typeof bpPtHidden==='function')&&bpPtHidden(p);
     var _LV=(typeof LV!=='undefined')?LV:{};
     if(_bp&&_LV.bp===0)return;
     insert('SD901',p.x,p.y,0.3,'SD901',_bp?2:(isTpoint(p)?3:7));
@@ -5161,6 +5191,7 @@ EOF
     if(_bp){noOut=no;}else{var _dp2=no.lastIndexOf('-'),_dt=_dp2>=0?no.slice(0,_dp2):'',_nm=_dp2>=0?no.slice(_dp2+1):no,_sN=(_LV.no!==0),_sD=(_LV.date!==0);if(_dp2>=0){if(_sN&&_sD)noOut=no;else if(_sN)noOut=_nm;else if(_sD)noOut=_dt;}else if(_sN)noOut=no;}
     var cdOut=(cd&&(_bp||_LV.code!==0))?cd:'';
     var _dep=(_bp||_LV.depth===0)?null:(state._depthByNo&&state._depthByNo[p.no]);var _hasDep=(_dep!=null&&isFinite(_dep));
+    if(_bpHide){noOut='';cdOut='';}
     if(noOut||cdOut)line(p.x,p.y,lo.lx,lo.ly,'PT_LEADER',7,'DASHED');
     if(noOut)text(lo.lx,lo.ly+TH*0.1,TH,noOut,'PT_LABEL',_bp?2:3,al);
     if(cdOut)text(lo.lx,lo.ly-TH*1.1,TH,cdOut,'PT_CODE',_bp?2:4,al);
@@ -5201,17 +5232,17 @@ EOF
     pline([[mh.wx,mh.wy],[lx,lyy],[ux2,lyy]],lyr,col,false); // 대각선+밑줄=폴리선 1개(붙음)
     if(mh.label)text(lx,lyy+MTH*0.45,MTH,mhDisp(mh),lyr+'_LABEL',col,isRight?0:2); // 꺾임점 기준 정렬(R=좌0,L=우2)
   });
-  // 보강판 구역(±7M 박스 + 연한 해치 + 태그/인출선) — true color 보강판색(#B8860B)
+  // 보강판 구역(관로결선 ±5M 밴드 + 연한 해치 + 태그/인출선) — true color 보강판색(#B8860B)
   if(!((typeof LV!=='undefined')&&LV.bpbox===0))(state.bpzones||[]).forEach(function(z){
     var BPTC=12092939;
     function bpLine(x1,y1,x2,y2){push(['0','LINE','5',H(),'330','17','100','AcDbEntity','8','BPZONE','62','256','420',String(BPTC),'100','AcDbLine','10',N(x1),'20',N(y1),'30','0','11',N(x2),'21',N(y2),'31','0']);}
-    var dx=z.p2[0]-z.p1[0],dy=z.p2[1]-z.p1[1],Ln=Math.hypot(dx,dy)||1,nx=dx/Ln,ny=dy/Ln,px=-ny*7,py=nx*7;
-    var c1=[z.p1[0]+px,z.p1[1]+py],c2=[z.p2[0]+px,z.p2[1]+py],c3=[z.p2[0]-px,z.p2[1]-py],c4=[z.p1[0]-px,z.p1[1]-py];
-    bpLine(c1[0],c1[1],c2[0],c2[1]);bpLine(c2[0],c2[1],c3[0],c3[1]);bpLine(c3[0],c3[1],c4[0],c4[1]);bpLine(c4[0],c4[1],c1[0],c1[1]);
-    var step=1.5,n=Math.max(1,Math.round(Ln/step));
-    for(var i=1;i<n;i++){var t=i/n,bx=z.p1[0]+dx*t,by=z.p1[1]+dy*t;bpLine(bx+px,by+py,bx-px,by-py);}
-    if(z.lx==null||z.ly==null){var mx2=(z.p1[0]+z.p2[0])/2,my2=(z.p1[1]+z.p2[1])/2;z.lx=mx2-dy/Ln*10;z.ly=my2+dx/Ln*10;}
-    var cx=(z.p1[0]+z.p2[0])/2,cy=(z.p1[1]+z.p2[1])/2;bpLine(cx,cy,z.lx,z.ly);
+    var path=(z.path&&z.path.length>=2)?z.path:[z.p1,z.p2];
+    var poly=(typeof bpOffsetBand==='function')?bpOffsetBand(path,5):null;if(!poly)return;
+    for(var pi=0;pi<poly.length;pi++){var a=poly[pi],b=poly[(pi+1)%poly.length];bpLine(a[0],a[1],b[0],b[1]);}
+    for(var si=0;si<path.length-1;si++){var ax=path[si][0],ay=path[si][1],dx=path[si+1][0]-ax,dy=path[si+1][1]-ay,Lg=Math.hypot(dx,dy)||1,ux=dx/Lg,uy=dy/Lg,pxp=-uy,pyp=ux,nn=Math.max(1,Math.round(Lg/1.5));for(var i=0;i<nn;i++){var t=(i+0.5)/nn,ccx=ax+dx*t,ccy=ay+dy*t;bpLine(ccx+pxp*5,ccy+pyp*5,ccx-pxp*5,ccy-pyp*5);}}
+    var mid=path[Math.floor(path.length/2)];
+    if(z.lx==null||z.ly==null){z.lx=mid[0];z.ly=mid[1]+10;}
+    bpLine(mid[0],mid[1],z.lx,z.ly);
     var _nt=z.note||'\uBCF4\uAC15\uD310 \uC9C0\uC5ED',_es=uesc(_nt),_hg=false;for(var _k=0;_k<_nt.length;_k++){if(_nt.charCodeAt(_k)>127){_hg=true;break;}}
     var ta=['0','TEXT','5',H(),'330','17','100','AcDbEntity','8','BPZONE','62','256','420',String(BPTC),'100','AcDbText','10',N(z.lx),'20',N(z.ly),'30','0','40',N(TH*1.2),'1',_es];if(_hg)ta.push('7','HANGUL');ta.push('72','1','11',N(z.lx),'21',N(z.ly),'31','0','100','AcDbText');push(ta);
   });
@@ -5370,7 +5401,7 @@ cv.addEventListener('pointerdown',function(e){
   else if(mode==='riserplace'){var wr=toWorld(e.clientX,e.clientY);placeManholeAt(wr[0],-wr[1],'riser');mode='pan';setModeUI();return;}
   else if(mode==='ptins'){var wi=toWorld(e.clientX,e.clientY);insertPointAt(wi[0],-wi[1]);mode='pan';setModeUI();return;}
   else if(mode==='bpz1'){var wi=toWorld(e.clientX,e.clientY);bpFirst=[wi[0],-wi[1]];mode='bpz2';setModeUI();toast('두 번째 점(끝)을 클릭하세요');return;}
-  else if(mode==='bpz2'){var wi=toWorld(e.clientX,e.clientY);if(!state.bpzones)state.bpzones=[];pushHist();state.bpzones.push({p1:bpFirst,p2:[wi[0],-wi[1]],note:'보강판 지역'});bpFirst=null;mode='pan';setModeUI();drawGeo();updMeta();toast('보강판 구역 생성 — 더블클릭=태그수정, 핸들 드래그=태그이동');return;}
+  else if(mode==='bpz2'){var wi=toWorld(e.clientX,e.clientY);if(!state.bpzones)state.bpzones=[];pushHist();state.bpzones.push({p1:bpFirst,p2:[wi[0],-wi[1]],note:'보강판 지역',path:bpTracePath(bpFirst,[wi[0],-wi[1]])});bpFirst=null;mode='pan';setModeUI();drawGeo();updMeta();toast('보강판 구역 생성 — 더블클릭=태그수정, 핸들 드래그=태그이동');return;}
   else if(mode==='ptdel'){return;} // 측점삭제: 빈 곳 클릭은 무시(측점 클릭은 hit 핸들러가 삭제)
   else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);var ns=nearestSnapWorld(w[0],w[1]);
     var snapTol=(drawLayer==='지거')?Math.max(pxToWorld()*14,0.25):vb.w*0.04; // 지거는 측점 바로 위만 스냅(끝점이 멀리 안 끌림)
