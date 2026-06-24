@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 275</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 276</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1093,7 +1093,7 @@ function nearestPipeDir(wx,wy,maxR){
   return [vx/vl,vy/vl,bd];
 }
 // 맨홀/입상주 라벨 기본 위치(world) — 화면·DXF 공용. txtW=라벨 폭(각자 단위)
-function mhDisp(mh){return (mh.kind?mh.kind+' ':'')+(mh.label||'');}
+function mhDisp(mh){return (mh.kind?mh.kind+' ':'')+(mh.label||'')+(mh.spec?' '+mh.spec:'');}
 function mhLabelBase(mh, txtW){
   var isRiser=(mh.type==='riser');
   var mp=null,md=1e18;
@@ -1232,13 +1232,15 @@ function drawManholes(){
       inpIn.style.cssText='font-size:18px;font-weight:600;color:#333;border:none;background:transparent;outline:none;width:90px;text-align:center;';
       var spR=document.createElement('span');var selKind=document.createElement('select');selKind.innerHTML='<option value="신">신설</option><option value="기">기설</option>';selKind.value=(mh.kind==='기'?'기':'신');selKind.style.cssText='font-size:15px;font-weight:700;color:#333;border:1px solid #bbb;border-radius:4px;background:#fff;outline:none;margin-right:5px;padding:1px 2px;cursor:pointer';
       spR.textContent=')';
-      wrap.appendChild(selKind);wrap.appendChild(inpPre);wrap.appendChild(spM);wrap.appendChild(inpIn);wrap.appendChild(spR);
+      var selSpec=document.createElement('select');selSpec.innerHTML='<option value="">규격</option><option>인공1호</option><option>인공2호</option><option>인공3호</option><option>수공1호</option><option>수공2호</option><option>수공2-1호</option><option>SMC</option>';selSpec.value=mh.spec||'';selSpec.style.cssText='font-size:15px;font-weight:700;color:#333;border:1px solid #bbb;border-radius:4px;background:#fff;outline:none;margin-left:5px;padding:1px 2px;cursor:pointer';
+      wrap.appendChild(selKind);wrap.appendChild(inpPre);wrap.appendChild(spM);wrap.appendChild(inpIn);wrap.appendChild(spR);wrap.appendChild(selSpec);
       document.body.appendChild(wrap);inpPre.focus();inpPre.select();
       var done=function(){if(wrap.parentNode){
         pushHist();
         var p=inpPre.value.trim(), v=inpIn.value.trim();
         mh.label=p+'M ('+v+(v?' ':'')+')';
         mh.kind=selKind.value;
+        mh.spec=selSpec.value;
         mh._edited=true; // 사용자가 직접 고침 → 자동정리 안 함
         wrap.remove();drawManholes();}};
       var onKey=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();};
@@ -1249,6 +1251,7 @@ function drawManholes(){
       function onFocus(){if(blurTimer){clearTimeout(blurTimer);blurTimer=null;}}
       inpPre.addEventListener('blur',onBlur);inpIn.addEventListener('blur',onBlur);
       inpPre.addEventListener('focus',onFocus);inpIn.addEventListener('focus',onFocus);
+      selKind.addEventListener('focus',onFocus);selKind.addEventListener('blur',onBlur);selSpec.addEventListener('focus',onFocus);selSpec.addEventListener('blur',onBlur);
     }
 
     // 라벨 텍스트 — 파란 밑줄 중앙 바로 위에 (글자가 밑줄을 덮지 않게 위로)
