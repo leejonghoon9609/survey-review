@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 291</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 292</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1084,22 +1084,31 @@ function tbData(){
 function tbEsc(x){return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function tbLayout(){
   if(typeof state==='undefined'||!state)return null;
-  var xs=[],ys=[];
-  (state.points||[]).forEach(function(p){if(p&&p.x!=null&&p.y!=null){xs.push(+p.x);ys.push(+p.y);}});
-  (state.manholes||[]).forEach(function(m){if(m&&m.wx!=null){xs.push(+m.wx);ys.push(+m.wy);}});
-  if(!xs.length)return null;
-  var minX=Math.min.apply(null,xs),maxX=Math.max.apply(null,xs),maxY=Math.max.apply(null,ys);
-  var W=Math.max(maxX-minX,10), th=W*0.020, dy=th*1.9, pad=th*1.0, nameH=th*1.4;
+  // 글자크기 기준 = 측점/결선/맨홀 범위 (관로 작업 영역)
+  var pxs=[],pys=[];
+  (state.points||[]).forEach(function(p){if(p&&p.x!=null&&p.y!=null){pxs.push(+p.x);pys.push(+p.y);}});
+  (state.lines||[]).forEach(function(L){(L.pts||[]).forEach(function(p){pxs.push(p[0]);pys.push(p[1]);});});
+  (state.manholes||[]).forEach(function(m){if(m&&m.wx!=null){pxs.push(+m.wx);pys.push(+m.wy);}});
+  if(!pxs.length)return null;
+  var ptW=Math.max(Math.max.apply(null,pxs)-Math.min.apply(null,pxs),10);
+  // 박스 가로 기준 = 도면 전체(백판 텍스트 포함) X범위, 최상단 = 전체 maxY
+  var axs=pxs.slice(), ays=pys.slice();
+  (state.baseTexts||[]).forEach(function(t){if(t&&t.x!=null&&t.y!=null){axs.push(+t.x);ays.push(+t.y);}});
+  var minX=Math.min.apply(null,axs),maxX=Math.max.apply(null,axs),maxY=Math.max.apply(null,ays);
+  var bw=Math.max(maxX-minX,10);
+  // 세로/글자 = 일정(관로폭 기준), 정보량 무관 고정 틀
+  var th=ptW*0.020, dy=th*1.9, pad=th*1.0, nameH=th*1.4;
   var d=tbData();
   var bh=pad+nameH+th*1.0+5*dy+pad*0.5;
-  var b0=minX, bw=W, by1=maxY+th*2.4+bh, by0=by1-bh;
+  var b0=minX, by0=maxY, by1=maxY+bh;   // 도면 최상단에 박스 아래변 붙임
   var it=[];
   function add(x,y,h,s,c,a){if(s==null)s='';it.push({x:x,y:y,h:h,s:s,c:c,a:a||'start'});}
   add(b0+bw/2, by1-pad-nameH, nameH, d.name||'(사업명 미입력)', 'name', 'middle');
-  var lx=b0+pad, vx=b0+bw*0.16, firstY=by1-pad-nameH-th*1.0-th;
+  // 정보는 좌측 정렬 고정 간격(박스가 넓어도 좌측에 정돈)
+  var lx=b0+pad, vx=b0+pad+th*7.5, firstY=by1-pad-nameH-th*1.0-th;
   var L=[['탱고 번호',d.bizNo,'red'],['관로(소유자)',d.client,'blue'],['관로(외관)',d.outer,'blue'],['관로(내관)',(d.inner||'(직접입력)'),'blue'],['맨홀(소유자)',d.mhOwner,'blue']];
   L.forEach(function(r,i){var y=firstY-dy*i; add(lx,y,th,r[0]+' :','label'); add(vx,y,th,r[1]||'',r[2]);});
-  var rlx=b0+bw*0.57, rvx=b0+bw*0.71;
+  var rlx=b0+pad+th*24, rvx=b0+pad+th*31.5;
   var R=[['물량(탱고)',(d.volT||'(직접입력)')],['물량(GIS)',(d.volG||'(직접입력)')]];
   R.forEach(function(r,i){var y=firstY-dy*i; add(rlx,y,th,r[0]+' :','label'); add(rvx,y,th,r[1]||'','blue');});
   return {box:{x:b0,y:by0,w:bw,h:bh}, items:it, th:th};
