@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 286</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 287</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1060,7 +1060,7 @@ function drawBpZones(){
     if(z.lx==null||z.ly==null){z.lx=mid[0];z.ly=mid[1]+10;}
     var _foot=bpFootOnPath(path,z.lx,z.ly);var mc=S(_foot[0],_foot[1]), ts=S(z.lx,z.ly);
     gGeo.appendChild(el('line',{x1:mc[0],y1:mc[1],x2:ts[0],y2:ts[1],stroke:'#b8860b','stroke-width':'1.6','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-    var lbl=mkLabel(ts[0],ts[1],z.note||'\uBCF4\uAC15\uD310 \uC9C0\uC5ED',{fill:'#b8860b',weight:'700',anchor:'middle',grp:'pt',px:15});
+    var lbl=mkLabel(ts[0],ts[1],z.note||'\uBCF4\uAC15\uD310 \uC9C0\uC5ED',{fill:'#b8860b',weight:'700',anchor:'middle',grp:'pt',px:30});
     if(!viewerMode&&!readOnly){
       lbl.style.pointerEvents='auto';lbl.style.cursor='move';
       lbl.addEventListener('dblclick',function(ev){ev.stopPropagation();if(mode==='bpzdel')return;openBpEdit(z);});
@@ -5250,7 +5250,7 @@ EOF
     if(z.lx==null||z.ly==null){z.lx=mid[0];z.ly=mid[1]+10;}
     var _ft=(typeof bpFootOnPath==='function')?bpFootOnPath(path,z.lx,z.ly):mid;bpLine(_ft[0],_ft[1],z.lx,z.ly);
     var _nt=z.note||'\uBCF4\uAC15\uD310 \uC9C0\uC5ED',_es=uesc(_nt),_hg=false;for(var _k=0;_k<_nt.length;_k++){if(_nt.charCodeAt(_k)>127){_hg=true;break;}}
-    var ta=['0','TEXT','5',H(),'330','17','100','AcDbEntity','8','BPZONE','62','256','420',String(BPTC),'100','AcDbText','10',N(z.lx),'20',N(z.ly),'30','0','40',N(TH*1.2),'1',_es];if(_hg)ta.push('7','HANGUL');ta.push('72','1','11',N(z.lx),'21',N(z.ly),'31','0','100','AcDbText');push(ta);
+    var ta=['0','TEXT','5',H(),'330','17','100','AcDbEntity','8','BPZONE','62','256','420',String(BPTC),'100','AcDbText','10',N(z.lx),'20',N(z.ly),'30','0','40',N(TH*2.4),'1',_es];if(_hg)ta.push('7','HANGUL');ta.push('72','1','11',N(z.lx),'21',N(z.ly),'31','0','100','AcDbText');push(ta);
   });
   // ===== 백판(수치지도)을 단일 블록 BACKDROP 으로 묶기 (CAD에서 통째로 선택) =====
   var PREx=PRE;
