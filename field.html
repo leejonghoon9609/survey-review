@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 290</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 291</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1082,30 +1082,38 @@ function tbData(){
            volT:(t.volT||''), volG:(t.volG||'') };
 }
 function tbEsc(x){return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function drawTitleBlock(){
-  if(typeof gGeo==='undefined'||!gGeo)return;
+function tbLayout(){
+  if(typeof state==='undefined'||!state)return null;
   var xs=[],ys=[];
   (state.points||[]).forEach(function(p){if(p&&p.x!=null&&p.y!=null){xs.push(+p.x);ys.push(+p.y);}});
   (state.manholes||[]).forEach(function(m){if(m&&m.wx!=null){xs.push(+m.wx);ys.push(+m.wy);}});
-  if(!xs.length)return;
+  if(!xs.length)return null;
   var minX=Math.min.apply(null,xs),maxX=Math.max.apply(null,xs),maxY=Math.max.apply(null,ys);
-  var W=Math.max(maxX-minX,10), th=W*0.016;
+  var W=Math.max(maxX-minX,10), th=W*0.020, dy=th*1.9, pad=th*1.0, nameH=th*1.4;
   var d=tbData();
-  var b0=minX, by0=maxY+th*3, bw=W, bh=th*11, by1=by0+bh;
-  var c0=S(b0,by0), c1=S(b0+bw,by1);
-  var rx=Math.min(c0[0],c1[0]), ry=Math.min(c0[1],c1[1]), rw=Math.abs(c1[0]-c0[0]), rh=Math.abs(c1[1]-c0[1]);
-  var box=el('rect',{x:rx,y:ry,width:rw,height:rh,fill:'#fff','fill-opacity':'0.93',stroke:'#d00','stroke-width':'1.6','vector-effect':'non-scaling-stroke',style:'cursor:pointer'});
+  var bh=pad+nameH+th*1.0+5*dy+pad*0.5;
+  var b0=minX, bw=W, by1=maxY+th*2.4+bh, by0=by1-bh;
+  var it=[];
+  function add(x,y,h,s,c,a){if(s==null)s='';it.push({x:x,y:y,h:h,s:s,c:c,a:a||'start'});}
+  add(b0+bw/2, by1-pad-nameH, nameH, d.name||'(사업명 미입력)', 'name', 'middle');
+  var lx=b0+pad, vx=b0+bw*0.16, firstY=by1-pad-nameH-th*1.0-th;
+  var L=[['탱고 번호',d.bizNo,'red'],['관로(소유자)',d.client,'blue'],['관로(외관)',d.outer,'blue'],['관로(내관)',(d.inner||'(직접입력)'),'blue'],['맨홀(소유자)',d.mhOwner,'blue']];
+  L.forEach(function(r,i){var y=firstY-dy*i; add(lx,y,th,r[0]+' :','label'); add(vx,y,th,r[1]||'',r[2]);});
+  var rlx=b0+bw*0.57, rvx=b0+bw*0.71;
+  var R=[['물량(탱고)',(d.volT||'(직접입력)')],['물량(GIS)',(d.volG||'(직접입력)')]];
+  R.forEach(function(r,i){var y=firstY-dy*i; add(rlx,y,th,r[0]+' :','label'); add(rvx,y,th,r[1]||'','blue');});
+  return {box:{x:b0,y:by0,w:bw,h:bh}, items:it, th:th};
+}
+function drawTitleBlock(){
+  if(typeof gGeo==='undefined'||!gGeo)return;
+  var L=tbLayout(); if(!L)return;
+  var COL={name:'#111',label:'#111',red:'#d00',blue:'#1633ff'};
+  var bx=L.box, c0=S(bx.x,bx.y), c1=S(bx.x+bx.w,bx.y+bx.h);
+  var rx=Math.min(c0[0],c1[0]),ry=Math.min(c0[1],c1[1]),rw=Math.abs(c1[0]-c0[0]),rh=Math.abs(c1[1]-c0[1]);
+  var box=el('rect',{x:rx,y:ry,width:rw,height:rh,fill:'#fff','fill-opacity':'0.96',stroke:'#d00','stroke-width':'1.4','vector-effect':'non-scaling-stroke',style:'cursor:pointer'});
   if(!viewerMode&&!readOnly){box.addEventListener('pointerdown',function(ev){ev.stopPropagation();ev.preventDefault();openTbEdit();});}
   gGeo.appendChild(box);
-  function txt(wx,wy,h,s,col,anc){if(s==null||s==='')return;var sp=S(wx,wy);var e=el('text',{x:sp[0],y:sp[1],'font-size':h,fill:col,'text-anchor':anc||'start','dominant-baseline':'middle','pointer-events':'none'});e.textContent=s;gGeo.appendChild(e);}
-  var CB='#111',CR='#d00',CV='#1633ff';
-  txt(b0+bw/2, by1-th*1.6, th*1.25, d.name||'(사업명 미입력)', CB, 'middle');
-  var lx=b0+th*0.8, vx=b0+bw*0.16, ry0=by1-th*3.4, dy=th*1.7;
-  var L=[['탱고 번호',d.bizNo,CR],['관로(소유자)',d.client,CV],['관로(외관)',d.outer,CV],['관로(내관)',d.inner||'(직접입력)',CV],['맨홀(소유자)',d.mhOwner,CV]];
-  L.forEach(function(r,i){var y=ry0-dy*i;txt(lx,y,th,r[0]+' :',CB);txt(vx,y,th,r[1]||'',r[2]);});
-  var rlx=b0+bw*0.55, rvx=b0+bw*0.70;
-  var R=[['물량(탱고)',d.volT||'(직접입력)'],['물량(GIS)',d.volG||'(직접입력)']];
-  R.forEach(function(r,i){var y=ry0-dy*i;txt(rlx,y,th,r[0]+' :',CB);txt(rvx,y,th,r[1]||'',CV);});
+  L.items.forEach(function(t){if(t.s==='')return;var sp=S(t.x,t.y);var e=el('text',{x:sp[0],y:sp[1],'font-size':t.h,fill:COL[t.c]||'#111','text-anchor':t.a,'pointer-events':'none','font-family':'Malgun Gothic,sans-serif'});e.textContent=t.s;gGeo.appendChild(e);});
 }
 function openTbEdit(){
   if(viewerMode||readOnly)return;
@@ -5371,34 +5379,16 @@ EOF
     var DEF2='  0\nBLOCK\n  5\nD7\n330\nD6\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockBegin\n  2\nSD100\n 70\n0\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  3\nSD100\n  1\n\n'+'  0\nCIRCLE\n  5\nD9\n330\nD6\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbCircle\n 10\n0\n 20\n0\n 30\n0\n 40\n0.504\n'+'  0\nCIRCLE\n  5\nDA\n330\nD6\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbCircle\n 10\n0\n 20\n0\n 30\n0\n 40\n0.75\n'+'  0\nPOINT\n  5\nDB\n330\nD6\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbPoint\n 10\n0\n 20\n0\n 30\n0\n'+'  0\nENDBLK\n  5\nD8\n330\nD6\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockEnd\n';
     PREx=PREx.replace('  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES',DEF1+DEF2+'  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES');
   })();
-    // ===== 타이틀블록 DXF (BUILD 289) =====
+    // ===== 타이틀블록 DXF (BUILD 291) =====
   (function(){
-    var xs=[],ys=[];
-    (state.points||[]).forEach(function(p){if(p&&p.x!=null&&p.y!=null){xs.push(+p.x);ys.push(+p.y);}});
-    (state.manholes||[]).forEach(function(m){if(m&&m.wx!=null){xs.push(+m.wx);ys.push(+m.wy);}});
-    if(!xs.length)return;
-    var minX=Math.min.apply(null,xs),maxX=Math.max.apply(null,xs),maxY=Math.max.apply(null,ys);
-    var W=Math.max(maxX-minX,10), th=W*0.016;
-    var d=tbData();
-    var b0=minX, by0=maxY+th*3, bw=W, bh=th*11, by1=by0+bh;
-    var LY='TBLOCK';
-    function tl(x,y,h,s,col){text(x,y,h,s,LY,col,0,0,0);}
-    // 테두리 (빨강 1)
-    line(b0,by0,b0+bw,by0,LY,1); line(b0,by1,b0+bw,by1,LY,1);
-    line(b0,by0,b0,by1,LY,1); line(b0+bw,by0,b0+bw,by1,LY,1);
-    // 사업명 (중앙, 검정 7, 큰 글씨)
-    text(b0+bw/2, by1-th*1.6, th*1.25, d.name||'', LY, 7, 1, 0, 0);
-    // 좌측 라벨/값
-    var lx=b0+th*0.8, vx=b0+bw*0.16, ry=by1-th*3.4, dy=th*1.7;
-    var L=[['탱고 번호',d.bizNo,1],['관로(소유자)',d.client,5],['관로(외관)',d.outer,5],['관로(내관)',d.inner,5],['맨홀(소유자)',d.mhOwner,5]];
-    L.forEach(function(r,i){ var y=ry-dy*i; tl(lx,y,th,r[0]+' :',7); tl(vx,y,th,r[1]||'',r[2]); });
-    // 우측 물량
-    var rlx=b0+bw*0.55, rvx=b0+bw*0.70;
-    var R=[['물량(탱고)',d.volT],['물량(GIS)',d.volG]];
-    R.forEach(function(r,i){ var y=ry-dy*i; tl(rlx,y,th,r[0]+' :',7); tl(rvx,y,th,r[1]||'',5); });
+    if(typeof tbLayout!=='function')return;
+    var L=tbLayout(); if(!L)return;
+    var LY='TBLOCK', CN={name:7,label:7,red:1,blue:5}, bx=L.box;
+    line(bx.x,bx.y,bx.x+bx.w,bx.y,LY,1); line(bx.x,bx.y+bx.h,bx.x+bx.w,bx.y+bx.h,LY,1);
+    line(bx.x,bx.y,bx.x,bx.y+bx.h,LY,1); line(bx.x+bx.w,bx.y,bx.x+bx.w,bx.y+bx.h,LY,1);
+    L.items.forEach(function(t){ if(t.s==='')return; var al=(t.a==='middle')?1:0; text(t.x,t.y,t.h,t.s,LY,CN[t.c]||7,al,0,0); });
   })();
-
-  var dxf=PREx+E.join('\n')+'\n'+SUF;
+var dxf=PREx+E.join('\n')+'\n'+SUF;
   if(returnStr)return dxf;
   var blob=new Blob([dxf],{type:'application/dxf'});
   var url=URL.createObjectURL(blob);
