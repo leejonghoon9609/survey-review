@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 268</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 269</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1066,7 +1066,7 @@ function drawGeo(){
       nt.appendChild(sub);
     }
     var _dp=(state._depthByNo&&state._depthByNo[p.no]);
-    if(_dp!=null&&isFinite(_dp)){var _w=(typeof pipeDirAt==='function')?pipeDirAt(p):null,_ddx=0,_ddy=-0.35,_drot=0;if(_w){var _m=Math.hypot(_w[0],_w[1])||1,_ue=_w[0]/_m,_un=_w[1]/_m,_pe=-_un,_pn=_ue,_lox=(L.lx-p.x),_loy=(L.ly-p.y);if(_pe*_lox+_pn*_loy>0){_pe=-_pe;_pn=-_pn;}_ddx=_pe*0.35;_ddy=_pn*0.35;_drot=Math.atan2(-_w[1],_w[0])*180/Math.PI;if(_drot>90)_drot-=180;if(_drot<-90)_drot+=180;}var _ds=S(p.x+_ddx,p.y+_ddy);mkLabel(_ds[0],_ds[1],'\uC2EC\uB3C4 '+(Math.round(_dp*100)/100).toFixed(2)+'m',{fill:'#2196f3',weight:'700',anchor:'middle',grp:'depth',px:13,rot:_drot});}
+    if(_dp!=null&&isFinite(_dp)){var _w=(typeof pipeDirAt==='function')?pipeDirAt(p):null,_ddx=0,_ddy=-0.5,_drot=0;if(_w){var _m=Math.hypot(_w[0],_w[1])||1,_ue=_w[0]/_m,_un=_w[1]/_m,_pe=-_un,_pn=_ue,_lox=(L.lx-p.x),_loy=(L.ly-p.y);if(_pe*_lox+_pn*_loy>0){_pe=-_pe;_pn=-_pn;}_ddx=_pe*0.5;_ddy=_pn*0.5;_drot=Math.atan2(-_w[1],_w[0])*180/Math.PI;if(_drot>90)_drot-=180;if(_drot<-90)_drot+=180;}var _ds=S(p.x+_ddx,p.y+_ddy);mkLabel(_ds[0],_ds[1],'\uC2EC\uB3C4 '+(Math.round(_dp*100)/100).toFixed(2)+'m',{fill:'#2196f3',weight:'700',anchor:'middle',grp:'depth',px:13,rot:_drot});}
     if(ld){var _lvis=isBp||((LV.no!==0)&&(p.no||'').length>0)||((LV.date!==0)&&dpos>=0)||((LV.code!==0)&&(p.code||'').trim().length>0);ld.style.display=_lvis?'':'none';}
     var ct=nt; // 핸들 호환
     addLabelHandle(p,L,ls,nt,ct,ld,p.no===selNum);
@@ -5115,7 +5115,7 @@ EOF
     if(noOut||cdOut)line(p.x,p.y,lo.lx,lo.ly,'PT_LEADER',7,'DASHED');
     if(noOut)text(lo.lx,lo.ly+TH*0.1,TH,noOut,'PT_LABEL',_bp?2:3,al);
     if(cdOut)text(lo.lx,lo.ly-TH*1.1,TH,cdOut,'PT_CODE',_bp?2:4,al);
-    if(_hasDep){var _w3=(typeof pipeDirAt==='function')?pipeDirAt(p):null,_dx=0,_dy=-0.35,_drot3=0;if(_w3){var _mm=Math.hypot(_w3[0],_w3[1])||1,_ue=_w3[0]/_mm,_un=_w3[1]/_mm,_pe=-_un,_pn=_ue,_lx2=(lo.lx-p.x),_ly2=(lo.ly-p.y);if(_pe*_lx2+_pn*_ly2>0){_pe=-_pe;_pn=-_pn;}_dx=_pe*0.35;_dy=_pn*0.35;_drot3=Math.atan2(_w3[1],_w3[0])*180/Math.PI;if(_drot3>90)_drot3-=180;if(_drot3<-90)_drot3+=180;}text(p.x+_dx,p.y+_dy,TH,'심도 '+(Math.round(_dep*100)/100).toFixed(2)+'m','PT_DEPTH',5,1,_drot3);}
+    if(_hasDep){var _w3=(typeof pipeDirAt==='function')?pipeDirAt(p):null,_dx=0,_dy=-0.5,_drot3=0;if(_w3){var _mm=Math.hypot(_w3[0],_w3[1])||1,_ue=_w3[0]/_mm,_un=_w3[1]/_mm,_pe=-_un,_pn=_ue,_lx2=(lo.lx-p.x),_ly2=(lo.ly-p.y);if(_pe*_lx2+_pn*_ly2>0){_pe=-_pe;_pn=-_pn;}_dx=_pe*0.5;_dy=_pn*0.5;_drot3=Math.atan2(_w3[1],_w3[0])*180/Math.PI;if(_drot3>90)_drot3-=180;if(_drot3<-90)_drot3+=180;}text(p.x+_dx,p.y+_dy,TH,'심도 '+(Math.round(_dep*100)/100).toFixed(2)+'m','PT_DEPTH',5,1,_drot3);}
   });
   // 결선: LWPOLYLINE (압입=점선) + 지거/압입 멘트(인출선 점선 + 밑줄 + 중앙 글자)
   var LM={'통신관로':['PIPE',1],'지거':['JIGER',2],'압입구간':['PUSH',5]};
@@ -5653,7 +5653,7 @@ function renderRail(){
     else if(c.setmode){mode=c.setmode;cv.classList.toggle('draw',mode!=='pan');setModeUI();}
     else if(c.hint&&!c.tools.length)toast(c.hint);};});
   var ho=document.getElementById('hkOpen');if(ho)ho.onclick=openHotkeyModal;
-  var dx=document.getElementById('dxfExport');if(dx)dx.onclick=exportDXF;
+  var dx=document.getElementById('dxfExport');if(dx)dx.onclick=function(){exportDXF();};
   var ce=document.getElementById('csvExport');if(ce)ce.onclick=exportSurveyCsv;
   var dr=document.getElementById('doneReg');if(dr)dr.onclick=registerDone;
   var dc=document.getElementById('depthCalc');if(dc)dc.onclick=openDepthCalc;var ib=document.getElementById('inspBuild');if(ib)ib.onclick=buildInspData;
