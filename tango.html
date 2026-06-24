@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 285</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 286</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1009,12 +1009,13 @@ function pxToWorld(){
 
 /* ===== 보강판 구역(관로결선 ±5M 밴드 + 연한 해치 + 태그/인출선) ===== */
 var bpFirst=null;
-function nearBpPoint(wx,wy){var best=null,bd=1e18;(state.points||[]).forEach(function(p){if(!/\uBCF4\uAC15\uD310/.test((p.no||'')+'|'+(p.code||'')))return;var d=Math.hypot(p.x-wx,p.y-wy);if(d<bd){bd=d;best=p;}});return best;}
+function nearBpPoint(wx,wy){var best=null,bd=1e18;(state.points||[]).forEach(function(p){var d=Math.hypot(p.x-wx,p.y-wy);if(d<bd){bd=d;best=p;}});var tol=(typeof pxToWorld==='function')?pxToWorld()*20:1e18;return (best&&bd<=tol)?best:null;}
 var bpHoverEl=null,bpDragZone=null,bpPreviewEl=null;
 function bpHoverPt(ww){var bp=nearBpPoint(ww[0],-ww[1]);if(!bp){bpHoverClear();return;}var sp=S(bp.x,bp.y);if(!bpHoverEl||!bpHoverEl.parentNode){bpHoverEl=el('rect',{fill:'none',stroke:'#d32f2f','stroke-width':5,'vector-effect':'non-scaling-stroke','pointer-events':'none'});gAnc.appendChild(bpHoverEl);}bpHoverEl.setAttribute('x',sp[0]-0.4);bpHoverEl.setAttribute('y',sp[1]-0.4);bpHoverEl.setAttribute('width',0.8);bpHoverEl.setAttribute('height',0.8);}
 function bpHoverClear(){if(bpHoverEl){bpHoverEl.remove();bpHoverEl=null;}}
 function bpPreview(a,b){var A=S(a[0],a[1]),B=S(b[0],b[1]);if(!bpPreviewEl||!bpPreviewEl.parentNode){bpPreviewEl=el('line',{stroke:'#d32f2f','stroke-width':2,'stroke-dasharray':'1.5 1','vector-effect':'non-scaling-stroke','pointer-events':'none'});gAnc.appendChild(bpPreviewEl);}bpPreviewEl.setAttribute('x1',A[0]);bpPreviewEl.setAttribute('y1',A[1]);bpPreviewEl.setAttribute('x2',B[0]);bpPreviewEl.setAttribute('y2',B[1]);}
 function bpPreviewClear(){if(bpPreviewEl){bpPreviewEl.remove();bpPreviewEl=null;}}
+function bpFootOnPath(path,px,py){var best=null,bd=1e18;for(var i=0;i<path.length-1;i++){var a=path[i],b=path[i+1],dx=b[0]-a[0],dy=b[1]-a[1],L2=dx*dx+dy*dy||1;var t=((px-a[0])*dx+(py-a[1])*dy)/L2;t=Math.max(0,Math.min(1,t));var fx=a[0]+dx*t,fy=a[1]+dy*t,d=Math.hypot(px-fx,py-fy);if(d<bd){bd=d;best=[fx,fy];}}return best||path[Math.floor(path.length/2)];}
 function bpKey(pt){return (Math.round(pt[0]*100)/100)+','+(Math.round(pt[1]*100)/100);}
 function bpTracePath(p1,p2){
   var segs=[];(state.lines||[]).forEach(function(L){if(L.layer!=='\uD1B5\uC2E0\uAD00\uB85C'||!L.pts||L.pts.length<2)return;for(var i=0;i<L.pts.length-1;i++)segs.push([L.pts[i],L.pts[i+1]]);});
@@ -1054,15 +1055,16 @@ function drawBpZones(){
   state.bpzones.forEach(function(z){
     var path=bpPathOf(z), poly=bpOffsetBand(path,5);if(!poly)return;
     var d='M'+poly.map(function(c){var sp=S(c[0],c[1]);return sp[0]+' '+sp[1];}).join(' L')+' Z';
-    gGeo.appendChild(el('path',{d:d,fill:'#b8860b','fill-opacity':'0.10',stroke:'#b8860b','stroke-width':'1.6','stroke-opacity':'0.85','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    gGeo.appendChild(el('path',{d:d,fill:'#b8860b','fill-opacity':'0.06',stroke:'#b8860b','stroke-width':'1.6','stroke-opacity':'0.85','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     var mid=path[Math.floor(path.length/2)];
     if(z.lx==null||z.ly==null){z.lx=mid[0];z.ly=mid[1]+10;}
-    var mc=S(mid[0],mid[1]), ts=S(z.lx,z.ly);
+    var _foot=bpFootOnPath(path,z.lx,z.ly);var mc=S(_foot[0],_foot[1]), ts=S(z.lx,z.ly);
     gGeo.appendChild(el('line',{x1:mc[0],y1:mc[1],x2:ts[0],y2:ts[1],stroke:'#b8860b','stroke-width':'1.6','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     var lbl=mkLabel(ts[0],ts[1],z.note||'\uBCF4\uAC15\uD310 \uC9C0\uC5ED',{fill:'#b8860b',weight:'700',anchor:'middle',grp:'pt',px:15});
     if(!viewerMode&&!readOnly){
       lbl.style.pointerEvents='auto';lbl.style.cursor='move';
       lbl.addEventListener('dblclick',function(ev){ev.stopPropagation();if(mode==='bpzdel')return;openBpEdit(z);});
+      lbl.addEventListener('pointerdown',function(ev){if(viewerMode||readOnly)return;if(mode==='bpzdel'){ev.stopPropagation();ev.preventDefault();var bi=state.bpzones.indexOf(z);if(bi>=0){pushHist();state.bpzones.splice(bi,1);drawGeo();updMeta();toast('\uBCF4\uAC15\uD310 \uAD6C\uC5ED \uC0AD\uC81C');}return;}if(mode!=='pan')return;ev.stopPropagation();ev.preventDefault();bpDragZone=z;labelDragging=true;try{cv.setPointerCapture(ev.pointerId);}catch(e){}});
       var ah=el('circle',{cx:ts[0],cy:ts[1],r:1.2,fill:'rgba(184,134,11,0.001)',stroke:'none',cursor:'move'});gAnc.appendChild(ah);
       (function(zz,handle){
         handle.addEventListener('pointerdown',function(ev){if(mode==='bpzdel'){ev.stopPropagation();ev.preventDefault();var bi=state.bpzones.indexOf(zz);if(bi>=0){pushHist();state.bpzones.splice(bi,1);drawGeo();updMeta();toast('\uBCF4\uAC15\uD310 \uAD6C\uC5ED \uC0AD\uC81C');}return;}if(mode!=='pan'||viewerMode||readOnly)return;ev.stopPropagation();ev.preventDefault();bpDragZone=zz;labelDragging=true;try{cv.setPointerCapture(ev.pointerId);}catch(e){}});
@@ -5182,7 +5184,7 @@ EOF
   function tw(label,unit){function gw(ch){var c=ch.charCodeAt(0);if(c>127)return 1.1;if(ch===' ')return 0.392;if(ch==='M')return 1.065;if(ch==='W')return 1.22;if(ch>='0'&&ch<='9')return 0.785;if('()[]{}'.indexOf(ch)>=0)return 0.482;if('Iilj|!.,:;'.indexOf(ch)>=0)return 0.36;if('TY'.indexOf(ch)>=0)return 0.755;if(ch>='A'&&ch<='Z')return 0.8;if(ch>='a'&&ch<='z')return 0.6;return 0.5;}var w=0;for(var i=0;i<label.length;i++)w+=gw(label.charAt(i))*unit;return w+unit*0.05;}
   // 측점: 박스 + 인출선(검정 점선) + 번호/코드
   var lay=computeLabels();
-  if(!((typeof LV!=='undefined')&&LV.bpbox===0))(state.bpzones||[]).forEach(function(z){var path=(z.path&&z.path.length>=2)?z.path:[z.p1,z.p2];var lr=(typeof bpBandLR==='function')?bpBandLR(path,5):null;if(!lr)return;for(var si=0;si<lr.left.length-1;si++){var L1=lr.left[si],L2=lr.left[si+1],R1=lr.right[si],R2=lr.right[si+1];push(['0','SOLID','5',H(),'330','17','100','AcDbEntity','8','BPZONE','62','256','420','15391656','440','33554445','100','AcDbTrace','10',N(L1[0]),'20',N(L1[1]),'30','0','11',N(L2[0]),'21',N(L2[1]),'31','0','12',N(R1[0]),'22',N(R1[1]),'32','0','13',N(R2[0]),'23',N(R2[1]),'33','0']);}});
+  if(!((typeof LV!=='undefined')&&LV.bpbox===0))(state.bpzones||[]).forEach(function(z){var path=(z.path&&z.path.length>=2)?z.path:[z.p1,z.p2];var lr=(typeof bpBandLR==='function')?bpBandLR(path,5):null;if(!lr)return;for(var si=0;si<lr.left.length-1;si++){var L1=lr.left[si],L2=lr.left[si+1],R1=lr.right[si],R2=lr.right[si+1];push(['0','SOLID','5',H(),'330','17','100','AcDbEntity','8','BPZONE','62','256','420','15919565','440','33554440','100','AcDbTrace','10',N(L1[0]),'20',N(L1[1]),'30','0','11',N(L2[0]),'21',N(L2[1]),'31','0','12',N(R1[0]),'22',N(R1[1]),'32','0','13',N(R2[0]),'23',N(R2[1]),'33','0']);}});
   state.points.forEach(function(p,k){
     var _bp=/보강판/.test((p.no||'')+'|'+(p.code||''));var _bpHide=_bp&&(typeof bpPtHidden==='function')&&bpPtHidden(p);
     var _LV=(typeof LV!=='undefined')?LV:{};
@@ -5246,7 +5248,7 @@ EOF
     
     var mid=path[Math.floor(path.length/2)];
     if(z.lx==null||z.ly==null){z.lx=mid[0];z.ly=mid[1]+10;}
-    bpLine(mid[0],mid[1],z.lx,z.ly);
+    var _ft=(typeof bpFootOnPath==='function')?bpFootOnPath(path,z.lx,z.ly):mid;bpLine(_ft[0],_ft[1],z.lx,z.ly);
     var _nt=z.note||'\uBCF4\uAC15\uD310 \uC9C0\uC5ED',_es=uesc(_nt),_hg=false;for(var _k=0;_k<_nt.length;_k++){if(_nt.charCodeAt(_k)>127){_hg=true;break;}}
     var ta=['0','TEXT','5',H(),'330','17','100','AcDbEntity','8','BPZONE','62','256','420',String(BPTC),'100','AcDbText','10',N(z.lx),'20',N(z.ly),'30','0','40',N(TH*1.2),'1',_es];if(_hg)ta.push('7','HANGUL');ta.push('72','1','11',N(z.lx),'21',N(z.ly),'31','0','100','AcDbText');push(ta);
   });
