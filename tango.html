@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 283</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 284</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1009,6 +1009,10 @@ function pxToWorld(){
 
 /* ===== 보강판 구역(관로결선 ±5M 밴드 + 연한 해치 + 태그/인출선) ===== */
 var bpFirst=null;
+function nearBpPoint(wx,wy){var best=null,bd=1e18;(state.points||[]).forEach(function(p){if(!/\uBCF4\uAC15\uD310/.test((p.no||'')+'|'+(p.code||'')))return;var d=Math.hypot(p.x-wx,p.y-wy);if(d<bd){bd=d;best=p;}});return best;}
+var bpHoverEl=null;
+function bpHoverPt(ww){var bp=nearBpPoint(ww[0],-ww[1]);if(!bp){bpHoverClear();return;}var sp=S(bp.x,bp.y);if(!bpHoverEl||!bpHoverEl.parentNode){bpHoverEl=el('rect',{fill:'none',stroke:'#d32f2f','stroke-width':5,'vector-effect':'non-scaling-stroke','pointer-events':'none'});gAnc.appendChild(bpHoverEl);}bpHoverEl.setAttribute('x',sp[0]-0.4);bpHoverEl.setAttribute('y',sp[1]-0.4);bpHoverEl.setAttribute('width',0.8);bpHoverEl.setAttribute('height',0.8);}
+function bpHoverClear(){if(bpHoverEl){bpHoverEl.remove();bpHoverEl=null;}}
 function bpKey(pt){return (Math.round(pt[0]*100)/100)+','+(Math.round(pt[1]*100)/100);}
 function bpTracePath(p1,p2){
   var segs=[];(state.lines||[]).forEach(function(L){if(L.layer!=='\uD1B5\uC2E0\uAD00\uB85C'||!L.pts||L.pts.length<2)return;for(var i=0;i<L.pts.length-1;i++)segs.push([L.pts[i],L.pts[i+1]]);});
@@ -1022,7 +1026,7 @@ function bpTracePath(p1,p2){
   var path=[],c=ek;while(c&&c!=='_root'){path.unshift(vmap[c]);c=prev[c];}
   return path.length>=2?path:[p1,p2];
 }
-function bpOffsetBand(path,off){
+function bpBandLR(path,off){
   var n=path.length;if(n<2)return null;
   function un(ax,ay){var l=Math.hypot(ax,ay)||1;return [ax/l,ay/l];}
   var left=[],right=[];
@@ -1032,13 +1036,14 @@ function bpOffsetBand(path,off){
     else{var a=un(path[i][0]-path[i-1][0],path[i][1]-path[i-1][1]),b=un(path[i+1][0]-path[i][0],path[i+1][1]-path[i][1]);var n1=[-a[1],a[0]],n2=[-b[1],b[0]];var bx=n1[0]+n2[0],by=n1[1]+n2[1],bl=Math.hypot(bx,by)||1;bx/=bl;by/=bl;var ch=bx*n1[0]+by*n1[1];var m=ch>0.25?1/ch:4;nx=bx*m;ny=by*m;}
     left.push([path[i][0]+nx*off,path[i][1]+ny*off]);right.push([path[i][0]-nx*off,path[i][1]-ny*off]);
   }
-  return left.concat(right.reverse());
+  return {left:left,right:right};
 }
+function bpOffsetBand(path,off){var lr=bpBandLR(path,off);if(!lr)return null;return lr.left.concat(lr.right.slice().reverse());}
 function bpPathOf(z){return (z.path&&z.path.length>=2)?z.path:[z.p1,z.p2];}
 function bpPtInPoly(x,y,poly){var inside=false;for(var i=0,j=poly.length-1;i<poly.length;j=i++){var xi=poly[i][0],yi=poly[i][1],xj=poly[j][0],yj=poly[j][1];if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))inside=!inside;}return inside;}
 function bpPtHidden(p){
   if(!state.bpzones||!state.bpzones.length)return false;
-  for(var zi=0;zi<state.bpzones.length;zi++){var poly=bpOffsetBand(bpPathOf(state.bpzones[zi]),5);if(poly&&bpPtInPoly(p.x,p.y,poly))return true;}
+  for(var zi=0;zi<state.bpzones.length;zi++){var z=state.bpzones[zi];if((z.p1&&Math.hypot(z.p1[0]-p.x,z.p1[1]-p.y)<1)||(z.p2&&Math.hypot(z.p2[0]-p.x,z.p2[1]-p.y)<1))return true;var poly=bpOffsetBand(bpPathOf(z),5);if(poly&&bpPtInPoly(p.x,p.y,poly))return true;}
   return false;
 }
 function drawBpZones(){
@@ -1048,7 +1053,6 @@ function drawBpZones(){
     var path=bpPathOf(z), poly=bpOffsetBand(path,5);if(!poly)return;
     var d='M'+poly.map(function(c){var sp=S(c[0],c[1]);return sp[0]+' '+sp[1];}).join(' L')+' Z';
     gGeo.appendChild(el('path',{d:d,fill:'#b8860b','fill-opacity':'0.10',stroke:'#b8860b','stroke-width':'1.6','stroke-opacity':'0.85','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-    for(var si=0;si<path.length-1;si++){var ax=path[si][0],ay=path[si][1],dx=path[si+1][0]-ax,dy=path[si+1][1]-ay,Lg=Math.hypot(dx,dy)||1,ux=dx/Lg,uy=dy/Lg,pxp=-uy,pyp=ux,nn=Math.max(1,Math.round(Lg/1.5));for(var i=0;i<nn;i++){var t=(i+0.5)/nn,ccx=ax+dx*t,ccy=ay+dy*t,A=S(ccx+pxp*5,ccy+pyp*5),B=S(ccx-pxp*5,ccy-pyp*5);gGeo.appendChild(el('line',{x1:A[0],y1:A[1],x2:B[0],y2:B[1],stroke:'#b8860b','stroke-width':'1','stroke-opacity':'0.30','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}}
     var mid=path[Math.floor(path.length/2)];
     if(z.lx==null||z.ly==null){z.lx=mid[0];z.ly=mid[1]+10;}
     var mc=S(mid[0],mid[1]), ts=S(z.lx,z.ly);
@@ -1057,7 +1061,7 @@ function drawBpZones(){
     if(!viewerMode&&!readOnly){
       lbl.style.pointerEvents='auto';lbl.style.cursor='move';
       lbl.addEventListener('dblclick',function(ev){ev.stopPropagation();if(mode==='bpzdel')return;openBpEdit(z);});
-      var ah=el('circle',{cx:ts[0],cy:ts[1],r:0.7,fill:'rgba(184,134,11,0.001)',stroke:'none',cursor:'move'});gAnc.appendChild(ah);
+      var ah=el('circle',{cx:ts[0],cy:ts[1],r:1.2,fill:'rgba(184,134,11,0.001)',stroke:'none',cursor:'move'});gAnc.appendChild(ah);
       (function(zz,handle){var drag=false;
         handle.addEventListener('pointerdown',function(ev){if(mode==='bpzdel'){ev.stopPropagation();ev.preventDefault();var bi=state.bpzones.indexOf(zz);if(bi>=0){pushHist();state.bpzones.splice(bi,1);drawGeo();updMeta();toast('\uBCF4\uAC15\uD310 \uAD6C\uC5ED \uC0AD\uC81C');}return;}if(mode!=='pan'||viewerMode||readOnly)return;ev.stopPropagation();drag=true;labelDragging=true;try{handle.setPointerCapture(ev.pointerId);}catch(e){}});
         handle.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();var ww=toWorld(ev.clientX,ev.clientY);zz.lx=ww[0];zz.ly=-ww[1];drawGeo();});
@@ -5239,7 +5243,7 @@ EOF
     var path=(z.path&&z.path.length>=2)?z.path:[z.p1,z.p2];
     var poly=(typeof bpOffsetBand==='function')?bpOffsetBand(path,5):null;if(!poly)return;
     for(var pi=0;pi<poly.length;pi++){var a=poly[pi],b=poly[(pi+1)%poly.length];bpLine(a[0],a[1],b[0],b[1]);}
-    for(var si=0;si<path.length-1;si++){var ax=path[si][0],ay=path[si][1],dx=path[si+1][0]-ax,dy=path[si+1][1]-ay,Lg=Math.hypot(dx,dy)||1,ux=dx/Lg,uy=dy/Lg,pxp=-uy,pyp=ux,nn=Math.max(1,Math.round(Lg/1.5));for(var i=0;i<nn;i++){var t=(i+0.5)/nn,ccx=ax+dx*t,ccy=ay+dy*t;bpLine(ccx+pxp*5,ccy+pyp*5,ccx-pxp*5,ccy-pyp*5);}}
+    var lr=bpBandLR(path,5);if(lr){for(var si=0;si<lr.left.length-1;si++){var L1=lr.left[si],L2=lr.left[si+1],R1=lr.right[si],R2=lr.right[si+1];push(['0','SOLID','5',H(),'330','17','100','AcDbEntity','8','BPZONE','62','256','420',String(BPTC),'440','33554462','100','AcDbTrace','10',N(L1[0]),'20',N(L1[1]),'30','0','11',N(L2[0]),'21',N(L2[1]),'31','0','12',N(R1[0]),'22',N(R1[1]),'32','0','13',N(R2[0]),'23',N(R2[1]),'33','0']);}}
     var mid=path[Math.floor(path.length/2)];
     if(z.lx==null||z.ly==null){z.lx=mid[0];z.ly=mid[1]+10;}
     bpLine(mid[0],mid[1],z.lx,z.ly);
@@ -5400,8 +5404,9 @@ cv.addEventListener('pointerdown',function(e){
   else if(mode==='mhplace'){var wm=toWorld(e.clientX,e.clientY);placeManholeAt(wm[0],-wm[1]);mode='pan';setModeUI();return;}
   else if(mode==='riserplace'){var wr=toWorld(e.clientX,e.clientY);placeManholeAt(wr[0],-wr[1],'riser');mode='pan';setModeUI();return;}
   else if(mode==='ptins'){var wi=toWorld(e.clientX,e.clientY);insertPointAt(wi[0],-wi[1]);mode='pan';setModeUI();return;}
-  else if(mode==='bpz1'){var wi=toWorld(e.clientX,e.clientY);bpFirst=[wi[0],-wi[1]];mode='bpz2';setModeUI();toast('두 번째 점(끝)을 클릭하세요');return;}
-  else if(mode==='bpz2'){var wi=toWorld(e.clientX,e.clientY);if(!state.bpzones)state.bpzones=[];pushHist();state.bpzones.push({p1:bpFirst,p2:[wi[0],-wi[1]],note:'보강판 지역',path:bpTracePath(bpFirst,[wi[0],-wi[1]])});bpFirst=null;mode='pan';setModeUI();drawGeo();updMeta();toast('보강판 구역 생성 — 더블클릭=태그수정, 핸들 드래그=태그이동');return;}
+  else if(mode==='bpz1'){var wi=toWorld(e.clientX,e.clientY);var bp=nearBpPoint(wi[0],-wi[1]);bpFirst=bp?[bp.x,bp.y]:[wi[0],-wi[1]];mode='bpz2';setModeUI();toast('끝 보강판 측점을 클릭하세요');return;}
+  else if(mode==='bpz2'){var wi=toWorld(e.clientX,e.clientY);var bp=nearBpPoint(wi[0],-wi[1]);var p2=bp?[bp.x,bp.y]:[wi[0],-wi[1]];if(!state.bpzones)state.bpzones=[];pushHist();state.bpzones.push({p1:bpFirst,p2:p2,note:'보강판 지역',path:bpTracePath(bpFirst,p2)});bpFirst=null;bpHoverClear();mode='pan';setModeUI();drawGeo();updMeta();toast('보강판 구역 생성');return;}
+  else if(mode==='bpzdel'){var wi=toWorld(e.clientX,e.clientY),wx=wi[0],wy=-wi[1];if(state.bpzones){for(var zi=0;zi<state.bpzones.length;zi++){var poly=bpOffsetBand(bpPathOf(state.bpzones[zi]),5);if(poly&&bpPtInPoly(wx,wy,poly)){pushHist();state.bpzones.splice(zi,1);drawGeo();updMeta();toast('보강판 구역 삭제');return;}}}return;}
   else if(mode==='ptdel'){return;} // 측점삭제: 빈 곳 클릭은 무시(측점 클릭은 hit 핸들러가 삭제)
   else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);var ns=nearestSnapWorld(w[0],w[1]);
     var snapTol=(drawLayer==='지거')?Math.max(pxToWorld()*14,0.25):vb.w*0.04; // 지거는 측점 바로 위만 스냅(끝점이 멀리 안 끌림)
@@ -5420,6 +5425,7 @@ cv.addEventListener('pointerdown',function(e){
 cv.addEventListener('pointermove',function(e){
   if(bpCrop){var w=toWorld(e.clientX,e.clientY);bpCrop.ex=w[0];bpCrop.ey=w[1];drawBpRect();return;}
   if(mode==='bperase'&&!midPanning){bpHover(toWorld(e.clientX,e.clientY));return;}
+  if(mode==='bpz1'||mode==='bpz2'){bpHoverPt(toWorld(e.clientX,e.clientY));return;}
   if(e.pointerType==='touch'&&activePtrs[e.pointerId]){activePtrs[e.pointerId].x=e.clientX;activePtrs[e.pointerId].y=e.clientY;}
   if(noteDrag){var m=state.markups[noteDrag.i];
     if(!noteDrag.moved){if(Math.hypot(e.clientX-noteDrag.sx0,e.clientY-noteDrag.sy0)<8)return;noteDrag.moved=true;noteDrag.lastW=toWorld(e.clientX,e.clientY);}
