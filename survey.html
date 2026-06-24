@@ -308,7 +308,7 @@
   .hide-hyun .insp-line{display:none}
   .lvchk{display:inline-flex;align-items:center;gap:3px;font-size:12px;color:#444;font-weight:600;white-space:nowrap;cursor:pointer;margin:0 2px}
   .lvchk input{cursor:pointer;margin:0}
-.tbbox{border:2px solid #d00;background:#fff;margin:6px 8px 0;padding:6px 10px;font-family:'Malgun Gothic','맑은 고딕',sans-serif;flex:0 0 auto}.tbbox .tbname{text-align:center;font-size:17px;font-weight:700;color:#111;line-height:1.3;margin-bottom:5px}.tbbox .tbbody{display:flex;gap:30px}.tbbox .tbcol{display:flex;flex-direction:column;gap:2px}.tbbox .tbcol2{padding-top:1px}.tbbox .tbrow{display:flex;align-items:center;font-size:13px;line-height:1.5}.tbbox .tbl{color:#111;min-width:88px}.tbbox .tbv{color:#1633ff;font-weight:600}.tbbox .tbno{color:#d00;font-weight:700}.tbbox .tbe{border:none;border-bottom:1px dashed #aab;background:transparent;color:#1633ff;font-weight:600;font-size:13px;width:160px;padding:0 2px;outline:none}.tbbox .tbe:focus{border-bottom-color:#1633ff}</style>
+</style>
 </head>
 <body>
   <header>
@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 289</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 290</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -351,7 +351,6 @@
     <div class="rail" id="rail"></div>
     <div class="maincol">
       <div class="subbar" id="subbar"></div>
-    <div id="tbBox" class="tbbox"></div>
     <div class="canvas-wrap">
       <div id="kmapBg" class="kmapbg" style="display:none"></div>
       <svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -1083,32 +1082,53 @@ function tbData(){
            volT:(t.volT||''), volG:(t.volG||'') };
 }
 function tbEsc(x){return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-function renderTB(){
-  var box=document.getElementById('tbBox'); if(!box)return;
+function drawTitleBlock(){
+  if(typeof gGeo==='undefined'||!gGeo)return;
+  var xs=[],ys=[];
+  (state.points||[]).forEach(function(p){if(p&&p.x!=null&&p.y!=null){xs.push(+p.x);ys.push(+p.y);}});
+  (state.manholes||[]).forEach(function(m){if(m&&m.wx!=null){xs.push(+m.wx);ys.push(+m.wy);}});
+  if(!xs.length)return;
+  var minX=Math.min.apply(null,xs),maxX=Math.max.apply(null,xs),maxY=Math.max.apply(null,ys);
+  var W=Math.max(maxX-minX,10), th=W*0.016;
   var d=tbData();
-  function ro(lab,val,cls){return '<div class="tbrow"><span class="tbl">'+lab+'</span><span class="'+(cls||'tbv')+'">'+tbEsc(val)+'</span></div>';}
-  function ed(lab,key,val){return '<div class="tbrow"><span class="tbl">'+lab+'</span><input class="tbe" data-k="'+key+'" value="'+tbEsc(val)+'" placeholder="직접입력"></div>';}
-  box.innerHTML=
-    '<div class="tbname">'+tbEsc(d.name||'(사업명 미입력)')+'</div>'+
-    '<div class="tbbody">'+
-      '<div class="tbcol">'+
-        ro('탱고 번호',d.bizNo,'tbno')+
-        ro('관로(소유자)',d.client)+
-        ro('관로(외관)',d.outer)+
-        ed('관로(내관)','inner',d.inner)+
-        ro('맨홀(소유자)',d.mhOwner)+
-      '</div>'+
-      '<div class="tbcol tbcol2">'+
-        ed('물량(탱고)','volT',d.volT)+
-        ed('물량(GIS)','volG',d.volG)+
-      '</div>'+
-    '</div>';
-  Array.prototype.forEach.call(box.querySelectorAll('.tbe'),function(inp){
-    inp.addEventListener('change',function(){
-      state.titleBlock=state.titleBlock||{};
-      state.titleBlock[inp.getAttribute('data-k')]=inp.value;
-      try{saveProject&&saveProject();}catch(e){}
-    });
+  var b0=minX, by0=maxY+th*3, bw=W, bh=th*11, by1=by0+bh;
+  var c0=S(b0,by0), c1=S(b0+bw,by1);
+  var rx=Math.min(c0[0],c1[0]), ry=Math.min(c0[1],c1[1]), rw=Math.abs(c1[0]-c0[0]), rh=Math.abs(c1[1]-c0[1]);
+  var box=el('rect',{x:rx,y:ry,width:rw,height:rh,fill:'#fff','fill-opacity':'0.93',stroke:'#d00','stroke-width':'1.6','vector-effect':'non-scaling-stroke',style:'cursor:pointer'});
+  if(!viewerMode&&!readOnly){box.addEventListener('pointerdown',function(ev){ev.stopPropagation();ev.preventDefault();openTbEdit();});}
+  gGeo.appendChild(box);
+  function txt(wx,wy,h,s,col,anc){if(s==null||s==='')return;var sp=S(wx,wy);var e=el('text',{x:sp[0],y:sp[1],'font-size':h,fill:col,'text-anchor':anc||'start','dominant-baseline':'middle','pointer-events':'none'});e.textContent=s;gGeo.appendChild(e);}
+  var CB='#111',CR='#d00',CV='#1633ff';
+  txt(b0+bw/2, by1-th*1.6, th*1.25, d.name||'(사업명 미입력)', CB, 'middle');
+  var lx=b0+th*0.8, vx=b0+bw*0.16, ry0=by1-th*3.4, dy=th*1.7;
+  var L=[['탱고 번호',d.bizNo,CR],['관로(소유자)',d.client,CV],['관로(외관)',d.outer,CV],['관로(내관)',d.inner||'(직접입력)',CV],['맨홀(소유자)',d.mhOwner,CV]];
+  L.forEach(function(r,i){var y=ry0-dy*i;txt(lx,y,th,r[0]+' :',CB);txt(vx,y,th,r[1]||'',r[2]);});
+  var rlx=b0+bw*0.55, rvx=b0+bw*0.70;
+  var R=[['물량(탱고)',d.volT||'(직접입력)'],['물량(GIS)',d.volG||'(직접입력)']];
+  R.forEach(function(r,i){var y=ry0-dy*i;txt(rlx,y,th,r[0]+' :',CB);txt(rvx,y,th,r[1]||'',CV);});
+}
+function openTbEdit(){
+  if(viewerMode||readOnly)return;
+  var t=state.titleBlock||{};
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:9999;display:flex;align-items:center;justify-content:center';
+  var card=document.createElement('div');
+  card.style.cssText='background:#fff;border-radius:10px;padding:18px 20px;min-width:280px;box-shadow:0 8px 30px rgba(0,0,0,.2)';
+  function fld(lab,id,v){return '<label style="display:block;margin-bottom:10px;font-size:13px;color:#333">'+lab+'<input id="'+id+'" style="width:100%;padding:6px;margin-top:3px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box" value="'+tbEsc(v||'')+'"></label>';}
+  card.innerHTML='<div style="font-weight:700;font-size:15px;margin-bottom:12px">타이틀블록 입력</div>'
+    +fld('관로(내관)','tbeInner',t.inner)+fld('물량(탱고)','tbeVolT',t.volT)+fld('물량(GIS)','tbeVolG',t.volG)
+    +'<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:4px"><button id="tbeCancel" style="padding:6px 14px;border:1px solid #ccc;background:#fff;border-radius:6px;cursor:pointer">취소</button><button id="tbeOk" style="padding:6px 14px;border:none;background:#1633ff;color:#fff;border-radius:6px;cursor:pointer">확인</button></div>';
+  ov.appendChild(card);document.body.appendChild(ov);
+  setTimeout(function(){var f=card.querySelector('#tbeInner');if(f)f.focus();},30);
+  function close(){ov.remove();}
+  ov.addEventListener('pointerdown',function(e){if(e.target===ov)close();});
+  card.querySelector('#tbeCancel').addEventListener('click',close);
+  card.querySelector('#tbeOk').addEventListener('click',function(){
+    state.titleBlock=state.titleBlock||{};
+    state.titleBlock.inner=card.querySelector('#tbeInner').value;
+    state.titleBlock.volT=card.querySelector('#tbeVolT').value;
+    state.titleBlock.volG=card.querySelector('#tbeVolG').value;
+    close();try{drawGeo();}catch(e){}try{saveProject&&saveProject();}catch(e){}
   });
 }
 
@@ -1152,6 +1172,7 @@ function openBpEdit(z){
 function drawGeo(){
   clearSvg(gGeo); clearSvg(gPts); clearSvg(gHit); clearSvg(gAnc); clearLabels('pt');clearLabels('depth');
   if(typeof drawBpZones==='function')drawBpZones();
+  if(typeof drawTitleBlock==='function')drawTitleBlock();
   if(!bpOff)(state.baseTexts||[]).forEach(function(t){var sc=S(t.x,t.y);var tn=el('text',{x:sc[0],y:sc[1],'font-size':Math.max(t.h*2,1.1),fill:'#888','text-anchor':'start','pointer-events':'none'});if(t.rot){tn.setAttribute('transform','rotate('+(-t.rot)+' '+sc[0]+' '+sc[1]+')');}tn.textContent=t.text;gGeo.appendChild(tn);});
   state.lines.forEach(function(L){if(bpOff&&L.base)return;var def=LINECOL[L.layer]||{c:"#888",w:1.2};if(L.crop)def={c:"#000",w:1.4};
     var pts=L.pts.map(function(p){var s=S(p[0],p[1]);return s[0]+','+s[1];}).join(' ');
@@ -1581,7 +1602,7 @@ function renderRecs(){var box=document.getElementById('recs');document.getElemen
       +'<button class="del" data-i="'+i+'">✕</button></div>';
   }).join('');
 }
-function updMeta(){try{renderTB();}catch(e){}document.getElementById('meta').textContent=(state.projectName||'현장 미선택')+' · 측량점 '+state.points.length+' · 결선 '+state.lines.filter(function(l){return l.layer==='통신관로';}).length;}
+function updMeta(){document.getElementById('meta').textContent=(state.projectName||'현장 미선택')+' · 측량점 '+state.points.length+' · 결선 '+state.lines.filter(function(l){return l.layer==='통신관로';}).length;}
 
 /* ====== 뷰박스 ====== */
 var vb={x:0,y:0,w:100,h:100}, vb0={x:0,y:0,w:100,h:100}, _vbwLast=null;
