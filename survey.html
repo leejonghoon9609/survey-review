@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 284</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 285</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1010,9 +1010,11 @@ function pxToWorld(){
 /* ===== 보강판 구역(관로결선 ±5M 밴드 + 연한 해치 + 태그/인출선) ===== */
 var bpFirst=null;
 function nearBpPoint(wx,wy){var best=null,bd=1e18;(state.points||[]).forEach(function(p){if(!/\uBCF4\uAC15\uD310/.test((p.no||'')+'|'+(p.code||'')))return;var d=Math.hypot(p.x-wx,p.y-wy);if(d<bd){bd=d;best=p;}});return best;}
-var bpHoverEl=null;
+var bpHoverEl=null,bpDragZone=null,bpPreviewEl=null;
 function bpHoverPt(ww){var bp=nearBpPoint(ww[0],-ww[1]);if(!bp){bpHoverClear();return;}var sp=S(bp.x,bp.y);if(!bpHoverEl||!bpHoverEl.parentNode){bpHoverEl=el('rect',{fill:'none',stroke:'#d32f2f','stroke-width':5,'vector-effect':'non-scaling-stroke','pointer-events':'none'});gAnc.appendChild(bpHoverEl);}bpHoverEl.setAttribute('x',sp[0]-0.4);bpHoverEl.setAttribute('y',sp[1]-0.4);bpHoverEl.setAttribute('width',0.8);bpHoverEl.setAttribute('height',0.8);}
 function bpHoverClear(){if(bpHoverEl){bpHoverEl.remove();bpHoverEl=null;}}
+function bpPreview(a,b){var A=S(a[0],a[1]),B=S(b[0],b[1]);if(!bpPreviewEl||!bpPreviewEl.parentNode){bpPreviewEl=el('line',{stroke:'#d32f2f','stroke-width':2,'stroke-dasharray':'1.5 1','vector-effect':'non-scaling-stroke','pointer-events':'none'});gAnc.appendChild(bpPreviewEl);}bpPreviewEl.setAttribute('x1',A[0]);bpPreviewEl.setAttribute('y1',A[1]);bpPreviewEl.setAttribute('x2',B[0]);bpPreviewEl.setAttribute('y2',B[1]);}
+function bpPreviewClear(){if(bpPreviewEl){bpPreviewEl.remove();bpPreviewEl=null;}}
 function bpKey(pt){return (Math.round(pt[0]*100)/100)+','+(Math.round(pt[1]*100)/100);}
 function bpTracePath(p1,p2){
   var segs=[];(state.lines||[]).forEach(function(L){if(L.layer!=='\uD1B5\uC2E0\uAD00\uB85C'||!L.pts||L.pts.length<2)return;for(var i=0;i<L.pts.length-1;i++)segs.push([L.pts[i],L.pts[i+1]]);});
@@ -1024,7 +1026,7 @@ function bpTracePath(p1,p2){
   while(q.length){var cur=q.shift();if(cur===ek){found=true;break;}(adj[cur]||[]).forEach(function(nb){if(!(nb in prev)){prev[nb]=cur;q.push(nb);}});}
   if(!found)return [p1,p2];
   var path=[],c=ek;while(c&&c!=='_root'){path.unshift(vmap[c]);c=prev[c];}
-  return path.length>=2?path:[p1,p2];
+  if(path.length>=2){path[0]=p1;path[path.length-1]=p2;return path;}return [p1,p2];
 }
 function bpBandLR(path,off){
   var n=path.length;if(n<2)return null;
@@ -1062,11 +1064,8 @@ function drawBpZones(){
       lbl.style.pointerEvents='auto';lbl.style.cursor='move';
       lbl.addEventListener('dblclick',function(ev){ev.stopPropagation();if(mode==='bpzdel')return;openBpEdit(z);});
       var ah=el('circle',{cx:ts[0],cy:ts[1],r:1.2,fill:'rgba(184,134,11,0.001)',stroke:'none',cursor:'move'});gAnc.appendChild(ah);
-      (function(zz,handle){var drag=false;
-        handle.addEventListener('pointerdown',function(ev){if(mode==='bpzdel'){ev.stopPropagation();ev.preventDefault();var bi=state.bpzones.indexOf(zz);if(bi>=0){pushHist();state.bpzones.splice(bi,1);drawGeo();updMeta();toast('\uBCF4\uAC15\uD310 \uAD6C\uC5ED \uC0AD\uC81C');}return;}if(mode!=='pan'||viewerMode||readOnly)return;ev.stopPropagation();drag=true;labelDragging=true;try{handle.setPointerCapture(ev.pointerId);}catch(e){}});
-        handle.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();var ww=toWorld(ev.clientX,ev.clientY);zz.lx=ww[0];zz.ly=-ww[1];drawGeo();});
-        function up(ev){if(!drag)return;drag=false;setTimeout(function(){labelDragging=false;},40);try{handle.releasePointerCapture(ev.pointerId);}catch(e){}drawGeo();}
-        handle.addEventListener('pointerup',up);handle.addEventListener('pointercancel',up);
+      (function(zz,handle){
+        handle.addEventListener('pointerdown',function(ev){if(mode==='bpzdel'){ev.stopPropagation();ev.preventDefault();var bi=state.bpzones.indexOf(zz);if(bi>=0){pushHist();state.bpzones.splice(bi,1);drawGeo();updMeta();toast('\uBCF4\uAC15\uD310 \uAD6C\uC5ED \uC0AD\uC81C');}return;}if(mode!=='pan'||viewerMode||readOnly)return;ev.stopPropagation();ev.preventDefault();bpDragZone=zz;labelDragging=true;try{cv.setPointerCapture(ev.pointerId);}catch(e){}});
       })(z,ah);
     }
   });
@@ -5183,6 +5182,7 @@ EOF
   function tw(label,unit){function gw(ch){var c=ch.charCodeAt(0);if(c>127)return 1.1;if(ch===' ')return 0.392;if(ch==='M')return 1.065;if(ch==='W')return 1.22;if(ch>='0'&&ch<='9')return 0.785;if('()[]{}'.indexOf(ch)>=0)return 0.482;if('Iilj|!.,:;'.indexOf(ch)>=0)return 0.36;if('TY'.indexOf(ch)>=0)return 0.755;if(ch>='A'&&ch<='Z')return 0.8;if(ch>='a'&&ch<='z')return 0.6;return 0.5;}var w=0;for(var i=0;i<label.length;i++)w+=gw(label.charAt(i))*unit;return w+unit*0.05;}
   // 측점: 박스 + 인출선(검정 점선) + 번호/코드
   var lay=computeLabels();
+  if(!((typeof LV!=='undefined')&&LV.bpbox===0))(state.bpzones||[]).forEach(function(z){var path=(z.path&&z.path.length>=2)?z.path:[z.p1,z.p2];var lr=(typeof bpBandLR==='function')?bpBandLR(path,5):null;if(!lr)return;for(var si=0;si<lr.left.length-1;si++){var L1=lr.left[si],L2=lr.left[si+1],R1=lr.right[si],R2=lr.right[si+1];push(['0','SOLID','5',H(),'330','17','100','AcDbEntity','8','BPZONE','62','256','420','15391656','440','33554445','100','AcDbTrace','10',N(L1[0]),'20',N(L1[1]),'30','0','11',N(L2[0]),'21',N(L2[1]),'31','0','12',N(R1[0]),'22',N(R1[1]),'32','0','13',N(R2[0]),'23',N(R2[1]),'33','0']);}});
   state.points.forEach(function(p,k){
     var _bp=/보강판/.test((p.no||'')+'|'+(p.code||''));var _bpHide=_bp&&(typeof bpPtHidden==='function')&&bpPtHidden(p);
     var _LV=(typeof LV!=='undefined')?LV:{};
@@ -5243,7 +5243,7 @@ EOF
     var path=(z.path&&z.path.length>=2)?z.path:[z.p1,z.p2];
     var poly=(typeof bpOffsetBand==='function')?bpOffsetBand(path,5):null;if(!poly)return;
     for(var pi=0;pi<poly.length;pi++){var a=poly[pi],b=poly[(pi+1)%poly.length];bpLine(a[0],a[1],b[0],b[1]);}
-    var lr=bpBandLR(path,5);if(lr){for(var si=0;si<lr.left.length-1;si++){var L1=lr.left[si],L2=lr.left[si+1],R1=lr.right[si],R2=lr.right[si+1];push(['0','SOLID','5',H(),'330','17','100','AcDbEntity','8','BPZONE','62','256','420',String(BPTC),'440','33554462','100','AcDbTrace','10',N(L1[0]),'20',N(L1[1]),'30','0','11',N(L2[0]),'21',N(L2[1]),'31','0','12',N(R1[0]),'22',N(R1[1]),'32','0','13',N(R2[0]),'23',N(R2[1]),'33','0']);}}
+    
     var mid=path[Math.floor(path.length/2)];
     if(z.lx==null||z.ly==null){z.lx=mid[0];z.ly=mid[1]+10;}
     bpLine(mid[0],mid[1],z.lx,z.ly);
@@ -5405,7 +5405,7 @@ cv.addEventListener('pointerdown',function(e){
   else if(mode==='riserplace'){var wr=toWorld(e.clientX,e.clientY);placeManholeAt(wr[0],-wr[1],'riser');mode='pan';setModeUI();return;}
   else if(mode==='ptins'){var wi=toWorld(e.clientX,e.clientY);insertPointAt(wi[0],-wi[1]);mode='pan';setModeUI();return;}
   else if(mode==='bpz1'){var wi=toWorld(e.clientX,e.clientY);var bp=nearBpPoint(wi[0],-wi[1]);bpFirst=bp?[bp.x,bp.y]:[wi[0],-wi[1]];mode='bpz2';setModeUI();toast('끝 보강판 측점을 클릭하세요');return;}
-  else if(mode==='bpz2'){var wi=toWorld(e.clientX,e.clientY);var bp=nearBpPoint(wi[0],-wi[1]);var p2=bp?[bp.x,bp.y]:[wi[0],-wi[1]];if(!state.bpzones)state.bpzones=[];pushHist();state.bpzones.push({p1:bpFirst,p2:p2,note:'보강판 지역',path:bpTracePath(bpFirst,p2)});bpFirst=null;bpHoverClear();mode='pan';setModeUI();drawGeo();updMeta();toast('보강판 구역 생성');return;}
+  else if(mode==='bpz2'){var wi=toWorld(e.clientX,e.clientY);var bp=nearBpPoint(wi[0],-wi[1]);var p2=bp?[bp.x,bp.y]:[wi[0],-wi[1]];if(!state.bpzones)state.bpzones=[];pushHist();state.bpzones.push({p1:bpFirst,p2:p2,note:'보강판 지역',path:bpTracePath(bpFirst,p2)});bpFirst=null;bpHoverClear();bpPreviewClear();mode='pan';setModeUI();drawGeo();updMeta();toast('보강판 구역 생성');return;}
   else if(mode==='bpzdel'){var wi=toWorld(e.clientX,e.clientY),wx=wi[0],wy=-wi[1];if(state.bpzones){for(var zi=0;zi<state.bpzones.length;zi++){var poly=bpOffsetBand(bpPathOf(state.bpzones[zi]),5);if(poly&&bpPtInPoly(wx,wy,poly)){pushHist();state.bpzones.splice(zi,1);drawGeo();updMeta();toast('보강판 구역 삭제');return;}}}return;}
   else if(mode==='ptdel'){return;} // 측점삭제: 빈 곳 클릭은 무시(측점 클릭은 hit 핸들러가 삭제)
   else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);var ns=nearestSnapWorld(w[0],w[1]);
@@ -5423,9 +5423,10 @@ cv.addEventListener('pointerdown',function(e){
   if(mode!=='pan')try{cv.setPointerCapture(e.pointerId);}catch(x){}
 });
 cv.addEventListener('pointermove',function(e){
+  if(bpDragZone){var dw=toWorld(e.clientX,e.clientY);bpDragZone.lx=dw[0];bpDragZone.ly=-dw[1];drawGeo();return;}
   if(bpCrop){var w=toWorld(e.clientX,e.clientY);bpCrop.ex=w[0];bpCrop.ey=w[1];drawBpRect();return;}
   if(mode==='bperase'&&!midPanning){bpHover(toWorld(e.clientX,e.clientY));return;}
-  if(mode==='bpz1'||mode==='bpz2'){bpHoverPt(toWorld(e.clientX,e.clientY));return;}
+  if((mode==='bpz1'||mode==='bpz2')&&!midPanning){var hw=toWorld(e.clientX,e.clientY);bpHoverPt(hw);if(mode==='bpz2'&&bpFirst){var hbp=nearBpPoint(hw[0],-hw[1]);bpPreview(bpFirst,hbp?[hbp.x,hbp.y]:[hw[0],-hw[1]]);}else bpPreviewClear();return;}
   if(e.pointerType==='touch'&&activePtrs[e.pointerId]){activePtrs[e.pointerId].x=e.clientX;activePtrs[e.pointerId].y=e.clientY;}
   if(noteDrag){var m=state.markups[noteDrag.i];
     if(!noteDrag.moved){if(Math.hypot(e.clientX-noteDrag.sx0,e.clientY-noteDrag.sy0)<8)return;noteDrag.moved=true;noteDrag.lastW=toWorld(e.clientX,e.clientY);}
@@ -5450,6 +5451,7 @@ cv.addEventListener('pointermove',function(e){
     else{cur.setAttribute('cx',(sx+x)/2);cur.setAttribute('cy',(sy+y)/2);cur.setAttribute('rx',Math.abs(x-sx)/2);cur.setAttribute('ry',Math.abs(y-sy)/2);}}
 });
 function endPtr(e){
+  if(bpDragZone){bpDragZone=null;setTimeout(function(){labelDragging=false;},40);drawGeo();return;}
   if(bpCrop){var _c=bpCrop;bpCrop=null;clearSvg(gDraft);applyBpCrop(_c);return;}
   if(e&&e.pointerType==='touch'&&e.pointerId!=null&&activePtrs[e.pointerId]){delete activePtrs[e.pointerId];}
   if(pinch&&Object.keys(activePtrs).length<2){pinch=null;drawGeo();drawManholes();highlightSel();return;}
