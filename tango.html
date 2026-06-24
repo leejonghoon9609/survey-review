@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 271</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 272</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1066,7 +1066,7 @@ function drawGeo(){
       nt.appendChild(sub);
     }
     var _dp=(state._depthByNo&&state._depthByNo[p.no]);
-    if(_dp!=null&&isFinite(_dp)){var _w=(typeof pipeDirAt==='function')?pipeDirAt(p):null,_ddx=0,_ddy=-0.5,_drot=0;if(_w){var _m=Math.hypot(_w[0],_w[1])||1,_ue=_w[0]/_m,_un=_w[1]/_m,_pe=-_un,_pn=_ue,_lox=(L.lx-p.x),_loy=(L.ly-p.y);if(_pe*_lox+_pn*_loy>0){_pe=-_pe;_pn=-_pn;}_ddx=_pe*0.5;_ddy=_pn*0.5;_drot=Math.atan2(-_w[1],_w[0])*180/Math.PI;if(_drot>90)_drot-=180;if(_drot<-90)_drot+=180;}var _ds=S(p.x+_ddx,p.y+_ddy);mkLabel(_ds[0],_ds[1],(Math.round(_dp*100)/100).toFixed(2),{fill:'#2196f3',weight:'700',anchor:'middle',grp:'depth',px:13,rot:_drot});}
+    if(_dp!=null&&isFinite(_dp)){var _w=(typeof pipeDirAt==='function')?pipeDirAt(p):null,_ddx=0,_ddy=-0.3,_drot=0;if(_w){var _m=Math.hypot(_w[0],_w[1])||1,_ue=_w[0]/_m,_un=_w[1]/_m,_pe=-_un,_pn=_ue,_lox=(L.lx-p.x),_loy=(L.ly-p.y);if(_pe*_lox+_pn*_loy>0){_pe=-_pe;_pn=-_pn;}_ddx=_pe*0.3;_ddy=_pn*0.3;_drot=Math.atan2(-_w[1],_w[0])*180/Math.PI;if(_drot>90)_drot-=180;if(_drot<-90)_drot+=180;}var _ds=S(p.x+_ddx,p.y+_ddy);mkLabel(_ds[0],_ds[1],(Math.round(_dp*100)/100).toFixed(2),{fill:'#2196f3',weight:'700',anchor:'middle',grp:'depth',px:13,rot:_drot});}
     if(ld){var _lvis=isBp||((LV.no!==0)&&(p.no||'').length>0)||((LV.date!==0)&&dpos>=0)||((LV.code!==0)&&(p.code||'').trim().length>0);ld.style.display=_lvis?'':'none';}
     var ct=nt; // 핸들 호환
     addLabelHandle(p,L,ls,nt,ct,ld,p.no===selNum);
@@ -5096,7 +5096,7 @@ EOF
   function line(x1,y1,x2,y2,layer,col,lt){var a=['0','LINE','5',H(),'330','17','100','AcDbEntity','8',layer];if(lt)a.push('6',lt);a.push('62',String(col),'100','AcDbLine','10',N(x1),'20',N(y1),'30','0','11',N(x2),'21',N(y2),'31','0');push(a);}
   function box(cx,cy,sz,layer,col){var h=sz/2;pline([[cx-h,cy-h],[cx+h,cy-h],[cx+h,cy+h],[cx-h,cy+h]],layer,col,true);}
   function insert(name,x,y,sc,layer,col){push(['0','INSERT','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbBlockReference','2',name,'10',N(x),'20',N(y),'30','0','41',N(sc),'42',N(sc),'43',N(sc),'50','0']);}
-  function text(x,y,h,s,layer,col,align,rot){var hangul=/[^\x00-\x7F]/.test(s);var es=uesc(s);var a=['0','TEXT','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbText','10',N(x),'20',N(y),'30','0','40',N(h),'1',es];if(rot){a.push('50',N(rot));}if(hangul)a.push('7','HANGUL');a.push('72',String(align||0),'11',N(x),'21',N(y),'31','0','100','AcDbText');push(a);}
+  function text(x,y,h,s,layer,col,align,rot,valign){var hangul=/[^\x00-\x7F]/.test(s);var es=uesc(s);var a=['0','TEXT','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbText','10',N(x),'20',N(y),'30','0','40',N(h),'1',es];if(rot){a.push('50',N(rot));}if(hangul)a.push('7','HANGUL');a.push('72',String(align||0));if(valign){a.push('73',String(valign));}a.push('11',N(x),'21',N(y),'31','0','100','AcDbText');push(a);}
   function tw(label,unit){function gw(ch){var c=ch.charCodeAt(0);if(c>127)return 1.1;if(ch===' ')return 0.392;if(ch==='M')return 1.065;if(ch==='W')return 1.22;if(ch>='0'&&ch<='9')return 0.785;if('()[]{}'.indexOf(ch)>=0)return 0.482;if('Iilj|!.,:;'.indexOf(ch)>=0)return 0.36;if('TY'.indexOf(ch)>=0)return 0.755;if(ch>='A'&&ch<='Z')return 0.8;if(ch>='a'&&ch<='z')return 0.6;return 0.5;}var w=0;for(var i=0;i<label.length;i++)w+=gw(label.charAt(i))*unit;return w+unit*0.05;}
   // 측점: 박스 + 인출선(검정 점선) + 번호/코드
   var lay=computeLabels();
@@ -5115,7 +5115,7 @@ EOF
     if(noOut||cdOut)line(p.x,p.y,lo.lx,lo.ly,'PT_LEADER',7,'DASHED');
     if(noOut)text(lo.lx,lo.ly+TH*0.1,TH,noOut,'PT_LABEL',_bp?2:3,al);
     if(cdOut)text(lo.lx,lo.ly-TH*1.1,TH,cdOut,'PT_CODE',_bp?2:4,al);
-    if(_hasDep){var _w3=(typeof pipeDirAt==='function')?pipeDirAt(p):null,_dx=0,_dy=-0.5,_drot3=0;if(_w3){var _mm=Math.hypot(_w3[0],_w3[1])||1,_ue=_w3[0]/_mm,_un=_w3[1]/_mm,_pe=-_un,_pn=_ue,_lx2=(lo.lx-p.x),_ly2=(lo.ly-p.y);if(_pe*_lx2+_pn*_ly2>0){_pe=-_pe;_pn=-_pn;}_dx=_pe*0.5;_dy=_pn*0.5;_drot3=Math.atan2(_w3[1],_w3[0])*180/Math.PI;if(_drot3>90)_drot3-=180;if(_drot3<-90)_drot3+=180;}text(p.x+_dx,p.y+_dy,TH,(Math.round(_dep*100)/100).toFixed(2),'PT_DEPTH',5,1,_drot3);}
+    if(_hasDep){var _w3=(typeof pipeDirAt==='function')?pipeDirAt(p):null,_drot3=0,_vA3=1;if(_w3){var _mm=Math.hypot(_w3[0],_w3[1])||1,_ue=_w3[0]/_mm,_un=_w3[1]/_mm,_pe=-_un,_pn=_ue,_lx2=(lo.lx-p.x),_ly2=(lo.ly-p.y);if(_pe*_lx2+_pn*_ly2>0){_pe=-_pe;_pn=-_pn;}_drot3=Math.atan2(_w3[1],_w3[0])*180/Math.PI;if(_drot3>90)_drot3-=180;if(_drot3<-90)_drot3+=180;var _th3=_drot3*Math.PI/180,_lux3=-Math.sin(_th3),_luy3=Math.cos(_th3);_vA3=((_pe*_lux3+_pn*_luy3)>=0)?1:3;}text(p.x,p.y,TH,(Math.round(_dep*100)/100).toFixed(2),'PT_DEPTH',5,1,_drot3,_vA3);}
   });
   // 결선: LWPOLYLINE (압입=점선) + 지거/압입 멘트(인출선 점선 + 밑줄 + 중앙 글자)
   var LM={'통신관로':['PIPE',1],'지거':['JIGER',2],'압입구간':['PUSH',5]};
