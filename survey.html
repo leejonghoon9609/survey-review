@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 294</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 295</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1094,19 +1094,19 @@ function tbLayout(dxf){
   (state.baseTexts||[]).forEach(function(t){if(t&&t.x!=null&&t.y!=null){axs.push(+t.x);ays.push(+t.y);}});
   var minX=Math.min.apply(null,axs),maxX=Math.max.apply(null,axs),maxY=Math.max.apply(null,ays);
   var bw=Math.max(maxX-minX,10);
-  var th=ptW*0.020, dy=th*1.9, pad=th*1.0, nameH=th*1.4;     // 행간/사업명 기준(고정)
-  var gsc=dxf?0.78:1.0, gh=th*gsc;                            // ② 밑텍스트 글자: DXF만 작게
-  var vxm=dxf?9.0:10.8, rlm=dxf?22.5:26, rvm=dxf?29:34;       // ① 라벨-값 간격: DXF만 좁게
-  var nameGap=th*2.8;                                          // ③ 사업명-텍스트 간격(늘림, 공통)
+  var th=ptW*0.020, dy=th*1.9, pad=th*1.0, nameH=th*1.4;
+  var gsc=dxf?0.78:1.0, gh=th*gsc;
+  var vxm=dxf?9.0:9.4, rlm=dxf?22.5:23.5, rvm=dxf?29:30;     // 라벨-값 간격: 화면도 좁힘
+  var nameGap=th*2.8;
   var d=tbData();
   var bh=pad+nameH+nameGap+5*dy+pad*0.5;
   var b0=minX, by0=maxY, by1=maxY+bh;
   var it=[];
-  function add(x,y,h,s,c,a){if(s==null)s='';it.push({x:x,y:y,h:h,s:s,c:c,a:a||'start'});}
+  function add(x,y,h,s,c,a,key){if(s==null)s='';it.push({x:x,y:y,h:h,s:s,c:c,a:a||'start',key:key||null});}
   add(b0+bw/2, by1-pad-nameH, nameH, d.name||'(사업명 미입력)', 'name', 'middle');
   var lx=b0+pad, vx=b0+pad+th*vxm, firstY=by1-pad-nameH-nameGap-th*0.2;
   var L=[['탱고 번호',d.bizNo,'red'],['관로(소유자)',d.client,'blue'],['관로(외관)',d.outer,'blue'],['관로(내관)',(d.inner||'(직접입력)'),'blue'],['맨홀(소유자)',d.mhOwner,'blue']];
-  L.forEach(function(r,i){var y=firstY-dy*i; add(lx,y,gh,r[0]+' :','label'); add(vx,y,gh,r[1]||'',r[2]);});
+  L.forEach(function(r,i){var y=firstY-dy*i; add(lx,y,gh,r[0]+' :','label'); add(vx,y,gh,r[1]||'',r[2],'start', i===0?'bizNo':null);});
   var rlx=b0+pad+th*rlm, rvx=b0+pad+th*rvm;
   var R=[['물량(탱고)',(d.volT||'(직접입력)')],['물량(GIS)',(d.volG||'(직접입력)')]];
   R.forEach(function(r,i){var y=firstY-dy*i; add(rlx,y,gh,r[0]+' :','label'); add(rvx,y,gh,r[1]||'','blue');});
@@ -1121,7 +1121,41 @@ function drawTitleBlock(){
   var box=el('rect',{x:rx,y:ry,width:rw,height:rh,fill:'#fff','fill-opacity':'0.96',stroke:'#d00','stroke-width':'1.4','vector-effect':'non-scaling-stroke',style:'cursor:pointer'});
   if(!viewerMode&&!readOnly){box.addEventListener('pointerdown',function(ev){ev.stopPropagation();ev.preventDefault();openTbEdit();});}
   gGeo.appendChild(box);
-  L.items.forEach(function(t){if(t.s==='')return;var sp=S(t.x,t.y);var e=el('text',{x:sp[0],y:sp[1],'font-size':t.h,fill:COL[t.c]||'#111','text-anchor':t.a,'pointer-events':'none','font-family':'Malgun Gothic,sans-serif'});e.textContent=t.s;gGeo.appendChild(e);});
+  L.items.forEach(function(t){
+    if(t.s==='')return;
+    var sp=S(t.x,t.y);
+    var e=el('text',{x:sp[0],y:sp[1],'font-size':t.h,fill:COL[t.c]||'#111','text-anchor':t.a,'font-family':'Malgun Gothic,sans-serif'});
+    e.textContent=t.s;
+    if(t.key==='bizNo'&&!viewerMode&&!readOnly){
+      e.setAttribute('pointer-events','auto'); e.style.cursor='text';
+      e.addEventListener('pointerdown',function(ev){ev.stopPropagation();});
+      e.addEventListener('dblclick',function(ev){ev.stopPropagation();ev.preventDefault();editBizNo();});
+    } else { e.setAttribute('pointer-events','none'); }
+    gGeo.appendChild(e);
+  });
+}
+function editBizNo(){
+  if(viewerMode||readOnly)return;
+  var cur=(state.bizInfo&&state.bizInfo.bizNo)||'';
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:9999;display:flex;align-items:center;justify-content:center';
+  var card=document.createElement('div');
+  card.style.cssText='background:#fff;border-radius:10px;padding:18px 20px;min-width:300px;box-shadow:0 8px 30px rgba(0,0,0,.2)';
+  card.innerHTML='<div style="font-weight:700;font-size:15px;margin-bottom:12px">탱고 번호 수정</div>'
+    +'<input id="tbnInp" style="width:100%;padding:7px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px" value="'+tbEsc(cur)+'">'
+    +'<div style="font-size:12px;color:#888;margin-top:6px">사업 등록의 사업번호도 함께 수정됩니다</div>'
+    +'<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button id="tbnC" style="padding:6px 14px;border:1px solid #ccc;background:#fff;border-radius:6px;cursor:pointer">취소</button><button id="tbnO" style="padding:6px 14px;border:none;background:#1633ff;color:#fff;border-radius:6px;cursor:pointer">확인</button></div>';
+  ov.appendChild(card);document.body.appendChild(ov);
+  setTimeout(function(){var f=card.querySelector('#tbnInp');if(f){f.focus();f.select();}},30);
+  function close(){ov.remove();}
+  ov.addEventListener('pointerdown',function(e){if(e.target===ov)close();});
+  card.querySelector('#tbnC').addEventListener('click',close);
+  card.querySelector('#tbnO').addEventListener('click',function(){
+    state.bizInfo=state.bizInfo||{};
+    state.bizInfo.bizNo=card.querySelector('#tbnInp').value.trim();
+    var rb=document.getElementById('regBizNo'); if(rb)rb.value=state.bizInfo.bizNo;
+    close();try{drawGeo();}catch(e){}try{saveProject&&saveProject();}catch(e){}
+  });
 }
 function openTbEdit(){
   if(viewerMode||readOnly)return;
