@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 343</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 344</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1075,7 +1075,7 @@ function tbMhOwner(){
   });
   var best='',bn=0; for(var k in cnt){if(cnt[k]>bn){bn=cnt[k];best=k;}}
   if(!best)return '';
-  var pr=best.split('|'); return pr[0]+(pr[1]?' - '+pr[1]:'');
+  var pr=best.split('|'); return pr[0];
 }
 function tbFmtCode(code){
   if(!code)return '';
