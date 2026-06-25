@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 301</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 302</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1421,7 +1421,7 @@ function drawManholes(){
     }
 
     // 라벨 글자 폭 (텍스트 길이 기준 월드값)
-    var txtW=0,_lb=mhDisp(mh);for(var _i=0;_i<_lb.length;_i++){txtW+=(_lb.charCodeAt(_i)>127?EM*1.0:EM*0.55);}txtW+=EM*0.5;txtW*=1.33; // 한글=한칸,영문=0.55칸+여유, 라벨 px20 기준 1.33배(맨홀·입상주 동일)
+    var txtW=0,_lb=mhDisp(mh);for(var _i=0;_i<_lb.length;_i++){txtW+=(_lb.charCodeAt(_i)>127?EM*1.0:EM*0.55);}txtW+=EM*0.5;txtW*=0.73; // 한글=한칸,영문=0.55칸+여유, 라벨 px20 기준 1.33배(맨홀·입상주 동일)
 
     // 라벨 기본 위치(관로 방향 피해서) — 공통 함수
     var _lp=mhLabelBase(mh, txtW); var lx=_lp.lx, ly=_lp.ly;
