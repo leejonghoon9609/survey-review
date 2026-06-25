@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 308</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 309</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5370,8 +5370,8 @@ EOF
   function tw(label,unit){function gw(ch){var c=ch.charCodeAt(0);if(c>127)return 1.1;if(ch===' ')return 0.392;if(ch==='M')return 1.065;if(ch==='W')return 1.22;if(ch>='0'&&ch<='9')return 0.785;if('()[]{}'.indexOf(ch)>=0)return 0.482;if('Iilj|!.,:;'.indexOf(ch)>=0)return 0.36;if('TY'.indexOf(ch)>=0)return 0.755;if(ch>='A'&&ch<='Z')return 0.8;if(ch>='a'&&ch<='z')return 0.6;return 0.5;}var w=0;for(var i=0;i<label.length;i++)w+=gw(label.charAt(i))*unit;return w+unit*0.05;}
   // 측점: 박스 + 인출선(검정 점선) + 번호/코드
   var lay=computeLabels();
-  var bpent=[];if(!((typeof LV!=='undefined')&&LV.bpbox===0))(state.bpzones||[]).forEach(function(z){var path=(z.path&&z.path.length>=2)?z.path:[z.p1,z.p2];var lr=(typeof bpBandLR==='function')?bpBandLR(path,5):null;if(!lr)return;for(var si=0;si<lr.left.length-1;si++){var L1=lr.left[si],L2=lr.left[si+1],R1=lr.right[si],R2=lr.right[si+1];bpent.push(['  0','SOLID','  5',H(),'330','F3','100','AcDbEntity','  8','BPZONE',' 62','256','420','15919565','440','33554440','100','AcDbTrace',' 10',N(L1[0]),' 20',N(L1[1]),' 30','0',' 11',N(L2[0]),' 21',N(L2[1]),' 31','0',' 12',N(R1[0]),' 22',N(R1[1]),' 32','0',' 13',N(R2[0]),' 23',N(R2[1]),' 33','0'].join('\n'));}});
-  if(bpent.length)push(['  0','INSERT','  5',H(),'330','17','100','AcDbEntity','  8','BPZONE','100','AcDbBlockReference','  2','BPBAND',' 10','0',' 20','0',' 30','0',' 41','1',' 42','1',' 43','1',' 50','0']);
+  var bpentArr=[];if(!((typeof LV!=='undefined')&&LV.bpbox===0))(state.bpzones||[]).forEach(function(z,zi){var _br=(512+zi*3).toString(16).toUpperCase();bpentArr[zi]=bpentArr[zi]||[];var path=(z.path&&z.path.length>=2)?z.path:[z.p1,z.p2];var lr=(typeof bpBandLR==='function')?bpBandLR(path,5):null;if(!lr)return;for(var si=0;si<lr.left.length-1;si++){var L1=lr.left[si],L2=lr.left[si+1],R1=lr.right[si],R2=lr.right[si+1];bpentArr[zi].push(['  0','SOLID','  5',H(),'330',_br,'100','AcDbEntity','  8','BPZONE',' 62','256','420','15919565','440','33554440','100','AcDbTrace',' 10',N(L1[0]),' 20',N(L1[1]),' 30','0',' 11',N(L2[0]),' 21',N(L2[1]),' 31','0',' 12',N(R1[0]),' 22',N(R1[1]),' 32','0',' 13',N(R2[0]),' 23',N(R2[1]),' 33','0'].join('\n'));}});
+  for(var _zi=0;_zi<bpentArr.length;_zi++){if(bpentArr[_zi]&&bpentArr[_zi].length)push(['  0','INSERT','  5',H(),'330','17','100','AcDbEntity','  8','BPZONE','100','AcDbBlockReference','  2','BPBAND'+_zi,' 10','0',' 20','0',' 30','0',' 41','1',' 42','1',' 43','1',' 50','0']);}
   state.points.forEach(function(p,k){
     var _bp=/보강판/.test((p.no||'')+'|'+(p.code||''));var _bpHide=_bp&&(typeof bpPtHidden==='function')&&bpPtHidden(p);
     var _LV=(typeof LV!=='undefined')?LV:{};
@@ -5426,12 +5426,12 @@ EOF
     if(mh.label)text((lx+ux2)/2,lyy+MTH*0.45,MTH,mhDisp(mh),lyr+'_LABEL',col,1); // 꺾임점 기준 정렬(R=좌0,L=우2)
   });
   // 보강판 구역(관로결선 ±5M 밴드 + 연한 해치 + 태그/인출선) — true color 보강판색(#B8860B)
-  if(!((typeof LV!=='undefined')&&LV.bpbox===0))(state.bpzones||[]).forEach(function(z){
+  if(!((typeof LV!=='undefined')&&LV.bpbox===0))(state.bpzones||[]).forEach(function(z,zi){var _br=(512+zi*3).toString(16).toUpperCase();bpentArr[zi]=bpentArr[zi]||[];
     var BPTC=12092939;
     function bpLine(x1,y1,x2,y2){push(['0','LINE','5',H(),'330','17','100','AcDbEntity','8','BPZONE','62','256','420',String(BPTC),'100','AcDbLine','10',N(x1),'20',N(y1),'30','0','11',N(x2),'21',N(y2),'31','0']);}
     var path=(z.path&&z.path.length>=2)?z.path:[z.p1,z.p2];
     var poly=(typeof bpOffsetBand==='function')?bpOffsetBand(path,5):null;if(!poly)return;
-    for(var pi=0;pi<poly.length;pi++){var a=poly[pi],b=poly[(pi+1)%poly.length];bpent.push(['  0','LINE','  5',H(),'330','F3','100','AcDbEntity','  8','BPZONE',' 62','256','420',String(BPTC),'100','AcDbLine',' 10',N(a[0]),' 20',N(a[1]),' 30','0',' 11',N(b[0]),' 21',N(b[1]),' 31','0'].join('\n'));}
+    for(var pi=0;pi<poly.length;pi++){var a=poly[pi],b=poly[(pi+1)%poly.length];bpentArr[zi].push(['  0','LINE','  5',H(),'330',_br,'100','AcDbEntity','  8','BPZONE',' 62','256','420',String(BPTC),'100','AcDbLine',' 10',N(a[0]),' 20',N(a[1]),' 30','0',' 11',N(b[0]),' 21',N(b[1]),' 31','0'].join('\n'));}
     
     var mid=path[Math.floor(path.length/2)];
     if(z.lx==null||z.ly==null){z.lx=mid[0];z.ly=mid[1]+10;}
@@ -5461,7 +5461,7 @@ EOF
     var blkStr=blkBegin+'\n'+bent.join('\n')+'\n'+blkEnd+'\n';
     PREx=PREx.replace('AcDbBlockEnd\n  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES','AcDbBlockEnd\n'+blkStr+'  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES');
   }
-  if(bpent.length){var BR2='F3',BK2='F4',EB2='F5';var bpBr=['  0','BLOCK_RECORD','  5',BR2,'330','9','100','AcDbSymbolTableRecord','100','AcDbBlockTableRecord','  2','BPBAND'].join('\n')+'\n';var bpAnc=baseLines.length?'  2\nBACKDROP\n  0\nENDTAB':'340\n1E\n  0\nENDTAB';var bpPre=baseLines.length?'  2\nBACKDROP\n':'340\n1E\n';PREx=PREx.replace(bpAnc,bpPre+bpBr+'  0\nENDTAB');var bpBB=['  0','BLOCK','  5',BK2,'330',BR2,'100','AcDbEntity','  8','BPZONE','100','AcDbBlockBegin','  2','BPBAND',' 70','0',' 10','0.0',' 20','0.0',' 30','0.0','  3','BPBAND','  1',''].join('\n');var bpBE=['  0','ENDBLK','  5',EB2,'330',BR2,'100','AcDbEntity','  8','BPZONE','100','AcDbBlockEnd'].join('\n');var bpBlk=bpBB+'\n'+bpent.join('\n')+'\n'+bpBE+'\n';PREx=PREx.replace('AcDbBlockEnd\n  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES','AcDbBlockEnd\n'+bpBlk+'  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES');}
+  var _bpBrAll='',_bpBlkAll='';for(var _zi=0;_zi<bpentArr.length;_zi++){if(!bpentArr[_zi]||!bpentArr[_zi].length)continue;var _br=(512+_zi*3).toString(16).toUpperCase(),_bk=(512+_zi*3+1).toString(16).toUpperCase(),_eb=(512+_zi*3+2).toString(16).toUpperCase();_bpBrAll+=['  0','BLOCK_RECORD','  5',_br,'330','9','100','AcDbSymbolTableRecord','100','AcDbBlockTableRecord','  2','BPBAND'+_zi].join('\n')+'\n';var _bb=['  0','BLOCK','  5',_bk,'330',_br,'100','AcDbEntity','  8','BPZONE','100','AcDbBlockBegin','  2','BPBAND'+_zi,' 70','0',' 10','0.0',' 20','0.0',' 30','0.0','  3','BPBAND'+_zi,'  1',''].join('\n');var _be=['  0','ENDBLK','  5',_eb,'330',_br,'100','AcDbEntity','  8','BPZONE','100','AcDbBlockEnd'].join('\n');_bpBlkAll+=_bb+'\n'+bpentArr[_zi].join('\n')+'\n'+_be+'\n';}if(_bpBrAll){var _anc=baseLines.length?'  2\nBACKDROP\n  0\nENDTAB':'340\n1E\n  0\nENDTAB';var _pre=baseLines.length?'  2\nBACKDROP\n':'340\n1E\n';PREx=PREx.replace(_anc,_pre+_bpBrAll+'  0\nENDTAB');PREx=PREx.replace('AcDbBlockEnd\n  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES','AcDbBlockEnd\n'+_bpBlkAll+'  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES');}
   // ===== 측점/맨홀 표준 블럭 SD901(X자)/SD100(이중원) 주입 — 중앙 POINT로 Node 스냅 =====
   (function(){
     var L1='  0\nLAYER\n  5\nDC\n330\n1\n100\nAcDbSymbolTableRecord\n100\nAcDbLayerTableRecord\n  2\nSD901\n 70\n0\n 62\n7\n  6\nContinuous\n370\n-3\n390\n13\n';
