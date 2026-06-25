@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 302</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 303</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5359,7 +5359,7 @@ EOF
   function N(n){return (Math.round(n*1000)/1000).toString();}
   function push(a){for(var i=0;i<a.length;i++)E.push(a[i]);}
   function uesc(s){var o='';for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);o+=(c>127)?('\\U+'+('000'+c.toString(16).toUpperCase()).slice(-4)):s.charAt(i);}return o;}
-  function pline(pts,layer,col,closed,lt,lts){var a=['0','LWPOLYLINE','5',H(),'330','17','100','AcDbEntity','8',layer];if(lt)a.push('6',lt);if(lts)a.push('48',N(lts));a.push('62',String(col),'100','AcDbPolyline','90',String(pts.length),'70',closed?'1':'0');for(var i=0;i<pts.length;i++){a.push('10',N(pts[i][0]),'20',N(pts[i][1]));}push(a);}
+  function pline(pts,layer,col,closed,lt,lts,wid){var a=['0','LWPOLYLINE','5',H(),'330','17','100','AcDbEntity','8',layer];if(lt)a.push('6',lt);if(lts)a.push('48',N(lts));a.push('62',String(col),'100','AcDbPolyline','90',String(pts.length),'70',closed?'1':'0');if(wid)a.push('43',N(wid));for(var i=0;i<pts.length;i++){a.push('10',N(pts[i][0]),'20',N(pts[i][1]));}push(a);}
   // 선종에 의존하지 않는 '물리적 점선': 경로 따라 dash만큼 실선 LINE, gap만큼 띄움 → 어떤 뷰어에서도 점선으로 보임
   function dashedPolyline(pts,layer,col,dash,gap){var period=dash+gap,pos=0;for(var i=0;i<pts.length-1;i++){var ax=pts[i][0],ay=pts[i][1],bx=pts[i+1][0],by=pts[i+1][1];var seg=Math.hypot(bx-ax,by-ay);if(seg<1e-9)continue;var ux=(bx-ax)/seg,uy=(by-ay)/seg,d=0;while(d<seg){var inPat=pos%period;if(inPat<dash){var step=Math.min(dash-inPat,seg-d);line(ax+ux*d,ay+uy*d,ax+ux*(d+step),ay+uy*(d+step),layer,col);d+=step;pos+=step;}else{var step2=Math.min(period-inPat,seg-d);d+=step2;pos+=step2;}}}}
   function circle(cx,cy,r,layer,col){push(['0','CIRCLE','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbCircle','10',N(cx),'20',N(cy),'30','0','40',N(r)]);}
@@ -5417,12 +5417,12 @@ EOF
       line(mh.wx-wB,mh.wy,mh.wx-wT,mh.wy+RH,lyr,5);line(mh.wx+wB,mh.wy,mh.wx+wT,mh.wy+RH,lyr,5);
       line(mh.wx-armW,armY,mh.wx+armW,armY,lyr,5);circle(mh.wx,mh.wy+RH,wT+0.05,lyr,5);
     } else {insert('SD100',mh.wx,mh.wy,0.5,'SD100',7);}
-    var MTH=TH*1.4; var w=tw(mhDisp(mh),MTH);
+    var MTH=TH*1.55; var w=tw(mhDisp(mh),MTH);
     var _p=mhLabelBase(mh,w); var lx=_p.lx, lyy=_p.ly;
     var isRight=(lx>=mh.wx);
     var uw=w+MTH*0.12+1.2; var ux2=isRight?lx+uw:lx-uw; // 밑줄=글자폭+여유 +1.2m 연장(종훈님 CAD 실측)
-    pline([[mh.wx,mh.wy],[lx,lyy],[ux2,lyy]],lyr,col,false); // 대각선+밑줄=폴리선 1개(붙음)
-    if(mh.label)text(lx,lyy+MTH*0.45,MTH,mhDisp(mh),lyr+'_LABEL',col,isRight?0:2); // 꺾임점 기준 정렬(R=좌0,L=우2)
+    pline([[mh.wx,mh.wy],[lx,lyy],[ux2,lyy]],lyr,col,false,null,null,0.25); // 대각선+밑줄=폴리선 1개(붙음)
+    if(mh.label)text((lx+ux2)/2,lyy+MTH*0.45,MTH,mhDisp(mh),lyr+'_LABEL',col,1); // 꺾임점 기준 정렬(R=좌0,L=우2)
   });
   // 보강판 구역(관로결선 ±5M 밴드 + 연한 해치 + 태그/인출선) — true color 보강판색(#B8860B)
   if(!((typeof LV!=='undefined')&&LV.bpbox===0))(state.bpzones||[]).forEach(function(z){
