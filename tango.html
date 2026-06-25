@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 299</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 300</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1245,7 +1245,7 @@ function drawBpZones(){
     if(z.lx==null||z.ly==null){z.lx=mid[0];z.ly=mid[1]+10;}
     var _foot=bpFootOnPoly(poly,z.lx,z.ly);var mc=S(_foot[0],_foot[1]), ts=S(z.lx,z.ly);
     gGeo.appendChild(el('line',{x1:mc[0],y1:mc[1],x2:ts[0],y2:ts[1],stroke:'#b8860b','stroke-width':'1.6','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-    var lbl=mkLabel(ts[0],ts[1],z.note||'\uBCF4\uAC15\uD310 \uC9C0\uC5ED',{fill:'#b8860b',weight:'700',anchor:'middle',grp:'pt',px:30});
+    var lbl=mkLabel(ts[0],ts[1],z.note||'\uBCF4\uAC15\uD310 \uC9C0\uC5ED',{fill:'#b8860b',weight:'700',anchor:'middle',grp:'pt',px:18});
     if(!viewerMode&&!readOnly){
       lbl.style.pointerEvents='auto';lbl.style.cursor='move';
       lbl.addEventListener('dblclick',function(ev){ev.stopPropagation();if(mode==='bpzdel')return;openBpEdit(z);});
@@ -1522,7 +1522,7 @@ function drawManholes(){
     }
 
     // 라벨 텍스트 — 파란 밑줄 중앙 바로 위에 (글자가 밑줄을 덮지 않게 위로)
-    var mhLbl=mkLabel(txtCx, uly-EM*0.95, mhDisp(mh), {fill:MHC,weight:'600',anchor:'middle',grp:'mh',px:20});
+    var mhLbl=mkLabel(txtCx, uly-EM*0.95, mhDisp(mh), {fill:MHC,weight:'600',anchor:'middle',grp:'mh',px:14});
     // 라벨 div에 직접 더블클릭(수정) — 오버레이라 글자 위에서 바로 동작
     mhLbl.style.pointerEvents='auto';
     mhLbl.style.cursor='text';
