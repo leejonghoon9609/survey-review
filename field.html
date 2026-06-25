@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 314</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 315</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1121,10 +1121,10 @@ function tbLayout(dxf){
   (state.baseTexts||[]).forEach(function(t){if(t&&t.x!=null&&t.y!=null){axs.push(+t.x);ays.push(+t.y);}});
   var minX=Math.min.apply(null,axs),maxX=Math.max.apply(null,axs),maxY=Math.max.apply(null,ays);
   var bw=Math.max(maxX-minX,10);
-  var th=ptW*0.020, dy=th*1.9, pad=th*1.0, nameH=th*1.4;
+  var th=ptW*0.020, dy=th*1.7, pad=th*1.0, nameH=th*1.4;
   var gsc=dxf?0.78:1.0, gh=th*gsc;
   var vxm=dxf?8.5:8.9, rlm=dxf?22:22.8, rvm=dxf?28:28.8;     // 간격 조금 더 좁힘
-  var nameGap=th*2.8;
+  var nameGap=th*2.2;
   var d=tbData();
   var bh=pad+nameH+nameGap+5*dy+pad*0.5;
   var b0=minX, by0=maxY, by1=maxY+bh;
