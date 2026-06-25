@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 313</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 314</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5936,7 +5936,7 @@ function renderRail(){
       html+='<div id="toolGroup" style="display:'+(toolsOpen?'flex':'none')+';flex-direction:column;gap:7px">';
       return;
     }
-    html+='<button data-k="'+c.k+'" style="'+railStyle(c.c,c.k===activeCat)+'">'+c.icon+' '+c.label+bdg+'</button>';});
+    html+='<button data-k="'+c.k+'" style="'+railStyle(c.c,c.k===activeCat)+'font-size:13px;padding:7px 10px">'+c.icon+' '+c.label+bdg+'</button>';});
   html+='</div>';
   if(IS_TANGO)html+='<button data-k="inspmk" style="'+railStyle({bg:'#fbe9e9',fg:'#df524b'},activeCat==='inspmk')+'">\uD83E\uDDFE \uAC80\uC218\uB370\uC774\uD130 \uC81C\uC791<span style="margin-left:auto;font-size:12px">'+(activeCat==='inspmk'&&inspmkOpen?'\u25B2':'\u25BC')+'</span></button>';if(IS_TANGO&&activeCat==='inspmk'&&inspmkOpen){var _isb=function(k,l,fg,bg){var on=(inspmkSub===k);return '<button data-isub="'+k+'" style="border:1px solid '+fg+';'+(on?'border-left:4px solid '+fg+';':'')+'border-radius:8px;background:'+bg+';color:'+fg+';font-weight:'+(on?'700':'600')+';justify-content:flex-start;font-size:13px;padding:7px 10px">'+l+'</button>';};html+='<div style="display:flex;flex-direction:column;gap:5px;margin-top:5px">'+_isb('code','\uCF54\uB4DC\uD3B8\uC9D1','#2f7fe0','#e6effb')+_isb('bp','\uBCF4\uAC15\uD310\uD3B8\uC9D1','#b8860b','#fdf6e3')+_isb('depth','\uC2EC\uB3C4\uD3B8\uC9D1','#7a52e0','#f0eef7')+'</div>';}
   html+='<div class="sep"'+(IS_TANGO?' style="margin-top:auto"':'')+'></div><button id="dxfExport" style="background:#fff;color:#c0392b;border:1px solid #c0392b;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#c0392b">📐</span> DXF로 내보내기</button>';
