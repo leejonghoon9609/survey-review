@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 304</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 305</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5421,7 +5421,7 @@ EOF
     var _p=mhLabelBase(mh,w); var lx=_p.lx, lyy=_p.ly;
     var isRight=(lx>=mh.wx);
     var uw=w+MTH*0.12+1.2; var ux2=isRight?lx+uw:lx-uw; // 밑줄=글자폭+여유 +1.2m 연장(종훈님 CAD 실측)
-    pline([[mh.wx,mh.wy],[lx,lyy],[ux2,lyy]],lyr,col,false,null,null,0.15); // 대각선+밑줄=폴리선 1개(붙음)
+    pline([[mh.wx,mh.wy],[lx,lyy],[ux2,lyy]],lyr,col,false,null,null,0.10); // 대각선+밑줄=폴리선 1개(붙음)
     if(mh.label)text((lx+ux2)/2,lyy+MTH*0.45,MTH,mhDisp(mh),lyr+'_LABEL',col,1); // 꺾임점 기준 정렬(R=좌0,L=우2)
   });
   // 보강판 구역(관로결선 ±5M 밴드 + 연한 해치 + 태그/인출선) — true color 보강판색(#B8860B)
