@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 367</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 368</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -2179,7 +2179,8 @@ function exportDXF(returnStr){
   function _pdfPoly(pts,col,closed,lt){if(!pts||pts.length<2)return;var d=_PDF.doc,c=ACIrgb(col);d.setDrawColor(c[0],c[1],c[2]);d.setLineWidth(_PDF.lw);d.setLineDashPattern(lt==='DASHED'?[1.1,0.7]:[],0);for(var i=0;i<pts.length-1;i++)d.line(PX(pts[i][0]),PY(pts[i][1]),PX(pts[i+1][0]),PY(pts[i+1][1]));if(closed&&pts.length>2)d.line(PX(pts[pts.length-1][0]),PY(pts[pts.length-1][1]),PX(pts[0][0]),PY(pts[0][1]));d.setLineDashPattern([],0);}
   function _pdfCirc(cx,cy,r,col){var d=_PDF.doc,c=ACIrgb(col);d.setDrawColor(c[0],c[1],c[2]);d.setLineWidth(_PDF.lw);d.setLineDashPattern([],0);d.circle(PX(cx),PY(cy),Math.max(0.2,r*_PDF.sc),'S');}
   function _pdfLine(x1,y1,x2,y2,col,lt){var d=_PDF.doc,c=ACIrgb(col);d.setDrawColor(c[0],c[1],c[2]);d.setLineWidth(_PDF.lw);d.setLineDashPattern(lt==='DASHED'?[1.0,0.7]:[],0);d.line(PX(x1),PY(y1),PX(x2),PY(y2));d.setLineDashPattern([],0);}
-  function _pdfText(x,y,h,s,layer,col,align,rot,valign){if(s==null||s==='')return;var d=_PDF.doc,c=ACIrgb(col);d.setTextColor(c[0],c[1],c[2]);var fmm=h*_PDF.sc;if(layer==='DEPTHCHK')fmm*=1.25;var fpt=fmm*2.8346;if(fpt<1.2)fpt=1.2;d.setFontSize(fpt);var o={align:(align===1)?'center':(align===2)?'right':'left',baseline:(valign===2)?'middle':(valign===3)?'top':'alphabetic'};if(rot)o.angle=-rot;try{d.text(String(s),PX(x),PY(y),o);}catch(e){}}var PRE=`  0
+  function _pdfText(x,y,h,s,layer,col,align,rot,valign){if(s==null||s==='')return;var d=_PDF.doc,c=ACIrgb(col);d.setTextColor(c[0],c[1],c[2]);var fmm=h*_PDF.sc;if(layer==='DEPTHCHK')fmm*=1.25;var fpt=fmm*2.8346;if(fpt<1.2)fpt=1.2;d.setFontSize(fpt);var o={align:(align===1)?'center':(align===2)?'right':'left',baseline:(valign===2)?'middle':(valign===3)?'top':'alphabetic'};if(rot&&layer!=='PT_DEPTH')o.angle=-rot;try{d.text(String(s),PX(x),PY(y),o);}catch(e){}}
+  function _pdfInsert(name,x,y,sc,col){var d=_PDF.doc,c=ACIrgb(col);d.setDrawColor(c[0],c[1],c[2]);d.setLineWidth(_PDF.lw);d.setLineDashPattern([],0);var px=PX(x),py=PY(y);if(name==='SD100'){d.circle(px,py,Math.max(0.4,sc*_PDF.sc*1.4),'S');}else{var h=Math.max(0.3,sc*_PDF.sc*1.1);d.rect(px-h,py-h,h*2,h*2,'S');}}var PRE=`  0
 SECTION
   2
 HEADER
@@ -5401,7 +5402,7 @@ EOF
   function circle(cx,cy,r,layer,col){if(_PDF){_pdfCirc(cx,cy,r,col);return;}push(['0','CIRCLE','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbCircle','10',N(cx),'20',N(cy),'30','0','40',N(r)]);}
   function line(x1,y1,x2,y2,layer,col,lt){if(_PDF){_pdfLine(x1,y1,x2,y2,col,lt);return;}var a=['0','LINE','5',H(),'330','17','100','AcDbEntity','8',layer];if(lt)a.push('6',lt);a.push('62',String(col),'100','AcDbLine','10',N(x1),'20',N(y1),'30','0','11',N(x2),'21',N(y2),'31','0');push(a);}
   function box(cx,cy,sz,layer,col){var h=sz/2;pline([[cx-h,cy-h],[cx+h,cy-h],[cx+h,cy+h],[cx-h,cy+h]],layer,col,true);}
-  function insert(name,x,y,sc,layer,col){push(['0','INSERT','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbBlockReference','2',name,'10',N(x),'20',N(y),'30','0','41',N(sc),'42',N(sc),'43',N(sc),'50','0']);}
+  function insert(name,x,y,sc,layer,col){if(_PDF){_pdfInsert(name,x,y,sc,col);return;}push(['0','INSERT','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbBlockReference','2',name,'10',N(x),'20',N(y),'30','0','41',N(sc),'42',N(sc),'43',N(sc),'50','0']);}
   function text(x,y,h,s,layer,col,align,rot,valign){if(_PDF){_pdfText(x,y,h,s,layer,col,align,rot,valign);return;}var hangul=/[^\x00-\x7F]/.test(s);var es=uesc(s);var a=['0','TEXT','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbText','10',N(x),'20',N(y),'30','0','40',N(h),'1',es];if(rot){a.push('50',N(rot));}if(hangul)a.push('7','HANGUL');a.push('72',String(align||0),'11',N(x),'21',N(y),'31','0','100','AcDbText');if(valign){a.push('73',String(valign));}push(a);}
   function tw(label,unit){function gw(ch){var c=ch.charCodeAt(0);if(c>127)return 1.1;if(ch===' ')return 0.392;if(ch==='M')return 1.065;if(ch==='W')return 1.22;if(ch>='0'&&ch<='9')return 0.785;if('()[]{}'.indexOf(ch)>=0)return 0.482;if('Iilj|!.,:;'.indexOf(ch)>=0)return 0.36;if('TY'.indexOf(ch)>=0)return 0.755;if(ch>='A'&&ch<='Z')return 0.8;if(ch>='a'&&ch<='z')return 0.6;return 0.5;}var w=0;for(var i=0;i<label.length;i++)w+=gw(label.charAt(i))*unit;return w+unit*0.05;}
   // 측점: 박스 + 인출선(검정 점선) + 번호/코드
@@ -5479,7 +5480,8 @@ EOF
   });
   // ===== 백판(수치지도)을 단일 블록 BACKDROP 으로 묶기 (CAD에서 통째로 선택) =====
   var PREx=PRE;
-  if(baseLines.length){
+  if(_PDF){baseLines.forEach(function(L){pline(L.pts,'0',8,false);});}
+  if(baseLines.length&&!_PDF){
     var BR='F0',BK='F1',EB='F2';                 // 미사용 핸들(충돌 검증됨)
     var bent=[];                                 // 블록 내부 폴리라인(owner=BLOCK_RECORD BR, 회색8, 레이어0)
     baseLines.forEach(function(L){
