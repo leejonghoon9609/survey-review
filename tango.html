@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 391</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 392</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1738,6 +1738,7 @@ function fitView(){
   vb0={x:minx-pad,y:miny-pad,w:(maxx-minx)+2*pad,h:(maxy-miny)+2*pad};
   vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};fixAspect();applyVB();drawGeo();drawManholes();highlightSel();
 }
+function tangoFitSeg(nodes){if(!nodes||!nodes.length){if(typeof fitView==='function')fitView();return;}var xs=[],ys=[];nodes.forEach(function(n){var s=S(n.x,n.y);xs.push(s[0]);ys.push(s[1]);});var pad=8,minx=Math.min.apply(0,xs),maxx=Math.max.apply(0,xs),miny=Math.min.apply(0,ys),maxy=Math.max.apply(0,ys);vb0={x:minx-pad,y:miny-pad,w:(maxx-minx)+2*pad,h:(maxy-miny)+2*pad};vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};if(typeof fixAspect==='function')fixAspect();if(typeof applyVB==='function')applyVB();if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();if(typeof highlightSel==='function')highlightSel();}
 function clipSegRect(p1,p2,xmin,ymin,xmax,ymax){
   var x0=p1[0],y0=p1[1],dx=p2[0]-p1[0],dy=p2[1]-p1[1];
   var t0=0,t1=1,P=[-dx,dx,-dy,dy],Q=[x0-xmin,xmax-x0,y0-ymin,ymax-y0];
@@ -6794,10 +6795,10 @@ function joseoProg(msg,frac){
 function joseoProgHide(){ var w=document.getElementById('joseoProgWrap'); if(w)w.style.display='none'; }
 function joseoEnsureLibs(){ if(typeof ExcelJS==='undefined'){ toast('엑셀 모듈 로딩 안됨 — 새로고침(Ctrl+Shift+R)'); return false; } return true; }
 function tgPanelLayout(on){var st=document.querySelector('.stage');var sb=document.getElementById('subbar');if(st)st.style.marginBottom=on?'34vh':'';if(sb)sb.style.display=on?'none':'';if(typeof fitSoon==='function')setTimeout(function(){try{fitSoon();}catch(e){}},90);else if(typeof fitView==='function')setTimeout(function(){try{fitView();}catch(e){}},90);}
-function openTangoPanel(){var ex=document.getElementById('tangoPanel');if(ex){ex.style.display='block';tgPanelLayout(true);tangoFill();return;}var p=document.createElement('div');p.id='tangoPanel';p.style.cssText='position:fixed;left:0;right:0;bottom:0;height:34vh;background:#fffbea;border-top:3px solid #f1c40f;box-shadow:0 -4px 18px rgba(0,0,0,.15);z-index:9000;overflow:auto;padding:12px 18px;font-size:13px';p.innerHTML='<div style=\"display:flex;align-items:center;gap:12px;margin-bottom:10px\"><b style=\"font-size:16px\">\uD0F1\uACE0\uC131\uACFC \uC81C\uC791</b><span id=\"tangoSum\" style=\"color:#888\"></span><button onclick=\"closeTangoPanel()\" style=\"margin-left:auto;background:#fff;border:1px solid #ccc;border-radius:6px;padding:5px 12px;cursor:pointer\">\u2715</button></div><div id=\"tangoBody\" style=\"color:#555\"></div>';document.body.appendChild(p);tgPanelLayout(true);tangoFill();}
+function openTangoPanel(){tgSeg=-1;var ex=document.getElementById('tangoPanel');if(ex){ex.style.display='block';tgPanelLayout(true);tangoFill();return;}var p=document.createElement('div');p.id='tangoPanel';p.style.cssText='position:fixed;left:0;right:0;bottom:0;height:34vh;background:#fffbea;border-top:3px solid #f1c40f;box-shadow:0 -4px 18px rgba(0,0,0,.15);z-index:9000;overflow:auto;padding:12px 18px;font-size:13px';p.innerHTML='<div style=\"display:flex;align-items:center;gap:12px;margin-bottom:10px\"><b style=\"font-size:16px\">\uD0F1\uACE0\uC131\uACFC \uC81C\uC791</b><span id=\"tangoSum\" style=\"color:#888\"></span><button onclick=\"closeTangoPanel()\" style=\"margin-left:auto;background:#fff;border:1px solid #ccc;border-radius:6px;padding:5px 12px;cursor:pointer\">\u2715</button></div><div id=\"tangoBody\" style=\"color:#555\"></div>';document.body.appendChild(p);tgPanelLayout(true);tangoFill();}
 function closeTangoPanel(){var p=document.getElementById('tangoPanel');if(p)p.style.display='none';tgPanelLayout(false);}
 var TG_OPT={ext:['FC(\uFFE0100)','FC(\uFFE050)','1COD','2COD','3COD','4COD','5COD','6COD','MD(1way)','MD(2way)','MD(4way)','MD(7way)'],own:['SKT','SKB','\uACF5\uB3D9','\uD0C0\uC0AC'],inner:['SCD\uB0B4\uAD00_22mm','SCD\uB0B4\uAD00_25mm','SCD\uB0B4\uAD00_28mm','SCD\uB0B4\uAD00_36mm'],dig:['\uBCF4\uB3C4(\uC0AC\uB9AC\uB3C4)','\uBCF4\uB3C4(\uB300\uB9AC\uC11D)','\uBCF4\uB3C4(\uC624\uB098\uB9E8\uD2B8)','\uBCF4\uB3C4(\uD22C\uC2A4\uCF58)','\uBCF4\uB3C4(\uC18C\uD615\uBCF4\uB3C4)','\uBCF4\uB3C4(\uC77C\uBC18\uBCF4\uB3C4)','\uB3C4\uB85C(\uC0AC\uB9AC\uB3C4/\uB85C\uACAC)','\uB3C4\uB85C(\uCF58\uD06C\uB9AC\uD2B8)','\uB3C4\uB85C(ASP-B)\uC11C\uC6B8','\uB3C4\uB85C(ASP-B)','\uB3C4\uB85C(ASP-A)\uC11C\uC6B8','\uB3C4\uB85C(ASP-A)'],fac:['\uC2E0\uC124_\uB9E8\uD640','\uAE30\uC124_\uB9E8\uD640','\uC9C0\uC911\uAD6C\uC870\uBB3C'],spec:['\uC778\uACF51\uD638','\uC778\uACF52\uD638','\uC778\uACF53\uD638','\uC218\uACF51\uD638','\uC218\uACF52\uD638','\uC218\uACF52-1\uD638','SMC','\uAE30\uD0C0'],pos:['\uAD50\uB7C9','\uD130\uB110','\uC9C0\uD558\uCCA0','\uB3C4\uB85C(\uCC28\uB3C4)','\uC778\uB3C4','\uCCA0\uB3C4','\uC0B0\uB9BC','\uC0AC\uC720\uC9C0'],soil:['AS','B','CON\'C','S','\uC11D\uC7AC','\uD0C4\uC131\uD3EC\uC7A5\uC7AC','\uD22C\uC2A4\uCF58','\uD0DD\uC9C0']};
-var tgSeg=-1;function tangoSelSeg(i){tgSeg=i;tangoFill();}
+var tgSeg=-1;var _tgSegs=[];function tangoSelSeg(i){tgSeg=i;tangoFill();if(i>=0&&_tgSegs&&_tgSegs[i]){if(typeof tangoFitSeg==='function')tangoFitSeg(_tgSegs[i]);}else{if(typeof fitView==='function')fitView();}}
 function tangoFill(){var sm=document.getElementById('tangoSum'),bd=document.getElementById('tangoBody');if(!bd)return;
 function dep(p){var v=(state._depthByNo&&state._depthByNo[p.no]!=null)?state._depthByNo[p.no]:p.z;return(v==null||v==='')?null:+v;}
 var nos=(typeof sortedNos==='function')?sortedNos():[];var seq=[];
@@ -6809,7 +6810,7 @@ for(var i=0;i<=seq.length;i++){var pv=seq[i-1],nx=seq[i];var c;if(!pv)c=nx?Math.
 seq.splice(bi,0,node);});
 var TH=10,segs=[],cur=[];
 for(var i=0;i<seq.length;i++){var nd=seq[i];cur.push(nd);if(nd.mh){segs.push(cur);var nx=seq[i+1];if(nx){var d=Math.hypot(nd.x-nx.x,nd.y-nx.y);cur=(d<TH)?[nd]:[];}else cur=[];}}
-if(cur.length)segs.push(cur);
+if(cur.length)segs.push(cur);_tgSegs=segs;
 var tb=state.titleBlock||{},biz=state.bizInfo||{};var tango=tb.tango||tb.tangoNo||biz.bizNo||'',pname=state.projectName||'';
 if(sm)sm.textContent='\uAD6C\uAC04 '+segs.length+' \u00B7 \uB9E8\uD640 '+mhs.length+' \u00B7 \uCE21\uC810 '+seq.filter(function(n){return !n.mh;}).length;
 var O=TG_OPT;
