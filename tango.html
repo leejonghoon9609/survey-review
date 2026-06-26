@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 370</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 371</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -2180,7 +2180,7 @@ function exportDXF(returnStr){
   function _pdfCirc(cx,cy,r,col){var d=_PDF.doc,c=ACIrgb(col);d.setDrawColor(c[0],c[1],c[2]);d.setLineWidth(_PDF.lw);d.setLineDashPattern([],0);d.circle(PX(cx),PY(cy),Math.max(0.2,r*_PDF.sc),'S');}
   function _pdfLine(x1,y1,x2,y2,col,lt){var d=_PDF.doc,c=ACIrgb(col);d.setDrawColor(c[0],c[1],c[2]);d.setLineWidth(_PDF.lw);d.setLineDashPattern(lt==='DASHED'?[1.0,0.7]:[],0);d.line(PX(x1),PY(y1),PX(x2),PY(y2));d.setLineDashPattern([],0);}
   function _pdfText(x,y,h,s,layer,col,align,rot,valign){if(s==null||s==='')return;var d=_PDF.doc,c=ACIrgb(col);d.setTextColor(c[0],c[1],c[2]);var fmm=h*_PDF.sc;if(layer==='DEPTHCHK')fmm*=1.25;var fpt=fmm*2.8346;if(fpt<1.2)fpt=1.2;d.setFontSize(fpt);var o={align:(align===1)?'center':(align===2)?'right':'left',baseline:(valign===2)?'middle':(valign===3)?'top':'alphabetic'};if(rot&&layer!=='PT_DEPTH')o.angle=-rot;try{d.text(String(s),PX(x),PY(y),o);}catch(e){}}
-  function _pdfInsert(name,x,y,sc,col){var d=_PDF.doc,c=ACIrgb(col);d.setDrawColor(c[0],c[1],c[2]);d.setLineWidth(_PDF.lw);d.setLineDashPattern([],0);var px=PX(x),py=PY(y);if(name==='SD100'){d.circle(px,py,Math.max(0.45,0.504*sc*_PDF.sc),'S');d.circle(px,py,Math.max(0.65,0.750*sc*_PDF.sc),'S');}else{var r=Math.max(0.4,0.19*sc*_PDF.sc);d.line(px-r,py-r,px+r,py+r);d.line(px-r,py+r,px+r,py-r);}}
+  function _pdfInsert(name,x,y,sc,col){var d=_PDF.doc,c=ACIrgb(col);d.setDrawColor(c[0],c[1],c[2]);d.setLineWidth(_PDF.lw);d.setLineDashPattern([],0);var px=PX(x),py=PY(y);if(name==='SD100'){d.circle(px,py,Math.max(0.45,0.504*sc*_PDF.sc),'S');d.circle(px,py,Math.max(0.65,0.750*sc*_PDF.sc),'S');}else{d.setLineWidth(_PDF.lw*0.5);var r=Math.max(0.2,0.095*sc*_PDF.sc);d.line(px-r,py-r,px+r,py+r);d.line(px-r,py+r,px+r,py-r);}}
   function _pdfFill(p1,p2,p3,p4,r,g,bl){var d=_PDF.doc;d.setFillColor(r,g,bl);d.triangle(PX(p1[0]),PY(p1[1]),PX(p2[0]),PY(p2[1]),PX(p3[0]),PY(p3[1]),'F');d.triangle(PX(p1[0]),PY(p1[1]),PX(p3[0]),PY(p3[1]),PX(p4[0]),PY(p4[1]),'F');}var PRE=`  0
 SECTION
   2
