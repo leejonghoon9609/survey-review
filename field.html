@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 379</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 380</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5993,7 +5993,7 @@ function renderRail(){
     html+='<button data-k="'+c.k+'" style="'+railStyle(c.c,c.k===activeCat)+'font-size:13px;padding:7px 10px">'+c.icon+' '+c.label+bdg+'</button>';});
   html+='</div>';
   if(IS_TANGO)html+='<button data-k="inspmk" style="'+railStyle({bg:'#fbe9e9',fg:'#df524b'},activeCat==='inspmk')+'">\uD83E\uDDFE \uAC80\uC218\uB370\uC774\uD130 \uC81C\uC791<span style="margin-left:auto;font-size:12px">'+(activeCat==='inspmk'&&inspmkOpen?'\u25B2':'\u25BC')+'</span></button>';if(IS_TANGO&&activeCat==='inspmk'&&inspmkOpen){var _isb=function(k,l,fg,bg){var on=(inspmkSub===k);return '<button data-isub="'+k+'" style="border:1px solid '+fg+';'+(on?'border-left:4px solid '+fg+';':'')+'border-radius:8px;background:'+bg+';color:'+fg+';font-weight:'+(on?'700':'600')+';justify-content:flex-start;font-size:13px;padding:7px 10px">'+l+'</button>';};html+='<div style="display:flex;flex-direction:column;gap:5px;margin-top:5px">'+_isb('bp','\uBCF4\uAC15\uD310\uD3B8\uC9D1','#b8860b','#fdf6e3')+_isb('depth','\uC2EC\uB3C4\uD3B8\uC9D1','#7a52e0','#f0eef7')+_isb('hyun','\uD604\uD669\uCE21\uB7C9 \uD3B8\uC9D1','#1a7a5e','#e3f2ee')+_isb('road','\uB3C4\uB85C\uBA74 \uD3B8\uC9D1','#e8820c','#fdf0e0')+'</div>';}
-  html+='<div class="sep"'+(IS_TANGO?' style="margin-top:auto"':'')+'></div><button id="dxfExport" style="background:#fff;color:#c0392b;border:1px solid #c0392b;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#c0392b">📐</span> DXF로 내보내기</button>'+'<button id="pdfExport" style="background:#fff;color:#1565c0;border:1px solid #1565c0;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#1565c0">📄</span> PDF로 내보내기</button>';
+  html+='<div class="sep"'+(IS_TANGO?' style="margin-top:auto"':'')+'></div>'+(IS_TANGO?'<button onclick="openTangoPanel()" style="background:#fffbea;color:#b7950b;border:1px solid #f1c40f;border-radius:8px;font-weight:700;padding:9px;margin-bottom:6px;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:flex-start">\u{1F4CB} \uD0F1\uACE0\uC131\uACFC \uC81C\uC791</button>':'')+'<button id="dxfExport" style="background:#fff;color:#c0392b;border:1px solid #c0392b;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#c0392b">📐</span> DXF로 내보내기</button>'+'<button id="pdfExport" style="background:#fff;color:#1565c0;border:1px solid #1565c0;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#1565c0">📄</span> PDF로 내보내기</button>';
   
   if(!IS_TANGO)html+='<button id="csvExport" style="background:#fff;color:#0d7a52;border:1px solid #0d7a52;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#0d7a52">📄</span> 측설용 CSV 내보내기</button>';
   html+='<button id="doneReg" style="background:#16a34a;color:#fff;border:1px solid #16a34a;border-radius:8px;font-weight:700;justify-content:flex-start">✅ '+(IS_TANGO?'탱고':'결선')+'완료사업 등록</button>';
@@ -6793,6 +6793,9 @@ function joseoProg(msg,frac){
 }
 function joseoProgHide(){ var w=document.getElementById('joseoProgWrap'); if(w)w.style.display='none'; }
 function joseoEnsureLibs(){ if(typeof ExcelJS==='undefined'){ toast('엑셀 모듈 로딩 안됨 — 새로고침(Ctrl+Shift+R)'); return false; } return true; }
+function openTangoPanel(){var ex=document.getElementById('tangoPanel');if(ex){ex.style.display='block';tangoFill();return;}var p=document.createElement('div');p.id='tangoPanel';p.style.cssText='position:fixed;left:0;right:0;bottom:0;height:44vh;background:#fffbea;border-top:3px solid #f1c40f;box-shadow:0 -4px 18px rgba(0,0,0,.18);z-index:9000;overflow:auto;padding:14px 20px;font-size:13px';p.innerHTML='<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px"><b style="font-size:16px">\uD0F1\uACE0\uC131\uACFC \uC81C\uC791</b><span id="tangoSum" style="color:#888"></span><button onclick="closeTangoPanel()" style="margin-left:auto;background:#fff;border:1px solid #ccc;border-radius:6px;padding:5px 12px;cursor:pointer">\u2715</button></div><div id="tangoBody" style="color:#555"></div>';document.body.appendChild(p);tangoFill();}
+function closeTangoPanel(){var p=document.getElementById('tangoPanel');if(p)p.style.display='none';}
+function tangoFill(){var sm=document.getElementById('tangoSum'),bd=document.getElementById('tangoBody');if(!bd)return;var nMH=(state.manholes||[]).length,nP=(state.points||[]).length;if(sm)sm.textContent='\uB9E8\uD640 '+nMH+' \u00B7 \uCE21\uC810 '+nP;bd.innerHTML='<div style="padding:18px;background:#fff;border:1px dashed #d6c36a;border-radius:8px">\uAD6C\uAC04 \uC790\uB3D9\uBD84\uD560\uACFC \uC5D1\uC140 \uC591\uC2DD\uC740 \uB2E4\uC74C \uB2E8\uACC4\uC5D0\uC11C \uCC44\uC6C1\uB2C8\uB2E4.</div>';}
 function openJoseoPanel(){
   if(!joseoEnsureLibs()) return;
   if(!state.projectName){ toast('먼저 사업을 불러오세요'); return; }
