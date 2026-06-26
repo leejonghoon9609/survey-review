@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 378</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 379</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1292,7 +1292,7 @@ function drawGeo(){
   if(typeof drawDepthCheck==='function')drawDepthCheck();
   if(typeof drawTitleBlock==='function')drawTitleBlock();
   if(!bpOff)(state.baseTexts||[]).forEach(function(t){var sc=S(t.x,t.y);var tn=el('text',{x:sc[0],y:sc[1],'font-size':Math.max(t.h*2,1.1),fill:'#888','text-anchor':'start','pointer-events':'none'});if(t.rot){tn.setAttribute('transform','rotate('+(-t.rot)+' '+sc[0]+' '+sc[1]+')');}tn.textContent=t.text;gGeo.appendChild(tn);});
-  state.lines.forEach(function(L){if(bpOff&&L.base)return;var def=LINECOL[L.layer]||{c:"#888",w:1.2};if(L.crop)def={c:"#000",w:1.4};
+  state.lines.forEach(function(L){if(bpOff&&L.base)return;var def=LINECOL[L.layer]||{c:"#bbb",w:1.2};if(L.crop)def={c:"#000",w:1.4};
     var pts=L.pts.map(function(p){var s=S(p[0],p[1]);return s[0]+','+s[1];}).join(' ');
     var pl=el('polyline',{points:pts,fill:'none',stroke:def.c,'stroke-width':def.w,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':def.dash?'butt':'round'});
     if(def.dash)pl.setAttribute('stroke-dasharray',def.dash);
@@ -5489,7 +5489,7 @@ EOF
     var BR='F0',BK='F1',EB='F2';                 // 미사용 핸들(충돌 검증됨)
     var bent=[];                                 // 블록 내부 폴리라인(owner=BLOCK_RECORD BR, 회색8, 레이어0)
     baseLines.forEach(function(L){
-      var a=['  0','LWPOLYLINE','  5',H(),'330',BR,'100','AcDbEntity','  8','0',' 62',(L.crop?'7':'8'),'100','AcDbPolyline',' 90',String(L.pts.length),' 70','0'];
+      var a=['  0','LWPOLYLINE','  5',H(),'330',BR,'100','AcDbEntity','  8','0',' 62',(L.crop?'7':'8')];if(!L.crop)a.push('420','12369084');a.push('100','AcDbPolyline',' 90',String(L.pts.length),' 70','0');
       for(var i=0;i<L.pts.length;i++){a.push(' 10',N(L.pts[i][0]),' 20',N(L.pts[i][1]));}
       bent.push(a.join('\n'));
     });
