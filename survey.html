@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 420</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 421</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -6890,7 +6890,8 @@ async function exportTango(){
   for(var L2 in LV){if(endRow>startRow){try{ws.mergeCells(L2+startRow+':'+L2+endRow);}catch(e){}}joseoSetv(ws,L2+startRow,LV[L2]);}
  });
  var buf=await wb.xlsx.writeBuffer();
- joseoSaveBlob(buf,'탱고성과.xlsx');
+ var _tno=(tb.tango||tb.tangoNo||biz.bizNo||'').toString().trim();var _pn=(state.projectName||'').toString().trim();var _fn=((_tno?_tno+'_':'')+(_pn||'탱고성과')).replace(/[\\/:*?"<>|]/g,'_')+'.xlsx';
+ joseoSaveBlob(buf,_fn);
 }
 function openJoseoPanel(){
   if(!joseoEnsureLibs()) return;
