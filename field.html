@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 418</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 419</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -6846,57 +6846,51 @@ H+='<td rowspan='+R+'>'+jj+'</td>';}
 var ll=(typeof toLatLng==='function')?toLatLng(nd.x,nd.y):null;var d=(ri===0)?0:Math.hypot(nd.x-sg[ri-1].x,nd.y-sg[ri-1].y);
 H+='<td>'+(ri+1)+'</td><td>'+(ll?(+ll.lng).toFixed(8):'')+'</td><td>'+(ll?(+ll.lat).toFixed(8):'')+'</td><td>'+sel(O.soil,null,SEGK,'soil_'+(nd.no||ri))+'</td><td>'+d.toFixed(2)+'</td><td>'+(nd.mh?'':(nd.z!=null?nd.z.toFixed(2):''))+'</td></tr>';});});
 H+='</tbody></table></div>';bd.innerHTML=H;}
+var TANGO_TPL_URL=encodeURI('탱고양식_템플릿.xlsx');var _tangoTplBuf=null;
+function tangoGetTemplate(){if(_tangoTplBuf)return Promise.resolve(_tangoTplBuf);return fetch(TANGO_TPL_URL).then(function(r){if(!r.ok)throw new Error('탱고양식 템플릿 로드 실패('+r.status+')');return r.arrayBuffer();}).then(function(b){_tangoTplBuf=b;return b;});}
+function tgColL(c){var s='';while(c>0){var m=(c-1)%26;s=String.fromCharCode(65+m)+s;c=(c-m-1)/26;}return s;}
 async function exportTango(){
-if(typeof ExcelJS==='undefined'){alert('ExcelJS 로드 안됨');return;}
-if(typeof tgAutoMatch==='function')tgAutoMatch();
-if(!_tgSegs||!_tgSegs.length){alert('구간이 없습니다. 탱고성과 표를 먼저 생성하세요.');return;}
-var wb=new ExcelJS.Workbook();var ws=wb.addWorksheet('샘플_작성기준');
-var widths={A:13.6,B:11.9,C:6.6,D:6.6,E:6,F:10,G:12.75,H:11.6,I:8,J:15,K:10.25,L:8,M:8,N:10,O:15,P:10.25,Q:8,R:8,S:10.6,T:15,U:9.75,V:6.4,W:13.6,X:12.6,Y:12.5,Z:9.25,AA:8.6};
-for(var L in widths)ws.getColumn(L).width=widths[L];
-var thin={style:'thin'};var bAll={top:thin,left:thin,bottom:thin,right:thin};
-function styC(cell,opt){opt=opt||{};cell.border=bAll;cell.alignment={horizontal:'center',vertical:opt.v||'center',wrapText:!!opt.wrap};cell.font={name:'맑은 고딕',size:10,bold:!!opt.b};if(opt.fill)cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:opt.fill}};}
-var tb=state.titleBlock||{},biz=state.bizInfo||{};
-var tango=tb.tango||tb.tangoNo||biz.bizNo||'';var pname=state.projectName||'';
-ws.getCell('A1').value='* 공사번호';ws.getCell('C1').value=tango;
-ws.getCell('A2').value='  공사명';ws.getCell('C2').value=pname;
-ws.getCell('A3').value='* 준공일자';ws.getCell('C3').value='';
-['A1','A2','A3'].forEach(function(a){ws.getCell(a).font={name:'맑은 고딕',size:10,bold:true};});
-var HG='FFF2F2F2';
-[['A','외관재질'],['B','관로공사\n주관여부'],['C','관공수\n열(외관)'],['D','관공수\n단(외관)'],['E','내관\n(수)'],['F','내관설치\n관공번호'],['G','내관 \n규격'],['H','준공\n거리(m)'],['I','평균\n심도'],['J','굴착방법(위치)'],['U','지중표시기\n시설여부(Y)'],['V','순번'],['Y','적용\n토적'],['Z','구간\n거리(m)'],['AA','심도측정']].forEach(function(h){ws.mergeCells(h[0]+'5:'+h[0]+'6');var c=ws.getCell(h[0]+'5');c.value=h[1];styC(c,{b:true,wrap:true,fill:HG});styC(ws.getCell(h[0]+'6'),{b:true,wrap:true,fill:HG});});
-[['K5:O5','시작시설물'],['P5:T5','종료시설물'],['W5:X5','측량좌표정보']].forEach(function(h){ws.mergeCells(h[0]);var c=ws.getCell(h[0].split(':')[0]);c.value=h[1];styC(c,{b:true,wrap:true,fill:HG});});
-[['K','설비구분'],['L','소유\n구분'],['M','규격'],['N','설치위치'],['O','시설명'],['P','설비구분'],['Q','소유\n구분'],['R','규격'],['S','설치위치'],['T','시설명'],['W','경도'],['X','위도'],['AA','심도값(m)']].forEach(function(h){var c=ws.getCell(h[0]+'6');c.value=h[1];styC(c,{b:true,wrap:true,fill:HG});});
-ws.getRow(5).height=16.5;ws.getRow(6).height=27;
-var row=7;
-_tgSegs.forEach(function(sg){
- var key=tgManualKey(sg);var M=(state.tangoManual&&state.tangoManual[key])||{};
- var pts=sg.filter(function(n){return !n.mh;});
- var avgd=pts.filter(function(n){return n.z!=null;});
- var avg=avgd.length?(avgd.reduce(function(a,n){return a+n.z;},0)/avgd.length):null;
- var totd=0;for(var k=1;k<sg.length;k++)totd+=Math.hypot(sg[k].x-sg[k-1].x,sg[k].y-sg[k-1].y);
- var jj=Math.floor(totd/10)+1;
- var s0=sg[0],s1=sg[sg.length-1];
- var sFac=s0.mh?'신설_맨홀':'지중구조물',sNm=s0.mh?(s0.name||''):'관말',sSp=s0.mh?(s0.spec||''):'기타';
- var eFac=s1.mh?'신설_맨홀':'지중구조물',eNm=s1.mh?(s1.name||''):'관말',eSp=s1.mh?(s1.spec||''):'기타';
- var startRow=row;
- sg.forEach(function(nd,ri){
-  var ll=(typeof toLatLng==='function')?toLatLng(nd.x,nd.y):null;
-  var d=(ri===0)?0:Math.hypot(nd.x-sg[ri-1].x,nd.y-sg[ri-1].y);
-  ws.getCell('V'+row).value=ri+1;
-  ws.getCell('W'+row).value=ll?+(+ll.lng).toFixed(8):'';
-  ws.getCell('X'+row).value=ll?+(+ll.lat).toFixed(8):'';
-  ws.getCell('Y'+row).value=M['soil_'+(nd.no||'')]||'';
-  ws.getCell('Z'+row).value=+d.toFixed(2);
-  ws.getCell('AA'+row).value=nd.mh?'':(nd.z!=null?+(+nd.z).toFixed(2):'');
-  ['V','W','X','Y','Z','AA'].forEach(function(c){styC(ws.getCell(c+row),{v:'center'});});
-  row++;
+ if(typeof ExcelJS==='undefined'){alert('ExcelJS 로드 안됨');return;}
+ if(typeof tgAutoMatch==='function')tgAutoMatch();
+ if(!_tgSegs||!_tgSegs.length){alert('구간이 없습니다. 탱고성과 표를 먼저 생성하세요.');return;}
+ var tplBuf;
+ try{tplBuf=await tangoGetTemplate();}catch(e){alert('탱고양식 템플릿을 불러오지 못했습니다. GitHub에 탱고양식_템플릿.xlsx를 올렸는지 확인하세요.\n'+e.message);return;}
+ var wb=new ExcelJS.Workbook();await wb.xlsx.load(tplBuf);
+ var ws=wb.worksheets[0];
+ var TST=[];for(var c=1;c<=27;c++)TST.push(ws.getCell(7,c).style);
+ for(var c=1;c<=21;c++){try{ws.unMergeCells(tgColL(c)+'7:'+tgColL(c)+'20');}catch(e){}}
+ var tb=state.titleBlock||{},biz=state.bizInfo||{};
+ joseoSetv(ws,'B1',tb.tango||tb.tangoNo||biz.bizNo||'');
+ joseoSetv(ws,'B2',state.projectName||'');
+ var row=7;
+ _tgSegs.forEach(function(sg){
+  var key=tgManualKey(sg);var M=(state.tangoManual&&state.tangoManual[key])||{};
+  var pts=sg.filter(function(n){return !n.mh;});
+  var avgd=pts.filter(function(n){return n.z!=null;});
+  var avg=avgd.length?(avgd.reduce(function(a,n){return a+n.z;},0)/avgd.length):null;
+  var totd=0;for(var k=1;k<sg.length;k++)totd+=Math.hypot(sg[k].x-sg[k-1].x,sg[k].y-sg[k-1].y);
+  var jj=Math.floor(totd/10)+1;
+  var s0=sg[0],s1=sg[sg.length-1];
+  var sFac=s0.mh?'신설_맨홀':'지중구조물',sNm=s0.mh?(s0.name||''):'관말',sSp=s0.mh?(s0.spec||''):'기타';
+  var eFac=s1.mh?'신설_맨홀':'지중구조물',eNm=s1.mh?(s1.name||''):'관말',eSp=s1.mh?(s1.spec||''):'기타';
+  var startRow=row;
+  sg.forEach(function(nd,ri){
+   for(var c=1;c<=27;c++)ws.getCell(row,c).style=TST[c-1];
+   var ll=(typeof toLatLng==='function')?toLatLng(nd.x,nd.y):null;
+   var d=(ri===0)?0:Math.hypot(nd.x-sg[ri-1].x,nd.y-sg[ri-1].y);
+   ws.getCell('V'+row).value=ri+1;
+   if(ll){ws.getCell('W'+row).value=+(+ll.lng).toFixed(8);ws.getCell('X'+row).value=+(+ll.lat).toFixed(8);}
+   joseoSetv(ws,'Y'+row,M['soil_'+(nd.no||'')]||'');
+   ws.getCell('Z'+row).value=+d.toFixed(2);
+   if(!nd.mh&&nd.z!=null)ws.getCell('AA'+row).value=+(+nd.z).toFixed(2);
+   row++;
+  });
+  var endRow=row-1;
+  var LV={A:M.ext||'',B:M.own||'',C:M.gyeol||'',D:M.gdan||'',E:M.naegwan||'',F:M.gwannum||'',G:M.inner||'',H:+totd.toFixed(2),I:(avg!=null?+avg.toFixed(1):''),J:M.dig||'',K:M.s_fac||sFac,L:M.s_own||'',M:M.s_spec||sSp,N:M.s_pos||'',O:M.s_nm||sNm,P:M.e_fac||eFac,Q:M.e_own||'',R:M.e_spec||eSp,S:M.e_pos||'',T:M.e_nm||eNm,U:jj};
+  for(var L2 in LV){if(endRow>startRow){try{ws.mergeCells(L2+startRow+':'+L2+endRow);}catch(e){}}joseoSetv(ws,L2+startRow,LV[L2]);}
  });
- var endRow=row-1;
- var LV={A:M.ext||'',B:M.own||'',C:M.gyeol||'',D:M.gdan||'',E:M.naegwan||'',F:M.gwannum||'',G:M.inner||'',H:+totd.toFixed(2),I:(avg!=null?+avg.toFixed(1):''),J:M.dig||'',K:M.s_fac||sFac,L:M.s_own||'',M:M.s_spec||sSp,N:M.s_pos||'',O:M.s_nm||sNm,P:M.e_fac||eFac,Q:M.e_own||'',R:M.e_spec||eSp,S:M.e_pos||'',T:M.e_nm||eNm,U:jj};
- for(var LL in LV){if(endRow>startRow)ws.mergeCells(LL+startRow+':'+LL+endRow);var c=ws.getCell(LL+startRow);c.value=LV[LL];styC(c,{v:'center'});}
-});
-var buf=await wb.xlsx.writeBuffer();
-var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
-var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='탱고성과.xlsx';document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(a.href);},100);
+ var buf=await wb.xlsx.writeBuffer();
+ joseoSaveBlob(buf,'탱고성과.xlsx');
 }
 function openJoseoPanel(){
   if(!joseoEnsureLibs()) return;
