@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 481</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 482</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5757,7 +5757,7 @@ function parseCsv(text,fname){
   if(!rows.length)return [];
   var head=splitCsvLine(rows[0]).map(function(s){return s.trim();});
   function col(){for(var a=0;a<arguments.length;a++){var i=head.indexOf(arguments[a]);if(i>=0)return i;}return -1;}
-  var ci={name:col('이름','번호'),x:col('X'),y:col('Y'),z:col('Z(레벨)','Z'),code:col('코드'),date:col('현재날짜'),time:col('현재시간','시간','관측시간','측정시간','시작시간','데이터 시작시간','GPS시간','UTC시간','TIME')};
+  var ci={name:col('이름','번호'),x:col('X','x'),y:col('Y','y'),z:col('Z(레벨)','Z','z'),code:col('코드','code'),date:col('현재날짜'),time:col('현재시간','시간','관측시간','측정시간','시작시간','데이터 시작시간','GPS시간','UTC시간','TIME')};
   if(ci.time<0){var smp=splitCsvLine(rows[1]||'');for(var c0=0;c0<head.length;c0++){if(/^\s*\d{1,2}:\d{2}(:\d{2})?\s*$/.test(smp[c0]||'')){ci.time=c0;break;}}}
   var dm=(fname||'').match(/20(\d{6})/);var fdate=dm?dm[1]:'';
   var ns=state.nightShift, nsCut=(ns&&ns.on)?ns.cut:null;
