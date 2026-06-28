@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 439</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 440</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -6005,6 +6005,7 @@ function renderRail(){
   
   if(!IS_TANGO)html+='<button id="csvExport" style="background:#fff;color:#0d7a52;border:1px solid #0d7a52;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#0d7a52">📄</span> 측설용 CSV 내보내기</button>';
   html+='<button id="doneReg" style="background:#16a34a;color:#fff;border:1px solid #16a34a;border-radius:8px;font-weight:700;justify-content:flex-start">✅ '+(IS_TANGO?'탱고':'결선')+'완료사업 등록</button>';
+  if(IS_TANGO)html+='<button id="tgDoneList" style="background:#fff;color:#16a34a;border:1px solid #16a34a;border-radius:8px;font-weight:700;justify-content:flex-start">\uD83D\uDCCB \uD0F1\uACE0\uC644\uB8CC\uC0AC\uC5C5 \uBAA9\uB85D</button>';
   html+='<button id="hkOpen" style="'+(IS_TANGO?'':'margin-top:auto;')+'background:#fff;color:#555;border:1px solid #e3e3df;border-radius:8px;font-weight:600;justify-content:flex-start"><span style="color:#1f6fd6;font-size:16px">⌨</span> 단축키 설정</button>';
   r.innerHTML=html;
   try{applyLayerVis();}catch(e){}
@@ -6025,7 +6026,7 @@ function renderRail(){
   var ho=document.getElementById('hkOpen');if(ho)ho.onclick=openHotkeyModal;
   var dx=document.getElementById('dxfExport');if(dx)dx.onclick=function(){exportDXF();};var pf=document.getElementById('pdfExport');if(pf)pf.onclick=function(){exportPDFVector();};
   var ce=document.getElementById('csvExport');if(ce)ce.onclick=exportSurveyCsv;
-  var dr=document.getElementById('doneReg');if(dr)dr.onclick=registerDone;
+  var dr=document.getElementById('doneReg');if(dr)dr.onclick=registerDone;var tdl=document.getElementById('tgDoneList');if(tdl)tdl.onclick=openDoneList;
   var dc=document.getElementById('depthCalc');if(dc)dc.onclick=openDepthCalc;var ib=document.getElementById('inspBuild');if(ib)ib.onclick=buildInspData;
 }
 function mkBtn(tool,i){
@@ -6494,12 +6495,15 @@ function baseName(n){return (''+(n||'')).replace(/_(A|B|C|T)$/,'');}
 function registerDone(){
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
   if(!state.projectName){toast('등록할 사업을 먼저 선택/저장하세요');return;}
-  var _aName=baseName(state.projectName)+'_A';
-  showModal({title:'결선완료 사업 등록',tone:'warn',
-    body:'<b>'+state.projectName+'</b><br>이 사업을 <b style="color:#16a34a">결선 완료</b> 상태로 등록할까요?<br><span style="color:#888;font-size:13px">완료 시 이름이 <b>'+_aName+'</b> 로 바뀌고 현장에서 가져갈 수 있습니다. (해제하려면 다시 눌러 취소)</span>',
-    buttons:[{label:(state.routingDone?'완료 해제':'취소')+'',onClick:function(){if(state.routingDone){state.routingDone=false;state.projectName=baseName(state.projectName);saveProject();toast('결선완료 해제됨');}}},
-             {label:'등록',primary:true,onClick:function(){state.routingDone=true;state.projectName=_aName;saveProject();toast('결선완료 사업으로 등록됨 ('+_aName+')');}}]});
+  var _tg=(typeof IS_TANGO!=='undefined'&&IS_TANGO);var suf=_tg?'_T':'_A';var lbl=_tg?'탱고':'결선';
+  var _aName=baseName(state.projectName)+suf;
+  var seg=(_tg&&typeof _tgSegs!=='undefined'&&_tgSegs)?('<br>구간 <b>'+_tgSegs.length+'개</b> · 측점 <b>'+state.points.filter(function(p){return !isManhole(p);}).length+'개</b>'):'';
+  showModal({title:lbl+'완료 사업 등록',tone:'warn',
+    body:'<b>'+state.projectName+'</b>'+seg+'<br>이 사업을 <b style="color:#16a34a">'+lbl+' 완료</b> 상태로 등록할까요?<br><span style="color:#888;font-size:13px">완료 시 이름이 <b>'+_aName+'</b> 로 바뀝니다. (해제하려면 다시 눌러 취소)</span>',
+    buttons:[{label:(state.routingDone?'완료 해제':'취소')+'',onClick:function(){if(state.routingDone){state.routingDone=false;state.projectName=baseName(state.projectName);saveProject();toast(lbl+'완료 해제됨');}}},
+             {label:'등록',primary:true,onClick:function(){state.routingDone=true;state.projectName=_aName;saveProject();toast(lbl+'완료 사업으로 등록됨 ('+_aName+')');}}]});
 }
+
 function countNotes(pl){return ((pl&&pl.markups)||[]).filter(function(m){return m.near==='특이사항';}).length;}
 function setReadOnly(v){readOnly=!!v;document.body.classList.toggle('readonly',readOnly);var b=document.getElementById('roBadge');if(b)b.style.display=readOnly?'':'none';}
 function refreshDoneProjects(){ if(!online)return;
