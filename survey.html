@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 455</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 456</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5657,6 +5657,7 @@ cv.addEventListener('pointerdown',function(e){
     if(!(nr0.pt&&nr0.d<vb.w*0.025)){dragging=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};cv.style.cursor='grabbing';try{cv.setPointerCapture(e.pointerId);}catch(x){}}
   }
   else if(mode==='tgptedit'){var _tw=toWorld(e.clientX,e.clientY);var _tp=(typeof nearBpPoint==='function')?nearBpPoint(_tw[0],-_tw[1]):null;if(_tp){tgSelectPt(_tp.no);if(typeof drawGeo==='function')drawGeo();}return;}
+  else if(typeof _tgMode==='function'&&_tgMode()&&mode==='pan'&&e.button===0){var _tw2=toWorld(e.clientX,e.clientY);var _tp2=(typeof nearBpPoint==='function')?nearBpPoint(_tw2[0],-_tw2[1]):null;if(_tp2){tgSelectPt(_tp2.no);if(typeof drawGeo==='function')drawGeo();return;}}
   else if(mode==='roadtoggle'){var _wi=toWorld(e.clientX,e.clientY);var _bp=(typeof nearBpPoint==='function')?nearBpPoint(_wi[0],-_wi[1]):null;if(_bp){var _cu=_bp.surface||'';_bp.surfaceManual=(_cu==='\uB3C4\uB85C')?'\uBCF4\uB3C4':'\uB3C4\uB85C';if(typeof classifyRoad==='function')classifyRoad();if(typeof saveProject==='function')saveProject();drawGeo();toast('\uCE21\uC810 '+_bp.no+' \u2192 '+_bp.surfaceManual);}else toast('\uCE21\uC810 \uADFC\uCC98\uB97C \uD074\uB9AD');return;}else if(mode==='mhplace'){var wm=toWorld(e.clientX,e.clientY);placeManholeAt(wm[0],-wm[1]);mode='pan';setModeUI();return;}
   else if(mode==='riserplace'){var wr=toWorld(e.clientX,e.clientY);placeManholeAt(wr[0],-wr[1],'riser');mode='pan';setModeUI();return;}
   else if(mode==='ptins'){var wi=toWorld(e.clientX,e.clientY);insertPointAt(wi[0],-wi[1]);mode='pan';setModeUI();return;}
