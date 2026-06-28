@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 467</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 468</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -6509,7 +6509,7 @@ function registerDone(){
   showModal({title:lbl+'완료 사업 등록',tone:'warn',
     body:'<b>'+state.projectName+'</b>'+seg+'<br>이 사업을 <b style="color:#16a34a">'+lbl+' 완료</b> 상태로 등록할까요?<br><span style="color:#888;font-size:13px">완료 시 이름이 <b>'+_aName+'</b> 로 바뀝니다. (해제하려면 다시 눌러 취소)</span>',
     buttons:[{label:(state.routingDone?'완료 해제':'취소')+'',onClick:function(){if(state.routingDone){state.routingDone=false;state.projectName=baseName(state.projectName);saveProject();toast(lbl+'완료 해제됨');}}},
-             {label:'등록',primary:true,onClick:function(){state.routingDone=true;state.projectName=_aName;saveProject();toast(lbl+'완료 사업으로 등록됨 ('+_aName+')');if(_tg&&typeof openDoneList==='function')setTimeout(openDoneList,400);}}]});
+             {label:'등록',primary:true,onClick:function(){state.routingDone=true;state.projectName=_aName;saveProject();toast(lbl+'완료 사업으로 등록됨 ('+_aName+')');}}]});
 }
 
 function countNotes(pl){return ((pl&&pl.markups)||[]).filter(function(m){return m.near==='특이사항';}).length;}
