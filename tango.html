@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 477</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 478</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5536,7 +5536,7 @@ EOF
     line(bx.x,bx.y,bx.x,bx.y+bx.h,LY,1); line(bx.x+bx.w,bx.y,bx.x+bx.w,bx.y+bx.h,LY,1);
     L.items.forEach(function(t){ if(t.s==='')return; var al=(t.a==='middle')?1:0; text(t.x,t.y,t.h,t.s,LY,CN[t.c]||7,al,0,0); });
   })();
-if(!((typeof LV!=='undefined')&&LV.depthchk===0))(state.depthCheck||[]).forEach(function(b){circle(b.x,b.y,1.2,'DEPTHCHK',6);var ex=(b._dx!=null)?b._dx:b.x+8,ey=(b._dy!=null)?b._dy:b.y-8;var _qx=ex-b.x,_qy=ey-b.y,_ql=Math.hypot(_qx,_qy)||1;line(b.x+_qx/_ql*1.2,b.y+_qy/_ql*1.2,ex,ey,'DEPTHCHK',6);var anc=(ex>=b.x?0:2);text(ex+(ex>=b.x?0.3:-0.3),ey,TH*1.8,'\uAE30\uC900\uC2EC\uB3C4\uBBF8\uB2EC','DEPTHCHK',6,anc);});
+if(!((typeof LV!=='undefined')&&LV.depthchk===0))(state.depthCheck||[]).forEach(function(b){circle(b.x,b.y,1.2,'DEPTHCHK',6);var ex=(b._dx!=null)?b._dx:b.x+8,ey=(b._dy!=null)?b._dy:b.y-8;var _qx=ex-b.x,_qy=ey-b.y,_ql=Math.hypot(_qx,_qy)||1;line(b.x+_qx/_ql*1.2,b.y+_qy/_ql*1.2,ex,ey,'DEPTHCHK',6);var anc=(ex>=b.x?0:2);text(ex+(ex>=b.x?0.3:-0.3),ey,TH*1.8,'\uAE30\uC900\uC2EC\uB3C4\uBBF8\uB2EC','DEPTHCHK',6,anc);});if(!((typeof LV!=='undefined')&&LV.tgcmp===0)&&state.tangoEdit&&state.tangoEdit.points){var _co=state._pointsOrig||state.points||[],_cc=state.tangoEdit.points||[],_cod=state._depthOrig||state._depthByNo||{},_ccd=state.tangoEdit.depthByNo||{};var _cn={},_on={};_cc.forEach(function(p){_cn[p.no]=p;});_co.forEach(function(p){_on[p.no]=p;});_co.forEach(function(p){if(!_cn[p.no]){circle(p.x,p.y,1.2,'TGCMP',1);text(p.x,p.y+2,TH*1.8,'삭제','TGCMP',1,1);}});_cc.forEach(function(p){if(!_on[p.no]){circle(p.x,p.y,1.2,'TGCMP',5);text(p.x,p.y+2,TH*1.8,'추가','TGCMP',5,1);}});_cc.forEach(function(p){if(_on[p.no]){var _a=_cod[p.no],_b=_ccd[p.no];var _an=(_a==null||_a==='')?null:+_a,_bn=(_b==null||_b==='')?null:+_b;if(_an!==_bn&&(_an!=null||_bn!=null)){circle(p.x,p.y,1.2,'TGCMP',3);text(p.x,p.y+2,TH*1.8,(_an!=null?_an.toFixed(2):'-')+'→'+(_bn!=null?_bn.toFixed(2):'-'),'TGCMP',3,1);}}});}
   if(_PDF){try{_pdfFlush();var pfn=((state.projectName||'survey').replace(/[^\\w\\uAC00-\\uD7A3\\-]/g,'_'))+'.pdf';_PDF.doc.save(pfn);toast('PDF \\uC800\\uC7A5\\uB428');}catch(e){toast('PDF \\uC624\\uB958');}_PDF=null;return;}
   var dxf=PREx+E.join('\n')+'\n'+SUF;
   if(returnStr)return dxf;
