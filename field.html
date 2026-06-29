@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 486</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 487</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -810,8 +810,8 @@ function computeLabels(){
     if(L2===0)return Math.hypot(px-a[0],py-a[1]);
     var t=((px-a[0])*dx+(py-a[1])*dy)/L2;t=Math.max(0,Math.min(1,t));
     return Math.hypot(px-(a[0]+t*dx),py-(a[1]+t*dy));}
-  function candidates(p){var cs=[];var pv=pipeDirAt(p);
-    if(pv){var pl=Math.hypot(pv[0],pv[1])||1;var nx=-pv[1]/pl,ny=pv[0]/pl;cs.push([nx,ny]);cs.push([-nx,-ny]);}
+  function candidates(p,pref){var cs=[];var pv=pipeDirAt(p);
+    if(pv){var pl=Math.hypot(pv[0],pv[1])||1;var nx=-pv[1]/pl,ny=pv[0]/pl;if(ny<0){nx=-nx;ny=-ny;}cs.push([nx*pref,ny*pref]);cs.push([-nx*pref,-ny*pref]);}
     var dirs=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]];
     for(var d=0;d<dirs.length;d++){var dl=Math.hypot(dirs[d][0],dirs[d][1])||1;cs.push([dirs[d][0]/dl,dirs[d][1]/dl]);}
     return cs;}
@@ -824,10 +824,10 @@ function computeLabels(){
   for(var k=0;k<n;k++){var p=pts[k];
     var o=state.labelOff&&(state.labelOff[p.no]||state.labelOff[ptNum(p)]);
     if(o){lay[k]={lx:o[0],ly:o[1],anchor:(o[0]<p.x?'end':'start'),leader:true};placed.push([o[0],o[1]]);continue;}
-    var cs=candidates(p);var bestPos=null,bestSc=Infinity;var dists=[L,L*1.5,L*2.2];
+    var cs=candidates(p,(k%2===0)?1:-1);var bestPos=null,bestSc=Infinity;var dists=[L,L*1.5,L*2.2];
     for(var di=0;di<dists.length;di++){var D=dists[di];
       for(var ci=0;ci<cs.length;ci++){var lx=p.x+cs[ci][0]*D, ly=p.y+cs[ci][1]*D;
-        var sc=score(lx,ly,k)+ci*0.4+di*2;
+        var sc=score(lx,ly,k)+ci*0.4+di*2+(ci<2?0:3);
         if(sc<bestSc){bestSc=sc;bestPos=[lx,ly];}}
       if(bestSc<0.5)break;}
     if(!bestPos)bestPos=[p.x+L,p.y];
