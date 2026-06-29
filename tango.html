@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 496</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 497</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1900,7 +1900,7 @@ function autoConnect(){
   var tBad=0;
   tpts.forEach(function(t){
     var Tc=pc(t);if(Tc==null)return;
-    var cs=pts.filter(function(p){return p!==t&&D(t,p)<=TBRANCH&&!linked(t,p)&&(isT(p)||deg(p)<2);});
+    var cs=pts.filter(function(p){return p!==t&&D(t,p)<=TBRANCH&&!linked(t,p)&&(isT(p)||deg(p)<2)&&(pc(p)||0)>0&&(pc(p)||0)<Tc;});
     cs.sort(function(a,b){return D(t,a)-D(t,b);});
     var idx=subsetSum(cs.map(function(p){return pc(p)||0;}),Tc);     // 공수합=T공수 조합
     if(idx){var ok=0;idx.forEach(function(i){if(link(t,cs[i]))ok++;});if(ok<idx.length)tBad++;}
@@ -1910,7 +1910,7 @@ function autoConnect(){
   var visited=new Set();
   function nextMain(cur,prev){
     var Cc=pc(cur);
-    var cs=pts.filter(function(p){return p!==cur&&!visited.has(p)&&D(cur,p)<=THRESH&&!linked(cur,p)&&(isT(p)||deg(p)<2);});
+    var cs=pts.filter(function(p){return p!==cur&&!visited.has(p)&&D(cur,p)<=THRESH&&!linked(cur,p)&&(isT(p)||deg(p)<2)&&(isT(p)||pc(p)===Cc);});
     var dir=prev?ang(prev,cur):null;
     cs.sort(function(a,b){
       var sa=(pc(a)===Cc?0:1),sb=(pc(b)===Cc?0:1);if(sa!==sb)return sa-sb;
@@ -1949,7 +1949,7 @@ function autoConnect(){
   pts.forEach(function(p){
     if(visited.has(p))return;
     var best=null,bd=THRESH;
-    pts.forEach(function(q){if(q!==p&&visited.has(q)&&!linked(p,q)&&(isT(q)||deg(q)<2)&&(isT(p)||deg(p)<2)){var d=D(p,q);if(d<bd){bd=d;best=q;}}});
+    pts.forEach(function(q){if(q!==p&&visited.has(q)&&!linked(p,q)&&(isT(q)||deg(q)<2)&&(isT(p)||deg(p)<2)&&(isT(p)||isT(q)||pc(p)===pc(q))){var d=D(p,q);if(d<bd){bd=d;best=q;}}});
     if(best){link(p,best);visited.add(p);}
   });
   // 맨홀 통과 (반대편 측점)
@@ -1960,7 +1960,8 @@ function autoConnect(){
     else if(nr.length===1){var A1=nr[0].p;state.lines.push({layer:'통신관로',pts:[[A1.x,A1.y],[mh.wx,mh.wy]]});mhCount++;}
   });
   edges.forEach(function(e){state.lines.push({layer:'통신관로',pts:[[e[0].x,e[0].y],[e[1].x,e[1].y]]});});
-  drawGeo();updMeta();toast('자동결선 · T분기 '+tpts.length+'개(공수미달 '+tBad+') · 결선 '+edges.length+' · 맨홀 '+mhCount+' (검수·수정)');
+  var t3=0;tpts.forEach(function(t){if(deg(t)<3)t3++;});
+  drawGeo();updMeta();toast('자동결선 · T분기 '+tpts.length+'(3갈래미만 '+t3+'·공수미달 '+tBad+') · 결선 '+edges.length+' · 맨홀 '+mhCount);
 }
 
 function autoConnectLegacy(){
