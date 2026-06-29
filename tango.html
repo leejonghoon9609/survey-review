@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 488</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 489</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -824,12 +824,17 @@ function computeLabels(){
   for(var k=0;k<n;k++){var p=pts[k];
     var o=state.labelOff&&(state.labelOff[p.no]||state.labelOff[ptNum(p)]);
     if(o){lay[k]={lx:o[0],ly:o[1],anchor:(o[0]<p.x?'end':'start'),leader:true};placed.push([o[0],o[1]]);continue;}
-    var cs=candidates(p,(k%2===0)?1:-1);var bestPos=null,bestSc=Infinity;var dists=[L,L*1.5,L*2.2];
-    for(var di=0;di<dists.length;di++){var D=dists[di];
-      for(var ci=0;ci<cs.length;ci++){var lx=p.x+cs[ci][0]*D, ly=p.y+cs[ci][1]*D;
-        var sc=score(lx,ly,k)+ci*0.4+di*2+(ci<2?0:3);
-        if(sc<bestSc){bestSc=sc;bestPos=[lx,ly];}}
-      if(bestSc<0.5)break;}
+    var pref=(k%2===0)?1:-1;var bestPos=null,bestSc=Infinity;var dists=[L,L*1.4,L*1.9];
+    var pv=pipeDirAt(p);
+    if(pv){var pl=Math.hypot(pv[0],pv[1])||1;var nx=-pv[1]/pl,ny=pv[0]/pl;if(ny<0){nx=-nx;ny=-ny;}nx*=pref;ny*=pref;
+      for(var di=0;di<dists.length;di++){var D=dists[di];var lx=p.x+nx*D,ly=p.y+ny*D;var sc=score(lx,ly,k)+di*2;if(sc<bestSc){bestSc=sc;bestPos=[lx,ly];}}
+    }else{var cs=candidates(p,pref);
+      for(var di=0;di<dists.length;di++){var D=dists[di];
+        for(var ci=0;ci<cs.length;ci++){var lx=p.x+cs[ci][0]*D, ly=p.y+cs[ci][1]*D;
+          var sc=score(lx,ly,k)+ci*0.4+di*2+(ci<2?0:3);
+          if(sc<bestSc){bestSc=sc;bestPos=[lx,ly];}}
+        if(bestSc<0.5)break;}
+    }
     if(!bestPos)bestPos=[p.x+L,p.y];
     lay[k]={lx:bestPos[0],ly:bestPos[1],anchor:(bestPos[0]<p.x?'end':'start'),leader:true};
     placed.push([bestPos[0],bestPos[1]]);}
@@ -1367,7 +1372,7 @@ function drawGeo(){
     if((p.code||'').trim()){
       var sub=document.createElement('div');sub.className=isBp?'L-bp':'L-code';
       var code=(p.code||'').trim();
-      if(isTpoint(p)){sub.innerHTML=code.replace(/(^|\s)(T)(?=\s|$)/,'$1<span style="color:#d32f2f;font-weight:700">T</span>');}
+      if(isTpoint(p)){sub.innerHTML=code.replace(/(^|\s)(T)(?=\s|\d|$)/,'$1<span style="color:#1d4ed8;font-weight:700">T</span>');}
       else{sub.textContent=code;}
       sub.style.cssText='color:#0f7a86;font-weight:400;margin-top:2px;';
       nt.appendChild(sub);
