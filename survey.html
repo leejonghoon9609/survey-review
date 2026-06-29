@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 505</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 506</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1944,7 +1944,7 @@ function autoConnect(){
     var bc=[];
     bcAll.forEach(function(p){
       var ap=Math.atan2(p.y-t.y,p.x-t.x);
-      var same=bc.some(function(q){return angDiff(ap,Math.atan2(q.y-t.y,q.x-t.x))<0.5236;});  // 0.5236rad=30°
+      var same=bc.some(function(q){return pcEq(p,q)&&angDiff(ap,Math.atan2(q.y-t.y,q.x-t.x))<0.5236;});  // ★같은 공수쌍 + 방향 30°이내만 같은 갈래(공수 다르면 방향 같아도 별개 분기)
       if(!same)bc.push(p);
     });
     var idx=subsetSum2(bc.map(P100),bc.map(P50),T100,T50);
