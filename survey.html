@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 485</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 486</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1867,6 +1867,70 @@ function nearestSnapWorld(wx,wy){var bd=1e18,pt=null;
   (state.manholes||[]).forEach(function(mh){var s=S(mh.wx,mh.wy);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;pt=[mh.wx,mh.wy];}});
   return {pt:pt,d:Math.sqrt(bd)};}
 function autoConnect(){
+  if(state.points.length<2){toast('측량점을 먼저 올려주세요');return;}
+  pushHist();
+  state.lines=state.lines.filter(function(l){return l.layer!=='통신관로';});
+  var THRESH=20;
+  var pts=state.points.filter(function(p){return !/보강판/.test((p.no||'')+'|'+(p.code||''));});
+  var mhs=state.manholes||[];
+  function D(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+  function pc(p){return pipeCount(p);}
+  function ang(a,b){return Math.atan2(b.y-a.y,b.x-a.x);}
+  function angDiff(x,y){var d=Math.abs(x-y)%(2*Math.PI);return d>Math.PI?2*Math.PI-d:d;}
+  var edges=[], degM=new Map(), visited=new Set();
+  function deg(p){return degM.get(p)||0;}
+  function linked(p,q){for(var i=0;i<edges.length;i++){if((edges[i][0]===p&&edges[i][1]===q)||(edges[i][0]===q&&edges[i][1]===p))return true;}return false;}
+  function link(p,q){if(p===q||linked(p,q))return false;edges.push([p,q]);degM.set(p,deg(p)+1);degM.set(q,deg(q)+1);return true;}
+  function subsetSum(vals,target){var n=vals.length,res=null;
+    function bt(i,sum,pick){if(res)return;if(sum===target&&pick.length){res=pick.slice();return;}if(sum>target||i>=n)return;
+      pick.push(i);bt(i+1,sum+vals[i],pick);pick.pop();bt(i+1,sum,pick);}
+    bt(0,0,[]);return res;}
+  function nextMain(cur,prev){
+    var Cc=pc(cur);
+    var cs=pts.filter(function(p){return p!==cur&&!visited.has(p)&&D(cur,p)<=THRESH&&!linked(cur,p);});
+    var dir=prev?ang(prev,cur):null;
+    cs.sort(function(a,b){
+      var sa=(pc(a)===Cc?0:1),sb=(pc(b)===Cc?0:1);if(sa!==sb)return sa-sb;
+      if(dir!=null){var pa=angDiff(dir,ang(cur,a))>Math.PI/2?1:0,pb=angDiff(dir,ang(cur,b))>Math.PI/2?1:0;if(pa!==pb)return pa-pb;}
+      return D(cur,a)-D(cur,b);});
+    return cs[0]||null;
+  }
+  function tBranch(t){
+    var Tc=pc(t);if(Tc==null)return [];
+    var cs=pts.filter(function(p){return p!==t&&!visited.has(p)&&D(t,p)<=THRESH&&!linked(t,p);});
+    cs.sort(function(a,b){return D(t,a)-D(t,b);});
+    var idx=subsetSum(cs.map(function(p){return pc(p)||0;}),Tc);
+    return idx?idx.map(function(i){return cs[i];}):[];
+  }
+  var start=null;
+  if(mhs.length){var bd=1e18;
+    mhs.forEach(function(m){pts.forEach(function(p){var d=Math.hypot(p.x-m.wx,p.y-m.wy);if(d<bd&&d<=THRESH){bd=d;start=p;}});});}
+  if(!start){var my=1e18;pts.forEach(function(p){if(p.y<my){my=p.y;start=p;}});}
+  if(!start){toast('시작점 없음');return;}
+  var stack=[{node:start,prev:null}];
+  var guard=0;
+  while(stack.length&&guard<pts.length*4+50){guard++;
+    var it=stack.pop();var cur=it.node,prev=it.prev;
+    if(visited.has(cur))continue; visited.add(cur);
+    if(isTpoint(cur)){
+      var br=tBranch(cur);
+      br.forEach(function(b){if(link(cur,b))stack.push({node:b,prev:cur});});
+    } else {
+      var nx=nextMain(cur,prev);
+      if(nx&&link(cur,nx))stack.push({node:nx,prev:cur});
+    }
+  }
+  var mhCount=0;
+  mhs.forEach(function(mh){
+    var nr=pts.map(function(p){return {p:p,d:Math.hypot(p.x-mh.wx,p.y-mh.wy)};}).filter(function(x){return x.d<=THRESH;}).sort(function(a,b){return a.d-b.d;});
+    if(nr.length>=2){var A=nr[0].p,B=nr[1].p;edges=edges.filter(function(e){return !((e[0]===A&&e[1]===B)||(e[0]===B&&e[1]===A));});state.lines.push({layer:'통신관로',pts:[[A.x,A.y],[mh.wx,mh.wy],[B.x,B.y]]});mhCount++;}
+    else if(nr.length===1){var A1=nr[0].p;state.lines.push({layer:'통신관로',pts:[[A1.x,A1.y],[mh.wx,mh.wy]]});mhCount++;}
+  });
+  edges.forEach(function(e){state.lines.push({layer:'통신관로',pts:[[e[0].x,e[0].y],[e[1].x,e[1].y]]});});
+  drawGeo();updMeta();toast('자동결선(B) '+edges.length+'개 + 맨홀 '+mhCount+'개 (검수·수정하세요)');
+}
+
+function autoConnectLegacy(){
   if(state.points.length<2){toast('측량점을 먼저 올려주세요');return;}
   pushHist();
   state.lines=state.lines.filter(function(l){return l.layer!=='통신관로';}); // 자동결선만 갱신
