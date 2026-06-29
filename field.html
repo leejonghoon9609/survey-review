@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 507</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 508</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1333,7 +1333,19 @@ function drawGeo(){
   if(typeof drawDepthCheck==='function')drawDepthCheck();
   if(typeof drawTitleBlock==='function')drawTitleBlock();
   if(!bpOff)(state.baseTexts||[]).forEach(function(t){var sc=S(t.x,t.y);var tn=el('text',{x:sc[0],y:sc[1],'font-size':Math.max(t.h*2,1.1),fill:'#888','text-anchor':'start','pointer-events':'none'});if(t.rot){tn.setAttribute('transform','rotate('+(-t.rot)+' '+sc[0]+' '+sc[1]+')');}tn.textContent=t.text;gGeo.appendChild(tn);});
-  state.lines.forEach(function(L){if(bpOff&&L.base)return;var def=LINECOL[L.layer]||{c:"#bbb",w:1.2};if(L.crop)def={c:"#000",w:1.4};
+  // ★ 백판(수치지도, 단색#bbb) 라인은 하나의 통합 path로 병합 — DOM 요소 수천개→1개, 줌/팬 성능 대폭 개선
+  var _bpD='';
+  state.lines.forEach(function(L){
+    if(LINECOL[L.layer]||L.crop)return;        // 앱 레이어·crop은 개별 처리(아래)
+    if(bpOff&&L.base)return;
+    if(!L.pts||!L.pts.length)return;
+    for(var _i=0;_i<L.pts.length;_i++){var _s=S(L.pts[_i][0],L.pts[_i][1]);_bpD+=(_i?'L':'M')+_s[0].toFixed(2)+' '+_s[1].toFixed(2)+' ';}
+  });
+  if(_bpD)gGeo.appendChild(el('path',{d:_bpD,fill:'none',stroke:'#bbb','stroke-width':1.2,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':'round','pointer-events':'none'}));
+  // 앱 레이어·crop 라인만 개별(색·굵기·dash 다양, 클릭 필요)
+  state.lines.forEach(function(L){if(bpOff&&L.base)return;
+    if(!(LINECOL[L.layer]||L.crop))return;      // 백판은 위 통합 path로 처리됨
+    var def=LINECOL[L.layer]||{c:"#bbb",w:1.2};if(L.crop)def={c:"#000",w:1.4};
     var pts=L.pts.map(function(p){var s=S(p[0],p[1]);return s[0]+','+s[1];}).join(' ');
     var pl=el('polyline',{points:pts,fill:'none',stroke:def.c,'stroke-width':def.w,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':def.dash?'butt':'round'});
     if(def.dash)pl.setAttribute('stroke-dasharray',def.dash);
