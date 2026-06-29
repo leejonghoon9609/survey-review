@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 494</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 495</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1002,7 +1002,7 @@ function mkLabel(svgX,svgY,text,opt){
   d._anchor=anchor;
   d.style.cssText='position:absolute;'
     +'font-size:'+((opt.px||13)*(viewerMode?0.7:1))+'px;color:'+(opt.fill||'#333')+';'
-    +'font-weight:'+(opt.weight||'400')+';white-space:nowrap;pointer-events:none;'
+    +'font-weight:'+(opt.weight||'400')+';white-space:nowrap;pointer-events:none;'+'text-shadow:-1.2px -1.2px 0 #fff,1.2px -1.2px 0 #fff,-1.2px 1.2px 0 #fff,1.2px 1.2px 0 #fff,0 0 2px #fff,0 0 3px #fff;'
     +'transform:translate('+(anchor==='end'?'-100%':(anchor==='middle'?'-50%':'0'))+',-50%)'+(opt.rot?(' rotate('+opt.rot+'deg)'):'')+';line-height:1;';
   placeLabelDiv(d);
   if(lblOverlay)lblOverlay.appendChild(d);
