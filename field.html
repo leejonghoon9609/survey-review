@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 506</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 507</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1916,7 +1916,7 @@ function autoConnect(){
   function ang(a,b){return Math.atan2(b.y-a.y,b.x-a.x);}
   function angDiff(x,y){var d=Math.abs(x-y)%(2*Math.PI);return d>Math.PI?2*Math.PI-d:d;}
   function isT(p){return isTpoint(p);}
-  var edges=[], degM=new Map(), tLock=new Set();
+  var edges=[], degM=new Map(), tLock=new Set(), branchOf=new Map();
   function deg(p){return degM.get(p)||0;}
   function linked(p,q){for(var i=0;i<edges.length;i++){if((edges[i][0]===p&&edges[i][1]===q)||(edges[i][0]===q&&edges[i][1]===p))return true;}return false;}
   function edgeCrosses(p,q){for(var i=0;i<edges.length;i++){var a=edges[i][0],b=edges[i][1];if(a===p||a===q||b===p||b===q)continue;if(segInt([p.x,p.y],[q.x,q.y],[a.x,a.y],[b.x,b.y]))return true;}return false;}
@@ -1944,11 +1944,11 @@ function autoConnect(){
     var bc=[];
     bcAll.forEach(function(p){
       var ap=Math.atan2(p.y-t.y,p.x-t.x);
-      var same=bc.some(function(q){return pcEq(p,q)&&angDiff(ap,Math.atan2(q.y-t.y,q.x-t.x))<0.5236;});  // ★같은 공수쌍 + 방향 30°이내만 같은 갈래(공수 다르면 방향 같아도 별개 분기)
+      var same=bc.some(function(q){return pcEq(p,q)&&angDiff(ap,Math.atan2(q.y-t.y,q.x-t.x))<0.349;});  // ★같은 공수쌍 + 방향 20°(0.349rad)이내만 같은 갈래
       if(!same)bc.push(p);
     });
     var idx=subsetSum2(bc.map(P100),bc.map(P50),T100,T50);
-    if(idx)idx.forEach(function(i){link(t,bc[i]);});
+    if(idx)idx.forEach(function(i){if(link(t,bc[i]))branchOf.set(bc[i],t);});
     else tBad++;
     tLock.add(t);
   });
@@ -1958,7 +1958,7 @@ function autoConnect(){
   npts.forEach(function(p){
     var guard=0;
     while(deg(p)<2&&guard<8){guard++;
-      var cand=pts.filter(function(q){return q!==p&&!isT(q)&&!linked(p,q)&&pcEq(p,q)&&deg(q)<2&&D(p,q)<=THRESH;});
+      var cand=pts.filter(function(q){return q!==p&&!isT(q)&&!linked(p,q)&&pcEq(p,q)&&deg(q)<2&&D(p,q)<=THRESH&&!(branchOf.get(p)&&branchOf.get(p)===branchOf.get(q));});
       cand.sort(function(a,b){return D(p,a)-D(p,b);});
       if(!cand.length)break;
       if(!link(p,cand[0]))break;
