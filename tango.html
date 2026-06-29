@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 497</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 498</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -820,14 +820,27 @@ function computeLabels(){
     for(var li=0;li<state.lines.length;li++){var L2=state.lines[li];if(!L2.pts)continue;
       for(var s=0;s<L2.pts.length-1;s++){var a=L2.pts[s],b=L2.pts[s+1];if(!a||!b)continue;if(Math.abs(lx-a[0])>near&&Math.abs(lx-b[0])>near)continue;var d=distSeg(lx,ly,a,b);if(d<lblR)sc+=(lblR-d)*8;}}
     for(var q=0;q<placed.length;q++){if(Math.abs(lx-placed[q][0])>near||Math.abs(ly-placed[q][1])>near)continue;var d=Math.hypot(lx-placed[q][0],ly-placed[q][1]);if(d<lblR*1.6)sc+=(lblR*1.6-d)*6;}
+    // ★ 인출선(측점→라벨) 교차 강제 배제: (1)관로선 가로지름 (2)다른 인출선 가로지름
+    var _px=pts[selfIdx].x,_py=pts[selfIdx].y,_BIG=1e5;
+    var _mnx=Math.min(_px,lx)-0.1,_mxx=Math.max(_px,lx)+0.1,_mny=Math.min(_py,ly)-0.1,_mxy=Math.max(_py,ly)+0.1;
+    for(var _li=0;_li<state.lines.length;_li++){var _L=state.lines[_li];if(!_L.pts||_L.layer!=='통신관로')continue;
+      for(var _s=0;_s<_L.pts.length-1;_s++){var _a=_L.pts[_s],_b=_L.pts[_s+1];if(!_a||!_b)continue;
+        if((_a[0]<_mnx&&_b[0]<_mnx)||(_a[0]>_mxx&&_b[0]>_mxx)||(_a[1]<_mny&&_b[1]<_mny)||(_a[1]>_mxy&&_b[1]>_mxy))continue;
+        if(Math.hypot(_a[0]-_px,_a[1]-_py)<0.3||Math.hypot(_b[0]-_px,_b[1]-_py)<0.3)continue;
+        if(typeof segInt==='function'&&segInt([_px,_py],[lx,ly],_a,_b))sc+=_BIG;}}
+    for(var _q=0;_q<placed.length;_q++){var _pp=placed[_q];if(!_pp||_pp.length<4)continue;
+      if(Math.hypot(_pp[2]-_px,_pp[3]-_py)<0.3)continue;
+      if(typeof segInt==='function'&&segInt([_px,_py],[lx,ly],[_pp[2],_pp[3]],[_pp[0],_pp[1]]))sc+=_BIG;}
     return sc;}
   for(var k=0;k<n;k++){var p=pts[k];
     var o=state.labelOff&&(state.labelOff[p.no]||state.labelOff[ptNum(p)]);
-    if(o){lay[k]={lx:o[0],ly:o[1],anchor:(o[0]<p.x?'end':'start'),leader:true};placed.push([o[0],o[1]]);continue;}
+    if(o){lay[k]={lx:o[0],ly:o[1],anchor:(o[0]<p.x?'end':'start'),leader:true};placed.push([o[0],o[1],p.x,p.y]);continue;}
     var pref=(k%2===0)?1:-1;var bestPos=null,bestSc=Infinity;var dists=[L,L*1.4,L*1.9];
     var pv=pipeDirAt(p);
-    if(pv){var pl=Math.hypot(pv[0],pv[1])||1;var nx=-pv[1]/pl,ny=pv[0]/pl;if(ny<0){nx=-nx;ny=-ny;}nx*=pref;ny*=pref;
-      for(var di=0;di<dists.length;di++){var D=dists[di];var lx=p.x+nx*D,ly=p.y+ny*D;var sc=score(lx,ly,k)+di*2;if(sc<bestSc){bestSc=sc;bestPos=[lx,ly];}}
+    if(pv){var pl=Math.hypot(pv[0],pv[1])||1;var nx0=-pv[1]/pl,ny0=pv[0]/pl;if(ny0<0){nx0=-nx0;ny0=-ny0;}
+      var _dP=[[nx0*pref,ny0*pref,0],[-nx0*pref,-ny0*pref,4]];   // pref(번갈아) 우선, 교차나면 반대 강제
+      for(var _dp=0;_dp<_dP.length;_dp++){var nx=_dP[_dp][0],ny=_dP[_dp][1],_pen=_dP[_dp][2];
+        for(var di=0;di<dists.length;di++){var D=dists[di];var lx=p.x+nx*D,ly=p.y+ny*D;var sc=score(lx,ly,k)+di*2+_pen;if(sc<bestSc){bestSc=sc;bestPos=[lx,ly];}}}
     }else{var cs=candidates(p,pref);
       for(var di=0;di<dists.length;di++){var D=dists[di];
         for(var ci=0;ci<cs.length;ci++){var lx=p.x+cs[ci][0]*D, ly=p.y+cs[ci][1]*D;
@@ -837,7 +850,7 @@ function computeLabels(){
     }
     if(!bestPos)bestPos=[p.x+L,p.y];
     lay[k]={lx:bestPos[0],ly:bestPos[1],anchor:(bestPos[0]<p.x?'end':'start'),leader:true};
-    placed.push([bestPos[0],bestPos[1]]);}
+    placed.push([bestPos[0],bestPos[1],p.x,p.y]);}
   return lay;
 }
 
