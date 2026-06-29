@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 510</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 511</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1781,7 +1781,7 @@ function bakeBackdrop(){
   (state.lines||[]).forEach(function(L){if(LINECOL[L.layer]||L.crop||!L.pts||!L.pts.length)return;has=true;for(var i=0;i<L.pts.length;i++){var x=L.pts[i][0],y=L.pts[i][1];if(x<minx)minx=x;if(x>maxx)maxx=x;if(y<miny)miny=y;if(y>maxy)maxy=y;}});
   if(!has||maxx<=minx||maxy<=miny){_bpImgURL=null;_bpImgBox=null;return;}
   var ww=maxx-minx,hh=maxy-miny,diag=Math.max(ww,hh);
-  var pxPerWorld=4096/diag;   // 긴 변 4096px (고해상도)
+  var pxPerWorld=2048/diag;   // 긴 변 2048px (끊김 방지 우선, 줄 중 재그림 없음)
   var cw=Math.max(1,Math.round(ww*pxPerWorld)),ch=Math.max(1,Math.round(hh*pxPerWorld));
   var cap=8192;if(cw>cap||ch>cap){var k=cap/Math.max(cw,ch);cw=Math.max(1,Math.round(cw*k));ch=Math.max(1,Math.round(ch*k));pxPerWorld*=k;}
   var cvs=document.createElement('canvas');cvs.width=cw;cvs.height=ch;
@@ -1910,7 +1910,7 @@ function bpEraseAt(cw){
   clearSvg(gDraw);
 }
 function toWorld(cx,cy){var m=null;try{m=cv.getScreenCTM();}catch(e){}if(m&&m.a){var im=m.inverse();return [im.a*cx+im.c*cy+im.e, im.b*cx+im.d*cy+im.f];}var r=cv.getBoundingClientRect();return [vb.x+(cx-r.left)/r.width*vb.w, vb.y+(cy-r.top)/r.height*vb.h];}
-function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*=f;vb.h*=f;vb.x=w[0]-(cx-r.left)/r.width*vb.w;vb.y=w[1]-(cy-r.top)/r.height*vb.h;applyVB();drawGeo();drawManholes();highlightSel();}
+function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*=f;vb.h*=f;vb.x=w[0]-(cx-r.left)/r.width*vb.w;vb.y=w[1]-(cy-r.top)/r.height*vb.h;applyVB();}
 
 /* ====== 결선 ====== */
 function nearestPointWorld(wx,wy){var best=null,bd=1e18;state.points.forEach(function(p){var s=S(p.x,p.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;best=p;}});return {p:best,d:Math.sqrt(bd)};}
