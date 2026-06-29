@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 503</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 504</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1899,11 +1899,13 @@ function autoConnect(){
     l.pts.forEach(function(pt){var dm=_dMH(pt),np=_nrPt(pt);if(np[0]&&np[1]<dm&&np[1]<1.0&&endPts.indexOf(np[0])<0)endPts.push(np[0]);});
     return true;
   });
-  var endSet=new Set(endPts);
   var THRESH=20;
   var TBRANCH=5;
   var pts=state.points.filter(function(p){return !/보강판/.test((p.no||'')+'|'+(p.code||''));});
   var mhs=state.manholes||[];
+  // ★ 코드에 M(맨홀)·I(입상) 붙은 측점도 앞타점(endPt) — 무조건
+  pts.forEach(function(p){if((isManhole(p)||/^\s*I/i.test((p.code||'')))&&endPts.indexOf(p)<0)endPts.push(p);});
+  var endSet=new Set(endPts);
   function D(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
   // ★ 관경별 공수 [100mm공수, 50mm공수] — 같은 측점 한 선으로 가되 공수는 관경별
   function pcMap(p){var m100=0,m50=0;var c=(p.code||'');var re=/(100|50)\s*[xX×]\s*(\d+)/g,mm;while(mm=re.exec(c)){if(mm[1]==='100')m100+=+mm[2];else m50+=+mm[2];}return [m100,m50];}
@@ -1931,7 +1933,7 @@ function autoConnect(){
   tpts.forEach(function(t){
     var T100=P100(t),T50=P50(t);if(T100===0&&T50===0)return;
     // ① 본선: 100·50 공수쌍이 똑같은 측점 1개
-    var mc=pts.filter(function(p){return p!==t&&D(t,p)<=TBRANCH&&!linked(t,p)&&!tLock.has(p)&&pcEq(p,t)&&(isT(p)||deg(p)<2);});
+    var mc=pts.filter(function(p){return p!==t&&D(t,p)<=THRESH&&!linked(t,p)&&!tLock.has(p)&&pcEq(p,t)&&(isT(p)||deg(p)<2);});
     mc.sort(function(a,b){return D(t,a)-D(t,b);});
     if(mc[0])link(t,mc[0]);
     // ② 분기: 100mm 합=T100 그리고 50mm 합=T50 (작은 점들 조합)
@@ -1954,17 +1956,9 @@ function autoConnect(){
       if(!link(p,cand[0]))break;
     }
   });
-  // 맨홀 통과 (종단선 있는 맨홀 skip)
-  var mhCount=0;
-  mhs.forEach(function(mh){
-    if(endPts.some(function(p){return Math.hypot(p.x-mh.wx,p.y-mh.wy)<2;}))return;
-    var nr=pts.map(function(p){return {p:p,d:Math.hypot(p.x-mh.wx,p.y-mh.wy)};}).filter(function(x){return x.d<=THRESH;}).sort(function(a,b){return a.d-b.d;});
-    if(nr.length>=2){var A=nr[0].p,angA=Math.atan2(A.y-mh.wy,A.x-mh.wx),B=null;for(var bi=1;bi<nr.length;bi++){var cc=nr[bi].p,angC=Math.atan2(cc.y-mh.wy,cc.x-mh.wx);if(angDiff(angA,angC)>Math.PI/2){B=cc;break;}}if(!B)B=nr[1].p;edges=edges.filter(function(e){return !((e[0]===A&&e[1]===B)||(e[0]===B&&e[1]===A));});state.lines.push({layer:'통신관로',pts:[[A.x,A.y],[mh.wx,mh.wy],[B.x,B.y]]});mhCount++;}
-    else if(nr.length===1){var A1=nr[0].p;state.lines.push({layer:'통신관로',pts:[[A1.x,A1.y],[mh.wx,mh.wy]]});mhCount++;}
-  });
   edges.forEach(function(e){state.lines.push({layer:'통신관로',pts:[[e[0].x,e[0].y],[e[1].x,e[1].y]]});});
   var t3=0;tpts.forEach(function(t){if(deg(t)<3)t3++;});
-  drawGeo();updMeta();toast('자동결선 · T '+tpts.length+'(3갈래미만 '+t3+'·공수미달 '+tBad+') · 결선 '+edges.length+' · 맨홀 '+mhCount);
+  drawGeo();updMeta();toast('자동결선 · T '+tpts.length+'(3갈래미만 '+t3+'·공수미달 '+tBad+') · 결선 '+edges.length+' (맨홀은 그린 선만)');
 }
 
 function autoConnectLegacy(){
