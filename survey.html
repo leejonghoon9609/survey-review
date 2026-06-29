@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 502</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 503</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1887,73 +1887,77 @@ function nearestSnapWorld(wx,wy){var bd=1e18,pt=null;
 function autoConnect(){
   if(state.points.length<2){toast('측량점을 먼저 올려주세요');return;}
   pushHist();
-  // ★ 맨홀/입상주에 닿는 관로선(측점→맨홀 종단선)은 보존 + 그 측점=앞타점(endPt, 더 이상 관로 안 나감)
+  // ★ 맨홀/입상주 종단선 보존 + 앞타점(endPt)
   var endPts=[];
   function _dMH(pt){var d=1e18;(state.manholes||[]).forEach(function(mh){var e=Math.hypot(pt[0]-mh.wx,pt[1]-mh.wy);if(e<d)d=e;});return d;}
   function _nrPt(pt){var b=null,bd=1e18;state.points.forEach(function(p){var e=Math.hypot(p.x-pt[0],p.y-pt[1]);if(e<bd){bd=e;b=p;}});return [b,bd];}
   state.lines=state.lines.filter(function(l){
     if(l.layer!=='통신관로')return true;
     if(!l.pts||l.pts.length<2)return false;
-    var touchMH=l.pts.some(function(pt){var dm=_dMH(pt),np=_nrPt(pt);return dm<np[1]&&dm<1.0;});  // 맨홀에 더 가까운 끝이 있으면 = 맨홀 종단선
+    var touchMH=l.pts.some(function(pt){var dm=_dMH(pt),np=_nrPt(pt);return dm<np[1]&&dm<1.0;});
     if(!touchMH)return false;
-    l.pts.forEach(function(pt){var dm=_dMH(pt),np=_nrPt(pt);if(np[0]&&np[1]<dm&&np[1]<1.0&&endPts.indexOf(np[0])<0)endPts.push(np[0]);});  // 측점에 더 가까운 끝 = 앞타점
+    l.pts.forEach(function(pt){var dm=_dMH(pt),np=_nrPt(pt);if(np[0]&&np[1]<dm&&np[1]<1.0&&endPts.indexOf(np[0])<0)endPts.push(np[0]);});
     return true;
   });
   var endSet=new Set(endPts);
-  var THRESH=20;      // 본선/맨홀 후보 반경
-  var TBRANCH=5;      // ★T점 본선·분기 후보 반경 5m
+  var THRESH=20;
+  var TBRANCH=5;
   var pts=state.points.filter(function(p){return !/보강판/.test((p.no||'')+'|'+(p.code||''));});
   var mhs=state.manholes||[];
   function D(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
-  function pc(p){return pipeCount(p);}
+  // ★ 관경별 공수 [100mm공수, 50mm공수] — 같은 측점 한 선으로 가되 공수는 관경별
+  function pcMap(p){var m100=0,m50=0;var c=(p.code||'');var re=/(100|50)\s*[xX×]\s*(\d+)/g,mm;while(mm=re.exec(c)){if(mm[1]==='100')m100+=+mm[2];else m50+=+mm[2];}return [m100,m50];}
+  pts.forEach(function(p){p._pc=pcMap(p);});
+  function P100(p){return p._pc?p._pc[0]:0;}
+  function P50(p){return p._pc?p._pc[1]:0;}
+  function pcEq(a,b){return P100(a)===P100(b)&&P50(a)===P50(b);}
   function ang(a,b){return Math.atan2(b.y-a.y,b.x-a.x);}
   function angDiff(x,y){var d=Math.abs(x-y)%(2*Math.PI);return d>Math.PI?2*Math.PI-d:d;}
   function isT(p){return isTpoint(p);}
-  var edges=[], degM=new Map(), tLock=new Set();   // tLock = 분기 완료된 T(잠금)
+  var edges=[], degM=new Map(), tLock=new Set();
   function deg(p){return degM.get(p)||0;}
   function linked(p,q){for(var i=0;i<edges.length;i++){if((edges[i][0]===p&&edges[i][1]===q)||(edges[i][0]===q&&edges[i][1]===p))return true;}return false;}
   function edgeCrosses(p,q){for(var i=0;i<edges.length;i++){var a=edges[i][0],b=edges[i][1];if(a===p||a===q||b===p||b===q)continue;if(segInt([p.x,p.y],[q.x,q.y],[a.x,a.y],[b.x,b.y]))return true;}return false;}
-  // 일반점 분기 금지(deg<=2) + 교차 방지
   function link(p,q){if(p===q||linked(p,q))return false;if(tLock.has(p)||tLock.has(q))return false;if(endSet.has(p)&&deg(p)>=1)return false;if(endSet.has(q)&&deg(q)>=1)return false;if(!isT(p)&&deg(p)>=2)return false;if(!isT(q)&&deg(q)>=2)return false;if(edgeCrosses(p,q))return false;edges.push([p,q]);degM.set(p,deg(p)+1);degM.set(q,deg(q)+1);return true;}
-  function subsetSum(vals,target){var n=vals.length,res=null;
-    function bt(i,sum,pick){if(res)return;if(sum===target&&pick.length){res=pick.slice();return;}if(sum>target||i>=n)return;
-      pick.push(i);bt(i+1,sum+vals[i],pick);pick.pop();bt(i+1,sum,pick);}
-    bt(0,0,[]);return res;}
-  // ===== 1단계: T점(아래부터) — ①본선(같은공수 1개) ②분기(작은공수 합=T공수) =====
+  // ★ 2차원 부분집합합: (100mm합,50mm합)=(t100,t50) 동시 만족
+  function subsetSum2(c100,c50,t100,t50){var n=c100.length,res=null;
+    function bt(i,s100,s50,pick){if(res)return;if(s100===t100&&s50===t50&&pick.length){res=pick.slice();return;}if(s100>t100||s50>t50||i>=n)return;
+      pick.push(i);bt(i+1,s100+c100[i],s50+c50[i],pick);pick.pop();bt(i+1,s100,s50,pick);}
+    bt(0,0,0,[]);return res;}
+  // ===== 1단계: T점(아래부터) — ①본선(같은 100·50쌍) ②분기(100·50 합 동시) =====
   var tpts=pts.filter(isT);
   tpts.sort(function(a,b){return a.y-b.y;});
   var tBad=0;
   tpts.forEach(function(t){
-    var Tc=pc(t);if(Tc==null)return;
-    // ① 본선: 같은 공수(Tc) 측점 1개 — "공수가 들어온 측점"
-    var mc=pts.filter(function(p){return p!==t&&D(t,p)<=TBRANCH&&!linked(t,p)&&!tLock.has(p)&&pc(p)===Tc&&(isT(p)||deg(p)<2);});
+    var T100=P100(t),T50=P50(t);if(T100===0&&T50===0)return;
+    // ① 본선: 100·50 공수쌍이 똑같은 측점 1개
+    var mc=pts.filter(function(p){return p!==t&&D(t,p)<=TBRANCH&&!linked(t,p)&&!tLock.has(p)&&pcEq(p,t)&&(isT(p)||deg(p)<2);});
     mc.sort(function(a,b){return D(t,a)-D(t,b);});
     if(mc[0])link(t,mc[0]);
-    // ② 분기: 작은 공수(pc<Tc) 합=Tc 조합 — "관 나누는 점들"
-    var bc=pts.filter(function(p){return p!==t&&D(t,p)<=TBRANCH&&!linked(t,p)&&!tLock.has(p)&&(pc(p)||0)>0&&(pc(p)||0)<Tc&&(isT(p)||deg(p)<2);});
+    // ② 분기: 100mm 합=T100 그리고 50mm 합=T50 (작은 점들 조합)
+    var bc=pts.filter(function(p){return p!==t&&D(t,p)<=TBRANCH&&!linked(t,p)&&!tLock.has(p)&&(isT(p)||deg(p)<2)&&(P100(p)>0||P50(p)>0)&&P100(p)<=T100&&P50(p)<=T50&&!(P100(p)===T100&&P50(p)===T50);});
     bc.sort(function(a,b){return D(t,a)-D(t,b);});
-    var idx=subsetSum(bc.map(function(p){return pc(p);}),Tc);
+    var idx=subsetSum2(bc.map(P100),bc.map(P50),T100,T50);
     if(idx)idx.forEach(function(i){link(t,bc[i]);});
-    else tBad++;                 // 분기 조합 못 찾음(공수미달)
-    tLock.add(t);                // ★ T분기 완료 → 이후 다른 점이 이 T에 못 붙음(강제)
+    else tBad++;
+    tLock.add(t);
   });
-  // ===== 2단계: 일반점(아래부터) — 같은 공수끼리 한 점씩 체인(양옆 최대 2) =====
+  // ===== 2단계: 일반점(아래부터) — 100·50쌍 둘 다 같은 점끼리 체인 =====
   var npts=pts.filter(function(p){return !isT(p);});
   npts.sort(function(a,b){return a.y-b.y;});
   npts.forEach(function(p){
     var guard=0;
     while(deg(p)<2&&guard<8){guard++;
-      var Cc=pc(p);
-      var cand=pts.filter(function(q){return q!==p&&!isT(q)&&!linked(p,q)&&pc(q)===Cc&&deg(q)<2&&D(p,q)<=THRESH;});
+      var cand=pts.filter(function(q){return q!==p&&!isT(q)&&!linked(p,q)&&pcEq(p,q)&&deg(q)<2&&D(p,q)<=THRESH;});
       cand.sort(function(a,b){return D(p,a)-D(p,b);});
       if(!cand.length)break;
       if(!link(p,cand[0]))break;
     }
   });
-  // 맨홀 통과 (반대편 측점)
+  // 맨홀 통과 (종단선 있는 맨홀 skip)
   var mhCount=0;
   mhs.forEach(function(mh){
-    if(endPts.some(function(p){return Math.hypot(p.x-mh.wx,p.y-mh.wy)<2;}))return;   // 종단선 있는 맨홀은 자동 통과선 skip
+    if(endPts.some(function(p){return Math.hypot(p.x-mh.wx,p.y-mh.wy)<2;}))return;
     var nr=pts.map(function(p){return {p:p,d:Math.hypot(p.x-mh.wx,p.y-mh.wy)};}).filter(function(x){return x.d<=THRESH;}).sort(function(a,b){return a.d-b.d;});
     if(nr.length>=2){var A=nr[0].p,angA=Math.atan2(A.y-mh.wy,A.x-mh.wx),B=null;for(var bi=1;bi<nr.length;bi++){var cc=nr[bi].p,angC=Math.atan2(cc.y-mh.wy,cc.x-mh.wx);if(angDiff(angA,angC)>Math.PI/2){B=cc;break;}}if(!B)B=nr[1].p;edges=edges.filter(function(e){return !((e[0]===A&&e[1]===B)||(e[0]===B&&e[1]===A));});state.lines.push({layer:'통신관로',pts:[[A.x,A.y],[mh.wx,mh.wy],[B.x,B.y]]});mhCount++;}
     else if(nr.length===1){var A1=nr[0].p;state.lines.push({layer:'통신관로',pts:[[A1.x,A1.y],[mh.wx,mh.wy]]});mhCount++;}
