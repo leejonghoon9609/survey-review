@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 504</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 505</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1937,8 +1937,16 @@ function autoConnect(){
     mc.sort(function(a,b){return D(t,a)-D(t,b);});
     if(mc[0])link(t,mc[0]);
     // ② 분기: 100mm 합=T100 그리고 50mm 합=T50 (작은 점들 조합)
-    var bc=pts.filter(function(p){return p!==t&&D(t,p)<=TBRANCH&&!linked(t,p)&&!tLock.has(p)&&(isT(p)||deg(p)<2)&&(P100(p)>0||P50(p)>0)&&P100(p)<=T100&&P50(p)<=T50&&!(P100(p)===T100&&P50(p)===T50);});
-    bc.sort(function(a,b){return D(t,a)-D(t,b);});
+    var BRANCHR=7;   // 분기 반경(방향 첫점 포함 위해 5→7)
+    var bcAll=pts.filter(function(p){return p!==t&&D(t,p)<=BRANCHR&&!linked(t,p)&&!tLock.has(p)&&(isT(p)||deg(p)<2)&&(P100(p)>0||P50(p)>0)&&P100(p)<=T100&&P50(p)<=T50&&!(P100(p)===T100&&P50(p)===T50);});
+    bcAll.sort(function(a,b){return D(t,a)-D(t,b);});
+    // ★ 방향 규칙: 방향(T→측점 각도)이 30° 이내로 같으면 같은 분기(갈래)로 보고, 각 갈래의 가장 가까운 1점만 분기 대표
+    var bc=[];
+    bcAll.forEach(function(p){
+      var ap=Math.atan2(p.y-t.y,p.x-t.x);
+      var same=bc.some(function(q){return angDiff(ap,Math.atan2(q.y-t.y,q.x-t.x))<0.5236;});  // 0.5236rad=30°
+      if(!same)bc.push(p);
+    });
     var idx=subsetSum2(bc.map(P100),bc.map(P50),T100,T50);
     if(idx)idx.forEach(function(i){link(t,bc[i]);});
     else tBad++;
