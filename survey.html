@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 499</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 500</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1897,12 +1897,12 @@ function autoConnect(){
   function ang(a,b){return Math.atan2(b.y-a.y,b.x-a.x);}
   function angDiff(x,y){var d=Math.abs(x-y)%(2*Math.PI);return d>Math.PI?2*Math.PI-d:d;}
   function isT(p){return isTpoint(p);}
-  var edges=[], degM=new Map();
+  var edges=[], degM=new Map(), tLock=new Set();   // tLock = 분기 완료된 T(잠금)
   function deg(p){return degM.get(p)||0;}
   function linked(p,q){for(var i=0;i<edges.length;i++){if((edges[i][0]===p&&edges[i][1]===q)||(edges[i][0]===q&&edges[i][1]===p))return true;}return false;}
   function edgeCrosses(p,q){for(var i=0;i<edges.length;i++){var a=edges[i][0],b=edges[i][1];if(a===p||a===q||b===p||b===q)continue;if(segInt([p.x,p.y],[q.x,q.y],[a.x,a.y],[b.x,b.y]))return true;}return false;}
   // 일반점 분기 금지(deg<=2) + 교차 방지
-  function link(p,q){if(p===q||linked(p,q))return false;if(!isT(p)&&deg(p)>=2)return false;if(!isT(q)&&deg(q)>=2)return false;if(edgeCrosses(p,q))return false;edges.push([p,q]);degM.set(p,deg(p)+1);degM.set(q,deg(q)+1);return true;}
+  function link(p,q){if(p===q||linked(p,q))return false;if(tLock.has(p)||tLock.has(q))return false;if(!isT(p)&&deg(p)>=2)return false;if(!isT(q)&&deg(q)>=2)return false;if(edgeCrosses(p,q))return false;edges.push([p,q]);degM.set(p,deg(p)+1);degM.set(q,deg(q)+1);return true;}
   function subsetSum(vals,target){var n=vals.length,res=null;
     function bt(i,sum,pick){if(res)return;if(sum===target&&pick.length){res=pick.slice();return;}if(sum>target||i>=n)return;
       pick.push(i);bt(i+1,sum+vals[i],pick);pick.pop();bt(i+1,sum,pick);}
@@ -1914,15 +1914,16 @@ function autoConnect(){
   tpts.forEach(function(t){
     var Tc=pc(t);if(Tc==null)return;
     // ① 본선: 같은 공수(Tc) 측점 1개 — "공수가 들어온 측점"
-    var mc=pts.filter(function(p){return p!==t&&D(t,p)<=TBRANCH&&!linked(t,p)&&pc(p)===Tc&&(isT(p)||deg(p)<2);});
+    var mc=pts.filter(function(p){return p!==t&&D(t,p)<=TBRANCH&&!linked(t,p)&&!tLock.has(p)&&pc(p)===Tc&&(isT(p)||deg(p)<2);});
     mc.sort(function(a,b){return D(t,a)-D(t,b);});
     if(mc[0])link(t,mc[0]);
     // ② 분기: 작은 공수(pc<Tc) 합=Tc 조합 — "관 나누는 점들"
-    var bc=pts.filter(function(p){return p!==t&&D(t,p)<=TBRANCH&&!linked(t,p)&&(pc(p)||0)>0&&(pc(p)||0)<Tc&&(isT(p)||deg(p)<2);});
+    var bc=pts.filter(function(p){return p!==t&&D(t,p)<=TBRANCH&&!linked(t,p)&&!tLock.has(p)&&(pc(p)||0)>0&&(pc(p)||0)<Tc&&(isT(p)||deg(p)<2);});
     bc.sort(function(a,b){return D(t,a)-D(t,b);});
     var idx=subsetSum(bc.map(function(p){return pc(p);}),Tc);
     if(idx)idx.forEach(function(i){link(t,bc[i]);});
     else tBad++;                 // 분기 조합 못 찾음(공수미달)
+    tLock.add(t);                // ★ T분기 완료 → 이후 다른 점이 이 T에 못 붙음(강제)
   });
   // ===== 2단계: 일반점(아래부터) — 같은 공수끼리 한 점씩 체인(양옆 최대 2) =====
   var npts=pts.filter(function(p){return !isT(p);});
