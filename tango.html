@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 500</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 502</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1887,7 +1887,19 @@ function nearestSnapWorld(wx,wy){var bd=1e18,pt=null;
 function autoConnect(){
   if(state.points.length<2){toast('측량점을 먼저 올려주세요');return;}
   pushHist();
-  state.lines=state.lines.filter(function(l){return l.layer!=='통신관로';});
+  // ★ 맨홀/입상주에 닿는 관로선(측점→맨홀 종단선)은 보존 + 그 측점=앞타점(endPt, 더 이상 관로 안 나감)
+  var endPts=[];
+  function _dMH(pt){var d=1e18;(state.manholes||[]).forEach(function(mh){var e=Math.hypot(pt[0]-mh.wx,pt[1]-mh.wy);if(e<d)d=e;});return d;}
+  function _nrPt(pt){var b=null,bd=1e18;state.points.forEach(function(p){var e=Math.hypot(p.x-pt[0],p.y-pt[1]);if(e<bd){bd=e;b=p;}});return [b,bd];}
+  state.lines=state.lines.filter(function(l){
+    if(l.layer!=='통신관로')return true;
+    if(!l.pts||l.pts.length<2)return false;
+    var touchMH=l.pts.some(function(pt){var dm=_dMH(pt),np=_nrPt(pt);return dm<np[1]&&dm<1.0;});  // 맨홀에 더 가까운 끝이 있으면 = 맨홀 종단선
+    if(!touchMH)return false;
+    l.pts.forEach(function(pt){var dm=_dMH(pt),np=_nrPt(pt);if(np[0]&&np[1]<dm&&np[1]<1.0&&endPts.indexOf(np[0])<0)endPts.push(np[0]);});  // 측점에 더 가까운 끝 = 앞타점
+    return true;
+  });
+  var endSet=new Set(endPts);
   var THRESH=20;      // 본선/맨홀 후보 반경
   var TBRANCH=5;      // ★T점 본선·분기 후보 반경 5m
   var pts=state.points.filter(function(p){return !/보강판/.test((p.no||'')+'|'+(p.code||''));});
@@ -1902,7 +1914,7 @@ function autoConnect(){
   function linked(p,q){for(var i=0;i<edges.length;i++){if((edges[i][0]===p&&edges[i][1]===q)||(edges[i][0]===q&&edges[i][1]===p))return true;}return false;}
   function edgeCrosses(p,q){for(var i=0;i<edges.length;i++){var a=edges[i][0],b=edges[i][1];if(a===p||a===q||b===p||b===q)continue;if(segInt([p.x,p.y],[q.x,q.y],[a.x,a.y],[b.x,b.y]))return true;}return false;}
   // 일반점 분기 금지(deg<=2) + 교차 방지
-  function link(p,q){if(p===q||linked(p,q))return false;if(tLock.has(p)||tLock.has(q))return false;if(!isT(p)&&deg(p)>=2)return false;if(!isT(q)&&deg(q)>=2)return false;if(edgeCrosses(p,q))return false;edges.push([p,q]);degM.set(p,deg(p)+1);degM.set(q,deg(q)+1);return true;}
+  function link(p,q){if(p===q||linked(p,q))return false;if(tLock.has(p)||tLock.has(q))return false;if(endSet.has(p)&&deg(p)>=1)return false;if(endSet.has(q)&&deg(q)>=1)return false;if(!isT(p)&&deg(p)>=2)return false;if(!isT(q)&&deg(q)>=2)return false;if(edgeCrosses(p,q))return false;edges.push([p,q]);degM.set(p,deg(p)+1);degM.set(q,deg(q)+1);return true;}
   function subsetSum(vals,target){var n=vals.length,res=null;
     function bt(i,sum,pick){if(res)return;if(sum===target&&pick.length){res=pick.slice();return;}if(sum>target||i>=n)return;
       pick.push(i);bt(i+1,sum+vals[i],pick);pick.pop();bt(i+1,sum,pick);}
@@ -1941,6 +1953,7 @@ function autoConnect(){
   // 맨홀 통과 (반대편 측점)
   var mhCount=0;
   mhs.forEach(function(mh){
+    if(endPts.some(function(p){return Math.hypot(p.x-mh.wx,p.y-mh.wy)<2;}))return;   // 종단선 있는 맨홀은 자동 통과선 skip
     var nr=pts.map(function(p){return {p:p,d:Math.hypot(p.x-mh.wx,p.y-mh.wy)};}).filter(function(x){return x.d<=THRESH;}).sort(function(a,b){return a.d-b.d;});
     if(nr.length>=2){var A=nr[0].p,angA=Math.atan2(A.y-mh.wy,A.x-mh.wx),B=null;for(var bi=1;bi<nr.length;bi++){var cc=nr[bi].p,angC=Math.atan2(cc.y-mh.wy,cc.x-mh.wx);if(angDiff(angA,angC)>Math.PI/2){B=cc;break;}}if(!B)B=nr[1].p;edges=edges.filter(function(e){return !((e[0]===A&&e[1]===B)||(e[0]===B&&e[1]===A));});state.lines.push({layer:'통신관로',pts:[[A.x,A.y],[mh.wx,mh.wy],[B.x,B.y]]});mhCount++;}
     else if(nr.length===1){var A1=nr[0].p;state.lines.push({layer:'통신관로',pts:[[A1.x,A1.y],[mh.wx,mh.wy]]});mhCount++;}
