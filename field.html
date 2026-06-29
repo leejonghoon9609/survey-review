@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 508</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 509</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1333,15 +1333,8 @@ function drawGeo(){
   if(typeof drawDepthCheck==='function')drawDepthCheck();
   if(typeof drawTitleBlock==='function')drawTitleBlock();
   if(!bpOff)(state.baseTexts||[]).forEach(function(t){var sc=S(t.x,t.y);var tn=el('text',{x:sc[0],y:sc[1],'font-size':Math.max(t.h*2,1.1),fill:'#888','text-anchor':'start','pointer-events':'none'});if(t.rot){tn.setAttribute('transform','rotate('+(-t.rot)+' '+sc[0]+' '+sc[1]+')');}tn.textContent=t.text;gGeo.appendChild(tn);});
-  // ★ 백판(수치지도, 단색#bbb) 라인은 하나의 통합 path로 병합 — DOM 요소 수천개→1개, 줌/팬 성능 대폭 개선
-  var _bpD='';
-  state.lines.forEach(function(L){
-    if(LINECOL[L.layer]||L.crop)return;        // 앱 레이어·crop은 개별 처리(아래)
-    if(bpOff&&L.base)return;
-    if(!L.pts||!L.pts.length)return;
-    for(var _i=0;_i<L.pts.length;_i++){var _s=S(L.pts[_i][0],L.pts[_i][1]);_bpD+=(_i?'L':'M')+_s[0].toFixed(2)+' '+_s[1].toFixed(2)+' ';}
-  });
-  if(_bpD)gGeo.appendChild(el('path',{d:_bpD,fill:'none',stroke:'#bbb','stroke-width':1.2,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':'round','pointer-events':'none'}));
+  // ★ 백판은 화면영역 컬링으로 그림(drawBackdrop) — 화면 밖 백판은 안 그려 줌/팬 가벼움(BUILD509)
+  _bpPad=null;drawBackdrop();
   // 앱 레이어·crop 라인만 개별(색·굵기·dash 다양, 클릭 필요)
   state.lines.forEach(function(L){if(bpOff&&L.base)return;
     if(!(LINECOL[L.layer]||L.crop))return;      // 백판은 위 통합 path로 처리됨
@@ -1779,7 +1772,26 @@ function updMeta(){document.getElementById('meta').textContent=(state.projectNam
 
 /* ====== 뷰박스 ====== */
 var vb={x:0,y:0,w:100,h:100}, vb0={x:0,y:0,w:100,h:100}, _vbwLast=null;
-function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);repositionLabels();if(bgMapOn)syncMapBg();}
+var _bpPathEl=null,_bpPad=null;
+function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);repositionLabels();if(bgMapOn)syncMapBg();
+  if(!_bpPad||vb.x<_bpPad.x||vb.y<_bpPad.y||vb.x+vb.w>_bpPad.x+_bpPad.w||vb.y+vb.h>_bpPad.y+_bpPad.h)drawBackdrop();}
+// ★ 백판(수치지도) 화면영역 컬링 렌더 (BUILD509) — 화면보다 넓은 여유영역에 걸치는 백판만 통합 path로
+function drawBackdrop(){
+  if(_bpPathEl){try{_bpPathEl.remove();}catch(e){}_bpPathEl=null;}
+  if(typeof gGeo==='undefined'||!gGeo)return;
+  var pad={x:vb.x-vb.w*0.5,y:vb.y-vb.h*0.5,w:vb.w*2,h:vb.h*2};_bpPad=pad;
+  var d='';
+  (state.lines||[]).forEach(function(L){
+    if(LINECOL[L.layer]||L.crop)return;
+    if(bpOff&&L.base)return;
+    if(!L.pts||!L.pts.length)return;
+    if(!L._bb){var xs=[],ys=[];for(var k=0;k<L.pts.length;k++){xs.push(L.pts[k][0]);ys.push(L.pts[k][1]);}L._bb=[Math.min.apply(null,xs),Math.min.apply(null,ys),Math.max.apply(null,xs),Math.max.apply(null,ys)];}
+    var sx0=L._bb[0],sy0=-L._bb[3],sx1=L._bb[2],sy1=-L._bb[1];   // world bbox → 화면(S=[x,-y])
+    if(sx1<pad.x||sx0>pad.x+pad.w||sy1<pad.y||sy0>pad.y+pad.h)return;  // 여유영역 밖이면 스킵
+    for(var _i=0;_i<L.pts.length;_i++){var _s=S(L.pts[_i][0],L.pts[_i][1]);d+=(_i?'L':'M')+_s[0].toFixed(2)+' '+_s[1].toFixed(2)+' ';}
+  });
+  if(d){_bpPathEl=el('path',{d:d,fill:'none',stroke:'#bbb','stroke-width':1.2,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':'round','pointer-events':'none'});gGeo.insertBefore(_bpPathEl,gGeo.firstChild);}
+}
 // 뷰박스 종횡비를 화면(canvas) 종횡비에 맞춰 확장(중심유지) → meet 여백 제거 → 줌·팬 좌표 정확
 function fixAspect(){var r=cv.getBoundingClientRect();if(r.width<1||r.height<1)return;var car=r.width/r.height,cx=vb.x+vb.w/2,cy=vb.y+vb.h/2;if(vb.w/vb.h<car)vb.w=vb.h*car;else vb.h=vb.w/car;vb.x=cx-vb.w/2;vb.y=cy-vb.h/2;}
 function fitSoon(){var n=0;(function go(){var done=false;try{var r=cv.getBoundingClientRect();if(r.width>=1&&r.height>=1){fitView();done=true;}}catch(e){}if(!done&&n++<50)requestAnimationFrame(go);})();}
