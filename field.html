@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 528</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 529</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -5626,6 +5626,7 @@ EOF
   var lay=computeLabels();
   var bpentArr=[];if(!((typeof LV!=='undefined')&&LV.bpbox===0))(state.bpzones||[]).forEach(function(z,zi){var _br=(512+zi*3).toString(16).toUpperCase();bpentArr[zi]=bpentArr[zi]||[];var path=(z.path&&z.path.length>=2)?z.path:[z.p1,z.p2];var lr=(typeof bpBandLR==='function')?bpBandLR(path,5):null;if(!lr)return;for(var si=0;si<lr.left.length-1;si++){var L1=lr.left[si],L2=lr.left[si+1],R1=lr.right[si],R2=lr.right[si+1];if(_PDF){_pdfFill(L1,L2,R2,R1,242,233,205);}else bpentArr[zi].push(['  0','SOLID','  5',H(),'330',_br,'100','AcDbEntity','  8','BPZONE',' 62','256','420','15919565','440','33554440','100','AcDbTrace',' 10',N(L1[0]),' 20',N(L1[1]),' 30','0',' 11',N(L2[0]),' 21',N(L2[1]),' 31','0',' 12',N(R1[0]),' 22',N(R1[1]),' 32','0',' 13',N(R2[0]),' 23',N(R2[1]),' 33','0'].join('\n'));}});
   for(var _zi=0;_zi<bpentArr.length;_zi++){if(bpentArr[_zi]&&bpentArr[_zi].length)push(['  0','INSERT','  5',H(),'330','17','100','AcDbEntity','  8','BPZONE','100','AcDbBlockReference','  2','BPBAND'+_zi,' 10','0',' 20','0',' 30','0',' 41','1',' 42','1',' 43','1',' 50','0']);}
+  if(!(typeof LV!=='undefined'&&LV.roadzone===0)){(state.roadZones||[]).forEach(function(_z){if(_z&&_z.poly&&_z.poly.length>=3)pline(_z.poly,'ROADZONE',(_z.type==='\uB3C4\uB85C'?1:3),true);});}
   state.points.forEach(function(p,k){
     if(p._riserPt)return;
     var _bp=/보강판/.test((p.no||'')+'|'+(p.code||''));var _bpHide=_bp&&(typeof bpPtHidden==='function')&&bpPtHidden(p);
