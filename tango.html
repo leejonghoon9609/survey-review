@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 511</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 512</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -529,6 +529,10 @@ function isTpoint(p){return /(^|\s)T(\s|\d|$)/.test((p&&p.code)||'');}
   function isHyunPt(p){var c=((p&&p.code||'')+'').trim().toLowerCase();return c.charAt(0)==='b';}
 function pipeCount(p){var m=/[xX×]\s*(\d+)/.exec((p&&p.code)||'');return m?+m[1]:null;}
 function isManhole(p){return /^\s*M/.test((p&&p.code)||'');}
+// ★ CSV 맨홀 코드 → 종류 이름표 (BUILD512). 코드 앞/뒤 M = 맨홀, M 뗀 나머지로 종류. SW=한전 특수. 모르는 M코드는 코드 그대로 표시(누락 방지)
+var MH_KINDS={'DL':'드림라인','SKT':'SKT','SKB':'SKB','\uC2DC\uCCAD':'\uC2DC\uCCAD','\uC138\uC885':'\uC138\uC885','SJ':'\uC138\uC885','TBRO':'\uD2F0\uBE0C\uB85C','LGPOWER':'LG\uD30C\uC6CC','HTI':'HTI'};
+function isMhCode(code){var c=(code||'').trim();if(!c)return false;if(/^SW$/i.test(c))return true;if(/^(l|B|D|BD|DB)$/i.test(c))return false;return /M$/.test(c)||/^M/.test(c);}
+function mhKindOf(code){var c=(code||'').trim();if(/^SW$/i.test(c))return '\uD55C\uC804';var base=c.replace(/M$/,'').replace(/^M/,'').trim();for(var k in MH_KINDS){if(base.toUpperCase()===k.toUpperCase())return MH_KINDS[k];}return base||c;}
 // ── 폴리라인 위 앵커 계산 (지거 멘트 인출선용) ──
 function polySegs(pts){var segs=[],total=0;for(var i=0;i<pts.length-1;i++){var d=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);segs.push(d);total+=d;}return {segs:segs,total:total};}
 function polyAnchorT(L){if(L.anchorT!=null)return L.anchorT;var pts=L.pts;if(!pts||pts.length<2)return 0;var ps=polySegs(pts);return ps.total?(ps.segs[0]*0.5)/ps.total:0;} // 기본=첫 두 점 구간 중간
@@ -636,7 +640,7 @@ function buildInspData(){
     seq.forEach(function(p){
       if(p.skip){nIg++;return;}
       if(p.code==='BD'){_bdPts.push([p.ex,p.no]);nBD++;}
-      else if(p.code==='SKTM'){var _ex=p.ex,_no=p.no,_bm=null,_bd=4;(state.manholes||[]).forEach(function(m){if(m._mhMatched)return;var _d=Math.hypot((m.wx||0)-_ex,(m.wy||0)-_no);if(_d<=_bd){_bd=_d;_bm=m;}});if(_bm){var _ox2=_bm.wx,_oy2=_bm.wy;_bm.wx=_ex;_bm.wy=_no;_bm._aft=true;_bm._mhMatched=true;if(typeof moveMhLines==='function')moveMhLines(_bm,_ox2,_oy2);}else{state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+nM)),wx:_ex,wy:_no,label:'M (SKT )',kind:'신',lx:null,ly:null,type:'mh',insp:true,_aft:true,_mhMatched:true});}nM++;}
+      else if(isMhCode(p.code)){var _kind=mhKindOf(p.code);var _lab='M ('+_kind+' )';var _ex=p.ex,_no=p.no,_bm=null,_bd=4;(state.manholes||[]).forEach(function(m){if(m._mhMatched)return;var _d=Math.hypot((m.wx||0)-_ex,(m.wy||0)-_no);if(_d<=_bd){_bd=_d;_bm=m;}});if(_bm){var _ox2=_bm.wx,_oy2=_bm.wy;_bm.wx=_ex;_bm.wy=_no;_bm._aft=true;_bm._mhMatched=true;if(!_bm._edited)_bm.label=_lab;if(typeof moveMhLines==='function')moveMhLines(_bm,_ox2,_oy2);}else{state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+nM)),wx:_ex,wy:_no,label:_lab,kind:'신',lx:null,ly:null,type:'mh',insp:true,_aft:true,_mhMatched:true});}nM++;}
       else if(p.code==='l')nL++;
     });
   });
@@ -1450,6 +1454,8 @@ function mhLabelBase(mh, txtW){
   else if(rpd){var rux=rpd[0],ruy=rpd[1];var RHOR=1.0,RLIFT=1.6;defLx=mh.wx+rux*RHOR+(rux<0?-txtW:0);defLy=mh.wy+RLIFT+ruy*0.4;} // 꺾임점 위로 들어 대각선 각 세움
   else if(mp){var dx=mh.wx-mp.x,dy=mh.wy-mp.y;defLx=(dx>=0)?mh.wx+1.0:mh.wx-1.0-txtW;defLy=(dy>=0)?mh.wy+1.2:mh.wy-0.8;}
   else {defLx=mh.wx+1.0;defLy=mh.wy+1.2;}
+  // ★ 인출선이 4m 넘게 길면(맨홀이 후측량 위치로 이동했는데 라벨이 안 따라온 경우) 자동 위치로 리셋 — 처음부터 맞게(BUILD512)
+  if(mh.lx!=null&&Math.hypot(mh.lx-mh.wx,mh.ly-mh.wy)>4){mh.lx=null;mh.ly=null;}
   return {lx:(mh.lx!=null?mh.lx:defLx), ly:(mh.ly!=null?mh.ly:defLy)};
 }
 function mergeAftMh(){var mhs=state.manholes||[];if(!mhs.length)return;mhs.forEach(function(m){m._used=false;m._del=false;});mhs.filter(function(m){return m.insp;}).forEach(function(a){var best=null,bd=4;mhs.forEach(function(b){if(b===a||b.insp||b._used)return;var d=Math.hypot((b.wx||0)-(a.wx||0),(b.wy||0)-(a.wy||0));if(d<=bd){bd=d;best=b;}});if(best){var _ox=best.wx,_oy=best.wy;best.wx=a.wx;best.wy=a.wy;best._aft=true;best._used=true;a._del=true;if(typeof moveMhLines==='function')moveMhLines(best,_ox,_oy);}});state.manholes=mhs.filter(function(m){return !m._del;});}
