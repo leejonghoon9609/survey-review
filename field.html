@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 522</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 523</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1373,7 +1373,7 @@ function drawGeo(){
   var hitR=Math.min(0.45, 9*Up);   // 클릭 히트: 작은 줌에선 화면 고정, 큰 줌에선 월드 0.45 상한
   state.points.forEach(function(p,i){if((typeof LV!=='undefined')&&LV.bp===0&&/보강판/.test((p.no||'')+'|'+(p.code||'')))return;var isBp=/보강판/.test((p.no||'')+'|'+(p.code||''));var bpHide=isBp&&(typeof bpPtHidden==='function')&&bpPtHidden(p);var s=S(p.x,p.y);
     // 측점 심벌(속빈 사각) — 월드고정 정사각: 줌하면 크기는 변하지만 절대 안 찌그러짐, 위치 정확
-    if(p._riserPt){var _xh=0.09,_xc='#d500f2';gPts.appendChild(el('line',{x1:s[0]-_xh,y1:s[1]-_xh,x2:s[0]+_xh,y2:s[1]+_xh,stroke:_xc,'stroke-width':1.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));gPts.appendChild(el('line',{x1:s[0]-_xh,y1:s[1]+_xh,x2:s[0]+_xh,y2:s[1]-_xh,stroke:_xc,'stroke-width':1.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));}else{
+    if(p._riserPt){var _xh=0.045,_xc='#d500f2';gPts.appendChild(el('line',{x1:s[0]-_xh,y1:s[1]-_xh,x2:s[0]+_xh,y2:s[1]+_xh,stroke:_xc,'stroke-width':1.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));gPts.appendChild(el('line',{x1:s[0]-_xh,y1:s[1]+_xh,x2:s[0]+_xh,y2:s[1]-_xh,stroke:_xc,'stroke-width':1.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));}else{
     gPts.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:isBp?'#b8860b':(isManhole(p)?'#0d47a1':(isTpoint(p)?'#e53935':(p.surface==='\uB3C4\uB85C'?'#d9534f':(p.surface==='\uBCF4\uB3C4'?'#1a7a5e':'#111')))),'stroke-width':isManhole(p)?3.8:2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));if(p.surface&&(typeof LV==='undefined'||LV.surfacedot!==0)){gPts.appendChild(el('circle',{cx:s[0]+(typeof pxToWorld==='function'?pxToWorld()*6:0.8),cy:s[1]-(typeof pxToWorld==='function'?pxToWorld()*6:0.8),r:(typeof pxToWorld==='function'?pxToWorld()*4.5:0.6),fill:p.surface==='\uB3C4\uB85C'?'#d9534f':'#1a7a5e',stroke:'#fff','stroke-width':(typeof pxToWorld==='function'?pxToWorld()*1:0.15),'pointer-events':'none'}));}
     gPts.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#111','stroke-width':4,'stroke-linecap':'square','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // 중심 점(박스와 동일 vector-effect → 줌 고정)
     }
@@ -5625,6 +5625,7 @@ EOF
   var bpentArr=[];if(!((typeof LV!=='undefined')&&LV.bpbox===0))(state.bpzones||[]).forEach(function(z,zi){var _br=(512+zi*3).toString(16).toUpperCase();bpentArr[zi]=bpentArr[zi]||[];var path=(z.path&&z.path.length>=2)?z.path:[z.p1,z.p2];var lr=(typeof bpBandLR==='function')?bpBandLR(path,5):null;if(!lr)return;for(var si=0;si<lr.left.length-1;si++){var L1=lr.left[si],L2=lr.left[si+1],R1=lr.right[si],R2=lr.right[si+1];if(_PDF){_pdfFill(L1,L2,R2,R1,242,233,205);}else bpentArr[zi].push(['  0','SOLID','  5',H(),'330',_br,'100','AcDbEntity','  8','BPZONE',' 62','256','420','15919565','440','33554440','100','AcDbTrace',' 10',N(L1[0]),' 20',N(L1[1]),' 30','0',' 11',N(L2[0]),' 21',N(L2[1]),' 31','0',' 12',N(R1[0]),' 22',N(R1[1]),' 32','0',' 13',N(R2[0]),' 23',N(R2[1]),' 33','0'].join('\n'));}});
   for(var _zi=0;_zi<bpentArr.length;_zi++){if(bpentArr[_zi]&&bpentArr[_zi].length)push(['  0','INSERT','  5',H(),'330','17','100','AcDbEntity','  8','BPZONE','100','AcDbBlockReference','  2','BPBAND'+_zi,' 10','0',' 20','0',' 30','0',' 41','1',' 42','1',' 43','1',' 50','0']);}
   state.points.forEach(function(p,k){
+    if(p._riserPt)return;
     var _bp=/보강판/.test((p.no||'')+'|'+(p.code||''));var _bpHide=_bp&&(typeof bpPtHidden==='function')&&bpPtHidden(p);
     var _LV=(typeof LV!=='undefined')?LV:{};
     if(_bp&&_LV.bp===0)return;
