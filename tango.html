@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 524</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 525</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -514,7 +514,7 @@ var gDraft=document.createElementNS(SVGNS,'g'); gDraft.setAttribute('pointer-eve
 var gPts=document.createElementNS(SVGNS,'g');
 var gMH=document.createElementNS(SVGNS,'g'); // 맨홀 심벌 레이어
 var gHit=document.createElementNS(SVGNS,'g'); // 측점 클릭 hit (최상위 — 항상 클릭 우선)
-cv.appendChild(gGeo); cv.appendChild(gMark); cv.appendChild(gDraft); cv.appendChild(gPts); cv.appendChild(gMH); cv.appendChild(gHit);
+cv.appendChild(gGeo); cv.appendChild(gMark); cv.appendChild(gDraft); cv.appendChild(gPts); cv.appendChild(gHit); cv.appendChild(gMH);
 
 /* 상태 */
 var state={ projectId:null, projectName:null, loadedStage:STAGE, _importSrc:[], points:[], lines:[], markups:[], labelOff:{}, manholes:[], photoDir:{}, asbuilt:null, nightShift:null, fieldDone:null, bizInfo:null, titleBlock:null };
@@ -1650,10 +1650,11 @@ window.addEventListener('pointermove',function(ev){
     // 라벨도 같이 이동 (상대위치 유지)
     if(mh.lx!=null){mh.lx+=newWx-mh.wx;mh.ly+=newWy-mh.wy;}
     mh.wx=newWx;mh.wy=newWy;
+    drawManholes();drawGeo();
   } else {
     mh.lx=wx-mhDragState.gx; mh.ly=wy-mhDragState.gy;
+    drawManholes();
   }
-  drawManholes();drawGeo();
 });
 window.addEventListener('pointerup',function(ev){
   if(!mhDragState)return;mhDragState=null;drawManholes();drawGeo();
