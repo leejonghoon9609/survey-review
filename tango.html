@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 512</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 513</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1454,7 +1454,10 @@ function mhLabelBase(mh, txtW){
   else if(rpd){var rux=rpd[0],ruy=rpd[1];var RHOR=1.0,RLIFT=1.6;defLx=mh.wx+rux*RHOR+(rux<0?-txtW:0);defLy=mh.wy+RLIFT+ruy*0.4;} // 꺾임점 위로 들어 대각선 각 세움
   else if(mp){var dx=mh.wx-mp.x,dy=mh.wy-mp.y;defLx=(dx>=0)?mh.wx+1.0:mh.wx-1.0-txtW;defLy=(dy>=0)?mh.wy+1.2:mh.wy-0.8;}
   else {defLx=mh.wx+1.0;defLy=mh.wy+1.2;}
-  // ★ 인출선이 4m 넘게 길면(맨홀이 후측량 위치로 이동했는데 라벨이 안 따라온 경우) 자동 위치로 리셋 — 처음부터 맞게(BUILD512)
+  // ★ 계산된 라벨 위치(defLx)가 맨홀에서 2.5m 넘으면 당김 — 긴 라벨 txtW 과보정으로 인출선 길어지던 문제 교정(BUILD513)
+  var _ddl=Math.hypot(defLx-mh.wx,defLy-mh.wy);
+  if(_ddl>2.5){var _rr=2.5/_ddl;defLx=mh.wx+(defLx-mh.wx)*_rr;defLy=mh.wy+(defLy-mh.wy)*_rr;}
+  // 저장된 라벨이 4m 넘게 길면 리셋(맨홀 이동 후 라벨 안따라온 경우)
   if(mh.lx!=null&&Math.hypot(mh.lx-mh.wx,mh.ly-mh.wy)>4){mh.lx=null;mh.ly=null;}
   return {lx:(mh.lx!=null?mh.lx:defLx), ly:(mh.ly!=null?mh.ly:defLy)};
 }
