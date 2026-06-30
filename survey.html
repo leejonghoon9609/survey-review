@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 515</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 516</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -529,6 +529,7 @@ function isTpoint(p){return /(^|\s)T(\s|\d|$)/.test((p&&p.code)||'');}
   function isHyunPt(p){var c=((p&&p.code||'')+'').trim().toLowerCase();return c.charAt(0)==='b';}
 function pipeCount(p){var m=/[xX×]\s*(\d+)/.exec((p&&p.code)||'');return m?+m[1]:null;}
 function isManhole(p){return /^\s*M/.test((p&&p.code)||'');}
+function isRiserPt(p){return /^(TJ|EJ)/i.test(((p&&p.code)||'').trim());} // 전주(통신주TJ·한전주EJ) 측점
 // ★ CSV 맨홀 코드 → 종류 이름표 (BUILD512). 코드 앞/뒤 M = 맨홀, M 뗀 나머지로 종류. SW=한전 특수. 모르는 M코드는 코드 그대로 표시(누락 방지)
 var MH_KINDS={'DL':'드림라인','SKT':'SKT','SKB':'SKB','\uC2DC\uCCAD':'\uC2DC\uCCAD','\uC138\uC885':'\uC138\uC885','SJ':'\uC138\uC885','TBRO':'\uD2F0\uBE0C\uB85C','LGPOWER':'LG\uD30C\uC6CC','HTI':'HTI'};
 function isMhCode(code){var c=(code||'').trim();if(!c)return false;if(/^SW$/i.test(c))return true;if(/^(l|B|D|BD|DB)$/i.test(c))return false;return /M$/.test(c)||/^M/.test(c);}
@@ -1666,6 +1667,33 @@ function placeManholeAt(wx,wy,type){
   toast('맨홀 심기 완료 — 더블클릭으로 라벨 수정, Enter/Space로 종료');
   // 모드 유지 (계속 찍을 수 있게)
 }
+// ★ CSV의 전주(TJ/EJ) 측점 → 같은 코드 가장 가까운 2점 짝 → 중점에 입상주 자동생성(BUILD516). TJ=통신주입상/EJ=한전주입상. 원래 2점은 남김(자동결선만 제외)
+function buildRisersFromCsv(){
+  var pts=(state.points||[]).filter(isRiserPt);
+  if(!pts.length)return 0;
+  var byCode={};
+  pts.forEach(function(p){var c=(p.code||'').trim().toUpperCase();(byCode[c]=byCode[c]||[]).push(p);});
+  var made=0;
+  for(var code in byCode){
+    var arr=byCode[code].slice(),used={};
+    for(var i=0;i<arr.length;i++){
+      if(used[i])continue;
+      var best=-1,bd=1e9;
+      for(var j=i+1;j<arr.length;j++){
+        if(used[j])continue;
+        var d=Math.hypot(arr[i].x-arr[j].x,arr[i].y-arr[j].y);
+        if(d<bd){bd=d;best=j;}
+      }
+      if(best<0)continue;
+      used[i]=used[best]=1;
+      var mx=(arr[i].x+arr[best].x)/2,my=(arr[i].y+arr[best].y)/2;
+      var isEJ=/^EJ/i.test(code);
+      state.manholes.push({id:mhIdSeq++,wx:mx,wy:my,label:isEJ?'한전주입상':'통신주입상',lx:null,ly:null,type:'riser',_fromCsv:true});
+      made++;
+    }
+  }
+  return made;
+}
 // 측점삽입: 다음 측점번호 자동 채번(기존 prefix 이어서 +1)
 function nextPtNo(){
   var prefix='', maxN=0;
@@ -1941,7 +1969,7 @@ function autoConnect(){
   });
   var THRESH=20;
   var TBRANCH=5;
-  var pts=state.points.filter(function(p){return !/보강판/.test((p.no||'')+'|'+(p.code||''));});
+  var pts=state.points.filter(function(p){return !/보강판/.test((p.no||'')+'|'+(p.code||''))&&!isRiserPt(p);}); // 보강판·전주(TJ/EJ) 제외
   var mhs=state.manholes||[];
   // ★ 코드에 M(맨홀)·I(입상) 붙은 측점도 앞타점(endPt) — 무조건
   pts.forEach(function(p){if((isManhole(p)||/^\s*I/i.test((p.code||'')))&&endPts.indexOf(p)<0)endPts.push(p);});
@@ -7286,7 +7314,7 @@ bind('bgBtn',toggleBgMap);
 bind('newProj',function(){var n=prompt('새 사업명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.routingDone=false;setReadOnly(false);state.manholes=[];state.photoDir={};photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 사업: '+n+' (CSV 업로드 후 저장)');});
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){pushHist();if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)pickProject(e.target.value);});
-function loadCsvFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.manholes=[];state.projectId=null;state.routingDone=false;setReadOnly(false);state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatus();toast('새 CSV: 측량점 '+state.points.length+'개 (결선·검수 초기화)');};rd.readAsArrayBuffer(f);}
+function loadCsvFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.manholes=[];state.projectId=null;state.routingDone=false;var _nrz=(typeof buildRisersFromCsv==='function')?buildRisersFromCsv():0;setReadOnly(false);state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatus();toast('새 CSV: 측량점 '+state.points.length+'개'+(_nrz?(' · 전주입상 '+_nrz+'개 자동생성'):'')+' (결선·검수 초기화)');};rd.readAsArrayBuffer(f);}
 function regAddCsv(f,cb){if(!f){if(cb)cb();return;}var rd=new FileReader();rd.onload=function(){
   var pts=parseCsv(decodeBuf(rd.result),f.name);
   if(pts.length){
