@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 518</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 519</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1669,25 +1669,29 @@ function placeManholeAt(wx,wy,type){
 }
 // ★ CSV의 전주(TJ/EJ) 측점 → 같은 코드 가장 가까운 2점 짝 → 중점에 입상주 자동생성(BUILD516). TJ=통신주입상/EJ=한전주입상. 원래 2점은 남김(자동결선만 제외)
 function buildRisersFromCsv(){
-  var pts=(state.points||[]).filter(isRiserPt);
-  if(!pts.length)return 0;
+  var arr=(typeof finalCsvArr==='function')?finalCsvArr():[];
+  var rows=[];
+  arr.forEach(function(it){var rs;try{rs=parseInspCsv(it.text||'');}catch(e){rs=[];}rs.forEach(function(p){if(p.skip)return;var c=(p.code||'').trim();if(/^(TJ|EJ)/i.test(c))rows.push({x:p.ex,y:p.no,no:p.name||'',code:c.toUpperCase()});});});
+  if(!rows.length)return 0;
   state.manholes=(state.manholes||[]).filter(function(m){return !m._fromCsv;});
+  state.points=(state.points||[]).filter(function(p){return !p._riserPt;});
   var byCode={};
-  pts.forEach(function(p){var c=(p.code||'').trim().toUpperCase();(byCode[c]=byCode[c]||[]).push(p);});
+  rows.forEach(function(p){(byCode[p.code]=byCode[p.code]||[]).push(p);});
   var made=0;
   for(var code in byCode){
-    var arr=byCode[code].slice(),used={};
-    for(var i=0;i<arr.length;i++){
+    var a2=byCode[code].slice(),used={};
+    for(var i=0;i<a2.length;i++){
       if(used[i])continue;
       var best=-1,bd=1e9;
-      for(var j=i+1;j<arr.length;j++){
+      for(var j=i+1;j<a2.length;j++){
         if(used[j])continue;
-        var d=Math.hypot(arr[i].x-arr[j].x,arr[i].y-arr[j].y);
+        var d=Math.hypot(a2[i].x-a2[j].x,a2[i].y-a2[j].y);
         if(d<bd){bd=d;best=j;}
       }
       if(best<0)continue;
       used[i]=used[best]=1;
-      var mx=(arr[i].x+arr[best].x)/2,my=(arr[i].y+arr[best].y)/2;
+      [a2[i],a2[best]].forEach(function(rp){state.points.push({no:rp.no,x:rp.x,y:rp.y,z:null,code:rp.code,_riserPt:true});});
+      var mx=(a2[i].x+a2[best].x)/2,my=(a2[i].y+a2[best].y)/2;
       state.manholes=(state.manholes||[]).filter(function(m){return !(m.type==='riser'&&Math.hypot((m.wx||0)-mx,(m.wy||0)-my)<2);});
       var isEJ=/^EJ/i.test(code);
       state.manholes.push({id:mhIdSeq++,wx:mx,wy:my,label:isEJ?'한전주입상':'통신주입상',lx:null,ly:null,type:'riser',_fromCsv:true});
