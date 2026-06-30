@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 514</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 515</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1915,7 +1915,7 @@ function bpEraseAt(cw){
   clearSvg(gDraw);
 }
 function toWorld(cx,cy){var m=null;try{m=cv.getScreenCTM();}catch(e){}if(m&&m.a){var im=m.inverse();return [im.a*cx+im.c*cy+im.e, im.b*cx+im.d*cy+im.f];}var r=cv.getBoundingClientRect();return [vb.x+(cx-r.left)/r.width*vb.w, vb.y+(cy-r.top)/r.height*vb.h];}
-function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*=f;vb.h*=f;vb.x=w[0]-(cx-r.left)/r.width*vb.w;vb.y=w[1]-(cy-r.top)/r.height*vb.h;applyVB();}
+function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*=f;vb.h*=f;vb.x=w[0]-(cx-r.left)/r.width*vb.w;vb.y=w[1]-(cy-r.top)/r.height*vb.h;applyVB();if(typeof drawManholes==='function')drawManholes();}
 
 /* ====== 결선 ====== */
 function nearestPointWorld(wx,wy){var best=null,bd=1e18;state.points.forEach(function(p){var s=S(p.x,p.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;best=p;}});return {p:best,d:Math.sqrt(bd)};}
