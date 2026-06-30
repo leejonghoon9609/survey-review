@@ -343,7 +343,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 513</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 514</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1449,16 +1449,12 @@ function mhLabelBase(mh, txtW){
   var rpd=isRiser?nearestPipeDir(mh.wx,mh.wy,5):null; // 입상주: 근처 관로선(5m내) 반대쪽 자동
   if(pdirs.length){var psx=0,psy=0;pdirs.forEach(function(d){var l=Math.hypot(d[0],d[1])||1;psx+=d[0]/l;psy+=d[1]/l;});
     var psl=Math.hypot(psx,psy);
-    if(psl>0.4){var ux=-psx/psl,uy=-psy/psl;defLx=mh.wx+ux*1.3+(ux<0?-txtW:0);defLy=mh.wy+uy*1.3;}
-    else {var d0=pdirs[0];var pnx=-d0[1],pny=d0[0];var pl=Math.hypot(pnx,pny)||1;pnx/=pl;pny/=pl;if(pny<0){pnx=-pnx;pny=-pny;}defLx=mh.wx+pnx*1.3+(pnx<0?-txtW:0);defLy=mh.wy+pny*1.3;}}
-  else if(rpd){var rux=rpd[0],ruy=rpd[1];var RHOR=1.0,RLIFT=1.6;defLx=mh.wx+rux*RHOR+(rux<0?-txtW:0);defLy=mh.wy+RLIFT+ruy*0.4;} // 꺾임점 위로 들어 대각선 각 세움
-  else if(mp){var dx=mh.wx-mp.x,dy=mh.wy-mp.y;defLx=(dx>=0)?mh.wx+1.0:mh.wx-1.0-txtW;defLy=(dy>=0)?mh.wy+1.2:mh.wy-0.8;}
+    if(psl>0.4){var ux=-psx/psl,uy=-psy/psl;defLx=mh.wx+ux*1.3;defLy=mh.wy+uy*1.3;}
+    else {var d0=pdirs[0];var pnx=-d0[1],pny=d0[0];var pl=Math.hypot(pnx,pny)||1;pnx/=pl;pny/=pl;if(pny<0){pnx=-pnx;pny=-pny;}defLx=mh.wx+pnx*1.3;defLy=mh.wy+pny*1.3;}}
+  else if(rpd){var rux=rpd[0],ruy=rpd[1];var RHOR=1.0,RLIFT=1.6;defLx=mh.wx+rux*RHOR;defLy=mh.wy+RLIFT+ruy*0.4;} // 꺾임점 위로 들어 대각선 각 세움
+  else if(mp){var dx=mh.wx-mp.x,dy=mh.wy-mp.y;defLx=(dx>=0)?mh.wx+1.0:mh.wx-1.0;defLy=(dy>=0)?mh.wy+1.2:mh.wy-0.8;}
   else {defLx=mh.wx+1.0;defLy=mh.wy+1.2;}
-  // ★ 계산된 라벨 위치(defLx)가 맨홀에서 2.5m 넘으면 당김 — 긴 라벨 txtW 과보정으로 인출선 길어지던 문제 교정(BUILD513)
-  var _ddl=Math.hypot(defLx-mh.wx,defLy-mh.wy);
-  if(_ddl>2.5){var _rr=2.5/_ddl;defLx=mh.wx+(defLx-mh.wx)*_rr;defLy=mh.wy+(defLy-mh.wy)*_rr;}
-  // 저장된 라벨이 4m 넘게 길면 리셋(맨홀 이동 후 라벨 안따라온 경우)
-  if(mh.lx!=null&&Math.hypot(mh.lx-mh.wx,mh.ly-mh.wy)>4){mh.lx=null;mh.ly=null;}
+  // ★ 인출선 길이=줌 무관 고정 1.3m(world, txtW 보정 제거). 드래그한 라벨(mh.lx)은 어떤 보정·제한도 없이 그대로 — 끌고 간 자리 고정(BUILD514)
   return {lx:(mh.lx!=null?mh.lx:defLx), ly:(mh.ly!=null?mh.ly:defLy)};
 }
 function mergeAftMh(){var mhs=state.manholes||[];if(!mhs.length)return;mhs.forEach(function(m){m._used=false;m._del=false;});mhs.filter(function(m){return m.insp;}).forEach(function(a){var best=null,bd=4;mhs.forEach(function(b){if(b===a||b.insp||b._used)return;var d=Math.hypot((b.wx||0)-(a.wx||0),(b.wy||0)-(a.wy||0));if(d<=bd){bd=d;best=b;}});if(best){var _ox=best.wx,_oy=best.wy;best.wx=a.wx;best.wy=a.wy;best._aft=true;best._used=true;a._del=true;if(typeof moveMhLines==='function')moveMhLines(best,_ox,_oy);}});state.manholes=mhs.filter(function(m){return !m._del;});}
