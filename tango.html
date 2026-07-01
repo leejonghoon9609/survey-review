@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 568</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 569</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -671,7 +671,7 @@ function buildInspData(){
     seq.forEach(function(p){
       if(p.skip){nIg++;return;}
       if(p.code==='BD'){_bdPts.push([p.ex,p.no]);nBD++;}
-      else if(isMhCode(p.code)){var _kind=mhKindOf(p.code);var _lab='M ('+_kind+' )';var _ex=p.ex,_no=p.no,_bm=null,_bd=4;(state.manholes||[]).forEach(function(m){if(m._mhMatched)return;var _d=Math.hypot((m.wx||0)-_ex,(m.wy||0)-_no);if(_d<=_bd){_bd=_d;_bm=m;}});if(_bm){var _ox2=_bm.wx,_oy2=_bm.wy;_bm.wx=_ex;_bm.wy=_no;_bm._aft=true;_bm._mhMatched=true;if(!_bm._edited)_bm.label=_lab;if(typeof moveMhLines==='function')moveMhLines(_bm,_ox2,_oy2);}else{state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+nM)),wx:_ex,wy:_no,label:_lab,kind:'신',lx:null,ly:null,type:'mh',insp:true,_aft:true,_mhMatched:true});}nM++;}
+      else if(!state.tamsa&&isMhCode(p.code)){var _kind=mhKindOf(p.code);var _lab='M ('+_kind+' )';var _ex=p.ex,_no=p.no,_bm=null,_bd=4;(state.manholes||[]).forEach(function(m){if(m._mhMatched)return;var _d=Math.hypot((m.wx||0)-_ex,(m.wy||0)-_no);if(_d<=_bd){_bd=_d;_bm=m;}});if(_bm){var _ox2=_bm.wx,_oy2=_bm.wy;_bm.wx=_ex;_bm.wy=_no;_bm._aft=true;_bm._mhMatched=true;if(!_bm._edited)_bm.label=_lab;if(typeof moveMhLines==='function')moveMhLines(_bm,_ox2,_oy2);}else{state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+nM)),wx:_ex,wy:_no,label:_lab,kind:'신',lx:null,ly:null,type:'mh',insp:true,_aft:true,_mhMatched:true});}nM++;}
       else if(p.code==='l')nL++;
     });
   });
@@ -705,7 +705,7 @@ function computeDepth(){
 }
 function buildTamsaMh(){
   if(!state.tamsa)return 0;
-  state.manholes=(state.manholes||[]).filter(function(m){return m.type==='riser'||!m._fromCsv;});
+  state.manholes=(state.manholes||[]).filter(function(m){return m.type==='riser'||(!m._fromCsv&&!m._aft);});
   var _mhA=(typeof finalCsvArr==='function')?finalCsvArr():[],n=0;
   _mhA.forEach(function(it){var rs;try{rs=parseInspCsv(it.text||'');}catch(e){rs=[];}rs.forEach(function(p){if(p.skip)return;if(isMhCode(p.code)){var _k=mhKindOf(p.code);state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+state.manholes.length)),wx:p.ex,wy:p.no,label:'M ('+_k+' )',kind:_k,lx:null,ly:null,type:'mh',insp:true,_fromCsv:true});n++;}});});
   state.points.forEach(function(p){if(isMhCode(p.code))p._hideMark=true;});
@@ -1597,8 +1597,8 @@ function drawManholes(){
     // 대각선 (맨홀중심 → 꺾임점) — 맨홀 검정, 입상주 파랑
     var LDC=(mh._fromCsv&&isRiser?'#d500f2':MHC);
     gMH.appendChild(el('line',{x1:mx,y1:my,x2:kinkX,y2:kinkY,stroke:LDC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none','class':isRiser?'sym-riser':'mh-lead'}));
-    // 수평 밑줄 (입상주만 — 맨홀은 인출선 1개)
-    if(isRiser)gMH.appendChild(el('line',{x1:ulx1,y1:uly,x2:ulx2,y2:uly,stroke:LDC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none','class':'sym-riser'}));
+    // 수평 밑줄
+    gMH.appendChild(el('line',{x1:ulx1,y1:uly,x2:ulx2,y2:uly,stroke:LDC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none','class':isRiser?'sym-riser':'mh-lead'}));
 
     // 라벨 텍스트 위치: 밑줄 중앙 위에 올라오게
     var labelW=txtW, labelH=EM*1.15;
