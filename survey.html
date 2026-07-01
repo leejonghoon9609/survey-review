@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 556</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 557</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -706,7 +706,7 @@ function loadTamsaCsv(f){
     if(!state.fieldDone)state.fieldDone={csv:false,joseo:false,manhole:false};
     state.fieldDone.csv=true;
     try{var _mhA=finalCsvArr();_mhA.forEach(function(it){var rs;try{rs=parseInspCsv(it.text||'');}catch(e){rs=[];}rs.forEach(function(p){if(p.skip)return;if(isMhCode(p.code)){var _k=mhKindOf(p.code);state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+state.manholes.length)),wx:p.ex,wy:p.no,label:'M ('+_k+' )',kind:_k,lx:null,ly:null,type:'mh',insp:true,_fromCsv:true});}});});}catch(e){}
-    var _nrz=(typeof buildRisersFromCsv==='function')?buildRisersFromCsv():0;
+    var _nrz=0;
     if(typeof setReadOnly==='function')setReadOnly(false);
     state.projectName=f.name.replace(/\.[^.]+$/,'');
     var ps=document.getElementById('proj');if(ps)ps.value='';
@@ -1392,7 +1392,7 @@ function drawGeo(){
   // 앱 레이어·crop 라인만 개별(색·굵기·dash 다양, 클릭 필요)
   state.lines.forEach(function(L){if(bpOff&&L.base)return;
     if(!(LINECOL[L.layer]||L.crop))return;      // 백판은 위 통합 path로 처리됨
-    var def=LINECOL[L.layer]||{c:"#bbb",w:1.2};if(L.crop)def={c:"#000",w:1.4};
+    var def=LINECOL[L.layer]||{c:"#bbb",w:1.2};if(L.color)def={c:L.color,w:def.w,dash:def.dash};if(L.crop)def={c:"#000",w:1.4};
     var pts=L.pts.map(function(p){var s=S(p[0],p[1]);return s[0]+','+s[1];}).join(' ');
     var pl=el('polyline',{points:pts,fill:'none',stroke:def.c,'stroke-width':def.w,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':def.dash?'butt':'round'});
     if(def.dash)pl.setAttribute('stroke-dasharray',def.dash);
@@ -1728,6 +1728,7 @@ function buildRisersFromCsv(){
   if(!rows.length)return 0;
   state.manholes=(state.manholes||[]).filter(function(m){return !m._fromCsv;});
   state.points=(state.points||[]).filter(function(p){return !p._riserPt;});
+  state.lines=(state.lines||[]).filter(function(l){return !l._riserLine;});
   var byCode={};
   rows.forEach(function(p){(byCode[p.code]=byCode[p.code]||[]).push(p);});
   var made=0;
@@ -1744,6 +1745,7 @@ function buildRisersFromCsv(){
       if(best<0)continue;
       used[i]=used[best]=1;
       [a2[i],a2[best]].forEach(function(rp){state.points.push({no:rp.no,x:rp.x,y:rp.y,z:null,code:rp.code,_riserPt:true});});
+      state.lines.push({layer:'\uC8FC\uC785\uC0C1\uC778\uCD9C\uC120',pts:[[a2[i].x,a2[i].y],[a2[best].x,a2[best].y]],insp:true,color:'#d500f2',_riserLine:true});
       var mx=(a2[i].x+a2[best].x)/2,my=(a2[i].y+a2[best].y)/2;
       state.manholes=(state.manholes||[]).filter(function(m){return !(m.type==='riser'&&Math.hypot((m.wx||0)-mx,(m.wy||0)-my)<2);});
       var isEJ=/^EJ/i.test(code);
