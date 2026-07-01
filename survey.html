@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 567</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 568</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -989,18 +989,18 @@ function openPtEdit(p,ls){
   var iYear=inp(yr,'YY',32,'#1a7a3a'), iDate=inp(date,'MMDD',52,'#1a7a3a'), iNum=inp(num,'번호',46,'#1a7a3a');
   var r1=row();r1.appendChild(iYear);r1.appendChild(iDate);r1.appendChild(fix('-'));r1.appendChild(iNum);
   var iPre=inp(prefix,'FC 100',74,'#0f7a86'), iCnt=inp(cnt,'관수',42,'#0f7a86');
-  var _SFr={'\uB3C4\uB85C':'D','\uBCF4\uB3C4':'B','\uC0AC\uB9AC\uB3C4':'S'},_PVr={'\uC544\uC2A4\uD314\uD2B8':'A','\uBCF4\uB3C4':'B','\uC0AC\uB9AC\uB3C4':'S','\uCF58\uD06C\uB9AC\uD2B8':'C'};
-  var _daInit=(_SFr[p.surface]||'')+(_PVr[p.pave]||(p.pave?p.pave.charAt(0):''));
-  var iDA=state.tamsa?inp(_daInit,'DA',42,'#c0392b'):null;
-  var r2=row();r2.appendChild(iPre);r2.appendChild(fix('x'));r2.appendChild(iCnt);if(iDA){r2.appendChild(fix('|'));r2.appendChild(iDA);}
+  function sel2(opts,cur,w){var _s=document.createElement('select');_s.style.cssText='font-size:13px;font-weight:600;color:#c0392b;border:1px solid #ccc;border-radius:3px;padding:2px 3px;outline:none;width:'+w+'px;';opts.forEach(function(o){var _op=document.createElement('option');_op.value=o;_op.textContent=o;if(o===cur)_op.selected=true;_s.appendChild(_op);});return _s;}
+  var iSurf=state.tamsa?sel2(['\uB3C4\uB85C','\uBCF4\uB3C4','\uC0AC\uB9AC\uB3C4'],p.surface||'\uB3C4\uB85C',60):null;
+  var iPave=state.tamsa?sel2(['\uC544\uC2A4\uD314\uD2B8','\uCF58\uD06C\uB9AC\uD2B8','\uBCF4\uB3C4','\uC0AC\uB9AC\uB3C4','\uC11D\uC7AC','\uD0C4\uC131\uD3EC\uC7A5\uC7AC','\uD22C\uC2A4\uCF58','\uD0DD\uC9C0'],p.pave||'\uC544\uC2A4\uD314\uD2B8',86):null;
+  var r2=row();r2.appendChild(iPre);r2.appendChild(fix('x'));r2.appendChild(iCnt);if(iSurf){r2.appendChild(fix('|'));r2.appendChild(iSurf);r2.appendChild(iPave);}
   wrap.appendChild(r1);wrap.appendChild(r2);document.body.appendChild(wrap);iDate.focus();iDate.select();
   var done=function(){if(wrap.parentNode){pushHist();
     p.no=iYear.value.trim()+iDate.value.trim()+'-'+iNum.value.trim();
     p.code=iPre.value.trim()+'x'+iCnt.value.trim();
-    if(state.tamsa&&iDA){var _dav=(iDA.value||'').trim().toUpperCase(),_c0=_dav.charAt(0),_c1=_dav.charAt(1);var _SFm={'D':'\uB3C4\uB85C','B':'\uBCF4\uB3C4','S':'\uC0AC\uB9AC\uB3C4'},_PVm={'A':'\uC544\uC2A4\uD314\uD2B8','B':'\uBCF4\uB3C4','S':'\uC0AC\uB9AC\uB3C4','C':'\uCF58\uD06C\uB9AC\uD2B8'};if(_SFm[_c0]){p.surface=_SFm[_c0];p.surfaceManual=_SFm[_c0];}if(_PVm[_c1])p.pave=_PVm[_c1];p._tcode=undefined;}
+    if(state.tamsa&&iSurf){p.surface=iSurf.value;p.surfaceManual=iSurf.value;p.pave=iPave.value;p._tcode=undefined;}
     wrap.remove();drawGeo();if(photoPanelOpen)refreshPhotoPanel();}};
   var onKey=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();};
-  var ins=[iYear,iDate,iNum,iPre,iCnt].concat(iDA?[iDA]:[]);
+  var ins=[iYear,iDate,iNum,iPre,iCnt].concat(iSurf?[iSurf,iPave]:[]);
   var bt=null;function ob(){bt=setTimeout(done,150);}function of(){if(bt){clearTimeout(bt);bt=null;}}
   ins.forEach(function(i){i.addEventListener('keydown',onKey);i.addEventListener('blur',ob);i.addEventListener('focus',of);});
 }
