@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 558</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 559</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -1727,7 +1727,7 @@ function buildRisersFromCsv(){
   var rows=[];
   arr.forEach(function(it){var rs;try{rs=parseInspCsv(it.text||'');}catch(e){rs=[];}rs.forEach(function(p){if(p.skip)return;var c=(p.code||'').trim();if(/^(TJ|EJ)/i.test(c))rows.push({x:p.ex,y:p.no,no:p.name||'',code:c.toUpperCase()});});});
   if(!rows.length)return 0;
-  state.points.forEach(function(p){if(/^(TJ|EJ)/i.test((p.code||'').trim()))p._hideMark=true;});
+  if(state.tamsa)state.points.forEach(function(p){if(/^(TJ|EJ)/i.test((p.code||'').trim()))p._hideMark=true;});
   state.manholes=(state.manholes||[]).filter(function(m){return !m._fromCsv;});
   state.points=(state.points||[]).filter(function(p){return !p._riserPt;});
   state.lines=(state.lines||[]).filter(function(l){return !l._riserLine;});
@@ -1746,8 +1746,8 @@ function buildRisersFromCsv(){
       }
       if(best<0)continue;
       used[i]=used[best]=1;
-      [a2[i],a2[best]].forEach(function(rp){state.points.push({no:rp.no,x:rp.x,y:rp.y,z:null,code:rp.code,_riserPt:true,_hideMark:true});});
-      state.lines.push({layer:'\uC8FC\uC785\uC0C1\uC778\uCD9C\uC120',pts:[[a2[i].x,a2[i].y],[a2[best].x,a2[best].y]],insp:true,color:'#d500f2',_riserLine:true});
+      [a2[i],a2[best]].forEach(function(rp){state.points.push({no:rp.no,x:rp.x,y:rp.y,z:null,code:rp.code,_riserPt:true,_hideMark:!!state.tamsa});});
+      if(state.tamsa)state.lines.push({layer:'\uC8FC\uC785\uC0C1\uC778\uCD9C\uC120',pts:[[a2[i].x,a2[i].y],[a2[best].x,a2[best].y]],insp:true,color:'#d500f2',_riserLine:true});
       var mx=(a2[i].x+a2[best].x)/2,my=(a2[i].y+a2[best].y)/2;
       state.manholes=(state.manholes||[]).filter(function(m){return !(m.type==='riser'&&Math.hypot((m.wx||0)-mx,(m.wy||0)-my)<2);});
       var isEJ=/^EJ/i.test(code);
@@ -6455,7 +6455,7 @@ function _openRegNow(){
   updRegStatus();
   setTimeout(function(){document.getElementById('regName').focus();},30);
 }
-function clearForNew(){state.projectId=null;state.projectName='';state.points=[];state.routingDone=false;state.asbuilt=null;state.nightShift=null;state.fieldDone=null;state.bizInfo=null;if(typeof fillBizInfo==='function')fillBizInfo({});if(typeof refreshFieldBar==='function')refreshFieldBar();if(typeof setReadOnly==='function')setReadOnly(false);(state.markups||[]).forEach(function(m){if(m.el)m.el.remove();});state.markups=[];state.lines=[];state.manholes=[];state.photoDir={};photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);redrawAll();updMeta();}
+function clearForNew(){state.tamsa=false;state.projectId=null;state.projectName='';state.points=[];state.routingDone=false;state.asbuilt=null;state.nightShift=null;state.fieldDone=null;state.bizInfo=null;if(typeof fillBizInfo==='function')fillBizInfo({});if(typeof refreshFieldBar==='function')refreshFieldBar();if(typeof setReadOnly==='function')setReadOnly(false);(state.markups||[]).forEach(function(m){if(m.el)m.el.remove();});state.markups=[];state.lines=[];state.manholes=[];state.photoDir={};photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);redrawAll();updMeta();}
 function regStartWarn(){
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;z-index:1001;background:rgba(0,0,0,.42);display:flex;align-items:center;justify-content:center';
@@ -7418,7 +7418,7 @@ bind('bgBtn',toggleBgMap);
 bind('newProj',function(){var n=prompt('새 사업명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.routingDone=false;setReadOnly(false);state.manholes=[];state.photoDir={};photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 사업: '+n+' (CSV 업로드 후 저장)');});
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){pushHist();if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)pickProject(e.target.value);});
-function loadCsvFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.manholes=[];state.projectId=null;state.routingDone=false;var _nrz=(typeof buildRisersFromCsv==='function')?buildRisersFromCsv():0;setReadOnly(false);state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatus();toast('새 CSV: 측량점 '+state.points.length+'개'+(_nrz?(' · 전주입상 '+_nrz+'개 자동생성'):'')+' (결선·검수 초기화)');};rd.readAsArrayBuffer(f);}
+function loadCsvFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){state.tamsa=false;state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.manholes=[];state.projectId=null;state.routingDone=false;var _nrz=(typeof buildRisersFromCsv==='function')?buildRisersFromCsv():0;setReadOnly(false);state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatus();toast('새 CSV: 측량점 '+state.points.length+'개'+(_nrz?(' · 전주입상 '+_nrz+'개 자동생성'):'')+' (결선·검수 초기화)');};rd.readAsArrayBuffer(f);}
 function regAddCsv(f,cb){if(!f){if(cb)cb();return;}var rd=new FileReader();rd.onload=function(){
   var pts=parseCsv(decodeBuf(rd.result),f.name);
   if(pts.length){
