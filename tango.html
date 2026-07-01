@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 560</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 562</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span>
   </header>
 
@@ -550,8 +550,8 @@ function isManhole(p){return /^\s*M/.test((p&&p.code)||'');}
 function isRiserPt(p){return /^(TJ|EJ)/i.test(((p&&p.code)||'').trim());} // 전주(통신주TJ·한전주EJ) 측점
 // ★ CSV 맨홀 코드 → 종류 이름표 (BUILD512). 코드 앞/뒤 M = 맨홀, M 뗀 나머지로 종류. SW=한전 특수. 모르는 M코드는 코드 그대로 표시(누락 방지)
 var MH_KINDS={'DL':'드림라인','SKT':'SKT','SKB':'SKB','\uC2DC\uCCAD':'\uC2DC\uCCAD','\uC138\uC885':'\uC138\uC885','SJ':'\uC138\uC885','TBRO':'\uD2F0\uBE0C\uB85C','LGPOWER':'LG\uD30C\uC6CC','HTI':'HTI'};
-function isMhCode(code){var c=(code||'').trim();if(!c)return false;if(/^SW$/i.test(c))return true;if(/^(l|B|D|BD|DB)$/i.test(c))return false;return /M$/.test(c)||/^M/.test(c);}
-function mhKindOf(code){var c=(code||'').trim();if(/^SW$/i.test(c))return '\uD55C\uC804';var base=c.replace(/M$/,'').replace(/^M/,'').trim();for(var k in MH_KINDS){if(base.toUpperCase()===k.toUpperCase())return MH_KINDS[k];}return base||c;}
+function isMhCode(code){var c=(code||'').trim();if(!c)return false;if(/^SW$/i.test(c))return true;if(/^(l|B|D|BD|DB)$/i.test(c))return false;return /M(\s|$)/.test(c)||/^M/.test(c)||/JB(\s|$)/i.test(c);}
+function mhKindOf(code){var c=(code||'').trim();if(/^SW$/i.test(c))return '\uD55C\uC804';var base=c.replace(/\s*JB\s*$/i,'').replace(/M(\s.*)?$/i,'').replace(/^M/,'').trim();for(var k in MH_KINDS){if(base.toUpperCase()===k.toUpperCase())return MH_KINDS[k];}return base||c;}
 // ── 폴리라인 위 앵커 계산 (지거 멘트 인출선용) ──
 function polySegs(pts){var segs=[],total=0;for(var i=0;i<pts.length-1;i++){var d=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);segs.push(d);total+=d;}return {segs:segs,total:total};}
 function polyAnchorT(L){if(L.anchorT!=null)return L.anchorT;var pts=L.pts;if(!pts||pts.length<2)return 0;var ps=polySegs(pts);return ps.total?(ps.segs[0]*0.5)/ps.total:0;} // 기본=첫 두 점 구간 중간
@@ -1431,7 +1431,7 @@ function drawGeo(){
   state.points.forEach(function(p,i){if(p._hideMark)return;if((typeof LV!=='undefined')&&LV.bp===0&&/보강판/.test((p.no||'')+'|'+(p.code||'')))return;var isBp=/보강판/.test((p.no||'')+'|'+(p.code||''));var bpHide=isBp&&(typeof bpPtHidden==='function')&&bpPtHidden(p);var s=S(p.x,p.y);
     // 측점 심벌(속빈 사각) — 월드고정 정사각: 줌하면 크기는 변하지만 절대 안 찌그러짐, 위치 정확
     if(p._riserPt){var _xh=0.045,_xc='#d500f2';gPts.appendChild(el('line',{x1:s[0]-_xh,y1:s[1]-_xh,x2:s[0]+_xh,y2:s[1]+_xh,stroke:_xc,'stroke-width':1.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));gPts.appendChild(el('line',{x1:s[0]-_xh,y1:s[1]+_xh,x2:s[0]+_xh,y2:s[1]-_xh,stroke:_xc,'stroke-width':1.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));}else{
-    gPts.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:isBp?'#b8860b':(isManhole(p)?'#0d47a1':(isTpoint(p)?'#e53935':(p.surface==='\uB3C4\uB85C'?'#d9534f':(p.surface==='\uBCF4\uB3C4'?'#1a7a5e':'#111')))),'stroke-width':isManhole(p)?3.8:2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));if(p.surface&&(typeof LV==='undefined'||LV.surfacedot!==0)){gPts.appendChild(el('circle',{cx:s[0]+(typeof pxToWorld==='function'?pxToWorld()*6:0.8),cy:s[1]-(typeof pxToWorld==='function'?pxToWorld()*6:0.8),r:(typeof pxToWorld==='function'?pxToWorld()*4.5:0.6),fill:p.surface==='\uB3C4\uB85C'?'#d9534f':'#1a7a5e',stroke:'#fff','stroke-width':(typeof pxToWorld==='function'?pxToWorld()*1:0.15),'pointer-events':'none'}));}
+    gPts.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:(state.tamsa?'#111':(isBp?'#b8860b':(isManhole(p)?'#0d47a1':(isTpoint(p)?'#e53935':(p.surface==='\uB3C4\uB85C'?'#d9534f':(p.surface==='\uBCF4\uB3C4'?'#1a7a5e':'#111')))))),'stroke-width':isManhole(p)?3.8:2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));if(p.surface&&(typeof LV==='undefined'||LV.surfacedot!==0)){gPts.appendChild(el('circle',{cx:s[0]+(typeof pxToWorld==='function'?pxToWorld()*6:0.8),cy:s[1]-(typeof pxToWorld==='function'?pxToWorld()*6:0.8),r:(typeof pxToWorld==='function'?pxToWorld()*4.5:0.6),fill:p.surface==='\uB3C4\uB85C'?'#d9534f':'#1a7a5e',stroke:'#fff','stroke-width':(typeof pxToWorld==='function'?pxToWorld()*1:0.15),'pointer-events':'none'}));}
     gPts.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#111','stroke-width':4,'stroke-linecap':'square','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // 중심 점(박스와 동일 vector-effect → 줌 고정)
     }
     if(showDirArrows!==false&&(typeof LV==='undefined'||LV.photoDir!==0))(function(){var d4=getPhotoDir(p),dv=photoDirVec(p,d4),pr=[-dv[1],dv[0]],hl=0.16,AC='#d500f2';
@@ -1451,9 +1451,9 @@ function drawGeo(){
     var noStr=(p.no||''), dpos=noStr.lastIndexOf('-');
     if(isBp)nt.innerHTML='<span class="L-bp" style="color:#b8860b;font-weight:700">'+noStr+'</span>';else if(dpos>=0)nt.innerHTML='<span class="L-date">'+noStr.slice(0,dpos+1)+'</span><span class="L-no" style="color:#d32f2f;font-weight:700">'+noStr.slice(dpos+1)+'</span>';else nt.innerHTML='<span class="L-no">'+noStr+'</span>';
     // 코드는 번호 아래 줄로 같은 div에 추가
-    if((p.code||'').trim()){
+    if((state.tamsa?(p._tcode||''):(p.code||'')).trim()){
       var sub=document.createElement('div');sub.className=isBp?'L-bp':'L-code';
-      var code=(p.code||'').trim();
+      var code=(state.tamsa?(p._tcode||''):(p.code||'')).trim();
       if(isTpoint(p)){sub.innerHTML=code.replace(/(^|\s)(T)(?=\s|\d|$)/,'$1<span style="color:#1d4ed8;font-weight:700">T</span>');}
       else{sub.textContent=code;}
       sub.style.cssText='color:#0f7a86;font-weight:400;margin-top:2px;';
@@ -1522,7 +1522,7 @@ function mergeAftMh(){var mhs=state.manholes||[];if(!mhs.length)return;mhs.forEa
 function drawManholes(){
   clearSvg(gMH); clearLabels('mh');
   (state.manholes||[]).forEach(function(mh){
-    var isRiser=(mh.type==='riser');var MHC=mh._aft?'#111':'#1f6fd6';
+    var isRiser=(mh.type==='riser');var MHC=(mh._aft||(state.tamsa&&!isRiser))?'#111':'#1f6fd6';
     // 손 안 댄 자동순번 기본라벨(예 '2M (SK )')만 'M (SK )'로 정리. 사용자가 직접 고친 건(_edited) 보존
     if(!isRiser && !mh._edited && /^\s*\d+\s*M\s*\(\s*SK\s*\)\s*$/.test(mh.label||''))mh.label='M (SK )';
     var s=S(mh.wx,mh.wy);
@@ -1577,7 +1577,7 @@ function drawManholes(){
     var uly=kinkY;
 
     // 대각선 (맨홀중심 → 꺾임점) — 맨홀 검정, 입상주 파랑
-    var LDC=(mh._fromCsv?'#d500f2':MHC);
+    var LDC=(mh._fromCsv&&isRiser?'#d500f2':MHC);
     gMH.appendChild(el('line',{x1:mx,y1:my,x2:kinkX,y2:kinkY,stroke:LDC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none','class':isRiser?'sym-riser':'mh-lead'}));
     // 수평 밑줄
     gMH.appendChild(el('line',{x1:ulx1,y1:uly,x2:ulx2,y2:uly,stroke:LDC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none','class':isRiser?'sym-riser':'mh-lead'}));
@@ -1653,7 +1653,7 @@ function drawManholes(){
     }
 
     // 라벨 텍스트 — 파란 밑줄 중앙 바로 위에 (글자가 밑줄을 덮지 않게 위로)
-    var mhLbl=mkLabel(txtCx, uly-EM*0.95, mhDisp(mh), {fill:(mh._fromCsv?'#d500f2':MHC),weight:'600',anchor:'middle',grp:'mh',px:11});
+    var mhLbl=mkLabel(txtCx, uly-EM*0.95, mhDisp(mh), {fill:(mh._fromCsv&&isRiser?'#d500f2':MHC),weight:'600',anchor:'middle',grp:'mh',px:11});
     // 라벨 div에 직접 더블클릭(수정) — 오버레이라 글자 위에서 바로 동작
     mhLbl.style.pointerEvents='auto';
     mhLbl.style.cursor='text';
@@ -2022,7 +2022,25 @@ function nearestSnapWorld(wx,wy){var bd=1e18,pt=null;
   state.points.forEach(function(p){var s=S(p.x,p.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;pt=[p.x,p.y];}});
   (state.manholes||[]).forEach(function(mh){var s=S(mh.wx,mh.wy);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;pt=[mh.wx,mh.wy];}});
   return {pt:pt,d:Math.sqrt(bd)};}
+function autoConnectTamsa(){
+  if(state.points.length<2){toast('\uCE21\uB7C9\uC810\uC744 \uBA3C\uC800 \uC62C\uB824\uC8FC\uC138\uC694');return;}
+  pushHist();
+  var route=state.points.filter(function(p){var c=(p.code||'').trim();if(/^(EJ|TJ)/i.test(c))return false;if(/\uBCF4\uAC15\uD310/.test((p.no||'')+'|'+c))return false;if(p._riserPt)return false;return true;});
+  function pnum(p){var m=(p.no||'').match(/-(\d+)$/);return m?parseInt(m[1],10):0;}
+  route.sort(function(a,b){return pnum(a)-pnum(b);});
+  state.lines=(state.lines||[]).filter(function(l){return l.layer!=='\uD1B5\uC2E0\uAD00\uB85C';});
+  if(route.length<2){drawGeo();return;}
+  var GAP=12,CONN=18,segs=[],cur=[route[0]];
+  for(var i=1;i<route.length;i++){var a=route[i-1],b=route[i];if(Math.hypot(a.x-b.x,a.y-b.y)>GAP){segs.push(cur);cur=[b];}else cur.push(b);}
+  if(cur.length)segs.push(cur);
+  segs.forEach(function(seg){if(seg.length>=2)state.lines.push({layer:'\uD1B5\uC2E0\uAD00\uB85C',pts:seg.map(function(p){return [p.x,p.y];})});});
+  var seen={};
+  segs.forEach(function(seg,si){[seg[0],seg[seg.length-1]].forEach(function(ep){var best=null,bd=CONN;segs.forEach(function(sg2,sj){if(sj===si)return;sg2.forEach(function(q){var dd=Math.hypot(ep.x-q.x,ep.y-q.y);if(dd<bd){bd=dd;best=q;}});});if(best){var key=[Math.min(ep.x,best.x).toFixed(2),Math.min(ep.y,best.y).toFixed(2),Math.max(ep.x,best.x).toFixed(2),Math.max(ep.y,best.y).toFixed(2)].join(',');if(!seen[key]){seen[key]=1;state.lines.push({layer:'\uD1B5\uC2E0\uAD00\uB85C',pts:[[ep.x,ep.y],[best.x,best.y]]});}}});});
+  state.routingDone=true;drawGeo();
+  toast('\uD0D0\uC0AC \uC790\uB3D9\uACB0\uC120: \uAD6C\uAC04 '+segs.length+'\uAC1C');
+}
 function autoConnect(){
+  if(state.tamsa){autoConnectTamsa();return;}
   if(state.points.length<2){toast('측량점을 먼저 올려주세요');return;}
   pushHist();
   // ★ 맨홀/입상주 종단선 보존 + 앞타점(endPt)
@@ -6042,7 +6060,7 @@ function parseCsv(text,fname){
     var tmin=ci.time>=0?timeMin(f[ci.time]):null;
     var dt=d0; if(nsCut!=null&&tmin!=null&&tmin<nsCut&&d0)dt=prevDayYMD(d0);
     var name=ci.name>=0?(f[ci.name]||'').trim():String(r);
-    var _rc=ci.code>=0?(f[ci.code]||'').trim():'';var _pz=ci.z>=0?parseFloat(f[ci.z]):null;var _pc=_rc,_psf=null,_ppv=null;if(state.tamsa){var _tc=parseTamsaCode(_rc);if(_tc){_pc=_tc.code||(_tc.isT?'T':'');_pz=_tc.z;_psf=_tc.surface;_ppv=_tc.pave;}}pts.push({no:(dt?dt+'-':'')+name, x:cy, y:cx, z:_pz, code:_pc, _csv:(fname||''), _d0:d0, _tm:tmin, _nm:name, pave:_ppv, surface:_psf, surfaceManual:(_psf||undefined)});
+    var _rc=ci.code>=0?(f[ci.code]||'').trim():'';var _pz=ci.z>=0?parseFloat(f[ci.z]):null;var _pc=_rc,_psf=null,_ppv=null;if(state.tamsa){var _tc=parseTamsaCode(_rc);if(_tc){_pc=_tc.code||(_tc.isT?'T':'');_pz=_tc.z;_psf=_tc.surface;_ppv=_tc.pave;}}pts.push({no:(dt?dt+'-':'')+name, x:cy, y:cx, z:_pz, code:_pc, _csv:(fname||''), _d0:d0, _tm:tmin, _nm:name, pave:_ppv, surface:_psf, surfaceManual:(_psf||undefined), _tcode:(state.tamsa?_rc:undefined)});
   }
   return pts;
 }
