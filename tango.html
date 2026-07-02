@@ -350,16 +350,9 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 586</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 587</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
-  <div id="infoPanel" style="position:fixed;right:0;top:52px;bottom:0;width:280px;background:#fff;border-left:1px solid #ddd;box-shadow:-2px 0 8px rgba(0,0,0,0.08);padding:14px;overflow:auto;z-index:900;display:none;font-size:13px;box-sizing:border-box">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <b id="ipTitle" style="font-size:14px">측점 정보</b>
-      <button type="button" onclick="document.getElementById('infoPanel').style.display='none'" style="border:none;background:none;font-size:18px;cursor:pointer;color:#888;line-height:1">&#10005;</button>
-    </div>
-    <div id="ipBody"></div>
-  </div>
 
   <div class="stage">
     <div class="rail" id="rail"></div>
@@ -971,32 +964,12 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
     handle.setAttribute('x',anchor==='start'?(lx-3*Uh):(lx-tw+3*Uh));handle.setAttribute('y',ly-hh*0.5);});
   function up(ev){if(!dragging)return;dragging=false;setTimeout(function(){labelDragging=false;},40);
     if(moved)state.labelOff[p.no]=[lx,-ly];
-    else{var now=Date.now();if(now-(p._lastClick||0)<350){p._lastClick=0;openPtEdit(p,ls);}else{p._lastClick=now;try{openInfoPanel(p);}catch(_ip){}}}
+    else{var now=Date.now();if(now-(p._lastClick||0)<350){p._lastClick=0;openPtEdit(p,ls);}else{p._lastClick=now;}}
     try{handle.releasePointerCapture(ev.pointerId);}catch(e){}
     drawGeo();highlightSel();}
   handle.addEventListener('pointerup',up);handle.addEventListener('pointercancel',up);
   gAnc.appendChild(handle);
 }
-function openInfoPanel(p){
-  var panel=document.getElementById('infoPanel');if(!panel||!p)return;
-  var body=document.getElementById('ipBody'),title=document.getElementById('ipTitle');
-  title.textContent='측점 '+(p.no||'');
-  body.innerHTML='';
-  function fld(label,val,onch){
-    var w=document.createElement('div');w.style.cssText='margin-bottom:9px';
-    var lb=document.createElement('div');lb.textContent=label;lb.style.cssText='color:#666;font-size:12px;margin-bottom:3px';
-    var ip=document.createElement('input');ip.value=(val==null?'':val);ip.style.cssText='width:100%;padding:5px 7px;border:1px solid #ccc;border-radius:4px;font-size:13px;box-sizing:border-box';
-    ip.addEventListener('change',function(){onch(ip.value);try{drawGeo();}catch(e){}});
-    w.appendChild(lb);w.appendChild(ip);body.appendChild(w);
-  }
-  fld('외관재질',p.oMat,function(v){p.oMat=v;});
-  fld('관로공사 주관여부',p.oMain,function(v){p.oMain=v;});
-  fld('내관(수)',p.oInner,function(v){p.oInner=v;});
-  fld('내관설치 관공번호',p.oInnerNo,function(v){p.oInnerNo=v;});
-  fld('심도',p.z,function(v){p.z=(v===''?null:parseFloat(v));});
-  panel.style.display='';panel._curNo=p.no;
-}
-function refreshInfoPanel(p){var panel=document.getElementById('infoPanel');if(panel&&panel.style.display!=='none'&&p&&panel._curNo===p.no)openInfoPanel(p);}
 function openPtEdit(p,ls){
   var r=cv.getBoundingClientRect();
   var _p=w2screen(ls[0],ls[1]);var sx=_p[0],sy=_p[1];
@@ -1025,7 +998,7 @@ function openPtEdit(p,ls){
     p.no=iYear.value.trim()+iDate.value.trim()+'-'+iNum.value.trim();
     p.code=iPre.value.trim()+'x'+iCnt.value.trim();
     if(state.tamsa&&iSurf){p.surface=iSurf.value;p.surfaceManual=iSurf.value;p.pave=iPave.value;p._tcode=undefined;}
-    wrap.remove();drawGeo();if(photoPanelOpen)refreshPhotoPanel();try{refreshInfoPanel(p);}catch(_ip){}}};
+    wrap.remove();drawGeo();if(photoPanelOpen)refreshPhotoPanel();}};
   var onKey=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();};
   var ins=[iYear,iDate,iNum,iPre,iCnt].concat(iSurf?[iSurf,iPave]:[]);
   var bt=null;function ob(){bt=setTimeout(done,150);}function of(){if(bt){clearTimeout(bt);bt=null;}}
@@ -6347,7 +6320,7 @@ function renderRail(){
     }
     html+='<button data-k="'+c.k+'" style="'+railStyle(c.c,c.k===activeCat)+'font-size:13px;padding:7px 10px">'+c.icon+' '+c.label+bdg+'</button>';});
   html+='</div>';
-  html+='<button data-k="inspmk" style="'+railStyle({bg:'#fbe9e9',fg:'#df524b'},activeCat==='inspmk')+'">'+(IS_TANGO?'\uD83E\uDDFE \uAC80\uC218\uB370\uC774\uD130 \uC81C\uC791':'\uD83D\uDCD1 \uB808\uC774\uC5B4')+'<span style="margin-left:auto;font-size:12px">'+(activeCat==='inspmk'&&inspmkOpen?'\u25B2':'\u25BC')+'</span></button>';if(IS_TANGO&&activeCat==='inspmk'&&inspmkOpen){var _isb=function(k,l,fg,bg){var on=(inspmkSub===k);return '<button data-isub="'+k+'" style="border:1px solid '+fg+';'+(on?'border-left:4px solid '+fg+';':'')+'border-radius:8px;background:'+bg+';color:'+fg+';font-weight:'+(on?'700':'600')+';justify-content:flex-start;font-size:13px;padding:7px 10px">'+l+'</button>';};html+='<div style="display:flex;flex-direction:column;gap:5px;margin-top:5px">'+_isb('bp','\uBCF4\uAC15\uD310\uD3B8\uC9D1','#b8860b','#fdf6e3')+_isb('depth','\uC2EC\uB3C4\uD3B8\uC9D1','#7a52e0','#f0eef7')+_isb('hyun','\uD604\uD669\uCE21\uB7C9 \uD3B8\uC9D1','#1a7a5e','#e3f2ee')+_isb('road','\uB3C4\uB85C\uBA74 \uD3B8\uC9D1','#e8820c','#fdf0e0')+'</div>';}
+  html+='<button data-k="inspmk" style="'+railStyle({bg:'#fbe9e9',fg:'#df524b'},activeCat==='inspmk')+'">'+(IS_TANGO?'\uD83E\uDDFE \uAC80\uC218\uB370\uC774\uD130 \uC81C\uC791':'\uD83D\uDCD1 \uB808\uC774\uC5B4')+'<span style="margin-left:auto;font-size:12px">'+(activeCat==='inspmk'&&inspmkOpen?'\u25B2':'\u25BC')+'</span></button>';if(IS_TANGO&&activeCat==='inspmk'&&inspmkOpen){var _isb=function(k,l,fg,bg){var on=(inspmkSub===k);return '<button data-isub="'+k+'" style="border:1px solid '+fg+';'+(on?'border-left:4px solid '+fg+';':'')+'border-radius:8px;background:'+bg+';color:'+fg+';font-weight:'+(on?'700':'600')+';justify-content:flex-start;font-size:13px;padding:7px 10px">'+l+'</button>';};html+='<div style="display:flex;flex-direction:column;gap:5px;margin-top:5px">'+_isb('bp','\uBCF4\uAC15\uD310\uD3B8\uC9D1','#b8860b','#fdf6e3')+_isb('depth','\uC2EC\uB3C4\uD3B8\uC9D1','#7a52e0','#f0eef7')+_isb('hyun','\uD604\uD669\uCE21\uB7C9 \uD3B8\uC9D1','#1a7a5e','#e3f2ee')+_isb('road','\uB3C4\uB85C\uBA74 \uD3B8\uC9D1','#e8820c','#fdf0e0')+_isb('attr','\uC18D\uC131\uC815\uBCF4 \uD3B8\uC9D1','#0a7ea0','#e4f3f7')+'</div>';}
   html+=(IS_TANGO?'<button id="tgBtn" onclick="tgTogglePanel()" style="background:#fff;color:#0a3ea0;border:2px solid #ffd31a;border-radius:8px;font-weight:800;padding:9px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:flex-start">\u{1F4CB} \uD0F1\uACE0\uC131\uACFC \uC81C\uC791</button>':'')+'<div class="sep"'+(IS_TANGO?' style="margin-top:auto"':'')+'></div>'+'<button id="dxfExport" style="background:#fff;color:#c0392b;border:1px solid #c0392b;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#c0392b">📐</span> DXF로 내보내기</button>'+'<button id="pdfExport" style="background:#fff;color:#1565c0;border:1px solid #1565c0;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#1565c0">📄</span> PDF로 내보내기</button>';
   
   if(!IS_TANGO)html+='<button id="csvExport" style="background:#fff;color:#0d7a52;border:1px solid #0d7a52;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#0d7a52">📄</span> 측설용 CSV 내보내기</button>';
@@ -6357,7 +6330,7 @@ function renderRail(){
   r.innerHTML=html;
   try{applyLayerVis();}catch(e){}
   var tt=document.getElementById('toolToggle');if(tt)tt.onclick=function(){toolsOpen=!toolsOpen;if(toolsOpen){inspmkOpen=false;if(typeof closeTangoPanel==='function'&&document.getElementById('tangoPanel'))closeTangoPanel();}try{localStorage.setItem('toolsOpen',toolsOpen?'1':'0');}catch(e){}renderRail();renderSub();};
-  r.querySelectorAll('button[data-isub]').forEach(function(b){b.onclick=function(){inspmkSub=b.getAttribute('data-isub');renderRail();renderSub();};});r.querySelectorAll('button[data-k]').forEach(function(b){b.onclick=function(){
+  r.querySelectorAll('button[data-isub]').forEach(function(b){b.onclick=function(){inspmkSub=b.getAttribute('data-isub');renderRail();renderSub();if(inspmkSub==='attr'&&typeof toast==='function')toast('\uC18D\uC131\uC815\uBCF4 \uD3B8\uC9D1 \uCC3D\uC740 \uB2E4\uC74C \uC5C5\uB370\uC774\uD2B8\uC5D0\uC11C \uC5F0\uACB0\uB429\uB2C8\uB2E4');};});r.querySelectorAll('button[data-k]').forEach(function(b){b.onclick=function(){
     var bk=b.getAttribute('data-k');
     if(bk==='data'){openRegModal();return;}if(bk==='inspmk'){if(activeCat==='inspmk'){inspmkOpen=!inspmkOpen;}else{activeCat='inspmk';inspmkOpen=true;}if(inspmkOpen){toolsOpen=false;if(typeof closeTangoPanel==='function'&&document.getElementById('tangoPanel'))closeTangoPanel();}renderRail();renderSub();return;}
     activeCat=bk;var c=curCat();
