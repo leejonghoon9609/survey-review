@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 617</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 618</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -1304,7 +1304,7 @@ function editField(key){
   var card=document.createElement('div');
   card.style.cssText='background:#fff;border-radius:10px;padding:18px 20px;min-width:300px;box-shadow:0 8px 30px rgba(0,0,0,.2)';
   card.innerHTML='<div style="font-weight:700;font-size:15px;margin-bottom:12px">'+(LAB[key]||'수정')+' 수정</div>'
-    +(key==='inner'?('<select id="tbfInp" style="width:100%;padding:7px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px">'+['','SCD내관_22mm','SCD내관_25mm','SCD내관_28mm','SCD내관_36mm'].map(function(o){return '<option value="'+o+'"'+(o===cur?' selected':'')+'>'+(o||'(선택)')+'</option>';}).join('')+'</select>'):('<input id="tbfInp" style="width:100%;padding:7px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px" value="'+tbEsc(cur)+'">'))
+    +(key==='inner'?('<select id="tbfInp" style="width:100%;padding:7px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px">'+['','SCD내관_22mm','SCD내관_25mm','SCD내관_28mm','SCD내관_36mm'].map(function(o){return '<option value="'+o+'"'+(o===cur?' selected':'')+'>'+(o||'(선택)')+'</option>';}).join('')+'</select>'):key==='outer'?('<select id="tbfInp" style="width:100%;padding:7px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px">'+(function(){var _os=[''].concat((typeof TG_OPT!=='undefined'&&TG_OPT&&TG_OPT.ext)?TG_OPT.ext:[]);if(cur&&_os.indexOf(cur)<0)_os.push(cur);return _os.map(function(o){return '<option value="'+o+'"'+(o===cur?' selected':'')+'>'+(o||'(선택)')+'</option>';}).join('');})()+'</select>'):('<input id="tbfInp" style="width:100%;padding:7px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px" value="'+tbEsc(cur)+'">'))
     +(src?'<div style="font-size:12px;color:#888;margin-top:6px">사업 등록 정보도 함께 수정됩니다</div>':'')
     +(autoKey?'<div style="font-size:12px;color:#888;margin-top:6px">비우거나 \'자동\' 버튼을 누르면 자동 계산값으로 돌아갑니다</div>':'')
     +'<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;align-items:center">'
