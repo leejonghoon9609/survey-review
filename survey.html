@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 622</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 623</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -5965,7 +5965,7 @@ cv.addEventListener('pointerdown',function(e){
   if(noteMode&&e.button===0){e.preventDefault();addNote(e.clientX,e.clientY);return;}
   if(e.button===1){e.preventDefault();midPanning=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};cv.style.cursor='grabbing';try{cv.setPointerCapture(e.pointerId);}catch(x){}return;}
   if(mode==='pan'){/* 측점/맨홀 위=선택(pointerup), 빈 곳 드래그=화면이동 */
-    if(typeof _tgMode==='function'&&_tgMode()&&e.button===0){var _tw2=toWorld(e.clientX,e.clientY);var _tp2=(typeof nearBpPoint==='function')?nearBpPoint(_tw2[0],-_tw2[1]):null;if(typeof tgSelectMh==='function'&&tgSelectMh(_tw2[0],-_tw2[1])){if(typeof drawGeo==='function')drawGeo();return;}if(_tp2){tgSelectPt(_tp2.no);if(typeof drawGeo==='function')drawGeo();return;}}
+    if(typeof _tgMode==='function'&&_tgMode()&&e.button===0){var _tw2=toWorld(e.clientX,e.clientY);var _tp2=(typeof nearBpPoint==='function')?nearBpPoint(_tw2[0],-_tw2[1]):null;var _mhr=(typeof tgSelectMh==='function')?tgSelectMh(_tw2[0],-_tw2[1]):'nofn';console.log('[클릭진단] tw=',_tw2[0].toFixed(1),(-_tw2[1]).toFixed(1),'| tgSelectMh=',_mhr,'| nearBp=',_tp2?_tp2.no:null,'| mode=',mode,'| tgMode=',(typeof _tgMode==='function'&&_tgMode()));if(_mhr===true){if(typeof drawGeo==='function')drawGeo();return;}if(_tp2){tgSelectPt(_tp2.no);if(typeof drawGeo==='function')drawGeo();return;}}
     var w0=toWorld(e.clientX,e.clientY);var nr0=nearestSnapWorld(w0[0],w0[1]);
     if(!(nr0.pt&&nr0.d<vb.w*0.025)){dragging=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};cv.style.cursor='grabbing';try{cv.setPointerCapture(e.pointerId);}catch(x){}}
   }
