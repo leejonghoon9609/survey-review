@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 625</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 626</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -1545,7 +1545,7 @@ function drawManholes(){
     if(!isRiser && !mh._edited && /^\s*\d+\s*M\s*\(\s*SK\s*\)\s*$/.test(mh.label||''))mh.label='M (SK )';
     var s=S(mh.wx,mh.wy);
     var mx=s[0], my=s[1];
-    if(typeof _tgMode==='function'&&_tgMode()){var _mhitR=pxToWorld()*18;var _mhit=el('circle',{cx:mx,cy:my,r:_mhitR,fill:'transparent','pointer-events':'all'});_mhit.style.cursor='pointer';(function(_wx,_wy){_mhit.addEventListener('click',function(ev){if(mode!=='pan')return;ev.stopPropagation();if(typeof tgSelectMh==='function')tgSelectMh(_wx,_wy);if(typeof drawGeo==='function')drawGeo();});})(mh.wx,mh.wy);gMH.appendChild(_mhit);}
+    if(typeof _tgMode==='function'&&_tgMode()){var _mhitR=pxToWorld()*18;var _mhit=el('circle',{cx:mx,cy:my,r:_mhitR,fill:'transparent','pointer-events':'all'});_mhit.style.cursor='pointer';_mhit.addEventListener('mouseenter',function(){_mhit.setAttribute('fill','rgba(211,47,47,0.28)');_mhit.setAttribute('stroke','#d32f2f');_mhit.setAttribute('stroke-width','2');_mhit.setAttribute('vector-effect','non-scaling-stroke');});_mhit.addEventListener('mouseleave',function(){_mhit.setAttribute('fill','transparent');_mhit.removeAttribute('stroke');});gMH.appendChild(_mhit);}
 
     // 가장 가까운 M코드 측점 찾기 (맨홀만 — 입상주는 M측점 연결 안 함)
     var mp=null,md=1e18;
