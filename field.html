@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 626</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 627</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -5965,7 +5965,7 @@ cv.addEventListener('pointerdown',function(e){
   if(noteMode&&e.button===0){e.preventDefault();addNote(e.clientX,e.clientY);return;}
   if(e.button===1){e.preventDefault();midPanning=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};cv.style.cursor='grabbing';try{cv.setPointerCapture(e.pointerId);}catch(x){}return;}
   if(mode==='pan'){/* 측점/맨홀 위=선택(pointerup), 빈 곳 드래그=화면이동 */
-    if(typeof _tgMode==='function'&&_tgMode()&&e.button===0){var _tw2=toWorld(e.clientX,e.clientY);var _tp2=(typeof nearBpPoint==='function')?nearBpPoint(_tw2[0],-_tw2[1]):null;if(typeof tgSelectMh==='function'&&tgSelectMh(_tw2[0],-_tw2[1])){if(typeof drawGeo==='function')drawGeo();return;}if(_tp2){tgSelectPt(_tp2.no);if(typeof drawGeo==='function')drawGeo();return;}}
+    if(typeof _tgMode==='function'&&_tgMode()&&e.button===0){var _tw2=toWorld(e.clientX,e.clientY);var _twx=_tw2[0],_twy=-_tw2[1];var _tp2=(typeof nearBpPoint==='function')?nearBpPoint(_twx,_twy):null;var _tmTol=(typeof pxToWorld==='function')?pxToWorld()*28:3;var _tmKey=null,_tmx=0,_tmy=0,_tmBd=_tmTol;var _tmBB=window._tgBnd;if(_tmBB){for(var _tmq in _tmBB){var _tmd=Math.hypot(_tmBB[_tmq].x-_twx,_tmBB[_tmq].y-_twy);if(_tmd<_tmBd){_tmBd=_tmd;_tmKey=_tmq;_tmx=_tmBB[_tmq].x;_tmy=_tmBB[_tmq].y;}}}if(_tmKey){var _tpD=_tp2?Math.hypot(_tp2.x-_twx,_tp2.y-_twy):1e18;if(_tmBd<=_tpD||!_tp2){if(typeof tgSelectMh==='function')tgSelectMh(_tmx,_tmy);if(typeof drawGeo==='function')drawGeo();return;}}if(_tp2){tgSelectPt(_tp2.no);if(typeof drawGeo==='function')drawGeo();return;}}
     var w0=toWorld(e.clientX,e.clientY);var nr0=nearestSnapWorld(w0[0],w0[1]);
     if(!(nr0.pt&&nr0.d<vb.w*0.025)){dragging=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};cv.style.cursor='grabbing';try{cv.setPointerCapture(e.pointerId);}catch(x){}}
   }
@@ -6000,7 +6000,7 @@ cv.addEventListener('pointerdown',function(e){
 });
 cv.addEventListener('pointermove',function(e){
   if(mode==='tgptedit'){var _hw=toWorld(e.clientX,e.clientY);var _hp=(typeof nearBpPoint==='function')?nearBpPoint(_hw[0],-_hw[1]):null;if(typeof tgHover==='function')tgHover(_hp);}
-  if(mode==='tglinedel'){var _lhw=toWorld(e.clientX,e.clientY);if(typeof tgLineHover==='function')tgLineHover(_lhw[0],-_lhw[1]);}if(mode==='tgsegfix'){var _sfw=toWorld(e.clientX,e.clientY);if(_segFix&&typeof tgSegFixRubber==='function')tgSegFixRubber(_segFix.ax,_segFix.ay,_sfw[0],-_sfw[1]);if(typeof tgFixHover==='function')tgFixHover(_sfw[0],-_sfw[1]);}
+  if(mode==='tglinedel'){var _lhw=toWorld(e.clientX,e.clientY);if(typeof tgLineHover==='function')tgLineHover(_lhw[0],-_lhw[1]);}if(mode==='tgsegfix'){var _sfw=toWorld(e.clientX,e.clientY);if(_segFix&&typeof tgSegFixRubber==='function')tgSegFixRubber(_segFix.ax,_segFix.ay,_sfw[0],-_sfw[1]);if(typeof tgFixHover==='function')tgFixHover(_sfw[0],-_sfw[1]);}if(mode==='pan'&&typeof _tgMode==='function'&&_tgMode()){var _pmw=toWorld(e.clientX,e.clientY);if(typeof tgFixHover==='function')tgFixHover(_pmw[0],-_pmw[1]);}
   if(depthDrag){var _dw=toWorld(e.clientX,e.clientY);state.depthCheck[depthDrag.idx].lx=_dw[0];state.depthCheck[depthDrag.idx].ly=-_dw[1];drawGeo();return;}
   if(roadEditVtx){var _rw=toWorld(e.clientX,e.clientY);state.roadZones[roadEditVtx.zi].poly[roadEditVtx.vi]=[_rw[0],-_rw[1]];drawGeo();return;}
   if(bpDragZone){var dw=toWorld(e.clientX,e.clientY);bpDragZone.lx=dw[0];bpDragZone.ly=-dw[1];drawGeo();return;}
