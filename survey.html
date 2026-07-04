@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 653</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 654</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -1611,6 +1611,7 @@ function drawManholes(){
     // 더블클릭 → 'M' 과 '( )' 만 고정. 앞부분(숫자 등)과 괄호 안 둘 다 수정 가능
     // 형식: [pre]M ([inner])  예: 2M (SK T), 4M (LG U+)
     function openLabelEdit(){
+      if(typeof _tgMode==='function'&&_tgMode()&&typeof tgSelectMh==='function'&&mh&&mh.wx!=null){tgSelectMh(mh.wx,mh.wy);}
       var r=cv.getBoundingClientRect();
       var scaleX=r.width/vb.w, scaleY=r.height/vb.h;
       var sx=r.left+(txtLeft-vb.x)*scaleX;
