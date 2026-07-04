@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 676</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 677</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -706,9 +706,10 @@ function computeDepth(){
 }
 function buildTamsaMh(){
   if(!state.tamsa)return 0;
-  state.manholes=(state.manholes||[]).filter(function(m){return m.type==='riser'||(!m._fromCsv&&!m._aft);});
+  var _keep={};(state.manholes||[]).forEach(function(m){if(m._fromCsv&&m._edited&&m.wx!=null)_keep[m.wx+'_'+m.wy]=1;}); // BUILD677 편집맨홀 좌표키 보존
+  state.manholes=(state.manholes||[]).filter(function(m){return m.type==='riser'||m._edited||(!m._fromCsv&&!m._aft);});
   var _mhA=(typeof finalCsvArr==='function')?finalCsvArr():[],n=0;
-  _mhA.forEach(function(it){var rs;try{rs=parseInspCsv(it.text||'');}catch(e){rs=[];}rs.forEach(function(p){if(p.skip)return;if(isMhCode(p.code)){var _k=mhKindOf(p.code);state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+state.manholes.length)),wx:p.ex,wy:p.no,label:'M ('+_k+' )',kind:'신',lx:null,ly:null,type:'mh',insp:true,_fromCsv:true});n++;}});});
+  _mhA.forEach(function(it){var rs;try{rs=parseInspCsv(it.text||'');}catch(e){rs=[];}rs.forEach(function(p){if(p.skip)return;if(isMhCode(p.code)){if(_keep[p.ex+'_'+p.no])return;var _k=mhKindOf(p.code);state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+state.manholes.length)),wx:p.ex,wy:p.no,label:'M ('+_k+' )',kind:'신',lx:null,ly:null,type:'mh',insp:true,_fromCsv:true});n++;}});});
   state.points.forEach(function(p){if(isMhCode(p.code))p._hideMark=true;});
   return n;
 }
