@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 654</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 655</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -1660,7 +1660,7 @@ function drawManholes(){
         mh.kind=selKind.value;
         mh.spec=selSpec.value;
         mh._edited=true; // 사용자가 직접 고침 → 자동정리 안 함
-        wrap.remove();drawManholes();}};
+        try{if(typeof _tgSegs!=='undefined'&&_tgSegs){for(var _si=0;_si<_tgSegs.length;_si++){var _sg=_tgSegs[_si];if(!_sg.length)continue;var _s0=_sg[0],_se=_sg[_sg.length-1];var _pre=null;if(_s0&&_s0.mh&&Math.abs(_s0.x-mh.wx)<0.5&&Math.abs(_s0.y-mh.wy)<0.5)_pre='s';else if(_se&&_se.mh&&Math.abs(_se.x-mh.wx)<0.5&&Math.abs(_se.y-mh.wy)<0.5)_pre='e';if(_pre){var _k=tgManualKey(_sg);if(!state.tangoManual)state.tangoManual={};if(!state.tangoManual[_k])state.tangoManual[_k]={};state.tangoManual[_k][_pre+'_fac']=(mh.kind==='기'?'기설_맨홀':'신설_맨홀');state.tangoManual[_k][_pre+'_own']=v;state.tangoManual[_k][_pre+'_spec']=(mh.spec||'');state.tangoManual[_k][_pre+'_nm']=(p+'M');}}}if(typeof tangoSelSeg==='function'&&typeof tgSeg!=='undefined'&&tgSeg>=0)tangoSelSeg(tgSeg,true);}catch(_e){}wrap.remove();drawManholes();}};
       var onKey=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();};
       inpPre.addEventListener('keydown',onKey);inpIn.addEventListener('keydown',onKey);
       // 두 입력칸 모두에서 포커스 빠지면 done (단, 서로 이동 시는 유지)
