@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 661</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 662</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -1250,7 +1250,7 @@ function tbLayout(dxf){
   var bw=Math.max(maxX-minX,10);
   var th=ptW*0.020, dy=th*1.55, pad=th*1.0, nameH=th*1.4*0.85;
   var gsc=dxf?0.78:1.0, gh=th*gsc;
-  var vxm=dxf?8.5:8.9, rlm=dxf?19:19.8, rvm=dxf?25:25.8;     // 물량 왼쪽 이동(BUILD661)
+  var vxm=dxf?8.5:8.9, rlm=23.8, rvm=29.8;     // 물량 라벨=파란박스 라벨 x 일렬(BUILD662)
   var nameGap=th*2.5;
   var d=tbData();
   var bh=pad+nameH+nameGap+4.6*dy+pad*0.15;
