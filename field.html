@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 671</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 672</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -678,6 +678,7 @@ function buildInspData(){
   _bdPts.forEach(function(bd){var bx=bd[0],by=bd[1],bL=null,bIdx=-1,bD=1e18;state.lines.forEach(function(L){if(L.layer!=='보도'||!L.pts||L.pts.length<2)return;for(var i=0;i<L.pts.length-1;i++){var a=L.pts[i],c=L.pts[i+1],dx=c[0]-a[0],dy=c[1]-a[1],L2=dx*dx+dy*dy;var t=L2?((bx-a[0])*dx+(by-a[1])*dy)/L2:0;t=Math.max(0,Math.min(1,t));var cx=a[0]+t*dx,cy=a[1]+t*dy,d=Math.hypot(bx-cx,by-cy);if(d<bD){bD=d;bL=L;bIdx=i;}}});if(bL&&bD<=8){bL.pts.splice(bIdx+1,0,[bx,by]);}});
   (state.manholes||[]).forEach(function(m){if(m._aft&&typeof restitchManhole==='function')restitchManhole(m);});
   drawGeo();
+  if(state.tamsa&&typeof buildTamsaMh==='function'){nM=buildTamsaMh();}
   if(typeof drawManholes==='function')drawManholes();
   if(typeof drawMarks==='function')drawMarks();
   if(typeof updMeta==='function')updMeta();
