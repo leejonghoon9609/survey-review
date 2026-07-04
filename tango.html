@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 637</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 638</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -1685,6 +1685,7 @@ function drawManholes(){
         var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);if(!isRiser)removeManholePassLines(mh);redrawAll();toast(isRiser?'입상주 삭제':'맨홀 삭제(통과결선 포함)');return;}
       if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace'||viewerMode||readOnly)return;
       ev.stopPropagation();ev.preventDefault();
+      if(typeof _tgMode==='function'&&_tgMode()){if(typeof tgSelectMh==='function')tgSelectMh(mh.wx,mh.wy);if(typeof drawGeo==='function')drawGeo();return;}
       if(mh._aft||state.tamsa){toast(state.tamsa?'탐사 측량 — CSV 점 고정(이동 불가)':'후측량 맨홀 — 위치 고정(라벨만 이동 가능)');return;}
       pushHist();
       if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
