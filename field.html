@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 677</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 678</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -1301,6 +1301,7 @@ function drawTitleBlock(){
     gGeo.appendChild(e);
   });
 }
+function tbApplyToSegs(key,v){var FMAP={gyeol:'gyeol',gdan:'gdan',gwannum:'gwannum',inner:'inner'};var f=FMAP[key];if(!f)return;if(typeof _tgSegs==='undefined'||!_tgSegs||!_tgSegs.length||typeof tgManualKey!=='function')return;if(!state.tangoManual)state.tangoManual={};_tgSegs.forEach(function(sg){if(!sg||!sg.length)return;var k=tgManualKey(sg);if(!state.tangoManual[k])state.tangoManual[k]={};state.tangoManual[k][f]=v;});try{if(typeof tgSeg!=='undefined'&&tgSeg>=0&&typeof tangoSelSeg==='function')tangoSelSeg(tgSeg,true);else if(typeof tgInspRefresh==='function')tgInspRefresh();}catch(e){}} // BUILD678 제목표→전구간 강제반영
 function editField(key){
   if(viewerMode||readOnly)return;
   var b=state.bizInfo||{}, t=state.titleBlock||{}, d=tbData();
@@ -1342,7 +1343,7 @@ function editField(key){
     if(key==='name'){state.projectName=v; var r=document.getElementById('regName'); if(r)r.value=v;}
     else if(key==='bizNo'){state.bizInfo=state.bizInfo||{}; state.bizInfo.bizNo=v; var r=document.getElementById('regBizNo'); if(r)r.value=v;}
     else if(key==='client'){state.bizInfo=state.bizInfo||{}; state.bizInfo.client=v; var r=document.getElementById('regClient'); if(r)r.value=v;}
-    else {state.titleBlock=state.titleBlock||{}; state.titleBlock[key]=v;}
+    else {state.titleBlock=state.titleBlock||{}; state.titleBlock[key]=v; if(key==='gyeol'||key==='gdan'||key==='gwannum'||key==='inner')tbApplyToSegs(key,v);}
     close(); try{drawGeo();}catch(e){} try{saveProject&&saveProject();}catch(e){}
   }
   function autoReset(){
