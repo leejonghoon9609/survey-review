@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 660</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 661</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -1250,7 +1250,7 @@ function tbLayout(dxf){
   var bw=Math.max(maxX-minX,10);
   var th=ptW*0.020, dy=th*1.55, pad=th*1.0, nameH=th*1.4*0.85;
   var gsc=dxf?0.78:1.0, gh=th*gsc;
-  var vxm=dxf?8.5:8.9, rlm=dxf?22:22.8, rvm=dxf?28:28.8;     // 간격 조금 더 좁힘
+  var vxm=dxf?8.5:8.9, rlm=dxf?19:19.8, rvm=dxf?25:25.8;     // 물량 왼쪽 이동(BUILD661)
   var nameGap=th*2.5;
   var d=tbData();
   var bh=pad+nameH+nameGap+4.6*dy+pad*0.15;
@@ -1267,12 +1267,12 @@ function tbLayout(dxf){
   var rlx=b0+pad+th*rlm, rvx=b0+pad+th*rvm;
   var R=[['물량(탱고)',(d.volT||'(직접입력)'),'volT'],['물량(GIS)',(d.volG||'(직접입력)'),'volG']];
   R.forEach(function(r,i){var y=firstY-dy*i; add(rlx,y,gh,r[0]+' :','label'); add(rvx,y,gh,r[1]||'','blue','start',r[2]);});
-  var sh=gh*0.74, rlx2=rlx+th*1.8, y2=firstY-dy*2.35, y3=firstY-dy*3.2;
-  add(rlx2,y2,sh,'공열 :','label'); add(rlx2+th*2.7,y2,sh,d.gyeol||'','blue','start','gyeol'); add(rlx2+th*4.2,y2,sh,'열','blue','start','gyeol');
-  add(rlx2+th*6.4,y2,sh,'공단 :','label'); add(rlx2+th*9.1,y2,sh,d.gdan||'','blue','start','gdan'); add(rlx2+th*10.6,y2,sh,'단','blue','start','gdan');
-  add(rlx2+th*13.2,y2,sh,'관공번호 :','label'); add(rlx2+th*17.6,y2,sh,d.gwannum||'','blue','start','gwannum'); add(rlx2+th*19.4,y2,sh,'번호','blue','start','gwannum');
-  add(rlx2,y3,sh,'관로(내관) :','label'); add(rlx2+th*5.2,y3,sh,d.inner||'','blue','start','inner');
-  var _sbx=rlx2-th*0.8, _sbx2=rlx2+th*21.2, _sby=y3-dy*0.28, _sby2=y2+sh+dy*0.28;
+  var sh=gh*0.74, fbx=b0+pad+th*23.8, y2=firstY-dy*2.35, y3=firstY-dy*3.2;
+  add(fbx,y2,sh,'공열 :','label'); add(fbx+th*2.7,y2,sh,d.gyeol||'','blue','start','gyeol'); add(fbx+th*4.2,y2,sh,'열','blue','start','gyeol');
+  add(fbx+th*6.4,y2,sh,'공단 :','label'); add(fbx+th*9.1,y2,sh,d.gdan||'','blue','start','gdan'); add(fbx+th*10.6,y2,sh,'단','blue','start','gdan');
+  add(fbx+th*13.2,y2,sh,'관공번호 :','label'); add(fbx+th*17.6,y2,sh,d.gwannum||'','blue','start','gwannum'); add(fbx+th*19.4,y2,sh,'번호','blue','start','gwannum');
+  add(fbx,y3,sh,'관로(내관) :','label'); add(fbx+th*5.2,y3,sh,d.inner||'','blue','start','inner');
+  var _sbx=fbx-th*0.8, _sbx2=fbx+th*21.2, _sby=y3-dy*0.28, _sby2=y2+sh+dy*0.28;
   var subBox={x:_sbx, y:_sby, w:_sbx2-_sbx, h:_sby2-_sby};
   return {box:{x:b0,y:by0,w:bw,h:bh}, items:it, th:th, subBox:subBox};
 }
