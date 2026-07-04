@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 673</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 674</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -557,7 +557,7 @@ function isTpoint(p){return /(^|\s)T(\s|\d|$)/.test((p&&p.code)||'');}
   function isHyunPt(p){var c=((p&&p.code||'')+'').trim().toLowerCase();return c.charAt(0)==='b';}
 function pipeCount(p){var m=/[xX×]\s*(\d+)/.exec((p&&p.code)||'');return m?+m[1]:null;}
 function isManhole(p){return /^\s*M/.test((p&&p.code)||'');}
-function isRiserPt(p){return /^(TJ|EJ)/i.test(((p&&p.code)||'').trim());} // 전주(통신주TJ·한전주EJ) 측점
+function isRiserPt(p){var c=((p&&p.code)||'').trim(),tc=((p&&p._tcode)||'').trim();return /(^|\s)(TJ|EJ)/i.test(c)||/(^|\s)(TJ|EJ)/i.test(tc);} // 전주(통신주TJ·한전주EJ) 측점
 // ★ CSV 맨홀 코드 → 종류 이름표 (BUILD512). 코드 앞/뒤 M = 맨홀, M 뗀 나머지로 종류. SW=한전 특수. 모르는 M코드는 코드 그대로 표시(누락 방지)
 var MH_KINDS={'DL':'드림라인','SKT':'SKT','SKB':'SKB','\uC2DC\uCCAD':'\uC2DC\uCCAD','\uC138\uC885':'\uC138\uC885','SJ':'\uC138\uC885','TBRO':'\uD2F0\uBE0C\uB85C','LGPOWER':'LG\uD30C\uC6CC','HTI':'HTI'};
 function isMhCode(code){var c=(code||'').trim();if(!c)return false;if(/^SW$/i.test(c))return true;if(/^(l|B|D|BD|DB)$/i.test(c))return false;return /M(\s|$)/.test(c)||/^M/.test(c)||/JB(\s|$)/i.test(c);}
