@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 658</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 659</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -1268,11 +1268,13 @@ function tbLayout(dxf){
   var R=[['물량(탱고)',(d.volT||'(직접입력)'),'volT'],['물량(GIS)',(d.volG||'(직접입력)'),'volG']];
   R.forEach(function(r,i){var y=firstY-dy*i; add(rlx,y,gh,r[0]+' :','label'); add(rvx,y,gh,r[1]||'','blue','start',r[2]);});
   var sh=gh*0.82, y2=firstY-dy*2.15, y3=firstY-dy*3.05;
-  add(rlx,y2,sh,'공열 :','label'); add(rlx+th*2.7,y2,sh,d.gyeol||'','blue','start','gyeol'); add(rlx+th*4.2,y2,sh,'열','label');
-  add(rlx+th*6.4,y2,sh,'공단 :','label'); add(rlx+th*9.1,y2,sh,d.gdan||'','blue','start','gdan'); add(rlx+th*10.6,y2,sh,'단','label');
-  add(rlx+th*13.2,y2,sh,'관공번호 :','label'); add(rlx+th*17.6,y2,sh,d.gwannum||'','blue','start','gwannum'); add(rlx+th*19.4,y2,sh,'번호','label');
+  add(rlx,y2,sh,'공열 :','label'); add(rlx+th*2.7,y2,sh,d.gyeol||'','blue','start','gyeol'); add(rlx+th*4.2,y2,sh,'열','blue','start','gyeol');
+  add(rlx+th*6.4,y2,sh,'공단 :','label'); add(rlx+th*9.1,y2,sh,d.gdan||'','blue','start','gdan'); add(rlx+th*10.6,y2,sh,'단','blue','start','gdan');
+  add(rlx+th*13.2,y2,sh,'관공번호 :','label'); add(rlx+th*17.6,y2,sh,d.gwannum||'','blue','start','gwannum'); add(rlx+th*19.4,y2,sh,'번호','blue','start','gwannum');
   add(rlx,y3,sh,'관로(내관) :','label'); add(rlx+th*5.2,y3,sh,d.inner||'','blue','start','inner');
-  return {box:{x:b0,y:by0,w:bw,h:bh}, items:it, th:th};
+  var _sbx=rlx-th*0.8, _sbx2=rlx+th*21.2, _sby=y3-dy*0.5, _sby2=y2+dy*0.55;
+  var subBox={x:_sbx, y:_sby, w:_sbx2-_sbx, h:_sby2-_sby};
+  return {box:{x:b0,y:by0,w:bw,h:bh}, items:it, th:th, subBox:subBox};
 }
 function drawTitleBlock(){
   if(typeof gGeo==='undefined'||!gGeo)return;
@@ -1283,6 +1285,7 @@ function drawTitleBlock(){
   var box=el('rect',{x:rx,y:ry,width:rw,height:rh,fill:'#fff','fill-opacity':'0.96',stroke:'#d00','stroke-width':'1.4','vector-effect':'non-scaling-stroke',style:'cursor:pointer'});
   if(!viewerMode&&!readOnly){box.addEventListener('pointerdown',function(ev){ev.stopPropagation();ev.preventDefault();openTbEdit();});}
   gGeo.appendChild(box);
+  if(L.subBox){var _s0=S(L.subBox.x,L.subBox.y),_s1=S(L.subBox.x+L.subBox.w,L.subBox.y+L.subBox.h);var _sbx=Math.min(_s0[0],_s1[0]),_sby=Math.min(_s0[1],_s1[1]),_sbw=Math.abs(_s1[0]-_s0[0]),_sbh=Math.abs(_s1[1]-_s0[1]);gGeo.appendChild(el('rect',{x:_sbx,y:_sby,width:_sbw,height:_sbh,fill:'none',stroke:'#1633ff','stroke-width':'1','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}
   L.items.forEach(function(t){
     if(t.s==='')return;
     var sp=S(t.x,t.y);
@@ -1319,7 +1322,7 @@ function editField(key){
   var card=document.createElement('div');
   card.style.cssText='background:#fff;border-radius:10px;padding:18px 20px;min-width:300px;box-shadow:0 8px 30px rgba(0,0,0,.2)';
   card.innerHTML='<div style="font-weight:700;font-size:15px;margin-bottom:12px">'+(LAB[key]||'수정')+' 수정</div>'
-    +(key==='inner'?('<select id="tbfInp" style="width:100%;padding:7px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px">'+['','SCD내관_22mm','SCD내관_25mm','SCD내관_28mm','SCD내관_36mm'].map(function(o){return '<option value="'+o+'"'+(o===cur?' selected':'')+'>'+(o||'(선택)')+'</option>';}).join('')+'</select>'):key==='outer'?('<select id="tbfInp" style="width:100%;padding:7px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px">'+(function(){var _os=[''].concat((typeof TG_OPT!=='undefined'&&TG_OPT&&TG_OPT.ext)?TG_OPT.ext:[]);if(cur&&_os.indexOf(cur)<0)_os.push(cur);return _os.map(function(o){return '<option value="'+o+'"'+(o===cur?' selected':'')+'>'+(o||'(선택)')+'</option>';}).join('');})()+'</select>'):('<input id="tbfInp" style="width:100%;padding:7px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px" value="'+tbEsc(cur)+'">'))
+    +(key==='inner'?('<select id="tbfInp" style="width:100%;padding:7px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px">'+['','SCD내관_22mm','SCD내관_25mm','SCD내관_28mm','SCD내관_36mm'].map(function(o){return '<option value="'+o+'"'+(o===cur?' selected':'')+'>'+(o||'(선택)')+'</option>';}).join('')+'</select>'):key==='outer'?('<select id="tbfInp" style="width:100%;padding:7px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px">'+(function(){var _os=[''].concat((typeof TG_OPT!=='undefined'&&TG_OPT&&TG_OPT.ext)?TG_OPT.ext:[]);if(cur&&_os.indexOf(cur)<0)_os.push(cur);return _os.map(function(o){return '<option value="'+o+'"'+(o===cur?' selected':'')+'>'+(o||'(선택)')+'</option>';}).join('');})()+'</select>'):key==='mhOwner'?('<select id="tbfSel" style="width:100%;padding:7px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px">'+(function(){var _ms=['SKT','SKB','LG','드림','직접입력'];var _cus=(['SKT','SKB','LG','드림'].indexOf(cur)<0&&cur!=='');return _ms.map(function(o){var _s=(o===cur||(o==='직접입력'&&_cus))?' selected':'';return '<option value="'+o+'"'+_s+'>'+o+'</option>';}).join('');})()+'</select><input id="tbfInp" style="width:100%;padding:7px;margin-top:8px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px;display:'+((['SKT','SKB','LG','드림'].indexOf(cur)<0&&cur!=='')?'block':'none')+'" placeholder="직접 입력" value="'+tbEsc((['SKT','SKB','LG','드림'].indexOf(cur)<0)?cur:'')+'">'):('<input id="tbfInp" style="width:100%;padding:7px;border:1px solid #ccc;border-radius:5px;box-sizing:border-box;font-size:14px" value="'+tbEsc(cur)+'">'))
     +(src?'<div style="font-size:12px;color:#888;margin-top:6px">사업 등록 정보도 함께 수정됩니다</div>':'')
     +(autoKey?'<div style="font-size:12px;color:#888;margin-top:6px">비우거나 \'자동\' 버튼을 누르면 자동 계산값으로 돌아갑니다</div>':'')
     +'<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;align-items:center">'
@@ -1327,10 +1330,13 @@ function editField(key){
     +'<button id="tbfC" style="padding:6px 14px;border:1px solid #ccc;background:#fff;border-radius:6px;cursor:pointer">취소</button><button id="tbfO" style="padding:6px 14px;border:none;background:#1633ff;color:#fff;border-radius:6px;cursor:pointer">확인</button></div>';
   ov.appendChild(card);document.body.appendChild(ov);
   var inp=card.querySelector('#tbfInp');
-  setTimeout(function(){if(inp){inp.focus();if(inp.select)inp.select();}},30);
+  if(key==='mhOwner'){var _msel=card.querySelector('#tbfSel');if(_msel)_msel.addEventListener('change',function(){var _sh=(_msel.value==='직접입력');if(inp){inp.style.display=_sh?'block':'none';if(_sh)inp.focus();}});}
+  setTimeout(function(){var _f=(key==='mhOwner')?card.querySelector('#tbfSel'):inp;if(_f){_f.focus();if(_f.select)_f.select();}},30);
   function close(){ov.remove();}
   function commit(){
-    var v=inp.value.trim();
+    var v;
+    if(key==='mhOwner'){var _sel=card.querySelector('#tbfSel');var _sv=_sel?_sel.value:'';v=(_sv==='직접입력')?((inp?inp.value:'')||'').trim():_sv;}
+    else v=inp.value.trim();
     if(key==='name'){state.projectName=v; var r=document.getElementById('regName'); if(r)r.value=v;}
     else if(key==='bizNo'){state.bizInfo=state.bizInfo||{}; state.bizInfo.bizNo=v; var r=document.getElementById('regBizNo'); if(r)r.value=v;}
     else if(key==='client'){state.bizInfo=state.bizInfo||{}; state.bizInfo.client=v; var r=document.getElementById('regClient'); if(r)r.value=v;}
@@ -5857,6 +5863,7 @@ EOF
     var LY='TBLOCK', CN={name:7,label:7,red:1,blue:5}, bx=L.box;
     line(bx.x,bx.y,bx.x+bx.w,bx.y,LY,1); line(bx.x,bx.y+bx.h,bx.x+bx.w,bx.y+bx.h,LY,1);
     line(bx.x,bx.y,bx.x,bx.y+bx.h,LY,1); line(bx.x+bx.w,bx.y,bx.x+bx.w,bx.y+bx.h,LY,1);
+    if(L.subBox){var _sb=L.subBox;line(_sb.x,_sb.y,_sb.x+_sb.w,_sb.y,LY,5);line(_sb.x,_sb.y+_sb.h,_sb.x+_sb.w,_sb.y+_sb.h,LY,5);line(_sb.x,_sb.y,_sb.x,_sb.y+_sb.h,LY,5);line(_sb.x+_sb.w,_sb.y,_sb.x+_sb.w,_sb.y+_sb.h,LY,5);}
     L.items.forEach(function(t){ if(t.s==='')return; var al=(t.a==='middle')?1:0; text(t.x,t.y,t.h,t.s,LY,CN[t.c]||7,al,0,0); });
   })();
 if(!((typeof LV!=='undefined')&&LV.depthchk===0))(state.depthCheck||[]).forEach(function(b){circle(b.x,b.y,1.2,'DEPTHCHK',6);var ex=(b._dx!=null)?b._dx:b.x+8,ey=(b._dy!=null)?b._dy:b.y-8;var _qx=ex-b.x,_qy=ey-b.y,_ql=Math.hypot(_qx,_qy)||1;line(b.x+_qx/_ql*1.2,b.y+_qy/_ql*1.2,ex,ey,'DEPTHCHK',6);var anc=(ex>=b.x?0:2);text(ex+(ex>=b.x?0.3:-0.3),ey,TH*1.8,'\uAE30\uC900\uC2EC\uB3C4\uBBF8\uB2EC','DEPTHCHK',6,anc);});if(!((typeof LV!=='undefined')&&LV.tgcmp===0)&&state.tangoEdit&&state.tangoEdit.points){var _co=state._pointsOrig||state.points||[],_cc=state.tangoEdit.points||[],_cod=state._depthOrig||state._depthByNo||{},_ccd=state.tangoEdit.depthByNo||{};var _cn={},_on={};_cc.forEach(function(p){_cn[p.no]=p;});_co.forEach(function(p){_on[p.no]=p;});_co.forEach(function(p){if(!_cn[p.no]){circle(p.x,p.y,1.2,'TGCMP',1);text(p.x,p.y+2,TH*1.8,'삭제','TGCMP',1,1);}});_cc.forEach(function(p){if(!_on[p.no]){circle(p.x,p.y,1.2,'TGCMP',5);text(p.x,p.y+2,TH*1.8,'추가','TGCMP',5,1);}});_cc.forEach(function(p){if(_on[p.no]){var _a=_cod[p.no],_b=_ccd[p.no];var _an=(_a==null||_a==='')?null:+_a,_bn=(_b==null||_b==='')?null:+_b;if(_an!==_bn&&(_an!=null||_bn!=null)){circle(p.x,p.y,1.2,'TGCMP',3);text(p.x,p.y+2,TH*1.8,(_an!=null?_an.toFixed(2):'-')+'→'+(_bn!=null?_bn.toFixed(2):'-'),'TGCMP',3,1);}}});}
