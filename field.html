@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 665</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 666</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -1638,17 +1638,21 @@ function drawManholes(){
       var sx=r.left+(txtLeft-vb.x)*scaleX;
       var sy=r.top+(uly-vb.y)*scaleY;
       if(isRiser){
-        // 입상주: 통째로 자유편집 (기본 '통신주입상', 뒤에 멘트 추가/수정 자유)
+        // 입상점 편집: 설비(입상점) + 시설명 + 소유 + 규격
+        var IPSPEC=(typeof TG_OPT!=='undefined'&&TG_OPT.facSpec&&TG_OPT.facSpec['입상점'])||[];
         var wrapR=document.createElement('div');
-        wrapR.style.cssText='position:fixed;z-index:999;left:'+sx+'px;top:'+(sy-36)+'px;'
-          +'background:#fffde7;border-bottom:2px solid #555;padding:3px 6px;border-radius:4px;';
-        var inpR=document.createElement('input');
-        inpR.value=mh.label||'통신주입상'; inpR.placeholder='통신주입상';
-        inpR.style.cssText='font-size:18px;font-weight:600;color:#333;border:none;background:transparent;outline:none;width:200px;';
-        wrapR.appendChild(inpR);document.body.appendChild(wrapR);_mhEditAnchor={wrap:wrapR,tx:txtLeft,ty:uly,dy:-36};inpR.focus();inpR.select();
-        var doneR=function(){if(wrapR.parentNode){pushHist();mh.label=inpR.value.trim()||'통신주입상';_mhEditAnchor=null;wrapR.remove();drawManholes();}};
-        inpR.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();doneR();}else e.stopPropagation();});
-        inpR.addEventListener('blur',function(){setTimeout(doneR,120);});
+        wrapR.style.cssText='position:fixed;z-index:999;display:flex;align-items:center;gap:3px;left:'+sx+'px;top:'+(sy-36)+'px;background:#fffde7;border-bottom:2px solid #555;padding:3px 6px;border-radius:4px;';
+        var spFac=document.createElement('span');spFac.textContent='입상점';spFac.style.cssText='font-size:13px;font-weight:800;color:#7a52e0;margin-right:2px';
+        var inpR=document.createElement('input');inpR.value=mh.label||'통신주입상';inpR.placeholder='시설명';inpR.style.cssText='font-size:15px;font-weight:600;color:#333;border:1px solid #bbb;border-radius:4px;background:#fff;outline:none;width:120px;text-align:center;padding:1px 3px';
+        var selOwn=document.createElement('select');selOwn.innerHTML='<option value="">소유</option>'+['SKT','SKB','공동','타사'].map(function(o){return '<option'+((mh._own===o)?' selected':'')+'>'+o+'</option>';}).join('');selOwn.style.cssText='font-size:13px;font-weight:700;color:#333;border:1px solid #bbb;border-radius:4px;background:#fff;outline:none;padding:1px 2px;cursor:pointer';
+        var selSp=document.createElement('select');selSp.innerHTML='<option value="">규격</option>'+IPSPEC.map(function(o){return '<option'+((mh.spec===o)?' selected':'')+'>'+o+'</option>';}).join('');selSp.style.cssText='font-size:13px;font-weight:700;color:#333;border:1px solid #bbb;border-radius:4px;background:#fff;outline:none;padding:1px 2px;cursor:pointer';
+        wrapR.appendChild(spFac);wrapR.appendChild(inpR);wrapR.appendChild(selOwn);wrapR.appendChild(selSp);
+        document.body.appendChild(wrapR);_mhEditAnchor={wrap:wrapR,tx:txtLeft,ty:uly,dy:-36};inpR.focus();inpR.select();
+        var doneR=function(){if(wrapR.parentNode){pushHist();mh.label=inpR.value.trim()||'통신주입상';mh._own=selOwn.value;mh.spec=selSp.value;mh._edited=true;try{if(typeof _tgSegs!=='undefined'&&_tgSegs){for(var _si=0;_si<_tgSegs.length;_si++){var _sg=_tgSegs[_si];if(!_sg.length)continue;var _s0=_sg[0],_se=_sg[_sg.length-1];var _k=tgManualKey(_sg);var _setR=function(pre){if(!state.tangoManual)state.tangoManual={};if(!state.tangoManual[_k])state.tangoManual[_k]={};state.tangoManual[_k][pre+'_fac']='입상점';state.tangoManual[_k][pre+'_own']=selOwn.value;state.tangoManual[_k][pre+'_spec']=selSp.value;state.tangoManual[_k][pre+'_nm']=inpR.value.trim();};if(_s0&&_s0.mh&&Math.abs(_s0.x-mh.wx)<0.5&&Math.abs(_s0.y-mh.wy)<0.5)_setR('s');if(_se&&_se.mh&&Math.abs(_se.x-mh.wx)<0.5&&Math.abs(_se.y-mh.wy)<0.5)_setR('e');}}if(typeof tangoSelSeg==='function'&&typeof tgSeg!=='undefined'&&tgSeg>=0)tangoSelSeg(tgSeg,true);}catch(_e){}_mhEditAnchor=null;wrapR.remove();drawManholes();}};
+        var onKeyR=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();doneR();}else e.stopPropagation();};
+        inpR.addEventListener('keydown',onKeyR);
+        var blurTimerR=null;function onBlurR(){blurTimerR=setTimeout(doneR,150);}function onFocusR(){if(blurTimerR){clearTimeout(blurTimerR);blurTimerR=null;}}
+        [inpR,selOwn,selSp].forEach(function(_el){_el.addEventListener('blur',onBlurR);_el.addEventListener('focus',onFocusR);});
         return;
       }
       // 현재 라벨 파싱: 앞부분 + M + (괄호안)
