@@ -311,7 +311,7 @@
   .hide-code .L-code{display:none}
   .hide-depth .lbl-depth,.hide-depth .depth-lead{display:none}
   .hide-mh .lbl-mh,.hide-mh .mh-lead{display:none}
-  .hide-riser .sym-riser{display:none}
+  .hide-riser .sym-riser,.hide-riser .lbl-riser{display:none}
   .hide-hyun .insp-line{display:none}
   .lvchk{display:inline-flex;align-items:center;gap:3px;font-size:12px;color:#444;font-weight:600;white-space:nowrap;cursor:pointer;margin:0 2px}
   .lvchk input{cursor:pointer;margin:0}
@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 674</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 675</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -1560,7 +1560,7 @@ function mhLabelBase(mh, txtW){
 }
 function mergeAftMh(){var mhs=state.manholes||[];if(!mhs.length)return;mhs.forEach(function(m){m._used=false;m._del=false;});mhs.filter(function(m){return m.insp;}).forEach(function(a){var best=null,bd=4;mhs.forEach(function(b){if(b===a||b.insp||b._used)return;var d=Math.hypot((b.wx||0)-(a.wx||0),(b.wy||0)-(a.wy||0));if(d<=bd){bd=d;best=b;}});if(best){var _ox=best.wx,_oy=best.wy;best.wx=a.wx;best.wy=a.wy;best._aft=true;best._used=true;a._del=true;if(typeof moveMhLines==='function')moveMhLines(best,_ox,_oy);}});state.manholes=mhs.filter(function(m){return !m._del;});}
 function drawManholes(){
-  clearSvg(gMH); clearLabels('mh');
+  clearSvg(gMH); clearLabels('mh');clearLabels('riser');
   (state.manholes||[]).forEach(function(mh){
     var isRiser=(mh.type==='riser');var MHC=(mh._aft||(state.tamsa&&!isRiser))?'#111':'#1f6fd6';
     // 손 안 댄 자동순번 기본라벨(예 '2M (SK )')만 'M (SK )'로 정리. 사용자가 직접 고친 건(_edited) 보존
@@ -1699,7 +1699,7 @@ function drawManholes(){
     }
 
     // 라벨 텍스트 — 파란 밑줄 중앙 바로 위에 (글자가 밑줄을 덮지 않게 위로)
-    var mhLbl=mkLabel(txtCx, uly-EM*0.95, mhDisp(mh), {fill:(mh._fromCsv&&isRiser?'#d500f2':MHC),weight:'600',anchor:'middle',grp:'mh',px:11});
+    var mhLbl=mkLabel(txtCx, uly-EM*0.95, mhDisp(mh), {fill:(mh._fromCsv&&isRiser?'#d500f2':MHC),weight:'600',anchor:'middle',grp:(isRiser?'riser':'mh'),px:11});
     // 라벨 div에 직접 더블클릭(수정) — 오버레이라 글자 위에서 바로 동작
     mhLbl.style.pointerEvents='auto';
     mhLbl.style.cursor='text';
