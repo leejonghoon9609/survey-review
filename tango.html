@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 657</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 658</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -1216,6 +1216,7 @@ function tbPipeLength(){
   });
   return total;
 }
+function tbCommonTop(f){var mm=(typeof state!=='undefined'&&state&&state.tangoManual)||{},cnt={},bk='',bv=0;for(var k in mm){var v=mm[k]&&mm[k][f];if(v!=null&&v!==''){v=''+v;cnt[v]=(cnt[v]||0)+1;if(cnt[v]>bv){bv=cnt[v];bk=v;}}}return bk;}
 function tbData(){
   var b=state.bizInfo||{}, t=state.titleBlock||{};
   var owner=(b.client||'').trim();
@@ -1225,8 +1226,13 @@ function tbData(){
   var pl=tbPipeLength();
   var autoVolT= pl>0 ? pl.toFixed(2)+'m' : '';
   var volT=(t.volT!=null&&t.volT!=='')?t.volT:autoVolT;
+  var inner=(t.inner!=null&&t.inner!=='')?t.inner:tbCommonTop('inner');
+  var gyeol=(t.gyeol!=null&&t.gyeol!=='')?t.gyeol:tbCommonTop('gyeol');
+  var gdan=(t.gdan!=null&&t.gdan!=='')?t.gdan:tbCommonTop('gdan');
+  var gwannum=(t.gwannum!=null&&t.gwannum!=='')?t.gwannum:tbCommonTop('gwannum');
   return { name:(state.projectName||''), bizNo:(b.bizNo||''), client:owner,
-           outer:outer, inner:(t.inner||''), mhOwner:mhOwner,
+           outer:outer, inner:inner, mhOwner:mhOwner,
+           gyeol:gyeol, gdan:gdan, gwannum:gwannum,
            volT:volT, volG:(t.volG||'') };
 }
 function tbEsc(x){return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -1256,11 +1262,16 @@ function tbLayout(dxf){
   var _availW2=_availW*0.88;var _nameH=(_estW>_availW2&&_estW>0)?nameH*(_availW2/_estW):nameH;
   add(b0+bw/2, by1-pad-nameH, _nameH, _nm, 'name', 'middle', 'name');
   var lx=b0+pad, vx=b0+pad+th*vxm, firstY=by1-pad-nameH-nameGap-th*0.2;
-  var L=[['탱고 번호',d.bizNo,'red','bizNo'],['관로(소유자)',d.client,'blue','client'],['관로(외관)',d.outer,'blue','outer'],['관로(내관)',(d.inner||'(직접입력)'),'blue','inner'],['맨홀(소유자)',d.mhOwner,'blue','mhOwner']];
+  var L=[['탱고 번호',d.bizNo,'red','bizNo'],['관로(소유자)',d.client,'blue','client'],['관로(외관)',d.outer,'blue','outer'],['맨홀(소유자)',d.mhOwner,'blue','mhOwner']];
   L.forEach(function(r,i){var y=firstY-dy*i; add(lx,y,gh,r[0]+' :','label'); add(vx,y,gh,r[1]||'',r[2],'start',r[3]);});
   var rlx=b0+pad+th*rlm, rvx=b0+pad+th*rvm;
   var R=[['물량(탱고)',(d.volT||'(직접입력)'),'volT'],['물량(GIS)',(d.volG||'(직접입력)'),'volG']];
   R.forEach(function(r,i){var y=firstY-dy*i; add(rlx,y,gh,r[0]+' :','label'); add(rvx,y,gh,r[1]||'','blue','start',r[2]);});
+  var sh=gh*0.82, y2=firstY-dy*2.15, y3=firstY-dy*3.05;
+  add(rlx,y2,sh,'공열 :','label'); add(rlx+th*2.7,y2,sh,d.gyeol||'','blue','start','gyeol'); add(rlx+th*4.2,y2,sh,'열','label');
+  add(rlx+th*6.4,y2,sh,'공단 :','label'); add(rlx+th*9.1,y2,sh,d.gdan||'','blue','start','gdan'); add(rlx+th*10.6,y2,sh,'단','label');
+  add(rlx+th*13.2,y2,sh,'관공번호 :','label'); add(rlx+th*17.6,y2,sh,d.gwannum||'','blue','start','gwannum'); add(rlx+th*19.4,y2,sh,'번호','label');
+  add(rlx,y3,sh,'관로(내관) :','label'); add(rlx+th*5.2,y3,sh,d.inner||'','blue','start','inner');
   return {box:{x:b0,y:by0,w:bw,h:bh}, items:it, th:th};
 }
 function drawTitleBlock(){
@@ -1288,16 +1299,20 @@ function drawTitleBlock(){
 function editField(key){
   if(viewerMode||readOnly)return;
   var b=state.bizInfo||{}, t=state.titleBlock||{}, d=tbData();
-  var LAB={name:'사업명',bizNo:'탱고 번호',client:'관로(소유자)',outer:'관로(외관)',inner:'관로(내관)',mhOwner:'맨홀(소유자)',volT:'물량(탱고)',volG:'물량(GIS)'};
+  var LAB={name:'사업명',bizNo:'탱고 번호',client:'관로(소유자)',outer:'관로(외관)',inner:'관로(내관)',mhOwner:'맨홀(소유자)',gyeol:'공열',gdan:'공단',gwannum:'관공번호',volT:'물량(탱고)',volG:'물량(GIS)'};
   var cur;
   if(key==='name')cur=state.projectName||'';
   else if(key==='bizNo')cur=b.bizNo||'';
   else if(key==='client')cur=b.client||'';
   else if(key==='outer')cur=d.outer||'';
   else if(key==='mhOwner')cur=d.mhOwner||'';
+  else if(key==='inner')cur=d.inner||'';
+  else if(key==='gyeol')cur=d.gyeol||'';
+  else if(key==='gdan')cur=d.gdan||'';
+  else if(key==='gwannum')cur=d.gwannum||'';
   else cur=t[key]||'';
   var src=(key==='name'||key==='bizNo'||key==='client');
-  var autoKey=(key==='volT'||key==='outer'||key==='mhOwner');   // 자동계산 되돌리기 가능 필드
+  var autoKey=(key==='volT'||key==='outer'||key==='mhOwner'||key==='inner'||key==='gyeol'||key==='gdan'||key==='gwannum');   // 자동계산 되돌리기 가능 필드
   var autoLabel=(key==='volT')?'🔄 관로거리 자동계산':'🔄 자동값으로';
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:9999;display:flex;align-items:center;justify-content:center';
