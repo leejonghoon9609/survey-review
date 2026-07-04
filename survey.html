@@ -350,7 +350,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 664</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 665</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -6339,7 +6339,7 @@ function renderRail(){
     if(c.custom)return;
     if(c.k==='bpzone'&&IS_TANGO)return;
     if(c.k==='data'){
-      html+='<button data-k="'+c.k+'" style="'+railStyle(c.c,c.k===activeCat)+';align-self:flex-start;width:60%;box-sizing:border-box;font-size:11px;padding:5px 8px;margin-left:10px">'+c.icon+' '+c.label+bdg+'</button>';
+      html+='<button data-k="'+c.k+'" style="'+railStyle(c.c,c.k===activeCat)+';justify-content:flex-start">'+c.icon+' '+c.label+bdg+'</button>';
       html+='<div class="sep"></div>';
       html+='<button id="toolToggle" style="background:'+(toolsOpen?'#fdf1dd':'#fff')+';color:#d98200;border:1px solid #d98200;border-radius:8px;font-weight:700;justify-content:flex-start">🛠 '+'편집도구'+'<span style="margin-left:auto;font-size:12px">'+(toolsOpen?'▲':'▼')+'</span></button>';
       html+='<div id="toolGroup" style="display:'+(toolsOpen?'flex':'none')+';flex-direction:column;gap:7px">';
