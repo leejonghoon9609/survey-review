@@ -82,7 +82,7 @@
   .regbox.tamsa-on .regcard.tamsa{display:flex}
   .regbox.tamsa-on .regcard.csv,.regbox.tamsa-on #regAftCard,.regbox.tamsa-on .regcard.pho{display:none}
   .regbox.tamsa-on #regNightRow{display:none}
-  .reg-tamsa{margin-left:14px;border:1.5px solid #d92b2b;background:#fdeaea;color:#c0392b;font-weight:800;font-size:15px;border-radius:9px;padding:8px 18px;cursor:pointer}
+  .reg-real{margin-left:14px;border:1.5px solid #16a34a;background:#e7f7ec;color:#15803d;font-weight:800;font-size:15px;border-radius:9px;padding:8px 18px;cursor:pointer}.reg-real:hover{background:#d5f0dd}.reg-real.on{background:#16a34a;border-color:#16a34a;color:#fff}.reg-tamsa{margin-left:8px;border:1.5px solid #d92b2b;background:#fdeaea;color:#c0392b;font-weight:800;font-size:15px;border-radius:9px;padding:8px 18px;cursor:pointer}
   .reg-tamsa:hover{background:#fbdcdc}
   .reg-tamsa.on{background:#d92b2b;border-color:#d92b2b;color:#fff}
   .rc-t{font-size:14px;font-weight:800;text-align:center;margin-bottom:10px;color:var(--rc)}
@@ -351,7 +351,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 699</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 700</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -430,7 +430,7 @@
   <!-- 사업 등록 모달 -->
   <div id="regModal" class="regwrap" style="display:none">
     <div class="regbox">
-      <div class="reghd"><span class="regt">사업 등록</span><button id="regTamsaBtn" type="button" class="reg-tamsa">탐사</button><button id="regX" class="regxbtn">✕</button></div>
+      <div class="reghd"><span class="regt">사업 등록</span><button id="regRealBtn" type="button" class="reg-real">실시간측량</button><button id="regTamsaBtn" type="button" class="reg-tamsa">탐사측량</button><button id="regX" class="regxbtn">✕</button></div>
       <div class="regname">
         <label>사업명</label>
         <input id="regName" type="text" placeholder="예: 수원 권선동 1041-6" autocomplete="off">
@@ -6524,7 +6524,7 @@ function updRegStatus(){
   _tg('clrPho', !!(pendingPhotos&&pendingPhotos.length));
 }
 function _openRegNow(){
-  (function(){var box=document.querySelector('#regModal .regbox'),tb=document.getElementById('regTamsaBtn');if(box)box.classList.toggle('tamsa-on',!!state.tamsa);if(tb)tb.classList.toggle('on',!!state.tamsa);})();
+  (function(){var box=document.querySelector('#regModal .regbox'),tb=document.getElementById('regTamsaBtn'),rb=document.getElementById('regRealBtn');if(box)box.classList.toggle('tamsa-on',!!state.tamsa);if(tb)tb.classList.toggle('on',!!state.tamsa);if(rb)rb.classList.toggle('on',!state.tamsa);})();
   document.getElementById('regName').value=state.projectName||'';
   pendingPhotos=null;pendingAsbuilt=null;if(typeof asbuiltStageUI==='function')asbuiltStageUI();if(typeof fillBizInfo==='function')fillBizInfo(state.bizInfo);
   (function(){var rn=document.getElementById('regNight'),rnc=document.getElementById('regNightCut');if(rn)rn.checked=!!(state.nightShift&&state.nightShift.on);if(rnc&&state.nightShift&&state.nightShift.cut!=null)rnc.value=('0'+Math.floor(state.nightShift.cut/60)).slice(-2)+':'+('0'+(state.nightShift.cut%60)).slice(-2);})();
@@ -6591,13 +6591,10 @@ bind('regCancel',closeRegModal);
 bind('regOk',registerProject);
 (function(){
   var tb=document.getElementById('regTamsaBtn');
-  if(tb)tb.onclick=function(){
-    var box=document.querySelector('#regModal .regbox');
-    var on=!(box&&box.classList.contains('tamsa-on'));
-    state.tamsa=on;
-    if(box)box.classList.toggle('tamsa-on',on);
-    tb.classList.toggle('on',on);
-  };
+  function _regSetMode(on){var box=document.querySelector('#regModal .regbox');state.tamsa=on;if(box)box.classList.toggle('tamsa-on',on);var _tb=document.getElementById('regTamsaBtn'),_rb=document.getElementById('regRealBtn');if(_tb)_tb.classList.toggle('on',on);if(_rb)_rb.classList.toggle('on',!on);}
+  if(tb)tb.onclick=function(){_regSetMode(true);};
+  var rb=document.getElementById('regRealBtn');
+  if(rb)rb.onclick=function(){_regSetMode(false);};
   var fT=document.getElementById('fTamsa');
   if(fT)fT.onchange=function(){if(fT.files&&fT.files[0])loadTamsaCsv(fT.files[0]);fT.value='';};
   var bT=document.getElementById('rcTamsaBtn');
