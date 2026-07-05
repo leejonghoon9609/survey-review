@@ -351,7 +351,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 705</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 706</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -6367,7 +6367,7 @@ function renderRail(){
   var tt=document.getElementById('toolToggle');if(tt)tt.onclick=function(){toolsOpen=!toolsOpen;if(toolsOpen){inspmkOpen=false;if(typeof closeTangoPanel==='function'&&document.getElementById('tangoPanel'))closeTangoPanel();}try{localStorage.setItem('toolsOpen',toolsOpen?'1':'0');}catch(e){}renderRail();renderSub();};
   r.querySelectorAll('button[data-isub]').forEach(function(b){b.onclick=function(){inspmkSub=b.getAttribute('data-isub');renderRail();renderSub();if(inspmkSub==='attr'&&typeof openTangoPanel==='function')openTangoPanel('attr');};});r.querySelectorAll('button[data-k]').forEach(function(b){b.onclick=function(){
     var bk=b.getAttribute('data-k');
-    if(bk==='data'){openRegModal();return;}if(bk==='inspmk'){if(/_TT\d*$/.test(state.projectName||'')){if(typeof toast==='function')toast('\uD0F1\uACE0\uC131\uACFC \uC0AC\uBCF8(_TT)\uC740 \uD0F1\uACE0\uC131\uACFC \uC81C\uC791\uC5D0\uC11C\uB9CC \uC218\uC815\uD569\uB2C8\uB2E4');return;}if(activeCat==='inspmk'){inspmkOpen=!inspmkOpen;}else{activeCat='inspmk';inspmkOpen=true;}if(inspmkOpen){toolsOpen=false;if(typeof closeTangoPanel==='function'&&document.getElementById('tangoPanel'))closeTangoPanel();}renderRail();renderSub();return;}
+    if(bk==='data'){openRegModal();return;}if(bk==='inspmk'){if(/_TT\d*$/.test(state.projectName||'')){var _cmpOn=!(typeof LV!=='undefined'&&LV.tgcmp);if(typeof setLayerVis==='function')setLayerVis('tgcmp',_cmpOn);if(typeof toast==='function')toast(_cmpOn?'\uC6D0\uBCF8\uBE44\uAD50 \uCF1C\uC9D0 (\uD0F1\uACE0\uC131\uACFC \uC0AC\uBCF8)':'\uC6D0\uBCF8\uBE44\uAD50 \uAEBC\uC9D0');return;}if(activeCat==='inspmk'){inspmkOpen=!inspmkOpen;}else{activeCat='inspmk';inspmkOpen=true;}if(inspmkOpen){toolsOpen=false;if(typeof closeTangoPanel==='function'&&document.getElementById('tangoPanel'))closeTangoPanel();}renderRail();renderSub();return;}
     activeCat=bk;var c=curCat();
     renderRail();renderSub();
     if(c.k==='mh'){mode='mhplace';setModeUI();toast('맨홀심기: 도면을 클릭해 심기 (한 번 심으면 종료, 다시 심으려면 맨홀심기 클릭)');}
