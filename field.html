@@ -351,7 +351,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 717</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 718</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -7260,8 +7260,8 @@ H+='<thead><tr><th rowspan=2>\uC678\uAD00</th><th rowspan=2>\uC8FC\uAD00</th><th
 segs.forEach(function(sg,si){
 var pts=sg.filter(function(n){return !n.mh;});var avgd=pts.filter(function(n){return n.z!=null;});var avg=avgd.length?(avgd.reduce(function(a,n){return a+n.z;},0)/avgd.length):null;
 var totd=0;for(var k=1;k<sg.length;k++)totd+=Math.hypot(sg[k].x-sg[k-1].x,sg[k].y-sg[k-1].y);var jj=Math.floor(totd/10)+1;
-var s0=sg[0],s1=sg[sg.length-1];var sFac=s0.mh?'\uC2E0\uC124_\uB9E8\uD640':'\uC9C0\uC911\uAD6C\uC870\uBB3C',sNm=s0.mh?(s0.name||''):'\uAD00\uB9D0',sSp=s0.mh?(s0.spec||''):'\uAE30\uD0C0';
-var eFac=s1.mh?'\uC2E0\uC124_\uB9E8\uD640':'\uC9C0\uC911\uAD6C\uC870\uBB3C',eNm=s1.mh?(s1.name||''):'\uAD00\uB9D0',eSp=s1.mh?(s1.spec||''):'\uAE30\uD0C0';
+var s0=sg[0],s1=sg[sg.length-1];var sFac=s0.riser?'\uC785\uC0C1\uC810':(s0.mh?'\uC2E0\uC124_\uB9E8\uD640':'\uC9C0\uC911\uAD6C\uC870\uBB3C'),sNm=s0.mh?(s0.name||''):'\uAD00\uB9D0',sSp=s0.mh?(s0.spec||''):'\uAE30\uD0C0';
+var eFac=s1.riser?'\uC785\uC0C1\uC810':(s1.mh?'\uC2E0\uC124_\uB9E8\uD640':'\uC9C0\uC911\uAD6C\uC870\uBB3C'),eNm=s1.mh?(s1.name||''):'\uAD00\uB9D0',eSp=s1.mh?(s1.spec||''):'\uAE30\uD0C0';
 var SEGK=tgManualKey(sg);var R=sg.length;
 sg.forEach(function(nd,ri){H+='<tr onclick="tangoSelSeg('+si+')" data-tgkey="'+SEGK+'" data-ri="'+ri+'" style="cursor:pointer"'+(ri===0?' class="seg0" data-seg="'+si+'"':'')+'>';
 if(ri===0){H+='<td rowspan='+R+'>'+sel(O.ext,null,SEGK,'ext')+'</td><td rowspan='+R+'>'+sel(O.own,null,SEGK,'own')+'</td><td rowspan='+R+'>'+inp('',SEGK,'gyeol')+'</td><td rowspan='+R+'>'+inp('',SEGK,'gdan')+'</td><td rowspan='+R+'>'+inp('',SEGK,'naegwan')+'</td><td rowspan='+R+'>'+inp('',SEGK,'gwannum')+'</td><td rowspan='+R+'>'+sel(O.inner,null,SEGK,'inner')+'</td><td rowspan='+R+'>'+totd.toFixed(2)+'</td><td rowspan='+R+'>'+(avg!=null?avg.toFixed(1):'')+'</td><td rowspan='+R+'>'+sel(O.dig,null,SEGK,'dig')+'</td>';
@@ -7296,8 +7296,8 @@ async function exportTango(){
   var totd=0;for(var k=1;k<sg.length;k++)totd+=Math.hypot(sg[k].x-sg[k-1].x,sg[k].y-sg[k-1].y);
   var jj=Math.floor(totd/10)+1;
   var s0=sg[0],s1=sg[sg.length-1];
-  var sFac=s0.mh?'신설_맨홀':'지중구조물',sNm=s0.mh?(s0.name||''):'관말',sSp=s0.mh?(s0.spec||''):'기타';
-  var eFac=s1.mh?'신설_맨홀':'지중구조물',eNm=s1.mh?(s1.name||''):'관말',eSp=s1.mh?(s1.spec||''):'기타';
+  var sFac=s0.riser?'입상점':(s0.mh?'신설_맨홀':'지중구조물'),sNm=s0.mh?(s0.name||''):'관말',sSp=s0.mh?(s0.spec||''):'기타';
+  var eFac=s1.riser?'입상점':(s1.mh?'신설_맨홀':'지중구조물'),eNm=s1.mh?(s1.name||''):'관말',eSp=s1.mh?(s1.spec||''):'기타';
   var startRow=row;
   sg.forEach(function(nd,ri){
    for(var c=1;c<=27;c++)ws.getCell(row,c).style=TST[c-1];
