@@ -351,7 +351,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 695</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 696</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -1229,10 +1229,10 @@ function tbData(){
   var pl=tbPipeLength();
   var autoVolT= pl>0 ? pl.toFixed(2)+'m' : '';
   var volT=(t.volT!=null&&t.volT!=='')?t.volT:autoVolT;
-  var inner=(t.inner!=null&&t.inner!=='')?t.inner:tbCommonTop('inner');
-  var gyeol=(t.gyeol!=null&&t.gyeol!=='')?t.gyeol:tbCommonTop('gyeol');
-  var gdan=(t.gdan!=null&&t.gdan!=='')?t.gdan:tbCommonTop('gdan');
-  var gwannum=(t.gwannum!=null&&t.gwannum!=='')?t.gwannum:tbCommonTop('gwannum');
+  var inner=(t.inner!=null)?t.inner:tbCommonTop('inner');
+  var gyeol=(t.gyeol!=null)?t.gyeol:tbCommonTop('gyeol');
+  var gdan=(t.gdan!=null)?t.gdan:tbCommonTop('gdan');
+  var gwannum=(t.gwannum!=null)?t.gwannum:tbCommonTop('gwannum');
   return { name:(state.projectName||''), bizNo:(b.bizNo||''), client:owner,
            outer:outer, inner:inner, mhOwner:mhOwner,
            gyeol:gyeol, gdan:gdan, gwannum:gwannum,
@@ -1348,7 +1348,7 @@ function editField(key){
     close(); try{drawGeo();}catch(e){} try{saveProject&&saveProject();}catch(e){}
   }
   function autoReset(){
-    state.titleBlock=state.titleBlock||{}; state.titleBlock[key]='';   // override 제거 → 자동값 복귀
+    state.titleBlock=state.titleBlock||{}; delete state.titleBlock[key];   // override 제거 → 자동값 복귀
     close(); try{drawGeo();}catch(e){} try{saveProject&&saveProject();}catch(e){}
   }
   ov.addEventListener('pointerdown',function(e){if(e.target===ov)close();});
