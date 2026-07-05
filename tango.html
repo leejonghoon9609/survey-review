@@ -351,7 +351,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 684</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 685</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -1000,7 +1000,7 @@ function openPtEdit(p,ls){
   var done=function(){if(wrap.parentNode){pushHist();
     p.no=iYear.value.trim()+iDate.value.trim()+'-'+iNum.value.trim();
     var _tv=(iT&&iT.value.trim())||'';p.isT=/^t/i.test(_tv);var _pv=iPre.value.trim(),_cv=iCnt.value.trim();var _body=_pv?(_pv+'x'+_cv):'';p.code=(p.isT?('T'+(_body?' ':'')):'')+_body;
-    if(state.tamsa&&iSurf){p.surface=iSurf.value;p.surfaceManual=iSurf.value;p.pave=iPave.value;p._tcode=undefined;}if(state._pointsOrig){var _o=state._pointsOrig.filter(function(q){return q.x===p.x&&q.y===p.y;})[0];if(_o){_o.no=p.no;_o.code=p.code;_o.isT=p.isT;if(state.tamsa&&iSurf){_o.surface=p.surface;_o.surfaceManual=p.surfaceManual;_o.pave=p.pave;_o._tcode=p._tcode;}}}
+    if(state.tamsa&&iSurf){p.surface=iSurf.value;p.surfaceManual=iSurf.value;p.pave=iPave.value;p._tcode=undefined;}if(state._pointsOrig){var _o=state._pointsOrig.filter(function(q){return q.x===p.x&&q.y===p.y;})[0];if(_o){_o.no=p.no;_o.code=p.code;_o.isT=p.isT;if(state.tamsa&&iSurf){_o.surface=p.surface;_o.surfaceManual=p.surfaceManual;_o.pave=p.pave;_o._tcode=p._tcode;}}}if(state.tamsa&&_pv){var _si=(typeof tgFindSeg==='function')?tgFindSeg(no):-1;if(_si>=0&&typeof _tgSegs!=='undefined'&&_tgSegs&&_tgSegs[_si]){_tgSegs[_si].forEach(function(nd){if(nd.mh||nd.riser||!nd.no)return;var _q=(typeof pointByNo==='function')?pointByNo(nd.no):null;if(!_q)return;_q.code=(_q.isT?'T ':'')+_pv+'x'+_cv;_q._tcode=undefined;if(state._pointsOrig){var _oo=state._pointsOrig.filter(function(z){return z.x===_q.x&&z.y===_q.y;})[0];if(_oo){_oo.code=_q.code;_oo._tcode=undefined;}}});if(typeof tangoFill==='function')tangoFill();if(tgSeg>=0&&typeof tangoSelSeg==='function')tangoSelSeg(tgSeg);}}
     wrap.remove();drawGeo();if(photoPanelOpen)refreshPhotoPanel();}};
   var onKey=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();};
   var ins=[iYear,iDate,iNum].concat(iT?[iT]:[]).concat([iPre,iCnt]).concat(iSurf?[iSurf,iPave]:[]);
