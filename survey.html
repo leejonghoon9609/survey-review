@@ -11,6 +11,7 @@
 <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
+  .ptin::placeholder{color:#d2d2d2;opacity:1}
   :root{--line:#e3e3e0;--ink:#1c1c1a;--muted:#6b6b66;--bg:#fafaf8;--ok:#2a9e50;--bad:#d32f2f;--accent:#1f6fd6}
   body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);background:var(--bg);height:100vh;display:flex;flex-direction:column;overflow:hidden}
   header{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:9px 14px;border-bottom:1px solid var(--line);background:#fff}
@@ -350,7 +351,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 681</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 682</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -982,11 +983,11 @@ function openPtEdit(p,ls){
   else{var m2=/^(\d*)-?(.*)$/.exec(no); if(m2){date=m2[1]||'';num=m2[2]||'';}}
   var _tmatch=/^T(?=$|\s|x)/i.exec(code);var _isTpt=!!p.isT||!!_tmatch;var _cbody=_tmatch?code.slice(_tmatch[0].length).replace(/^\s+/,''):code;var prefix='', cnt=''; var xi=_cbody.toLowerCase().lastIndexOf('x');
   if(xi>=0){prefix=_cbody.slice(0,xi).trim();cnt=_cbody.slice(xi+1).trim();} else if(_cbody){prefix=_cbody;}
-  if(!prefix&&!_isTpt)prefix='FC 100';
+  
   var wrap=document.createElement('div');
   wrap.style.cssText='position:fixed;z-index:999;left:'+sx+'px;top:'+(sy-34)+'px;background:#fffde7;border:1px solid #d32f2f;border-radius:5px;padding:6px;display:flex;flex-direction:column;gap:5px;box-shadow:0 2px 8px rgba(0,0,0,0.18);';
   var fix=function(t){var s=document.createElement('span');s.textContent=t;s.style.cssText='font-size:15px;font-weight:800;color:#9a9a93;align-self:center;padding:0 1px;';return s;};
-  var inp=function(val,ph,w,col){var i=document.createElement('input');i.value=val;i.placeholder=ph;i.style.cssText='font-size:14px;font-weight:600;color:'+(col||'#333')+';border:1px solid #ccc;border-radius:3px;padding:2px 5px;outline:none;width:'+w+'px;';return i;};
+  var inp=function(val,ph,w,col){var i=document.createElement('input');i.className='ptin';i.value=val;i.placeholder=ph;i.style.cssText='font-size:14px;font-weight:600;color:'+(col||'#333')+';border:1px solid #ccc;border-radius:3px;padding:2px 5px;outline:none;width:'+w+'px;';return i;};
   var row=function(){var d=document.createElement('div');d.style.cssText='display:flex;gap:3px;align-items:center;';return d;};
   var iYear=inp(yr,'YY',32,'#1a7a3a'), iDate=inp(date,'MMDD',52,'#1a7a3a'), iNum=inp(num,'번호',46,'#1a7a3a');
   var r1=row();r1.appendChild(iYear);r1.appendChild(iDate);r1.appendChild(fix('-'));r1.appendChild(iNum);
@@ -999,7 +1000,7 @@ function openPtEdit(p,ls){
   var done=function(){if(wrap.parentNode){pushHist();
     p.no=iYear.value.trim()+iDate.value.trim()+'-'+iNum.value.trim();
     var _tv=(iT&&iT.value.trim())||'';p.isT=/^t/i.test(_tv);var _pv=iPre.value.trim(),_cv=iCnt.value.trim();var _body=_pv?(_pv+'x'+_cv):'';p.code=(p.isT?('T'+(_body?' ':'')):'')+_body;
-    if(state.tamsa&&iSurf){p.surface=iSurf.value;p.surfaceManual=iSurf.value;p.pave=iPave.value;p._tcode=undefined;}
+    if(state.tamsa&&iSurf){p.surface=iSurf.value;p.surfaceManual=iSurf.value;p.pave=iPave.value;p._tcode=undefined;}if(state._pointsOrig){var _o=state._pointsOrig.filter(function(q){return q.x===p.x&&q.y===p.y;})[0];if(_o){_o.no=p.no;_o.code=p.code;_o.isT=p.isT;if(state.tamsa&&iSurf){_o.surface=p.surface;_o.surfaceManual=p.surfaceManual;_o.pave=p.pave;_o._tcode=p._tcode;}}}
     wrap.remove();drawGeo();if(photoPanelOpen)refreshPhotoPanel();}};
   var onKey=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();};
   var ins=[iYear,iDate,iNum].concat(iT?[iT]:[]).concat([iPre,iCnt]).concat(iSurf?[iSurf,iPave]:[]);
