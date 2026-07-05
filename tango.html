@@ -282,7 +282,7 @@
   .viewer h1{flex-basis:100%;font-size:17px;margin:0;order:0}
   .viewer #viewerBar{flex:1;min-width:0;flex-wrap:nowrap;overflow-x:auto;gap:5px;order:2}
   .viewer #viewerBar button{font-size:12.5px;padding:5px 9px;white-space:nowrap;flex:none}
-  .viewer #viewerBar select{font-size:12.5px;padding:4px 6px;flex:none;max-width:130px}
+  .viewer #viewerBar select{font-size:12.5px;padding:4px 6px;flex:none;max-width:130px}#proj{max-width:46vw;min-width:220px}
   .viewer #modeToggle{font-size:12.5px;padding:5px 9px;white-space:nowrap;flex:none}
   /* 사진 헤더 한 줄 + 업로드/닫기 숨김 */
   .viewer .php-head{flex-wrap:nowrap;overflow-x:auto;gap:5px;padding:6px 9px}
@@ -351,7 +351,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 703</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 704</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -6212,7 +6212,7 @@ function initSb(){
 function refreshProjects(){ if(!online)return;
   sb.from(DB+'_projects').select('id,name,updated_at,stage:payload->>stage').order('updated_at',{ascending:false}).then(function(res){
     var sel=document.getElementById('proj');sel.innerHTML='<option value="">사업 선택…</option>';
-    (res.data||[]).forEach(function(p){if((p.stage||'survey')!==STAGE)return;var o=document.createElement('option');o.value=p.id;o.textContent=p.name;sel.appendChild(o);});
+    (res.data||[]).forEach(function(p){if((p.stage||'survey')!==STAGE)return;var o=document.createElement('option');o.value=p.id;o.textContent=p.name;o.title=p.name;sel.appendChild(o);});
     if(state.projectId)sel.value=state.projectId;
     if(typeof refreshDoneProjects==='function')refreshDoneProjects();
   });
