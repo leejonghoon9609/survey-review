@@ -351,7 +351,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 697</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 698</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -1706,7 +1706,7 @@ function drawManholes(){
     // 라벨 div에 직접 더블클릭(수정) — 오버레이라 글자 위에서 바로 동작
     mhLbl.style.pointerEvents='auto';
     mhLbl.style.cursor='text';
-    mhLbl.addEventListener('dblclick',function(ev){ev.stopPropagation();if(mode==='delmh'||mode==='delriser')return;openLabelEdit();});
+    mhLbl.addEventListener('dblclick',function(ev){ev.stopPropagation();if(mode==='delmh'||mode==='delriser')return;if(typeof tgSelectMh==='function'&&mh&&mh.wx!=null)tgSelectMh(mh.wx,mh.wy);openLabelEdit();});
 
     // 드래그 핸들 - 맨홀 중심(이중원) — 히트영역 작게(측점 클릭 안 막게)
     var drag=el('circle',{cx:mx,cy:my,r:13*U,fill:'transparent','pointer-events':'all',cursor:'move'});
