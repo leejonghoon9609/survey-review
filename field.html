@@ -351,7 +351,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 726</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 727</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -6596,7 +6596,7 @@ bind('regOk',registerProject);
   var rb=document.getElementById('regRealBtn');
   if(rb)rb.onclick=function(){_regSetMode(false);};
   var fT=document.getElementById('fTamsa');
-  if(fT)fT.onchange=function(){if(fT.files&&fT.files[0])loadTamsaCsv(fT.files[0]);fT.value='';};
+  if(fT)fT.onchange=function(){if(fT.files&&fT.files.length){if(regOpen())regAddCsvFilesTamsa(fT.files);else loadTamsaCsv(fT.files[0]);}fT.value='';};
   var bT=document.getElementById('rcTamsaBtn');
   if(bT)bT.onclick=function(){document.getElementById('fTamsa').click();};
   var dT=document.getElementById('dropTamsa');
@@ -6604,7 +6604,7 @@ bind('regOk',registerProject);
     dT.addEventListener('click',function(){document.getElementById('fTamsa').click();});
     dT.addEventListener('dragover',function(e){e.preventDefault();dT.classList.add('over');});
     dT.addEventListener('dragleave',function(){dT.classList.remove('over');});
-    dT.addEventListener('drop',function(e){e.preventDefault();dT.classList.remove('over');var fs=e.dataTransfer.files;if(fs&&fs[0])loadTamsaCsv(fs[0]);});
+    dT.addEventListener('drop',function(e){e.preventDefault();dT.classList.remove('over');var fs=e.dataTransfer.files;if(fs&&fs.length){if(regOpen())regAddCsvFilesTamsa(fs);else loadTamsaCsv(fs[0]);}});
   }
   var cT=document.getElementById('clrTamsa');
   if(cT)cT.onclick=function(){
@@ -7522,7 +7522,7 @@ function regAddCsv(f,cb){if(!f){if(cb)cb();return;}var rd=new FileReader();rd.on
   }else toast('CSV에서 측점을 못 읽었습니다: '+f.name);
   if(cb)cb();
 };rd.readAsArrayBuffer(f);}
-function regAddCsvFiles(files){var arr=[].slice.call(files);(function next(i){if(i>=arr.length)return;regAddCsv(arr[i],function(){next(i+1);});})(0);}
+function regAddCsvTamsa(f,cb){if(!f){if(cb)cb();return;}var rd=new FileReader();rd.onload=function(){var txt;try{txt=decodeBuf(rd.result);}catch(e){txt=''+rd.result;}var pts=parseCsv(txt,f.name);if(pts.length){state.tamsa=true;if(!state.points)state.points=[];if(!state.finalCsv)state.finalCsv=[];var nn={};pts.forEach(function(p){nn[p.no]=1;});state.points=state.points.filter(function(p){return !nn[p.no];}).concat(pts);state.finalCsv=state.finalCsv.filter(function(c){return c.name!==f.name;});state.finalCsv.push({name:f.name,text:txt});if(!state.projectName){state.projectName=f.name.replace(/\.[^.]+$/,'');var rn=document.getElementById('regName');if(rn&&!rn.value.trim())rn.value=state.projectName;}try{buildTamsaMh();}catch(e){}selNum=null;clearSvg(gSel);clearSvg(gMH);drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatusTamsa();toast('CSV "'+f.name+'" +'+pts.length+'개 (총 '+state.points.length+'개)');}else toast('CSV에서 측점을 못 읽었습니다: '+f.name);if(cb)cb();};rd.readAsArrayBuffer(f);}function regAddCsvFilesTamsa(files){var arr=[].slice.call(files);(function next(i){if(i>=arr.length)return;regAddCsvTamsa(arr[i],function(){next(i+1);});})(0);}function updRegStatusTamsa(){var c=document.getElementById('rcTamsa');if(!c)return;if(state.points&&state.points.length){var ng=(state.finalCsv||[]).length;c.textContent='측점 '+state.points.length+'개'+(ng>1?(' · '+ng+'개 파일'):'')+' 로딩됨';c.classList.add('done');}else{c.textContent='탐사 측점 데이터 (.csv)';c.classList.remove('done');}}function regAddCsvFiles(files){var arr=[].slice.call(files);(function next(i){if(i>=arr.length)return;regAddCsv(arr[i],function(){next(i+1);});})(0);}
 function expandPhotoFiles(list){
   var arr=[].slice.call(list),out=[],zips=[];
   arr.forEach(function(f){if(/\.zip$/i.test(f.name))zips.push(f);else if(!/thumbs\.db$/i.test(f.name))out.push(f);});
