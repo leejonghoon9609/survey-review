@@ -351,7 +351,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 757</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 758</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -532,8 +532,9 @@ var gMark=document.createElementNS(SVGNS,'g'); gMark.setAttribute('pointer-event
 var gDraft=document.createElementNS(SVGNS,'g'); gDraft.setAttribute('pointer-events','none');
 var gPts=document.createElementNS(SVGNS,'g');
 var gMH=document.createElementNS(SVGNS,'g'); // 맨홀 심벌 레이어
+var gHyunSym=document.createElementNS(SVGNS,'g'); gHyunSym.setAttribute('pointer-events','none');
 var gHit=document.createElementNS(SVGNS,'g'); // 측점 클릭 hit (최상위 — 항상 클릭 우선)
-cv.appendChild(gGeo); cv.appendChild(gMark); cv.appendChild(gDraft); cv.appendChild(gPts); cv.appendChild(gHit); cv.appendChild(gMH);
+cv.appendChild(gGeo); cv.appendChild(gMark); cv.appendChild(gDraft); cv.appendChild(gPts);cv.appendChild(gHyunSym); cv.appendChild(gHit); cv.appendChild(gMH);
 
 /* 상태 */
 var state={ projectId:null, projectName:null, loadedStage:STAGE, _importSrc:[], points:[], lines:[], markups:[], labelOff:{}, manholes:[], photoDir:{}, asbuilt:null, nightShift:null, fieldDone:null, bizInfo:null, titleBlock:null };
@@ -869,6 +870,7 @@ function showModal(opt){
 
 /* ====== 렌더 ====== */
 function clearSvg(g){while(g.firstChild)g.removeChild(g.firstChild);}
+function drawHyunSym(){if(typeof gHyunSym==='undefined')return;clearSvg(gHyunSym);(state.hyunPts||[]).forEach(function(hp){var hs=S(hp[0],hp[1]);var _hx=pxToWorld()*2.4;var _hcol=({b:'#4fc3f7',d:'#1976d2',s:'#8d6e63',bd:'#e53935',db:'#e53935'})[hp[2]]||'#1a7a5e';gHyunSym.appendChild(el('line',{x1:hs[0]-_hx,y1:hs[1]-_hx,x2:hs[0]+_hx,y2:hs[1]+_hx,stroke:_hcol,'stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none','class':'insp-line'}));gHyunSym.appendChild(el('line',{x1:hs[0]-_hx,y1:hs[1]+_hx,x2:hs[0]+_hx,y2:hs[1]-_hx,stroke:_hcol,'stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none','class':'insp-line'}));});}
 var LABEL_D=4.5; // (구) 근접 그룹 거리 — 현재 미사용, 호환용 유지
 function computeLabels(){
   var pts=state.points, n=pts.length, lay=new Array(n);
@@ -1451,7 +1453,7 @@ function drawGeo(){
     if(L.insp)pl.setAttribute('class','insp-line');
     gGeo.appendChild(pl);
   });
-  (state.hyunPts||[]).forEach(function(hp){var hs=S(hp[0],hp[1]);var _hx=pxToWorld()*2.4;var _hcol=({b:'#4fc3f7',d:'#1976d2',s:'#8d6e63',bd:'#e53935',db:'#e53935'})[hp[2]]||'#1a7a5e';gGeo.appendChild(el('line',{x1:hs[0]-_hx,y1:hs[1]-_hx,x2:hs[0]+_hx,y2:hs[1]+_hx,stroke:_hcol,'stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none','class':'insp-line'}));gGeo.appendChild(el('line',{x1:hs[0]-_hx,y1:hs[1]+_hx,x2:hs[0]+_hx,y2:hs[1]-_hx,stroke:_hcol,'stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none','class':'insp-line'}));});
+  drawHyunSym();
   var lay=computeLabels();
   state.lines.forEach(function(L){if((L.layer!=='지거'&&L.layer!=='압입구간')||!L.note)return;
     var nc=L.layer==='압입구간'?'#1f6fd6':'#a07e00';   // 인출선·앵커·박스 색
@@ -2066,7 +2068,7 @@ function bpEraseAt(cw){
   clearSvg(gDraw);
 }
 function toWorld(cx,cy){var m=null;try{m=cv.getScreenCTM();}catch(e){}if(m&&m.a){var im=m.inverse();return [im.a*cx+im.c*cy+im.e, im.b*cx+im.d*cy+im.f];}var r=cv.getBoundingClientRect();return [vb.x+(cx-r.left)/r.width*vb.w, vb.y+(cy-r.top)/r.height*vb.h];}
-function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*=f;vb.h*=f;vb.x=w[0]-(cx-r.left)/r.width*vb.w;vb.y=w[1]-(cy-r.top)/r.height*vb.h;applyVB();if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();}
+function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*=f;vb.h*=f;vb.x=w[0]-(cx-r.left)/r.width*vb.w;vb.y=w[1]-(cy-r.top)/r.height*vb.h;applyVB();if(typeof drawHyunSym==='function')drawHyunSym();if(typeof drawManholes==='function')drawManholes();}
 
 /* ====== 결선 ====== */
 function nearestPointWorld(wx,wy){var best=null,bd=1e18;state.points.forEach(function(p){var s=S(p.x,p.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;best=p;}});return {p:best,d:Math.sqrt(bd)};}
