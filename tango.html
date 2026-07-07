@@ -351,7 +351,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 754</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 755</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -1450,7 +1450,7 @@ function drawGeo(){
     if(L.insp)pl.setAttribute('class','insp-line');
     gGeo.appendChild(pl);
   });
-  (state.hyunPts||[]).forEach(function(hp){var hs=S(hp[0],hp[1]);var _hx=pxToWorld()*4;var _hcol=({b:'#4fc3f7',d:'#1976d2',s:'#8d6e63',bd:'#e53935',db:'#e53935'})[hp[2]]||'#1a7a5e';gGeo.appendChild(el('line',{x1:hs[0]-_hx,y1:hs[1]-_hx,x2:hs[0]+_hx,y2:hs[1]+_hx,stroke:_hcol,'stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none','class':'insp-line'}));gGeo.appendChild(el('line',{x1:hs[0]-_hx,y1:hs[1]+_hx,x2:hs[0]+_hx,y2:hs[1]-_hx,stroke:_hcol,'stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none','class':'insp-line'}));});
+  (state.hyunPts||[]).forEach(function(hp){var hs=S(hp[0],hp[1]);var _hx=pxToWorld()*2;var _hcol=({b:'#4fc3f7',d:'#1976d2',s:'#8d6e63',bd:'#e53935',db:'#e53935'})[hp[2]]||'#1a7a5e';gGeo.appendChild(el('line',{x1:hs[0]-_hx,y1:hs[1]-_hx,x2:hs[0]+_hx,y2:hs[1]+_hx,stroke:_hcol,'stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none','class':'insp-line'}));gGeo.appendChild(el('line',{x1:hs[0]-_hx,y1:hs[1]+_hx,x2:hs[0]+_hx,y2:hs[1]-_hx,stroke:_hcol,'stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none','class':'insp-line'}));});
   var lay=computeLabels();
   state.lines.forEach(function(L){if((L.layer!=='지거'&&L.layer!=='압입구간')||!L.note)return;
     var nc=L.layer==='압입구간'?'#1f6fd6':'#a07e00';   // 인출선·앵커·박스 색
