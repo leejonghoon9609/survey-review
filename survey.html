@@ -351,7 +351,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 776</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 777</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -1021,7 +1021,7 @@ function addNoteHandle(L,t,ld,lx,ly,ax,tw){
     h.setAttribute('x',nx+0.25-pad);h.setAttribute('y',ny-0.45-pad);});
   function up(ev){if(!drag)return;drag=false;setTimeout(function(){labelDragging=false;},40);
     if(moved){L.noteOff=[nx,ny];}
-    else{var now=Date.now();if(now-(L._lastClick||0)<350){L._lastClick=0;openNoteEdit(L,lx,ly);}else{L._lastClick=now;}}
+    else{var now=Date.now();if(now-(L._lastClick||0)<350){L._lastClick=0;openLineNoteEdit(L,lx,ly);}else{L._lastClick=now;}}
     try{h.releasePointerCapture(ev.pointerId);}catch(e){}drawGeo();}
   h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
   gPts.appendChild(h);
@@ -1036,7 +1036,7 @@ function addAnchorHandle(L,ah,anc,ld){
   ah.addEventListener('pointerup',up);ah.addEventListener('pointercancel',up);
 }
 // 지거 태그 인라인 편집: [숫자]점(번호 : [번호] ) — '점(번호 :' 와 ')' 고정, 앞 숫자(2자리)+괄호안만 수정
-function openNoteEdit(L,lx,ly){
+function openLineNoteEdit(L,lx,ly){
   var r=cv.getBoundingClientRect();
   var sx=r.left+(lx-vb.x)*(r.width/vb.w), sy=r.top+(ly-vb.y)*(r.height/vb.h);
   if(L.layer==='압입구간'){
