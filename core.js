@@ -1,5 +1,5 @@
 /* ===== 대원항업 탱고 GIS 공통 엔진 (core.js) — BUILD 789 ===== */
-var BUILD='791';
+var BUILD='792';
 try{var _bn=document.getElementById('buildno');if(_bn)_bn.textContent='BUILD '+BUILD;}catch(e){}
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
@@ -7315,45 +7315,14 @@ setModeUI();setStatusUI();initSb();updMeta();toast('CSV 업로드 또는 상단�
 
 
 /* ===== [BUILD 791] 사업 잠금: 공정별 같은 사업 동시열기 방지 ===== */
-var STAFF=[{dept:'관리자',admin:true,people:[['이종훈','실장'],['송규헌','차장']]},{dept:'총무부',people:[['조윤미','차장'],['황현희','과장']]},{dept:'사업관리',people:[['남윤지','과장'],['조은주','과장'],['선한슬','주임']]},{dept:'사업관리(현장)',people:[['박영범','과장'],['최진복','과장'],['황창하','대리'],['김경호','대리']]},{dept:'측량부',people:[['이형석','상무'],['라상윤','대리'],['김민재','대리'],['서재형','대리'],['이찬규','대리'],['김도현','주임'],['이윤용','주임'],['조성준','주임'],['정세호','주임'],['곽귀민','사원'],['지현우','사원']]},{dept:'측량부(DB)',people:[['김성한','부장'],['채청민','사원']]}];
+
 var LOCK_TABLE='applock', LOCK_TTL=90000, LOCK_BEAT=30000;
-var ME=(function(){try{return localStorage.getItem('workerName')||'';}catch(e){return '';}})();
+
 var _myLock=null, _lockTimer=null;
 
-function setWorker(n){ME=n||'';try{localStorage.setItem('workerName',ME);}catch(e){}updWorkerChip();}
-function updWorkerChip(){
-  var c=document.getElementById('workerChip');
-  if(!c){var h=document.querySelector('header');if(!h)return;
-    c=document.createElement('button');c.id='workerChip';c.className='wk';
-    c.style.cssText='margin-left:auto;background:#eef4ff;border:1px solid #9bb8e8;color:#1f4e9e;font-weight:700;border-radius:8px;padding:5px 11px';
-    c.onclick=pickWorker;h.appendChild(c);}
-  c.textContent='\uD83D\uDC64 '+(ME||'\uc791\uc5c5\uc790 \uc120\ud0dd');
-}
-function pickWorker(){
-  if(document.getElementById('_wkOv'))return;
-  var admG=null, empG=[];
-  STAFF.forEach(function(g){ if(g.admin) admG=g; else empG.push(g); });
-  var adm=(admG?admG.people:[]).map(function(p){return '<option value="'+p[0]+'">'+p[0]+' '+p[1]+'</option>';}).join('');
-  var emp=empG.map(function(g){return '<optgroup label="'+g.dept+'">'+g.people.map(function(p){return '<option value="'+p[0]+'">'+p[0]+' '+p[1]+'</option>';}).join('')+'</optgroup>';}).join('');
-  var ov=document.createElement('div');ov.id='_wkOv';
-  ov.style.cssText='position:fixed;inset:0;background:#8f8f8f;z-index:99999;display:flex;align-items:center;justify-content:center;font-family:inherit';
-  var box=document.createElement('div');
-  box.style.cssText='background:#fff;border-radius:16px;padding:30px 34px;width:300px;box-shadow:0 18px 50px rgba(0,0,0,.28)';
-  box.innerHTML=
-    '<div style="text-align:center;font-weight:800;font-size:19px;letter-spacing:3px;color:#1f2d3d;margin-bottom:3px">\u5927\u539f\u822a\u696d</div>'+
-    '<div style="text-align:center;font-size:11px;color:#9aa4b0;margin-bottom:20px">\ud6c4\uce21\ub7c9\u00b7\ud0f1\uace0 GIS \uc2dc\uc2a4\ud15c</div>'+
-    '<div style="text-align:center;font-weight:800;font-size:16px;color:#1f2d3d;margin-bottom:2px">\uc811\uc18d \uacc4\uc815 \uc120\ud0dd</div>'+
-    '<div style="text-align:center;font-size:12px;color:#9aa4b0;margin-bottom:16px">\uc811\uc18d\ud560 \uacc4\uc815\uc744 \uc120\ud0dd\ud574 \uc8fc\uc138\uc694</div>'+
-    '<select id="_wkAdm" style="width:100%;box-sizing:border-box;font-size:14px;padding:9px;border:1px solid #cfd8e8;border-radius:9px;background:#eef4ff;margin-bottom:8px"><option value="">\u2014 \uad00\ub9ac\uc790 \uc120\ud0dd \u2014</option>'+adm+'</select>'+
-    '<button id="_wkAdmOk" style="width:100%;background:#16a37a;color:#fff;border:0;border-radius:9px;padding:11px;font-weight:800;font-size:14px;cursor:pointer">\uD83D\uDD12 \uad00\ub9ac\uc790\ub85c \uc811\uc18d</button>'+
-    '<div style="display:flex;align-items:center;gap:8px;margin:16px 0;color:#b8c0c8;font-size:11px"><span style="flex:1;height:1px;background:#e8ebee"></span>\ub610\ub294 \uc9c1\uc6d0\uc73c\ub85c \uc811\uc18d<span style="flex:1;height:1px;background:#e8ebee"></span></div>'+
-    '<select id="_wkEmp" style="width:100%;box-sizing:border-box;font-size:14px;padding:9px;border:1px solid #ccc;border-radius:9px;margin-bottom:8px"><option value="">\u2014 \uc9c1\uc6d0 \uc120\ud0dd \u2014</option>'+emp+'</select>'+
-    '<button id="_wkEmpOk" style="width:100%;background:#eef0f3;color:#333;border:1px solid #dfe3e8;border-radius:9px;padding:11px;font-weight:800;font-size:14px;cursor:pointer">\uD83D\uDC64 \uc9c1\uc6d0/\ud300\uc7a5\uc73c\ub85c \uc811\uc18d</button>';
-  ov.appendChild(box);document.body.appendChild(ov);
-  function done(v){ if(!v)return; setWorker(v); document.body.removeChild(ov); }
-  box.querySelector('#_wkAdmOk').onclick=function(){ var v=box.querySelector('#_wkAdm').value; if(!v){alert('\uad00\ub9ac\uc790\ub97c \uc120\ud0dd\ud558\uc138\uc694');return;} done(v); };
-  box.querySelector('#_wkEmpOk').onclick=function(){ var v=box.querySelector('#_wkEmp').value; if(!v){alert('\uc9c1\uc6d0\uc744 \uc120\ud0dd\ud558\uc138\uc694');return;} done(v); };
-}
+
+
+
 
 function _lockRelease(){
   if(!_myLock)return; var L=_myLock; _myLock=null;
@@ -7396,5 +7365,5 @@ function loadProject(id,ro,cb){
 }
 
 try{ window.addEventListener('beforeunload', function(){ _lockRelease(); }); }catch(e){}
-try{ updWorkerChip(); if(!ME) setTimeout(pickWorker, 400); }catch(e){}
+
 /* ===== 잠금 모듈 끝 ===== */
