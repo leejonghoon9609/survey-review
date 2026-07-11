@@ -1,5 +1,5 @@
 /* ===== 대원항업 탱고 GIS 공통 엔진 (core.js) — BUILD 789 ===== */
-var BUILD='789';
+var BUILD='790';
 try{var _bn=document.getElementById('buildno');if(_bn)_bn.textContent='BUILD '+BUILD;}catch(e){}
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
@@ -5707,7 +5707,7 @@ function refreshProjects(){ if(!online)return;
     if(typeof refreshDoneProjects==='function')refreshDoneProjects();
   });
 }
-function saveProject(cb){
+function saveProject(cb){ if(readOnly){if(typeof cb==='function')cb();return;}
   var payload={points:(state._pointsOrig||state.points),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:state.finalCsv||null,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
   if(!state.projectName){toast('사업명을 먼저 정하세요(새 사업)');return;}
   payload.stage=STAGE;
@@ -5737,7 +5737,7 @@ function pickProject(id){ if(!id)return;
     });
   });
 }
-function loadProject(id,ro,cb){ if(!online||!id)return; setReadOnly(!!ro);state._tgCmpRemote=null;state._tgCmpRemoteOrig=null;
+function _loadProjectRaw(id,ro,cb){ if(!online||!id)return; setReadOnly(!!ro);state._tgCmpRemote=null;state._tgCmpRemoteOrig=null;
   sb.from(DB+'_projects').select('*').eq('id',id).single().then(function(res){
     if(res.error||!res.data){toast('불러오기 실패');return;}if(typeof _tgStageBackup==='function'&&state.tgStore&&(state._pointsOrig||state._linesOrig||state._depthOrig))_tgStageBackup();if(typeof _tgStageOut==='function')_tgStageOut();var _xp=document.getElementById('tangoPanel');if(_xp)_xp.style.display='none';var _xi=document.getElementById('tgInfoPanel');if(_xi)_xi.style.display='none';if(typeof tgPanelLayout==='function')tgPanelLayout(false);if(typeof tgUpdateBtn==='function')tgUpdateBtn(false);if(typeof tgSeg!=='undefined')tgSeg=-1;if(typeof _segFix!=='undefined')_segFix=null;if(typeof _tgSegs!=='undefined')_tgSegs=null;if(typeof mode!=='undefined'&&mode&&mode.indexOf('tg')===0){mode='pan';if(typeof setModeUI==='function')setModeUI();}state.tgSegLabelOff={};['tgSegHLG','tgSegHLF','tgSegHL'].forEach(function(_xid){var _xe=document.getElementById(_xid);if(_xe)_xe.remove();});
     var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;state.loadedStage=p.stage||'survey';state._importSrc=[];
@@ -6488,7 +6488,7 @@ function openDoneList(){
 }
 function tgArchiveSet(id,arch,card){if(!online)return;sb.from(DB+'_projects').select('payload').eq('id',id).single().then(function(r){var pl=(r.data&&r.data.payload)||{};pl.tangoArchived=arch;sb.from(DB+'_projects').update({payload:pl}).eq('id',id).then(function(){if(card)card.remove();openDoneList();toast(arch?'완료목록에서 제거됨 (삭제목록으로 이동)':'완료목록으로 복원됨');});});}
 var _dlb=document.getElementById('doneListBtn');if(_dlb){if(IS_TANGO){_dlb.onclick=function(){openImportList('both');};_dlb.textContent='📥 결선/현장 완료목록';}else{_dlb.onclick=openDoneList;}}
-var _rob=document.getElementById('roBadge');if(_rob)_rob.onclick=function(){if(readOnly&&state.projectId){setReadOnly(false);var ps=document.getElementById('proj');if(ps)ps.value=state.projectId;toast('수정 가능 모드로 전환 (사업 선택)');}};
+var _rob=document.getElementById('roBadge');if(_rob)_rob.onclick=function(){if(state._foreignLock){_lockTry(state.projectId,function(ok,holder){if(ok){state._foreignLock=null;setReadOnly(false);var _ps=document.getElementById('proj');if(_ps)_ps.value=state.projectId;toast('편집 모드로 전환');}else{toast('아직 '+holder+'님이 편집 중');}});return;}if(readOnly&&state.projectId){setReadOnly(false);var ps=document.getElementById('proj');if(ps)ps.value=state.projectId;toast('수정 가능 모드로 전환 (사업 선택)');}};
 (function(){if(IS_FIELD){setViewer(true);return;}if(IS_TANGO){var saved=null;try{saved=localStorage.getItem('viewMode');}catch(e){}setViewer(saved!=null?(saved==='1'):isMobileDevice());return;}setViewer(false);})();
 /* 페이지 분리 — 이동은 랜딩에서. 결선/현장은 모드이동버튼 제거(탱고 in-page 토글만 유지), 시스템이동버튼은 전 페이지 제거 */
 (function(){var mt=document.getElementById('modeToggle');if(mt)mt.remove();var ss=document.getElementById('sysSwitch');if(ss)ss.remove();})();
@@ -7312,3 +7312,77 @@ window.addEventListener('keydown',function(e){
 document.getElementById('recClear').onclick=function(){if(!state.markups.length){toast('삭제할 검수 기록이 없습니다');return;}state.markups.forEach(function(r){if(r.el)r.el.remove();});state.markups=[];renderRecs();toast('검수 기록 전체 삭제');};
 
 setModeUI();setStatusUI();initSb();updMeta();toast('CSV 업로드 또는 상단에서 현장을 선택하세요');
+
+
+/* ===== [BUILD 790] 사업 잠금: 공정별 같은 사업 동시열기 방지 ===== */
+var WORKERS=["\uc774\uc885\ud6c8","\uc870\uc724\ubbf8","\uc1a1\uaddc\ud5cc","\ud669\ud604\ud76c","\ubc15\uc601\ubc94","\ub77c\uc0c1\uc724","\uae40\ubbfc\uc7ac","\ud669\ucc3d\ud558","\uc11c\uc7ac\ud615","\uc774\ucc2c\uaddc","\uae40\ub3c4\ud604","\ucd5c\uc9c4\ubcf5","\uc774\uc724\uc6a9","\uc870\uc131\uc900","\uc120\ud55c\uc2ac","\uad50\uadc0\ubbfc","\uae40\uc131\ud55c","\uc774\ud615\uc11d","\uc815\uc138\ud638","\uc9c0\ud604\uc6b0","\ub0a8\uc724\uc9c0","\uae40\uacbd\ud638","\uc870\uc740\uc8fc","\ucc44\uccad\ubbfc"];
+var LOCK_TABLE='applock', LOCK_TTL=90000, LOCK_BEAT=30000;
+var ME=(function(){try{return localStorage.getItem('workerName')||'';}catch(e){return '';}})();
+var _myLock=null, _lockTimer=null;
+
+function setWorker(n){ME=n||'';try{localStorage.setItem('workerName',ME);}catch(e){}updWorkerChip();}
+function updWorkerChip(){
+  var c=document.getElementById('workerChip');
+  if(!c){var h=document.querySelector('header');if(!h)return;
+    c=document.createElement('button');c.id='workerChip';c.className='wk';
+    c.style.cssText='margin-left:auto;background:#eef4ff;border:1px solid #9bb8e8;color:#1f4e9e;font-weight:700;border-radius:8px;padding:5px 11px';
+    c.onclick=pickWorker;h.appendChild(c);}
+  c.textContent='\uD83D\uDC64 '+(ME||'\uc791\uc5c5\uc790 \uc120\ud0dd');
+}
+function pickWorker(){
+  if(document.getElementById('_wkOv'))return;
+  var ov=document.createElement('div');ov.id='_wkOv';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:99999;display:flex;align-items:center;justify-content:center';
+  var box=document.createElement('div');
+  box.style.cssText='background:#fff;border-radius:14px;padding:22px 24px;min-width:260px;box-shadow:0 12px 40px rgba(0,0,0,.25);font-family:inherit';
+  var opts=WORKERS.map(function(w){return '<option'+(w===ME?' selected':'')+'>'+w+'</option>';}).join('');
+  box.innerHTML='<div style="font-size:16px;font-weight:800;margin-bottom:12px">\uc791\uc5c5\uc790 \uc120\ud0dd</div>'+
+    '<select id="_wkSel" style="width:100%;font-size:15px;padding:8px;border:1px solid #ccc;border-radius:8px"><option value="">\u2014 \uc774\ub984 \uc120\ud0dd \u2014</option>'+opts+'</select>'+
+    '<div style="text-align:right;margin-top:16px"><button id="_wkOk" style="background:#1f6fd6;color:#fff;border:0;border-radius:8px;padding:8px 18px;font-weight:700;cursor:pointer">\ud655\uc778</button></div>';
+  ov.appendChild(box);document.body.appendChild(ov);
+  box.querySelector('#_wkOk').onclick=function(){var v=box.querySelector('#_wkSel').value;if(!v)return;setWorker(v);document.body.removeChild(ov);};
+}
+
+function _lockRelease(){
+  if(!_myLock)return; var L=_myLock; _myLock=null;
+  if(_lockTimer){clearInterval(_lockTimer);_lockTimer=null;}
+  try{sb.from(LOCK_TABLE).delete().eq('stage',L.stage).eq('project_id',L.pid).eq('holder',ME).then(function(){},function(){});}catch(e){}
+}
+function _lockBeat(){
+  if(!_myLock)return;
+  try{sb.from(LOCK_TABLE).update({ts:new Date().toISOString()}).eq('stage',_myLock.stage).eq('project_id',_myLock.pid).eq('holder',ME).then(function(){},function(){});}catch(e){}
+}
+/* cb(ok, holder). 테이블 미설정/오류 시 fail-open(ok=true) — 절대 못 열게 하지 않음 */
+function _lockTry(id, cb){
+  if(!id){cb(true,ME);return;}
+  var pid=String(id), q;
+  try{ q=sb.from(LOCK_TABLE).select('*').eq('stage',STAGE).eq('project_id',pid).limit(1); }
+  catch(e){ cb(true,ME); return; }
+  q.then(function(res){
+    if(res&&res.error){ cb(true,ME); return; }
+    var row=res&&res.data&&res.data[0], now=Date.now();
+    var free = !row || !row.ts || row.holder===ME || (now-new Date(row.ts).getTime()>LOCK_TTL);
+    if(!free){ cb(false, row.holder||'\ub2e4\ub978 \uc0ac\uc6a9\uc790'); return; }
+    sb.from(LOCK_TABLE).upsert({stage:STAGE,project_id:pid,holder:ME||'(\ubbf8\uc9c0\uc815)',ts:new Date().toISOString()}).then(function(r2){
+      if(r2&&r2.error){ cb(true,ME); return; }
+      _myLock={stage:STAGE,pid:pid};
+      if(_lockTimer)clearInterval(_lockTimer); _lockTimer=setInterval(_lockBeat,LOCK_BEAT);
+      cb(true,ME);
+    }, function(){ cb(true,ME); });
+  }, function(){ cb(true,ME); });
+}
+
+/* loadProject 잠금 래퍼 (원본=_loadProjectRaw) */
+function loadProject(id,ro,cb){
+  if(!online||!id)return;
+  if(ro===true){ state._foreignLock=null; _loadProjectRaw(id,true,cb); return; }
+  _lockRelease();
+  _lockTry(id,function(ok,holder){
+    if(ok){ state._foreignLock=null; _loadProjectRaw(id,false,cb); }
+    else{ state._foreignLock=holder; _loadProjectRaw(id,true,function(){ toast('\uD83D\uDD12 '+holder+'\ub2d8\uc774 \ud3b8\uc9d1 \uc911 \u2014 \uc77d\uae30 \uc804\uc6a9'); if(typeof cb==='function')cb(); }); }
+  });
+}
+
+try{ window.addEventListener('beforeunload', function(){ _lockRelease(); }); }catch(e){}
+try{ updWorkerChip(); if(!ME) setTimeout(pickWorker, 400); }catch(e){}
+/* ===== 잠금 모듈 끝 ===== */
