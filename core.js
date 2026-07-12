@@ -1,5 +1,5 @@
 /* ===== 대원항업 탱고 GIS 공통 엔진 (core.js) — BUILD 789 ===== */
-var BUILD='804';
+var BUILD='805';
 try{var _bn=document.getElementById('buildno');if(_bn)_bn.textContent='BUILD '+BUILD;}catch(e){}
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
@@ -1391,13 +1391,13 @@ function drawMarks(){ clearSvg(gMark); clearLabels('mk');
   state.markups.forEach(function(m){
     var insp=(m.near==='관공수'||m.near==='중복'||m.near==='끝점'); // 검수 오류 서클(자동검출)
     var sh=m.type==='cir'?el('ellipse',{cx:m.cx,cy:m.cy,rx:m.rx,ry:m.ry}):el('rect',{x:m.x,y:m.y,width:m.w,height:m.h,rx:0.4});
-    var fillCol=m.soft?'#ffb74d':(insp?'#f4c400':MKCOL[m.status]); var strokeCol=m.soft?'#f57c00':MKCOL[m.status];
-    sh.setAttribute('fill',fillCol);sh.setAttribute('fill-opacity',insp?0.25:0.13);sh.setAttribute('stroke',strokeCol);sh.setAttribute('stroke-width',2);sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');
+    var fillCol=m.soft?'#ffb74d':(insp?'#f4c400':MKCOL[m.status]); var strokeCol=m.soft?'#f57c00':(m.near==='특이사항'?'#ffcc00':MKCOL[m.status]);
+    sh.setAttribute('fill',fillCol);sh.setAttribute('fill-opacity',insp?0.25:0.13);sh.setAttribute('stroke',strokeCol);sh.setAttribute('stroke-width',m.near==='특이사항'?3.2:2);sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');
     gMark.appendChild(sh); m.el=sh;
     if(m.seg){var ln=el('line',{x1:m.seg[0][0],y1:m.seg[0][1],x2:m.seg[1][0],y2:m.seg[1][1],stroke:'#16a34a','stroke-width':2.6,'stroke-dasharray':'6 4','stroke-linecap':'butt','vector-effect':'non-scaling-stroke','pointer-events':'none'});gMark.appendChild(ln);} // 20m 초과 구간 = 초록 점선
     if(m.num!=null&&m.num!=='')mkLabel(m.cx, m.cy, String(m.num), {fill:m.soft?'#f57c00':'#c0392b',weight:'800',anchor:'middle',grp:'mk',px:15}); // 오류 번호(써클 중앙) — 써클 지우면 같이 사라짐
     if(m.near==='중복'&&m.cnt){mkLabel(m.cx, m.cy-(m.ry||0.7)-0.35, m.cnt+'선', {fill:'#d32f2f',weight:'700',anchor:'middle',grp:'mk',px:14});}
-    if(m.near==='특이사항'&&m.note){var _pd=(typeof nearestPipeDir==='function'&&nearestPipeDir(m.cx,m.cy,999))||[0,1,0];var _off=(m.rx||1.4)+0.9;var _tx=m.cx+_pd[0]*_off, _ty=m.cy+_pd[1]*_off;var _anc=_pd[0]>=0?'start':'end';mkLabel(_tx, _ty, m.note, {fill:'#d32f2f',weight:'800',anchor:_anc,grp:'mk',px:16});}
+    if(m.near==='특이사항'&&m.note){var _pd=(typeof nearestPipeDir==='function'&&nearestPipeDir(m.cx,m.cy,999))||[0,1,0];var _off=(m.rx||1.4)+0.9;var _tx=m.cx+_pd[0]*_off, _ty=m.cy+_pd[1]*_off;var _anc=_pd[0]>=0?'start':'end';mkLabel(_tx, _ty, m.note, {fill:'#d32f2f',weight:'800',anchor:_anc,grp:'mk',px:32});}
   });
   renderRecs();
 }
@@ -6330,7 +6330,7 @@ function isMobileDevice(){var t=(navigator.maxTouchPoints||0)>0||('ontouchstart'
 function setViewer(v){viewerMode=!!v;document.body.classList.toggle('viewer',viewerMode);var b=document.getElementById('modeToggle');if(b)b.textContent=IS_FIELD?'💻 후측량 결선':(IS_TANGO?(viewerMode?'📱 현장':'💻 결선'):'📱 측량(현장)');try{if(IS_TANGO)localStorage.setItem('viewMode',viewerMode?'1':'0');}catch(e){}
   if(viewerMode&&noteMode){} 
   setTimeout(function(){fixAspect();applyVB();if(bgMapOn&&bgmap){try{bgmap.relayout();}catch(e){}}if(typeof drawGeo==='function'){drawGeo();drawMarks();drawManholes();highlightSel();}},80);}
-function toggleNoteMode(){noteMode=!noteMode;var b=document.getElementById('vNote2');if(b)b.classList.toggle('on',noteMode);cv.style.cursor=noteMode?'crosshair':'';toast(noteMode?'특이사항: 빈 곳을 탭해 추가 · 표시를 끌어 이동 · 더블탭=수정/삭제':'특이사항 종료');}
+function toggleNoteMode(){noteMode=!noteMode;var b=document.getElementById('vNote2');if(b)b.classList.toggle('on',noteMode);cv.style.cursor=noteMode?'crosshair':'';toast(noteMode?'특이사항: 빈 곳을 탭해 추가(한 번 쓰면 종료) · 기존 특이사항 탭=수정/삭제':'특이사항 종료');}
 function openNoteEdit(i){
   var m=state.markups[i];if(!m)return;
   var card=showModal({title:'⚠ 특이사항',tone:'warn',
@@ -6343,13 +6343,18 @@ function openNoteEdit(i){
   var ta=card.querySelector('#noteEditTa');if(ta){ta.value=m.note||'';setTimeout(function(){try{ta.focus();}catch(e){}},60);}
 }
 function noteAutoSave(){if(online&&state.projectName){saveProject();}else{toast('특이사항 추가됨 — 온라인 연결 시 저장됩니다');}}
+function noteModeOff(){noteMode=false;var _b=document.getElementById('vNote2');if(_b)_b.classList.remove('on');try{cv.style.cursor='';}catch(e){}}
 function addNote(clientX,clientY){
   var w=toWorld(clientX,clientY),tol=pxToWorld()*16,hit=-1;
   for(var i=0;i<state.markups.length;i++){var m=state.markups[i];if(m.near==='특이사항'&&Math.hypot(m.cx-w[0],m.cy-w[1])<((m.rx||1.2)+tol)){hit=i;break;}}
-  if(hit>=0){var nv=prompt('특이사항 수정 (비우면 삭제)',state.markups[hit].note||'');if(nv===null)return;if(nv.trim()===''){state.markups.splice(hit,1);}else{state.markups[hit].note=nv.trim();}drawMarks();noteAutoSave();return;}
-  var note=prompt('특이사항 멘트를 입력하세요');if(note===null||note.trim()==='')return;
-  state.markups.push({type:'cir',cx:w[0],cy:w[1],rx:2.8,ry:2.8,status:'bad',near:'특이사항',note:note.trim()});
-  drawMarks();noteAutoSave();
+  if(hit>=0){
+    if(confirm('이 특이사항을 삭제할까요?\n(확인=삭제 · 취소=텍스트 수정)')){state.markups.splice(hit,1);}
+    else{var nv=prompt('특이사항 수정 (비우면 삭제)',state.markups[hit].note||'');if(nv===null){noteModeOff();return;}if(nv.trim()===''){state.markups.splice(hit,1);}else{state.markups[hit].note=nv.trim();}}
+    drawMarks();noteAutoSave();noteModeOff();return;
+  }
+  var note=prompt('특이사항 멘트를 입력하세요');if(note===null||note.trim()===''){noteModeOff();return;}
+  state.markups.push({type:'cir',cx:w[0],cy:w[1],rx:4.2,ry:4.2,status:'bad',near:'특이사항',note:note.trim()});
+  drawMarks();noteAutoSave();noteModeOff();
 }
 bind('modeToggle',function(){if(IS_FIELD){location.href='survey.html';}else if(IS_TANGO){setViewer(!viewerMode);}else{if(confirm('측량(현장)으로 이동할까요? 저장 안 한 변경은 사라집니다.'))location.href='field.html';}});
 (function(){var hb=document.getElementById('homeBtn');if(hb)hb.onclick=function(){if(viewerMode||confirm('홈(랜딩)으로 이동할까요? 저장 안 한 변경은 사라집니다.'))location.href='index.html';};})();
