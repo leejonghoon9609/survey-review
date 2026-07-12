@@ -1,5 +1,5 @@
 /* ===== 대원항업 탱고 GIS 공통 엔진 (core.js) — BUILD 789 ===== */
-var BUILD='806';
+var BUILD='807';
 try{var _bn=document.getElementById('buildno');if(_bn)_bn.textContent='BUILD '+BUILD;}catch(e){}
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
@@ -1397,7 +1397,7 @@ function drawMarks(){ clearSvg(gMark); clearLabels('mk');
     if(m.seg){var ln=el('line',{x1:m.seg[0][0],y1:m.seg[0][1],x2:m.seg[1][0],y2:m.seg[1][1],stroke:'#16a34a','stroke-width':2.6,'stroke-dasharray':'6 4','stroke-linecap':'butt','vector-effect':'non-scaling-stroke','pointer-events':'none'});gMark.appendChild(ln);} // 20m 초과 구간 = 초록 점선
     if(m.num!=null&&m.num!=='')mkLabel(m.cx, m.cy, String(m.num), {fill:m.soft?'#f57c00':'#c0392b',weight:'800',anchor:'middle',grp:'mk',px:15}); // 오류 번호(써클 중앙) — 써클 지우면 같이 사라짐
     if(m.near==='중복'&&m.cnt){mkLabel(m.cx, m.cy-(m.ry||0.7)-0.35, m.cnt+'선', {fill:'#d32f2f',weight:'700',anchor:'middle',grp:'mk',px:14});}
-    if(m.near==='특이사항'&&m.note){var _pd=(typeof nearestPipeDir==='function'&&nearestPipeDir(m.cx,m.cy,999))||[0,1,0];var _off=(m.rx||1.4)+0.9;var _tx=m.cx+_pd[0]*_off, _ty=m.cy+_pd[1]*_off;var _anc=_pd[0]>=0?'start':'end';mkLabel(_tx, _ty, m.note, {fill:'#d32f2f',weight:'800',anchor:_anc,grp:'mk',px:32});}
+    if(m.near==='특이사항'&&m.note){var _pd=(typeof nearestPipeDir==='function'&&nearestPipeDir(m.cx,m.cy,999))||[0,1,0];var _off=(m.rx||1.4)+0.9;var _tx=m.cx+_pd[0]*_off, _ty=m.cy+_pd[1]*_off;var _anc=_pd[0]>=0?'start':'end';mkLabel(_tx, _ty, m.note, {fill:'#d32f2f',weight:'800',anchor:_anc,grp:'mk',px:Math.max(14,Math.min(28,1.2/((typeof pxToWorld==='function'&&pxToWorld())||0.06)))});}
   });
   renderRecs();
 }
