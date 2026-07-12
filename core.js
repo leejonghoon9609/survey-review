@@ -1,5 +1,5 @@
 /* ===== 대원항업 탱고 GIS 공통 엔진 (core.js) — BUILD 789 ===== */
-var BUILD='796';
+var BUILD='797';
 try{var _bn=document.getElementById('buildno');if(_bn)_bn.textContent='BUILD '+BUILD;}catch(e){}
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
@@ -7387,7 +7387,7 @@ function fieldLayerBar(){
   var cw=document.querySelector('.canvas-wrap'); if(!cw) return;
   if(getComputedStyle(cw).position==='static') cw.style.position='relative';
   var lw=document.getElementById('fldLayerWrap');
-  if(!lw){ lw=document.createElement('div'); lw.id='fldLayerWrap'; lw.style.cssText='position:absolute;right:10px;top:10px;z-index:20'; cw.appendChild(lw); }
+  if(!lw){ lw=document.createElement('div'); lw.id='fldLayerWrap'; lw.style.cssText='position:absolute;left:10px;top:10px;z-index:20'; cw.appendChild(lw); }
   lw.innerHTML=fldLayerBox();
   if(typeof applyLayerVis==='function') applyLayerVis();
 }
