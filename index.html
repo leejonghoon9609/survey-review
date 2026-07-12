@@ -124,6 +124,19 @@
     .app{flex-wrap:wrap}
     .app .go-r{margin-left:0}
   }
+
+/* ===== [BUILD 801] 포털 모바일 헤더 축소 ===== */
+@media(max-width:760px){
+  header{padding:7px 10px!important;gap:6px!important}
+  header img.logo{height:22px!important}
+  .brand{line-height:1.1!important}
+  .brand .ko{font-size:12px!important}
+  .clock{flex-direction:row!important;gap:5px!important;align-items:baseline!important}
+  .clock .t{font-size:11px!important}
+  .clock .d{font-size:10px!important;display:inline!important;color:var(--mut)!important}
+  .buildno{font-size:9px!important;padding:2px 6px!important}
+  #workerChip{font-size:10px!important;padding:3px 7px!important}
+}
 </style>
 </head>
 <body>
@@ -137,7 +150,7 @@
       <span class="t" id="clk">--:--</span>
       <span class="d" id="cdt">&nbsp;</span>
     </div>
-    <span class="buildno" id="buildno">BUILD 800</span>
+    <span class="buildno" id="buildno">BUILD 801</span>
   </header>
 
   <main class="wrap">
@@ -305,6 +318,6 @@
     tick(); setInterval(tick,1000*20);
   })();
 </script>
-<script src="login.js?v=800"></script>
+<script src="login.js?v=801"></script>
 </body>
 </html>
