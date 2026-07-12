@@ -1,5 +1,4 @@
 -- 대원항업 탱고 GIS — 사업 잠금 테이블 (BUILD 790~)
--- Supabase 대시보드 → SQL Editor 에 붙여넣고 한 번만 실행하세요.
 create table if not exists applock (
   stage text not null, project_id text not null, holder text,
   ts timestamptz default now(), primary key (stage, project_id)
