@@ -1,5 +1,5 @@
 /* ===== 대원항업 탱고 GIS 공통 엔진 (core.js) — BUILD 789 ===== */
-var BUILD='795';
+var BUILD='796';
 try{var _bn=document.getElementById('buildno');if(_bn)_bn.textContent='BUILD '+BUILD;}catch(e){}
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
@@ -5831,7 +5831,6 @@ var toolsOpen=false;try{toolsOpen=(localStorage.getItem('toolsOpen')==='1');}cat
 var LV_KEY='layerVis_'+STAGE;var LV=(function(){try{return JSON.parse(localStorage.getItem(LV_KEY))||{};}catch(e){return {};}})();['no','date','code','depth','mh','riser','hyun','bp','bpbox','selbox','tagbox'].forEach(function(k){if(LV[k]==null)LV[k]=1;});if(typeof IS_TANGO!=='undefined'&&!IS_TANGO&&(typeof IS_FIELD==='undefined'||!IS_FIELD)){['no','date','code','depth','mh','riser','hyun','bp','bpbox','selbox','tagbox'].forEach(function(k){LV[k]=1;});} /* 결선/현장: 레이어체크바와 무관하게 전부 표시(탱고 전용 기능) */function applyLayerVis(){var b=document.body;if(!b)return;['no','date','code','depth','mh','riser','hyun'].forEach(function(k){b.classList.toggle('hide-'+k,!LV[k]);});}function setLayerVis(k,on){LV[k]=on?1:0;try{localStorage.setItem(LV_KEY,JSON.stringify(LV));}catch(e){}if(k==='tgcmp'){var _isTTn=/_TT\d*$/.test(state.projectName||'');if(on&&online&&!_isTTn){_tgFetchRemoteCmp();}else if(!on){state._tgCmpRemote=null;state._tgCmpRemoteOrig=null;}}applyLayerVis();if(typeof drawGeo==='function')drawGeo();if(typeof tgDrawSegHL==='function'){if(LV.tgseg&&(typeof _tgSegs==='undefined'||!_tgSegs||!_tgSegs.length)&&typeof tangoBuildSegs==='function'){try{_tgSegs=tangoBuildSegs();}catch(e){}}if(typeof _tgSegs!=='undefined'&&_tgSegs&&_tgSegs.length)tgDrawSegHL(typeof tgSeg!=='undefined'?tgSeg:-1);}}
 function curCat(){for(var i=0;i<TB.length;i++)if(TB[i].k===activeCat)return TB[i];return TB[0];}
 function renderRail(){
-  if(typeof IS_FIELD!=='undefined'&&IS_FIELD){if(typeof fieldLayerBar==='function')fieldLayerBar();return;}
   var r=document.getElementById('rail'),html='';
   TB.forEach(function(c){
     var kb=keyForAction('cat:'+c.k),bdg=kb?'<span class="hk-badge">'+kb+'</span>':'';
@@ -7370,43 +7369,33 @@ try{ window.addEventListener('beforeunload', function(){ _lockRelease(); }); }ca
 /* ===== 잠금 모듈 끝 ===== */
 
 
-/* ===== [BUILD 795] 현장(field) 레이어 체크바 (왼쪽 rail, viewer에서도 표시) ===== */
-function fieldLayerBar(){
-  var r=document.getElementById('rail'); if(!r) return;
-  var defs=[['no','점번호'],['code','관정보'],['depth','심도'],['date','날짜'],['mh','맨홀 정보'],['riser','입상주'],['bp','보강판 측점'],['bpbox','보강판 박스'],['hyun','현황 측량(도로)'],['roadzone','도로면'],['photoDir','사진방향'],['depthchk','기준심도미달'],['surfacedot','도로/보도점'],['selbox','선택 표시'],['tagbox','태그 이동 범위'],['tgseg','구간 색칠']];
-  defs.forEach(function(d){ if(LV[d[0]]==null) LV[d[0]]=1; });
+/* ===== [BUILD 796] 현장(field) 레이어 패널 (도면 위 떠있는 접이식) ===== */
+function fldLayerBox(){
+  var ALL=['no','code','depth','date','mh','riser','bp','bpbox','hyun','roadzone','photoDir','depthchk','surfacedot','selbox','tagbox','tgseg'];
+  ALL.forEach(function(k){ if(LV[k]==null) LV[k]=1; });
   try{ localStorage.setItem(LV_KEY,JSON.stringify(LV)); }catch(e){}
-  var open=(function(){try{return localStorage.getItem('fldBarOpen')!=='0';}catch(e){return true;}})();
-  r.style.width=open?'205px':'36px';
-  r.style.padding=open?'8px':'6px 4px';
-  r.style.overflowY='auto';
-  if(!open){
-    r.innerHTML='<button id="fldBarTgl" title="표시 항목 열기" style="border:1px solid #ccc;background:#f7f7f7;border-radius:6px;font-size:13px;padding:8px 3px;cursor:pointer;writing-mode:vertical-rl;font-weight:700">표시 ▸</button>';
-  }else{
-    var chks=defs.map(function(d){
-      return '<label class="lvchk" style="display:flex;align-items:center;gap:6px;font-size:12px;padding:3px 5px;cursor:pointer;border-radius:5px"><input type="checkbox" data-lv="'+d[0]+'" onchange="setLayerVis(\''+d[0]+'\',this.checked)"'+(LV[d[0]]?' checked':'')+'>'+d[1]+'</label>';
-    }).join('');
-    r.innerHTML=
-      '<div style="display:flex;align-items:center;justify-content:space-between;padding:2px 4px 7px;border-bottom:1px solid #eee;margin-bottom:4px">'+
-        '<span style="font-weight:800;font-size:13px;color:#333">표시 항목</span>'+
-        '<button id="fldBarTgl" style="border:1px solid #ccc;background:#f7f7f7;border-radius:6px;font-size:11px;padding:2px 8px;cursor:pointer">숨기기</button>'+
-      '</div>'+chks;
-  }
-  var tgl=document.getElementById('fldBarTgl');
-  if(tgl) tgl.onclick=function(){
-    try{ localStorage.setItem('fldBarOpen', open?'0':'1'); }catch(e){}
-    fieldLayerBar();
-  };
+  var defs=[['no','점번호'],['code','관정보'],['depth','심도'],['date','날짜'],['mh','맨홀 정보'],['riser','입상주'],['bp','보강판 측점'],['bpbox','보강판 박스'],['photoDir','사진방향']];
+  var open=(function(){try{return localStorage.getItem('fldLayerOpen')!=='0';}catch(e){return true;}})();
+  var h='<div style="border:1px solid #f1c40f;border-radius:8px;padding:6px 10px;background:#fffdf5;box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:92px">';
+  h+='<div onclick="fldLayerToggleOpen()" style="font-weight:700;font-size:12px;color:#0a3ea0;cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none'+(open?';margin-bottom:5px':'')+'">레이어 <span style="font-size:9px">'+(open?'▼':'▶')+'</span></div>';
+  if(open){ defs.forEach(function(d){ h+='<label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:2px 0;cursor:pointer;white-space:nowrap"><input type="checkbox" data-tglv="'+d[0]+'"'+(LV[d[0]]?' checked':'')+' onchange="fldLayerToggle(this)">'+d[1]+'</label>'; }); }
+  return h+'</div>';
+}
+function fldLayerToggle(inp){ if(typeof setLayerVis==='function') setLayerVis(inp.getAttribute('data-tglv'),inp.checked); }
+function fldLayerToggleOpen(){ var cur=true; try{cur=(localStorage.getItem('fldLayerOpen')!=='0');}catch(e){} try{localStorage.setItem('fldLayerOpen',cur?'0':'1');}catch(e){} var lw=document.getElementById('fldLayerWrap'); if(lw) lw.innerHTML=fldLayerBox(); }
+function fieldLayerBar(){
+  var cw=document.querySelector('.canvas-wrap'); if(!cw) return;
+  if(getComputedStyle(cw).position==='static') cw.style.position='relative';
+  var lw=document.getElementById('fldLayerWrap');
+  if(!lw){ lw=document.createElement('div'); lw.id='fldLayerWrap'; lw.style.cssText='position:absolute;right:10px;top:10px;z-index:20'; cw.appendChild(lw); }
+  lw.innerHTML=fldLayerBox();
   if(typeof applyLayerVis==='function') applyLayerVis();
 }
 try{
   if(typeof IS_FIELD!=='undefined'&&IS_FIELD){
-    var _fst=document.createElement('style');
-    _fst.textContent='body.viewer #rail{display:flex!important}body.readonly #rail{opacity:1!important;pointer-events:auto!important;filter:none!important}body.viewer .maincol{width:auto!important}';
-    document.head.appendChild(_fst);
     fieldLayerBar();
     setTimeout(function(){try{fieldLayerBar();}catch(e){}},700);
     setTimeout(function(){try{fieldLayerBar();}catch(e){}},2000);
   }
 }catch(e){}
-/* ===== 현장 체크바 끝 ===== */
+/* ===== 현장 레이어 패널 끝 ===== */
