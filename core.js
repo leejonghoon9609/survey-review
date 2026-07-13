@@ -7058,7 +7058,7 @@ function openCsvList(){
   ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};
   document.body.appendChild(ov);
 }
-document.getElementById('fCsv').addEventListener('change',function(e){var fs=e.target.files;if(regOpen())regAddCsvFiles(fs);else loadCsvFile(fs[0]);e.target.value='';});document.getElementById('fAft').addEventListener('change',function(e){[].forEach.call(e.target.files,function(f){loadAfterCsv(f);});e.target.value='';});
+document.getElementById('fCsv').addEventListener('change',function(e){var fs=e.target.files;if(regOpen()||IS_REALTIME)regAddCsvFiles(fs);else loadCsvFile(fs[0]);e.target.value='';});document.getElementById('fAft').addEventListener('change',function(e){[].forEach.call(e.target.files,function(f){loadAfterCsv(f);});e.target.value='';});
 function loadDxfFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){try{var _tt=decodeBuf(rd.result);var ln=parseDxfLines(_tt);ln.forEach(function(l){l.base=true;});state.lines=state.lines.filter(function(l){return !l.base;}).concat(ln);state.baseTexts=parseDxfTexts(_tt);drawGeo();fitView();updMeta();if(regOpen())updRegStatus();toast('수치지도 백판 '+ln.length+'개 라인 · '+state.baseTexts.length+'개 텍스트 로드');}catch(err){toast('DXF 파싱 오류');}};rd.readAsArrayBuffer(f);}
 document.getElementById('fDxf').addEventListener('change',function(e){loadDxfFile(e.target.files[0]);e.target.value='';});
 
