@@ -343,9 +343,9 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   header #rtTool{order:8!important;background:#fff!important;color:#333!important;border:1px solid #333!important;font-weight:800!important}
   body.rtrailopen header #rtTool{background:#333!important;color:#fff!important}
   header #photoBtn{order:9!important;display:inline-flex!important}
-  header #bgBtn{order:10!important;display:inline-flex!important}
+  header #bpToggle{order:10!important;display:inline-flex!important}
   /* 나머지 숨김 */
-  header #modeToggle,header #sysSwitch,header #viewerBar,header .vw,header #fldSave,header #fldDel,header #fldCsv,header #fldJoseo,header #fldManhole,header #fldImport,header #fldFinal,header #delProj,header #bpToggle,header #doneListBtn,header #asbuiltBtn,header #rvBtn,header #buildno,header #conn,header #tamsaBadge,header #globalbtns{display:none!important}
+  header #modeToggle,header #sysSwitch,header #viewerBar,header .vw,header #fldSave,header #fldDel,header #fldCsv,header #fldJoseo,header #fldManhole,header #fldImport,header #fldFinal,header #delProj,header #bgBtn,header #doneListBtn,header #asbuiltBtn,header #rvBtn,header #buildno,header #conn,header #tamsaBadge,header #globalbtns{display:none!important}
   /* rail: 슬라이드 오버레이(평소 숨김) */
   .stage{position:relative!important}
   #rail{position:fixed!important;left:0;top:0;bottom:0;width:250px!important;max-width:82vw!important;z-index:9000!important;transform:translateX(-104%);transition:transform .25s;box-shadow:2px 0 18px rgba(0,0,0,.3);overflow-y:auto!important}
@@ -360,6 +360,13 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   .maincol{flex:1 1 auto!important;min-height:0!important;width:100%!important;order:1!important}
   .photo-panel{width:100%!important;min-width:0!important;max-width:none!important;border-left:none!important;border-top:2px solid var(--line)!important;order:2!important}
   .photo-panel.open{display:flex!important;flex:0 0 46vh!important;height:46vh!important}
+}
+
+/* ===== [BUILD 825] 실시간 사진패널 헤더 한 줄 ===== */
+@media(max-width:760px){
+  .photo-panel .php-head{flex-wrap:nowrap!important;overflow-x:auto!important;gap:4px!important;padding:6px 8px!important;align-items:center!important}
+  .photo-panel .php-head button,.photo-panel .php-head select{font-size:10px!important;padding:3px 6px!important;white-space:nowrap!important;flex:none!important;border-radius:6px!important}
+  .photo-panel .php-head select{max-width:110px!important}
 }
 </style>
 </head>
@@ -396,7 +403,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 824</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 825</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -559,6 +566,6 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     </div>
   </div>
 
-<script src="login.js?v=824"></script><script src="core.js?v=824"></script>
+<script src="login.js?v=825"></script><script src="core.js?v=825"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>

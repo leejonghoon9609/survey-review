@@ -1,5 +1,5 @@
 /* ===== 대원항업 탱고 GIS 공통 엔진 (core.js) — BUILD 789 ===== */
-var BUILD='824';
+var BUILD='825';
 try{var _bn=document.getElementById('buildno');if(_bn)_bn.textContent='BUILD '+BUILD;}catch(e){}
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
@@ -7501,4 +7501,4 @@ function rtAddGps(no,lat,lon){
 /* ===== TM/GPS 끝 ===== */
 
 /* [BUILD 824] 실시간측량 모바일 헤더 라벨 축약 */
-try{if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){setTimeout(function(){var _pb=document.getElementById('photoBtn');if(_pb)_pb.textContent='\uD83D\uDCF7 \uC0AC\uC9C4';var _bb=document.getElementById('bgBtn');if(_bb)_bb.textContent='\uD83D\uDDFA \uC9C0\uB3C4';},400);}}catch(e){}
+try{if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){setTimeout(function(){var _pb=document.getElementById('photoBtn');if(_pb)_pb.textContent='\uD83D\uDCF7 \uC0AC\uC9C4';var _bb=document.getElementById('bpToggle');if(_bb)_bb.textContent='\uD83D\uDDFA \uC9C0\uB3C4';},400);}}catch(e){}
