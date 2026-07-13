@@ -1,5 +1,5 @@
 /* ===== 대원항업 탱고 GIS 공통 엔진 (core.js) — BUILD 789 ===== */
-var BUILD='815';
+var BUILD='816';
 try{var _bn=document.getElementById('buildno');if(_bn)_bn.textContent='BUILD '+BUILD;}catch(e){}
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
@@ -7411,10 +7411,36 @@ function rtCapture(){
   if(typeof online!=='undefined'&&!online){toast('로컬 모드 — 사진 저장 불가');return;}
   if(!state.projectId){toast('먼저 "저장"으로 사업을 저장한 뒤 촬영하세요');return;}
   var day=rtToday();var sug=rtNextNo(day);
-  var num=prompt('측점 번호 (오늘 '+day+')\n촬영할 측점 번호를 확인/수정하세요',String(sug));
-  if(num===null)return;num=(num||'').trim();if(!num)return;
-  rtPendingNo=day+'-'+num;
-  var inp=document.getElementById('rtCamInput');if(inp){inp.value='';inp.click();}
+  rtShowNumPopup(day,String(sug),function(num){
+    rtPendingNo=day+'-'+num;
+    var inp=document.getElementById('rtCamInput');if(inp){inp.value='';inp.click();}
+  });
+}
+function rtShowNumPopup(day,sug,onOk){
+  var old=document.getElementById('rtNumOv');if(old&&old.parentNode)old.parentNode.removeChild(old);
+  var ov=document.createElement('div');ov.id='rtNumOv';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(15,20,30,.5);z-index:100000;display:flex;align-items:center;justify-content:center';
+  var card=document.createElement('div');
+  card.style.cssText='background:#fff;border-radius:16px;width:300px;max-width:90vw;box-shadow:0 24px 70px rgba(0,0,0,.4);overflow:hidden';
+  card.innerHTML=
+    '<div style="height:6px;background:linear-gradient(90deg,#EA002C 0%,#FF7A00 55%,#FFC61A 100%)"></div>'+
+    '<div style="padding:22px 24px">'+
+      '<div style="font-weight:800;font-size:18px;color:#1f2d3d;margin-bottom:3px">\uD83D\uDCF7 \uCE21\uC810 \uCD2C\uC601</div>'+
+      '<div style="font-size:12px;color:#9aa4b0;margin-bottom:15px">\uC624\uB298 '+day+' \u00B7 \uCE21\uC810 \uBC88\uD638\uB97C \uD655\uC778/\uC218\uC815\uD558\uC138\uC694</div>'+
+      '<input id="rtNumInp" type="text" inputmode="numeric" value="'+sug+'" style="width:100%;box-sizing:border-box;font-size:22px;font-weight:800;text-align:center;padding:12px;border:2px solid #f0c9c9;border-radius:10px;color:#EA002C;outline:none;margin-bottom:16px">'+
+      '<div style="display:flex;gap:8px">'+
+        '<button id="rtNumCancel" style="flex:1;padding:12px;border:1px solid #dfe3e8;background:#f5f6f8;color:#333;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer">\uCDE8\uC18C</button>'+
+        '<button id="rtNumOk" style="flex:2;padding:12px;border:0;background:#EA002C;color:#fff;border-radius:10px;font-weight:800;font-size:15px;cursor:pointer">\uD83D\uDCF7 \uCD2C\uC601</button>'+
+      '</div>'+
+    '</div>';
+  ov.appendChild(card);document.body.appendChild(ov);
+  var inp=document.getElementById('rtNumInp');
+  setTimeout(function(){try{inp.focus();inp.select();}catch(e){}},60);
+  function close(){if(ov.parentNode)ov.parentNode.removeChild(ov);}
+  document.getElementById('rtNumCancel').onclick=close;
+  document.getElementById('rtNumOk').onclick=function(){var v=(inp.value||'').trim();if(!v){inp.focus();return;}close();onOk(v);};
+  inp.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('rtNumOk').click();}else if(e.key==='Escape'){close();}};
+  ov.onclick=function(e){if(e.target===ov)close();};
 }
 function rtCamPicked(inp){
   var f=inp&&inp.files&&inp.files[0];if(!f||!rtPendingNo)return;
