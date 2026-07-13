@@ -1455,7 +1455,7 @@ function drawBackdrop(){
 function fixAspect(){var r=cv.getBoundingClientRect();if(r.width<1||r.height<1)return;var car=r.width/r.height,cx=vb.x+vb.w/2,cy=vb.y+vb.h/2;if(vb.w/vb.h<car)vb.w=vb.h*car;else vb.h=vb.w/car;vb.x=cx-vb.w/2;vb.y=cy-vb.h/2;}
 function fitSoon(){var n=0;(function go(){var done=false;try{var r=cv.getBoundingClientRect();if(r.width>=1&&r.height>=1){fitView();requestAnimationFrame(function(){if(typeof drawGeo==='function')drawGeo();});done=true;}}catch(e){}if(!done&&n++<50)requestAnimationFrame(go);})();}
 function fitView(){
-  var xs=[],ys=[];function add(x,y){var s=S(x,y);xs.push(s[0]);ys.push(s[1]);}
+  var xs=[],ys=[];function add(x,y){if(!isFinite(x)||!isFinite(y))return;var s=S(x,y);xs.push(s[0]);ys.push(s[1]);}
   state.points.forEach(function(p){add(p.x,p.y);});
   state.lines.forEach(function(L){L.pts.forEach(function(p){add(p[0],p[1]);});});if(state.gpsPts)state.gpsPts.forEach(function(g){add(g.x,g.y);});
   if(!xs.length){vb={x:0,y:0,w:100,h:100};vb0={x:0,y:0,w:100,h:100};applyVB();return;}
