@@ -7010,6 +7010,7 @@ function regAddCsv(f,cb){if(!f){if(cb)cb();return;}var rd=new FileReader();rd.on
     if(!state.points)state.points=[];
     var nn={};pts.forEach(function(p){nn[p.no]=1;});
     state.points=state.points.filter(function(p){return !nn[p.no];}).concat(pts);
+    if(state.gpsPts&&state.gpsPts.length){var _nsc=state.nightShift,_cutc=(_nsc&&_nsc.on)?_nsc.cut:null;state.gpsPts=state.gpsPts.filter(function(g){var _wnoc=g.no;if(g._d0!=null&&g._nm!=null){var _dtc=g._d0;if(_cutc!=null&&g._tm!=null&&g._tm<_cutc)_dtc=prevDayYMD(g._d0);_wnoc=_dtc+'-'+g._nm;}return !(nn[g.no]||nn[_wnoc]);});}
     if(!state.projectName){state.projectName=f.name.replace(/\.[^.]+$/,'');var rn=document.getElementById('regName');if(rn&&!rn.value.trim())rn.value=state.projectName;}
     selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatus();
     toast('CSV "'+f.name+'" +'+pts.length+'개 (총 '+state.points.length+'개)');
