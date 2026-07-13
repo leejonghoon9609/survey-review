@@ -1457,7 +1457,7 @@ function fitSoon(){var n=0;(function go(){var done=false;try{var r=cv.getBoundin
 function fitView(){
   var xs=[],ys=[];function add(x,y){if(!isFinite(x)||!isFinite(y))return;var s=S(x,y);xs.push(s[0]);ys.push(s[1]);}
   state.points.forEach(function(p){add(p.x,p.y);});
-  state.lines.forEach(function(L){L.pts.forEach(function(p){add(p[0],p[1]);});});if(state.gpsPts)state.gpsPts.forEach(function(g){add(g.x,g.y);});
+  state.lines.forEach(function(L){L.pts.forEach(function(p){add(p[0],p[1]);});});if(state.gpsPts){var _haveF={};(state.points||[]).forEach(function(p){_haveF[p.no]=1;});var _nsF2=state.nightShift,_cutF2=(_nsF2&&_nsF2.on)?_nsF2.cut:null;state.gpsPts.forEach(function(g){var _wnoF2=g.no;if(g._d0!=null&&g._nm!=null){var _dtF2=g._d0;if(_cutF2!=null&&g._tm!=null&&g._tm<_cutF2)_dtF2=prevDayYMD(g._d0);_wnoF2=_dtF2+'-'+g._nm;}if(_haveF[g.no]||_haveF[_wnoF2])return;add(g.x,g.y);});}
   if(!xs.length){vb={x:0,y:0,w:100,h:100};vb0={x:0,y:0,w:100,h:100};applyVB();return;}
   var pad=5,minx=Math.min.apply(0,xs),maxx=Math.max.apply(0,xs),miny=Math.min.apply(0,ys),maxy=Math.max.apply(0,ys);
   vb0={x:minx-pad,y:miny-pad,w:(maxx-minx)+2*pad,h:(maxy-miny)+2*pad};
