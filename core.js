@@ -1,5 +1,5 @@
 /* ===== 대원항업 탱고 GIS 공통 엔진 (core.js) — BUILD 789 ===== */
-var BUILD='831';
+var BUILD='832';
 try{var _bn=document.getElementById('buildno');if(_bn)_bn.textContent='BUILD '+BUILD;}catch(e){}
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
@@ -7123,7 +7123,7 @@ function neighborsOf(sel){var selP=pointByNo(sel),up=null,down=null;if(!selP)ret
   if(nb.length){nb.forEach(function(q){if(q.y>selP.y){if(!up||q.y<up.y)up=q;}else{if(!down||q.y>down.y)down=q;}});}
   else{var ups=[],downs=[];state.points.forEach(function(q){if(q.no===sel)return;var d=Math.hypot(q.x-selP.x,q.y-selP.y);(q.y>selP.y?ups:downs).push({q:q,d:d});});ups.sort(function(a,b){return a.d-b.d;});downs.sort(function(a,b){return a.d-b.d;});if(ups[0])up=ups[0].q;if(downs[0])down=downs[0].q;}
   return {up:up,down:down};}
-function highlightSel(){clearSvg(gSel);if(selNum==null)return;var p=pointByNo(selNum);if(!p&&state.gpsPts){for(var _gi=0;_gi<state.gpsPts.length;_gi++){if(state.gpsPts[_gi].no===selNum){var _gg=state.gpsPts[_gi],_ggs=S(_gg.x,_gg.y);gSel.appendChild(el('circle',{cx:_ggs[0],cy:_ggs[1],r:1.1,fill:'none',stroke:'#22cc00','stroke-width':2.6,'stroke-dasharray':'3 2','vector-effect':'non-scaling-stroke'}));return;}}}if(!p)return;
+function highlightSel(){clearSvg(gSel);if(selNum==null)return;var p=pointByNo(selNum);if(!p&&state.gpsPts){for(var _gi=0;_gi<state.gpsPts.length;_gi++){if(state.gpsPts[_gi].no===selNum){var _gg=state.gpsPts[_gi],_ggs=S(_gg.x,_gg.y);gSel.appendChild(el('circle',{cx:_ggs[0],cy:_ggs[1],r:2.4,fill:'none',stroke:'#12b312','stroke-width':3.4,'stroke-dasharray':'5 3','vector-effect':'non-scaling-stroke'}));return;}}}if(!p)return;
   var nbs=neighborsOf(selNum);
   [nbs.up,nbs.down].forEach(function(q){if(q){var sy=S(q.x,q.y);gSel.appendChild(el('circle',{cx:sy[0],cy:sy[1],r:0.224,fill:'none',stroke:'#ffcc00','stroke-width':1.4,'vector-effect':'non-scaling-stroke'}));}});
   var s=S(p.x,p.y);gSel.appendChild(el('circle',{cx:s[0],cy:s[1],r:1.1,fill:'none',stroke:'#22cc00','stroke-width':2.4,'stroke-dasharray':'3 2','vector-effect':'non-scaling-stroke'}));}
@@ -7454,7 +7454,7 @@ function rtShowNumPopup(day,sug,onOk){
 function rtCamPicked(inp){
   var f=inp&&inp.files&&inp.files[0];if(!f||!rtPendingNo)return;
   var no=rtPendingNo;rtPendingNo=null;
-  if(navigator.geolocation){navigator.geolocation.getCurrentPosition(function(pos){rtAddGps(no,pos.coords.latitude,pos.coords.longitude);toast('측점 '+no+' 위치 표시(파란점)');},function(err){toast('⚠ 위치 못 받음(코드 '+(err&&err.code)+') — 파란점 생략');},{enableHighAccuracy:true,timeout:12000,maximumAge:0});}else{toast('⚠ 이 브라우저는 위치 미지원');}
+  if(navigator.geolocation){rtGetLoc(no);}else{toast('⚠ 이 브라우저는 위치 미지원');}
   toast('측점 '+no+' 사진 업로드 중…');
   compressImage(f,1280,0.7).then(function(blob){
     var path=state.projectId+'/'+safeName(no)+'.jpg';
@@ -7571,6 +7571,22 @@ function rtAddGps(no,lat,lon){
   }catch(e){}
 }
 function rtCenterOn(wx,wy){try{var _s=S(wx,wy);vb.x=_s[0]-vb.w/2;vb.y=_s[1]-vb.h/2;if(typeof applyVB==='function')applyVB();if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();if(typeof highlightSel==='function')highlightSel();}catch(e){}}
+function rtGetLoc(no){
+  if(!navigator.geolocation){toast('이 브라우저는 위치 미지원');return;}
+  // 1차: 빠른 저정밀(와이파이/기지국) — 실내·도심에서 잘 잡힘
+  navigator.geolocation.getCurrentPosition(function(pos){
+    rtAddGps(no,pos.coords.latitude,pos.coords.longitude);
+    toast('측점 '+no+' 위치 표시(파란점)');
+  },function(err1){
+    // 2차: 정밀(GPS) 재시도 — 넉넉한 타임아웃
+    navigator.geolocation.getCurrentPosition(function(pos){
+      rtAddGps(no,pos.coords.latitude,pos.coords.longitude);
+      toast('측점 '+no+' 위치 표시(파란점)');
+    },function(err2){
+      toast('⚠ 위치 못 받음 — 사진만 저장됨(나중에 CSV로 위치 표시)');
+    },{enableHighAccuracy:true,timeout:15000,maximumAge:0});
+  },{enableHighAccuracy:false,timeout:6000,maximumAge:60000});
+}
 /* ===== TM/GPS 끝 ===== */
 
 /* [BUILD 824] 실시간측량 모바일 헤더 라벨 축약 */
