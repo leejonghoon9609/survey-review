@@ -28,6 +28,7 @@
   .rail button{justify-content:flex-start;width:100%;padding:11px 12px;font-size:14px}
   .rail button.on{background:#eef6ef;border-color:var(--ok);color:var(--ok);font-weight:600}
   .rail .sep{height:1px;background:var(--line);margin:3px 1px}
+  #rtRailDim,#rtRailClose{display:none}
   .hk-badge{margin-left:auto;display:inline-block;background:transparent;color:#c0392b;border:1.5px solid #c0392b;font-size:10px;font-weight:800;padding:0 5px;border-radius:4px;min-width:16px;text-align:center;line-height:1.6}
   .sub-b .hk-badge{margin-left:6px}
   .hk-overlay{position:fixed;inset:0;background:rgba(20,20,18,.38);z-index:1000;display:flex;align-items:center;justify-content:center}
@@ -350,7 +351,10 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   .stage{position:relative!important}
   #rail{position:fixed!important;left:0;top:0;bottom:0;width:250px!important;max-width:82vw!important;z-index:9000!important;transform:translateX(-104%);transition:transform .25s;box-shadow:2px 0 18px rgba(0,0,0,.3);overflow-y:auto!important}
   body.rtrailopen #rail{transform:translateX(0)}
-  body.rtrailopen::before{content:"";position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:8999}
+  #rtRailDim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:8999}
+  #rtRailClose{position:fixed;top:8px;left:calc(min(250px,82vw) - 44px);z-index:9100;width:36px;height:36px;align-items:center;justify-content:center;border:0;border-radius:8px;background:#333;color:#fff;font-size:17px;font-weight:800;box-shadow:0 2px 8px rgba(0,0,0,.35);cursor:pointer}
+  body.rtrailopen #rtRailDim{display:block}
+  body.rtrailopen #rtRailClose{display:flex}
   .maincol{width:100%!important}
 }
 
@@ -403,12 +407,14 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 834</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 835</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
   <div class="stage">
     <div class="rail" id="rail"></div>
+    <div id="rtRailDim" onclick="document.body.classList.remove('rtrailopen')"></div>
+    <button id="rtRailClose" type="button" aria-label="닫기" onclick="document.body.classList.remove('rtrailopen')">✕</button>
     <div class="maincol">
       <div class="subbar" id="subbar"></div>
     <div class="canvas-wrap">
@@ -566,6 +572,6 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     </div>
   </div>
 
-<script src="login.js?v=834"></script><script src="core.js?v=834"></script>
+<script src="login.js?v=835"></script><script src="core.js?v=835"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
