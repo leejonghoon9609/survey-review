@@ -7573,7 +7573,11 @@ function rtAddGps(no,lat,lon){
   }catch(e){}
 }
 function rtCenterOn(wx,wy){try{var _s=S(wx,wy);vb.x=_s[0]-vb.w/2;vb.y=_s[1]-vb.h/2;if(typeof applyVB==='function')applyVB();if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();if(typeof highlightSel==='function')highlightSel();}catch(e){}}
+var _rtWatchId=null,_rtLastPos=null;
+function rtStartWatch(){if(!navigator.geolocation||_rtWatchId!=null)return;try{_rtWatchId=navigator.geolocation.watchPosition(function(pos){_rtLastPos={lat:pos.coords.latitude,lon:pos.coords.longitude,acc:pos.coords.accuracy,t:Date.now()};},function(e){},{enableHighAccuracy:true,timeout:20000,maximumAge:3000});}catch(e){}}
+function rtStopWatch(){if(_rtWatchId!=null&&navigator.geolocation){try{navigator.geolocation.clearWatch(_rtWatchId);}catch(e){}_rtWatchId=null;}}
 function rtGetLoc(no){
+  if(_rtLastPos&&(Date.now()-_rtLastPos.t)<12000){rtAddGps(no,_rtLastPos.lat,_rtLastPos.lon);if(typeof toast==='function')toast('측점 '+no+' 위치 표시(파란점)');return;}
   if(!navigator.geolocation){toast('이 브라우저는 위치 미지원');return;}
   // 1차: 빠른 저정밀(와이파이/기지국) — 실내·도심에서 잘 잡힘
   navigator.geolocation.getCurrentPosition(function(pos){
@@ -7592,4 +7596,4 @@ function rtGetLoc(no){
 /* ===== TM/GPS 끝 ===== */
 
 /* [BUILD 824] 실시간측량 모바일 헤더 라벨 축약 */
-try{if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){setTimeout(function(){var _pb=document.getElementById('photoBtn');if(_pb)_pb.textContent='\uD83D\uDCF7 \uC0AC\uC9C4';var _bb=document.getElementById('bgBtn');if(_bb)_bb.textContent='\uD83D\uDDFA \uC9C0\uB3C4';},400);}}catch(e){}
+try{if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){rtStartWatch();setTimeout(function(){var _pb=document.getElementById('photoBtn');if(_pb)_pb.textContent='\uD83D\uDCF7 \uC0AC\uC9C4';var _bb=document.getElementById('bgBtn');if(_bb)_bb.textContent='\uD83D\uDDFA \uC9C0\uB3C4';},400);}}catch(e){}
