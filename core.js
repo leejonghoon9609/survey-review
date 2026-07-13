@@ -1,5 +1,5 @@
 /* ===== 대원항업 탱고 GIS 공통 엔진 (core.js) — BUILD 789 ===== */
-var BUILD='830';
+var BUILD='831';
 try{var _bn=document.getElementById('buildno');if(_bn)_bn.textContent='BUILD '+BUILD;}catch(e){}
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
@@ -7565,11 +7565,12 @@ function rtAddGps(no,lat,lon){
     var found=false;
     for(var i=0;i<state.gpsPts.length;i++){if(state.gpsPts[i].no===no){state.gpsPts[i].x=px;state.gpsPts[i].y=py;found=true;break;}}
     if(!found)state.gpsPts.push({no:no,x:px,y:py});
-    if((!state.points||!state.points.length)&&(!state.lines||!state.lines.length)){if(typeof fitView==='function')fitView();}
+    var _nd=(!state.points||!state.points.length)&&(!state.lines||!state.lines.length);if(_nd&&state.gpsPts.length<=1){if(typeof fitView==='function')fitView();}else{rtCenterOn(px,py);}
     if(typeof drawGeo==='function')drawGeo();
     if(typeof saveProject==='function'){try{saveProject();}catch(_se){}}
   }catch(e){}
 }
+function rtCenterOn(wx,wy){try{var _s=S(wx,wy);vb.x=_s[0]-vb.w/2;vb.y=_s[1]-vb.h/2;if(typeof applyVB==='function')applyVB();if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();if(typeof highlightSel==='function')highlightSel();}catch(e){}}
 /* ===== TM/GPS 끝 ===== */
 
 /* [BUILD 824] 실시간측량 모바일 헤더 라벨 축약 */
