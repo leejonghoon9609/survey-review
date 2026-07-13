@@ -1,5 +1,5 @@
 /* ===== 대원항업 탱고 GIS 공통 엔진 (core.js) — BUILD 789 ===== */
-var BUILD='829';
+var BUILD='830';
 try{var _bn=document.getElementById('buildno');if(_bn)_bn.textContent='BUILD '+BUILD;}catch(e){}
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
@@ -7466,7 +7466,7 @@ function rtCamPicked(inp){
           if(typeof photoMap!=='undefined')photoMap[no]=url;
           if(typeof drawGeo==='function')drawGeo();
           if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();
-          toast('측점 '+no+' 사진 완료');if(typeof saveProject==='function'){try{saveProject();}catch(_se){}}
+          toast('측점 '+no+' 사진 완료');if(typeof saveProject==='function'){try{saveProject();}catch(_se){}}selNum=no;if(typeof highlightSel==='function')highlightSel();if(typeof photoPanelOpen!=='undefined'&&!photoPanelOpen&&typeof openPhotoPanel==='function')openPhotoPanel();var _psel=document.getElementById('photoSel');if(_psel)_psel.value=no;if(typeof refreshPhotoPanel==='function')refreshPhotoPanel();
         });
       });
     });
@@ -7482,8 +7482,8 @@ function rtDeletePoint(no){
   try{if(typeof photoMap!=='undefined'&&photoMap[no])delete photoMap[no];}catch(e){}
   try{if(typeof afterMap!=='undefined'&&afterMap[no])delete afterMap[no];}catch(e){}
   if(typeof online!=='undefined'&&online&&state.projectId){
-    try{sb.storage.from('photos').remove([state.projectId+'/'+safeName(no)+'.jpg']);}catch(e){}
-    try{sb.from(DB+'_photos').delete().eq('project_id',state.projectId).eq('point_no',no);}catch(e){}
+    try{sb.storage.from('photos').remove([state.projectId+'/'+safeName(no)+'.jpg']).then(function(){});}catch(e){}
+    try{sb.from(DB+'_photos').delete().eq('project_id',state.projectId).eq('point_no',no).then(function(){});}catch(e){}
   }
   if(String(selNum)===String(no)){selNum=null;if(typeof gSel!=='undefined'&&typeof clearSvg==='function')clearSvg(gSel);}
   if(typeof drawGeo==='function')drawGeo();
@@ -7534,7 +7534,7 @@ function rtEditNo(no){
   try{if(typeof photoMap!=='undefined'&&photoMap[no]){photoMap[newNo]=photoMap[no];delete photoMap[no];}}catch(e){}
   try{if(typeof afterMap!=='undefined'&&afterMap[no]){afterMap[newNo]=afterMap[no];delete afterMap[no];}}catch(e){}
   if(typeof online!=='undefined'&&online&&state.projectId){
-    try{sb.from(DB+'_photos').update({point_no:newNo}).eq('project_id',state.projectId).eq('point_no',no);}catch(e){}
+    try{sb.from(DB+'_photos').update({point_no:newNo}).eq('project_id',state.projectId).eq('point_no',no).then(function(r){if(r&&r.error){toast('사진 번호 이동 실패: '+r.error.message);}else{try{var _op=state.projectId+'/'+safeName(no)+'.jpg',_np=state.projectId+'/'+safeName(newNo)+'.jpg';sb.storage.from('photos').move(_op,_np).then(function(mv){if(!mv||!mv.error){var _u=sb.storage.from('photos').getPublicUrl(_np).data.publicUrl+'?t='+Date.now();if(typeof photoMap!=='undefined')photoMap[newNo]=_u;sb.from(DB+'_photos').update({url:_u}).eq('project_id',state.projectId).eq('point_no',newNo).then(function(){});if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();}});}catch(_me){}}});}catch(e){}
   }
   if(String(selNum)===String(no))selNum=newNo;
   if(typeof drawGeo==='function')drawGeo();
@@ -7567,6 +7567,7 @@ function rtAddGps(no,lat,lon){
     if(!found)state.gpsPts.push({no:no,x:px,y:py});
     if((!state.points||!state.points.length)&&(!state.lines||!state.lines.length)){if(typeof fitView==='function')fitView();}
     if(typeof drawGeo==='function')drawGeo();
+    if(typeof saveProject==='function'){try{saveProject();}catch(_se){}}
   }catch(e){}
 }
 /* ===== TM/GPS 끝 ===== */
