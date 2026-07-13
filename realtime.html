@@ -21,7 +21,7 @@
   select,input[type=text]{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink)}
   .conn{font-size:12px;padding:4px 8px;border-radius:6px;margin-left:auto}
   .conn.on{background:#eef6ef;color:var(--ok)} .conn.off{background:#f3f3f0;color:var(--muted)}
-  .subbar{display:flex;flex-wrap:wrap;gap:7px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);background:#fff;min-height:62px}
+  .subbar{display:flex;flex-wrap:wrap;gap:7px;align-items:center;padding:12px 145px 12px 14px;border-bottom:1px solid var(--line);background:#fff;min-height:62px}
   .sub-b{padding:11px 15px;font-size:14px;border-radius:8px}
   .subhint{font-size:12px;color:var(--muted)}
   .rail{width:205px;flex:none;border-right:1px solid var(--line);background:#fafaf8;padding:8px;display:flex;flex-direction:column;gap:7px;overflow-y:auto}
@@ -129,7 +129,7 @@
   .krvhd .mapbtn2{margin-left:auto}
   #krvmsg{display:none;position:absolute;inset:40px 0 0 0;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:var(--muted);font-size:13px;background:#f7f7f5;text-align:center;padding:20px}
   .stage{flex:1;display:flex;min-height:0;position:relative}
-  .maincol{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column}
+  .maincol{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;position:relative}
   .canvas-wrap{flex:1;position:relative;background:#fff;min-width:0;overflow:hidden}
   .kmapbg{position:absolute;top:-30%;left:-30%;width:160%;height:160%;z-index:1;transform-origin:center center}
   svg#cv{width:100%;height:100%;display:block;position:relative;z-index:2;touch-action:none;cursor:url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='80'%20height='80'%3E%3Cg%20stroke='%23000'%20stroke-width='1'%20fill='none'%3E%3Crect%20x='34'%20y='34'%20width='12'%20height='12'/%3E%3Cline%20x1='0'%20y1='40'%20x2='30'%20y2='40'/%3E%3Cline%20x1='50'%20y1='40'%20x2='80'%20y2='40'/%3E%3Cline%20x1='40'%20y1='0'%20x2='40'%20y2='30'/%3E%3Cline%20x1='40'%20y1='50'%20x2='40'%20y2='80'/%3E%3C/g%3E%3C/svg%3E") 40 40, crosshair}
@@ -406,7 +406,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 837</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 839</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -416,8 +416,8 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="rtRailClose" type="button" aria-label="닫기" onclick="document.body.classList.remove('rtrailopen')">✕</button>
     <div class="maincol">
       <div class="subbar" id="subbar"></div>
+      <button id="rtShoot" class="photoBtn" onclick="rtCapture()" style="position:absolute;top:8px;right:10px;z-index:50;background:#EA002C;color:#fff;border:0;border-radius:10px;padding:11px 18px;font-weight:800;font-size:15px;box-shadow:0 3px 10px rgba(0,0,0,.28);cursor:pointer">📷 측점 촬영</button>
     <div class="canvas-wrap">
-      <button id="rtShoot" class="photoBtn" onclick="rtCapture()" style="position:absolute;top:10px;right:10px;z-index:50;background:#EA002C;color:#fff;border:0;border-radius:10px;padding:13px 20px;font-weight:800;font-size:16px;box-shadow:0 3px 10px rgba(0,0,0,.28);cursor:pointer">📷 측점 촬영</button>
       <div id="kmapBg" class="kmapbg" style="display:none"></div>
       <svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg>
       <div id="lblOverlay" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:5"></div>
@@ -572,6 +572,6 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     </div>
   </div>
 
-<script src="login.js?v=837"></script><script src="core.js?v=837"></script>
+<script src="login.js?v=839"></script><script src="core.js?v=839"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
