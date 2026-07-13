@@ -1,10 +1,10 @@
 /* ===== 대원항업 탱고 GIS 공통 엔진 (core.js) — BUILD 789 ===== */
-var BUILD='813';
+var BUILD='814';
 try{var _bn=document.getElementById('buildno');if(_bn)_bn.textContent='BUILD '+BUILD;}catch(e){}
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
-var IS_FIELD=(document.title==='측량(현장)'), IS_TANGO=(document.title==='탱고 DB');
-var STAGE=IS_TANGO?'tango':(IS_FIELD?'field':'survey');
+var IS_FIELD=(document.title==='측량(현장)'), IS_TANGO=(document.title==='탱고 DB'), IS_REALTIME=(document.title==='실시간측량');
+var STAGE=IS_TANGO?'tango':(IS_FIELD?'field':(IS_REALTIME?'realtime':'survey'));
 var DB=STAGE; // STAGE별 Supabase 테이블 완전 분리: survey_*/field_*/tango_*
 if(IS_FIELD)document.body.classList.add('fpage');
 /* ====== 설정: 본인 Supabase 정보 입력 (비우면 로컬 모드) ====== */
@@ -5720,7 +5720,7 @@ function saveProject(cb){ if(readOnly){if(typeof cb==='function')cb();return;}
   });
 }
 function pickProject(id){ if(!id)return;
-  if(STAGE==='survey'||!online){ loadProject(id); return; }
+  if(STAGE==='survey'||STAGE==='realtime'||!online){ loadProject(id); return; }
   /* 다운스트림(현장/탱고): 사업 선택 즉시 내 단계 사본으로 전환 */
   sb.from(DB+'_projects').select('id,name,stage:payload->>stage').eq('id',id).single().then(function(r){
     if(r.error||!r.data){ loadProject(id); return; }
