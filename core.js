@@ -1,6 +1,5 @@
 /* ===== 대원항업 탱고 GIS 공통 엔진 (core.js) — BUILD 789 ===== */
-var BUILD='839';
-try{var _bn=document.getElementById('buildno');if(_bn)_bn.textContent='BUILD '+BUILD;}catch(e){}
+/* BUILD 배지는 각 페이지(html)의 buildno span이 직접 표시 — core.js가 덮어쓰지 않음 */
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
 var IS_FIELD=(document.title==='측량(현장)'), IS_TANGO=(document.title==='탱고 DB'), IS_REALTIME=(document.title==='실시간측량');
