@@ -336,7 +336,6 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   header #homeBtn{order:2!important}
   header #proj{order:3!important;max-width:74px!important;display:inline-block!important}
   header #save{order:5!important;display:inline-flex!important}
-  header #rtShoot{order:6!important;margin-left:0!important}
   header .rt-break{display:block!important;flex-basis:100%!important;width:100%!important;height:0!important;order:4!important}
   /* 아랫줄: 관로선 · 도구 · 사진보기 · 지도 */
   header #rtLine{order:7!important;background:#fff!important;color:#1565c0!important;border:1px solid #1565c0!important;font-weight:800!important}
@@ -378,7 +377,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   <header>
     <button id="homeBtn" class="photoBtn" style="background:#eef2f7;border:1px solid #c6d2e0;color:#33506e;font-weight:700;border-radius:8px;padding:5px 11px;margin-right:2px">🏠 홈</button>
     <button id="modeToggle" class="photoBtn">💻 결선</button>
-    <h1>실시간측량</h1><button id="rtShoot" class="photoBtn" onclick="rtCapture()" style="background:#EA002C;color:#fff;border:0;border-radius:8px;padding:6px 12px;font-weight:800;margin-left:4px">📷 측점 촬영</button><button id="rtLine" class="rtm" onclick="startDraw('\uD1B5\uC2E0\uAD00\uB85C');document.body.classList.remove('rtrailopen')" style="display:none">✏️ 관로선</button><button id="rtTool" class="rtm" onclick="document.body.classList.toggle('rtrailopen')" style="display:none">☰ 도구</button><div class="rt-break"></div>
+    <h1>실시간측량</h1><button id="rtLine" class="rtm" onclick="startDraw('\uD1B5\uC2E0\uAD00\uB85C');document.body.classList.remove('rtrailopen')" style="display:none">✏️ 관로선</button><button id="rtTool" class="rtm" onclick="document.body.classList.toggle('rtrailopen')" style="display:none">☰ 도구</button><div class="rt-break"></div>
     <button id="sysSwitch" class="wk" onclick="location.href='index.html'" style="background:#fff7e6;border:1px solid #f59e0b;color:#b45309;font-weight:700;border-radius:8px;padding:5px 11px;margin-left:2px">🏠 포털</button>
     <span id="roBadge" class="wk" style="display:none;cursor:pointer;color:#d98200;border:1px solid #e0b15a;background:#fff8ec;border-radius:7px;padding:2px 9px;font-size:12px;font-weight:700" title="클릭하면 수정 가능 모드로 전환">🔒 보기 전용 · 클릭=수정</span>
     <span id="viewerBar" class="vw">
@@ -407,7 +406,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 835</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 836</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -418,6 +417,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <div class="maincol">
       <div class="subbar" id="subbar"></div>
     <div class="canvas-wrap">
+      <button id="rtShoot" class="photoBtn" onclick="rtCapture()" style="position:absolute;top:10px;right:10px;z-index:50;background:#EA002C;color:#fff;border:0;border-radius:10px;padding:13px 20px;font-weight:800;font-size:16px;box-shadow:0 3px 10px rgba(0,0,0,.28);cursor:pointer">📷 측점 촬영</button>
       <div id="kmapBg" class="kmapbg" style="display:none"></div>
       <svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg>
       <div id="lblOverlay" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:5"></div>
@@ -572,6 +572,6 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     </div>
   </div>
 
-<script src="login.js?v=835"></script><script src="core.js?v=835"></script>
+<script src="login.js?v=836"></script><script src="core.js?v=836"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
