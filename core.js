@@ -1,5 +1,5 @@
 /* ===== 대원항업 탱고 GIS 공통 엔진 (core.js) — BUILD 789 ===== */
-var BUILD='822';
+var BUILD='823';
 try{var _bn=document.getElementById('buildno');if(_bn)_bn.textContent='BUILD '+BUILD;}catch(e){}
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
@@ -7152,8 +7152,8 @@ function photoDirVec(p,d4){var w=pipeDirAt(p);if(w){var tx=w[0],ty=-w[1],m=Math.
 function getPhotoDir(p){if(!p)return 0;var k=ptNum(p);if(state.photoDir&&state.photoDir[k]!=null)return state.photoDir[k];return defaultPhotoDir(p);}
 function setPhotoDir(p,d){if(!state.photoDir)state.photoDir={};state.photoDir[ptNum(p)]=((d%4)+4)%4;}
 function cyclePhotoDir(p){setPhotoDir(p,getPhotoDir(p)+1);}
-function paneImg(no,label,big){var p=no!=null?pointByNo(no):null;var bn=p?ptNum(p):null;var url=(no!=null?photoMap[no]:null)||(bn!=null?photoMap[bn]:null);var sub=p?(p.no+' '+((p.code||'').trim())):(no!=null?('번호 '+no):'');
-  var cap=sub?(label+' / '+sub):label;
+function paneImg(no,label,big,capOverride){var p=no!=null?pointByNo(no):null;var bn=p?ptNum(p):null;var url=(no!=null?photoMap[no]:null)||(bn!=null?photoMap[bn]:null);var sub=p?(p.no+' '+((p.code||'').trim())):(no!=null?('번호 '+no):'');
+  var cap=capOverride||(sub?(label+' / '+sub):label);
   var inner;
   if(url){inner=big?('<div class="zoomwrap"><img class="ph" id="zoomImg" src="'+url+'" alt=""></div>'):('<img class="ph" src="'+url+'" alt="">');}
   else{inner='<div class="ph php-none">'+(no!=null?'사진 없음':'-')+'</div>';}
@@ -7180,6 +7180,13 @@ function refreshPhotoPanel(){
   if(IS_FIELD||IS_TANGO){
     // 측량(현장)·탱고: 노출관로/후측량 2등분
     body.innerHTML='<div class="php-split">'+paneImg(selNum,'노출관로 사진',true)+paneAfter(selNum,'후측량 사진')+'</div>';
+  }else if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){
+    // 실시간측량: 선택측점 사진만 + "노출관로측량 / 번호 · 관종 · 관경x관수"
+    var _rp=(typeof pointByNo==='function')?pointByNo(selNum):null;
+    var _rc=_rp?((_rp.code||'').trim()):'';
+    var _cap='노출관로측량 / '+selNum;
+    if(_rc){var _m=/^([A-Za-z가-힣]+)\s*(.*)$/.exec(_rc);var _gj=_m?_m[1]:_rc;var _gk=_m?(_m[2]||'').trim():'';_cap+=' · '+_gj+(_gk?' · '+_gk:'');}
+    body.innerHTML=paneImg(selNum,'노출관로측량',true,_cap);
   }else{
     // 결선 DB: 원래대로 — 선택측점 사진 + 위/아래 측점 썸네일
     var nbs=neighborsOf(selNum),up=nbs.up,down=nbs.down;
