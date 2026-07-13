@@ -1,5 +1,5 @@
 /* ===== 대원항업 탱고 GIS 공통 엔진 (core.js) — BUILD 789 ===== */
-var BUILD='832';
+var BUILD='833';
 try{var _bn=document.getElementById('buildno');if(_bn)_bn.textContent='BUILD '+BUILD;}catch(e){}
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
@@ -7466,13 +7466,16 @@ function rtCamPicked(inp){
           if(typeof photoMap!=='undefined')photoMap[no]=url;
           if(typeof drawGeo==='function')drawGeo();
           if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();
-          toast('측점 '+no+' 사진 완료');if(typeof saveProject==='function'){try{saveProject();}catch(_se){}}selNum=no;if(typeof highlightSel==='function')highlightSel();if(typeof photoPanelOpen!=='undefined'&&!photoPanelOpen&&typeof openPhotoPanel==='function')openPhotoPanel();var _psel=document.getElementById('photoSel');if(_psel)_psel.value=no;if(typeof refreshPhotoPanel==='function')refreshPhotoPanel();
+          toast('측점 '+no+' 사진 완료');rtSaveSoon();selNum=no;if(typeof highlightSel==='function')highlightSel();if(typeof photoPanelOpen!=='undefined'&&!photoPanelOpen&&typeof openPhotoPanel==='function')openPhotoPanel();var _psel=document.getElementById('photoSel');if(_psel)_psel.value=no;if(typeof refreshPhotoPanel==='function')refreshPhotoPanel();
         });
       });
     });
   }).catch(function(e){toast('사진 업로드 실패: '+(e&&e.message||e));});
 }
 /* ===== 실시간 촬영 끝 ===== */
+/* [BUILD 833] 저장 디바운스 (연속 촬영 시 마지막 한 번만 저장 -> 버벅임 해결) */
+var _rtSaveTimer=null;
+function rtSaveSoon(){if(_rtSaveTimer)clearTimeout(_rtSaveTimer);_rtSaveTimer=setTimeout(function(){_rtSaveTimer=null;if(typeof saveProject==='function'){try{saveProject();}catch(e){}}},2500);}
 
 /* ===== [BUILD 827] 측점 삭제(롱프레스) + 재촬영 ===== */
 function rtDeletePoint(no){
@@ -7566,8 +7569,7 @@ function rtAddGps(no,lat,lon){
     for(var i=0;i<state.gpsPts.length;i++){if(state.gpsPts[i].no===no){state.gpsPts[i].x=px;state.gpsPts[i].y=py;found=true;break;}}
     if(!found)state.gpsPts.push({no:no,x:px,y:py});
     var _nd=(!state.points||!state.points.length)&&(!state.lines||!state.lines.length);if(_nd&&state.gpsPts.length<=1){if(typeof fitView==='function')fitView();}else{rtCenterOn(px,py);}
-    if(typeof drawGeo==='function')drawGeo();
-    if(typeof saveProject==='function'){try{saveProject();}catch(_se){}}
+    rtSaveSoon();
   }catch(e){}
 }
 function rtCenterOn(wx,wy){try{var _s=S(wx,wy);vb.x=_s[0]-vb.w/2;vb.y=_s[1]-vb.h/2;if(typeof applyVB==='function')applyVB();if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();if(typeof highlightSel==='function')highlightSel();}catch(e){}}
