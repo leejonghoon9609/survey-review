@@ -1,5 +1,5 @@
 /* ===== 대원항업 탱고 GIS 공통 엔진 (core.js) — BUILD 789 ===== */
-var BUILD='817';
+var BUILD='818';
 try{var _bn=document.getElementById('buildno');if(_bn)_bn.textContent='BUILD '+BUILD;}catch(e){}
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
@@ -1001,6 +1001,8 @@ function drawGeo(){
   });
   /* [BUILD 809] 후측량사진(공사후=after) 등록 측점 표시: 전후사진 모두 있는 것만 · 번호별 1개 */
   try{if(typeof photoMap!=='undefined'&&photoMap&&typeof afterMap!=='undefined'&&afterMap){var _pdrawn={};state.points.forEach(function(p){if(p._hyun)return;if(typeof isRiserPt==='function'&&isRiserPt(p))return;var _k=(typeof ptNum==='function')?ptNum(p):String(p.no||'');if(!_k||_pdrawn[_k])return;var _hasB=photoMap[_k]||photoMap[p.no];var _hasA=afterMap[_k]||afterMap[p.no];if(_hasB&&_hasA){_pdrawn[_k]=1;var _ps=S(p.x,p.y);gPts.appendChild(el('circle',{cx:_ps[0],cy:_ps[1],r:2.1,fill:'#d32f2f','fill-opacity':0.28,stroke:'#ffcc00','stroke-width':2.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}});}}catch(e){}
+  /* [BUILD 818] 폰GPS 파란 임시측점 (CSV 점 없는 것만) */
+  try{if(state.gpsPts&&state.gpsPts.length){var _have={};(state.points||[]).forEach(function(p){_have[p.no]=1;});state.gpsPts.forEach(function(g){if(_have[g.no])return;var _gs=S(g.x,g.y);gPts.appendChild(el('circle',{cx:_gs[0],cy:_gs[1],r:0.5,fill:'#2196f3','fill-opacity':0.9,stroke:'#0d47a1','stroke-width':1.6,'vector-effect':'non-scaling-stroke'}));var _n=(g.no||'').split('-').pop();if(typeof mkLabel==='function')mkLabel(_gs[0],_gs[1]+0.9,_n,{fill:'#0d47a1',weight:'800',anchor:'middle',grp:'mk',px:Math.max(11,Math.min(20,0.9/((typeof pxToWorld==='function'&&pxToWorld())||0.06)))});});}}catch(e){}
   drawDepthMarks();
   if(typeof tgSelMark==='function')tgSelMark();if(typeof tgDrawCompare==='function')tgDrawCompare();if(typeof tgDrawSegHL==='function'&&typeof LV!=='undefined'&&LV.tgseg){if((typeof _tgSegs==='undefined'||!_tgSegs||!_tgSegs.length)&&typeof tangoBuildSegs==='function'){try{_tgSegs=tangoBuildSegs();}catch(e){}}if(typeof _tgSegs!=='undefined'&&_tgSegs&&_tgSegs.length)tgDrawSegHL(typeof tgSeg!=='undefined'?tgSeg:-1);}
   if(hyunDraw&&hyunDraw.pts&&hyunDraw.pts.length){var _hc=(hyunDraw.layer==='\uB3C4\uB85C')?'#0277bd':'#81d4fa';if(hyunDraw.pts.length>=2){var _hps=hyunDraw.pts.map(function(_p){var _s=S(_p[0],_p[1]);return _s[0]+','+_s[1];}).join(' ');gPts.appendChild(el('polyline',{points:_hps,fill:'none',stroke:_hc,'stroke-width':2,'vector-effect':'non-scaling-stroke','stroke-dasharray':'3 2','pointer-events':'none'}));}hyunDraw.pts.forEach(function(_p){var _s=S(_p[0],_p[1]);gPts.appendChild(el('circle',{cx:_s[0],cy:_s[1],r:0.18,fill:_hc,'pointer-events':'none'}));});}
@@ -7445,6 +7447,7 @@ function rtShowNumPopup(day,sug,onOk){
 function rtCamPicked(inp){
   var f=inp&&inp.files&&inp.files[0];if(!f||!rtPendingNo)return;
   var no=rtPendingNo;rtPendingNo=null;
+  if(navigator.geolocation){navigator.geolocation.getCurrentPosition(function(pos){rtAddGps(no,pos.coords.latitude,pos.coords.longitude);},function(){},{enableHighAccuracy:true,timeout:9000,maximumAge:2000});}
   toast('측점 '+no+' 사진 업로드 중…');
   compressImage(f,1280,0.7).then(function(blob){
     var path=state.projectId+'/'+safeName(no)+'.jpg';
@@ -7463,3 +7466,28 @@ function rtCamPicked(inp){
   }).catch(function(e){toast('사진 업로드 실패: '+(e&&e.message||e));});
 }
 /* ===== 실시간 촬영 끝 ===== */
+
+/* ===== [BUILD 818] 폰 GPS 위경도 -> 도면좌표(EPSG:5186) 변환 + 파란 임시측점 ===== */
+function tm5186(lat,lon){
+  var a=6378137.0,f=1/298.257222101,e2=f*(2-f);
+  var lat0=38.0*Math.PI/180,lon0=127.0*Math.PI/180,k0=1.0,FE=200000.0,FN=600000.0;
+  var phi=lat*Math.PI/180,lam=lon*Math.PI/180,ep2=e2/(1-e2);
+  var N=a/Math.sqrt(1-e2*Math.sin(phi)*Math.sin(phi));
+  var T=Math.tan(phi)*Math.tan(phi),C=ep2*Math.cos(phi)*Math.cos(phi),A=(lam-lon0)*Math.cos(phi);
+  function Mf(p){return a*((1-e2/4-3*e2*e2/64-5*e2*e2*e2/256)*p-(3*e2/8+3*e2*e2/32+45*e2*e2*e2/1024)*Math.sin(2*p)+(15*e2*e2/256+45*e2*e2*e2/1024)*Math.sin(4*p)-(35*e2*e2*e2/3072)*Math.sin(6*p));}
+  var M=Mf(phi),M0=Mf(lat0);
+  var E=FE+k0*N*(A+(1-T+C)*A*A*A/6+(5-18*T+T*T+72*C-58*ep2)*Math.pow(A,5)/120);
+  var No=FN+k0*(M-M0+N*Math.tan(phi)*(A*A/2+(5-T+9*C+4*C*C)*Math.pow(A,4)/24+(61-58*T+T*T+600*C-330*ep2)*Math.pow(A,6)/720));
+  return [No,E]; /* [Northing(X), Easting(Y)] */
+}
+function rtAddGps(no,lat,lon){
+  try{
+    var ne=tm5186(lat,lon); var px=ne[1],py=ne[0]; /* point.x=Easting, point.y=Northing (parseCsv와 동일) */
+    if(!state.gpsPts)state.gpsPts=[];
+    var found=false;
+    for(var i=0;i<state.gpsPts.length;i++){if(state.gpsPts[i].no===no){state.gpsPts[i].x=px;state.gpsPts[i].y=py;found=true;break;}}
+    if(!found)state.gpsPts.push({no:no,x:px,y:py});
+    if(typeof drawGeo==='function')drawGeo();
+  }catch(e){}
+}
+/* ===== TM/GPS 끝 ===== */
