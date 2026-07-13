@@ -1,5 +1,5 @@
 /* ===== 대원항업 탱고 GIS 공통 엔진 (core.js) — BUILD 789 ===== */
-var BUILD='826';
+var BUILD='827';
 try{var _bn=document.getElementById('buildno');if(_bn)_bn.textContent='BUILD '+BUILD;}catch(e){}
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
@@ -1002,7 +1002,7 @@ function drawGeo(){
   /* [BUILD 809] 후측량사진(공사후=after) 등록 측점 표시: 전후사진 모두 있는 것만 · 번호별 1개 */
   try{if(typeof photoMap!=='undefined'&&photoMap&&typeof afterMap!=='undefined'&&afterMap){var _pdrawn={};state.points.forEach(function(p){if(p._hyun)return;if(typeof isRiserPt==='function'&&isRiserPt(p))return;var _k=(typeof ptNum==='function')?ptNum(p):String(p.no||'');if(!_k||_pdrawn[_k])return;var _hasB=photoMap[_k]||photoMap[p.no];var _hasA=afterMap[_k]||afterMap[p.no];if(_hasB&&_hasA){_pdrawn[_k]=1;var _ps=S(p.x,p.y);gPts.appendChild(el('circle',{cx:_ps[0],cy:_ps[1],r:2.1,fill:'#d32f2f','fill-opacity':0.28,stroke:'#ffcc00','stroke-width':2.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}});}}catch(e){}
   /* [BUILD 818] 폰GPS 파란 임시측점 (CSV 점 없는 것만) */
-  try{if(state.gpsPts&&state.gpsPts.length){var _have={};(state.points||[]).forEach(function(p){_have[p.no]=1;});state.gpsPts.forEach(function(g){if(_have[g.no])return;var _gs=S(g.x,g.y);var _bc=el('circle',{cx:_gs[0],cy:_gs[1],r:0.5,fill:'#2196f3','fill-opacity':0.9,stroke:'#0d47a1','stroke-width':1.6,'vector-effect':'non-scaling-stroke'});_bc.style.cursor='pointer';_bc.setAttribute('pointer-events','all');(function(gno){_bc.addEventListener('pointerdown',function(ev){ev.stopPropagation();ev.preventDefault();selNum=gno;if(typeof highlightSel==='function')highlightSel();if(typeof photoPanelOpen!=='undefined'&&!photoPanelOpen&&typeof openPhotoPanel==='function')openPhotoPanel();var _sel=document.getElementById('photoSel');if(_sel)_sel.value=gno;if(typeof refreshPhotoPanel==='function')refreshPhotoPanel();});})(g.no);gPts.appendChild(_bc);var _n=(g.no||'').split('-').pop();if(typeof mkLabel==='function')mkLabel(_gs[0],_gs[1]+0.9,_n,{fill:'#0d47a1',weight:'800',anchor:'middle',grp:'mk',px:Math.max(11,Math.min(20,0.9/((typeof pxToWorld==='function'&&pxToWorld())||0.06)))});});}}catch(e){}
+  try{if(state.gpsPts&&state.gpsPts.length){var _have={};(state.points||[]).forEach(function(p){_have[p.no]=1;});state.gpsPts.forEach(function(g){if(_have[g.no])return;var _gs=S(g.x,g.y);var _bc=el('circle',{cx:_gs[0],cy:_gs[1],r:0.5,fill:'#2196f3','fill-opacity':0.9,stroke:'#0d47a1','stroke-width':1.6,'vector-effect':'non-scaling-stroke'});_bc.style.cursor='pointer';_bc.setAttribute('pointer-events','all');(function(gno){_bc.addEventListener('pointerdown',function(ev){ev.stopPropagation();ev.preventDefault();try{this.setPointerCapture(ev.pointerId);}catch(_pe){}var self=this;self._lp=setTimeout(function(){self._lp=null;rtDeletePoint(gno);},1000);});_bc.addEventListener('pointerup',function(ev){ev.stopPropagation();if(this._lp){clearTimeout(this._lp);this._lp=null;selNum=gno;if(typeof highlightSel==='function')highlightSel();if(typeof photoPanelOpen!=='undefined'&&!photoPanelOpen&&typeof openPhotoPanel==='function')openPhotoPanel();var _sel=document.getElementById('photoSel');if(_sel)_sel.value=gno;if(typeof refreshPhotoPanel==='function')refreshPhotoPanel();}});_bc.addEventListener('pointercancel',function(){if(this._lp){clearTimeout(this._lp);this._lp=null;}});})(g.no);gPts.appendChild(_bc);var _n=(g.no||'').split('-').pop();if(typeof mkLabel==='function')mkLabel(_gs[0],_gs[1]+0.9,_n,{fill:'#0d47a1',weight:'800',anchor:'middle',grp:'mk',px:Math.max(11,Math.min(20,0.9/((typeof pxToWorld==='function'&&pxToWorld())||0.06)))});});}}catch(e){}
   drawDepthMarks();
   if(typeof tgSelMark==='function')tgSelMark();if(typeof tgDrawCompare==='function')tgDrawCompare();if(typeof tgDrawSegHL==='function'&&typeof LV!=='undefined'&&LV.tgseg){if((typeof _tgSegs==='undefined'||!_tgSegs||!_tgSegs.length)&&typeof tangoBuildSegs==='function'){try{_tgSegs=tangoBuildSegs();}catch(e){}}if(typeof _tgSegs!=='undefined'&&_tgSegs&&_tgSegs.length)tgDrawSegHL(typeof tgSeg!=='undefined'?tgSeg:-1);}
   if(hyunDraw&&hyunDraw.pts&&hyunDraw.pts.length){var _hc=(hyunDraw.layer==='\uB3C4\uB85C')?'#0277bd':'#81d4fa';if(hyunDraw.pts.length>=2){var _hps=hyunDraw.pts.map(function(_p){var _s=S(_p[0],_p[1]);return _s[0]+','+_s[1];}).join(' ');gPts.appendChild(el('polyline',{points:_hps,fill:'none',stroke:_hc,'stroke-width':2,'vector-effect':'non-scaling-stroke','stroke-dasharray':'3 2','pointer-events':'none'}));}hyunDraw.pts.forEach(function(_p){var _s=S(_p[0],_p[1]);gPts.appendChild(el('circle',{cx:_s[0],cy:_s[1],r:0.18,fill:_hc,'pointer-events':'none'}));});}
@@ -7466,13 +7466,40 @@ function rtCamPicked(inp){
           if(typeof photoMap!=='undefined')photoMap[no]=url;
           if(typeof drawGeo==='function')drawGeo();
           if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();
-          toast('측점 '+no+' 사진 완료');
+          toast('측점 '+no+' 사진 완료');if(typeof saveProject==='function'){try{saveProject();}catch(_se){}}
         });
       });
     });
   }).catch(function(e){toast('사진 업로드 실패: '+(e&&e.message||e));});
 }
 /* ===== 실시간 촬영 끝 ===== */
+
+/* ===== [BUILD 827] 측점 삭제(롱프레스) + 재촬영 ===== */
+function rtDeletePoint(no){
+  if(!confirm('측점 '+no+' 을(를) 삭제할까요?\n(점 + 사진이 함께 삭제됩니다)'))return;
+  if(state.gpsPts)state.gpsPts=state.gpsPts.filter(function(g){return g.no!==no;});
+  if(state.points)state.points=state.points.filter(function(p){return p.no!==no;});
+  try{if(typeof photoMap!=='undefined'&&photoMap[no])delete photoMap[no];}catch(e){}
+  try{if(typeof afterMap!=='undefined'&&afterMap[no])delete afterMap[no];}catch(e){}
+  if(typeof online!=='undefined'&&online&&state.projectId){
+    try{sb.storage.from('photos').remove([state.projectId+'/'+safeName(no)+'.jpg']);}catch(e){}
+    try{sb.from(DB+'_photos').delete().eq('project_id',state.projectId).eq('point_no',no);}catch(e){}
+  }
+  if(String(selNum)===String(no)){selNum=null;if(typeof gSel!=='undefined'&&typeof clearSvg==='function')clearSvg(gSel);}
+  if(typeof drawGeo==='function')drawGeo();
+  if(typeof saveProject==='function'){try{saveProject();}catch(e){}}
+  if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();
+  if(typeof toast==='function')toast('측점 '+no+' 삭제됨');
+}
+function rtRecapture(){
+  if(selNum==null){toast('먼저 측점을 선택하세요 (점 클릭)');return;}
+  if(typeof online!=='undefined'&&!online){toast('로컬 모드 — 사진 저장 불가');return;}
+  if(!state.projectId){toast('먼저 "저장"으로 사업을 저장한 뒤 촬영하세요');return;}
+  if(!confirm('측점 '+selNum+' 사진을 다시 촬영할까요? (기존 사진 덮어씀)'))return;
+  rtPendingNo=String(selNum);
+  var inp=document.getElementById('rtCamInput');if(inp){inp.value='';inp.click();}
+}
+/* ===== 삭제/재촬영 끝 ===== */
 
 /* ===== [BUILD 818] 폰 GPS 위경도 -> 도면좌표(EPSG:5186) 변환 + 파란 임시측점 ===== */
 function tm5186(lat,lon){
