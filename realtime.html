@@ -60,8 +60,8 @@
   button.pri{border-color:var(--accent);color:var(--accent)}
   button.dgr{border-color:var(--bad);color:var(--bad)}
   /* 사업 등록 모달 */
-  .regwrap{position:fixed;inset:0;background:rgba(28,28,26,.42);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
-  .regbox{background:#fff;border-radius:14px;width:min(1060px,96vw);box-shadow:0 12px 48px rgba(0,0,0,.22);overflow:hidden}
+  .regwrap{position:fixed;inset:0;background:rgba(28,28,26,.42);z-index:200;display:flex;align-items:center;justify-content:center;padding:12px}
+  .regbox{background:#fff;border-radius:14px;width:min(1060px,96vw);box-shadow:0 12px 48px rgba(0,0,0,.22);max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);overflow-y:auto}
   .reghd{display:flex;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)}
   .reghd .regt{font-size:17px;font-weight:800}
   .regxbtn{margin-left:auto;border:none;background:none;font-size:17px;color:var(--muted);cursor:pointer;padding:4px 8px}
@@ -108,7 +108,7 @@
   .rf-cancel{padding:9px 22px;border:1px solid var(--line);background:#fff;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer}
   .rf-ok{padding:9px 26px;border:1px solid var(--ok);background:var(--ok);color:#fff;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
   .rf-ok:hover{background:#258a45}
-  @media (max-width:720px){.regcards{grid-template-columns:1fr 1fr}}
+  @media (max-width:720px){.regcards{grid-template-columns:1fr 1fr;gap:9px;padding:10px 14px 4px}.regcard{min-height:168px;padding:11px 10px}}
   /* 지도 배경 레이어 (도면 자리에 깔림) */
   .maplayer{position:absolute;inset:0;z-index:8;background:#fff;display:flex;flex-direction:column}
   .maptop{display:flex;align-items:center;gap:9px;padding:7px 12px;border-bottom:1px solid var(--line);background:#fff}
@@ -406,7 +406,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 836</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 837</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -572,6 +572,6 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     </div>
   </div>
 
-<script src="login.js?v=836"></script><script src="core.js?v=836"></script>
+<script src="login.js?v=837"></script><script src="core.js?v=837"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
