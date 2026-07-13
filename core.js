@@ -1,5 +1,5 @@
 /* ===== 대원항업 탱고 GIS 공통 엔진 (core.js) — BUILD 789 ===== */
-var BUILD='814';
+var BUILD='815';
 try{var _bn=document.getElementById('buildno');if(_bn)_bn.textContent='BUILD '+BUILD;}catch(e){}
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
@@ -7402,3 +7402,38 @@ try{
   }
 }catch(e){}
 /* ===== 현장 레이어 패널 끝 ===== */
+
+/* ===== [BUILD 815] 실시간측량 측점 촬영 (날짜 자동 + 번호 자동제안·수정가능) ===== */
+function rtToday(){var d=new Date();function p(n){return('0'+n).slice(-2);}return String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate());}
+function rtNextNo(day){var mx=0;var re=new RegExp('^'+day+'-(\\d+)$');try{Object.keys((typeof photoMap!=='undefined'&&photoMap)?photoMap:{}).forEach(function(k){var m=re.exec(k);if(m)mx=Math.max(mx,parseInt(m[1],10));});}catch(e){}(state.points||[]).forEach(function(p){var m=re.exec(p.no||'');if(m)mx=Math.max(mx,parseInt(m[1],10));});return mx+1;}
+var rtPendingNo=null;
+function rtCapture(){
+  if(typeof online!=='undefined'&&!online){toast('로컬 모드 — 사진 저장 불가');return;}
+  if(!state.projectId){toast('먼저 "저장"으로 사업을 저장한 뒤 촬영하세요');return;}
+  var day=rtToday();var sug=rtNextNo(day);
+  var num=prompt('측점 번호 (오늘 '+day+')\n촬영할 측점 번호를 확인/수정하세요',String(sug));
+  if(num===null)return;num=(num||'').trim();if(!num)return;
+  rtPendingNo=day+'-'+num;
+  var inp=document.getElementById('rtCamInput');if(inp){inp.value='';inp.click();}
+}
+function rtCamPicked(inp){
+  var f=inp&&inp.files&&inp.files[0];if(!f||!rtPendingNo)return;
+  var no=rtPendingNo;rtPendingNo=null;
+  toast('측점 '+no+' 사진 업로드 중…');
+  compressImage(f,1280,0.7).then(function(blob){
+    var path=state.projectId+'/'+safeName(no)+'.jpg';
+    return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
+      if(up.error)throw up.error;
+      var url=sb.storage.from('photos').getPublicUrl(path).data.publicUrl+'?t='+Date.now();
+      return sb.from(DB+'_photos').delete().eq('project_id',state.projectId).eq('point_no',no).then(function(){
+        return sb.from(DB+'_photos').insert({project_id:state.projectId,point_no:no,url:url}).then(function(){
+          if(typeof photoMap!=='undefined')photoMap[no]=url;
+          if(typeof drawGeo==='function')drawGeo();
+          if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();
+          toast('측점 '+no+' 사진 완료');
+        });
+      });
+    });
+  }).catch(function(e){toast('사진 업로드 실패: '+(e&&e.message||e));});
+}
+/* ===== 실시간 촬영 끝 ===== */
