@@ -1001,7 +1001,7 @@ function drawGeo(){
   /* [BUILD 809] 후측량사진(공사후=after) 등록 측점 표시: 전후사진 모두 있는 것만 · 번호별 1개 */
   try{if(typeof photoMap!=='undefined'&&photoMap&&typeof afterMap!=='undefined'&&afterMap){var _pdrawn={};state.points.forEach(function(p){if(p._hyun)return;if(typeof isRiserPt==='function'&&isRiserPt(p))return;var _k=(typeof ptNum==='function')?ptNum(p):String(p.no||'');if(!_k||_pdrawn[_k])return;var _hasB=photoMap[_k]||photoMap[p.no];var _hasA=afterMap[_k]||afterMap[p.no];if(_hasB&&_hasA){_pdrawn[_k]=1;var _ps=S(p.x,p.y);gPts.appendChild(el('circle',{cx:_ps[0],cy:_ps[1],r:2.1,fill:'#d32f2f','fill-opacity':0.28,stroke:'#ffcc00','stroke-width':2.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}});}}catch(e){}
   /* [BUILD 818] 폰GPS 파란 임시측점 (CSV 점 없는 것만) */
-  try{if(typeof clearLabels==='function')clearLabels('gps');if(state.gpsPts&&state.gpsPts.length){var _have={};(state.points||[]).forEach(function(p){_have[p.no]=1;});state.gpsPts.forEach(function(g){if(_have[g.no])return;var _gs=S(g.x,g.y);var _hc=el('circle',{cx:_gs[0],cy:_gs[1],r:1.9,fill:'transparent'});_hc.style.cursor='pointer';_hc.setAttribute('pointer-events','all');var _bc=el('circle',{cx:_gs[0],cy:_gs[1],r:0.5,fill:'#2196f3','fill-opacity':0.9,stroke:'#0d47a1','stroke-width':1.6,'vector-effect':'non-scaling-stroke'});_bc.setAttribute('pointer-events','none');(function(gno){_hc.addEventListener('pointerdown',function(ev){ev.stopPropagation();ev.preventDefault();try{this.setPointerCapture(ev.pointerId);}catch(_pe){}var self=this;self._lp=setTimeout(function(){self._lp=null;rtPointMenu(gno);},1000);});_hc.addEventListener('pointerup',function(ev){ev.stopPropagation();if(this._lp){clearTimeout(this._lp);this._lp=null;selNum=gno;if(typeof highlightSel==='function')highlightSel();if(typeof photoPanelOpen!=='undefined'&&!photoPanelOpen&&typeof openPhotoPanel==='function')openPhotoPanel();var _sel=document.getElementById('photoSel');if(_sel)_sel.value=gno;if(typeof refreshPhotoPanel==='function')refreshPhotoPanel();}});_hc.addEventListener('pointercancel',function(){if(this._lp){clearTimeout(this._lp);this._lp=null;}});})(g.no);gPts.appendChild(_hc);gPts.appendChild(_bc);var _n=(g.no||'').split('-').pop();if(typeof mkLabel==='function')mkLabel(_gs[0],_gs[1]+0.9,_n,{fill:'#0d47a1',weight:'800',anchor:'middle',grp:'gps',px:Math.max(11,Math.min(20,0.9/((typeof pxToWorld==='function'&&pxToWorld())||0.06)))});});}}catch(e){}
+  try{if(typeof clearLabels==='function')clearLabels('gps');if(state.gpsPts&&state.gpsPts.length){var _have={};(state.points||[]).forEach(function(p){_have[p.no]=1;});var _nsF=state.nightShift,_cutF=(_nsF&&_nsF.on)?_nsF.cut:null;state.gpsPts.forEach(function(g){var _wnoF=g.no;if(g._d0!=null&&g._nm!=null){var _dtF=g._d0;if(_cutF!=null&&g._tm!=null&&g._tm<_cutF)_dtF=prevDayYMD(g._d0);_wnoF=_dtF+'-'+g._nm;}if(_have[g.no]||_have[_wnoF])return;var _gs=S(g.x,g.y);var _hc=el('circle',{cx:_gs[0],cy:_gs[1],r:1.9,fill:'transparent'});_hc.style.cursor='pointer';_hc.setAttribute('pointer-events','all');var _bc=el('circle',{cx:_gs[0],cy:_gs[1],r:0.5,fill:'#2196f3','fill-opacity':0.9,stroke:'#0d47a1','stroke-width':1.6,'vector-effect':'non-scaling-stroke'});_bc.setAttribute('pointer-events','none');(function(gno){_hc.addEventListener('pointerdown',function(ev){ev.stopPropagation();ev.preventDefault();try{this.setPointerCapture(ev.pointerId);}catch(_pe){}var self=this;self._lp=setTimeout(function(){self._lp=null;rtPointMenu(gno);},1000);});_hc.addEventListener('pointerup',function(ev){ev.stopPropagation();if(this._lp){clearTimeout(this._lp);this._lp=null;selNum=gno;if(typeof highlightSel==='function')highlightSel();if(typeof photoPanelOpen!=='undefined'&&!photoPanelOpen&&typeof openPhotoPanel==='function')openPhotoPanel();var _sel=document.getElementById('photoSel');if(_sel)_sel.value=gno;if(typeof refreshPhotoPanel==='function')refreshPhotoPanel();}});_hc.addEventListener('pointercancel',function(){if(this._lp){clearTimeout(this._lp);this._lp=null;}});})(g.no);gPts.appendChild(_hc);gPts.appendChild(_bc);var _n=(g.no||'').split('-').pop();if(typeof mkLabel==='function')mkLabel(_gs[0],_gs[1]+0.9,_n,{fill:'#0d47a1',weight:'800',anchor:'middle',grp:'gps',px:Math.max(11,Math.min(20,0.9/((typeof pxToWorld==='function'&&pxToWorld())||0.06)))});});}}catch(e){}
   drawDepthMarks();
   if(typeof tgSelMark==='function')tgSelMark();if(typeof tgDrawCompare==='function')tgDrawCompare();if(typeof tgDrawSegHL==='function'&&typeof LV!=='undefined'&&LV.tgseg){if((typeof _tgSegs==='undefined'||!_tgSegs||!_tgSegs.length)&&typeof tangoBuildSegs==='function'){try{_tgSegs=tangoBuildSegs();}catch(e){}}if(typeof _tgSegs!=='undefined'&&_tgSegs&&_tgSegs.length)tgDrawSegHL(typeof tgSeg!=='undefined'?tgSeg:-1);}
   if(hyunDraw&&hyunDraw.pts&&hyunDraw.pts.length){var _hc=(hyunDraw.layer==='\uB3C4\uB85C')?'#0277bd':'#81d4fa';if(hyunDraw.pts.length>=2){var _hps=hyunDraw.pts.map(function(_p){var _s=S(_p[0],_p[1]);return _s[0]+','+_s[1];}).join(' ');gPts.appendChild(el('polyline',{points:_hps,fill:'none',stroke:_hc,'stroke-width':2,'vector-effect':'non-scaling-stroke','stroke-dasharray':'3 2','pointer-events':'none'}));}hyunDraw.pts.forEach(function(_p){var _s=S(_p[0],_p[1]);gPts.appendChild(el('circle',{cx:_s[0],cy:_s[1],r:0.18,fill:_hc,'pointer-events':'none'}));});}
@@ -7412,15 +7412,15 @@ try{
 /* ===== 현장 레이어 패널 끝 ===== */
 
 /* ===== [BUILD 815] 실시간측량 측점 촬영 (날짜 자동 + 번호 자동제안·수정가능) ===== */
-function rtToday(){var d=new Date();function p(n){return('0'+n).slice(-2);}return String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate());}
+function rtToday(){var d=new Date();function p(n){return('0'+n).slice(-2);}return String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate());}function rtWorkDay(){var d=new Date();var real=rtToday();var tm=d.getHours()*60+d.getMinutes();var ns=state.nightShift;var work=(ns&&ns.on&&ns.cut!=null&&tm<ns.cut)?prevDayYMD(real):real;return {real:real,work:work,tm:tm};}
 function rtNextNo(day){var mx=0;var re=new RegExp('^'+day+'-(\\d+)$');try{Object.keys((typeof photoMap!=='undefined'&&photoMap)?photoMap:{}).forEach(function(k){var m=re.exec(k);if(m)mx=Math.max(mx,parseInt(m[1],10));});}catch(e){}(state.points||[]).forEach(function(p){var m=re.exec(p.no||'');if(m)mx=Math.max(mx,parseInt(m[1],10));});return mx+1;}
-var rtPendingNo=null;
+var rtPendingNo=null;var rtPendingMeta=null;
 function rtCapture(){
   if(typeof online!=='undefined'&&!online){toast('로컬 모드 — 사진 저장 불가');return;}
   if(!state.projectId){toast('먼저 "저장"으로 사업을 저장한 뒤 촬영하세요');return;}
-  var day=rtToday();var sug=rtNextNo(day);
+  var _wi=rtWorkDay();var day=_wi.work;var sug=rtNextNo(day);
   rtShowNumPopup(day,String(sug),function(num){
-    rtPendingNo=day+'-'+num;
+    rtPendingNo=day+'-'+num;rtPendingMeta={_d0:_wi.real,_tm:_wi.tm,_nm:num};
     var inp=document.getElementById('rtCamInput');if(inp){inp.value='';inp.click();}
   });
 }
@@ -7565,8 +7565,9 @@ function rtAddGps(no,lat,lon){
     var ne=tm5186(lat,lon); var px=ne[1],py=ne[0]; /* point.x=Easting, point.y=Northing (parseCsv와 동일) */
     if(!state.gpsPts)state.gpsPts=[];
     var found=false;
-    for(var i=0;i<state.gpsPts.length;i++){if(state.gpsPts[i].no===no){state.gpsPts[i].x=px;state.gpsPts[i].y=py;found=true;break;}}
-    if(!found)state.gpsPts.push({no:no,x:px,y:py});
+    var _m=rtPendingMeta;rtPendingMeta=null;
+    for(var i=0;i<state.gpsPts.length;i++){if(state.gpsPts[i].no===no){state.gpsPts[i].x=px;state.gpsPts[i].y=py;if(_m){state.gpsPts[i]._d0=_m._d0;state.gpsPts[i]._tm=_m._tm;state.gpsPts[i]._nm=_m._nm;}found=true;break;}}
+    if(!found)state.gpsPts.push(_m?{no:no,x:px,y:py,_d0:_m._d0,_tm:_m._tm,_nm:_m._nm}:{no:no,x:px,y:py});
     var _nd=(!state.points||!state.points.length)&&(!state.lines||!state.lines.length);if(_nd&&state.gpsPts.length<=1){if(typeof fitView==='function')fitView();}else{rtCenterOn(px,py);}
     rtSaveSoon();
   }catch(e){}
