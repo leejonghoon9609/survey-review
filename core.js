@@ -1,5 +1,5 @@
 /* ===== 대원항업 탱고 GIS 공통 엔진 (core.js) — BUILD 789 ===== */
-var BUILD='827';
+var BUILD='828';
 try{var _bn=document.getElementById('buildno');if(_bn)_bn.textContent='BUILD '+BUILD;}catch(e){}
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
@@ -6320,7 +6320,7 @@ function pickRoadview(clientX,clientY){
 function toggleRvPick(){
   var btn=document.getElementById('rvBtn');
   if(rvPick){rvPick=false;btn.classList.remove('on');var _vr=document.getElementById('vRv');if(_vr)_vr.classList.remove('on');cv.style.cursor='';toast('로드뷰 위치찍기 종료');return;}
-  if(!state.points||!state.points.length){toast('먼저 측점(CSV)을 불러오세요');return;}
+  if((!state.points||!state.points.length)&&(!state.gpsPts||!state.gpsPts.length)){toast('먼저 측점을 불러오거나 촬영하세요');return;}
   if(!bgMapOn)toggleBgMap();
   rvPick=true;btn.classList.add('on');var _vr2=document.getElementById('vRv');if(_vr2)_vr2.classList.add('on');cv.style.cursor='pointer';
   toast('지도에서 로드뷰 볼 위치를 클릭하세요 (측점을 찍으면 아래에 사진)');
@@ -6989,7 +6989,7 @@ function syncMapBgNow(){
 function toggleBgMap(){
   var btn=document.getElementById('bgBtn'),div=document.getElementById('kmapBg');
   if(bgMapOn){bgMapOn=false;div.style.display='none';btn.classList.remove('on');var _vm=document.getElementById('vMap');if(_vm)_vm.classList.remove('on');return;}
-  if(!state.points||!state.points.length){toast('먼저 측점(CSV)을 불러오세요');return;}
+  if((!state.points||!state.points.length)&&(!state.gpsPts||!state.gpsPts.length)){toast('먼저 측점을 불러오거나 촬영하세요');return;}
   div.style.display='block';btn.classList.add('on');var _vm2=document.getElementById('vMap');if(_vm2)_vm2.classList.add('on');
   loadKakao(function(){
     if(!bgmap){
