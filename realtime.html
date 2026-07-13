@@ -351,6 +351,14 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   body.rtrailopen::before{content:"";position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:8999}
   .maincol{width:100%!important}
 }
+
+/* ===== [BUILD 820] 실시간 모바일: 사진패널 도면 아래로 ===== */
+@media(max-width:760px){
+  .stage{flex-wrap:wrap!important}
+  .maincol{width:100%!important;flex:1 1 100%!important;order:1}
+  .photo-panel{width:100%!important;min-width:0!important;max-width:none!important;flex:1 1 100%!important;border-left:none!important;border-top:2px solid var(--line)!important;order:2!important}
+  .photo-panel.open{display:flex!important;height:44vh!important}
+}
 </style>
 </head>
 <body>
@@ -386,7 +394,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 819</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 820</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -549,6 +557,6 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     </div>
   </div>
 
-<script src="login.js?v=819"></script><script src="core.js?v=819"></script>
+<script src="login.js?v=820"></script><script src="core.js?v=820"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
