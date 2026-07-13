@@ -1,5 +1,5 @@
 /* ===== 대원항업 탱고 GIS 공통 엔진 (core.js) — BUILD 789 ===== */
-var BUILD='818';
+var BUILD='819';
 try{var _bn=document.getElementById('buildno');if(_bn)_bn.textContent='BUILD '+BUILD;}catch(e){}
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
@@ -1458,7 +1458,7 @@ function fitSoon(){var n=0;(function go(){var done=false;try{var r=cv.getBoundin
 function fitView(){
   var xs=[],ys=[];function add(x,y){var s=S(x,y);xs.push(s[0]);ys.push(s[1]);}
   state.points.forEach(function(p){add(p.x,p.y);});
-  state.lines.forEach(function(L){L.pts.forEach(function(p){add(p[0],p[1]);});});
+  state.lines.forEach(function(L){L.pts.forEach(function(p){add(p[0],p[1]);});});if(state.gpsPts)state.gpsPts.forEach(function(g){add(g.x,g.y);});
   if(!xs.length){vb={x:0,y:0,w:100,h:100};vb0={x:0,y:0,w:100,h:100};applyVB();return;}
   var pad=5,minx=Math.min.apply(0,xs),maxx=Math.max.apply(0,xs),miny=Math.min.apply(0,ys),maxy=Math.max.apply(0,ys);
   vb0={x:minx-pad,y:miny-pad,w:(maxx-minx)+2*pad,h:(maxy-miny)+2*pad};
@@ -7447,7 +7447,7 @@ function rtShowNumPopup(day,sug,onOk){
 function rtCamPicked(inp){
   var f=inp&&inp.files&&inp.files[0];if(!f||!rtPendingNo)return;
   var no=rtPendingNo;rtPendingNo=null;
-  if(navigator.geolocation){navigator.geolocation.getCurrentPosition(function(pos){rtAddGps(no,pos.coords.latitude,pos.coords.longitude);},function(){},{enableHighAccuracy:true,timeout:9000,maximumAge:2000});}
+  if(navigator.geolocation){navigator.geolocation.getCurrentPosition(function(pos){rtAddGps(no,pos.coords.latitude,pos.coords.longitude);toast('측점 '+no+' 위치 표시(파란점)');},function(err){toast('⚠ 위치 못 받음(코드 '+(err&&err.code)+') — 파란점 생략');},{enableHighAccuracy:true,timeout:12000,maximumAge:0});}else{toast('⚠ 이 브라우저는 위치 미지원');}
   toast('측점 '+no+' 사진 업로드 중…');
   compressImage(f,1280,0.7).then(function(blob){
     var path=state.projectId+'/'+safeName(no)+'.jpg';
@@ -7487,6 +7487,7 @@ function rtAddGps(no,lat,lon){
     var found=false;
     for(var i=0;i<state.gpsPts.length;i++){if(state.gpsPts[i].no===no){state.gpsPts[i].x=px;state.gpsPts[i].y=py;found=true;break;}}
     if(!found)state.gpsPts.push({no:no,x:px,y:py});
+    if((!state.points||!state.points.length)&&(!state.lines||!state.lines.length)){if(typeof fitView==='function')fitView();}
     if(typeof drawGeo==='function')drawGeo();
   }catch(e){}
 }
