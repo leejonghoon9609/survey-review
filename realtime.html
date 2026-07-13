@@ -338,8 +338,10 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   header #rtShoot{order:5!important;margin-left:0!important}
   header .rt-break{display:block!important;flex-basis:100%!important;width:100%!important;height:0!important;order:6!important}
   /* 아랫줄: 관로선 · 도구 · 사진보기 · 지도 */
-  header #rtLine{order:7!important;background:#1565c0!important;color:#fff!important;border:0!important;font-weight:800!important}
-  header #rtTool{order:8!important;background:#333!important;color:#fff!important;border:0!important;font-weight:800!important}
+  header #rtLine{order:7!important;background:#fff!important;color:#1565c0!important;border:1px solid #1565c0!important;font-weight:800!important}
+  header #rtLine.on{background:#1565c0!important;color:#fff!important}
+  header #rtTool{order:8!important;background:#fff!important;color:#333!important;border:1px solid #333!important;font-weight:800!important}
+  body.rtrailopen header #rtTool{background:#333!important;color:#fff!important}
   header #photoBtn{order:9!important;display:inline-flex!important}
   header #bgBtn{order:10!important;display:inline-flex!important}
   /* 나머지 숨김 */
@@ -352,12 +354,12 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   .maincol{width:100%!important}
 }
 
-/* ===== [BUILD 820] 실시간 모바일: 사진패널 도면 아래로 ===== */
+/* ===== [BUILD 822] 실시간 모바일: 사진패널 도면 아래로(높이 확보) ===== */
 @media(max-width:760px){
-  .stage{flex-wrap:wrap!important}
-  .maincol{width:100%!important;flex:1 1 100%!important;order:1}
-  .photo-panel{width:100%!important;min-width:0!important;max-width:none!important;flex:1 1 100%!important;border-left:none!important;border-top:2px solid var(--line)!important;order:2!important}
-  .photo-panel.open{display:flex!important;height:44vh!important}
+  .stage{flex-direction:column!important}
+  .maincol{flex:1 1 auto!important;min-height:0!important;width:100%!important;order:1!important}
+  .photo-panel{width:100%!important;min-width:0!important;max-width:none!important;border-left:none!important;border-top:2px solid var(--line)!important;order:2!important}
+  .photo-panel.open{display:flex!important;flex:0 0 46vh!important;height:46vh!important}
 }
 </style>
 </head>
@@ -394,7 +396,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 821</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 822</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -557,6 +559,6 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     </div>
   </div>
 
-<script src="login.js?v=821"></script><script src="core.js?v=821"></script>
+<script src="login.js?v=822"></script><script src="core.js?v=822"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
