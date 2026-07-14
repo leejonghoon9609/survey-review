@@ -395,13 +395,15 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   .photo-panel .php-head button,.photo-panel .php-head select{font-size:10px!important;padding:3px 6px!important;white-space:nowrap!important;flex:none!important;border-radius:6px!important}
   .photo-panel .php-head select{max-width:110px!important}
 }
+  #rtWireBar{display:none;gap:6px;padding:8px 10px;flex-wrap:wrap;background:#f4f8fc;border-top:1px solid #b5d4f4;border-bottom:1px solid #b5d4f4;align-items:center}
+  #rtWireBar button{border:0;border-radius:7px;padding:7px 11px;font-weight:700;font-size:13px;cursor:pointer}
 </style>
 </head>
 <body>
   <header>
     <button id="homeBtn" class="photoBtn" style="background:#eef2f7;border:1px solid #c6d2e0;color:#33506e;font-weight:700;border-radius:8px;padding:5px 11px;margin-right:2px">🏠 홈</button>
     <button id="modeToggle" class="photoBtn">💻 결선</button>
-    <h1>실시간측량</h1><button id="rtLine" class="rtm" onclick="startDraw('\uD1B5\uC2E0\uAD00\uB85C');document.body.classList.remove('rtrailopen')" style="display:none">✏️ 관로선</button><button id="rtTool" class="rtm" onclick="document.body.classList.toggle('rtrailopen')" style="display:none">☰ 도구</button><div class="rt-break"></div>
+    <h1>실시간측량</h1><button id="rtLine" class="rtm" onclick="rtToggleWire()" style="display:none">✏️ 관로선</button><button id="rtTool" class="rtm" onclick="document.body.classList.toggle('rtrailopen')" style="display:none">☰ 도구</button><div class="rt-break"></div>
     <button id="sysSwitch" class="wk" onclick="location.href='index.html'" style="background:#fff7e6;border:1px solid #f59e0b;color:#b45309;font-weight:700;border-radius:8px;padding:5px 11px;margin-left:2px">🏠 포털</button>
     <span id="roBadge" class="wk" style="display:none;cursor:pointer;color:#d98200;border:1px solid #e0b15a;background:#fff8ec;border-radius:7px;padding:2px 9px;font-size:12px;font-weight:700" title="클릭하면 수정 가능 모드로 전환">🔒 보기 전용 · 클릭=수정</span>
     <span id="viewerBar" class="vw">
@@ -430,7 +432,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 853</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 854</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -444,6 +446,15 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
         <button id="rtCsvBtn" type="button" onclick="document.getElementById('fCsv').click()" style="background:#1f6fd6;color:#fff;border:0;border-radius:10px;padding:11px 15px;font-weight:800;font-size:15px;box-shadow:0 3px 10px rgba(0,0,0,.28);cursor:pointer">📥 CSV</button>
         <button id="rtShoot" class="photoBtn" onclick="rtCapture()" style="background:#EA002C;color:#fff;border:0;border-radius:10px;padding:11px 18px;font-weight:800;font-size:15px;box-shadow:0 3px 10px rgba(0,0,0,.28);cursor:pointer">📷 측점 촬영</button>
       </div>
+    <div id="rtWireBar">
+      <button type="button" onclick="mode='delall2';setModeUI()" style="background:#fcebeb;color:#a32d2d">지우기 통합</button>
+      <button type="button" onclick="startDraw('통신관로')" style="background:#e1f5ee;color:#0f6e56">관로선</button>
+      <button type="button" onclick="mode='mhplace';setModeUI()" style="background:#e6f1fb;color:#185fa5">맨홀</button>
+      <button type="button" onclick="mode='riserplace';setModeUI()" style="background:#faeeda;color:#854f0b">입상주</button>
+      <button type="button" onclick="startDraw('지거')" style="background:#eeedfe;color:#3c3489">지거</button>
+      <button type="button" onclick="startDraw('압입구간')" style="background:#fbeaf0;color:#993556">압입</button>
+    </div>
+    <script>function rtToggleWire(){var b=document.getElementById('rtWireBar');if(!b)return;var op=(b.style.display!=='none'&&b.style.display!=='');b.style.display=op?'none':'flex';var t=document.getElementById('rtLine');if(t)t.style.background=op?'':'#e1f5ee';}</script>
     <div class="canvas-wrap">
       <div id="kmapBg" class="kmapbg" style="display:none"></div>
       <svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg>
