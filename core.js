@@ -434,8 +434,8 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
   var anchor=L.anchor;
   var Uh=vb.w/Math.max(cv.getBoundingClientRect().width,1); // 1px = Uh world
   var maxChars=Math.max((''+(p.no||'')).length,((p.code||'').trim()).length);
-  var tw=26*Uh;  // 이동/수정 핸들 폭 — 작게(인출선 닿는 라벨 앞부분만)
-  var hh=20*Uh;  // 핸들 높이 — 한 줄 정도
+  var tw=13*Uh;  // 이동/수정 핸들 폭 — 작게(인출선 닿는 라벨 앞부분만)
+  var hh=15*Uh;  // 핸들 높이 — 한 줄 정도
   var hx=anchor==='start'?(ls[0]-3*Uh):(ls[0]-tw+3*Uh);
   var handle=el('rect',{x:hx,y:ls[1]-hh*0.5,width:tw,height:hh,fill:'transparent','pointer-events':'all'});
   if(isSel&&(typeof LV==='undefined'||!LV||LV.tagbox!==0)){handle.setAttribute('stroke','#22cc00');handle.setAttribute('stroke-width',0.8);handle.setAttribute('stroke-dasharray','2 2');handle.setAttribute('vector-effect','non-scaling-stroke');}
@@ -1516,6 +1516,7 @@ function applyBpCrop(c){
   state.baseTexts=(state.baseTexts||[]).filter(function(t){return t.x>=xmin&&t.x<=xmax&&t.y>=ymin&&t.y<=ymax;});
   mode='pan';if(typeof setModeUI==='function')setModeUI();
   drawGeo();toast('백판 크롭 완료 — 영역 안만 남기고 테두리선 추가');
+  if(state.projectId&&typeof saveProject==='function'){try{saveProject();if(typeof toast==='function')toast('크롭 자동 저장됨');}catch(e){}}
 }
 var BP_APP={'통신관로':1,'지거':1,'압입구간':1,'주입상인출선':1};
 function bpHit(cw,noCap){
