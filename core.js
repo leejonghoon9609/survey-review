@@ -5510,7 +5510,7 @@ cv.addEventListener('pointerdown',function(e){
   else if(mode==='ptdel'){return;} // 측점삭제: 빈 곳 클릭은 무시(측점 클릭은 hit 핸들러가 삭제)
   else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);var ns=nearestSnapWorld(w[0],w[1]);
     var snapTol=(drawLayer==='지거')?Math.max(pxToWorld()*14,0.25):vb.w*0.04; // 지거는 측점 바로 위만 스냅(끝점이 멀리 안 끌림)
-    var pt=(ns.pt&&ns.d<snapTol)?[ns.pt[0],ns.pt[1]]:[w[0],-w[1]];lineDraft.push(pt);renderDraft();}
+    if(!(ns.pt&&ns.d<snapTol)){if(typeof toast==='function')toast('측점 위를 클릭하세요 — 측점끼리만 연결됩니다');return;}var pt=[ns.pt[0],ns.pt[1]];lineDraft.push(pt);renderDraft();}
   else if(mode==='delline'||mode==='delall2'){var wd=toWorld(e.clientX,e.clientY);
     if(mode==='delall2'){var hp=null,hpd=Math.max(pxToWorld()*12,0.4);(state.points||[]).forEach(function(q){var d=Math.hypot(q.x-wd[0],q.y+wd[1]);if(d<hpd){hpd=d;hp=q;}});if(hp){deletePoint(hp);return;} if(deleteMarkupAt(wd[0],wd[1]))return;}
     deleteSegmentAt(wd[0],wd[1]);}
