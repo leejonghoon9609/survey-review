@@ -395,8 +395,8 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   .photo-panel .php-head button,.photo-panel .php-head select{font-size:10px!important;padding:3px 6px!important;white-space:nowrap!important;flex:none!important;border-radius:6px!important}
   .photo-panel .php-head select{max-width:110px!important}
 }
-  #rtWireBar{display:none;gap:6px;padding:8px 10px;flex-wrap:wrap;background:#f4f8fc;border-top:1px solid #b5d4f4;border-bottom:1px solid #b5d4f4;align-items:center}
-  #rtWireBar button{border:0;border-radius:6px;padding:6px 9px;font-weight:700;font-size:12px;cursor:pointer}
+  #rtWireBar{display:none;gap:4px;padding:7px 8px;flex-wrap:nowrap;overflow-x:auto;background:#f4f8fc;border-top:1px solid #b5d4f4;border-bottom:1px solid #b5d4f4;align-items:center}
+  #rtWireBar button{border:0;border-radius:6px;padding:5px 7px;font-weight:700;font-size:11px;white-space:nowrap;cursor:pointer}
 </style>
 </head>
 <body>
@@ -432,7 +432,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 856</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 857</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -447,13 +447,13 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
         <button id="rtShoot" class="photoBtn" onclick="rtCapture()" style="background:#EA002C;color:#fff;border:0;border-radius:10px;padding:11px 18px;font-weight:800;font-size:15px;box-shadow:0 3px 10px rgba(0,0,0,.28);cursor:pointer">📷 측점 촬영</button>
       </div>
     <div id="rtWireBar">
-      <button type="button" onclick="mode='delall2';setModeUI()" style="background:#fcebeb;color:#a32d2d">지우기 통합</button>
+      <button type="button" onclick="mode='delall2';setModeUI()" style="background:#fcebeb;color:#a32d2d">지우기</button>
       <button type="button" onclick="startDraw('통신관로')" style="background:#e1f5ee;color:#0f6e56">관로선</button>
       <button type="button" onclick="mode='mhplace';setModeUI()" style="background:#e6f1fb;color:#185fa5">맨홀</button>
       <button type="button" onclick="mode='riserplace';setModeUI()" style="background:#faeeda;color:#854f0b">입상주</button>
       <button type="button" onclick="startDraw('지거')" style="background:#eeedfe;color:#3c3489">지거</button>
       <button type="button" onclick="startDraw('압입구간')" style="background:#fbeaf0;color:#993556">압입</button>
-      <button type="button" onclick="mode='bpz1';setModeUI()" style="background:#fdf6e3;color:#b8860b">보강판 박스</button>
+      <button type="button" onclick="mode='bpz1';setModeUI()" style="background:#fdf6e3;color:#b8860b">보강판</button>
     </div>
     <script>function rtToggleWire(){var b=document.getElementById('rtWireBar');if(!b)return;var op=(b.style.display!=='none'&&b.style.display!=='');b.style.display=op?'none':'flex';var t=document.getElementById('rtLine');if(t)t.style.background=op?'':'#e1f5ee';}</script>
     <div class="canvas-wrap">
