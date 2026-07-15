@@ -5513,7 +5513,7 @@ cv.addEventListener('pointerdown',function(e){
     var snapTol=(drawLayer==='지거')?Math.max(pxToWorld()*14,0.25):vb.w*0.04; // 지거는 측점 바로 위만 스냅(끝점이 멀리 안 끌림)
     if(!(ns.pt&&ns.d<snapTol)){if(typeof toast==='function')toast('측점 위를 클릭하세요 — 측점끼리만 연결됩니다');return;}var pt=[ns.pt[0],ns.pt[1]];lineDraft.push(pt);renderDraft();}
   else if(mode==='delline'||mode==='delall2'){var wd=toWorld(e.clientX,e.clientY);
-    if(mode==='delall2'){var hp=null,hpd=Math.max(pxToWorld()*12,0.4);(state.points||[]).forEach(function(q){var d=Math.hypot(q.x-wd[0],q.y+wd[1]);if(d<hpd){hpd=d;hp=q;}});if(hp){deletePoint(hp);return;} if(deleteMarkupAt(wd[0],wd[1]))return;}
+    if(mode==='delall2'){var hp=null,hpd=Math.max(pxToWorld()*12,0.4);(state.points||[]).forEach(function(q){var d=Math.hypot(q.x-wd[0],q.y+wd[1]);if(d<hpd){hpd=d;hp=q;}});if(hp){deletePoint(hp);return;} if(deleteMarkupAt(wd[0],wd[1]))return;if(state.bpzones&&state.bpzones.length){for(var _bz=state.bpzones.length-1;_bz>=0;_bz--){var _poly=(typeof bpOffsetBand==='function'&&typeof bpPathOf==='function')?bpOffsetBand(bpPathOf(state.bpzones[_bz]),5):null;if(_poly&&typeof bpPtInPoly==='function'&&bpPtInPoly(wd[0],-wd[1],_poly)){pushHist();state.bpzones.splice(_bz,1);if(typeof classifyRoad==='function')classifyRoad();drawGeo();updMeta();if(typeof saveProject==='function'){try{saveProject();}catch(e){}}if(typeof toast==='function')toast('보강판 삭제');return;}}}}
     deleteSegmentAt(wd[0],wd[1]);}
   else if(mode==='measure'){var wm=toWorld(e.clientX,e.clientY);var nm=nearestSnapWorld(wm[0],wm[1]);var mp=(nm.pt&&nm.d<vb.w*0.04)?[nm.pt[0],nm.pt[1]]:[wm[0],-wm[1]];measureClick(mp);return;}
   else if(mode==='delmh'){/* 맨홀 삭제 모드: 빈 곳 클릭은 아무것도 안 함 (맨홀 클릭은 심벌 핸들러가 처리) */return;}
