@@ -5480,7 +5480,7 @@ cv.addEventListener('pointerdown',function(e){
   if(e.pointerType==='touch'){activePtrs[e.pointerId]={x:e.clientX,y:e.clientY};
     var pids=Object.keys(activePtrs);
     if(pids.length>=2){ // 두 손가락 = 핀치 확대/축소(+이동)
-      dragging=false;midPanning=false;drawing=false;cv.style.cursor='';
+      dragging=false;midPanning=false;drawing=false;_dwLine=false;_dwPanning=false;_dwFn=null;cv.style.cursor='';
       var pa=activePtrs[pids[0]],pb=activePtrs[pids[1]];
       var pmx=(pa.x+pb.x)/2,pmy=(pa.y+pb.y)/2;
       pinch={d0:Math.max(1,Math.hypot(pa.x-pb.x,pa.y-pb.y)),w0:toWorld(pmx,pmy),vbw0:vb.w,vbh0:vb.h};
@@ -5527,7 +5527,7 @@ cv.addEventListener('pointerdown',function(e){
   if(mode!=='pan')try{cv.setPointerCapture(e.pointerId);}catch(x){}
 });
 cv.addEventListener('pointermove',function(e){
-  if(_dwLine){var _mv=Math.abs(e.clientX-_dwLX0)+Math.abs(e.clientY-_dwLY0);if(_dwPanning||_mv>6){_dwPanning=true;var _Uh=vb.w/Math.max(cv.getBoundingClientRect().width,1);vb.x-=(e.clientX-_dwLX)*_Uh;vb.y-=(e.clientY-_dwLY)*_Uh;_dwLX=e.clientX;_dwLY=e.clientY;if(typeof applyVB==='function')applyVB();}return;}
+  if(_dwLine&&!pinch){var _mv=Math.abs(e.clientX-_dwLX0)+Math.abs(e.clientY-_dwLY0);if(_dwPanning||_mv>6){_dwPanning=true;var _Uh=vb.w/Math.max(cv.getBoundingClientRect().width,1);vb.x-=(e.clientX-_dwLX)*_Uh;vb.y-=(e.clientY-_dwLY)*_Uh;_dwLX=e.clientX;_dwLY=e.clientY;if(typeof applyVB==='function')applyVB();}return;}
   if(mode==='tgptedit'){var _hw=toWorld(e.clientX,e.clientY);var _hp=(typeof nearBpPoint==='function')?nearBpPoint(_hw[0],-_hw[1]):null;if(typeof tgHover==='function')tgHover(_hp);}
   if(mode==='tglinedel'){var _lhw=toWorld(e.clientX,e.clientY);if(typeof tgLineHover==='function')tgLineHover(_lhw[0],-_lhw[1]);}if(mode==='tgsegfix'){var _sfw=toWorld(e.clientX,e.clientY);if(_segFix&&typeof tgSegFixRubber==='function')tgSegFixRubber(_segFix.ax,_segFix.ay,_sfw[0],-_sfw[1]);if(typeof tgFixHover==='function')tgFixHover(_sfw[0],-_sfw[1]);}if(mode==='pan'&&typeof _tgMode==='function'&&_tgMode()){var _pmw=toWorld(e.clientX,e.clientY);if(typeof tgFixHover==='function')tgFixHover(_pmw[0],-_pmw[1]);}
   if(depthDrag){var _dw=toWorld(e.clientX,e.clientY);state.depthCheck[depthDrag.idx].lx=_dw[0];state.depthCheck[depthDrag.idx].ly=-_dw[1];drawGeo();return;}
