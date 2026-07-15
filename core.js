@@ -1799,6 +1799,7 @@ function autoConnectLegacy(){
   edges.forEach(function(e){state.lines.push({layer:'통신관로',pts:[[e[0].x,e[0].y],[e[1].x,e[1].y]]});});
   drawGeo();updMeta();toast('자동 결선 '+edges.length+'개 + 맨홀통과 '+mhCount+'개 (검수·수정하세요)');
 }
+var _dwLine=false,_dwLX0=0,_dwLY0=0,_dwLX=0,_dwLY=0,_dwPanning=false,_dwSnap=null;
 var lineDraft=null, previewLine=null, drawLayer='통신관로', delLayer='통신관로';
 // 같은 선분 키(좌표쌍, 방향무관)
 function segKey(a,b){var lo=(a[0]<b[0]||(a[0]===b[0]&&a[1]<=b[1]))?[a,b]:[b,a];return lo[0][0].toFixed(3)+','+lo[0][1].toFixed(3)+'|'+lo[1][0].toFixed(3)+','+lo[1][1].toFixed(3);}
@@ -5511,7 +5512,7 @@ cv.addEventListener('pointerdown',function(e){
   else if(mode==='ptdel'){return;} // 측점삭제: 빈 곳 클릭은 무시(측점 클릭은 hit 핸들러가 삭제)
   else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);var ns=nearestSnapWorld(w[0],w[1]);
     var snapTol=(drawLayer==='지거')?Math.max(pxToWorld()*14,0.25):vb.w*0.04; // 지거는 측점 바로 위만 스냅(끝점이 멀리 안 끌림)
-    if(!(ns.pt&&ns.d<snapTol)){if(typeof toast==='function')toast('측점 위를 클릭하세요 — 측점끼리만 연결됩니다');return;}var pt=[ns.pt[0],ns.pt[1]];lineDraft.push(pt);renderDraft();}
+    _dwLine=true;_dwLX0=e.clientX;_dwLY0=e.clientY;_dwLX=e.clientX;_dwLY=e.clientY;_dwPanning=false;_dwSnap=(ns.pt&&ns.d<snapTol)?[ns.pt[0],ns.pt[1]]:null;try{cv.setPointerCapture(e.pointerId);}catch(_dpe){}return;}
   else if(mode==='delline'||mode==='delall2'){var wd=toWorld(e.clientX,e.clientY);
     if(mode==='delall2'){var hp=null,hpd=Math.max(pxToWorld()*12,0.4);(state.points||[]).forEach(function(q){var d=Math.hypot(q.x-wd[0],q.y+wd[1]);if(d<hpd){hpd=d;hp=q;}});if(hp){deletePoint(hp);return;} if(deleteMarkupAt(wd[0],wd[1]))return;if(state.bpzones&&state.bpzones.length){for(var _bz=state.bpzones.length-1;_bz>=0;_bz--){var _poly=(typeof bpOffsetBand==='function'&&typeof bpPathOf==='function')?bpOffsetBand(bpPathOf(state.bpzones[_bz]),5):null;if(_poly&&typeof bpPtInPoly==='function'&&bpPtInPoly(wd[0],-wd[1],_poly)){pushHist();state.bpzones.splice(_bz,1);if(typeof classifyRoad==='function')classifyRoad();drawGeo();updMeta();if(typeof saveProject==='function'){try{saveProject();}catch(e){}}if(typeof toast==='function')toast('보강판 삭제');return;}}}}
     deleteSegmentAt(wd[0],wd[1]);}
@@ -5524,6 +5525,7 @@ cv.addEventListener('pointerdown',function(e){
   if(mode!=='pan')try{cv.setPointerCapture(e.pointerId);}catch(x){}
 });
 cv.addEventListener('pointermove',function(e){
+  if(_dwLine){var _mv=Math.abs(e.clientX-_dwLX0)+Math.abs(e.clientY-_dwLY0);if(_dwPanning||_mv>6){_dwPanning=true;var _Uh=vb.w/Math.max(cv.getBoundingClientRect().width,1);vb.x-=(e.clientX-_dwLX)*_Uh;vb.y-=(e.clientY-_dwLY)*_Uh;_dwLX=e.clientX;_dwLY=e.clientY;if(typeof applyVB==='function')applyVB();}return;}
   if(mode==='tgptedit'){var _hw=toWorld(e.clientX,e.clientY);var _hp=(typeof nearBpPoint==='function')?nearBpPoint(_hw[0],-_hw[1]):null;if(typeof tgHover==='function')tgHover(_hp);}
   if(mode==='tglinedel'){var _lhw=toWorld(e.clientX,e.clientY);if(typeof tgLineHover==='function')tgLineHover(_lhw[0],-_lhw[1]);}if(mode==='tgsegfix'){var _sfw=toWorld(e.clientX,e.clientY);if(_segFix&&typeof tgSegFixRubber==='function')tgSegFixRubber(_segFix.ax,_segFix.ay,_sfw[0],-_sfw[1]);if(typeof tgFixHover==='function')tgFixHover(_sfw[0],-_sfw[1]);}if(mode==='pan'&&typeof _tgMode==='function'&&_tgMode()){var _pmw=toWorld(e.clientX,e.clientY);if(typeof tgFixHover==='function')tgFixHover(_pmw[0],-_pmw[1]);}
   if(depthDrag){var _dw=toWorld(e.clientX,e.clientY);state.depthCheck[depthDrag.idx].lx=_dw[0];state.depthCheck[depthDrag.idx].ly=-_dw[1];drawGeo();return;}
@@ -5557,6 +5559,7 @@ cv.addEventListener('pointermove',function(e){
     else{cur.setAttribute('cx',(sx+x)/2);cur.setAttribute('cy',(sy+y)/2);cur.setAttribute('rx',Math.abs(x-sx)/2);cur.setAttribute('ry',Math.abs(y-sy)/2);}}
 });
 function endPtr(e){
+  if(_dwLine){var _wasPan=_dwPanning;_dwLine=false;_dwPanning=false;try{cv.releasePointerCapture(e.pointerId);}catch(_dre){}if(!_wasPan){if(_dwSnap){lineDraft.push(_dwSnap);renderDraft();}else{if(typeof toast==='function')toast('측점 위를 클릭하세요 — 측점끼리만 연결됩니다');}}return;}
   if(depthDrag){depthDrag=null;setTimeout(function(){labelDragging=false;},40);if(typeof saveProject==='function')saveProject();drawGeo();return;}
   if(roadEditVtx){roadEditVtx=null;setTimeout(function(){labelDragging=false;},40);classifyRoad();if(typeof saveProject==='function')saveProject();drawGeo();return;}
   if(bpDragZone){bpDragZone=null;setTimeout(function(){labelDragging=false;},40);drawGeo();return;}
