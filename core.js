@@ -1208,7 +1208,7 @@ function drawManholes(){
 
     // 드래그 핸들 - 맨홀 중심(이중원) — 히트영역 작게(측점 클릭 안 막게)
     var drag=el('circle',{cx:mx,cy:my,r:13*U,fill:'transparent','pointer-events':'all',cursor:'move'});
-    drag.addEventListener('pointerdown',function(ev){
+    drag.addEventListener('pointerdown',function(ev){if(mode==='pan'){_mhLpX=ev.clientX;_mhLpY=ev.clientY;if(_mhLp)clearTimeout(_mhLp);_mhLp=setTimeout(function(){_mhLp=null;openLabelEdit();},1000);}
       if((mode==='delmh'&&!isRiser)||(mode==='delriser'&&isRiser)||mode==='delall2'){ev.stopPropagation();ev.preventDefault();pushHist();
         var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);if(!isRiser)removeManholePassLines(mh);redrawAll();toast(isRiser?'입상주 삭제':'맨홀 삭제(통과결선 포함)');return;}
       if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace'||viewerMode||readOnly)return;
@@ -1224,7 +1224,7 @@ function drawManholes(){
 
     // 라벨 드래그 핸들 (밑줄+글자 영역)
     var lbDrag=el('rect',{x:txtLeft-EM*0.5,y:uly-EM*1.7,width:Math.max(underLen,labelW)+EM*1.0,height:EM*2.3,rx:EM*0.1,fill:'transparent','pointer-events':'all',cursor:'move'});
-    lbDrag.addEventListener('pointerdown',function(ev){
+    lbDrag.addEventListener('pointerdown',function(ev){if(mode==='pan'){_mhLpX=ev.clientX;_mhLpY=ev.clientY;if(_mhLp)clearTimeout(_mhLp);_mhLp=setTimeout(function(){_mhLp=null;openLabelEdit();},1000);}
       if((mode==='delmh'&&!isRiser)||(mode==='delriser'&&isRiser)||mode==='delall2'){ev.stopPropagation();ev.preventDefault();
         var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);if(!isRiser)removeManholePassLines(mh);redrawAll();toast(isRiser?'입상주 삭제':'맨홀 삭제(통과결선 포함)');return;}
       if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace'||viewerMode||readOnly)return;
@@ -1243,8 +1243,9 @@ function drawManholes(){
   });
 }
 var mhDragState=null; // {type:'center'|'label', mh, gx, gy}
+var _mhLp=null,_mhLpX=0,_mhLpY=0;
 window.addEventListener('pointermove',function(ev){
-  if(!mhDragState)return;ev.preventDefault();
+  if(_mhLp&&(Math.abs(ev.clientX-_mhLpX)+Math.abs(ev.clientY-_mhLpY)>8)){clearTimeout(_mhLp);_mhLp=null;}if(!mhDragState)return;ev.preventDefault();
   var w=toWorld(ev.clientX,ev.clientY), mh=mhDragState.mh;
   var wx=w[0], wy=-w[1]; // world (x=동, y=북)
   if(mhDragState.type==='center'){
@@ -1262,7 +1263,7 @@ window.addEventListener('pointermove',function(ev){
   }
 });
 window.addEventListener('pointerup',function(ev){
-  if(!mhDragState)return;mhDragState=null;drawManholes();drawGeo();
+  if(_mhLp){clearTimeout(_mhLp);_mhLp=null;}if(!mhDragState)return;mhDragState=null;drawManholes();drawGeo();
 });
 var mhIdSeq=1;
 function placeManholeAt(wx,wy,type){
