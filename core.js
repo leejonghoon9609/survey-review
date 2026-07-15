@@ -5533,7 +5533,7 @@ cv.addEventListener('pointermove',function(e){
   if(bpDragZone){var dw=toWorld(e.clientX,e.clientY);bpDragZone.lx=dw[0];bpDragZone.ly=-dw[1];drawGeo();return;}
   if(bpCrop){var w=toWorld(e.clientX,e.clientY);bpCrop.ex=w[0];bpCrop.ey=w[1];drawBpRect();return;}
   if(mode==='bperase'&&!midPanning){bpHover(toWorld(e.clientX,e.clientY));return;}
-  if((mode==='bpz1'||mode==='bpz2')&&!midPanning){var hw=toWorld(e.clientX,e.clientY);bpHoverPt(hw);if(mode==='bpz2'&&bpFirst){var hbp=nearBpPoint(hw[0],-hw[1]);bpPreview(bpFirst,hbp?[hbp.x,hbp.y]:[hw[0],-hw[1]]);}else bpPreviewClear();return;}
+  if((mode==='bpz1'||mode==='bpz2')&&!midPanning&&!dragging&&!pinch){var hw=toWorld(e.clientX,e.clientY);bpHoverPt(hw);if(mode==='bpz2'&&bpFirst){var hbp=nearBpPoint(hw[0],-hw[1]);bpPreview(bpFirst,hbp?[hbp.x,hbp.y]:[hw[0],-hw[1]]);}else bpPreviewClear();return;}
   if(mode==='bpzdel'&&!midPanning){var _ew=toWorld(e.clientX,e.clientY),_ex=_ew[0],_ey=-_ew[1],_hi=-1;if(state.bpzones)for(var _zi=0;_zi<state.bpzones.length;_zi++){var _pl=bpOffsetBand(bpPathOf(state.bpzones[_zi]),5);if(_pl&&bpPtInPoly(_ex,_ey,_pl)){_hi=_zi;break;}}if(_hi!==bpEraseHover){bpEraseHover=_hi;drawGeo();}return;}
   if(e.pointerType==='touch'&&activePtrs[e.pointerId]){activePtrs[e.pointerId].x=e.clientX;activePtrs[e.pointerId].y=e.clientY;}
   if(noteDrag){var m=state.markups[noteDrag.i];

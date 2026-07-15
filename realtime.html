@@ -395,8 +395,9 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   .photo-panel .php-head button,.photo-panel .php-head select{font-size:10px!important;padding:3px 6px!important;white-space:nowrap!important;flex:none!important;border-radius:6px!important}
   .photo-panel .php-head select{max-width:110px!important}
 }
-  #rtWireBar{display:none;gap:4px;padding:7px 8px;flex-wrap:nowrap;overflow-x:auto;background:#f4f8fc;border-top:1px solid #b5d4f4;border-bottom:1px solid #b5d4f4;align-items:center}
-  #rtWireBar button{border:0;border-radius:6px;padding:5px 7px;font-weight:700;font-size:11px;white-space:nowrap;cursor:pointer}
+  #rtWireBar{display:none;gap:4px;padding:7px 8px;flex-wrap:nowrap;overflow-x:auto;background:#f4f8fc;border-top:1px solid #b5d4f4;border-bottom:1px solid #b5d4f4;align-items:center;justify-content:flex-end}
+  #rtWireBar button{border:1px solid #d5dbe3;border-radius:6px;padding:5px 7px;font-weight:700;font-size:11px;white-space:nowrap;cursor:pointer;background:#fff!important}
+  #rtWireBar button.on{background:#ffe9a8!important;border-color:#e0a800}
 </style>
 </head>
 <body>
@@ -432,7 +433,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 865</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 866</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -454,8 +455,12 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
       <button type="button" onclick="startDraw('지거')" style="background:#eeedfe;color:#3c3489">지거</button>
       <button type="button" onclick="startDraw('압입구간')" style="background:#fbeaf0;color:#993556">압입</button>
       <button type="button" onclick="mode='bpz1';setModeUI()" style="background:#fdf6e3;color:#b8860b">보강판</button>
+      <button type="button" id="rtWireDone" style="color:#111;font-weight:800">완료</button>
     </div>
-    <script>function rtToggleWire(){var b=document.getElementById('rtWireBar');if(!b)return;var op=(b.style.display!=='none'&&b.style.display!=='');b.style.display=op?'none':'flex';var t=document.getElementById('rtLine');if(t)t.style.background=op?'':'#e1f5ee';}</script>
+    <script>function rtToggleWire(){var b=document.getElementById('rtWireBar');if(!b)return;var op=(b.style.display!=='none'&&b.style.display!=='');b.style.display=op?'none':'flex';var t=document.getElementById('rtLine');if(t)t.style.background=op?'':'#e1f5ee';}
+function rtWireMark(btn){var bar=document.getElementById('rtWireBar');if(!bar)return;[].forEach.call(bar.querySelectorAll('button'),function(b){b.classList.remove('on');});if(btn)btn.classList.add('on');}
+function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDraft.length){if(typeof finishDraw==='function')finishDraw();}else{if(typeof bpFirst!=='undefined')bpFirst=null;if(typeof bpPreviewClear==='function')bpPreviewClear();}mode='pan';if(typeof setModeUI==='function')setModeUI();}catch(e){}rtWireMark(null);}
+(function(){var bar=document.getElementById('rtWireBar');if(!bar)return;[].forEach.call(bar.querySelectorAll('button'),function(b){if(b.id==='rtWireDone'){b.addEventListener('click',rtWireDoneFn);return;}b.addEventListener('click',function(){rtWireMark(b);});});})();</script>
     <div class="canvas-wrap">
       <div id="kmapBg" class="kmapbg" style="display:none"></div>
       <svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -611,6 +616,6 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     </div>
   </div>
 
-<script src="login.js?v=865"></script><script src="core.js?v=865"></script>
+<script src="login.js?v=866"></script><script src="core.js?v=866"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
