@@ -396,7 +396,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   .photo-panel .php-head select{max-width:110px!important}
 }
   #rtWireBar{display:none;gap:6px;padding:8px 10px;flex-wrap:wrap;background:#f4f8fc;border-top:1px solid #b5d4f4;border-bottom:1px solid #b5d4f4;align-items:center}
-  #rtWireBar button{border:0;border-radius:7px;padding:7px 11px;font-weight:700;font-size:13px;cursor:pointer}
+  #rtWireBar button{border:0;border-radius:6px;padding:6px 9px;font-weight:700;font-size:12px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -432,7 +432,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 855</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 856</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -453,6 +453,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
       <button type="button" onclick="mode='riserplace';setModeUI()" style="background:#faeeda;color:#854f0b">입상주</button>
       <button type="button" onclick="startDraw('지거')" style="background:#eeedfe;color:#3c3489">지거</button>
       <button type="button" onclick="startDraw('압입구간')" style="background:#fbeaf0;color:#993556">압입</button>
+      <button type="button" onclick="mode='bpz1';setModeUI()" style="background:#fdf6e3;color:#b8860b">보강판 박스</button>
     </div>
     <script>function rtToggleWire(){var b=document.getElementById('rtWireBar');if(!b)return;var op=(b.style.display!=='none'&&b.style.display!=='');b.style.display=op?'none':'flex';var t=document.getElementById('rtLine');if(t)t.style.background=op?'':'#e1f5ee';}</script>
     <div class="canvas-wrap">
@@ -610,6 +611,6 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     </div>
   </div>
 
-<script src="login.js?v=855"></script><script src="core.js?v=855"></script>
+<script src="login.js?v=856"></script><script src="core.js?v=856"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>

@@ -499,13 +499,13 @@ function addNoteHandle(L,t,ld,lx,ly,ax,tw){
   var bb;try{bb=t.getBBox();}catch(e){bb=null;}
   var pad=0.4,bw=bb?bb.width:String(L.note).length*0.42,bh=bb?bb.height:0.85,bx=bb?bb.x:lx+0.25,by=bb?bb.y:ly-0.45;
   var hc=L.layer==='압입구간'?'#1f6fd6':'#a07e00', hc2=L.layer==='압입구간'?'#15489e':'#7a5f00';
-  var h=el('rect',{x:bx-pad,y:by-pad,width:bw+2*pad,height:bh+2*pad,rx:0.3,fill:'transparent',stroke:hc,'stroke-width':0.7,'stroke-dasharray':'1.6 1.6','vector-effect':'non-scaling-stroke','pointer-events':'all'});h.style.cursor='move';
-  var drag=false,moved=false,nx=lx,ny=ly;
-  h.addEventListener('pointerdown',function(ev){if(mode==='delall2'||mode==='ptdel'){ev.stopPropagation();ev.preventDefault();var li=state.lines.indexOf(L);if(li>=0){pushHist();state.lines.splice(li,1);drawGeo();updMeta();toast('멘트·선 삭제');}return;}if(mode!=='pan'||viewerMode||readOnly)return;ev.stopPropagation();drag=true;moved=false;labelDragging=true;h.setAttribute('stroke',hc2);h.setAttribute('stroke-width',1.1);h.setAttribute('stroke-dasharray','2.2 1.4');try{h.setPointerCapture(ev.pointerId);}catch(e){}});
-  h.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();moved=true;var ww=toWorld(ev.clientX,ev.clientY);nx=ww[0];ny=ww[1];
+  var h=el('rect',{x:bx-pad,y:by-pad,width:bw+2*pad,height:bh+2*pad,rx:0.3,fill:'transparent',stroke:((typeof LV!=='undefined'&&LV&&LV.tagbox===0)?'none':hc),'stroke-width':0.7,'stroke-dasharray':'1.6 1.6','vector-effect':'non-scaling-stroke','pointer-events':((typeof LV!=='undefined'&&LV&&LV.tagbox===0)?'none':'all')});h.style.cursor='move';
+  var drag=false,moved=false,nx=lx,ny=ly,_lp=null;
+  h.addEventListener('pointerdown',function(ev){if(mode==='delall2'||mode==='ptdel'){ev.stopPropagation();ev.preventDefault();var li=state.lines.indexOf(L);if(li>=0){pushHist();state.lines.splice(li,1);drawGeo();updMeta();toast('멘트·선 삭제');}return;}if(mode!=='pan'||viewerMode||readOnly)return;ev.stopPropagation();drag=true;moved=false;labelDragging=true;if(_lp)clearTimeout(_lp);_lp=setTimeout(function(){if(drag&&!moved){_lp=null;drag=false;labelDragging=false;try{h.releasePointerCapture(ev.pointerId);}catch(e){}if(typeof openLineNoteEdit==='function')openLineNoteEdit(L,lx,ly);}},1000);h.setAttribute('stroke',hc2);h.setAttribute('stroke-width',1.1);h.setAttribute('stroke-dasharray','2.2 1.4');try{h.setPointerCapture(ev.pointerId);}catch(e){}});
+  h.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();moved=true;if(_lp){clearTimeout(_lp);_lp=null;}var ww=toWorld(ev.clientX,ev.clientY);nx=ww[0];ny=ww[1];
     t.setAttribute('x',nx+0.25);t.setAttribute('y',ny+0.2);ld.setAttribute('x2', (ax!=null&&ax>nx)?nx+0.25+(tw||bw):nx);ld.setAttribute('y2',ny);
     h.setAttribute('x',nx+0.25-pad);h.setAttribute('y',ny-0.45-pad);});
-  function up(ev){if(!drag)return;drag=false;setTimeout(function(){labelDragging=false;},40);
+  function up(ev){if(!drag)return;drag=false;if(_lp){clearTimeout(_lp);_lp=null;}setTimeout(function(){labelDragging=false;},40);
     if(moved){L.noteOff=[nx,ny];}
     else{var now=Date.now();if(now-(L._lastClick||0)<350){L._lastClick=0;openLineNoteEdit(L,lx,ly);}else{L._lastClick=now;}}
     try{h.releasePointerCapture(ev.pointerId);}catch(e){}drawGeo();}
