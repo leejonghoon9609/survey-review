@@ -395,7 +395,8 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   .photo-panel .php-head button,.photo-panel .php-head select{font-size:10px!important;padding:3px 6px!important;white-space:nowrap!important;flex:none!important;border-radius:6px!important}
   .photo-panel .php-head select{max-width:110px!important}
 }
-  #rtWireBar{display:none;gap:4px;padding:7px 8px;flex-wrap:nowrap;overflow-x:auto;background:#f4f8fc;border-top:1px solid #b5d4f4;border-bottom:1px solid #b5d4f4;align-items:center;justify-content:flex-end}
+  #rtWireBar{display:none;gap:4px;padding:7px 8px;flex-wrap:nowrap;overflow-x:auto;background:#f4f8fc;border-top:1px solid #b5d4f4;border-bottom:1px solid #b5d4f4;align-items:center;justify-content:flex-start}
+  #rtWireDone{margin-left:auto}
   #rtWireBar button{border:1px solid #d5dbe3;border-radius:6px;padding:5px 7px;font-weight:700;font-size:11px;white-space:nowrap;cursor:pointer;background:#fff!important}
   #rtWireBar button.on{background:#ffe9a8!important;border-color:#e0a800}
 </style>
@@ -433,7 +434,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 866</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 867</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -616,6 +617,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=866"></script><script src="core.js?v=866"></script>
+<script src="login.js?v=867"></script><script src="core.js?v=867"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
