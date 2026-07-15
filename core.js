@@ -899,7 +899,7 @@ function drawBpZones(){
       lbl.style.pointerEvents='auto';lbl.style.cursor='move';
       lbl.addEventListener('dblclick',function(ev){ev.stopPropagation();if(mode==='bpzdel')return;openBpEdit(z);});
       lbl.addEventListener('pointerdown',function(ev){if(viewerMode||readOnly)return;if(mode==='bpzdel'){ev.stopPropagation();ev.preventDefault();var bi=state.bpzones.indexOf(z);if(bi>=0){pushHist();state.bpzones.splice(bi,1);drawGeo();updMeta();toast('\uBCF4\uAC15\uD310 \uAD6C\uC5ED \uC0AD\uC81C');}return;}if(mode!=='pan')return;ev.stopPropagation();ev.preventDefault();bpDragZone=z;labelDragging=true;try{cv.setPointerCapture(ev.pointerId);}catch(e){}});
-      var ah=el('circle',{cx:ts[0],cy:ts[1],r:1.2,fill:'rgba(184,134,11,0.001)',stroke:'none',cursor:'move'});gAnc.appendChild(ah);
+      var _ahOff=(mode==='delall2'||mode==='delline'||mode==='ptdel'||mode==='bpzdel'||(typeof LV!=='undefined'&&LV&&LV.tagbox===0));var ah=el('circle',{cx:ts[0],cy:ts[1],r:Math.max((typeof pxToWorld==='function'?pxToWorld():0.06)*11,0.25),fill:'rgba(184,134,11,0.001)',stroke:'none',cursor:'move','pointer-events':(_ahOff?'none':'all')});gAnc.appendChild(ah);
       (function(zz,handle){
         handle.addEventListener('pointerdown',function(ev){if(mode==='bpzdel'){ev.stopPropagation();ev.preventDefault();var bi=state.bpzones.indexOf(zz);if(bi>=0){pushHist();state.bpzones.splice(bi,1);drawGeo();updMeta();toast('\uBCF4\uAC15\uD310 \uAD6C\uC5ED \uC0AD\uC81C');}return;}if(mode!=='pan'||viewerMode||readOnly)return;ev.stopPropagation();ev.preventDefault();bpDragZone=zz;labelDragging=true;try{cv.setPointerCapture(ev.pointerId);}catch(e){}});
       })(z,ah);
