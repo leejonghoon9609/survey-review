@@ -500,9 +500,9 @@ function addNoteHandle(L,t,ld,lx,ly,ax,tw){
   var pad=0.4,bw=bb?bb.width:String(L.note).length*0.42,bh=bb?bb.height:0.85,bx=bb?bb.x:lx+0.25,by=bb?bb.y:ly-0.45;
   var hc=L.layer==='압입구간'?'#1f6fd6':'#a07e00', hc2=L.layer==='압입구간'?'#15489e':'#7a5f00';
   var h=el('rect',{x:bx-pad,y:by-pad,width:bw+2*pad,height:bh+2*pad,rx:0.3,fill:'transparent',stroke:((typeof LV!=='undefined'&&LV&&LV.tagbox===0)?'none':hc),'stroke-width':0.7,'stroke-dasharray':'1.6 1.6','vector-effect':'non-scaling-stroke','pointer-events':((typeof LV!=='undefined'&&LV&&LV.tagbox===0)?'none':'all')});h.style.cursor='move';
-  var drag=false,moved=false,nx=lx,ny=ly,_lp=null;
-  h.addEventListener('pointerdown',function(ev){if(mode==='delall2'||mode==='ptdel'){ev.stopPropagation();ev.preventDefault();var li=state.lines.indexOf(L);if(li>=0){pushHist();state.lines.splice(li,1);drawGeo();updMeta();toast('멘트·선 삭제');}return;}if(mode!=='pan'||viewerMode||readOnly)return;ev.stopPropagation();drag=true;moved=false;labelDragging=true;if(_lp)clearTimeout(_lp);_lp=setTimeout(function(){if(drag&&!moved){_lp=null;drag=false;labelDragging=false;try{h.releasePointerCapture(ev.pointerId);}catch(e){}if(typeof openLineNoteEdit==='function')openLineNoteEdit(L,lx,ly);}},1000);h.setAttribute('stroke',hc2);h.setAttribute('stroke-width',1.1);h.setAttribute('stroke-dasharray','2.2 1.4');try{h.setPointerCapture(ev.pointerId);}catch(e){}});
-  h.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();moved=true;if(_lp){clearTimeout(_lp);_lp=null;}var ww=toWorld(ev.clientX,ev.clientY);nx=ww[0];ny=ww[1];
+  var drag=false,moved=false,nx=lx,ny=ly,_lp=null,_lpX=0,_lpY=0;
+  h.addEventListener('pointerdown',function(ev){if(mode==='delall2'||mode==='ptdel'){ev.stopPropagation();ev.preventDefault();var li=state.lines.indexOf(L);if(li>=0){pushHist();state.lines.splice(li,1);drawGeo();updMeta();toast('멘트·선 삭제');}return;}if(mode!=='pan'||viewerMode||readOnly)return;ev.stopPropagation();drag=true;moved=false;labelDragging=true;_lpX=ev.clientX;_lpY=ev.clientY;if(_lp)clearTimeout(_lp);_lp=setTimeout(function(){if(drag&&!moved){_lp=null;drag=false;labelDragging=false;try{h.releasePointerCapture(ev.pointerId);}catch(e){}if(typeof openLineNoteEdit==='function')openLineNoteEdit(L,lx,ly);}},1000);h.setAttribute('stroke',hc2);h.setAttribute('stroke-width',1.1);h.setAttribute('stroke-dasharray','2.2 1.4');try{h.setPointerCapture(ev.pointerId);}catch(e){}});
+  h.addEventListener('pointermove',function(ev){if(!drag)return;if(_lp&&(Math.abs(ev.clientX-_lpX)+Math.abs(ev.clientY-_lpY)<=8))return;ev.preventDefault();moved=true;if(_lp){clearTimeout(_lp);_lp=null;}var ww=toWorld(ev.clientX,ev.clientY);nx=ww[0];ny=ww[1];
     t.setAttribute('x',nx+0.25);t.setAttribute('y',ny+0.2);ld.setAttribute('x2', (ax!=null&&ax>nx)?nx+0.25+(tw||bw):nx);ld.setAttribute('y2',ny);
     h.setAttribute('x',nx+0.25-pad);h.setAttribute('y',ny-0.45-pad);});
   function up(ev){if(!drag)return;drag=false;if(_lp){clearTimeout(_lp);_lp=null;}setTimeout(function(){labelDragging=false;},40);
@@ -1203,7 +1203,7 @@ function drawManholes(){
     var mhLbl=mkLabel(txtCx, uly-EM*0.95, mhDisp(mh), {fill:(mh._fromCsv&&isRiser?'#d500f2':MHC),weight:'600',anchor:'middle',grp:(isRiser?'riser':'mh'),px:11});
     // 라벨 div에 직접 더블클릭(수정) — 오버레이라 글자 위에서 바로 동작
     mhLbl.style.pointerEvents='auto';
-    mhLbl.style.cursor='text';
+    mhLbl.style.cursor='text';mhLbl.style.userSelect='none';mhLbl.style.webkitUserSelect='none';mhLbl.style.webkitTouchCallout='none';(function(){var _mLp=null,_mX=0,_mY=0;mhLbl.addEventListener('pointerdown',function(ev){if(mode!=='pan')return;_mX=ev.clientX;_mY=ev.clientY;if(_mLp)clearTimeout(_mLp);_mLp=setTimeout(function(){_mLp=null;openLabelEdit();},600);});mhLbl.addEventListener('pointermove',function(ev){if(_mLp&&(Math.abs(ev.clientX-_mX)+Math.abs(ev.clientY-_mY)>8)){clearTimeout(_mLp);_mLp=null;}});mhLbl.addEventListener('pointerup',function(){if(_mLp){clearTimeout(_mLp);_mLp=null;}});mhLbl.addEventListener('pointercancel',function(){if(_mLp){clearTimeout(_mLp);_mLp=null;}});})();
     mhLbl.addEventListener('dblclick',function(ev){ev.stopPropagation();if(mode==='delmh'||mode==='delriser')return;if(typeof tgSelectMh==='function'&&mh&&mh.wx!=null)tgSelectMh(mh.wx,mh.wy);openLabelEdit();});
 
     // 드래그 핸들 - 맨홀 중심(이중원) — 히트영역 작게(측점 클릭 안 막게)
