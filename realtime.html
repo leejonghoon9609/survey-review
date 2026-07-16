@@ -438,7 +438,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 904</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 905</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -474,6 +474,7 @@ function rtDeleteCsvDay(d){try{
   if(typeof toast==='function')toast(d+' CSV 삭제됨 — 되돌리기로 복구 가능');
 }catch(e){}}
 function rtOpenAsbuilt(){
+  try{if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof openPhotoPanel==='function')openPhotoPanel(false);}catch(_e){}
   var ab=(typeof state!=='undefined')&&state.asbuilt;
   if(!ab||!ab.url){if(typeof toast==='function')toast('준공도면이 없습니다 — 사업등록에서 올려주세요');return;}
   var old=document.getElementById('rtAsbModal');if(old)old.remove();
@@ -499,6 +500,10 @@ function rtOpenAsbuilt(){
   function rel(e){delete pts[e.pointerId];if(Object.keys(pts).length<2)d0=0;}
   body.addEventListener('pointerup',rel);body.addEventListener('pointercancel',rel);
 }
+(function(){var pb=document.getElementById('photoBtn');if(!pb)return;
+pb.addEventListener('click',function(ev){var m=document.getElementById('rtAsbModal');
+if(m){m.remove();if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen){ev.stopImmediatePropagation();ev.preventDefault();}}
+},true);})();
 function rtOpenCsvModal(){
   var old=document.getElementById('rtCsvModal');if(old)old.remove();
   var days={},total=0;((typeof state!=='undefined'&&state.points)||[]).forEach(function(pt){if(!pt||!pt._csv||!pt.no)return;var d=String(pt.no).split('-')[0];days[d]=(days[d]||0)+1;total++;});
@@ -686,6 +691,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=904"></script><script src="core.js?v=904"></script>
+<script src="login.js?v=905"></script><script src="core.js?v=905"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
