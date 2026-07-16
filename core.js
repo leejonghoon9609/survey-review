@@ -5778,8 +5778,8 @@ function deleteProjectById(id,nm){
     .then(function(res){
       if(res&&res.error){toast('삭제 오류: '+res.error.message);return;}
       if(state.projectId===id){ // 현재 열려있던 사업이면 화면 초기화
-        state.projectId=null;state.projectName=null;state.points=[];state.lines=[];state.baseTexts=[];state.markups=[];state.manholes=[];state.labelOff={};state.depthGround=null;state.finalCsv=[];state.photoDir={};state.bizInfo=null;state.routingDone=false;state.asbuilt=null;state.fieldDone=null;state._importSrc=[];photoMap={};afterMap={};selNum=null;
-        clearSvg(gSel);clearSvg(gMH);redrawAll();updMeta();if(photoPanelOpen)refreshPhotoPanel();
+        state.projectId=null;state.projectName=null;state.points=[];state.lines=[];state.baseTexts=[];state.markups=[];state.manholes=[];state.gpsPts=[];state.bpzones=[];state.roadZones=[];state.depthCheck=[];state.labelOff={};state.depthGround=null;state.finalCsv=[];state.photoDir={};state.bizInfo=null;state.routingDone=false;state.asbuilt=null;state.fieldDone=null;state._importSrc=[];photoMap={};afterMap={};selNum=null;
+        clearSvg(gSel);clearSvg(gMH);if(typeof clearLabels==='function'){try{clearLabels('gps');}catch(e){}}redrawAll();updMeta();if(photoPanelOpen)refreshPhotoPanel();
       }
       refreshProjects();
       toast('사업 삭제 완료: '+(nm||''));
