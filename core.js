@@ -5898,7 +5898,9 @@ function renderSub(){
   var bdg=function(k){return k?' <span class="hk-badge" style="margin-left:4px">'+k+'</span>':'';};
   var vhtml='<button data-g="delall2" style="border:1px solid #c0392b;color:#c0392b;font-weight:700">🧹 지우기(통합)'+bdg(kbC)+'</button><button data-g="measure" style="border:1px solid #d32f2f;color:#d32f2f;font-weight:700"><span style="color:#f2b400">📏</span> 거리산출'+bdg(kbM)+'</button><button data-g="undo">← 되돌리기'+bdg(kbU)+'</button><button data-g="redo">다시 실행 →'+bdg(kbR)+'</button>'
       +'<span class="subhint">보기</span><button data-g="fit">전체</button>';
+  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)html='<button id="rtNewProj" style="font-size:12px;padding:4px 9px;border:1px solid #6e757f;border-radius:6px;background:#fff;color:#333;font-weight:700;cursor:pointer;margin-right:6px">사업등록</button>'+html;
   s.innerHTML=html;
+  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){var _np=document.getElementById('rtNewProj');if(_np)_np.onclick=function(){if(typeof openRegModal==='function')openRegModal();};}
   if(c.k==='inspmk')wireInspmk(s);
   var gb=document.getElementById('globalbtns'); if(gb)gb.innerHTML=vhtml;
   c.tools.forEach(function(tool,i){if(tool.soon)return;var b=s.querySelector('button[data-i="'+i+'"]');if(!b)return;
