@@ -6130,7 +6130,7 @@ bind('regOk',registerProject);
   var nc=document.getElementById('regNightCut');if(nc)nc.onchange=function(){if(document.getElementById('regNight').checked)setNS();};
 })();
 /* ===== 준공도면 (as-built) ===== */
-function asbuiltStageUI(){var n=document.getElementById('asbuiltName'),c=document.getElementById('clrAsbuilt');if(!n)return;if(pendingAsbuilt){n.textContent=pendingAsbuilt.name;c.style.display='inline-block';}else{n.textContent='';c.style.display='none';}}
+function asbuiltStageUI(){var n=document.getElementById('asbuiltName'),c=document.getElementById('clrAsbuilt');if(!n)return;if(pendingAsbuilt){n.textContent=pendingAsbuilt.name;n.style.cssText='display:inline-block;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;font-size:11px';c.style.display='inline-block';}else{n.textContent='';c.style.display='none';}}
 (function(){
   var b=document.getElementById('rcAsbuiltBtn');if(b)b.onclick=function(){document.getElementById('fAsbuilt').click();};
   var f=document.getElementById('fAsbuilt');if(f)f.addEventListener('change',function(e){var file=e.target.files[0];if(file){pendingAsbuilt=file;asbuiltStageUI();toast('준공도면 선택: '+file.name+' (등록 시 업로드)');}e.target.value='';});

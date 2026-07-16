@@ -437,7 +437,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 899</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 900</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -478,14 +478,18 @@ function rtOpenAsbuilt(){
   var old=document.getElementById('rtAsbModal');if(old)old.remove();
   var wrap=document.createElement('div');wrap.id='rtAsbModal';
   wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;overflow:auto;-webkit-overflow-scrolling:touch';
-  wrap.innerHTML='<img id="rtAsbImg" src="'+ab.url+'" style="width:100%;display:block">'
+  var _isPdf=(String(ab.ext||'').toLowerCase()==='pdf')||/\.pdf(\?|$)/i.test(ab.url);
+  wrap.innerHTML='<div id="rtAsbBody">'+(_isPdf?'<div style="color:#fff;text-align:center;padding:40px 0;font-size:14px">PDF 불러오는 중…</div>':'<img class="rtAsbImg" src="'+ab.url+'" style="width:100%;display:block">')+'</div>'
     +'<div style="position:fixed;top:10px;right:10px;display:flex;gap:8px;z-index:10000">'
     +'<button type="button" id="rtAsbPlus" style="width:44px;height:44px;border-radius:10px;border:0;background:#fff;font-size:22px;font-weight:800">+</button>'
     +'<button type="button" id="rtAsbMinus" style="width:44px;height:44px;border-radius:10px;border:0;background:#fff;font-size:22px;font-weight:800">-</button>'
     +'<button type="button" id="rtAsbClose" style="height:44px;padding:0 14px;border-radius:10px;border:0;background:#EA002C;color:#fff;font-weight:800">닫기</button></div>';
   document.body.appendChild(wrap);
-  var img=document.getElementById('rtAsbImg'),sc=1;
-  function apply(){img.style.width=(100*sc)+'%';}
+  var body=document.getElementById('rtAsbBody'),sc=1;
+  function apply(){[].forEach.call(body.querySelectorAll('img'),function(im){im.style.width=(100*sc)+'%';});}
+  if(_isPdf){fetch(ab.url).then(function(r){return r.arrayBuffer();}).then(function(buf){return renderPdfPages(buf);}).then(function(imgs){
+    body.innerHTML=imgs.map(function(u){return '<img class="rtAsbImg" src="'+u+'" style="width:100%;display:block;margin-bottom:6px">';}).join('');apply();
+  }).catch(function(){body.innerHTML='<div style=\"color:#fff;text-align:center;padding:40px 0\">PDF를 열 수 없습니다</div>';});}
   document.getElementById('rtAsbPlus').onclick=function(){sc=Math.min(6,sc*1.4);apply();};
   document.getElementById('rtAsbMinus').onclick=function(){sc=Math.max(1,sc/1.4);apply();};
   document.getElementById('rtAsbClose').onclick=function(){wrap.remove();};
@@ -683,6 +687,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=899"></script><script src="core.js?v=899"></script>
+<script src="login.js?v=900"></script><script src="core.js?v=900"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
