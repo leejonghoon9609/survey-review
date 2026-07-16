@@ -5405,7 +5405,7 @@ function delHoverHighlight(cw){clearSvg(gDraw);var best=null,bd=1e18;
   }
 }
 function startDraw(layer){drawLayer=layer||'통신관로';mode='line';setModeUI();lineDraft=[];clearSvg(gDraft);clearSvg(gDraw);toast((drawLayer==='지거'?'지거선':(drawLayer==='압입구간'?'압입구간':'관로선'))+' 그리기: 점 클릭 → Enter/Space 또는 "완료" (되돌리기=한 점 취소)');}
-function finishDraw(){if(lineDraft&&lineDraft.length>=2){pushHist();var rec={layer:drawLayer,pts:lineDraft.slice()};if(drawLayer==='지거'){rec.note='점(번호 :  )';}else if(drawLayer==='압입구간'){rec.note='압입구간 ';}state.lines.push(rec);}lineDraft=null;previewLine=null;clearSvg(gDraft);clearSvg(gDraw);mode='pan';setModeUI();drawGeo();updMeta();}
+function finishDraw(){if(lineDraft&&lineDraft.length>=2){pushHist();var rec={layer:drawLayer,pts:lineDraft.slice()};if(drawLayer==='지거'){rec.note='점(번호 :  )';}else if(drawLayer==='압입구간'){rec.note='압입구간 ';}state.lines.push(rec);if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&rec.layer==='통신관로'&&typeof rtAutoTags==='function')rtAutoTags(rec);}lineDraft=null;previewLine=null;clearSvg(gDraft);clearSvg(gDraw);mode='pan';setModeUI();drawGeo();updMeta();}
 function clearLines(){pushHist();state.lines=state.lines.filter(function(l){return l.layer!=='통신관로';});drawGeo();updMeta();toast('결선 모두 삭제');}
 // 수치지도 백판 전체 삭제 (앱 레이어=통신관로·지거·압입·주입상인출선 외 모두 = 백판)
 function clearBaseMap(){
@@ -7527,6 +7527,23 @@ function rtPurgeTrash(){try{
     try{sb.from(DB+'_photos').delete().eq('project_id',state.projectId).eq('point_no',t.no).then(function(){});}catch(e){}});}
 }catch(e){}}
 function rtUndo(){if(typeof doUndo==='function')doUndo();if(typeof drawGeo==='function')drawGeo();if(typeof updMeta==='function')updMeta();if(typeof rtSaveSoon==='function')rtSaveSoon();}
+function rtAutoTags(rec){try{
+  if(!rec||!rec.pts||rec.pts.length<2)return;
+  var seq=[];rec.pts.forEach(function(v){var best=null,bd=0.25;(state.points||[]).forEach(function(p){
+    if(!p||!isFinite(p.x))return;var d=Math.min(Math.hypot(p.x-v[0],p.y-v[1]),Math.hypot(p.x-v[0],-p.y-v[1]));
+    if(d<bd){bd=d;best=p;}});if(best&&seq.indexOf(best)<0)seq.push(best);});
+  if(seq.length<2)return;
+  var segs=[];for(var i=1;i<seq.length;i++)segs.push(Math.hypot(seq[i].x-seq[i-1].x,seq[i].y-seq[i-1].y));
+  segs.sort(function(a,b){return a-b;});var med=segs[Math.floor(segs.length/2)]||4;
+  var LEN=Math.max(2.5,Math.min(8,med*1.1));
+  state.labelOff=state.labelOff||{};
+  for(var k=0;k<seq.length;k++){var p=seq[k];
+    var a=seq[Math.max(0,k-1)],b=seq[Math.min(seq.length-1,k+1)];
+    var dx=b.x-a.x,dy=b.y-a.y,L2=Math.hypot(dx,dy)||1;dx/=L2;dy/=L2;
+    var sd=(k%2===0)?1:-1;
+    state.labelOff[p.no]=[p.x+(-dy)*sd*LEN,p.y+dx*sd*LEN];
+  }
+}catch(e){}}
 function rtSaveSoon(){if(_rtSaveTimer)clearTimeout(_rtSaveTimer);_rtSaveTimer=setTimeout(function(){_rtSaveTimer=null;if(typeof saveProject==='function'){try{saveProject();}catch(e){}}},2500);}
 
 /* ===== [BUILD 827] 측점 삭제(롱프레스) + 재촬영 ===== */
