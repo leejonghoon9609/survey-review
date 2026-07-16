@@ -436,7 +436,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 888</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 889</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -484,6 +484,9 @@ function rtOpenCsvModal(){
 }
 function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDraft.length){if(typeof finishDraw==='function')finishDraw();}else{if(typeof bpFirst!=='undefined')bpFirst=null;if(typeof bpPreviewClear==='function')bpPreviewClear();}mode='pan';if(typeof setModeUI==='function')setModeUI();}catch(e){}rtWireMark(null);}
 (function(){var bar=document.getElementById('rtWireBar');if(!bar)return;[].forEach.call(bar.querySelectorAll('button'),function(b){if(b.id==='rtWireDone'){b.addEventListener('click',rtWireDoneFn);return;}b.addEventListener('click',function(){rtWireMark(b);});});})();</script>
+    <div style="position:absolute;top:56px;right:10px;z-index:50">
+      <button type="button" onclick="if(typeof rtUndo==='function')rtUndo()" style="background:#fff;color:#c0392b;border:2px solid #c0392b;border-radius:10px;padding:9px 14px;font-weight:800;font-size:14px;box-shadow:0 3px 10px rgba(0,0,0,.18);cursor:pointer">↩ 되돌리기</button>
+    </div>
     <div class="canvas-wrap">
       <div id="kmapBg" class="kmapbg" style="display:none"></div>
       <svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -639,6 +642,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=888"></script><script src="core.js?v=888"></script>
+<script src="login.js?v=889"></script><script src="core.js?v=889"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
