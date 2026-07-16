@@ -358,6 +358,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   header #rtLine.on{background:#1565c0!important;color:#fff!important}
   header #rtTool{order:8!important;background:#fff!important;color:#333!important;border:1px solid #333!important;font-weight:800!important}
   header #rtCrop{order:9!important;background:#fff!important;color:#b8860b!important;border:1px solid #b8860b!important;font-weight:800!important}
+  header #rtDel{order:6!important;background:#fff!important;color:#d32f2f!important;border:1px solid #d32f2f!important;font-weight:800!important}
   body.rtrailopen header #rtTool{background:#333!important;color:#fff!important}
   header #photoBtn{order:9!important;display:inline-flex!important}
   header #bgBtn{order:10!important;display:inline-flex!important}
@@ -425,7 +426,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
       <button class="fbtn fbtn-final" id="fldFinal">📋 후측량 최종성과 등록</button>
     </div>
     <select id="proj" class="wk"><option value="">사업 선택…</option></select>
-    <button id="save" class="pri wk">저장</button>
+    <button id="save" class="pri wk">저장</button><button id="rtDel" class="rtm" onclick="if(typeof deleteProject==='function')deleteProject();" style="display:none">✕ 사업삭제</button>
     <button id="delProj" class="dgr wk">사업 삭제</button>
     <span id="globalbtns" class="hgbtns wk"></span>
     <button id="bpToggle" class="wk" title="백판(수치지도) 표시/숨김">🗺 백판 ON</button>
@@ -435,7 +436,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 875</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 876</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
