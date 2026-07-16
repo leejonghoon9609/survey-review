@@ -127,15 +127,15 @@
 
 /* ===== [BUILD 801] 포털 모바일 헤더 축소 ===== */
 @media(max-width:760px){
-  header{padding:6px 8px!important;gap:5px!important;flex-wrap:nowrap!important;overflow:hidden!important}
-  header img.logo{height:18px!important;width:18px!important}
+  header{padding:8px 10px!important;gap:6px!important;flex-wrap:nowrap!important;overflow:visible!important;position:relative!important}
+  header img.logo{height:22px!important;width:22px!important}
   .brand{line-height:1!important;flex:0 1 auto!important;min-width:0!important}
-  .brand .ko{font-size:11px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
-  .clock{flex-direction:row!important;gap:4px!important;align-items:baseline!important;flex:0 0 auto!important}
-  .clock .t{font-size:10px!important}
-  .clock .d{display:none!important}
-  .buildno{font-size:9px!important;padding:2px 5px!important;margin-left:4px!important;white-space:nowrap!important;flex:0 0 auto!important}
-  #workerChip{font-size:9px!important;padding:2px 6px!important;white-space:nowrap!important;flex:0 0 auto!important}
+  .brand .ko{font-size:13.5px!important;font-weight:800!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  .clock{flex-direction:row!important;gap:5px!important;align-items:baseline!important;flex:0 0 auto!important;margin-left:auto!important}
+  .clock .t{font-size:12px!important}
+  .clock .d{display:inline!important;font-size:11px!important;color:var(--mut)!important}
+  .buildno{position:absolute!important;right:12px!important;top:calc(100% + 10px)!important;font-size:10px!important;padding:3px 8px!important;z-index:5}
+  #workerChip{font-size:11px!important;padding:3px 8px!important;white-space:nowrap!important;flex:0 0 auto!important}
 }
 </style>
 </head>
@@ -150,7 +150,7 @@
       <span class="t" id="clk">--:--</span>
       <span class="d" id="cdt">&nbsp;</span>
     </div>
-    <span class="buildno" id="buildno">BUILD 906</span>
+    <span class="buildno" id="buildno">BUILD 907</span>
   </header>
 
   <main class="wrap">
@@ -318,6 +318,6 @@
     tick(); setInterval(tick,1000*20);
   })();
 </script>
-<script src="login.js?v=906"></script>
+<script src="login.js?v=907"></script>
 </body>
 </html>
