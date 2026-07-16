@@ -5910,7 +5910,7 @@ function renderSub(){
   var bdg=function(k){return k?' <span class="hk-badge" style="margin-left:4px">'+k+'</span>':'';};
   var vhtml='<button data-g="delall2" style="border:1px solid #c0392b;color:#c0392b;font-weight:700">🧹 지우기(통합)'+bdg(kbC)+'</button><button data-g="measure" style="border:1px solid #d32f2f;color:#d32f2f;font-weight:700"><span style="color:#f2b400">📏</span> 거리산출'+bdg(kbM)+'</button><button data-g="undo">← 되돌리기'+bdg(kbU)+'</button><button data-g="redo">다시 실행 →'+bdg(kbR)+'</button>'
       +'<span class="subhint">보기</span><button data-g="fit">전체</button>';
-  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)html='<button id="rtNewProj" style="font-size:14px;padding:8px 13px;border:1px solid #6e757f;border-radius:6px;background:#fff;color:#333;font-weight:700;cursor:pointer;margin-right:6px">사업등록</button>'+html+((state.rtDone&&state.rtDone.done)?'<button id="rtDoneBtn" style="font-size:14px;padding:8px 13px;border:1px solid #1d9e75;border-radius:6px;background:#e1f5ee;color:#0f6e56;font-weight:700;margin-right:6px">완료됨 ✓</button>':'<button id="rtDoneBtn" style="font-size:14px;padding:8px 13px;border:1px solid #c0392b;border-radius:6px;background:#fff;color:#c0392b;font-weight:700;cursor:pointer;margin-right:6px">실측완료</button>')+'<button id="rtDoneListBtn" style="font-size:14px;padding:8px 13px;border:1px solid #1d9e75;border-radius:6px;background:#fff;color:#1d9e75;font-weight:700;cursor:pointer;margin-right:6px">완료목록</button>';
+  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)html='<button id="rtNewProj" style="font-size:14px;padding:8px 13px;border:1px solid #6e757f;border-radius:6px;background:#fff;color:#333;font-weight:700;cursor:pointer;margin-right:6px">사업등록</button>'+html+((state.rtDone&&state.rtDone.done)?'<button id="rtDoneBtn" style="font-size:14px;padding:8px 13px;border:1px solid #1d9e75;border-radius:6px;background:#e1f5ee;color:#0f6e56;font-weight:700;margin-right:6px">완료됨 ✓</button>':'<button id="rtDoneBtn" style="font-size:14px;padding:8px 13px;border:1px solid #c0392b;border-radius:6px;background:#fff;color:#c0392b;font-weight:700;cursor:pointer;margin-right:6px">실측완료</button>')+((typeof isMobileDevice==='function'&&isMobileDevice())?'':'<button id="rtDoneListBtn" style="font-size:14px;padding:8px 13px;border:1px solid #1d9e75;border-radius:6px;background:#fff;color:#1d9e75;font-weight:700;cursor:pointer;margin-right:6px">완료목록</button>');
   s.innerHTML=html;
   if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){var _np=document.getElementById('rtNewProj');if(_np)_np.onclick=function(){if(typeof openRegModal==='function')openRegModal();};var _dn=document.getElementById('rtDoneBtn');if(_dn)_dn.onclick=function(){if(typeof rtOpenDoneModal==='function')rtOpenDoneModal();};var _dl=document.getElementById('rtDoneListBtn');if(_dl)_dl.onclick=function(){if(typeof rtOpenDoneList==='function')rtOpenDoneList();};}
   if(c.k==='inspmk')wireInspmk(s);
@@ -7511,8 +7511,9 @@ function rtOpenDoneModal(){
   if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
   if(state.rtDone&&state.rtDone.done){if(confirm('이미 완료된 사업입니다. 완료를 취소할까요?')){state.rtDone=null;saveProject();renderSub();toast('완료 취소됨');}return;}
   var old=document.getElementById('rtDoneModal');if(old)old.remove();
+  var _mob=(typeof isMobileDevice==='function'&&isMobileDevice());
   var wrap=document.createElement('div');wrap.id='rtDoneModal';
-  wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center';
+  wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;justify-content:center;'+(_mob?'align-items:flex-start;padding-top:10dvh':'align-items:center');
   wrap.innerHTML='<div style="background:#fff;border-radius:14px;width:min(90vw,340px);padding:20px 18px;text-align:center">'
     +'<div style="font-weight:800;font-size:16px;margin-bottom:10px">실시간측량 사업완료</div>'
     +'<div style="font-size:14px;color:#444;line-height:1.6;margin-bottom:16px">실시간측량 사업완료로<br>완료목록에 등록합니다</div>'
@@ -7521,6 +7522,20 @@ function rtOpenDoneModal(){
     +'<button type="button" id="rtDoneCancel" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:9px;padding:12px;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">취소</span></button>'
     +'</div></div>';
   document.body.appendChild(wrap);
+  /* [BUILD 915] 모바일: 팝업 밑에 완료된 사업 목록 표시 */
+  if(_mob){
+    var _bx=wrap.firstChild;
+    var lb=document.createElement('div');
+    lb.innerHTML='<div style="border-top:1px solid #eee;margin-top:14px;padding-top:10px;font-size:13px;font-weight:800;color:#0f6e56;text-align:left">완료된 사업</div>'
+      +'<div id="rtDoneRows" style="max-height:34dvh;overflow:auto;text-align:left;margin-top:4px"><div style="color:#bbb;font-size:12px;padding:6px">불러오는 중…</div></div>';
+    _bx.appendChild(lb);
+    if(online){sb.from(DB+'_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
+      var rows=(res.data||[]).filter(function(p){return p.payload&&p.payload.rtDone&&p.payload.rtDone.done&&((p.payload.stage||'survey')===STAGE);});
+      var rd=wrap.querySelector('#rtDoneRows');if(!rd)return;
+      rd.innerHTML=rows.length?rows.map(function(p){var dt=((p.payload.rtDone&&p.payload.rtDone.at)||'').slice(0,10);return '<button class="rtdone-row" data-id="'+p.id+'" style="display:block;width:100%;text-align:left;margin:4px 0;padding:10px 12px;border:1px solid #cfe8dd;border-radius:9px;background:#f2fbf7;cursor:pointer;font-size:14px;font-weight:700;color:#0f6e56">✓ '+p.name+(dt?'<span style="float:right;font-size:12px;color:#8aa79b;font-weight:400">'+dt+'</span>':'')+'</button>';}).join(''):'<div style="color:#bbb;font-size:12px;padding:6px">실측완료된 사업이 없습니다.</div>';
+      rd.querySelectorAll('.rtdone-row').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-id');wrap.remove();loadProject(id);};});
+    });}
+  }
   wrap.addEventListener('click',function(e){if(e.target===wrap)wrap.remove();});
   document.getElementById('rtDoneCancel').onclick=function(){wrap.remove();};
   document.getElementById('rtDoneOk').onclick=function(){wrap.remove();state.rtDone={done:true,at:new Date().toISOString()};saveProject();renderSub();toast('실측완료 등록됨');};
