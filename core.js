@@ -5458,7 +5458,7 @@ function deleteMarkupAt(wx,wy){
 
 /* ====== 모드 UI ====== */
 var lastStartAction=null; // 엔터/스페이스로 다시 시작할 '바로 전 시작 기능'
-function setModeUI(){
+function setModeUI(){if(mode!=='bpcrop'&&typeof bpCrop!=='undefined'&&bpCrop){bpCrop=null;if(typeof gDraft!=='undefined'&&gDraft&&typeof clearSvg==='function'){try{clearSvg(gDraft);}catch(e){}}}
   if(mode==='mhplace')lastStartAction=function(){mode='mhplace';setModeUI();toast('맨홀심기 — 클릭해 심기');};
   else if(mode==='riserplace')lastStartAction=function(){mode='riserplace';setModeUI();toast('입상주심기 — 클릭해 심기');};
   else if(mode==='line')lastStartAction=function(){startDraw(drawLayer);};
@@ -7207,6 +7207,7 @@ function refreshPhotoPanel(){
   var ac=document.querySelector('.afterCap');if(ac)ac.onclick=function(){afterTargetNum=this.getAttribute('data-num');document.getElementById('fAfter').click();};
   var ar=document.querySelector('.afterRefresh');if(ar)ar.onclick=function(){toast('후측량 사진 새로고침…');loadPhotos();};
 }
+function centerOnNo(no){var p=null;(state.points||[]).forEach(function(q){if(q&&String(q.no)===String(no))p=q;});if(!p||!isFinite(p.x)||!isFinite(p.y))return;try{var sp=S(p.x,p.y);vb.x=sp[0]-vb.w/2;vb.y=sp[1]-vb.h/2;if(typeof applyVB==='function')applyVB();}catch(e){}}
 function selectPoint(num){selNum=String(num);drawGeo();highlightSel();var sel=document.getElementById('photoSel');if(sel)sel.value=String(num);if(photoPanelOpen)refreshPhotoPanel();if(typeof joseoSyncTo==='function')joseoSyncTo(num);}
 function openPhotoPanel(o){photoPanelOpen=(o==null)?!photoPanelOpen:!!o;document.getElementById('photoPanel').classList.toggle('open',photoPanelOpen);if(photoPanelOpen&&typeof closeRvPanel==='function')closeRvPanel();if(photoPanelOpen)refreshPhotoPanel();setTimeout(function(){if(typeof fixAspect==='function')fixAspect();if(typeof applyVB==='function')applyVB();if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();if(typeof highlightSel==='function')highlightSel();if(typeof placeCoord==='function')placeCoord();},30);}
 function loadPhotos(){photoMap={};afterMap={};if(!online||!state.projectId){if(photoPanelOpen)refreshPhotoPanel();return;}
@@ -7284,7 +7285,7 @@ document.getElementById('photoUp').onclick=function(){document.getElementById('f
 document.getElementById('photoLinkBtn').onclick=function(){photoLink=!photoLink;this.textContent=photoLink?'🔗 연동':'🔓 미연동';this.classList.toggle('linkon',photoLink);toast(photoLink?'도면↔사진 연동 ON (점 클릭=사진)':'연동 OFF (점 클릭해도 사진 고정)');};
 document.getElementById('fPhotos').addEventListener('change',function(e){expandPhotoFiles(e.target.files).then(uploadPhotos);e.target.value='';});
 document.getElementById('fAfter').addEventListener('change',function(e){if(e.target.files[0])uploadAfterPhoto(e.target.files[0],afterTargetNum);e.target.value='';});
-document.getElementById('photoSel').addEventListener('change',function(e){if(e.target.value){selNum=e.target.value;drawGeo();highlightSel();refreshPhotoPanel();}else{selNum=null;drawGeo();clearSvg(gSel);refreshPhotoPanel();}});
+document.getElementById('photoSel').addEventListener('change',function(e){if(e.target.value){selNum=e.target.value;drawGeo();highlightSel();refreshPhotoPanel();if(typeof centerOnNo==='function')centerOnNo(selNum);}else{selNum=null;drawGeo();clearSvg(gSel);refreshPhotoPanel();}});
 /* 도면에서 점 클릭 → 선택 (이동 모드) */
 cv.addEventListener('click',function(e){
   if(mode!=='pan'||labelDragging)return;
