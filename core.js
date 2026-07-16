@@ -5765,7 +5765,7 @@ function _loadProjectRaw(id,ro,cb){ if(!online||!id)return; setReadOnly(!!ro);st
     selNum=null;clearSvg(gSel);try{if(state.finalCsv&&state.finalCsv.length&&typeof finalCsvDepthSync==='function')finalCsvDepthSync();if(state.depthGround&&state.depthGround.length&&typeof computeDepth==='function')computeDepth();}catch(e){}try{mergeAftMh();}catch(_me){}if(state.tamsa&&typeof buildTamsaMh==='function')try{buildTamsaMh();}catch(_te){}if(typeof IS_TANGO!=='undefined'&&IS_TANGO&&state.tangoEdit){if(!state.tangoEdit.lines)state.tangoEdit.lines=JSON.parse(JSON.stringify(state.lines||[]));if(!state.tangoEdit.points)state.tangoEdit.points=JSON.parse(JSON.stringify(state.points||[]));if(!state.tangoEdit.depthByNo)state.tangoEdit.depthByNo={};}drawGeo();drawMarks();drawManholes();try{fitView();}catch(_e0){}updMeta();loadPhotos();fitSoon();if(typeof refreshFieldBar==='function')refreshFieldBar();toast('현장 불러옴: '+res.data.name);
     var vs=document.getElementById('vproj');if(vs)vs.value=res.data.id;
     if(viewerMode&&!IS_FIELD)setTimeout(function(){openPhotoPanel(true);},150);
-    try{toolsOpen=false;inspmkOpen=false;activeCat='pan';if(typeof renderRail==='function')renderRail();}catch(_e){}if(typeof cb==='function')cb();
+    try{toolsOpen=false;inspmkOpen=false;activeCat='pan';if(typeof renderRail==='function')renderRail();if(typeof renderSub==='function')renderSub();}catch(_e){}if(typeof cb==='function')cb();
   });
 }
 function deleteProject(){
