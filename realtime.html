@@ -345,7 +345,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
 .rt-break{display:none}
 @media(max-width:760px){
   header{gap:4px!important;padding:6px 8px!important}
-  header button,header select{font-size:10.5px!important;padding:4px 6px!important;border-radius:6px!important;white-space:nowrap!important;letter-spacing:-0.3px}
+  header button,header select{font-size:10px!important;padding:3px 4px!important;border-radius:6px!important;white-space:nowrap!important;letter-spacing:-0.3px}
   header .rtm{display:inline-flex!important}
   /* 윗줄: 실시간측량 · 홈 · 사업선택 · 저장 · 촬영 */
   header h1{font-size:13px!important;margin:0 2px 0 0!important;order:1!important;flex:none!important;display:inline-block!important}
@@ -361,7 +361,8 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   header #rtCrop{order:9!important;background:#fff!important;color:#b8860b!important;border:1px solid #b8860b!important;font-weight:800!important}
   header #rtDel{order:6!important;background:#fff!important;color:#d32f2f!important;border:1px solid #d32f2f!important;font-weight:800!important}
   body.rtrailopen header #rtTool{background:#333!important;color:#fff!important}
-  header #photoBtn{order:11!important;display:inline-flex!important}
+  header #photoBtn{order:11!important;display:inline-flex!important;margin-left:4px!important}
+  header .spacer,header .sp{flex:0 1 6px!important;min-width:0!important}
   header #bgBtn{order:12!important;display:inline-flex!important}
   /* 나머지 숨김 */
   header #modeToggle,header #sysSwitch,header #viewerBar,header .vw,header #fldSave,header #fldDel,header #fldCsv,header #fldJoseo,header #fldManhole,header #fldImport,header #fldFinal,header #delProj,header #bpToggle,header #doneListBtn,header #asbuiltBtn,header #rvBtn,header #buildno,header #conn,header #tamsaBadge,header #globalbtns{display:none!important}
@@ -437,7 +438,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 902</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 903</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -479,7 +480,7 @@ function rtOpenAsbuilt(){
   var wrap=document.createElement('div');wrap.id='rtAsbModal';
   wrap.style.cssText='position:fixed;left:0;right:0;bottom:0;height:40dvh;background:#fff;z-index:9999;display:flex;flex-direction:column;box-shadow:0 -6px 18px rgba(0,0,0,.28);border-top:1px solid #ddd';
   var _isPdf=(String(ab.ext||'').toLowerCase()==='pdf')||/\.pdf(\?|$)/i.test(ab.url);
-  wrap.innerHTML='<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid #eee">'+'<b style="font-size:13px">준공도면</b><span style="flex:1"></span>'+'<button type="button" id="rtAsbPlus" style="width:34px;height:30px;border-radius:8px;border:1px solid #ccc;background:#fff;font-size:17px;font-weight:800">+</button>'+'<button type="button" id="rtAsbMinus" style="width:34px;height:30px;border-radius:8px;border:1px solid #ccc;background:#fff;font-size:17px;font-weight:800">-</button>'+'<button type="button" id="rtAsbClose" style="height:30px;padding:0 11px;border-radius:8px;border:0;background:#EA002C;color:#fff;font-weight:800;font-size:12px">닫기</button></div>'+'<div id="rtAsbBody" style="flex:1;overflow:auto;background:#525659;-webkit-overflow-scrolling:touch">'+(_isPdf?'<div style="color:#fff;text-align:center;padding:40px 0;font-size:14px">PDF 불러오는 중…</div>':'<img class="rtAsbImg" src="'+ab.url+'" style="width:100%;display:block">')+'</div>'
+  wrap.innerHTML='<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid #eee">'+'<b style="font-size:13px">준공도면</b><span style="flex:1"></span>'+'<button type="button" id="rtAsbPlus" style="width:34px;height:30px;border-radius:8px;border:1px solid #ccc;background:#fff;font-size:17px;font-weight:800">+</button>'+'<button type="button" id="rtAsbMinus" style="width:34px;height:30px;border-radius:8px;border:1px solid #ccc;background:#fff;font-size:17px;font-weight:800">-</button>'+'<button type="button" id="rtAsbClose" style="height:30px;padding:0 11px;border-radius:8px;border:0;background:#EA002C;color:#fff;font-weight:800;font-size:12px">닫기</button></div>'+'<div id="rtAsbBody" style="flex:1;overflow:auto;background:#525659;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y">'+(_isPdf?'<div style="color:#fff;text-align:center;padding:40px 0;font-size:14px">PDF 불러오는 중…</div>':'<img class="rtAsbImg" src="'+ab.url+'" style="width:100%;display:block">')+'</div>'
     ;
   document.body.appendChild(wrap);
   var body=document.getElementById('rtAsbBody'),sc=1;
@@ -491,11 +492,11 @@ function rtOpenAsbuilt(){
   document.getElementById('rtAsbMinus').onclick=function(){sc=Math.max(1,sc/1.4);apply();};
   document.getElementById('rtAsbClose').onclick=function(){wrap.remove();};
   var pts={},d0=0,s0=1;
-  wrap.addEventListener('pointerdown',function(e){pts[e.pointerId]=[e.clientX,e.clientY];var k=Object.keys(pts);if(k.length===2){var a=pts[k[0]],b=pts[k[1]];d0=Math.hypot(a[0]-b[0],a[1]-b[1]);s0=sc;}});
-  wrap.addEventListener('pointermove',function(e){if(!pts[e.pointerId])return;pts[e.pointerId]=[e.clientX,e.clientY];var k=Object.keys(pts);
+  body.addEventListener('pointerdown',function(e){pts[e.pointerId]=[e.clientX,e.clientY];var k=Object.keys(pts);if(k.length===2){var a=pts[k[0]],b=pts[k[1]];d0=Math.hypot(a[0]-b[0],a[1]-b[1]);s0=sc;}});
+  body.addEventListener('pointermove',function(e){if(!pts[e.pointerId])return;pts[e.pointerId]=[e.clientX,e.clientY];var k=Object.keys(pts);
     if(k.length===2&&d0>0){var a=pts[k[0]],b=pts[k[1]];var d=Math.hypot(a[0]-b[0],a[1]-b[1]);sc=Math.max(1,Math.min(6,s0*d/d0));apply();e.preventDefault();}});
   function rel(e){delete pts[e.pointerId];if(Object.keys(pts).length<2)d0=0;}
-  wrap.addEventListener('pointerup',rel);wrap.addEventListener('pointercancel',rel);
+  body.addEventListener('pointerup',rel);body.addEventListener('pointercancel',rel);
 }
 function rtOpenCsvModal(){
   var old=document.getElementById('rtCsvModal');if(old)old.remove();
@@ -684,6 +685,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=902"></script><script src="core.js?v=902"></script>
+<script src="login.js?v=903"></script><script src="core.js?v=903"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
