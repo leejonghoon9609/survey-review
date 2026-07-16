@@ -7514,8 +7514,8 @@ function rtOpenDoneModal(){
     +'<div style="font-weight:800;font-size:16px;margin-bottom:10px">실시간측량 사업완료</div>'
     +'<div style="font-size:14px;color:#444;line-height:1.6;margin-bottom:16px">실시간측량 사업완료로<br>완료목록에 등록합니다</div>'
     +'<div style="display:flex;gap:8px">'
-    +'<button type="button" id="rtDoneOk" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:9px;padding:12px;font-weight:800;font-size:15px">확인</button>'
-    +'<button type="button" id="rtDoneCancel" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:9px;padding:12px;font-weight:700">취소</button>'
+    +'<button type="button" id="rtDoneOk" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:9px;padding:12px;font-weight:800;font-size:15px;text-align:center;letter-spacing:4px;text-indent:4px">확인</button>'
+    +'<button type="button" id="rtDoneCancel" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:9px;padding:12px;font-weight:700;font-size:15px;text-align:center;letter-spacing:4px;text-indent:4px">취소</button>'
     +'</div></div>';
   document.body.appendChild(wrap);
   wrap.addEventListener('click',function(e){if(e.target===wrap)wrap.remove();});
