@@ -5587,6 +5587,9 @@ function endPtr(e){
     pushHist();state.markups.push(rec);cur=null;renderRecs();}
 }
 cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endPtr);
+/* 유령 포인터 청소: 손가락이 메뉴/팝업 위에서 떨어져도 확실히 제거 */
+window.addEventListener('pointerup',function(e){try{if(activePtrs[e.pointerId]!==undefined)delete activePtrs[e.pointerId];if(pinch&&Object.keys(activePtrs).length<2)pinch=null;}catch(_){}});
+window.addEventListener('pointercancel',function(e){try{if(activePtrs[e.pointerId]!==undefined)delete activePtrs[e.pointerId];if(pinch&&Object.keys(activePtrs).length<2)pinch=null;}catch(_){}});
 cv.addEventListener('mousedown',function(e){if(e.button===1)e.preventDefault();});
 cv.addEventListener('auxclick',function(e){if(e.button===1)e.preventDefault();});
 cv.addEventListener('wheel',function(e){e.preventDefault();zoomAt(e.deltaY>0?1.07:0.935,e.clientX,e.clientY);},{passive:false});
