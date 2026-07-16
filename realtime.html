@@ -344,7 +344,8 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
 /* ===== [BUILD 817] 실시간측량 모바일 v1 ===== */
 .rt-break{display:none}
 @media(max-width:760px){
-  header{gap:4px!important;padding:6px 8px!important}
+  header{gap:4px!important;padding:6px 8px 3px!important}
+  .subbar{padding-top:4px!important;min-height:0!important}
   header button,header select{font-size:10px!important;padding:3px 4px!important;border-radius:6px!important;white-space:nowrap!important;letter-spacing:-0.3px}
   header .rtm{display:inline-flex!important}
   /* 윗줄: 실시간측량 · 홈 · 사업선택 · 저장 · 촬영 */
@@ -352,7 +353,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   header #homeBtn{order:2!important}
   header #proj{order:3!important;max-width:74px!important;display:inline-block!important}
   header #save{order:5!important;display:inline-flex!important}
-  header .rt-break{display:block!important;flex-basis:100%!important;width:100%!important;height:0!important;order:4!important}
+  header .rt-break{display:block!important;flex-basis:100%!important;width:100%!important;height:8px!important;order:4!important}
   /* 아랫줄: 관로선 · 도구 · 사진보기 · 지도 */
   header #rtLine{order:8!important;background:#fff!important;color:#1565c0!important;border:1px solid #1565c0!important;font-weight:800!important}
   header #rtLine.on{background:#1565c0!important;color:#fff!important}
@@ -438,7 +439,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 905</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 906</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -691,6 +692,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=905"></script><script src="core.js?v=905"></script>
+<script src="login.js?v=906"></script><script src="core.js?v=906"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
