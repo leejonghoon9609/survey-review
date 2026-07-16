@@ -361,7 +361,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   header #rtCrop{order:9!important;background:#fff!important;color:#b8860b!important;border:1px solid #b8860b!important;font-weight:800!important}
   header #rtDel{order:6!important;background:#fff!important;color:#d32f2f!important;border:1px solid #d32f2f!important;font-weight:800!important}
   body.rtrailopen header #rtTool{background:#333!important;color:#fff!important}
-  header #photoBtn{order:11!important;display:inline-flex!important;margin-left:4px!important}
+  header #photoBtn{order:11!important;display:inline-flex!important;margin-left:auto!important}
   header .spacer,header .sp{flex:0 1 6px!important;min-width:0!important}
   header #bgBtn{order:12!important;display:inline-flex!important}
   /* 나머지 숨김 */
@@ -438,7 +438,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 903</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 904</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -488,13 +488,14 @@ function rtOpenAsbuilt(){
   if(_isPdf){fetch(ab.url).then(function(r){return r.arrayBuffer();}).then(function(buf){return renderPdfPages(buf);}).then(function(imgs){
     body.innerHTML=imgs.map(function(u){return '<img class="rtAsbImg" src="'+u+'" style="width:100%;display:block;margin-bottom:6px">';}).join('');apply();
   }).catch(function(){body.innerHTML='<div style=\"color:#fff;text-align:center;padding:40px 0\">PDF를 열 수 없습니다</div>';});}
-  document.getElementById('rtAsbPlus').onclick=function(){sc=Math.min(6,sc*1.4);apply();};
-  document.getElementById('rtAsbMinus').onclick=function(){sc=Math.max(1,sc/1.4);apply();};
+  function setSc(ns,mx,my){ns=Math.max(1,Math.min(6,ns));var f=ns/sc;if(f===1)return;var sl=body.scrollLeft,st=body.scrollTop;sc=ns;apply();body.scrollLeft=(sl+mx)*f-mx;body.scrollTop=(st+my)*f-my;}
+  document.getElementById('rtAsbPlus').onclick=function(){var r=body.getBoundingClientRect();setSc(sc*1.4,r.width/2,r.height/2);};
+  document.getElementById('rtAsbMinus').onclick=function(){var r=body.getBoundingClientRect();setSc(sc/1.4,r.width/2,r.height/2);};
   document.getElementById('rtAsbClose').onclick=function(){wrap.remove();};
   var pts={},d0=0,s0=1;
   body.addEventListener('pointerdown',function(e){pts[e.pointerId]=[e.clientX,e.clientY];var k=Object.keys(pts);if(k.length===2){var a=pts[k[0]],b=pts[k[1]];d0=Math.hypot(a[0]-b[0],a[1]-b[1]);s0=sc;}});
   body.addEventListener('pointermove',function(e){if(!pts[e.pointerId])return;pts[e.pointerId]=[e.clientX,e.clientY];var k=Object.keys(pts);
-    if(k.length===2&&d0>0){var a=pts[k[0]],b=pts[k[1]];var d=Math.hypot(a[0]-b[0],a[1]-b[1]);sc=Math.max(1,Math.min(6,s0*d/d0));apply();e.preventDefault();}});
+    if(k.length===2&&d0>0){var a=pts[k[0]],b=pts[k[1]];var d=Math.hypot(a[0]-b[0],a[1]-b[1]);var r=body.getBoundingClientRect();var mx=(a[0]+b[0])/2-r.left,my=(a[1]+b[1])/2-r.top;setSc(s0*d/d0,mx,my);e.preventDefault();}});
   function rel(e){delete pts[e.pointerId];if(Object.keys(pts).length<2)d0=0;}
   body.addEventListener('pointerup',rel);body.addEventListener('pointercancel',rel);
 }
@@ -685,6 +686,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=903"></script><script src="core.js?v=903"></script>
+<script src="login.js?v=904"></script><script src="core.js?v=904"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
