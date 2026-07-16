@@ -7019,12 +7019,18 @@ function regAddCsv(f,cb){if(!f){if(cb)cb();return;}var rd=new FileReader();rd.on
   var pts=parseCsv(decodeBuf(rd.result),f.name);
   if(pts.length){
     if(!state.points)state.points=[];
+    var _ex={};state.points.forEach(function(p){if(p&&p.no!=null)_ex[p.no]=p;});
+    var _add=[],_upd=0,_skip=0;
+    pts.forEach(function(p){var q=_ex[p.no];
+      if(q&&Math.abs((q.x||0)-(p.x||0))<0.001&&Math.abs((q.y||0)-(p.y||0))<0.001&&String(q.code||'')===String(p.code||'')){_skip++;return;}
+      if(q)_upd++;_add.push(p);});
+    var _rep={};_add.forEach(function(p){_rep[p.no]=1;});
+    state.points=state.points.filter(function(p){return !_rep[p.no];}).concat(_add);
     var nn={};pts.forEach(function(p){nn[p.no]=1;});
-    state.points=state.points.filter(function(p){return !nn[p.no];}).concat(pts);
     if(state.gpsPts&&state.gpsPts.length){var _nsc=state.nightShift,_cutc=(_nsc&&_nsc.on)?_nsc.cut:null;state.gpsPts=state.gpsPts.filter(function(g){var _wnoc=g.no;if(g._d0!=null&&g._nm!=null){var _dtc=g._d0;if(_cutc!=null&&g._tm!=null&&g._tm<_cutc)_dtc=prevDayYMD(g._d0);_wnoc=_dtc+'-'+g._nm;}return !(nn[g.no]||nn[_wnoc]);});}
     if(!state.projectName){state.projectName=f.name.replace(/\.[^.]+$/,'');var rn=document.getElementById('regName');if(rn&&!rn.value.trim())rn.value=state.projectName;}
     selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatus();
-    toast('CSV "'+f.name+'" +'+pts.length+'개 (총 '+state.points.length+'개)');
+    toast('CSV "'+f.name+'" 신규 '+(_add.length-_upd)+' · 갱신 '+_upd+' · 중복제외 '+_skip+' (총 '+state.points.length+'개)');
   }else toast('CSV에서 측점을 못 읽었습니다: '+f.name);
   if(cb)cb();
 };rd.readAsArrayBuffer(f);}
