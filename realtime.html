@@ -405,7 +405,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   <header>
     <button id="homeBtn" class="photoBtn" style="background:#eef2f7;border:1px solid #c6d2e0;color:#33506e;font-weight:700;border-radius:8px;padding:5px 11px;margin-right:2px">🏠 홈</button>
     <button id="modeToggle" class="photoBtn">💻 결선</button>
-    <h1>실시간측량</h1><button id="rtLine" class="rtm" onclick="rtToggleWire()" style="display:none">✏️ 관로선</button><button id="rtTool" class="rtm" onclick="document.body.classList.toggle('rtrailopen')" style="display:none">☰ 도구</button><div class="rt-break"></div>
+    <h1>실시간측량</h1><button id="rtLine" class="rtm" onclick="rtToggleWire()" style="display:none">✏️ 관로선</button><button id="rtTool" class="rtm" onclick="document.body.classList.toggle('rtrailopen')" style="display:none">☰ 도구</button><button id="rtCrop" class="rtm" onclick="mode='bpcrop';if(typeof setModeUI==='function')setModeUI();if(typeof toast==='function')toast('영역 크롭: 드래그로 사각형을 그리세요');" style="display:none">✂️ 크롭</button><div class="rt-break"></div>
     <button id="sysSwitch" class="wk" onclick="location.href='index.html'" style="background:#fff7e6;border:1px solid #f59e0b;color:#b45309;font-weight:700;border-radius:8px;padding:5px 11px;margin-left:2px">🏠 포털</button>
     <span id="roBadge" class="wk" style="display:none;cursor:pointer;color:#d98200;border:1px solid #e0b15a;background:#fff8ec;border-radius:7px;padding:2px 9px;font-size:12px;font-weight:700" title="클릭하면 수정 가능 모드로 전환">🔒 보기 전용 · 클릭=수정</span>
     <span id="viewerBar" class="vw">
@@ -434,7 +434,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 873</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 874</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
