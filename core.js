@@ -5910,9 +5910,9 @@ function renderSub(){
   var bdg=function(k){return k?' <span class="hk-badge" style="margin-left:4px">'+k+'</span>':'';};
   var vhtml='<button data-g="delall2" style="border:1px solid #c0392b;color:#c0392b;font-weight:700">🧹 지우기(통합)'+bdg(kbC)+'</button><button data-g="measure" style="border:1px solid #d32f2f;color:#d32f2f;font-weight:700"><span style="color:#f2b400">📏</span> 거리산출'+bdg(kbM)+'</button><button data-g="undo">← 되돌리기'+bdg(kbU)+'</button><button data-g="redo">다시 실행 →'+bdg(kbR)+'</button>'
       +'<span class="subhint">보기</span><button data-g="fit">전체</button>';
-  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)html='<button id="rtNewProj" style="font-size:14px;padding:8px 13px;border:1px solid #6e757f;border-radius:6px;background:#fff;color:#333;font-weight:700;cursor:pointer;margin-right:6px">사업등록</button>'+html+((state.rtDone&&state.rtDone.done)?'<button id="rtDoneBtn" style="font-size:14px;padding:8px 13px;border:1px solid #1d9e75;border-radius:6px;background:#e1f5ee;color:#0f6e56;font-weight:700;margin-right:6px">완료됨 ✓</button>':'<button id="rtDoneBtn" style="font-size:14px;padding:8px 13px;border:1px solid #c0392b;border-radius:6px;background:#fff;color:#c0392b;font-weight:700;cursor:pointer;margin-right:6px">실측완료</button>');
+  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)html='<button id="rtNewProj" style="font-size:14px;padding:8px 13px;border:1px solid #6e757f;border-radius:6px;background:#fff;color:#333;font-weight:700;cursor:pointer;margin-right:6px">사업등록</button>'+html+((state.rtDone&&state.rtDone.done)?'<button id="rtDoneBtn" style="font-size:14px;padding:8px 13px;border:1px solid #1d9e75;border-radius:6px;background:#e1f5ee;color:#0f6e56;font-weight:700;margin-right:6px">완료됨 ✓</button>':'<button id="rtDoneBtn" style="font-size:14px;padding:8px 13px;border:1px solid #c0392b;border-radius:6px;background:#fff;color:#c0392b;font-weight:700;cursor:pointer;margin-right:6px">실측완료</button>')+'<button id="rtDoneListBtn" style="font-size:14px;padding:8px 13px;border:1px solid #1d9e75;border-radius:6px;background:#fff;color:#1d9e75;font-weight:700;cursor:pointer;margin-right:6px">완료목록</button>';
   s.innerHTML=html;
-  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){var _np=document.getElementById('rtNewProj');if(_np)_np.onclick=function(){if(typeof openRegModal==='function')openRegModal();};var _dn=document.getElementById('rtDoneBtn');if(_dn)_dn.onclick=function(){if(typeof rtOpenDoneModal==='function')rtOpenDoneModal();};}
+  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){var _np=document.getElementById('rtNewProj');if(_np)_np.onclick=function(){if(typeof openRegModal==='function')openRegModal();};var _dn=document.getElementById('rtDoneBtn');if(_dn)_dn.onclick=function(){if(typeof rtOpenDoneModal==='function')rtOpenDoneModal();};var _dl=document.getElementById('rtDoneListBtn');if(_dl)_dl.onclick=function(){if(typeof rtOpenDoneList==='function')rtOpenDoneList();};}
   if(c.k==='inspmk')wireInspmk(s);
   var gb=document.getElementById('globalbtns'); if(gb)gb.innerHTML=vhtml;
   c.tools.forEach(function(tool,i){if(tool.soon)return;var b=s.querySelector('button[data-i="'+i+'"]');if(!b)return;
@@ -7517,13 +7517,28 @@ function rtOpenDoneModal(){
     +'<div style="font-weight:800;font-size:16px;margin-bottom:10px">실시간측량 사업완료</div>'
     +'<div style="font-size:14px;color:#444;line-height:1.6;margin-bottom:16px">실시간측량 사업완료로<br>완료목록에 등록합니다</div>'
     +'<div style="display:flex;gap:8px">'
-    +'<button type="button" id="rtDoneOk" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:9px;padding:12px;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">확인</span></button>'
+    +'<button type="button" id="rtDoneOk" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:9px;padding:12px;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">등록</span></button>'
     +'<button type="button" id="rtDoneCancel" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:9px;padding:12px;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">취소</span></button>'
     +'</div></div>';
   document.body.appendChild(wrap);
   wrap.addEventListener('click',function(e){if(e.target===wrap)wrap.remove();});
   document.getElementById('rtDoneCancel').onclick=function(){wrap.remove();};
   document.getElementById('rtDoneOk').onclick=function(){wrap.remove();state.rtDone={done:true,at:new Date().toISOString()};saveProject();renderSub();toast('실측완료 등록됨');};
+}
+/* [BUILD 914] 실측완료 사업목록 팝업 */
+function rtOpenDoneList(){
+  if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
+  sb.from(DB+'_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
+    var rows=(res.data||[]).filter(function(p){return p.payload&&p.payload.rtDone&&p.payload.rtDone.done&&((p.payload.stage||'survey')===STAGE);});
+    var body=rows.length
+      ? '<div style="max-height:320px;overflow:auto;text-align:left">'+rows.map(function(p){
+          var dt=((p.payload.rtDone&&p.payload.rtDone.at)||'').slice(0,10);
+          return '<button class="rtdone-row" data-id="'+p.id+'" style="display:block;width:100%;text-align:left;margin:4px 0;padding:10px 12px;border:1px solid #cfe8dd;border-radius:9px;background:#f2fbf7;cursor:pointer;font-size:14px;font-weight:700;color:#0f6e56">✓ '+p.name+(dt?'<span style="float:right;font-size:12px;color:#8aa79b;font-weight:400">'+dt+'</span>':'')+'</button>';
+        }).join('')+'</div>'
+      : '<div style="color:#999;padding:8px">실측완료된 사업이 없습니다.</div>';
+    var card=showModal({title:'실측완료 사업목록',tone:'ok',body:body,buttons:[{label:'닫기'}]});
+    card.querySelectorAll('.rtdone-row').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-id');card.remove();loadProject(id);};});
+  });
 }
 function rtPurgeTrash(){try{
   if(!state._trash||!state._trash.length)return;
