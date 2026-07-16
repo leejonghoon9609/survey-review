@@ -436,7 +436,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 891</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 892</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -462,11 +462,20 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     </div>
     <script>function rtToggleWire(){var b=document.getElementById('rtWireBar');if(!b)return;var op=(b.style.display!=='none'&&b.style.display!=='');b.style.display=op?'none':'flex';var t=document.getElementById('rtLine');if(t)t.style.background=op?'':'#e1f5ee';}
 function rtWireMark(btn){var bar=document.getElementById('rtWireBar');if(!bar)return;[].forEach.call(bar.querySelectorAll('button'),function(b){b.classList.remove('on');});if(btn)btn.classList.add('on');}
+function rtDeleteCsvDay(d){try{
+  if(typeof pushHist==='function')pushHist();
+  state._trash=state._trash||[];var at=new Date().toISOString();
+  (state.points||[]).forEach(function(p){if(p&&p._csv&&String(p.no).split('-')[0]===d)state._trash.push({no:p.no,at:at});});
+  state.points=(state.points||[]).filter(function(p){return !(p&&p._csv&&String(p.no).split('-')[0]===d);});
+  if(typeof drawGeo==='function')drawGeo();if(typeof updMeta==='function')updMeta();
+  if(typeof rtSaveSoon==='function')rtSaveSoon();
+  if(typeof toast==='function')toast(d+' CSV 삭제됨 — 되돌리기로 복구 가능');
+}catch(e){}}
 function rtOpenCsvModal(){
   var old=document.getElementById('rtCsvModal');if(old)old.remove();
   var days={},total=0;((typeof state!=='undefined'&&state.points)||[]).forEach(function(pt){if(!pt||!pt._csv||!pt.no)return;var d=String(pt.no).split('-')[0];days[d]=(days[d]||0)+1;total++;});
   var keys=Object.keys(days).sort();
-  var _stat=(window._rtCsvStat||{});var rows=keys.length?keys.map(function(d){var st=_stat[d];var right;if(st){right=(st.fresh?'<span style=\"color:#c0392b;font-weight:800\">신규 '+st.fresh+'</span>':'')+(st.fresh&&st.dup?' <span style=\"color:#bbb\">·</span> ':'')+(st.dup?'<span style=\"color:#1f6fd6;font-weight:800\">중복 '+st.dup+'점</span>':'')+' <span style=\"color:#888;font-weight:600\">/ 총 '+days[d]+'</span>';}else{right='<span style=\"color:#1f6fd6;font-weight:700\">'+days[d]+'개 측점</span>';}return '<div style=\"display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid #eee;font-size:13.5px\"><b>'+d+'</b><span style=\"white-space:nowrap\">'+right+'</span></div>';}).join('')
+  var _stat=(window._rtCsvStat||{});var rows=keys.length?keys.map(function(d){var st=_stat[d];var right;if(st){right=(st.fresh?'<span style=\"color:#c0392b;font-weight:800\">신규 '+st.fresh+'</span>':'')+(st.fresh&&st.dup?' <span style=\"color:#bbb\">·</span> ':'')+(st.dup?'<span style=\"color:#1f6fd6;font-weight:800\">중복 '+st.dup+'점</span>':'')+' <span style=\"color:#888;font-weight:600\">/ 총 '+days[d]+'</span>';}else{right='<span style=\"color:#c0392b;font-weight:700\">'+days[d]+'개 측점</span>';}return '<div class=\"rtCsvRow\" data-d=\"'+d+'\" style=\"display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid #eee;font-size:13.5px\"><b>'+d+'</b><span style=\"white-space:nowrap\">'+right+'</span></div>';}).join('')
     :'<div style=\"padding:18px;text-align:center;color:#999;font-size:13px\">아직 올린 CSV가 없습니다</div>';
   var wrap=document.createElement('div');wrap.id='rtCsvModal';
   wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center';
@@ -480,6 +489,15 @@ function rtOpenCsvModal(){
   document.body.appendChild(wrap);
   wrap.addEventListener('click',function(e){if(e.target===wrap)wrap.remove();});
   document.getElementById('rtCsvClose').onclick=function(){wrap.remove();};
+  [].forEach.call(wrap.querySelectorAll('.rtCsvRow'),function(row){var tm=null,sx=0,sy=0;
+    row.addEventListener('pointerdown',function(ev){sx=ev.clientX;sy=ev.clientY;if(tm)clearTimeout(tm);
+      tm=setTimeout(function(){tm=null;var d=row.getAttribute('data-d');
+        if(confirm(d+' 날짜 CSV 측점 전체를 삭제할까요?\n(되돌리기로 복구 가능, 사진은 7일 보관)')){rtDeleteCsvDay(d);wrap.remove();rtOpenCsvModal();}
+      },1000);});
+    function _c(){if(tm){clearTimeout(tm);tm=null;}}
+    row.addEventListener('pointerup',_c);row.addEventListener('pointercancel',_c);
+    row.addEventListener('pointermove',function(ev){if(tm&&Math.abs(ev.clientX-sx)+Math.abs(ev.clientY-sy)>10)_c();});
+  });
   document.getElementById('rtCsvUp').onclick=function(){wrap.remove();var f=document.getElementById('fCsv');if(f)f.click();};
 }
 function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDraft.length){if(typeof finishDraw==='function')finishDraw();}else{if(typeof bpFirst!=='undefined')bpFirst=null;if(typeof bpPreviewClear==='function')bpPreviewClear();}mode='pan';if(typeof setModeUI==='function')setModeUI();}catch(e){}rtWireMark(null);}
@@ -640,6 +658,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=891"></script><script src="core.js?v=891"></script>
+<script src="login.js?v=892"></script><script src="core.js?v=892"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
