@@ -7105,7 +7105,7 @@ var gMeasure=document.createElementNS(SVGNS,'g'); cv.appendChild(gMeasure); // �
 var undoStack=[],redoStack=[];
 function snapHist(){return JSON.stringify({l:state.lines,bt:state.baseTexts,m:state.manholes,lo:state.labelOff,pt:state.points,mk:state.markups.map(function(x){var o={};for(var k in x)if(k!=='el')o[k]=x[k];return o;})});}
 function restoreHist(s){var o=JSON.parse(s);state.lines=o.l||[];if(o.bt)state.baseTexts=o.bt;state.manholes=o.m||[];state.labelOff=o.lo||{};if(o.pt)state.points=o.pt;state.markups.forEach(function(x){if(x.el)x.el.remove();});state.markups=o.mk||[];drawGeo();drawManholes();drawMarks();updMeta();}
-function pushHist(){undoStack.push(snapHist());if(undoStack.length>60)undoStack.shift();redoStack=[];}
+function pushHist(){undoStack.push(snapHist());if(undoStack.length>60)undoStack.shift();redoStack=[];if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&typeof rtSaveSoon==='function'){try{rtSaveSoon();}catch(e){}}}
 function doUndo(){if(!undoStack.length){toast('되돌릴 작업이 없습니다');return;}redoStack.push(snapHist());restoreHist(undoStack.pop());toast('되돌렸습니다');}
 function doRedo(){if(!redoStack.length){toast('다시 실행할 작업이 없습니다');return;}undoStack.push(snapHist());restoreHist(redoStack.pop());toast('다시 실행했습니다');}
 /* ====== 거리산출 ====== */
