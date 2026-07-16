@@ -436,7 +436,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 887</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 888</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -466,7 +466,7 @@ function rtOpenCsvModal(){
   var old=document.getElementById('rtCsvModal');if(old)old.remove();
   var days={},total=0;((typeof state!=='undefined'&&state.points)||[]).forEach(function(pt){if(!pt||!pt._csv||!pt.no)return;var d=String(pt.no).split('-')[0];days[d]=(days[d]||0)+1;total++;});
   var keys=Object.keys(days).sort();
-  var rows=keys.length?keys.map(function(d){return '<div style=\"display:flex;justify-content:space-between;padding:9px 12px;border-bottom:1px solid #eee;font-size:14px\"><b>'+d+'</b><span style=\"color:#1f6fd6;font-weight:700\">'+days[d]+'개 측점</span></div>';}).join('')
+  var _stat=(window._rtCsvStat||{});var rows=keys.length?keys.map(function(d){var st=_stat[d];var right;if(st){right=(st.fresh?'<span style=\"color:#c0392b;font-weight:800\">신규 '+st.fresh+'</span>':'')+(st.fresh&&st.dup?' <span style=\"color:#bbb\">·</span> ':'')+(st.dup?'<span style=\"color:#1f6fd6;font-weight:800\">중복 '+st.dup+'점</span>':'')+' <span style=\"color:#888;font-weight:600\">/ 총 '+days[d]+'</span>';}else{right='<span style=\"color:#1f6fd6;font-weight:700\">'+days[d]+'개 측점</span>';}return '<div style=\"display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid #eee;font-size:13.5px\"><b>'+d+'</b><span style=\"white-space:nowrap\">'+right+'</span></div>';}).join('')
     :'<div style=\"padding:18px;text-align:center;color:#999;font-size:13px\">아직 올린 CSV가 없습니다</div>';
   var wrap=document.createElement('div');wrap.id='rtCsvModal';
   wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center';
@@ -639,6 +639,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=887"></script><script src="core.js?v=887"></script>
+<script src="login.js?v=888"></script><script src="core.js?v=888"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>

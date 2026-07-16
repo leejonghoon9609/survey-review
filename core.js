@@ -7020,10 +7020,11 @@ function regAddCsv(f,cb){if(!f){if(cb)cb();return;}var rd=new FileReader();rd.on
   if(pts.length){
     if(!state.points)state.points=[];
     var _ex={};state.points.forEach(function(p){if(p&&p.no!=null)_ex[p.no]=p;});
-    var _add=[],_upd=0,_skip=0;
-    pts.forEach(function(p){var q=_ex[p.no];
-      if(q&&Math.abs((q.x||0)-(p.x||0))<0.001&&Math.abs((q.y||0)-(p.y||0))<0.001&&String(q.code||'')===String(p.code||'')){_skip++;return;}
-      if(q)_upd++;_add.push(p);});
+    var _add=[],_upd=0,_skip=0;window._rtCsvStat=window._rtCsvStat||{};var _st={};
+    pts.forEach(function(p){var q=_ex[p.no];var _dk=String(p.no).split('-')[0];if(!_st[_dk])_st[_dk]={fresh:0,dup:0};
+      if(q&&Math.abs((q.x||0)-(p.x||0))<0.001&&Math.abs((q.y||0)-(p.y||0))<0.001&&String(q.code||'')===String(p.code||'')){_skip++;_st[_dk].dup++;return;}
+      if(q)_upd++;_st[_dk].fresh++;_add.push(p);});
+    Object.keys(_st).forEach(function(k){window._rtCsvStat[k]=_st[k];});
     var _rep={};_add.forEach(function(p){_rep[p.no]=1;});
     state.points=state.points.filter(function(p){return !_rep[p.no];}).concat(_add);
     var nn={};pts.forEach(function(p){nn[p.no]=1;});
