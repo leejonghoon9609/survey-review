@@ -357,6 +357,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   header #rtLine{order:8!important;background:#fff!important;color:#1565c0!important;border:1px solid #1565c0!important;font-weight:800!important}
   header #rtLine.on{background:#1565c0!important;color:#fff!important}
   header #rtTool{order:7!important;background:#fff!important;color:#333!important;border:1px solid #333!important;font-weight:800!important}
+  header #rtAsb{order:10!important;background:#fff!important;color:#185fa5!important;border:1px solid #185fa5!important;font-weight:800!important}
   header #rtCrop{order:9!important;background:#fff!important;color:#b8860b!important;border:1px solid #b8860b!important;font-weight:800!important}
   header #rtDel{order:6!important;background:#fff!important;color:#d32f2f!important;border:1px solid #d32f2f!important;font-weight:800!important}
   body.rtrailopen header #rtTool{background:#333!important;color:#fff!important}
@@ -407,7 +408,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   <header>
     <button id="homeBtn" class="photoBtn" style="background:#eef2f7;border:1px solid #c6d2e0;color:#33506e;font-weight:700;border-radius:8px;padding:5px 11px;margin-right:2px">🏠 홈</button>
     <button id="modeToggle" class="photoBtn">💻 결선</button>
-    <h1>실시간측량</h1><button id="rtLine" class="rtm" onclick="rtToggleWire()" style="display:none">✏️ 관로선</button><button id="rtTool" class="rtm" onclick="document.body.classList.toggle('rtrailopen')" style="display:none">☰ 도구</button><button id="rtCrop" class="rtm" onclick="mode='bpcrop';if(typeof setModeUI==='function')setModeUI();if(typeof toast==='function')toast('영역 크롭: 드래그로 사각형을 그리세요');" style="display:none">✂️ 영역크롭</button><div class="rt-break"></div>
+    <h1>실시간측량</h1><button id="rtLine" class="rtm" onclick="rtToggleWire()" style="display:none">✏️ 관로선</button><button id="rtTool" class="rtm" onclick="document.body.classList.toggle('rtrailopen')" style="display:none">☰ 도구</button><button id="rtCrop" class="rtm" onclick="mode='bpcrop';if(typeof setModeUI==='function')setModeUI();if(typeof toast==='function')toast('영역 크롭: 드래그로 사각형을 그리세요');" style="display:none">✂️ 영역크롭</button><button id="rtAsb" class="rtm" onclick="rtOpenAsbuilt()" style="display:none">준공도면</button><div class="rt-break"></div>
     <button id="sysSwitch" class="wk" onclick="location.href='index.html'" style="background:#fff7e6;border:1px solid #f59e0b;color:#b45309;font-weight:700;border-radius:8px;padding:5px 11px;margin-left:2px">🏠 포털</button>
     <span id="roBadge" class="wk" style="display:none;cursor:pointer;color:#d98200;border:1px solid #e0b15a;background:#fff8ec;border-radius:7px;padding:2px 9px;font-size:12px;font-weight:700" title="클릭하면 수정 가능 모드로 전환">🔒 보기 전용 · 클릭=수정</span>
     <span id="viewerBar" class="vw">
@@ -436,7 +437,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 897</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 898</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -471,6 +472,30 @@ function rtDeleteCsvDay(d){try{
   if(typeof rtSaveSoon==='function')rtSaveSoon();
   if(typeof toast==='function')toast(d+' CSV 삭제됨 — 되돌리기로 복구 가능');
 }catch(e){}}
+function rtOpenAsbuilt(){
+  var ab=(typeof state!=='undefined')&&state.asbuilt;
+  if(!ab||!ab.url){if(typeof toast==='function')toast('준공도면이 없습니다 — 사업등록에서 올려주세요');return;}
+  var old=document.getElementById('rtAsbModal');if(old)old.remove();
+  var wrap=document.createElement('div');wrap.id='rtAsbModal';
+  wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;overflow:auto;-webkit-overflow-scrolling:touch';
+  wrap.innerHTML='<img id="rtAsbImg" src="'+ab.url+'" style="width:100%;display:block">'
+    +'<div style="position:fixed;top:10px;right:10px;display:flex;gap:8px;z-index:10000">'
+    +'<button type="button" id="rtAsbPlus" style="width:44px;height:44px;border-radius:10px;border:0;background:#fff;font-size:22px;font-weight:800">+</button>'
+    +'<button type="button" id="rtAsbMinus" style="width:44px;height:44px;border-radius:10px;border:0;background:#fff;font-size:22px;font-weight:800">-</button>'
+    +'<button type="button" id="rtAsbClose" style="height:44px;padding:0 14px;border-radius:10px;border:0;background:#EA002C;color:#fff;font-weight:800">닫기</button></div>';
+  document.body.appendChild(wrap);
+  var img=document.getElementById('rtAsbImg'),sc=1;
+  function apply(){img.style.width=(100*sc)+'%';}
+  document.getElementById('rtAsbPlus').onclick=function(){sc=Math.min(6,sc*1.4);apply();};
+  document.getElementById('rtAsbMinus').onclick=function(){sc=Math.max(1,sc/1.4);apply();};
+  document.getElementById('rtAsbClose').onclick=function(){wrap.remove();};
+  var pts={},d0=0,s0=1;
+  wrap.addEventListener('pointerdown',function(e){pts[e.pointerId]=[e.clientX,e.clientY];var k=Object.keys(pts);if(k.length===2){var a=pts[k[0]],b=pts[k[1]];d0=Math.hypot(a[0]-b[0],a[1]-b[1]);s0=sc;}});
+  wrap.addEventListener('pointermove',function(e){if(!pts[e.pointerId])return;pts[e.pointerId]=[e.clientX,e.clientY];var k=Object.keys(pts);
+    if(k.length===2&&d0>0){var a=pts[k[0]],b=pts[k[1]];var d=Math.hypot(a[0]-b[0],a[1]-b[1]);sc=Math.max(1,Math.min(6,s0*d/d0));apply();e.preventDefault();}});
+  function rel(e){delete pts[e.pointerId];if(Object.keys(pts).length<2)d0=0;}
+  wrap.addEventListener('pointerup',rel);wrap.addEventListener('pointercancel',rel);
+}
 function rtOpenCsvModal(){
   var old=document.getElementById('rtCsvModal');if(old)old.remove();
   var days={},total=0;((typeof state!=='undefined'&&state.points)||[]).forEach(function(pt){if(!pt||!pt._csv||!pt.no)return;var d=String(pt.no).split('-')[0];days[d]=(days[d]||0)+1;total++;});
@@ -658,6 +683,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=897"></script><script src="core.js?v=897"></script>
+<script src="login.js?v=898"></script><script src="core.js?v=898"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
