@@ -5722,6 +5722,8 @@ function refreshProjects(){ if(!online)return;
     var sel=document.getElementById('proj');sel.innerHTML='<option value="">사업 선택…</option>';
     (res.data||[]).forEach(function(p){if((p.stage||'survey')!==STAGE)return;var o=document.createElement('option');o.value=p.id;o.textContent=p.name;o.title=p.name;sel.appendChild(o);});
     if(state.projectId)sel.value=state.projectId;
+    /* [BUILD 913] 실시간측량 기존 사업명 _S 마이그레이션 */
+    if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){(res.data||[]).forEach(function(p){if((p.stage||'survey')!==STAGE)return;if(/_S$/.test(p.name||''))return;var nn=(p.name||'')+'_S';sb.from(DB+'_projects').update({name:nn}).eq('id',p.id).then(function(){});var o=sel.querySelector('option[value="'+p.id+'"]');if(o){o.textContent=nn;o.title=nn;}if(state.projectId===p.id)state.projectName=nn;});}
     if(typeof refreshDoneProjects==='function')refreshDoneProjects();
   });
 }
@@ -6076,6 +6078,7 @@ function registerProject(){
   var name=document.getElementById('regName').value.trim();
   if(!name){toast('사업명을 입력하세요');document.getElementById('regName').focus();return;}
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
+  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&!/_S$/.test(name))name+='_S'; /* [BUILD 913] 실시간측량 사업명 _S 자동 부착 */
   state.projectName=name;state.bizInfo=readBizInfo();
   var crsEl=document.querySelector('input[name="regCrs"]:checked');state.crs=crsEl?crsEl.value:'5186';
   var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:state.finalCsv||null,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null};
