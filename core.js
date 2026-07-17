@@ -6392,7 +6392,7 @@ bind('vNote2',toggleNoteMode);
 var _vproj=document.getElementById('vproj');if(_vproj)_vproj.addEventListener('change',function(){if(this.value)loadProject(this.value);});
 
 /* ===== 결선완료 사업 ===== */
-function baseName(n){return (''+(n||'')).replace(/_(A|B|C|TT?)\d*$/,'');}function _uniqName(base,suffix,cb){if(!online){cb(base+suffix);return;}sb.from(DB+'_projects').select('id,name,stage:payload->>stage').then(function(_ex){var _names=(_ex.data||[]).filter(function(r){return r.id!==state.projectId&&(r.stage||'survey')===STAGE;}).map(function(r){return r.name;});var want=base+suffix;if(_names.indexOf(want)<0){cb(want);return;}var i=1;while(_names.indexOf(want+i)>=0)i++;cb(want+i);});}
+function baseName(n){return (''+(n||'')).replace(/_(S|A|B|C|TT?)\d*$/,'');}function _uniqName(base,suffix,cb){if(!online){cb(base+suffix);return;}sb.from(DB+'_projects').select('id,name,stage:payload->>stage').then(function(_ex){var _names=(_ex.data||[]).filter(function(r){return r.id!==state.projectId&&(r.stage||'survey')===STAGE;}).map(function(r){return r.name;});var want=base+suffix;if(_names.indexOf(want)<0){cb(want);return;}var i=1;while(_names.indexOf(want+i)>=0)i++;cb(want+i);});}
 function registerDone(){
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
   if(!state.projectName){toast('등록할 사업을 먼저 선택/저장하세요');return;}
@@ -6449,7 +6449,7 @@ function importFromStage(id,srcStage){
   sb.from(srcTbl).select('*').eq('id',id).single().then(function(res){
     if(res.error||!res.data){toast('가져오기 실패 — '+(res.error?res.error.message:'없음'));return;}
     var p=res.data.payload||{};
-    var suffix=(STAGE==='tango'?'_T':(STAGE==='field'?'_B':''));
+    var suffix=(STAGE==='tango'?'_T':(STAGE==='field'?'_B':(STAGE==='survey'?'_A':'')));
     var _base=baseName(res.data.name),_want=_base+suffix;
     var _run=function(newName){
     state.projectId=null;state.projectName=newName;state.loadedStage=srcStage;state._importSrc=[];
@@ -6512,6 +6512,40 @@ function openDoneList(){
     card.querySelectorAll('.done-del').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-id'),nm=b.getAttribute('data-nm')||'(이름없음)';if(!confirm("'"+nm+"' 을(를) 완료목록에서 제거할까요?\n데이터는 보존되며 삭제목록에서 복원할 수 있습니다."))return;tgArchiveSet(id,true,card);};});
     var sa=card.querySelector('#showArch');if(sa)sa.onclick=function(){var ab=card.querySelector('#archBox');if(ab)ab.style.display=(ab.style.display==='none')?'block':'none';};
     card.querySelectorAll('.arch-restore').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-id');tgArchiveSet(id,false,card);};});
+    if(STAGE==='survey'&&typeof rtDonePairCard==='function')setTimeout(function(){rtDonePairCard(card);},30);
+  });
+}
+/* [BUILD 917] 결선DB: 실시간측량 완료사업 카드 (결선 완료사업 왼쪽에 나란히) */
+function rtDonePairCard(main){
+  if(!online||!main||!document.body.contains(main))return;
+  var ex=document.getElementById('rtPairModal');if(ex)ex.remove();
+  sb.from('realtime_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
+    if(!document.body.contains(main))return;
+    var rows=(res.data||[]).filter(function(p){return p.payload&&p.payload.rtDone&&p.payload.rtDone.done&&((p.payload.stage||'realtime')==='realtime');});
+    var r=main.getBoundingClientRect();
+    var card=document.createElement('div');card.id='rtPairModal';
+    card.style.cssText='position:fixed;z-index:10000;background:#fff;border:1px solid #f0caca;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,0.22);overflow:hidden;font-family:inherit;display:flex;flex-direction:column;';
+    card.style.width=r.width+'px';card.style.height=r.height+'px';
+    var lft=r.left-r.width-12;if(lft<8)lft=8;
+    card.style.left=lft+'px';card.style.top=r.top+'px';
+    var listHtml=rows.length
+      ? rows.map(function(p){var dt=((p.payload.rtDone&&p.payload.rtDone.at)||'').slice(0,10);return '<button class="rtp-row" data-id="'+p.id+'" style="display:block;width:100%;text-align:left;margin:4px 0;padding:10px 12px;border:1px solid #f0caca;border-radius:9px;background:#fdf1f1;cursor:pointer;font-size:14px;font-weight:700;color:#c0392b">✓ '+p.name+(dt?'<span style="float:right;font-size:12px;color:#c9a0a0;font-weight:400">'+dt+'</span>':'')+'</button>';}).join('')
+      : '<div style="color:#999;padding:8px">실측완료된 사업이 없습니다.</div>';
+    card.innerHTML='<div id="rtPairHd" style="display:flex;align-items:center;gap:8px;padding:11px 14px;background:#fbf5f5;border-bottom:1px solid #f2e2e2;cursor:move;user-select:none;font-weight:700;color:#333;font-size:15px"><span style="color:#d32f2f;font-size:11px">●</span>실시간측량 완료사업<span style="margin-left:auto;color:#d4bcbc;font-size:11px;font-weight:400">⠿ 드래그로 이동</span></div>'
+      +'<div style="padding:15px 16px;color:#444;font-size:14px;line-height:1.65;overflow:auto;flex:1;text-align:left">'+listHtml
+      +'<div style="color:#999;font-size:12px;margin-top:6px">고르면 <b>사본으로 복사</b>되어 <b>_A</b> 이름으로 <b>자동 저장</b>됩니다 (원본 _S는 보존)</div></div>'
+      +'<div style="display:flex;justify-content:flex-end;gap:8px;padding:0 16px 15px"><button id="rtPairClose" style="padding:8px 16px;border:1px solid #ddd;border-radius:8px;background:#fff;color:#666;cursor:pointer;font-weight:700">닫기</button></div>';
+    document.body.appendChild(card);
+    card.querySelector('#rtPairClose').onclick=function(){card.remove();};
+    card.querySelectorAll('.rtp-row').forEach(function(b){b.onclick=function(){var id=b.getAttribute('data-id');card.remove();if(document.body.contains(main))main.remove();importFromStage(id,'realtime');};});
+    /* 드래그 이동 */
+    var hd=card.querySelector('#rtPairHd');var dx=0,dy=0,drag=false;
+    hd.addEventListener('pointerdown',function(e){drag=true;dx=e.clientX-card.offsetLeft;dy=e.clientY-card.offsetTop;hd.setPointerCapture(e.pointerId);});
+    hd.addEventListener('pointermove',function(e){if(!drag)return;card.style.left=(e.clientX-dx)+'px';card.style.top=(e.clientY-dy)+'px';});
+    hd.addEventListener('pointerup',function(){drag=false;});
+    /* 초록 카드 닫히면 같이 닫힘 */
+    var mo=new MutationObserver(function(){if(!document.body.contains(main)){if(document.body.contains(card))card.remove();mo.disconnect();}});
+    mo.observe(document.body,{childList:true});
   });
 }
 function tgArchiveSet(id,arch,card){if(!online)return;sb.from(DB+'_projects').select('payload').eq('id',id).single().then(function(r){var pl=(r.data&&r.data.payload)||{};pl.tangoArchived=arch;sb.from(DB+'_projects').update({payload:pl}).eq('id',id).then(function(){if(card)card.remove();openDoneList();toast(arch?'완료목록에서 제거됨 (삭제목록으로 이동)':'완료목록으로 복원됨');});});}
