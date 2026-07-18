@@ -6768,6 +6768,31 @@ function mnAskNoOwner(rec,cb){
   w.querySelector('#mnAskOk').onclick=function(){rec.no=w.querySelector('#mnNoIn').value.trim();rec.owner=w.querySelector('#mnOwIn').value;rec.ownerC=w.querySelector('#mnOwC').value.trim();w.remove();cb();};
   setTimeout(function(){w.querySelector('#mnNoIn').focus();},60);
 }
+function mnAskDest(cur,dn,cb){
+  var old=document.getElementById('mnAskModal');if(old)old.remove();
+  var no='',ow='LG',owc='';
+  var m=/^(.*)\((.+)\)$/.exec(cur||'');
+  if(m){no=m[1];var o=m[2];if(['LG','SKT','SKB','시청','세종','드림'].indexOf(o)>=0)ow=o;else{ow='_c';owc=o;}}
+  else no=cur||'';
+  var w=document.createElement('div');w.id='mnAskModal';
+  w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:16dvh';
+  var opts=['LG','SKT','SKB','시청','세종','드림'].map(function(o){return '<option value="'+o+'"'+(ow===o?' selected':'')+'>'+o+'</option>';}).join('')+'<option value="_c"'+(ow==='_c'?' selected':'')+'>직접입력</option>';
+  w.innerHTML='<div style="background:#f1f8e9;border:1.5px solid #558b2f;border-radius:12px;width:min(80vw,280px);padding:13px 14px">'
+    +'<div style="font-weight:800;font-size:13.5px;color:#558b2f;margin-bottom:9px">연결 맨홀 ('+dn+'방향)</div>'
+    +'<div style="display:flex;gap:7px"><input id="mnDNo" value="'+joseoEsc(no)+'" placeholder="예: 2M" style="flex:1.1;min-width:0;border:1.5px solid #558b2f;border-radius:9px;padding:9px;font-size:15px;background:#fff"><select id="mnDOw" style="flex:1;min-width:0;border:1px solid #ccd8c0;border-radius:9px;padding:9px 6px;font-size:14px;background:#fff">'+opts+'</select></div>'
+    +'<input id="mnDOwC" value="'+joseoEsc(owc)+'" placeholder="소유자 직접입력" style="width:100%;box-sizing:border-box;border:1px solid #ccd8c0;border-radius:9px;padding:9px;font-size:14px;margin-top:8px;background:#fff;display:'+(ow==='_c'?'block':'none')+'">'
+    +'<div style="display:flex;gap:7px;margin-top:10px"><button id="mnDOk" style="flex:1;background:#558b2f;color:#fff;border:0;border-radius:9px;padding:10px;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">확인</span></button><button id="mnDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">취소</span></button></div></div>';
+  document.body.appendChild(w);
+  w.querySelector('#mnDOw').addEventListener('change',function(){w.querySelector('#mnDOwC').style.display=(this.value==='_c')?'block':'none';});
+  w.querySelector('#mnDNo2').onclick=function(){w.remove();};
+  w.onclick=function(e){if(e.target===w)w.remove();};
+  w.querySelector('#mnDOk').onclick=function(){
+    var n=w.querySelector('#mnDNo').value.trim();
+    var o=w.querySelector('#mnDOw').value;if(o==='_c')o=w.querySelector('#mnDOwC').value.trim();
+    w.remove();cb(n?(n+(o?'('+o+')':'')):'');
+  };
+  setTimeout(function(){w.querySelector('#mnDNo').focus();},60);
+}
 function mnOpenForm(rec){
   var isNew=!rec;
   if(isNew)rec={id:'mn'+Date.now(),no:'',owner:'LG',ownerC:'',dep:'',w12:'',w34:'',topi:'',lid:766,lidRect:'',spec:null,photos:{},pipes:{},at:new Date().toISOString()};
@@ -6938,7 +6963,7 @@ function mnOpenForm(rec){
           var units={dep:'m',w12:'m',w34:'m',topi:'m',lid:'mm',lidRect:'',lidW:'mm',lidH:'mm'};
           mnAsk({title:titles[k],unit:units[k],val:rec[k],text:(k==='lidRect'),color:MN_DIMC[k],cb:function(v){rec[k]=(v===''?'':v);mnPersistRec(rec);render();}});
         }
-        else if(act==='dest'){var dk=el.getAttribute('data-d');var dn={d1:'1',d2:'2',d3:'3',d4:'4'}[dk];mnAsk({title:'연결 맨홀 ('+dn+'방향)',text:true,color:['#558b2f','#f1f8e9'],val:(rec.dest&&rec.dest[dk])||'',cb:function(v){if(!rec.dest)rec.dest={};rec.dest[dk]=v;mnPersistRec(rec);render();}});}
+        else if(act==='dest'){var dk=el.getAttribute('data-d');var dn={d1:'1',d2:'2',d3:'3',d4:'4'}[dk];mnAskDest((rec.dest&&rec.dest[dk])||'',dn,function(v){if(!rec.dest)rec.dest={};rec.dest[dk]=v;mnPersistRec(rec);render();});}
         else if(act==='wall'){var wl=el.getAttribute('data-w');if(!host&&wrap)wrap.remove();mnPipeEditor(rec,wl);}
         else if(act==='ph'){mnShootSlot(rec,el.getAttribute('data-s'),function(){render();});}
       });
