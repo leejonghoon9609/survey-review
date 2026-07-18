@@ -7183,7 +7183,7 @@ function mnPipeEditor(rec,wall){
       +'<input id="mnGKindC" placeholder="관종" style="flex:1;display:none;border:1px solid #ddd;border-radius:7px;padding:7px 8px;font-size:13px">'
       +'<div style="flex:1;display:flex;align-items:center;gap:4px"><span style="font-size:12px;color:#667">단수</span><select id="mnGRowsSel" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:7px;padding:7px 4px;font-size:14px;background:#fff"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option value="_c">직접입력</option></select><input id="mnGRows" type="number" min="1" max="12" value="6" inputmode="numeric" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:7px;padding:7px 8px;font-size:14px;display:none"></div></div>'
       +'<div id="mnGRowsBox"></div>'
-      +'<button id="mnGAdd" style="width:100%;margin-top:4px;background:#fff;color:#1d9e75;border:1.5px solid #1d9e75;border-radius:8px;padding:9px;font-weight:800;font-size:13.5px;cursor:pointer">관위치배치 (관 위치를 조정하세요)</button>'
+      +'<button id="mnGAdd" style="width:100%;margin-top:4px;background:#fff;color:#1d9e75;border:1.5px solid #1d9e75;border-radius:8px;padding:9px;font-weight:800;font-size:13.5px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:2px;margin-right:-2px">관위치 조정</span></button>'
     +'</div></div>'
     +'<div style="display:flex;gap:8px;padding:11px 14px;border-top:1px solid #eee">'
     +'<button id="mnPDone" style="flex:1;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:10px;padding:12px;font-weight:800;font-size:14.5px;cursor:pointer;display:flex;align-items:center;justify-content:center">완료 ('+({p1:'1',p2:'2',p3:'3',p4:'4'}[wall])+'번 완료등록합니다)</button>'
