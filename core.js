@@ -6803,10 +6803,10 @@ function mnOpenForm(rec){
   }
   function destPill(k,x,y,w,h,rot){
     var v=(rec.dest&&rec.dest[k])||'';
-    var t=v||'탭';
+    var t=v||'방향';
     var cx=x+w/2,cy=y+h/2,txt;
-    if(rot===0)txt='<text x="'+cx+'" y="'+(cy+3.5)+'" text-anchor="middle" font-size="9.5" font-weight="800" fill="'+(v?'#558b2f':'#a8c790')+'" pointer-events="none">'+joseoEsc(t)+'</text>';
-    else txt='<text x="'+cx+'" y="'+cy+'" text-anchor="middle" font-size="9.5" font-weight="800" fill="'+(v?'#558b2f':'#a8c790')+'" transform="rotate('+rot+' '+cx+' '+cy+')" dominant-baseline="central" pointer-events="none">'+joseoEsc(t)+'</text>';
+    if(rot===0)txt='<text x="'+cx+'" y="'+(cy+3.5)+'" text-anchor="middle" font-size="10.5" font-weight="800" fill="'+(v?'#558b2f':'#a8c790')+'" pointer-events="none">'+joseoEsc(t)+'</text>';
+    else txt='<text x="'+cx+'" y="'+cy+'" text-anchor="middle" font-size="10.5" font-weight="800" fill="'+(v?'#558b2f':'#a8c790')+'" transform="rotate('+rot+' '+cx+' '+cy+')" dominant-baseline="central" pointer-events="none">'+joseoEsc(t)+'</text>';
     return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="5" fill="#f1f8e9" stroke="#7cb342" stroke-width="1.2" data-act="dest" data-d="'+k+'" style="cursor:pointer"/>'+txt;
   }
   function dimRange(x1,y1,x2,y2,color){
@@ -6871,30 +6871,30 @@ function mnOpenForm(rec){
       +'<rect x="250" y="280" width="140" height="150" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p3')
       +'<polyline points="278,280 278,235 258,235" fill="none" stroke="#333" stroke-width="1.5"/>'
       +'<polyline points="362,280 362,235 382,235" fill="none" stroke="#333" stroke-width="1.5"/>'
-      +'<line x1="320" y1="214" x2="320" y2="192" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
-      +'<text x="304" y="208" font-size="15" font-weight="700" fill="#333">3</text>'
-      +destPill('d3',328,182,18,50,-90)
+      +'<line x1="320" y1="274" x2="320" y2="254" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
+      +'<text x="313" y="248" font-size="15" font-weight="700" fill="#333">3</text>'
+      +destPill('d3',308,166,24,64,-90)
       /* 하(4=남) */
       +'<rect x="250" y="570" width="140" height="150" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p4')
       +'<polyline points="278,720 278,765 258,765" fill="none" stroke="#333" stroke-width="1.5"/>'
       +'<polyline points="362,720 362,765 382,765" fill="none" stroke="#333" stroke-width="1.5"/>'
-      +'<line x1="320" y1="788" x2="320" y2="810" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
-      +'<text x="302" y="804" font-size="15" font-weight="700" fill="#333">4</text>'
-      +destPill('d4',328,782,18,50,90)
+      +'<line x1="320" y1="726" x2="320" y2="746" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
+      +'<text x="313" y="762" font-size="15" font-weight="700" fill="#333">4</text>'
+      +destPill('d4',308,772,24,64,90)
       /* 좌(1=서) */
       +'<rect x="100" y="430" width="150" height="140" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p1')
       +'<polyline points="100,458 55,458 55,438" fill="none" stroke="#333" stroke-width="1.5"/>'
       +'<polyline points="100,542 55,542 55,562" fill="none" stroke="#333" stroke-width="1.5"/>'
-      +'<line x1="46" y1="500" x2="24" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
-      +'<text x="8" y="505" font-size="15" font-weight="700" fill="#333">1</text>'
-      +destPill('d1',2,478,52,18,0)
+      +'<line x1="92" y1="500" x2="72" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
+      +'<text x="58" y="505" font-size="15" font-weight="700" fill="#333">1</text>'
+      +destPill('d1',0,488,54,24,0)
       /* 우(2=동) */
       +'<rect x="390" y="430" width="150" height="140" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p2')
       +'<polyline points="540,458 585,458 585,438" fill="none" stroke="#333" stroke-width="1.5"/>'
       +'<polyline points="540,542 585,542 585,562" fill="none" stroke="#333" stroke-width="1.5"/>'
-      +'<line x1="566" y1="500" x2="588" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
-      +'<text x="596" y="505" font-size="15" font-weight="700" fill="#333">2</text>'
-      +destPill('d2',560,478,52,18,0)
+      +'<line x1="548" y1="500" x2="568" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
+      +'<text x="574" y="505" font-size="15" font-weight="700" fill="#333">2</text>'
+      +destPill('d2',590,488,54,24,0)
       +wallCircles('p3',function(nx,ny){return [250+nx*140,430-ny*150];})
       +wallCircles('p4',function(nx,ny){return [250+nx*140,570+ny*150];})
       +wallCircles('p1',function(nx,ny){return [250-ny*150,430+nx*140];})
