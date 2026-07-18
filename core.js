@@ -6878,28 +6878,17 @@ function mnOpenForm(rec){
     var pwv=rec.pipes&&rec.pipes[wallKey];if(!pwv||!pwv.groups)return '';
     var WHd=mnWallDims(rec,wallKey),Wm=WHd[0],Hm=WHd[1],out='';
     var sk=150/Hm, KU=(150*Wm)/(140*Hm); /* 가로로 맞닿기 위한 u축 보정 */
-    pwv.groups.forEach(function(g){
-      var cs=g.circles||[];if(!cs.length)return;
-      var mx=0,my=0;cs.forEach(function(c){mx+=c.x;my+=c.y;});mx/=cs.length;my/=cs.length;
-      var rowsMap={},rowKeys=[];
-      cs.forEach(function(c){var k=c.ri||0;if(!rowsMap[k]){rowsMap[k]=[];rowKeys.push(k);}rowsMap[k].push(c);});
-      rowKeys.sort(function(a,b){return a-b;});
-      var rowH=rowKeys.map(function(k){var m=0;rowsMap[k].forEach(function(c){m=Math.max(m,c.dia);});return m;});
-      var totV=0;rowH.forEach(function(h){totV+=h;});
-      var vv=my+totV/2;
-      rowKeys.forEach(function(k,ri2){
-        var row=rowsMap[k];row.sort(function(a,b){return a.x-b.x;});
-        var h=rowH[ri2];var cy=vv-h/2;vv-=h;
-        var totU=0;row.forEach(function(c){totU+=c.dia*KU;});
-        var uu=mx-totU/2;
-        row.forEach(function(c){
-          var cu=uu+c.dia*KU/2;uu+=c.dia*KU;
-          var p=mapFn(cu/Wm,cy/Hm);
-          var r=Math.max(c.dia*0.5*sk,3);
-          var st=(c.st!=null?c.st:(c.fill?1:0));
-          out+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+(st===2?'#d32f2f':(st===1?'#222':'#fff'))+'" stroke="#333" stroke-width="1.2" pointer-events="none"/>';
-        });
-      });
+    /* 편집기 실제 좌표를 그대로 사용(그룹 재정렬 X — 겹침 방지). 전체 클러스터를 벽 중앙에 배치 */
+    var all=[];pwv.groups.forEach(function(g){(g.circles||[]).forEach(function(c){all.push(c);});});
+    if(!all.length)return '';
+    var mx=0,my=0;all.forEach(function(c){mx+=c.x;my+=c.y;});mx/=all.length;my/=all.length;
+    all.forEach(function(c){
+      var cu=Wm/2+(c.x-mx)*KU;
+      var cv=Hm/2+(c.y-my);
+      var p=mapFn(cu/Wm,cv/Hm);
+      var r=Math.max(c.dia*0.5*sk,3);
+      var st=(c.st!=null?c.st:(c.fill?1:0));
+      out+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+(st===2?'#d32f2f':(st===1?'#222':'#fff'))+'" stroke="#333" stroke-width="1.2" pointer-events="none"/>';
     });
     return out;
   }
@@ -6950,8 +6939,8 @@ function mnOpenForm(rec){
       phRows+='<rect x="531" y="'+(y-7.5)+'" width="15" height="15" rx="3.5" fill="'+(chkOn?'#1d9e75':'#fff')+'" stroke="'+(chkOn?'#1d9e75':'#bbb')+'" stroke-width="1.4" data-act="chk" data-s="'+sl[0]+'" style="cursor:pointer"/>'
         +(chkOn?'<path d="M534.5 '+y+' l3.7 4.2 l6.3 -7.5" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>':'')
         +'<text x="586" y="'+(y+6)+'" text-anchor="end" font-size="13" fill="#444">'+sl[1].replace(/^[①-④] /,'')+' :</text>'
-        +(url?'<image href="'+url+'" x="598" y="'+(y-13)+'" width="27" height="27" preserveAspectRatio="xMidYMid slice" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><rect x="629" y="'+(y-13)+'" width="48" height="27" rx="6" fill="#e1f5ee" stroke="#1d9e75" stroke-width="1.5" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="653" y="'+(y+5)+'" text-anchor="middle" font-size="12" font-weight="800" fill="#1d9e75" pointer-events="none">완료</text>'
-             :'<rect x="598" y="'+(y-13)+'" width="64" height="27" rx="6" fill="#fdeaea" stroke="#d32f2f" stroke-width="1.6" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="630" y="'+(y+5)+'" text-anchor="middle" font-size="12.5" font-weight="800" fill="#d32f2f" pointer-events="none">촬영</text>');
+        +(url?'<image href="'+url+'" x="600" y="'+(y-12)+'" width="24" height="24" preserveAspectRatio="xMidYMid slice" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><rect x="652" y="'+(y-11.5)+'" width="42" height="23" rx="6" fill="#e1f5ee" stroke="#1d9e75" stroke-width="1.5" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="673" y="'+(y+4)+'" text-anchor="middle" font-size="11" font-weight="800" fill="#1d9e75" pointer-events="none">완료</text>'
+             :'<rect x="638" y="'+(y-11.5)+'" width="56" height="23" rx="6" fill="#fdeaea" stroke="#d32f2f" stroke-width="1.6" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="666" y="'+(y+4)+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="#d32f2f" pointer-events="none">촬영</text>');
     });
     var svg='<svg viewBox="0 0 720 980" xmlns="http://www.w3.org/2000/svg" style="display:block;background:#fff;'+(host?'width:100%;height:100%':'width:100%;max-width:720px')+';margin:0 auto;font-family:inherit">'
       +'<rect x="12" y="12" width="696" height="956" fill="none" stroke="#777" stroke-width="1.5"/>'
