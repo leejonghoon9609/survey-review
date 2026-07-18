@@ -6753,19 +6753,27 @@ function mnAsk(opt){
 }
 function mnAskNoOwner(rec,cb){
   var old=document.getElementById('mnAskModal');if(old)old.remove();
+  var no=rec.no||'';
+  var m=/^(.+?)M$/.exec(no);if(m)no=m[1];
   var w=document.createElement('div');w.id='mnAskModal';
   w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:14dvh';
   var opts=['LG','SKT','SKB','시청','세종','드림'].map(function(o){return '<option value="'+o+'"'+(rec.owner===o?' selected':'')+'>'+o+'</option>';}).join('')+'<option value="_c"'+(rec.owner==='_c'?' selected':'')+'>직접입력</option>';
   w.innerHTML='<div style="background:#fff;border-radius:13px;width:min(88vw,320px);padding:16px">'
     +'<div style="font-weight:800;font-size:15px;margin-bottom:10px">맨홀번호</div>'
-    +'<div style="display:flex;gap:7px"><input id="mnNoIn" value="'+joseoEsc(rec.no||'')+'" placeholder="예: 6M" style="flex:1.1;min-width:0;border:1.5px solid #1d9e75;border-radius:9px;padding:10px;font-size:16px"><select id="mnOwIn" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:9px;padding:10px 6px;font-size:14px;background:#fff">'+opts+'</select></div>'
+    +'<div style="display:flex;gap:7px;align-items:center"><div style="flex:1.1;min-width:0;display:flex;align-items:center;gap:4px"><input id="mnNoIn" type="text" inputmode="numeric" value="'+joseoEsc(no)+'" placeholder="예: 6" style="flex:1;min-width:0;border:1.5px solid #1d9e75;border-radius:9px;padding:10px;font-size:16px"><b style="font-size:16px;color:#1d9e75;flex:none">M</b></div>'
+    +'<select id="mnOwIn" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:9px;padding:10px 6px;font-size:14px;background:#fff">'+opts+'</select></div>'
     +'<input id="mnOwC" value="'+joseoEsc(rec.ownerC||'')+'" placeholder="소유자 직접입력" style="width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:9px;padding:10px;font-size:14px;margin-top:8px;display:'+(rec.owner==='_c'?'block':'none')+'">'
     +'<div style="display:flex;gap:8px;margin-top:12px"><button id="mnAskOk" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:9px;padding:11px;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">확인</span></button><button id="mnAskNo2" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:9px;padding:11px;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">취소</span></button></div></div>';
   document.body.appendChild(w);
   w.querySelector('#mnOwIn').addEventListener('change',function(){w.querySelector('#mnOwC').style.display=(this.value==='_c')?'block':'none';});
   w.querySelector('#mnAskNo2').onclick=function(){w.remove();};
   w.onclick=function(e){if(e.target===w)w.remove();};
-  w.querySelector('#mnAskOk').onclick=function(){rec.no=w.querySelector('#mnNoIn').value.trim();rec.owner=w.querySelector('#mnOwIn').value;rec.ownerC=w.querySelector('#mnOwC').value.trim();w.remove();cb();};
+  w.querySelector('#mnAskOk').onclick=function(){
+    var n=w.querySelector('#mnNoIn').value.trim();
+    rec.no=n?(n+'M'):'';
+    rec.owner=w.querySelector('#mnOwIn').value;rec.ownerC=w.querySelector('#mnOwC').value.trim();
+    w.remove();cb();
+  };
   setTimeout(function(){w.querySelector('#mnNoIn').focus();},60);
 }
 function mnAskDest(cur,dn,cb){
