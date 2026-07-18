@@ -7215,6 +7215,14 @@ function mnPipeEditor(rec,wall){
   wrap.querySelector('#mnMdOne').onclick=function(){setMode('one');};
   wrap.querySelector('#mnMdDel').onclick=function(){setMode('del');};
   setMode('all');
+  /* 삭제모드: 캔버스·삭제버튼 외 다른 곳 터치 시 자동 해제 */
+  wrap.addEventListener('pointerdown',function(e){
+    if(mode!=='del')return;
+    if(e.target===cv||cv.contains(e.target))return;
+    var db=wrap.querySelector('#mnMdDel');
+    if(db&&(e.target===db||db.contains(e.target)))return;
+    setMode('all');
+  },true);
   var bg=null;
   function loadBg(){bg=null;var u=rec.photos&&rec.photos[wall];if(!u){draw();return;}
     var im=new Image();im.crossOrigin='anonymous';
