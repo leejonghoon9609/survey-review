@@ -6896,7 +6896,8 @@ function mnOpenForm(rec){
           var cu=uu+c.dia*KU/2;uu+=c.dia*KU;
           var p=mapFn(cu/Wm,cy/Hm);
           var r=Math.max(c.dia*0.5*sk,3);
-          out+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+(c.fill?'#222':'#fff')+'" stroke="#333" stroke-width="1.2" pointer-events="none"/>';
+          var st=(c.st!=null?c.st:(c.fill?1:0));
+          out+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+(st===2?'#d32f2f':(st===1?'#222':'#fff'))+'" stroke="#333" stroke-width="1.2" pointer-events="none"/>';
         });
       });
     });
@@ -7131,7 +7132,7 @@ function mnGroupLabel(g){
     if(!(r.dia in agg)){agg[r.dia]={cnt:0,fill:0};order.push(r.dia);}
     agg[r.dia].cnt+=r.cnt;
   });
-  (g.circles||[]).forEach(function(c){if(c.fill&&agg[c.dia])agg[c.dia].fill++;});
+  (g.circles||[]).forEach(function(c){var st=(c.st!=null?c.st:(c.fill?1:0));if(st===1&&agg[c.dia])agg[c.dia].fill++;});
   return order.map(function(d,i){var a=agg[d];return (i===0?(g.kind+'Ø'):'')+d+'X'+a.cnt+'('+a.fill+')';}).join(' ');
 }
 function mnPipeSummary(rec,wall){
@@ -7171,7 +7172,7 @@ function mnPipeEditor(rec,wall){
       +'<button id="mnMdDel" class="mn-md" style="flex:none;border:1px solid #ccc;background:#fff;color:#667;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">삭제</button>'
       +'<button id="mnReShoot" style="margin-left:auto;flex:none;border:1px solid #d32f2f;background:#fdeaea;color:#d32f2f;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:800;cursor:pointer">재촬영</button></div>'
     +'<div id="mnCvBox" style="border:1.5px solid #556;border-radius:8px;overflow:hidden;background:#fff"><canvas id="mnCv" style="display:block;touch-action:none;user-select:none;-webkit-user-select:none"></canvas></div>'
-    +'<div style="font-size:11px;color:#99a;margin-top:4px;text-align:right">탭=선 표시(검정) · 노란선=맨홀 바닥</div>'
+    +'<div style="font-size:11px;color:#99a;margin-top:4px;text-align:right">탭: 빈관→내선(검정)→제외(빨강) · 노란선=맨홀 바닥</div>'
     +'<div id="mnGChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"></div>'
     +'<div style="border-top:1px dashed #ddd;margin-top:10px;padding-top:9px">'
       +'<div style="display:flex;gap:6px;margin-bottom:6px"><select id="mnGKind" style="flex:1;border:1px solid #ddd;border-radius:7px;padding:7px 5px;font-size:13px;background:#fff">'+MN_KINDS.map(function(k){return '<option>'+k+'</option>';}).join('')+'<option value="_c">직접입력</option></select>'
@@ -7215,7 +7216,7 @@ function mnPipeEditor(rec,wall){
     var im=new Image();im.crossOrigin='anonymous';
     im.onload=function(){bg=im;draw();};im.onerror=function(){bg=null;draw();};
     im.src=u;}
-  wrap.querySelector('#mnReShoot').onclick=function(){mnShootSlot(rec,wall,function(){loadBg();});};
+  wrap.querySelector('#mnReShoot').onclick=function(){if(mode==='del')setMode('all');mnShootSlot(rec,wall,function(){loadBg();});};
   function draw(){
     ctx.setTransform(dpr,0,0,dpr,0,0);
     ctx.clearRect(0,0,cssW,cssH);
@@ -7234,9 +7235,9 @@ function mnPipeEditor(rec,wall){
     ctx.fillStyle='#c8a600';ctx.font='700 10px sans-serif';ctx.fillText('맨홀 바닥',6,cssH-7);
     pw.groups.forEach(function(g){(g.circles||[]).forEach(function(c){
       var r=c.dia/2*sy;
+      var st=(c.st!=null?c.st:(c.fill?1:0));
       ctx.beginPath();ctx.arc(c.x*sx,(H-c.y)*sy,Math.max(r,3),0,Math.PI*2);
-      if(c.fill){ctx.fillStyle='#222';ctx.fill();}
-      else{ctx.fillStyle='#fff';ctx.fill();}
+      ctx.fillStyle=(st===2?'#d32f2f':(st===1?'#222':'#fff'));ctx.fill();
       ctx.strokeStyle='#333';ctx.lineWidth=1.4;ctx.stroke();
     });});
   }
@@ -7268,13 +7269,15 @@ function mnPipeEditor(rec,wall){
     });
   }
   wrap.querySelector('#mnGRowsSel').addEventListener('change',function(){
+    if(mode==='del')setMode('all');
     wrap.querySelector('#mnGRows').style.display=(this.value==='_c')?'block':'none';
     rowsBox();
   });
   wrap.querySelector('#mnGRows').addEventListener('input',rowsBox);
-  wrap.querySelector('#mnGKind').addEventListener('change',function(){wrap.querySelector('#mnGKindC').style.display=(this.value==='_c')?'block':'none';});
+  wrap.querySelector('#mnGKind').addEventListener('change',function(){if(mode==='del')setMode('all');wrap.querySelector('#mnGKindC').style.display=(this.value==='_c')?'block':'none';});
   rowsBox();chips();loadBg();
   wrap.querySelector('#mnGAdd').onclick=function(){
+    if(mode==='del')setMode('all');
     var kd=wrap.querySelector('#mnGKind').value;
     if(kd==='_c')kd=wrap.querySelector('#mnGKindC').value.trim()||'FC';
     var rows=[];
@@ -7379,7 +7382,7 @@ function mnPipeEditor(rec,wall){
           g.circles.splice(pTarget.ci,1);
           if(!g.circles.length)pw.groups.splice(pTarget.gi,1);
           draw();chips();
-        }else{c.fill=!c.fill;draw();chips();}
+        }else{var st=(c.st!=null?c.st:(c.fill?1:0));st=(st+1)%3;c.st=st;c.fill=(st===1);draw();chips();}
       }
     }
     pw.groups.forEach(function(g){(g.circles||[]).forEach(function(c){delete c._bx;delete c._by;});});
