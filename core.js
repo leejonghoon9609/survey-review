@@ -6880,7 +6880,7 @@ function mnOpenForm(rec){
     var sk=150/Hm;
     pwv.groups.forEach(function(g){(g.circles||[]).forEach(function(c){
       var p=mapFn(c.x/Wm,c.y/Hm);
-      var r=Math.max(c.dia*0.6*sk,3);
+      var r=Math.max(c.dia*0.5*sk,3);
       out+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+(c.fill?'#222':'#fff')+'" stroke="#333" stroke-width="1.2" pointer-events="none"/>';
     });});
     return out;
@@ -6890,8 +6890,8 @@ function mnOpenForm(rec){
     sm=sm.replace(/ \/ /g,' ');
     var t='#1565d8';
     function head(x,y,dx,dy){return '<path d="M'+x+','+y+' L'+(x-dx*7-dy*3.5)+','+(y-dy*7+dx*3.5)+' L'+(x-dx*7+dy*3.5)+','+(y-dy*7-dx*3.5)+' z" fill="'+t+'"/>';}
-    if(k==='p1')return '<line x1="132" y1="427" x2="132" y2="411" stroke="'+t+'" stroke-width="1.6"/>'+head(132,409,0,-1)
-      +'<text transform="rotate(-90 132 400)" x="132" y="400" font-size="11.5" font-weight="800" fill="'+t+'" pointer-events="none">'+joseoEsc(sm)+'</text>';
+    if(k==='p1')return '<line x1="132" y1="427" x2="132" y2="416" stroke="'+t+'" stroke-width="1.6"/>'+head(132,414,0,-1)
+      +'<text transform="rotate(-90 132 408)" x="132" y="408" font-size="11.5" font-weight="800" fill="'+t+'" pointer-events="none">'+joseoEsc(sm)+'</text>';
     if(k==='p3')return '<line x1="394" y1="340" x2="406" y2="340" stroke="'+t+'" stroke-width="1.6"/>'+head(410,340,1,0)
       +'<text x="416" y="344" font-size="11.5" font-weight="800" fill="'+t+'" pointer-events="none">'+joseoEsc(sm)+'</text>';
     if(k==='p2')return '<line x1="465" y1="574" x2="465" y2="586" stroke="'+t+'" stroke-width="1.6"/>'+head(465,590,0,1)
@@ -6979,7 +6979,7 @@ function mnOpenForm(rec){
       +dimRange(250,288,390,288,'#2471a3')+dimSpot(396,278,'w34','폭',46)
       +dimRange(240,235,240,280,'#e67e22')+dimSpot(188,247,'topi','토피',46)
       +dimRange(240,280,240,430,'#e74c3c')+dimSpot(188,344,'dep','깊이',46)
-      +dimRange(106,430,106,570,'#8e44ad')+dimSpot(84,404,'w12','폭',46)
+      +dimRange(106,430,106,570,'#8e44ad')+dimSpot(34,442,'w12','폭',46)
       +'<rect x="250" y="235" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p3" style="cursor:pointer"/>'
       +'<rect x="250" y="570" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p4" style="cursor:pointer"/>'
       +'<rect x="55" y="430" width="195" height="140" fill="rgba(0,0,0,0)" data-act="wall" data-w="p1" style="cursor:pointer"/>'
@@ -7106,10 +7106,13 @@ function mnWallDims(rec,wall){
   return [W,sp.dep];
 }
 function mnGroupLabel(g){
-  return g.rows.map(function(r,ri){
-    var f=(g.circles||[]).filter(function(c){return c.ri===ri&&c.fill;}).length;
-    return (ri===0?(g.kind+'Ø'):'')+r.dia+'X'+r.cnt+'('+f+')';
-  }).join(' ');
+  var order=[],agg={};
+  (g.rows||[]).forEach(function(r){
+    if(!(r.dia in agg)){agg[r.dia]={cnt:0,fill:0};order.push(r.dia);}
+    agg[r.dia].cnt+=r.cnt;
+  });
+  (g.circles||[]).forEach(function(c){if(c.fill&&agg[c.dia])agg[c.dia].fill++;});
+  return order.map(function(d,i){var a=agg[d];return (i===0?(g.kind+'Ø'):'')+d+'X'+a.cnt+'('+a.fill+')';}).join(' ');
 }
 function mnPipeSummary(rec,wall){
   var pw=rec.pipes&&rec.pipes[wall];
@@ -7257,7 +7260,7 @@ function mnPipeEditor(rec,wall){
       rows.push({dia:parseInt(ds[i].value)||100,cnt:Math.max(1,Math.min(12,cnt))});
     }
     var g={kind:kd,rows:rows,circles:[]};
-    var gap=2.1;
+    var gap=1.0;
     var maxX=0;pw.groups.forEach(function(og){(og.circles||[]).forEach(function(c){maxX=Math.max(maxX,c.x+c.dia/2);});});
     var x0=maxX?(maxX+150):150;
     var totH=0;rows.forEach(function(r){totH+=r.dia*gap;});
