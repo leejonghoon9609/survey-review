@@ -7128,17 +7128,21 @@ function mnWallRealW(rec,wall){
 }
 function mnGroupLabel(g){
   var order=[],agg={};
-  (g.rows||[]).forEach(function(r){
-    if(!(r.dia in agg)){agg[r.dia]={cnt:0,fill:0};order.push(r.dia);}
-    agg[r.dia].cnt+=r.cnt;
+  (g.circles||[]).forEach(function(c){
+    if(!(c.dia in agg)){agg[c.dia]={cnt:0,fill:0};order.push(c.dia);}
+    var st=(c.st!=null?c.st:(c.fill?1:0));
+    if(st===2)return; /* 제외관: 관수에서 제외 */
+    agg[c.dia].cnt++;
+    if(st===1)agg[c.dia].fill++;
   });
-  (g.circles||[]).forEach(function(c){var st=(c.st!=null?c.st:(c.fill?1:0));if(st===1&&agg[c.dia])agg[c.dia].fill++;});
-  return order.map(function(d,i){var a=agg[d];return (i===0?(g.kind+'Ø'):'')+d+'X'+a.cnt+'('+a.fill+')';}).join(' ');
+  var parts=[],first=true;
+  order.forEach(function(d){var a=agg[d];if(!a.cnt)return;parts.push((first?(g.kind+'Ø'):'')+d+'X'+a.cnt+'('+a.fill+')');first=false;});
+  return parts.join(' ');
 }
 function mnPipeSummary(rec,wall){
   var pw=rec.pipes&&rec.pipes[wall];
   if(!pw||!pw.groups||!pw.groups.length)return '';
-  return pw.groups.map(mnGroupLabel).join(' / ');
+  return pw.groups.map(mnGroupLabel).filter(function(t){return t;}).join(' / ');
 }
 function mnPipeBtnsHtml(rec){
   var btns=MN_WALLS.map(function(w){
