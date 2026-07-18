@@ -6744,16 +6744,21 @@ function mnOpenForm(rec){
   var box=wrap.querySelector('#mnSheetBox');
   function fv(v){return (v===''||v==null)?null:v;}
   var MN_DIMC={dep:['#e74c3c','#fdecea'],topi:['#e67e22','#fdf3e7'],w34:['#2471a3','#eaf3fb'],w12:['#8e44ad','#f4ecf9']};
-  function dimSpot(x,y,k,val,w){
-    w=w||66;
-    var has=fv(val)!=null;var c=MN_DIMC[k]||['#c8a600','#fffbe6'];
-    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="27" rx="6" fill="'+c[1]+'" stroke="'+c[0]+'" stroke-width="1.6" data-act="dim" data-k="'+k+'" style="cursor:pointer"/>'
-      +'<text x="'+(x+w/2)+'" y="'+(y+18)+'" text-anchor="middle" font-size="14" font-weight="800" fill="'+(has?c[0]:'#c0c0ba')+'" pointer-events="none">'+(has?val:'탭')+'</text>';
+  function dimSpot(x,y,k,w){
+    w=w||50;
+    var val=rec[k];var has=!(val===''||val==null);var c=MN_DIMC[k]||['#c8a600','#fffbe6'];
+    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="22" rx="5" fill="'+c[1]+'" stroke="'+c[0]+'" stroke-width="1.5" data-act="dim" data-k="'+k+'" style="cursor:pointer"/>'
+      +'<text x="'+(x+w/2)+'" y="'+(y+15.5)+'" text-anchor="middle" font-size="'+(has?'12.5':'11')+'" font-weight="800" fill="'+(has?c[0]:'#c0c0ba')+'" pointer-events="none">'+(has?val:'탭')+'</text>';
   }
   function dimRange(x1,y1,x2,y2,color){
-    var t=7,o='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+color+'" stroke-width="1.6"/>';
-    if(x1===x2){o+='<line x1="'+(x1-t)+'" y1="'+y1+'" x2="'+(x1+t)+'" y2="'+y1+'" stroke="'+color+'" stroke-width="1.6"/><line x1="'+(x1-t)+'" y1="'+y2+'" x2="'+(x1+t)+'" y2="'+y2+'" stroke="'+color+'" stroke-width="1.6"/>';}
-    else{o+='<line x1="'+x1+'" y1="'+(y1-t)+'" x2="'+x1+'" y2="'+(y1+t)+'" stroke="'+color+'" stroke-width="1.6"/><line x1="'+x2+'" y1="'+(y2-t)+'" x2="'+x2+'" y2="'+(y2+t)+'" stroke="'+color+'" stroke-width="1.6"/>';}
+    var o='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+color+'" stroke-width="1.5"/>',aw=8,ah=3.2;
+    if(x1===x2){
+      o+='<path d="M'+x1+','+y1+' l'+ah+','+aw+' l-'+(ah*2)+',0 z" fill="'+color+'"/>';
+      o+='<path d="M'+x1+','+y2+' l'+ah+',-'+aw+' l-'+(ah*2)+',0 z" fill="'+color+'"/>';
+    }else{
+      o+='<path d="M'+x1+','+y1+' l'+aw+','+ah+' l0,-'+(ah*2)+' z" fill="'+color+'"/>';
+      o+='<path d="M'+x2+','+y1+' l-'+aw+','+ah+' l0,-'+(ah*2)+' z" fill="'+color+'"/>';
+    }
     return o;
   }
   function wallCircles(wallKey,mapFn){
@@ -6774,7 +6779,6 @@ function mnOpenForm(rec){
     rec.spec=mnDetectSpec(rec.dep,rec.w12,rec.w34);
     var specTxt=rec.spec?(rec.spec.name+' ('+(rec.spec.w/1000)+'×'+(rec.spec.h/1000)+')·'+rec.spec.orient):'';
     var dash='stroke="#999" stroke-width="0.8" stroke-dasharray="5,4"';
-    /* 격자: 몸통 모서리(250/390/430/570) 기준으로 바깥 방향 — 4면 일관 */
     function grid(arm){
       var o='',k;
       if(arm==='p3'){for(k=1;250+28*k<390;k++)o+='<line x1="'+(250+28*k)+'" y1="280" x2="'+(250+28*k)+'" y2="430" '+dash+'/>';for(k=1;430-28*k>280;k++)o+='<line x1="250" y1="'+(430-28*k)+'" x2="390" y2="'+(430-28*k)+'" '+dash+'/>';}
@@ -6800,47 +6804,44 @@ function mnOpenForm(rec){
       +'<rect x="476" y="94" width="220" height="34" fill="none" stroke="#555"/><text x="586" y="116" text-anchor="middle" font-size="12.5" font-weight="800" fill="#1d9e75">'+(specTxt||'치수 입력 시 자동')+'</text>'
       +'<text x="660" y="152" text-anchor="end" font-size="12.5" fill="#555" font-weight="700">사진번호</text>'+phRows
       +'<defs><marker id="mnArw" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#333"/></marker></defs>'
-      /* ===== 전개도 (중앙 배치: +40 이동) ===== */
+      /* ===== 전개도 (중앙) ===== */
       +'<g transform="translate(40,0)">'
       +'<rect x="250" y="430" width="140" height="140" fill="#fff" stroke="#333" stroke-width="1.6"/>'
       +'<circle cx="320" cy="500" r="30" fill="none" stroke="#333" stroke-width="1.4" stroke-dasharray="6,5"/>'
-      /* 상(3=북): 벽 + 목(끝단 플랜지 마감·개방) */
+      /* 상(3=북): 목 — 되꺾임 안쪽 */
       +'<rect x="250" y="280" width="140" height="150" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p3')
-      +'<polyline points="285,280 285,250 265,250 265,235" fill="none" stroke="#333" stroke-width="1.5"/>'
-      +'<polyline points="355,280 355,250 375,250 375,235" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<polyline points="278,280 278,235 296,235" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<polyline points="362,280 362,235 344,235" fill="none" stroke="#333" stroke-width="1.5"/>'
       +'<line x1="320" y1="310" x2="320" y2="288" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
-      +'<text x="298" y="214" font-size="15" font-weight="700" fill="#333">3</text>'
+      +'<text x="250" y="216" font-size="15" font-weight="700" fill="#333">3</text>'
       /* 하(4=남) */
       +'<rect x="250" y="570" width="140" height="150" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p4')
-      +'<polyline points="285,720 285,750 265,750 265,765" fill="none" stroke="#333" stroke-width="1.5"/>'
-      +'<polyline points="355,720 355,750 375,750 375,765" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<polyline points="278,720 278,765 296,765" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<polyline points="362,720 362,765 344,765" fill="none" stroke="#333" stroke-width="1.5"/>'
       +'<line x1="320" y1="690" x2="320" y2="712" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
       +'<text x="314" y="800" font-size="15" font-weight="700" fill="#333">4</text>'
       /* 좌(1=서) */
       +'<rect x="100" y="430" width="150" height="140" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p1')
-      +'<polyline points="100,465 70,465 70,445 55,445" fill="none" stroke="#333" stroke-width="1.5"/>'
-      +'<polyline points="100,535 70,535 70,555 55,555" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<polyline points="100,458 55,458 55,476" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<polyline points="100,542 55,542 55,524" fill="none" stroke="#333" stroke-width="1.5"/>'
       +'<line x1="130" y1="500" x2="108" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
-      +'<text x="30" y="505" font-size="15" font-weight="700" fill="#333">1</text>'
+      +'<text x="28" y="505" font-size="15" font-weight="700" fill="#333">1</text>'
       /* 우(2=동) */
       +'<rect x="390" y="430" width="150" height="140" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p2')
-      +'<polyline points="540,465 570,465 570,445 585,445" fill="none" stroke="#333" stroke-width="1.5"/>'
-      +'<polyline points="540,535 570,535 570,555 585,555" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<polyline points="540,458 585,458 585,476" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<polyline points="540,542 585,542 585,524" fill="none" stroke="#333" stroke-width="1.5"/>'
       +'<line x1="510" y1="500" x2="532" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
-      +'<text x="600" y="505" font-size="15" font-weight="700" fill="#333">2</text>'
-      /* 관 미니 렌더 */
+      +'<text x="602" y="505" font-size="15" font-weight="700" fill="#333">2</text>'
       +wallCircles('p3',function(nx,ny){return [250+nx*140,430-ny*150];})
       +wallCircles('p4',function(nx,ny){return [250+nx*140,570+ny*150];})
       +wallCircles('p1',function(nx,ny){return [250-ny*150,430+nx*140];})
       +wallCircles('p2',function(nx,ny){return [390+ny*150,430+nx*140];})
-      /* 공수 라벨 */
       +wallLabel(398,304,'p3')+wallLabel(398,600,'p4')+wallLabel(96,424,'p1')+wallLabel(392,590,'p2')
-      /* 치수: 색상 범위선 + 탭 */
-      +dimRange(265,222,375,222,'#2471a3')+'<text x="286" y="192" font-size="11" font-weight="800" fill="#2471a3">③-④폭</text>'+dimSpot(284,196,'w34')
-      +dimRange(240,235,240,280,'#e67e22')+'<text x="162" y="238" font-size="11" font-weight="800" fill="#e67e22">토피</text>'+dimSpot(160,241,'topi')
-      +dimRange(240,288,240,430,'#e74c3c')+'<text x="162" y="336" font-size="11" font-weight="800" fill="#e74c3c">깊이</text>'+dimSpot(160,339,'dep')
-      +dimRange(88,430,88,570,'#8e44ad')+'<text x="8" y="438" font-size="11" font-weight="800" fill="#8e44ad">①-②폭</text>'+dimSpot(6,441,'w12')
-      /* 벽면 탭 영역 */
+      /* 치수: 범위선(양끝 화살표) + 작은 탭 */
+      +dimRange(278,222,362,222,'#2471a3')+'<text x="278" y="185" font-size="10.5" font-weight="800" fill="#2471a3">③-④폭</text>'+dimSpot(295,190,'w34')
+      +dimRange(240,235,240,280,'#e67e22')+'<text x="152" y="240" font-size="10.5" font-weight="800" fill="#e67e22">토피</text>'+dimSpot(150,244,'topi')
+      +dimRange(240,280,240,430,'#e74c3c')+'<text x="152" y="342" font-size="10.5" font-weight="800" fill="#e74c3c">깊이</text>'+dimSpot(150,346,'dep')
+      +dimRange(88,430,88,570,'#8e44ad')+'<text x="4" y="432" font-size="10.5" font-weight="800" fill="#8e44ad">①-②폭</text>'+dimSpot(2,436,'w12')
       +'<rect x="250" y="235" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p3" style="cursor:pointer"/>'
       +'<rect x="250" y="570" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p4" style="cursor:pointer"/>'
       +'<rect x="55" y="430" width="195" height="140" fill="rgba(0,0,0,0)" data-act="wall" data-w="p1" style="cursor:pointer"/>'
