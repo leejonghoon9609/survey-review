@@ -6684,7 +6684,7 @@ function mnOpenList(){
   wrap.innerHTML='<div style="background:#fff;border-radius:14px;width:min(94vw,420px);max-height:84dvh;display:flex;flex-direction:column;overflow:hidden">'
     +'<div style="padding:14px 16px;border-bottom:1px solid #eee;display:flex;align-items:center"><b style="flex:1;font-size:16px">맨홀조사 야장</b><button id="mnLClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div>'
     +'<div style="padding:12px 16px;overflow:auto;flex:1">'+listHtml+'</div>'
-    +'<div style="padding:0 16px 14px"><button id="mnNew" style="width:100%;background:#1d9e75;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer">+ 새 맨홀조사</button></div>'
+    +'<div style="padding:0 16px 14px"><button id="mnNew" style="width:100%;background:#1d9e75;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:2px;margin-right:-2px">+ 새 맨홀조사</span></button></div>'
     +'</div>';
   document.body.appendChild(wrap);
   wrap.onclick=function(e){if(e.target===wrap)wrap.remove();};
@@ -6700,7 +6700,7 @@ function mnAsk(opt){
   w.innerHTML='<div style="background:#fff;border-radius:13px;width:min(86vw,300px);padding:16px">'
     +'<div style="font-weight:800;font-size:15px;margin-bottom:10px">'+opt.title+(opt.unit?' <span style="color:#99a;font-weight:400;font-size:12px">('+opt.unit+')</span>':'')+'</div>'
     +'<input id="mnAskIn" '+(opt.text?'type="text"':'type="number" step="0.01" inputmode="decimal"')+' value="'+(opt.val==null?'':(''+opt.val).replace(/"/g,'&quot;'))+'" style="width:100%;box-sizing:border-box;border:1.5px solid #1d9e75;border-radius:9px;padding:11px;font-size:17px;text-align:center">'
-    +'<div style="display:flex;gap:8px;margin-top:12px"><button id="mnAskOk" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:9px;padding:11px;font-weight:800;font-size:15px">확인</button><button id="mnAskNo" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:9px;padding:11px;font-weight:700">취소</button></div></div>';
+    +'<div style="display:flex;gap:8px;margin-top:12px"><button id="mnAskOk" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:9px;padding:11px;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">확인</span></button><button id="mnAskNo" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:9px;padding:11px;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">취소</span></button></div></div>';
   document.body.appendChild(w);
   var inp=w.querySelector('#mnAskIn');setTimeout(function(){inp.focus();inp.select&&inp.select();},60);
   w.querySelector('#mnAskNo').onclick=function(){w.remove();};
@@ -6718,7 +6718,7 @@ function mnAskNoOwner(rec,cb){
     +'<div style="font-weight:800;font-size:15px;margin-bottom:10px">맨홀번호</div>'
     +'<div style="display:flex;gap:7px"><input id="mnNoIn" value="'+joseoEsc(rec.no||'')+'" placeholder="예: 6M" style="flex:1.1;min-width:0;border:1.5px solid #1d9e75;border-radius:9px;padding:10px;font-size:16px"><select id="mnOwIn" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:9px;padding:10px 6px;font-size:14px;background:#fff">'+opts+'</select></div>'
     +'<input id="mnOwC" value="'+joseoEsc(rec.ownerC||'')+'" placeholder="소유자 직접입력" style="width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:9px;padding:10px;font-size:14px;margin-top:8px;display:'+(rec.owner==='_c'?'block':'none')+'">'
-    +'<div style="display:flex;gap:8px;margin-top:12px"><button id="mnAskOk" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:9px;padding:11px;font-weight:800;font-size:15px">확인</button><button id="mnAskNo2" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:9px;padding:11px;font-weight:700">취소</button></div></div>';
+    +'<div style="display:flex;gap:8px;margin-top:12px"><button id="mnAskOk" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:9px;padding:11px;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">확인</span></button><button id="mnAskNo2" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:9px;padding:11px;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">취소</span></button></div></div>';
   document.body.appendChild(w);
   w.querySelector('#mnOwIn').addEventListener('change',function(){w.querySelector('#mnOwC').style.display=(this.value==='_c')?'block':'none';});
   w.querySelector('#mnAskNo2').onclick=function(){w.remove();};
@@ -6737,17 +6737,24 @@ function mnOpenForm(rec){
     +'<div style="padding:10px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;flex:none"><b style="flex:1;font-size:15px">맨홀 조사야장</b><button id="mnFClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div>'
     +'<div id="mnSheetBox" style="flex:1;overflow:auto;-webkit-overflow-scrolling:touch;background:#f4f4f2"></div>'
     +'<div style="display:flex;gap:8px;padding:10px 14px;border-top:1px solid #eee;flex:none">'
-    +'<button id="mnSave" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer">저장</button>'
-    +'<button id="mnBack" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:10px;padding:12px;font-weight:700;font-size:15px;cursor:pointer">목록으로</button>'
+    +'<button id="mnSave" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">저장</span></button>'
+    +'<button id="mnBack" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:10px;padding:12px;font-weight:700;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:2px;margin-right:-2px">목록으로</span></button>'
     +'</div></div>';
   document.body.appendChild(wrap);
   var box=wrap.querySelector('#mnSheetBox');
   function fv(v){return (v===''||v==null)?null:v;}
+  var MN_DIMC={dep:['#e74c3c','#fdecea'],topi:['#e67e22','#fdf3e7'],w34:['#2471a3','#eaf3fb'],w12:['#8e44ad','#f4ecf9']};
   function dimSpot(x,y,k,val,w){
     w=w||66;
-    var has=fv(val)!=null;
-    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="27" rx="6" fill="'+(has?'#fffbe6':'#fff')+'" stroke="'+(has?'#e6c200':'#c8c8c8')+'" stroke-width="1.4" data-act="dim" data-k="'+k+'" style="cursor:pointer"/>'
-      +'<text x="'+(x+w/2)+'" y="'+(y+18)+'" text-anchor="middle" font-size="14" font-weight="700" fill="'+(has?'#333':'#b5b5b0')+'" pointer-events="none">'+(has?val:'탭')+'</text>';
+    var has=fv(val)!=null;var c=MN_DIMC[k]||['#c8a600','#fffbe6'];
+    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="27" rx="6" fill="'+c[1]+'" stroke="'+c[0]+'" stroke-width="1.6" data-act="dim" data-k="'+k+'" style="cursor:pointer"/>'
+      +'<text x="'+(x+w/2)+'" y="'+(y+18)+'" text-anchor="middle" font-size="14" font-weight="800" fill="'+(has?c[0]:'#c0c0ba')+'" pointer-events="none">'+(has?val:'탭')+'</text>';
+  }
+  function dimRange(x1,y1,x2,y2,color){
+    var t=7,o='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+color+'" stroke-width="1.6"/>';
+    if(x1===x2){o+='<line x1="'+(x1-t)+'" y1="'+y1+'" x2="'+(x1+t)+'" y2="'+y1+'" stroke="'+color+'" stroke-width="1.6"/><line x1="'+(x1-t)+'" y1="'+y2+'" x2="'+(x1+t)+'" y2="'+y2+'" stroke="'+color+'" stroke-width="1.6"/>';}
+    else{o+='<line x1="'+x1+'" y1="'+(y1-t)+'" x2="'+x1+'" y2="'+(y1+t)+'" stroke="'+color+'" stroke-width="1.6"/><line x1="'+x2+'" y1="'+(y2-t)+'" x2="'+x2+'" y2="'+(y2+t)+'" stroke="'+color+'" stroke-width="1.6"/>';}
+    return o;
   }
   function wallCircles(wallKey,mapFn){
     var pwv=rec.pipes&&rec.pipes[wallKey];if(!pwv||!pwv.groups)return '';
@@ -6766,15 +6773,22 @@ function mnOpenForm(rec){
   function render(){
     rec.spec=mnDetectSpec(rec.dep,rec.w12,rec.w34);
     var specTxt=rec.spec?(rec.spec.name+' ('+(rec.spec.w/1000)+'×'+(rec.spec.h/1000)+')·'+rec.spec.orient):'';
-    var g='<line x1="250" y1="280" x2="250" y2="430"/><line x1="390" y1="280" x2="390" y2="430"/>';
     var dash='stroke="#999" stroke-width="0.8" stroke-dasharray="5,4"';
-    function gridV(x0,y0,w,h){var o='';for(var gx=x0+28;gx<x0+w;gx+=28)o+='<line x1="'+gx+'" y1="'+y0+'" x2="'+gx+'" y2="'+(y0+h)+'" '+dash+'/>';for(var gy=y0+28;gy<y0+h;gy+=28)o+='<line x1="'+x0+'" y1="'+gy+'" x2="'+(x0+w)+'" y2="'+gy+'" '+dash+'/>';return o;}
+    /* 격자: 몸통 모서리(250/390/430/570) 기준으로 바깥 방향 — 4면 일관 */
+    function grid(arm){
+      var o='',k;
+      if(arm==='p3'){for(k=1;250+28*k<390;k++)o+='<line x1="'+(250+28*k)+'" y1="280" x2="'+(250+28*k)+'" y2="430" '+dash+'/>';for(k=1;430-28*k>280;k++)o+='<line x1="250" y1="'+(430-28*k)+'" x2="390" y2="'+(430-28*k)+'" '+dash+'/>';}
+      if(arm==='p4'){for(k=1;250+28*k<390;k++)o+='<line x1="'+(250+28*k)+'" y1="570" x2="'+(250+28*k)+'" y2="720" '+dash+'/>';for(k=1;570+28*k<720;k++)o+='<line x1="250" y1="'+(570+28*k)+'" x2="390" y2="'+(570+28*k)+'" '+dash+'/>';}
+      if(arm==='p1'){for(k=1;250-28*k>100;k++)o+='<line x1="'+(250-28*k)+'" y1="430" x2="'+(250-28*k)+'" y2="570" '+dash+'/>';for(k=1;430+28*k<570;k++)o+='<line x1="100" y1="'+(430+28*k)+'" x2="250" y2="'+(430+28*k)+'" '+dash+'/>';}
+      if(arm==='p2'){for(k=1;390+28*k<540;k++)o+='<line x1="'+(390+28*k)+'" y1="430" x2="'+(390+28*k)+'" y2="570" '+dash+'/>';for(k=1;430+28*k<570;k++)o+='<line x1="390" y1="'+(430+28*k)+'" x2="540" y2="'+(430+28*k)+'" '+dash+'/>';}
+      return o;
+    }
     var phRows='';
     MN_SLOTS.forEach(function(sl,i){
       var y=182+i*36;var url=rec.photos&&rec.photos[sl[0]];
       phRows+='<text x="586" y="'+(y+6)+'" text-anchor="end" font-size="13" fill="#444">'+sl[1].replace(/^[①-④] /,'')+' :</text>'
         +(url?'<image href="'+url+'" x="598" y="'+(y-12)+'" width="34" height="34" preserveAspectRatio="xMidYMid slice" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="640" y="'+(y+6)+'" font-size="13" fill="#1d9e75" font-weight="800" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer">✓</text>'
-             :'<rect x="598" y="'+(y-13)+'" width="64" height="27" rx="6" fill="#fff" stroke="#c8c8c8" stroke-width="1.3" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="630" y="'+(y+5)+'" text-anchor="middle" font-size="12" fill="#b5b5b0" pointer-events="none">촬영</text>');
+             :'<rect x="598" y="'+(y-13)+'" width="64" height="27" rx="6" fill="#fdeaea" stroke="#d32f2f" stroke-width="1.6" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="630" y="'+(y+5)+'" text-anchor="middle" font-size="12.5" font-weight="800" fill="#d32f2f" pointer-events="none">촬영</text>');
     });
     var svg='<svg viewBox="0 0 720 980" xmlns="http://www.w3.org/2000/svg" style="display:block;background:#fff;width:100%;max-width:720px;margin:0 auto;font-family:inherit">'
       +'<rect x="12" y="12" width="696" height="956" fill="none" stroke="#777" stroke-width="1.5"/>'
@@ -6785,30 +6799,35 @@ function mnOpenForm(rec){
       +'<rect x="380" y="94" width="96" height="34" fill="none" stroke="#555"/><text x="428" y="116" text-anchor="middle" font-size="13" fill="#333">맨홀규격</text>'
       +'<rect x="476" y="94" width="220" height="34" fill="none" stroke="#555"/><text x="586" y="116" text-anchor="middle" font-size="12.5" font-weight="800" fill="#1d9e75">'+(specTxt||'치수 입력 시 자동')+'</text>'
       +'<text x="660" y="152" text-anchor="end" font-size="12.5" fill="#555" font-weight="700">사진번호</text>'+phRows
-      /* 전개도 몸통+뚜껑 */
+      +'<defs><marker id="mnArw" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#333"/></marker></defs>'
+      /* ===== 전개도 (중앙 배치: +40 이동) ===== */
+      +'<g transform="translate(40,0)">'
       +'<rect x="250" y="430" width="140" height="140" fill="#fff" stroke="#333" stroke-width="1.6"/>'
       +'<circle cx="320" cy="500" r="30" fill="none" stroke="#333" stroke-width="1.4" stroke-dasharray="6,5"/>'
-      /* 상(3=북) */
-      +'<rect x="250" y="280" width="140" height="150" fill="#fff" stroke="#333" stroke-width="1.5"/>'+gridV(250,280,140,150)
-      +'<path d="M285 280 v-45 h70 v45" fill="none" stroke="#333" stroke-width="1.5"/>'
-      +'<line x1="320" y1="300" x2="320" y2="270" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
-      +'<text x="266" y="216" font-size="15" font-weight="700" fill="#333">3</text>'
+      /* 상(3=북): 벽 + 목(끝단 플랜지 마감·개방) */
+      +'<rect x="250" y="280" width="140" height="150" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p3')
+      +'<polyline points="285,280 285,250 265,250 265,235" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<polyline points="355,280 355,250 375,250 375,235" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<line x1="320" y1="310" x2="320" y2="288" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
+      +'<text x="298" y="214" font-size="15" font-weight="700" fill="#333">3</text>'
       /* 하(4=남) */
-      +'<rect x="250" y="570" width="140" height="150" fill="#fff" stroke="#333" stroke-width="1.5"/>'+gridV(250,570,140,150)
-      +'<path d="M285 720 v45 h70 v-45" fill="none" stroke="#333" stroke-width="1.5"/>'
-      +'<line x1="320" y1="700" x2="320" y2="730" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
+      +'<rect x="250" y="570" width="140" height="150" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p4')
+      +'<polyline points="285,720 285,750 265,750 265,765" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<polyline points="355,720 355,750 375,750 375,765" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<line x1="320" y1="690" x2="320" y2="712" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
       +'<text x="314" y="800" font-size="15" font-weight="700" fill="#333">4</text>'
       /* 좌(1=서) */
-      +'<rect x="100" y="430" width="150" height="140" fill="#fff" stroke="#333" stroke-width="1.5"/>'+gridV(100,430,150,140)
-      +'<path d="M100 465 h-45 v70 h45" fill="none" stroke="#333" stroke-width="1.5"/>'
-      +'<line x1="120" y1="500" x2="90" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
+      +'<rect x="100" y="430" width="150" height="140" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p1')
+      +'<polyline points="100,465 70,465 70,445 55,445" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<polyline points="100,535 70,535 70,555 55,555" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<line x1="130" y1="500" x2="108" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
       +'<text x="30" y="505" font-size="15" font-weight="700" fill="#333">1</text>'
       /* 우(2=동) */
-      +'<rect x="390" y="430" width="150" height="140" fill="#fff" stroke="#333" stroke-width="1.5"/>'+gridV(390,430,150,140)
-      +'<path d="M540 465 h45 v70 h-45" fill="none" stroke="#333" stroke-width="1.5"/>'
-      +'<line x1="520" y1="500" x2="550" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
+      +'<rect x="390" y="430" width="150" height="140" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p2')
+      +'<polyline points="540,465 570,465 570,445 585,445" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<polyline points="540,535 570,535 570,555 585,555" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<line x1="510" y1="500" x2="532" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
       +'<text x="600" y="505" font-size="15" font-weight="700" fill="#333">2</text>'
-      +'<defs><marker id="mnArw" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#333"/></marker></defs>'
       /* 관 미니 렌더 */
       +wallCircles('p3',function(nx,ny){return [250+nx*140,430-ny*150];})
       +wallCircles('p4',function(nx,ny){return [250+nx*140,570+ny*150];})
@@ -6816,11 +6835,17 @@ function mnOpenForm(rec){
       +wallCircles('p2',function(nx,ny){return [390+ny*150,430+nx*140];})
       /* 공수 라벨 */
       +wallLabel(398,304,'p3')+wallLabel(398,600,'p4')+wallLabel(96,424,'p1')+wallLabel(392,590,'p2')
-      /* 치수 스팟 */
-      +'<text x="286" y="214" font-size="11" fill="#888">③-④폭</text>'+dimSpot(284,196,'w34',fv(rec.w34))
-      +'<text x="182" y="238" font-size="11" fill="#888">토피</text>'+dimSpot(180,241,'topi',fv(rec.topi))
-      +'<text x="182" y="326" font-size="11" fill="#888">깊이</text>'+dimSpot(180,329,'dep',fv(rec.dep))
-      +'<text x="42" y="408" font-size="11" fill="#888">①-②폭</text>'+dimSpot(40,411,'w12',fv(rec.w12))
+      /* 치수: 색상 범위선 + 탭 */
+      +dimRange(265,222,375,222,'#2471a3')+'<text x="286" y="192" font-size="11" font-weight="800" fill="#2471a3">③-④폭</text>'+dimSpot(284,196,'w34')
+      +dimRange(240,235,240,280,'#e67e22')+'<text x="162" y="238" font-size="11" font-weight="800" fill="#e67e22">토피</text>'+dimSpot(160,241,'topi')
+      +dimRange(240,288,240,430,'#e74c3c')+'<text x="162" y="336" font-size="11" font-weight="800" fill="#e74c3c">깊이</text>'+dimSpot(160,339,'dep')
+      +dimRange(88,430,88,570,'#8e44ad')+'<text x="8" y="438" font-size="11" font-weight="800" fill="#8e44ad">①-②폭</text>'+dimSpot(6,441,'w12')
+      /* 벽면 탭 영역 */
+      +'<rect x="250" y="235" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p3" style="cursor:pointer"/>'
+      +'<rect x="250" y="570" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p4" style="cursor:pointer"/>'
+      +'<rect x="55" y="430" width="195" height="140" fill="rgba(0,0,0,0)" data-act="wall" data-w="p1" style="cursor:pointer"/>'
+      +'<rect x="390" y="430" width="195" height="140" fill="rgba(0,0,0,0)" data-act="wall" data-w="p2" style="cursor:pointer"/>'
+      +'</g>'
       /* 뚜껑 */
       +'<circle cx="110" cy="862" r="30" fill="#fff" stroke="#333" stroke-width="1.3" stroke-dasharray="6,5" data-act="dim" data-k="lid" style="cursor:pointer"/>'
       +'<text x="110" y="868" text-anchor="middle" font-size="13.5" font-weight="800" fill="'+(fv(rec.lid)!=null?'#333':'#b5b5b0')+'" pointer-events="none">'+(fv(rec.lid)!=null?rec.lid:'탭')+'</text>'
@@ -6828,12 +6853,7 @@ function mnOpenForm(rec){
       +'<rect x="200" y="834" width="130" height="56" fill="#fff" stroke="#333" stroke-width="1.4" data-act="dim" data-k="lidRect" style="cursor:pointer"/>'
       +'<text x="265" y="866" text-anchor="middle" font-size="13" font-weight="700" fill="'+(rec.lidRect?'#333':'#b5b5b0')+'" pointer-events="none">'+(rec.lidRect?joseoEsc(rec.lidRect):'SIZE')+'</text>'
       +'<text x="265" y="914" text-anchor="middle" font-size="12.5" fill="#444">사각맨홀뚜껑</text>'
-      /* 벽면 탭 영역 (관배치) */
-      +'<rect x="250" y="235" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p3" style="cursor:pointer"/>'
-      +'<rect x="250" y="570" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p4" style="cursor:pointer"/>'
-      +'<rect x="55" y="430" width="195" height="140" fill="rgba(0,0,0,0)" data-act="wall" data-w="p1" style="cursor:pointer"/>'
-      +'<rect x="390" y="430" width="195" height="140" fill="rgba(0,0,0,0)" data-act="wall" data-w="p2" style="cursor:pointer"/>'
-      +'<text x="320" y="960" text-anchor="middle" font-size="11.5" fill="#aab">벽면=관배치 · 노란칸=치수 · 표찰표=번호 · 우측=사진</text>'
+      +'<text x="360" y="960" text-anchor="middle" font-size="11.5" fill="#aab">벽면=관배치 · 색칸=치수 · 표찰표=번호 · 우측=사진</text>'
       +'</svg>';
     box.innerHTML=svg;
     [].forEach.call(box.querySelectorAll('[data-act]'),function(el){
@@ -6935,7 +6955,7 @@ function mnPipeEditor(rec,wall){
       +'<button id="mnGAdd" style="width:100%;margin-top:4px;background:#2471a3;color:#fff;border:0;border-radius:8px;padding:9px;font-weight:800;font-size:13.5px;cursor:pointer">+ 배치</button>'
     +'</div></div>'
     +'<div style="display:flex;gap:8px;padding:11px 14px;border-top:1px solid #eee">'
-    +'<button id="mnPDone" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer">완료</button>'
+    +'<button id="mnPDone" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">완료</span></button>'
     +'</div></div>';
   document.body.appendChild(wrap);
   var cv=wrap.querySelector('#mnCv'),bx=wrap.querySelector('#mnCvBox');
