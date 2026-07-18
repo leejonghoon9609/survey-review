@@ -6703,7 +6703,7 @@ function mnOpenList(){
       +(rows.length?'<span style="background:#e1f5ee;color:#0f6e56;border-radius:20px;padding:3px 11px;font-size:12px;font-weight:800">'+rows.length+'개</span>':'')
       +'<button id="mnLClose" style="border:none;background:#f1f3f1;border-radius:9px;padding:7px 13px;cursor:pointer;color:#555;font-weight:700;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">닫기</span></button></div>'
     +'<div style="padding:13px 15px 4px;overflow:auto;flex:1">'+listHtml+'</div>'
-    +'<div style="padding:11px 15px 15px"><button id="mnNew" style="width:100%;background:#1d9e75;color:#fff;border:0;border-radius:12px;padding:13px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(29,158,117,.3)"><span style="letter-spacing:2px;margin-right:-2px">+ 새 맨홀조사</span></button></div>'
+    +'<div style="padding:11px 15px 15px"><button id="mnNew" style="width:100%;background:#fff;color:#1d9e75;border:1.5px solid #1d9e75;border-radius:12px;padding:13px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(29,158,117,.15)"><span style="letter-spacing:2px;margin-right:-2px">+ 새 맨홀조사</span></button></div>'
     +'</div>';
   document.body.appendChild(wrap);
   wrap.onclick=function(e){if(e.target===wrap)wrap.remove();};
