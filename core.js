@@ -6905,17 +6905,23 @@ function mnOpenForm(rec){
   }
   function mnLbl(k){
     var sm=mnPipeSummary(rec,k);if(!sm)return '';
-    sm=sm.replace(/ \/ /g,' ');
+    var lines=sm.split(' / ');
     var t='#1565d8';
     function head(x,y,dx,dy){return '<path d="M'+x+','+y+' L'+(x-dx*7-dy*3.5)+','+(y-dy*7+dx*3.5)+' L'+(x-dx*7+dy*3.5)+','+(y-dy*7-dx*3.5)+' z" fill="'+t+'"/>';}
+    function tsp(x,y){var o='';lines.forEach(function(L,i){o+='<tspan x="'+x+'" '+(i?'dy="13"':('y="'+y+'"'))+'>'+joseoEsc(L)+'</tspan>';});return o;}
     if(k==='p1')return '<line x1="132" y1="427" x2="132" y2="416" stroke="'+t+'" stroke-width="1.6"/>'+head(132,414,0,-1)
-      +'<text transform="rotate(-90 132 408)" x="132" y="408" font-size="11.5" font-weight="800" fill="'+t+'" pointer-events="none">'+joseoEsc(sm)+'</text>';
+      +'<text transform="rotate(-90 132 408)" font-size="11.5" font-weight="800" fill="'+t+'" pointer-events="none">'+tsp(132,408)+'</text>';
     if(k==='p3')return '<line x1="394" y1="340" x2="406" y2="340" stroke="'+t+'" stroke-width="1.6"/>'+head(410,340,1,0)
-      +'<text x="416" y="344" font-size="11.5" font-weight="800" fill="'+t+'" pointer-events="none">'+joseoEsc(sm)+'</text>';
+      +'<text font-size="11.5" font-weight="800" fill="'+t+'" pointer-events="none">'+tsp(416,344)+'</text>';
     if(k==='p2')return '<line x1="465" y1="574" x2="465" y2="586" stroke="'+t+'" stroke-width="1.6"/>'+head(465,590,0,1)
-      +'<text transform="rotate(90 465 598)" x="465" y="598" font-size="11.5" font-weight="800" fill="'+t+'" pointer-events="none">'+joseoEsc(sm)+'</text>';
-    if(k==='p4')return '<line x1="246" y1="645" x2="234" y2="645" stroke="'+t+'" stroke-width="1.6"/>'+head(230,645,-1,0)
-      +'<text x="226" y="649" text-anchor="end" font-size="11.5" font-weight="800" fill="'+t+'" pointer-events="none">'+joseoEsc(sm)+'</text>';
+      +'<text transform="rotate(90 465 598)" font-size="11.5" font-weight="800" fill="'+t+'" pointer-events="none">'+tsp(465,598)+'</text>';
+    if(k==='p4'){
+      if(lines.length===1)return '<line x1="246" y1="645" x2="234" y2="645" stroke="'+t+'" stroke-width="1.6"/>'+head(230,645,-1,0)
+        +'<text x="226" y="649" text-anchor="end" font-size="11.5" font-weight="800" fill="'+t+'" pointer-events="none">'+joseoEsc(sm)+'</text>';
+      var mx=0;lines.forEach(function(L){if(L.length>mx)mx=L.length;});var sx=226-Math.round(mx*6.4);
+      return '<line x1="246" y1="645" x2="234" y2="645" stroke="'+t+'" stroke-width="1.6"/>'+head(230,645,-1,0)
+        +'<text font-size="11.5" font-weight="800" fill="'+t+'" pointer-events="none">'+tsp(sx,643)+'</text>';
+    }
     return '';
   }
 
@@ -6941,8 +6947,8 @@ function mnOpenForm(rec){
     MN_SLOTS.forEach(function(sl,i){
       var y=182+i*36;var url=rec.photos&&rec.photos[sl[0]];
       var chkOn=!(rec.chk&&rec.chk[sl[0]]===0);
-      phRows+='<rect x="494" y="'+(y-8)+'" width="16" height="16" rx="3.5" fill="'+(chkOn?'#1d9e75':'#fff')+'" stroke="'+(chkOn?'#1d9e75':'#bbb')+'" stroke-width="1.4" data-act="chk" data-s="'+sl[0]+'" style="cursor:pointer"/>'
-        +(chkOn?'<path d="M497.5 '+y+' l4 4.5 l7 -8" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>':'')
+      phRows+='<rect x="531" y="'+(y-7.5)+'" width="15" height="15" rx="3.5" fill="'+(chkOn?'#1d9e75':'#fff')+'" stroke="'+(chkOn?'#1d9e75':'#bbb')+'" stroke-width="1.4" data-act="chk" data-s="'+sl[0]+'" style="cursor:pointer"/>'
+        +(chkOn?'<path d="M534.5 '+y+' l3.7 4.2 l6.3 -7.5" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>':'')
         +'<text x="586" y="'+(y+6)+'" text-anchor="end" font-size="13" fill="#444">'+sl[1].replace(/^[①-④] /,'')+' :</text>'
         +(url?'<image href="'+url+'" x="598" y="'+(y-13)+'" width="27" height="27" preserveAspectRatio="xMidYMid slice" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><rect x="629" y="'+(y-13)+'" width="48" height="27" rx="6" fill="#e1f5ee" stroke="#1d9e75" stroke-width="1.5" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="653" y="'+(y+5)+'" text-anchor="middle" font-size="12" font-weight="800" fill="#1d9e75" pointer-events="none">완료</text>'
              :'<rect x="598" y="'+(y-13)+'" width="64" height="27" rx="6" fill="#fdeaea" stroke="#d32f2f" stroke-width="1.6" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="630" y="'+(y+5)+'" text-anchor="middle" font-size="12.5" font-weight="800" fill="#d32f2f" pointer-events="none">촬영</text>');
