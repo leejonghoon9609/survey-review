@@ -6557,7 +6557,8 @@ var _rob=document.getElementById('roBadge');if(_rob)_rob.onclick=function(){if(s
 /* 측량(현장) 전용: 탱고작업용 성과제작 버튼 (기능은 다음 단계에서 연결) */
 function refreshFieldBar(){
   var fd=state.fieldDone||{};
-  [['fldCsv','csv','후측량 csv'],['fldJoseo','joseo','실시간 사진조서'],['fldManhole','manhole','맨홀도 제작']].forEach(function(m){
+  var _mob=(typeof isMobileDevice==='function'&&isMobileDevice());
+  [['fldCsv','csv',_mob?'CSV':'후측량 csv'],['fldJoseo','joseo','실시간 사진조서'],['fldManhole','manhole','맨홀도 제작']].forEach(function(m){
     var b=document.getElementById(m[0]);if(!b)return;var done=!!fd[m[1]];b.classList.toggle('done',done);b.textContent=(done?'✓ ':'')+m[2];
   });
 }
@@ -6646,6 +6647,7 @@ function openFinalStatus(){
   var j=document.getElementById('fldJoseo');if(j)j.onclick=openJoseoPanel;
   var m=document.getElementById('fldManhole');if(m)m.onclick=function(){if(typeof mnOpenList==='function')mnOpenList();};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){openImportList('survey');};var _fdd=document.getElementById('fldDel');if(_fdd)_fdd.onclick=fieldDelProject;
   var f=document.getElementById('fldFinal');if(f)f.onclick=openFinalStatus;
+  if(typeof isMobileDevice==='function'&&isMobileDevice()){var _vp=document.getElementById('vPhoto');if(_vp)_vp.textContent='📷 사진';if(f)f.textContent='후측량 최종성과등록';}
   refreshFieldBar();
 })();
 

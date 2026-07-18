@@ -317,29 +317,32 @@
   .lvchk{display:inline-flex;align-items:center;gap:3px;font-size:12px;color:#444;font-weight:600;white-space:nowrap;cursor:pointer;margin:0 2px}
   .lvchk input{cursor:pointer;margin:0}
 
-/* ===== [BUILD 799] 현장 모바일 헤더 2단 정리 ===== */
+/* ===== [BUILD 919] 현장 모바일 헤더 3단 (실시간측량 틀) ===== */
 .hdr-break{display:none}
 @media(max-width:760px){
   header{row-gap:5px!important;column-gap:5px!important;padding:6px 8px!important}
   header button,header select{font-size:11px!important;padding:4px 6px!important;border-radius:7px!important}
   header #viewerBar{display:contents!important}
   header #fieldBar{display:contents!important}
-  header #fldImport{margin-left:0!important}
-  header #fldDel,header #fldJoseo{display:none!important}
-  /* 윗줄: 측량현장 · 홈 · 사업목록 · 저장 · 결선완료성과목록 */
+  /* 1줄: 측량현장 · 홈 · 사업목록 */
   header h1{font-size:13px!important;margin:0!important;order:1!important;flex:none!important;display:inline-block!important}
   header #homeBtn{order:2!important;display:inline-flex!important}
-  header #vproj{order:3!important;max-width:100px!important;display:inline-block!important}
-  header #fldSave{order:4!important;display:inline-flex!important}
-  header #fldImport{order:5!important;display:inline-flex!important}
-  header .hdr-break{display:block!important;flex-basis:100%!important;width:100%!important;height:0!important;margin:0!important;padding:0!important;border:0!important;order:6!important}
-  /* 아랫줄: 후측량사진 · 지도 · 후측량csv · 후측량최종성과등록 */
-  header #vPhoto{order:7!important;display:inline-flex!important}
+  header #vproj{order:3!important;flex:1 1 auto!important;min-width:0!important;max-width:none!important;display:inline-block!important}
+  header .hdr-break{display:block!important;flex-basis:100%!important;width:100%!important;height:0!important;margin:0!important;padding:0!important;border:0!important}
+  header #hdrBreak1{order:4!important}
+  /* 2줄: 저장 · 사업삭제 · (우)사진 · 지도 */
+  header #fldSave{order:5!important;display:inline-flex!important}
+  header #fldDel{order:6!important;display:inline-flex!important}
+  header #vPhoto{order:7!important;display:inline-flex!important;margin-left:auto!important}
   header #vMap{order:8!important;display:inline-flex!important}
-  header #fldCsv{order:9!important;display:inline-flex!important}
-  header #fldFinal{order:10!important;display:inline-flex!important}
+  header #hdrBreak2{order:9!important}
+  /* 3줄: 완료성과목록 · 후측량최종성과등록 · (우)CSV · 맨홀도제작 */
+  header #fldImport{order:10!important;display:inline-flex!important;margin-left:0!important}
+  header #fldFinal{order:11!important;display:inline-flex!important;font-size:10px!important;padding:5px 6px!important;line-height:1.15!important}
+  header #fldCsv{order:12!important;display:inline-flex!important;margin-left:auto!important;background:#2563eb!important;border-color:#2563eb!important;color:#fff!important;font-weight:800!important}
+  header #fldManhole{order:13!important;display:inline-flex!important;background:#d32f2f!important;border-color:#d32f2f!important;color:#fff!important;font-weight:800!important}
   /* 나머지 숨김 */
-  header #modeToggle,header #sysSwitch,header #roBadge,header #vRv,header #fldDel,header #fldJoseo,header #fldManhole,header #proj,header #save,header #delProj,header #bpToggle,header #doneListBtn,header #doneSummary,header #asbuiltBtn,header #photoBtn,header #bgBtn,header #rvBtn,header #buildno,header #conn,header #tamsaBadge,header #globalbtns{display:none!important}
+  header #modeToggle,header #sysSwitch,header #roBadge,header #vRv,header #fldJoseo,header #proj,header #save,header #delProj,header #bpToggle,header #doneListBtn,header #doneSummary,header #asbuiltBtn,header #photoBtn,header #bgBtn,header #rvBtn,header #buildno,header #conn,header #tamsaBadge,header #globalbtns{display:none!important}
 }
 </style>
 </head>
@@ -347,7 +350,7 @@
   <header>
     <button id="homeBtn" class="photoBtn" style="background:#eef2f7;border:1px solid #c6d2e0;color:#33506e;font-weight:700;border-radius:8px;padding:5px 11px;margin-right:2px">🏠 홈</button>
     <button id="modeToggle" class="photoBtn">💻 결선</button>
-    <h1>측량(현장)</h1><div class="hdr-break"></div>
+    <h1>측량(현장)</h1><div class="hdr-break" id="hdrBreak1"></div><div class="hdr-break" id="hdrBreak2"></div>
     <button id="sysSwitch" class="wk" onclick="if(confirm('탱고 DB로 이동할까요? 저장 안 한 변경은 사라집니다.'))location.href='tango.html'" style="background:#fdeef6;border:1px solid #e06ba8;color:#c2185b;font-weight:700;border-radius:8px;padding:5px 11px;margin-left:2px">🎵 탱고 DB 이동</button>
     <span id="roBadge" class="wk" style="display:none;cursor:pointer;color:#d98200;border:1px solid #e0b15a;background:#fff8ec;border-radius:7px;padding:2px 9px;font-size:12px;font-weight:700" title="클릭하면 수정 가능 모드로 전환">🔒 보기 전용 · 클릭=수정</span>
     <span id="viewerBar" class="vw">
@@ -362,7 +365,7 @@
       <button class="fbtn" id="fldCsv">후측량 csv</button>
       <button class="fbtn" id="fldJoseo">실시간 사진조서</button>
       <button class="fbtn" id="fldManhole">맨홀도 제작</button>
-      <button class="fbtn" id="fldImport" style="margin-left:auto">📥 결선완료 성과목록</button>
+      <button class="fbtn" id="fldImport" style="margin-left:auto">📥 완료성과목록</button>
       <button class="fbtn fbtn-final" id="fldFinal">📋 후측량 최종성과 등록</button>
     </div>
     <select id="proj" class="wk"><option value="">사업 선택…</option></select>
@@ -376,7 +379,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 918</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 919</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -539,6 +542,6 @@
     </div>
   </div>
 
-<script src="login.js?v=918"></script><script src="core.js?v=918"></script>
+<script src="login.js?v=919"></script><script src="core.js?v=919"></script>
 </body>
 </html>
