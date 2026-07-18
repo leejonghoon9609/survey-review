@@ -6870,20 +6870,20 @@ function mnOpenForm(rec){
       +'<rect x="390" y="430" width="195" height="140" fill="rgba(0,0,0,0)" data-act="wall" data-w="p2" style="cursor:pointer"/>'
       +'</g>'
       /* 뚜껑 */
-      +'<circle cx="110" cy="826" r="26" fill="#fff" stroke="#1d9e75" stroke-width="1.5" stroke-dasharray="6,5" data-act="dim" data-k="lid" style="cursor:pointer"/>'
-      +dimRange(88,826,132,826,'#1d9e75')
-      +'<text x="110" y="818" text-anchor="middle" font-size="11.5" font-weight="800" fill="#1d9e75" data-act="dim" data-k="lid" style="cursor:pointer">'+(fv(rec.lid)!=null?rec.lid:766)+'</text>'
-      +'<text x="110" y="866" text-anchor="middle" font-size="12" fill="#444">원형맨홀뚜껑</text>'
-      +dimRange(60,878,160,878,'#888')
-      +'<line x1="110" y1="872" x2="110" y2="884" stroke="#888" stroke-width="1.2"/>'
-      +'<rect x="60" y="884" width="100" height="38" fill="#fff" stroke="#333" stroke-width="1.3"/>'
-      +dimRange(60,934,160,934,'#d4537e')
-      +'<rect x="88" y="926" width="44" height="16" rx="4" fill="#fbeaf0" stroke="#d4537e" stroke-width="1.1" data-act="dim" data-k="lidW" style="cursor:pointer"/>'
-      +'<text x="110" y="938" text-anchor="middle" font-size="10" font-weight="800" fill="#d4537e" pointer-events="none">'+(fv(rec.lidW)!=null?rec.lidW:'가로')+'</text>'
-      +dimRange(50,884,50,922,'#d4537e')
-      +'<rect x="4" y="895" width="42" height="16" rx="4" fill="#fbeaf0" stroke="#d4537e" stroke-width="1.1" data-act="dim" data-k="lidH" style="cursor:pointer"/>'
-      +'<text x="25" y="907" text-anchor="middle" font-size="10" font-weight="800" fill="#d4537e" pointer-events="none">'+(fv(rec.lidH)!=null?rec.lidH:'세로')+'</text>'
-      +'<text x="110" y="952" text-anchor="middle" font-size="12" fill="#444">사각맨홀뚜껑</text>'
+      +'<circle cx="128" cy="790" r="34" fill="#fff" stroke="#1d9e75" stroke-width="1.5" stroke-dasharray="6,5" data-act="dim" data-k="lid" style="cursor:pointer"/>'
+      +dimRange(94,790,162,790,'#1d9e75')
+      +'<text x="128" y="781" text-anchor="middle" font-size="12.5" font-weight="800" fill="#1d9e75" data-act="dim" data-k="lid" style="cursor:pointer">'+(fv(rec.lid)!=null?rec.lid:766)+'</text>'
+      +'<text x="128" y="838" text-anchor="middle" font-size="12" fill="#444">원형맨홀뚜껑</text>'
+      +dimRange(68,868,188,868,'#888')
+      +'<line x1="128" y1="862" x2="128" y2="874" stroke="#888" stroke-width="1.2"/>'
+      +'<rect x="68" y="874" width="120" height="48" fill="#fff" stroke="#333" stroke-width="1.4"/>'
+      +dimRange(68,934,188,934,'#d4537e')
+      +'<rect x="105" y="926" width="46" height="17" rx="4" fill="#fbeaf0" stroke="#d4537e" stroke-width="1.1" data-act="dim" data-k="lidW" style="cursor:pointer"/>'
+      +'<text x="128" y="938.5" text-anchor="middle" font-size="10.5" font-weight="800" fill="#d4537e" pointer-events="none">'+(fv(rec.lidW)!=null?rec.lidW:'가로')+'</text>'
+      +dimRange(58,874,58,922,'#d4537e')
+      +'<rect x="13" y="890" width="42" height="17" rx="4" fill="#fbeaf0" stroke="#d4537e" stroke-width="1.1" data-act="dim" data-k="lidH" style="cursor:pointer"/>'
+      +'<text x="34" y="902.5" text-anchor="middle" font-size="10.5" font-weight="800" fill="#d4537e" pointer-events="none">'+(fv(rec.lidH)!=null?rec.lidH:'세로')+'</text>'
+      +'<text x="128" y="960" text-anchor="middle" font-size="12" fill="#444">사각맨홀뚜껑</text>'
       +'<text x="420" y="960" text-anchor="middle" font-size="11.5" fill="#aab">벽면=관배치 · 색칸=치수 · 표찰표=번호 · 우측=사진</text>'
       +'</svg>';
     box.innerHTML=svg;
