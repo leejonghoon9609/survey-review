@@ -6855,6 +6855,8 @@ function mnOpenForm(rec){
     else txt='<text x="'+cx+'" y="'+cy+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="'+(v?'#558b2f':'#a8c790')+'" transform="rotate('+rot+' '+cx+' '+cy+')" dominant-baseline="central" pointer-events="none">'+joseoEsc(t)+'</text>';
     return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="5" fill="#f1f8e9" stroke="#7cb342" stroke-width="1.2" data-act="dest" data-d="'+k+'" style="cursor:pointer"/>'+txt;
   }
+  function wallPhoto(k,x,y,w,h){var u=rec.photos&&rec.photos[k];if(!u)return '';
+    return '<image href="'+u+'" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" preserveAspectRatio="xMidYMid slice" opacity="0.35" pointer-events="none"/>';}
   function wallHint(x,y){return '<rect x="'+(x-46)+'" y="'+(y-11)+'" width="92" height="22" rx="6" fill="#ffffff" fill-opacity="0.78" stroke="#c9d5ec" stroke-width="1" pointer-events="none"/><text x="'+x+'" y="'+(y+4)+'" text-anchor="middle" font-size="10.5" font-weight="700" fill="#a9b8d6" pointer-events="none">촬영/공수배치</text>';}
   function dimRange(x1,y1,x2,y2,color){
     var o='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+color+'" stroke-width="1.5"/>',aw=8,ah=3.2;
@@ -6872,7 +6874,7 @@ function mnOpenForm(rec){
     var WHd=mnWallDims(rec,wallKey),Wm=WHd[0],Hm=WHd[1],out='';
     pwv.groups.forEach(function(g){(g.circles||[]).forEach(function(c){
       var p=mapFn(c.x/Wm,c.y/Hm);
-      var r=Math.max((c.dia/2)*(140/Wm),2.6);
+      var r=Math.max(c.dia*(140/Wm),4);
       out+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+(c.fill?'#222':'#fff')+'" stroke="#333" stroke-width="1.2" pointer-events="none"/>';
     });});
     return out;
@@ -6942,6 +6944,7 @@ function mnOpenForm(rec){
       +'<line x1="548" y1="500" x2="568" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
       +'<text x="571" y="505" font-size="15" font-weight="700" fill="#333">2</text>'
       +destPill('d2',586,485,58,30,0)
+      +wallPhoto('p3',250,280,140,150)+wallPhoto('p4',250,570,140,150)+wallPhoto('p1',100,430,150,140)+wallPhoto('p2',390,430,150,140)
       +wallHint(320,355)+wallHint(320,645)+wallHint(175,500)+wallHint(465,500)
       +wallCircles('p3',function(nx,ny){return [250+nx*140,430-ny*150];})
       +wallCircles('p4',function(nx,ny){return [250+nx*140,570+ny*150];})
