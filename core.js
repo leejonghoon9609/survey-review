@@ -6644,10 +6644,141 @@ function openFinalStatus(){
   var sv=document.getElementById('fldSave');if(sv)sv.onclick=function(){saveProject();};
   var c=document.getElementById('fldCsv');if(c)c.onclick=openFinalCsvUpload;
   var j=document.getElementById('fldJoseo');if(j)j.onclick=openJoseoPanel;
-  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){toast('맨홀도 제작 — 다음 단계에서 연결합니다');};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){openImportList('survey');};var _fdd=document.getElementById('fldDel');if(_fdd)_fdd.onclick=fieldDelProject;
+  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){if(typeof mnOpenList==='function')mnOpenList();};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){openImportList('survey');};var _fdd=document.getElementById('fldDel');if(_fdd)_fdd.onclick=fieldDelProject;
   var f=document.getElementById('fldFinal');if(f)f.onclick=openFinalStatus;
   refreshFieldBar();
 })();
+
+/* ===================== [BUILD 918] 맨홀조사 야장 (측량현장) ===================== */
+var MH_SPECS=[
+  {name:'수공1호',w:450,h:950,dep:700},
+  {name:'수공2-1호',w:700,h:1300,dep:700},
+  {name:'수공2호',w:800,h:1700,dep:1100},
+  {name:'수공3호',w:1000,h:2000,dep:1100}
+];
+function mnDetectSpec(dep,w12,w34){
+  if(!(dep>0)||!(w12>0)||!(w34>0))return null;
+  var d=dep*1000,a=Math.min(w12,w34)*1000,b=Math.max(w12,w34)*1000,best=null,bs=1e18;
+  MH_SPECS.forEach(function(sp){var sc=Math.abs(d-sp.dep)+Math.abs(a-sp.w)+Math.abs(b-sp.h);if(sc<bs){bs=sc;best=sp;}});
+  if(!best)return null;
+  return {name:best.name,w:best.w,h:best.h,dep:best.dep,orient:(w12>=w34)?'가로':'세로'};
+}
+function mnList(){if(!state.mnList)state.mnList=[];return state.mnList;}
+function mnLabel(r){var ow=(r.owner==='_c'?(r.ownerC||''):(r.owner||''));return (r.no||'')+(ow?'('+ow+')':'');}
+var MN_SLOTS=[['bd','표찰'],['fr','전경'],['p1','① 서'],['p2','② 동'],['p3','③ 북'],['p4','④ 남']];
+function mnOpenList(){
+  if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
+  var old=document.getElementById('mnListModal');if(old)old.remove();
+  var mob=(typeof isMobileDevice==='function'&&isMobileDevice());
+  var wrap=document.createElement('div');wrap.id='mnListModal';
+  wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1300;display:flex;justify-content:center;'+(mob?'align-items:flex-start;padding-top:7dvh':'align-items:center');
+  var rows=mnList();
+  var listHtml=rows.length?rows.map(function(r,i){
+    var pc=0;MN_SLOTS.forEach(function(sl){if(r.photos&&r.photos[sl[0]])pc++;});
+    var sp=r.spec?(r.spec.name+' · '+r.spec.orient):'규격 미판정';
+    return '<div style="display:flex;align-items:center;gap:8px;margin:5px 0"><button class="mn-row" data-i="'+i+'" style="flex:1;text-align:left;padding:11px 12px;border:1px solid #d8e4dc;border-radius:10px;background:#f7fbf8;cursor:pointer;font-size:14px"><b style="color:#155e46">'+joseoEsc(mnLabel(r))+'</b><span style="float:right;font-size:12px;color:#8aa">'+pc+'/6장</span><br><span style="font-size:12px;color:#889">'+joseoEsc(sp)+'</span></button><button class="mn-del" data-i="'+i+'" style="flex:none;border:1px solid #eec5c0;background:#fff;color:#c0392b;border-radius:8px;padding:10px;cursor:pointer">✕</button></div>';
+  }).join(''):'<div style="color:#999;padding:10px;text-align:center">조사한 맨홀이 없습니다.</div>';
+  wrap.innerHTML='<div style="background:#fff;border-radius:14px;width:min(94vw,420px);max-height:84dvh;display:flex;flex-direction:column;overflow:hidden">'
+    +'<div style="padding:14px 16px;border-bottom:1px solid #eee;display:flex;align-items:center"><b style="flex:1;font-size:16px">맨홀조사 야장</b><button id="mnLClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div>'
+    +'<div style="padding:12px 16px;overflow:auto;flex:1">'+listHtml+'</div>'
+    +'<div style="padding:0 16px 14px"><button id="mnNew" style="width:100%;background:#1d9e75;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer">+ 새 맨홀조사</button></div>'
+    +'</div>';
+  document.body.appendChild(wrap);
+  wrap.onclick=function(e){if(e.target===wrap)wrap.remove();};
+  wrap.querySelector('#mnLClose').onclick=function(){wrap.remove();};
+  wrap.querySelector('#mnNew').onclick=function(){wrap.remove();mnOpenForm(null);};
+  [].forEach.call(wrap.querySelectorAll('.mn-row'),function(b){b.onclick=function(){var i=+b.getAttribute('data-i');wrap.remove();mnOpenForm(mnList()[i]);};});
+  [].forEach.call(wrap.querySelectorAll('.mn-del'),function(b){b.onclick=function(){var i=+b.getAttribute('data-i');var r=mnList()[i];if(!confirm('맨홀 '+mnLabel(r)+' 조사를 삭제할까요?'))return;mnList().splice(i,1);saveProject();wrap.remove();mnOpenList();toast('삭제됨');};});
+}
+function mnOpenForm(rec){
+  var isNew=!rec;
+  if(isNew)rec={id:'mn'+Date.now(),no:'',owner:'LG',ownerC:'',dep:'',w12:'',w34:'',topi:'',lid:766,spec:null,photos:{},at:new Date().toISOString()};
+  var mob=(typeof isMobileDevice==='function'&&isMobileDevice());
+  var old=document.getElementById('mnFormModal');if(old)old.remove();
+  var wrap=document.createElement('div');wrap.id='mnFormModal';
+  wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1300;display:flex;justify-content:center;'+(mob?'align-items:flex-start;padding-top:3dvh':'align-items:center');
+  function inp(id,ph,val,unit){return '<div style="flex:1;min-width:0"><div style="font-size:11.5px;color:#889;margin-bottom:3px">'+ph+(unit?' <span style="color:#bbb">('+unit+')</span>':'')+'</div><input id="'+id+'" type="number" step="0.01" inputmode="decimal" value="'+(val===''||val==null?'':val)+'" style="width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:8px;padding:9px 10px;font-size:15px"></div>';}
+  var ownerOpts=['LG','SKT','SKB','시청','세종','드림'].map(function(o){return '<option value="'+o+'"'+(rec.owner===o?' selected':'')+'>'+o+'</option>';}).join('')+'<option value="_c"'+(rec.owner==='_c'?' selected':'')+'>직접입력</option>';
+  var slotsHtml=MN_SLOTS.map(function(sl){
+    var url=rec.photos&&rec.photos[sl[0]];
+    return '<div style="text-align:center"><button class="mn-slot" data-s="'+sl[0]+'" style="width:100%;aspect-ratio:1;border:1.5px dashed #ccd;border-radius:10px;background:#fafbfc center/cover no-repeat;cursor:pointer;font-size:12px;color:#99a;overflow:hidden'+(url?';background-image:url('+url+');border-style:solid;color:transparent':'')+'">촬영</button><div style="font-size:11.5px;color:#667;margin-top:3px;font-weight:700">'+sl[1]+'</div></div>';
+  }).join('');
+  wrap.innerHTML='<div style="background:#fff;border-radius:14px;width:min(94vw,440px);max-height:92dvh;display:flex;flex-direction:column;overflow:hidden">'
+    +'<div style="padding:14px 16px;border-bottom:1px solid #eee;display:flex;align-items:center"><b style="flex:1;font-size:16px">맨홀조사 '+(isNew?'(신규)':'— '+joseoEsc(mnLabel(rec)))+'</b><button id="mnFClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div>'
+    +'<div style="padding:14px 16px;overflow:auto;flex:1">'
+    +'<div style="font-size:12.5px;font-weight:800;color:#334;margin-bottom:6px">맨홀번호</div>'
+    +'<div style="display:flex;gap:7px;margin-bottom:5px"><input id="mnNo" value="'+joseoEsc(rec.no||'')+'" placeholder="예: 6M" style="flex:1.2;min-width:0;border:1px solid #ddd;border-radius:8px;padding:9px 10px;font-size:15px"><select id="mnOwner" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:8px;padding:9px 6px;font-size:14px;background:#fff">'+ownerOpts+'</select></div>'
+    +'<input id="mnOwnerC" value="'+joseoEsc(rec.ownerC||'')+'" placeholder="소유자 직접입력" style="width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:8px;padding:9px 10px;font-size:14px;margin-bottom:10px;display:'+(rec.owner==='_c'?'block':'none')+'">'
+    +'<div style="font-size:12.5px;font-weight:800;color:#334;margin:4px 0 6px">맨홀 치수</div>'
+    +'<div style="display:flex;gap:7px;margin-bottom:8px">'+inp('mnDep','깊이',rec.dep,'m')+inp('mnW12','①-② 폭',rec.w12,'m')+inp('mnW34','③-④ 폭',rec.w34,'m')+'</div>'
+    +'<div style="display:flex;gap:7px;margin-bottom:8px">'+inp('mnTopi','토피',rec.topi,'m')+inp('mnLid','뚜껑지름',rec.lid,'mm')+'<div style="flex:1"></div></div>'
+    +'<div id="mnSpecLine" style="font-size:13px;font-weight:800;color:#1d9e75;background:#f2fbf7;border:1px solid #cfe8dd;border-radius:9px;padding:9px 11px;margin-bottom:12px">치수를 입력하면 규격이 자동 판정됩니다</div>'
+    +'<div style="font-size:12.5px;font-weight:800;color:#334;margin-bottom:6px">사진 촬영 <span style="color:#99a;font-weight:400">①서 ②동 ③북 ④남 순서 고정</span></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:4px">'+slotsHtml+'</div>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px;padding:12px 16px;border-top:1px solid #eee">'
+    +'<button id="mnSave" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer">저장</button>'
+    +'<button id="mnBack" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:10px;padding:12px;font-weight:700;font-size:15px;cursor:pointer">목록으로</button>'
+    +'</div></div>';
+  document.body.appendChild(wrap);
+  function updSpec(){
+    var d=parseFloat(document.getElementById('mnDep').value),a=parseFloat(document.getElementById('mnW12').value),b=parseFloat(document.getElementById('mnW34').value);
+    var sp=mnDetectSpec(d,a,b);var el=document.getElementById('mnSpecLine');
+    if(sp){el.textContent='판정: '+sp.name+' ('+(sp.w/1000)+'×'+(sp.h/1000)+') · '+sp.orient+'배치';el.style.color='#1d9e75';}
+    else{el.textContent='치수를 입력하면 규격이 자동 판정됩니다';el.style.color='#99a';}
+    return sp;
+  }
+  ['mnDep','mnW12','mnW34'].forEach(function(id){document.getElementById(id).addEventListener('input',updSpec);});
+  updSpec();
+  document.getElementById('mnOwner').addEventListener('change',function(){document.getElementById('mnOwnerC').style.display=(this.value==='_c')?'block':'none';});
+  function collect(){
+    rec.no=document.getElementById('mnNo').value.trim();
+    rec.owner=document.getElementById('mnOwner').value;
+    rec.ownerC=document.getElementById('mnOwnerC').value.trim();
+    rec.dep=parseFloat(document.getElementById('mnDep').value)||'';
+    rec.w12=parseFloat(document.getElementById('mnW12').value)||'';
+    rec.w34=parseFloat(document.getElementById('mnW34').value)||'';
+    rec.topi=parseFloat(document.getElementById('mnTopi').value)||'';
+    rec.lid=parseFloat(document.getElementById('mnLid').value)||766;
+    rec.spec=mnDetectSpec(rec.dep,rec.w12,rec.w34);
+  }
+  function persist(msg){
+    collect();
+    var L=mnList(),ix=-1;L.forEach(function(r,i){if(r.id===rec.id)ix=i;});
+    if(ix<0)L.push(rec);else L[ix]=rec;
+    saveProject();if(msg)toast(msg);
+  }
+  wrap.querySelector('#mnFClose').onclick=function(){wrap.remove();};
+  wrap.onclick=function(e){if(e.target===wrap)wrap.remove();};
+  wrap.querySelector('#mnBack').onclick=function(){wrap.remove();mnOpenList();};
+  wrap.querySelector('#mnSave').onclick=function(){
+    if(!document.getElementById('mnNo').value.trim()){toast('맨홀번호를 입력하세요');document.getElementById('mnNo').focus();return;}
+    persist('맨홀조사 저장됨');wrap.remove();mnOpenList();
+  };
+  [].forEach.call(wrap.querySelectorAll('.mn-slot'),function(b){
+    b.onclick=function(){
+      var slot=b.getAttribute('data-s');
+      var fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.setAttribute('capture','environment');fi.style.display='none';
+      document.body.appendChild(fi);
+      fi.addEventListener('change',function(e){
+        var f=e.target.files&&e.target.files[0];fi.remove();if(!f)return;
+        if(!online){toast('로컬 모드 — 사진 저장 불가');return;}
+        toast('사진 업로드 중…');
+        compressImage(f,1280,0.7).then(function(blob){
+          var path=state.projectId+'/mh_'+rec.id+'_'+slot+'.jpg';
+          return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
+            if(up.error)throw up.error;
+            var url=sb.storage.from('photos').getPublicUrl(path).data.publicUrl+'?t='+Date.now();
+            if(!rec.photos)rec.photos={};rec.photos[slot]=url;
+            b.style.backgroundImage='url('+url+')';b.style.borderStyle='solid';b.style.color='transparent';
+            persist('사진 저장됨');
+          });
+        }).catch(function(err){console.error('mn photo',err);toast('사진 업로드 실패');});
+      });
+      fi.click();
+    };
+  });
+}
 
 /* ===================== 실시간 사진조서 (관로) ===================== */
 var JOSEO_TPL_URL = encodeURI('실시간조서_템플릿.xlsx');
