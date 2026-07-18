@@ -6647,6 +6647,7 @@ function openFinalStatus(){
   var j=document.getElementById('fldJoseo');if(j)j.onclick=openJoseoPanel;
   var m=document.getElementById('fldManhole');if(m)m.onclick=function(){if(typeof mnOpenList==='function')mnOpenList();};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){openImportList('survey');};var _fdd=document.getElementById('fldDel');if(_fdd)_fdd.onclick=fieldDelProject;
   var f=document.getElementById('fldFinal');if(f)f.onclick=openFinalStatus;
+  var _rg=document.getElementById('fldReg');if(_rg)_rg.onclick=function(){if(typeof openRegModal==='function')openRegModal();};
   if(typeof isMobileDevice==='function'&&isMobileDevice()){var _vp=document.getElementById('vPhoto');if(_vp)_vp.textContent='📷 사진';if(f)f.textContent='후측량 최종성과등록';}
   refreshFieldBar();
 })();
