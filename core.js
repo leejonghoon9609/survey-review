@@ -6763,7 +6763,7 @@ function mnOpenForm(rec){
   document.body.appendChild(wrap);
   var box=wrap.querySelector('#mnSheetBox');
   function fv(v){return (v===''||v==null)?null:v;}
-  var MN_DIMC={dep:['#e74c3c','#fdecea'],topi:['#e67e22','#fdf3e7'],w34:['#2471a3','#eaf3fb'],w12:['#8e44ad','#f4ecf9']};
+  var MN_DIMC={dep:['#e74c3c','#fdecea'],topi:['#e67e22','#fdf3e7'],w34:['#2471a3','#eaf3fb'],w12:['#8e44ad','#f4ecf9'],lid:['#1d9e75','#e1f5ee'],lidRect:['#d4537e','#fbeaf0']};
   var MN_UNITS={dep:'m',w12:'m',w34:'m',topi:'m'};
   function dimSpot(x,y,k,label,w){
     w=w||50;
@@ -6870,11 +6870,11 @@ function mnOpenForm(rec){
       +'<rect x="390" y="430" width="195" height="140" fill="rgba(0,0,0,0)" data-act="wall" data-w="p2" style="cursor:pointer"/>'
       +'</g>'
       /* 뚜껑 */
-      +'<circle cx="110" cy="862" r="30" fill="#fff" stroke="#333" stroke-width="1.3" stroke-dasharray="6,5" data-act="dim" data-k="lid" style="cursor:pointer"/>'
-      +'<text x="110" y="868" text-anchor="middle" font-size="13.5" font-weight="800" fill="'+(fv(rec.lid)!=null?'#333':'#b5b5b0')+'" pointer-events="none">'+(fv(rec.lid)!=null?rec.lid:'탭')+'</text>'
+      +'<circle cx="110" cy="862" r="30" fill="#e1f5ee" stroke="#1d9e75" stroke-width="1.6" stroke-dasharray="6,5" data-act="dim" data-k="lid" style="cursor:pointer"/>'
+      +'<text x="110" y="868" text-anchor="middle" font-size="13.5" font-weight="800" fill="#1d9e75" pointer-events="none">'+(fv(rec.lid)!=null?rec.lid:766)+'</text>'
       +'<text x="110" y="914" text-anchor="middle" font-size="12.5" fill="#444">원형맨홀뚜껑</text>'
-      +'<rect x="200" y="834" width="130" height="56" fill="#fff" stroke="#333" stroke-width="1.4" data-act="dim" data-k="lidRect" style="cursor:pointer"/>'
-      +'<text x="265" y="866" text-anchor="middle" font-size="13" font-weight="700" fill="'+(rec.lidRect?'#333':'#b5b5b0')+'" pointer-events="none">'+(rec.lidRect?joseoEsc(rec.lidRect):'SIZE')+'</text>'
+      +'<rect x="200" y="834" width="130" height="56" rx="8" fill="#fbeaf0" stroke="#d4537e" stroke-width="1.6" data-act="dim" data-k="lidRect" style="cursor:pointer"/>'
+      +'<text x="265" y="866" text-anchor="middle" font-size="13" font-weight="800" fill="#d4537e" pointer-events="none">'+(rec.lidRect?joseoEsc(rec.lidRect):'치수 입력')+'</text>'
       +'<text x="265" y="914" text-anchor="middle" font-size="12.5" fill="#444">사각맨홀뚜껑</text>'
       +'<text x="360" y="960" text-anchor="middle" font-size="11.5" fill="#aab">벽면=관배치 · 색칸=치수 · 표찰표=번호 · 우측=사진</text>'
       +'</svg>';
