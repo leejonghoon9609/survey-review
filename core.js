@@ -6877,13 +6877,21 @@ function mnOpenForm(rec){
   function wallCircles(wallKey,mapFn){
     var pwv=rec.pipes&&rec.pipes[wallKey];if(!pwv||!pwv.groups)return '';
     var WHd=mnWallDims(rec,wallKey),Wm=WHd[0],Hm=WHd[1],out='';
-    var sk=Math.min(140/Wm,150/Hm);
+    var sk=150/Hm;
     pwv.groups.forEach(function(g){(g.circles||[]).forEach(function(c){
       var p=mapFn(c.x/Wm,c.y/Hm);
       var r=Math.max(c.dia*0.6*sk,3);
       out+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+(c.fill?'#222':'#fff')+'" stroke="#333" stroke-width="1.2" pointer-events="none"/>';
     });});
     return out;
+  }
+  function mnLbl(k,tx,ty,dir,ax,ay){
+    var sm=mnPipeSummary(rec,k);if(!sm)return '';
+    sm=sm.replace(/ \/ /g,' ');
+    var ar='';
+    if(dir==='left')ar='<path d="M'+ax+','+ay+' l8,-4 v8 z" fill="#1565d8"/>';
+    else ar='<path d="M'+ax+','+ay+' l-4,8 h8 z" fill="#1565d8"/>';
+    return ar+'<text x="'+tx+'" y="'+ty+'" font-size="11.5" font-weight="800" fill="#1565d8" pointer-events="none">'+joseoEsc(sm)+'</text>';
   }
   function wallLine(wallKey,x,y,rot){
     var sm=mnPipeSummary(rec,wallKey);if(!sm)return '';
@@ -6958,7 +6966,7 @@ function mnOpenForm(rec){
       +wallCircles('p4',function(nx,ny){return [250+nx*140,570+ny*150];})
       +wallCircles('p1',function(nx,ny){return [250-ny*150,430+nx*140];})
       +wallCircles('p2',function(nx,ny){return [390+ny*150,430+nx*140];})
-      +wallLine('p3',344,204,0)+wallLine('p1',98,592,0)+wallLine('p2',600,590,90)+wallLine('p4',352,810,90)
+      +mnLbl('p3',398,340,'left',388,336)+mnLbl('p4',398,660,'left',388,656)+mnLbl('p1',76,590,'up',64,580)+mnLbl('p2',412,590,'up',400,580)
       /* 치수: 범위선(양끝 화살표) + 작은 탭 */
       +dimRange(250,288,390,288,'#2471a3')+dimSpot(396,278,'w34','폭',46)
       +dimRange(240,235,240,280,'#e67e22')+dimSpot(188,247,'topi','토피',46)
@@ -7241,7 +7249,7 @@ function mnPipeEditor(rec,wall){
       rows.push({dia:parseInt(ds[i].value)||100,cnt:Math.max(1,Math.min(12,cnt))});
     }
     var g={kind:kd,rows:rows,circles:[]};
-    var gap=1.3;
+    var gap=2.1;
     var maxX=0;pw.groups.forEach(function(og){(og.circles||[]).forEach(function(c){maxX=Math.max(maxX,c.x+c.dia/2);});});
     var x0=maxX?(maxX+150):150;
     var totH=0;rows.forEach(function(r){totH+=r.dia*gap;});
