@@ -6693,98 +6693,188 @@ function mnOpenList(){
   [].forEach.call(wrap.querySelectorAll('.mn-row'),function(b){b.onclick=function(){var i=+b.getAttribute('data-i');wrap.remove();mnOpenForm(mnList()[i]);};});
   [].forEach.call(wrap.querySelectorAll('.mn-del'),function(b){b.onclick=function(){var i=+b.getAttribute('data-i');var r=mnList()[i];if(!confirm('맨홀 '+mnLabel(r)+' 조사를 삭제할까요?'))return;mnList().splice(i,1);saveProject();wrap.remove();mnOpenList();toast('삭제됨');};});
 }
+function mnAsk(opt){
+  var old=document.getElementById('mnAskModal');if(old)old.remove();
+  var w=document.createElement('div');w.id='mnAskModal';
+  w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:16dvh';
+  w.innerHTML='<div style="background:#fff;border-radius:13px;width:min(86vw,300px);padding:16px">'
+    +'<div style="font-weight:800;font-size:15px;margin-bottom:10px">'+opt.title+(opt.unit?' <span style="color:#99a;font-weight:400;font-size:12px">('+opt.unit+')</span>':'')+'</div>'
+    +'<input id="mnAskIn" '+(opt.text?'type="text"':'type="number" step="0.01" inputmode="decimal"')+' value="'+(opt.val==null?'':(''+opt.val).replace(/"/g,'&quot;'))+'" style="width:100%;box-sizing:border-box;border:1.5px solid #1d9e75;border-radius:9px;padding:11px;font-size:17px;text-align:center">'
+    +'<div style="display:flex;gap:8px;margin-top:12px"><button id="mnAskOk" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:9px;padding:11px;font-weight:800;font-size:15px">확인</button><button id="mnAskNo" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:9px;padding:11px;font-weight:700">취소</button></div></div>';
+  document.body.appendChild(w);
+  var inp=w.querySelector('#mnAskIn');setTimeout(function(){inp.focus();inp.select&&inp.select();},60);
+  w.querySelector('#mnAskNo').onclick=function(){w.remove();};
+  w.onclick=function(e){if(e.target===w)w.remove();};
+  function ok(){var v=inp.value;w.remove();opt.cb(opt.text?v.trim():(v===''?'':parseFloat(v)));}
+  w.querySelector('#mnAskOk').onclick=ok;
+  inp.addEventListener('keydown',function(e){if(e.key==='Enter')ok();});
+}
+function mnAskNoOwner(rec,cb){
+  var old=document.getElementById('mnAskModal');if(old)old.remove();
+  var w=document.createElement('div');w.id='mnAskModal';
+  w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:14dvh';
+  var opts=['LG','SKT','SKB','시청','세종','드림'].map(function(o){return '<option value="'+o+'"'+(rec.owner===o?' selected':'')+'>'+o+'</option>';}).join('')+'<option value="_c"'+(rec.owner==='_c'?' selected':'')+'>직접입력</option>';
+  w.innerHTML='<div style="background:#fff;border-radius:13px;width:min(88vw,320px);padding:16px">'
+    +'<div style="font-weight:800;font-size:15px;margin-bottom:10px">맨홀번호</div>'
+    +'<div style="display:flex;gap:7px"><input id="mnNoIn" value="'+joseoEsc(rec.no||'')+'" placeholder="예: 6M" style="flex:1.1;min-width:0;border:1.5px solid #1d9e75;border-radius:9px;padding:10px;font-size:16px"><select id="mnOwIn" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:9px;padding:10px 6px;font-size:14px;background:#fff">'+opts+'</select></div>'
+    +'<input id="mnOwC" value="'+joseoEsc(rec.ownerC||'')+'" placeholder="소유자 직접입력" style="width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:9px;padding:10px;font-size:14px;margin-top:8px;display:'+(rec.owner==='_c'?'block':'none')+'">'
+    +'<div style="display:flex;gap:8px;margin-top:12px"><button id="mnAskOk" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:9px;padding:11px;font-weight:800;font-size:15px">확인</button><button id="mnAskNo2" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:9px;padding:11px;font-weight:700">취소</button></div></div>';
+  document.body.appendChild(w);
+  w.querySelector('#mnOwIn').addEventListener('change',function(){w.querySelector('#mnOwC').style.display=(this.value==='_c')?'block':'none';});
+  w.querySelector('#mnAskNo2').onclick=function(){w.remove();};
+  w.onclick=function(e){if(e.target===w)w.remove();};
+  w.querySelector('#mnAskOk').onclick=function(){rec.no=w.querySelector('#mnNoIn').value.trim();rec.owner=w.querySelector('#mnOwIn').value;rec.ownerC=w.querySelector('#mnOwC').value.trim();w.remove();cb();};
+  setTimeout(function(){w.querySelector('#mnNoIn').focus();},60);
+}
 function mnOpenForm(rec){
   var isNew=!rec;
-  if(isNew)rec={id:'mn'+Date.now(),no:'',owner:'LG',ownerC:'',dep:'',w12:'',w34:'',topi:'',lid:766,spec:null,photos:{},at:new Date().toISOString()};
+  if(isNew)rec={id:'mn'+Date.now(),no:'',owner:'LG',ownerC:'',dep:'',w12:'',w34:'',topi:'',lid:766,lidRect:'',spec:null,photos:{},pipes:{},at:new Date().toISOString()};
   var mob=(typeof isMobileDevice==='function'&&isMobileDevice());
   var old=document.getElementById('mnFormModal');if(old)old.remove();
   var wrap=document.createElement('div');wrap.id='mnFormModal';
-  wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1300;display:flex;justify-content:center;'+(mob?'align-items:flex-start;padding-top:3dvh':'align-items:center');
-  function inp(id,ph,val,unit){return '<div style="flex:1;min-width:0"><div style="font-size:11.5px;color:#889;margin-bottom:3px">'+ph+(unit?' <span style="color:#bbb">('+unit+')</span>':'')+'</div><input id="'+id+'" type="number" step="0.01" inputmode="decimal" value="'+(val===''||val==null?'':val)+'" style="width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:8px;padding:9px 10px;font-size:15px"></div>';}
-  var ownerOpts=['LG','SKT','SKB','시청','세종','드림'].map(function(o){return '<option value="'+o+'"'+(rec.owner===o?' selected':'')+'>'+o+'</option>';}).join('')+'<option value="_c"'+(rec.owner==='_c'?' selected':'')+'>직접입력</option>';
-  var slotsHtml=MN_SLOTS.map(function(sl){
-    var url=rec.photos&&rec.photos[sl[0]];
-    return '<div style="text-align:center"><button class="mn-slot" data-s="'+sl[0]+'" style="width:100%;aspect-ratio:1;border:1.5px dashed #ccd;border-radius:10px;background:#fafbfc center/cover no-repeat;cursor:pointer;font-size:12px;color:#99a;overflow:hidden'+(url?';background-image:url('+url+');border-style:solid;color:transparent':'')+'">촬영</button><div style="font-size:11.5px;color:#667;margin-top:3px;font-weight:700">'+sl[1]+'</div></div>';
-  }).join('');
-  wrap.innerHTML='<div style="background:#fff;border-radius:14px;width:min(94vw,440px);max-height:92dvh;display:flex;flex-direction:column;overflow:hidden">'
-    +'<div style="padding:14px 16px;border-bottom:1px solid #eee;display:flex;align-items:center"><b style="flex:1;font-size:16px">맨홀조사 '+(isNew?'(신규)':'— '+joseoEsc(mnLabel(rec)))+'</b><button id="mnFClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div>'
-    +'<div style="padding:14px 16px;overflow:auto;flex:1">'
-    +'<div style="font-size:12.5px;font-weight:800;color:#334;margin-bottom:6px">맨홀번호</div>'
-    +'<div style="display:flex;gap:7px;margin-bottom:5px"><input id="mnNo" value="'+joseoEsc(rec.no||'')+'" placeholder="예: 6M" style="flex:1.2;min-width:0;border:1px solid #ddd;border-radius:8px;padding:9px 10px;font-size:15px"><select id="mnOwner" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:8px;padding:9px 6px;font-size:14px;background:#fff">'+ownerOpts+'</select></div>'
-    +'<input id="mnOwnerC" value="'+joseoEsc(rec.ownerC||'')+'" placeholder="소유자 직접입력" style="width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:8px;padding:9px 10px;font-size:14px;margin-bottom:10px;display:'+(rec.owner==='_c'?'block':'none')+'">'
-    +'<div style="font-size:12.5px;font-weight:800;color:#334;margin:4px 0 6px">맨홀 치수</div>'
-    +'<div style="display:flex;gap:7px;margin-bottom:8px">'+inp('mnDep','깊이',rec.dep,'m')+inp('mnW12','①-② 폭',rec.w12,'m')+inp('mnW34','③-④ 폭',rec.w34,'m')+'</div>'
-    +'<div style="display:flex;gap:7px;margin-bottom:8px">'+inp('mnTopi','토피',rec.topi,'m')+inp('mnLid','뚜껑지름',rec.lid,'mm')+'<div style="flex:1"></div></div>'
-    +'<div id="mnSpecLine" style="font-size:13px;font-weight:800;color:#1d9e75;background:#f2fbf7;border:1px solid #cfe8dd;border-radius:9px;padding:9px 11px;margin-bottom:12px">치수를 입력하면 규격이 자동 판정됩니다</div>'
-    +mnPipeBtnsHtml(rec)
-    +'<div style="font-size:12.5px;font-weight:800;color:#334;margin-bottom:6px">사진 촬영 <span style="color:#99a;font-weight:400">①서 ②동 ③북 ④남 순서 고정</span></div>'
-    +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:4px">'+slotsHtml+'</div>'
-    +'</div>'
-    +'<div style="display:flex;gap:8px;padding:12px 16px;border-top:1px solid #eee">'
+  wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1300;display:flex;justify-content:center;align-items:'+(mob?'stretch':'center');
+  wrap.innerHTML='<div style="background:#fff;'+(mob?'width:100vw;height:100dvh;border-radius:0':'border-radius:14px;width:min(96vw,540px);max-height:95dvh')+';display:flex;flex-direction:column;overflow:hidden">'
+    +'<div style="padding:10px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;flex:none"><b style="flex:1;font-size:15px">맨홀 조사야장</b><button id="mnFClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div>'
+    +'<div id="mnSheetBox" style="flex:1;overflow:auto;-webkit-overflow-scrolling:touch;background:#f4f4f2"></div>'
+    +'<div style="display:flex;gap:8px;padding:10px 14px;border-top:1px solid #eee;flex:none">'
     +'<button id="mnSave" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer">저장</button>'
     +'<button id="mnBack" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:10px;padding:12px;font-weight:700;font-size:15px;cursor:pointer">목록으로</button>'
     +'</div></div>';
   document.body.appendChild(wrap);
-  function updSpec(){
-    var d=parseFloat(document.getElementById('mnDep').value),a=parseFloat(document.getElementById('mnW12').value),b=parseFloat(document.getElementById('mnW34').value);
-    var sp=mnDetectSpec(d,a,b);var el=document.getElementById('mnSpecLine');
-    if(sp){el.textContent='판정: '+sp.name+' ('+(sp.w/1000)+'×'+(sp.h/1000)+') · '+sp.orient+'배치';el.style.color='#1d9e75';}
-    else{el.textContent='치수를 입력하면 규격이 자동 판정됩니다';el.style.color='#99a';}
-    return sp;
+  var box=wrap.querySelector('#mnSheetBox');
+  function fv(v){return (v===''||v==null)?null:v;}
+  function dimSpot(x,y,k,val,w){
+    w=w||66;
+    var has=fv(val)!=null;
+    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="27" rx="6" fill="'+(has?'#fffbe6':'#fff')+'" stroke="'+(has?'#e6c200':'#c8c8c8')+'" stroke-width="1.4" data-act="dim" data-k="'+k+'" style="cursor:pointer"/>'
+      +'<text x="'+(x+w/2)+'" y="'+(y+18)+'" text-anchor="middle" font-size="14" font-weight="700" fill="'+(has?'#333':'#b5b5b0')+'" pointer-events="none">'+(has?val:'탭')+'</text>';
   }
-  ['mnDep','mnW12','mnW34'].forEach(function(id){document.getElementById(id).addEventListener('input',updSpec);});
-  updSpec();
-  document.getElementById('mnOwner').addEventListener('change',function(){document.getElementById('mnOwnerC').style.display=(this.value==='_c')?'block':'none';});
-  function collect(){
-    rec.no=document.getElementById('mnNo').value.trim();
-    rec.owner=document.getElementById('mnOwner').value;
-    rec.ownerC=document.getElementById('mnOwnerC').value.trim();
-    rec.dep=parseFloat(document.getElementById('mnDep').value)||'';
-    rec.w12=parseFloat(document.getElementById('mnW12').value)||'';
-    rec.w34=parseFloat(document.getElementById('mnW34').value)||'';
-    rec.topi=parseFloat(document.getElementById('mnTopi').value)||'';
-    rec.lid=parseFloat(document.getElementById('mnLid').value)||766;
+  function wallCircles(wallKey,mapFn){
+    var pwv=rec.pipes&&rec.pipes[wallKey];if(!pwv||!pwv.groups)return '';
+    var WHd=mnWallDims(rec,wallKey),Wm=WHd[0],Hm=WHd[1],out='';
+    pwv.groups.forEach(function(g){(g.circles||[]).forEach(function(c){
+      var p=mapFn(c.x/Wm,c.y/Hm);
+      var r=Math.max((c.dia/2)*(140/Wm),2.6);
+      out+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+(c.fill?'#222':'#fff')+'" stroke="#333" stroke-width="1.2" pointer-events="none"/>';
+    });});
+    return out;
+  }
+  function wallLabel(x,y,wallKey,anchor){
+    var sm=mnPipeSummary(rec,wallKey);if(!sm)return '';
+    return sm.split(' / ').map(function(t,i){return '<text x="'+x+'" y="'+(y+i*13)+'" font-size="10.5" font-weight="700" fill="#1a4d80" text-anchor="'+(anchor||'start')+'" pointer-events="none">'+joseoEsc(t)+'</text>';}).join('');
+  }
+  function render(){
     rec.spec=mnDetectSpec(rec.dep,rec.w12,rec.w34);
-  }
-  function persist(msg){
-    collect();
-    var L=mnList(),ix=-1;L.forEach(function(r,i){if(r.id===rec.id)ix=i;});
-    if(ix<0)L.push(rec);else L[ix]=rec;
-    saveProject();if(msg)toast(msg);
-  }
-  wrap.querySelector('#mnFClose').onclick=function(){wrap.remove();};
-  wrap.onclick=function(e){if(e.target===wrap)wrap.remove();};
-  wrap.querySelector('#mnBack').onclick=function(){wrap.remove();mnOpenList();};
-  wrap.querySelector('#mnSave').onclick=function(){
-    if(!document.getElementById('mnNo').value.trim()){toast('맨홀번호를 입력하세요');document.getElementById('mnNo').focus();return;}
-    persist('맨홀조사 저장됨');wrap.remove();mnOpenList();
-  };
-  [].forEach.call(wrap.querySelectorAll('.mn-pipe'),function(b){b.onclick=function(){var wl=b.getAttribute('data-w');collect();wrap.remove();mnPipeEditor(rec,wl);};});
-  [].forEach.call(wrap.querySelectorAll('.mn-slot'),function(b){
-    b.onclick=function(){
-      var slot=b.getAttribute('data-s');
-      var fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.setAttribute('capture','environment');fi.style.display='none';
-      document.body.appendChild(fi);
-      fi.addEventListener('change',function(e){
-        var f=e.target.files&&e.target.files[0];fi.remove();if(!f)return;
-        if(!online){toast('로컬 모드 — 사진 저장 불가');return;}
-        toast('사진 업로드 중…');
-        compressImage(f,1280,0.7).then(function(blob){
-          var path=state.projectId+'/mh_'+rec.id+'_'+slot+'.jpg';
-          return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
-            if(up.error)throw up.error;
-            var url=sb.storage.from('photos').getPublicUrl(path).data.publicUrl+'?t='+Date.now();
-            if(!rec.photos)rec.photos={};rec.photos[slot]=url;
-            b.style.backgroundImage='url('+url+')';b.style.borderStyle='solid';b.style.color='transparent';
-            persist('사진 저장됨');
-          });
-        }).catch(function(err){console.error('mn photo',err);toast('사진 업로드 실패');});
+    var specTxt=rec.spec?(rec.spec.name+' ('+(rec.spec.w/1000)+'×'+(rec.spec.h/1000)+')·'+rec.spec.orient):'';
+    var g='<line x1="250" y1="280" x2="250" y2="430"/><line x1="390" y1="280" x2="390" y2="430"/>';
+    var dash='stroke="#999" stroke-width="0.8" stroke-dasharray="5,4"';
+    function gridV(x0,y0,w,h){var o='';for(var gx=x0+28;gx<x0+w;gx+=28)o+='<line x1="'+gx+'" y1="'+y0+'" x2="'+gx+'" y2="'+(y0+h)+'" '+dash+'/>';for(var gy=y0+28;gy<y0+h;gy+=28)o+='<line x1="'+x0+'" y1="'+gy+'" x2="'+(x0+w)+'" y2="'+gy+'" '+dash+'/>';return o;}
+    var phRows='';
+    MN_SLOTS.forEach(function(sl,i){
+      var y=182+i*36;var url=rec.photos&&rec.photos[sl[0]];
+      phRows+='<text x="586" y="'+(y+6)+'" text-anchor="end" font-size="13" fill="#444">'+sl[1].replace(/^[①-④] /,'')+' :</text>'
+        +(url?'<image href="'+url+'" x="598" y="'+(y-12)+'" width="34" height="34" preserveAspectRatio="xMidYMid slice" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="640" y="'+(y+6)+'" font-size="13" fill="#1d9e75" font-weight="800" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer">✓</text>'
+             :'<rect x="598" y="'+(y-13)+'" width="64" height="27" rx="6" fill="#fff" stroke="#c8c8c8" stroke-width="1.3" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="630" y="'+(y+5)+'" text-anchor="middle" font-size="12" fill="#b5b5b0" pointer-events="none">촬영</text>');
+    });
+    var svg='<svg viewBox="0 0 720 980" xmlns="http://www.w3.org/2000/svg" style="display:block;background:#fff;width:100%;max-width:720px;margin:0 auto;font-family:inherit">'
+      +'<rect x="12" y="12" width="696" height="956" fill="none" stroke="#777" stroke-width="1.5"/>'
+      +'<rect x="380" y="26" width="316" height="34" fill="none" stroke="#555"/><text x="538" y="49" text-anchor="middle" font-size="16" font-weight="800" letter-spacing="8">맨 홀 표 찰</text>'
+      +'<rect x="380" y="60" width="96" height="34" fill="none" stroke="#555"/><text x="428" y="82" text-anchor="middle" font-size="13" fill="#333">맨홀번호</text>'
+      +'<rect x="476" y="60" width="220" height="34" fill="'+(rec.no?'#fff':'#fffdf2')+'" stroke="#c0392b" stroke-width="1.6" data-act="no" style="cursor:pointer"/>'
+      +'<text x="586" y="82" text-anchor="middle" font-size="15" font-weight="800" fill="'+(rec.no?'#c0392b':'#c8b8a0')+'" pointer-events="none">'+(rec.no?joseoEsc(mnLabel(rec)):'탭하여 입력')+'</text>'
+      +'<rect x="380" y="94" width="96" height="34" fill="none" stroke="#555"/><text x="428" y="116" text-anchor="middle" font-size="13" fill="#333">맨홀규격</text>'
+      +'<rect x="476" y="94" width="220" height="34" fill="none" stroke="#555"/><text x="586" y="116" text-anchor="middle" font-size="12.5" font-weight="800" fill="#1d9e75">'+(specTxt||'치수 입력 시 자동')+'</text>'
+      +'<text x="660" y="152" text-anchor="end" font-size="12.5" fill="#555" font-weight="700">사진번호</text>'+phRows
+      /* 전개도 몸통+뚜껑 */
+      +'<rect x="250" y="430" width="140" height="140" fill="#fff" stroke="#333" stroke-width="1.6"/>'
+      +'<circle cx="320" cy="500" r="30" fill="none" stroke="#333" stroke-width="1.4" stroke-dasharray="6,5"/>'
+      /* 상(3=북) */
+      +'<rect x="250" y="280" width="140" height="150" fill="#fff" stroke="#333" stroke-width="1.5"/>'+gridV(250,280,140,150)
+      +'<path d="M285 280 v-45 h70 v45" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<line x1="320" y1="300" x2="320" y2="270" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
+      +'<text x="266" y="216" font-size="15" font-weight="700" fill="#333">3</text>'
+      /* 하(4=남) */
+      +'<rect x="250" y="570" width="140" height="150" fill="#fff" stroke="#333" stroke-width="1.5"/>'+gridV(250,570,140,150)
+      +'<path d="M285 720 v45 h70 v-45" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<line x1="320" y1="700" x2="320" y2="730" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
+      +'<text x="314" y="800" font-size="15" font-weight="700" fill="#333">4</text>'
+      /* 좌(1=서) */
+      +'<rect x="100" y="430" width="150" height="140" fill="#fff" stroke="#333" stroke-width="1.5"/>'+gridV(100,430,150,140)
+      +'<path d="M100 465 h-45 v70 h45" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<line x1="120" y1="500" x2="90" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
+      +'<text x="30" y="505" font-size="15" font-weight="700" fill="#333">1</text>'
+      /* 우(2=동) */
+      +'<rect x="390" y="430" width="150" height="140" fill="#fff" stroke="#333" stroke-width="1.5"/>'+gridV(390,430,150,140)
+      +'<path d="M540 465 h45 v70 h-45" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<line x1="520" y1="500" x2="550" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
+      +'<text x="600" y="505" font-size="15" font-weight="700" fill="#333">2</text>'
+      +'<defs><marker id="mnArw" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#333"/></marker></defs>'
+      /* 관 미니 렌더 */
+      +wallCircles('p3',function(nx,ny){return [250+nx*140,430-ny*150];})
+      +wallCircles('p4',function(nx,ny){return [250+nx*140,570+ny*150];})
+      +wallCircles('p1',function(nx,ny){return [250-ny*150,430+nx*140];})
+      +wallCircles('p2',function(nx,ny){return [390+ny*150,430+nx*140];})
+      /* 공수 라벨 */
+      +wallLabel(398,304,'p3')+wallLabel(398,600,'p4')+wallLabel(96,424,'p1')+wallLabel(392,590,'p2')
+      /* 치수 스팟 */
+      +'<text x="286" y="214" font-size="11" fill="#888">③-④폭</text>'+dimSpot(284,196,'w34',fv(rec.w34))
+      +'<text x="182" y="238" font-size="11" fill="#888">토피</text>'+dimSpot(180,241,'topi',fv(rec.topi))
+      +'<text x="182" y="326" font-size="11" fill="#888">깊이</text>'+dimSpot(180,329,'dep',fv(rec.dep))
+      +'<text x="42" y="408" font-size="11" fill="#888">①-②폭</text>'+dimSpot(40,411,'w12',fv(rec.w12))
+      /* 뚜껑 */
+      +'<circle cx="110" cy="862" r="30" fill="#fff" stroke="#333" stroke-width="1.3" stroke-dasharray="6,5" data-act="dim" data-k="lid" style="cursor:pointer"/>'
+      +'<text x="110" y="868" text-anchor="middle" font-size="13.5" font-weight="800" fill="'+(fv(rec.lid)!=null?'#333':'#b5b5b0')+'" pointer-events="none">'+(fv(rec.lid)!=null?rec.lid:'탭')+'</text>'
+      +'<text x="110" y="914" text-anchor="middle" font-size="12.5" fill="#444">원형맨홀뚜껑</text>'
+      +'<rect x="200" y="834" width="130" height="56" fill="#fff" stroke="#333" stroke-width="1.4" data-act="dim" data-k="lidRect" style="cursor:pointer"/>'
+      +'<text x="265" y="866" text-anchor="middle" font-size="13" font-weight="700" fill="'+(rec.lidRect?'#333':'#b5b5b0')+'" pointer-events="none">'+(rec.lidRect?joseoEsc(rec.lidRect):'SIZE')+'</text>'
+      +'<text x="265" y="914" text-anchor="middle" font-size="12.5" fill="#444">사각맨홀뚜껑</text>'
+      /* 벽면 탭 영역 (관배치) */
+      +'<rect x="250" y="235" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p3" style="cursor:pointer"/>'
+      +'<rect x="250" y="570" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p4" style="cursor:pointer"/>'
+      +'<rect x="55" y="430" width="195" height="140" fill="rgba(0,0,0,0)" data-act="wall" data-w="p1" style="cursor:pointer"/>'
+      +'<rect x="390" y="430" width="195" height="140" fill="rgba(0,0,0,0)" data-act="wall" data-w="p2" style="cursor:pointer"/>'
+      +'<text x="320" y="960" text-anchor="middle" font-size="11.5" fill="#aab">벽면=관배치 · 노란칸=치수 · 표찰표=번호 · 우측=사진</text>'
+      +'</svg>';
+    box.innerHTML=svg;
+    [].forEach.call(box.querySelectorAll('[data-act]'),function(el){
+      el.addEventListener('click',function(){
+        var act=el.getAttribute('data-act');
+        if(act==='no'){mnAskNoOwner(rec,function(){mnPersistRec(rec);render();});}
+        else if(act==='dim'){
+          var k=el.getAttribute('data-k');
+          var titles={dep:'깊이',w12:'①-② 폭',w34:'③-④ 폭',topi:'토피',lid:'뚜껑지름',lidRect:'사각뚜껑 SIZE'};
+          var units={dep:'m',w12:'m',w34:'m',topi:'m',lid:'mm',lidRect:''};
+          mnAsk({title:titles[k],unit:units[k],val:rec[k],text:(k==='lidRect'),cb:function(v){rec[k]=(v===''?'':v);mnPersistRec(rec);render();}});
+        }
+        else if(act==='wall'){var wl=el.getAttribute('data-w');wrap.remove();mnPipeEditor(rec,wl);}
+        else if(act==='ph'){mnShootSlot(rec,el.getAttribute('data-s'),function(){render();});}
       });
-      fi.click();
-    };
-  });
+    });
+  }
+  render();
+  wrap.querySelector('#mnFClose').onclick=function(){wrap.remove();};
+  wrap.querySelector('#mnBack').onclick=function(){wrap.remove();mnOpenList();};
+  wrap.querySelector('#mnSave').onclick=function(){mnPersistRec(rec,'맨홀조사 저장됨');wrap.remove();mnOpenList();};
 }
-
+function mnShootSlot(rec,slot,done){
+  var fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.setAttribute('capture','environment');fi.style.display='none';
+  document.body.appendChild(fi);
+  fi.addEventListener('change',function(e){
+    var f=e.target.files&&e.target.files[0];fi.remove();if(!f)return;
+    if(!online){toast('로컬 모드 — 사진 저장 불가');return;}
+    toast('사진 업로드 중…');
+    compressImage(f,1280,0.7).then(function(blob){
+      var path=state.projectId+'/mh_'+rec.id+'_'+slot+'.jpg';
+      return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
+        if(up.error)throw up.error;
+        var url=sb.storage.from('photos').getPublicUrl(path).data.publicUrl+'?t='+Date.now();
+        if(!rec.photos)rec.photos={};rec.photos[slot]=url;
+        mnPersistRec(rec,'사진 저장됨');if(done)done();
+      });
+    }).catch(function(err){console.error('mn photo',err);toast('사진 업로드 실패');});
+  });
+  fi.click();
+}
 /* ===================== [BUILD 921] 맨홀 관배치 편집기 ===================== */
 var MN_WALLS=[['p1','① 서'],['p2','② 동'],['p3','③ 북'],['p4','④ 남']];
 var MN_KINDS=['FC','COD','PE','강관'];
