@@ -6691,14 +6691,18 @@ function mnOpenList(){
   var rows=mnList();
   var listHtml;
   if(rows.length){
-    listHtml=rows.map(function(r,i){
+    var arr=rows.map(function(r,i){return {r:r,i:i};});
+    arr.sort(function(a,b){return ((b.r.up||b.r.at||'')+'').localeCompare((a.r.up||a.r.at||'')+'');});
+    listHtml=arr.map(function(o,k){
+      var r=o.r,i=o.i;
       var pc=0;MN_SLOTS.forEach(function(sl){if(r.photos&&r.photos[sl[0]])pc++;});
       var spBadge=r.spec
         ?'<span style="background:#e1f5ee;color:#0f6e56;border:1px solid #bfe5d6;border-radius:20px;padding:3px 10px;font-size:11.5px;font-weight:800">'+joseoEsc(r.spec.name)+' · '+r.spec.orient+'</span>'
         :'<span style="background:#f4f4f1;color:#9a9a94;border:1px solid #e3e3de;border-radius:20px;padding:3px 10px;font-size:11.5px;font-weight:700">규격 미판정</span>';
-      var dt=(r.at||'').slice(0,10).replace(/-/g,'.');
-      return '<div class="mn-card" data-i="'+i+'" style="background:#fff;border:1px solid #e2eae5;border-radius:13px;padding:13px 14px;margin-bottom:9px;cursor:pointer;box-shadow:0 1px 4px rgba(20,60,45,.06)">'
-        +'<div style="display:flex;align-items:center;gap:8px"><span style="flex:1;font-size:16px;font-weight:800;color:#134e3a">'+(r.no?joseoEsc(mnLabel(r)):'<span style=\"color:#b8b8b0\">번호 미입력</span>')+'</span>'+spBadge
+      var dt=((r.up||r.at||'')).slice(0,10).replace(/-/g,'.');
+      var recent=(k===0&&rows.length>1)?'<span style="background:#1d9e75;color:#fff;border-radius:20px;padding:2px 8px;font-size:10.5px;font-weight:800">최근 작업</span>':'';
+      return '<div class="mn-card" data-i="'+i+'" style="background:#fff;border:1px solid '+(k===0?'#9fd4bd':'#e2eae5')+';border-radius:13px;padding:13px 14px;margin-bottom:9px;cursor:pointer;box-shadow:0 1px 4px rgba(20,60,45,.06)">'
+        +'<div style="display:flex;align-items:center;gap:8px"><span style="flex:1;font-size:16px;font-weight:800;color:#134e3a">'+(r.no?joseoEsc(mnLabel(r)):'<span style=\"color:#b8b8b0\">번호 미입력</span>')+'</span>'+recent+spBadge
         +'<button class="mn-del" data-i="'+i+'" style="flex:none;border:none;background:#faf1f0;color:#c0392b;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:14px;line-height:1">✕</button></div>'
         +'<div style="display:flex;align-items:center;gap:12px;margin-top:7px;font-size:12px;color:#8a948e"><span style="font-weight:700;color:'+(pc===6?'#1d9e75':'#8a948e')+'">사진 '+pc+'/6</span><span>'+dt+'</span></div>'
         +'</div>';
@@ -6892,17 +6896,17 @@ function mnOpenForm(rec){
     MN_SLOTS.forEach(function(sl,i){
       var y=182+i*36;var url=rec.photos&&rec.photos[sl[0]];
       phRows+='<text x="586" y="'+(y+6)+'" text-anchor="end" font-size="13" fill="#444">'+sl[1].replace(/^[①-④] /,'')+' :</text>'
-        +(url?'<image href="'+url+'" x="598" y="'+(y-12)+'" width="34" height="34" preserveAspectRatio="xMidYMid slice" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="640" y="'+(y+6)+'" font-size="13" fill="#1d9e75" font-weight="800" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer">✓</text>'
+        +(url?'<image href="'+url+'" x="598" y="'+(y-13)+'" width="27" height="27" preserveAspectRatio="xMidYMid slice" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><rect x="629" y="'+(y-13)+'" width="48" height="27" rx="6" fill="#e1f5ee" stroke="#1d9e75" stroke-width="1.5" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="653" y="'+(y+5)+'" text-anchor="middle" font-size="12" font-weight="800" fill="#1d9e75" pointer-events="none">완료</text>'
              :'<rect x="598" y="'+(y-13)+'" width="64" height="27" rx="6" fill="#fdeaea" stroke="#d32f2f" stroke-width="1.6" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="630" y="'+(y+5)+'" text-anchor="middle" font-size="12.5" font-weight="800" fill="#d32f2f" pointer-events="none">촬영</text>');
     });
     var svg='<svg viewBox="0 0 720 980" xmlns="http://www.w3.org/2000/svg" style="display:block;background:#fff;'+(host?'width:100%;height:100%':'width:100%;max-width:720px')+';margin:0 auto;font-family:inherit">'
       +'<rect x="12" y="12" width="696" height="956" fill="none" stroke="#777" stroke-width="1.5"/>'
-      +'<rect x="380" y="26" width="316" height="34" fill="none" stroke="#555"/><text x="538" y="49" text-anchor="middle" font-size="16" font-weight="800" letter-spacing="8">맨 홀 표 찰</text>'
-      +'<rect x="380" y="60" width="96" height="34" fill="none" stroke="#555"/><text x="428" y="82" text-anchor="middle" font-size="13" fill="#333">맨홀번호</text>'
-      +'<rect x="476" y="60" width="220" height="34" fill="'+(rec.no?'#fff':'#fffdf2')+'" stroke="#c0392b" stroke-width="1.6" data-act="no" style="cursor:pointer"/>'
-      +'<text x="586" y="82" text-anchor="middle" font-size="15" font-weight="800" fill="'+(rec.no?'#c0392b':'#c8b8a0')+'" pointer-events="none">'+(rec.no?joseoEsc(mnLabel(rec)):'탭하여 입력')+'</text>'
-      +'<rect x="380" y="94" width="96" height="34" fill="none" stroke="#555"/><text x="428" y="116" text-anchor="middle" font-size="13" fill="#333">맨홀규격</text>'
-      +'<rect x="476" y="94" width="220" height="34" fill="none" stroke="#555"/><text x="586" y="116" text-anchor="middle" font-size="12.5" font-weight="800" fill="#1d9e75">'+(specTxt||'치수 입력 시 자동')+'</text>'
+      +'<rect x="440" y="26" width="256" height="34" fill="none" stroke="#555"/><text x="568" y="49" text-anchor="middle" font-size="16" font-weight="800" letter-spacing="8">맨 홀 표 찰</text>'
+      +'<rect x="440" y="60" width="84" height="34" fill="none" stroke="#555"/><text x="482" y="82" text-anchor="middle" font-size="13" fill="#333">맨홀번호</text>'
+      +'<rect x="524" y="60" width="172" height="34" fill="'+(rec.no?'#fff':'#fffdf2')+'" stroke="#c0392b" stroke-width="1.6" data-act="no" style="cursor:pointer"/>'
+      +'<text x="610" y="82" text-anchor="middle" font-size="14" font-weight="800" fill="'+(rec.no?'#c0392b':'#c8b8a0')+'" pointer-events="none">'+(rec.no?joseoEsc(mnLabel(rec)):'탭하여 입력')+'</text>'
+      +'<rect x="440" y="94" width="84" height="34" fill="none" stroke="#555"/><text x="482" y="116" text-anchor="middle" font-size="13" fill="#333">맨홀규격</text>'
+      +'<rect x="524" y="94" width="172" height="34" fill="none" stroke="#555"/><text x="610" y="116" text-anchor="middle" font-size="12.5" font-weight="800" fill="#1d9e75">'+(specTxt||'치수 입력 시 자동')+'</text>'
       +'<text x="660" y="152" text-anchor="end" font-size="12.5" fill="#555" font-weight="700">사진번호</text>'+phRows
       +'<defs><marker id="mnArw" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#333"/></marker></defs>'
       /* ===== 전개도 (중앙) ===== */
@@ -7004,7 +7008,12 @@ function mnOpenForm(rec){
   }
   root.querySelector('#mnFClose').onclick=uClose;
   root.querySelector('#mnBack').onclick=function(){uClose();mnOpenList();};
-  root.querySelector('#mnSave').onclick=function(){mnPersistRec(rec,'맨홀조사 저장됨');uClose();mnOpenList();};
+  root.querySelector('#mnSave').onclick=function(){
+    if(!rec.no){toast('맨홀번호를 입력하세요');mnAskNoOwner(rec,function(){mnPersistRec(rec);render();});return;}
+    var dup=null;mnList().forEach(function(r){if(r.id!==rec.id&&mnLabel(r)===mnLabel(rec))dup=r;});
+    if(dup){if(!confirm('같은 번호('+mnLabel(rec)+')가 목록에 있습니다. 덮어쓸까요?'))return;var L=mnList();var di=L.indexOf(dup);if(di>=0)L.splice(di,1);}
+    mnPersistRec(rec,'맨홀조사 저장됨');uClose();mnOpenList();
+  };
 }
 function mnShootSlot(rec,slot,done){
   var fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.setAttribute('capture','environment');fi.style.display='none';
@@ -7054,6 +7063,7 @@ function mnPipeBtnsHtml(rec){
   return '<div style="font-size:12.5px;font-weight:800;color:#334;margin-bottom:6px">관배치 (벽면별)</div><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px">'+btns+'</div>';
 }
 function mnPersistRec(rec,msg){
+  rec.up=new Date().toISOString();
   var L=mnList(),ix=-1;L.forEach(function(r,i){if(r.id===rec.id)ix=i;});
   if(ix<0)L.push(rec);else L[ix]=rec;
   saveProject();if(msg)toast(msg);
