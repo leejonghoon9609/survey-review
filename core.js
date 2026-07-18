@@ -6763,7 +6763,7 @@ function mnOpenForm(rec){
   document.body.appendChild(wrap);
   var box=wrap.querySelector('#mnSheetBox');
   function fv(v){return (v===''||v==null)?null:v;}
-  var MN_DIMC={dep:['#e74c3c','#fdecea'],topi:['#e67e22','#fdf3e7'],w34:['#2471a3','#eaf3fb'],w12:['#8e44ad','#f4ecf9'],lid:['#1d9e75','#e1f5ee'],lidRect:['#d4537e','#fbeaf0']};
+  var MN_DIMC={dep:['#e74c3c','#fdecea'],topi:['#e67e22','#fdf3e7'],w34:['#2471a3','#eaf3fb'],w12:['#8e44ad','#f4ecf9'],lid:['#1d9e75','#e1f5ee'],lidRect:['#d4537e','#fbeaf0'],lidW:['#d4537e','#fbeaf0'],lidH:['#d4537e','#fbeaf0']};
   var MN_UNITS={dep:'m',w12:'m',w34:'m',topi:'m'};
   function dimSpot(x,y,k,label,w){
     w=w||50;
@@ -6870,12 +6870,18 @@ function mnOpenForm(rec){
       +'<rect x="390" y="430" width="195" height="140" fill="rgba(0,0,0,0)" data-act="wall" data-w="p2" style="cursor:pointer"/>'
       +'</g>'
       /* 뚜껑 */
-      +'<circle cx="110" cy="862" r="30" fill="#e1f5ee" stroke="#1d9e75" stroke-width="1.6" stroke-dasharray="6,5" data-act="dim" data-k="lid" style="cursor:pointer"/>'
-      +'<text x="110" y="868" text-anchor="middle" font-size="13.5" font-weight="800" fill="#1d9e75" pointer-events="none">'+(fv(rec.lid)!=null?rec.lid:766)+'</text>'
-      +'<text x="110" y="914" text-anchor="middle" font-size="12.5" fill="#444">원형맨홀뚜껑</text>'
-      +'<rect x="200" y="834" width="130" height="56" rx="8" fill="#fbeaf0" stroke="#d4537e" stroke-width="1.6" data-act="dim" data-k="lidRect" style="cursor:pointer"/>'
-      +'<text x="265" y="866" text-anchor="middle" font-size="13" font-weight="800" fill="#d4537e" pointer-events="none">'+(rec.lidRect?joseoEsc(rec.lidRect):'치수 입력')+'</text>'
-      +'<text x="265" y="914" text-anchor="middle" font-size="12.5" fill="#444">사각맨홀뚜껑</text>'
+      +'<circle cx="110" cy="858" r="30" fill="#fff" stroke="#1d9e75" stroke-width="1.5" stroke-dasharray="6,5" data-act="dim" data-k="lid" style="cursor:pointer"/>'
+      +dimRange(84,858,136,858,'#1d9e75')
+      +'<text x="110" y="850" text-anchor="middle" font-size="12" font-weight="800" fill="#1d9e75" data-act="dim" data-k="lid" style="cursor:pointer">'+(fv(rec.lid)!=null?rec.lid:766)+'</text>'
+      +'<text x="110" y="922" text-anchor="middle" font-size="12.5" fill="#444">원형맨홀뚜껑</text>'
+      +'<rect x="210" y="826" width="130" height="54" fill="#fff" stroke="#333" stroke-width="1.4"/>'
+      +dimRange(210,892,340,892,'#d4537e')
+      +'<rect x="243" y="882" width="64" height="20" rx="5" fill="#fbeaf0" stroke="#d4537e" stroke-width="1.2" data-act="dim" data-k="lidW" style="cursor:pointer"/>'
+      +'<text x="275" y="896" text-anchor="middle" font-size="11" font-weight="800" fill="#d4537e" pointer-events="none">'+(fv(rec.lidW)!=null?rec.lidW:'가로')+'</text>'
+      +dimRange(198,826,198,880,'#d4537e')
+      +'<rect x="146" y="843" width="46" height="20" rx="5" fill="#fbeaf0" stroke="#d4537e" stroke-width="1.2" data-act="dim" data-k="lidH" style="cursor:pointer"/>'
+      +'<text x="169" y="857" text-anchor="middle" font-size="11" font-weight="800" fill="#d4537e" pointer-events="none">'+(fv(rec.lidH)!=null?rec.lidH:'세로')+'</text>'
+      +'<text x="275" y="922" text-anchor="middle" font-size="12.5" fill="#444">사각맨홀뚜껑</text>'
       +'<text x="360" y="960" text-anchor="middle" font-size="11.5" fill="#aab">벽면=관배치 · 색칸=치수 · 표찰표=번호 · 우측=사진</text>'
       +'</svg>';
     box.innerHTML=svg;
@@ -6885,8 +6891,8 @@ function mnOpenForm(rec){
         if(act==='no'){mnAskNoOwner(rec,function(){mnPersistRec(rec);render();});}
         else if(act==='dim'){
           var k=el.getAttribute('data-k');
-          var titles={dep:'깊이',w12:'폭',w34:'폭',topi:'토피',lid:'뚜껑지름',lidRect:'사각뚜껑 SIZE'};
-          var units={dep:'m',w12:'m',w34:'m',topi:'m',lid:'mm',lidRect:''};
+          var titles={dep:'깊이',w12:'폭',w34:'폭',topi:'토피',lid:'뚜껑지름',lidRect:'사각뚜껑 SIZE',lidW:'사각뚜껑 가로',lidH:'사각뚜껑 세로'};
+          var units={dep:'m',w12:'m',w34:'m',topi:'m',lid:'mm',lidRect:'',lidW:'mm',lidH:'mm'};
           mnAsk({title:titles[k],unit:units[k],val:rec[k],text:(k==='lidRect'),color:MN_DIMC[k],cb:function(v){rec[k]=(v===''?'':v);mnPersistRec(rec);render();}});
         }
         else if(act==='wall'){var wl=el.getAttribute('data-w');wrap.remove();mnPipeEditor(rec,wl);}
