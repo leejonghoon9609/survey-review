@@ -6940,7 +6940,10 @@ function mnOpenForm(rec){
     var phRows='';
     MN_SLOTS.forEach(function(sl,i){
       var y=182+i*36;var url=rec.photos&&rec.photos[sl[0]];
-      phRows+='<text x="586" y="'+(y+6)+'" text-anchor="end" font-size="13" fill="#444">'+sl[1].replace(/^[①-④] /,'')+' :</text>'
+      var chkOn=!(rec.chk&&rec.chk[sl[0]]===0);
+      phRows+='<rect x="494" y="'+(y-8)+'" width="16" height="16" rx="3.5" fill="'+(chkOn?'#1d9e75':'#fff')+'" stroke="'+(chkOn?'#1d9e75':'#bbb')+'" stroke-width="1.4" data-act="chk" data-s="'+sl[0]+'" style="cursor:pointer"/>'
+        +(chkOn?'<path d="M497.5 '+y+' l4 4.5 l7 -8" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>':'')
+        +'<text x="586" y="'+(y+6)+'" text-anchor="end" font-size="13" fill="#444">'+sl[1].replace(/^[①-④] /,'')+' :</text>'
         +(url?'<image href="'+url+'" x="598" y="'+(y-13)+'" width="27" height="27" preserveAspectRatio="xMidYMid slice" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><rect x="629" y="'+(y-13)+'" width="48" height="27" rx="6" fill="#e1f5ee" stroke="#1d9e75" stroke-width="1.5" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="653" y="'+(y+5)+'" text-anchor="middle" font-size="12" font-weight="800" fill="#1d9e75" pointer-events="none">완료</text>'
              :'<rect x="598" y="'+(y-13)+'" width="64" height="27" rx="6" fill="#fdeaea" stroke="#d32f2f" stroke-width="1.6" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="630" y="'+(y+5)+'" text-anchor="middle" font-size="12.5" font-weight="800" fill="#d32f2f" pointer-events="none">촬영</text>');
     });
@@ -6958,6 +6961,8 @@ function mnOpenForm(rec){
       +'<g transform="translate(40,0)">'
       +'<rect x="250" y="430" width="140" height="140" fill="#fff" stroke="#333" stroke-width="1.6"/>'
       +'<circle cx="320" cy="500" r="30" fill="none" stroke="#333" stroke-width="1.4" stroke-dasharray="6,5"/>'
+      +(rec.photos&&rec.photos.fr?'<image href="'+rec.photos.fr+'" x="250" y="430" width="140" height="140" preserveAspectRatio="xMidYMid slice" opacity="0.35" pointer-events="none"/>':'')
+      +'<rect x="274" y="539" width="92" height="22" rx="6" fill="#ffffff" fill-opacity="0.78" stroke="#ecc9c9" stroke-width="1" pointer-events="none"/><text x="320" y="554" text-anchor="middle" font-size="10.5" font-weight="700" fill="#d9a0a0" pointer-events="none">전경사진 촬영</text>'
       /* 상(3=북): 목 — 되꺾임 안쪽 */
       +'<rect x="250" y="280" width="140" height="150" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p3')
       +'<polyline points="278,280 278,235 258,235" fill="none" stroke="#333" stroke-width="1.5"/>'
@@ -6998,6 +7003,7 @@ function mnOpenForm(rec){
       +dimRange(240,235,240,280,'#e67e22')+dimSpot(188,247,'topi','토피',46)
       +dimRange(240,280,240,430,'#e74c3c')+dimSpot(188,344,'dep','깊이',46)
       +dimRange(106,430,106,570,'#8e44ad')+dimSpot(34,442,'w12','폭',46)
+      +'<rect x="250" y="430" width="140" height="140" fill="rgba(0,0,0,0)" data-act="ph" data-s="fr" style="cursor:pointer"/>'
       +'<rect x="250" y="235" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p3" style="cursor:pointer"/>'
       +'<rect x="250" y="570" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p4" style="cursor:pointer"/>'
       +'<rect x="55" y="430" width="195" height="140" fill="rgba(0,0,0,0)" data-act="wall" data-w="p1" style="cursor:pointer"/>'
@@ -7033,6 +7039,7 @@ function mnOpenForm(rec){
         }
         else if(act==='dest'){var dk=el.getAttribute('data-d');var dn={d1:'1',d2:'2',d3:'3',d4:'4'}[dk];mnAskDest((rec.dest&&rec.dest[dk])||'',dn,function(v){if(!rec.dest)rec.dest={};rec.dest[dk]=v;mnPersistRec(rec);render();});}
         else if(act==='wall'){var wl=el.getAttribute('data-w');var closeIt=function(){if(!host&&wrap)wrap.remove();};if(!(rec.photos&&rec.photos[wl])){toast('벽면 사진을 먼저 촬영합니다');mnShootSlot(rec,wl,function(){closeIt();mnPipeEditor(rec,wl);});}else{closeIt();mnPipeEditor(rec,wl);}}
+        else if(act==='chk'){var cs=el.getAttribute('data-s');if(!rec.chk)rec.chk={bd:1,fr:1,p1:1,p2:1,p3:1,p4:1};rec.chk[cs]=(rec.chk[cs]===0?1:0);mnPersistRec(rec);render();}
         else if(act==='ph'){mnShootSlot(rec,el.getAttribute('data-s'),function(){render();});}
       });
     });
@@ -7089,6 +7096,8 @@ function mnOpenForm(rec){
   root.querySelector('#mnBack').onclick=function(){uClose();mnOpenList();};
   root.querySelector('#mnSave').onclick=function(){
     if(!rec.no){toast('맨홀번호를 입력하세요');mnAskNoOwner(rec,function(){mnPersistRec(rec);render();});return;}
+    var miss=[];MN_SLOTS.forEach(function(sl){if(!(rec.chk&&rec.chk[sl[0]]===0)&&!(rec.photos&&rec.photos[sl[0]]))miss.push(sl[1].replace(/^[①-④] /,''));});
+    if(miss.length){alert(miss.join(', ')+' 사진을 등록하세요');return;}
     var dup=null;mnList().forEach(function(r){if(r.id!==rec.id&&mnLabel(r)===mnLabel(rec))dup=r;});
     if(dup){if(!confirm('같은 번호('+mnLabel(rec)+')가 목록에 있습니다. 덮어쓸까요?'))return;var L=mnList();var di=L.indexOf(dup);if(di>=0)L.splice(di,1);}
     mnPersistRec(rec,'맨홀조사 저장됨');uClose();mnOpenList();
