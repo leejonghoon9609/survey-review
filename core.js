@@ -6709,14 +6709,16 @@ function mnOpenList(){
       +'<div style="font-size:14.5px;font-weight:700;color:#4a5a52">조사한 맨홀이 없습니다</div>'
       +'<div style="font-size:12.5px;color:#9aa8a0;margin-top:4px">아래 버튼으로 첫 조사를 시작하세요</div></div>';
   }
+  var newBtn='<div style="padding:'+(host?'12px 15px 4px':'11px 15px 15px')+'"><button id="mnNew" style="width:100%;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:12px;padding:13px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(211,47,47,.15)"><span style="letter-spacing:2px;margin-right:-2px">+ 새 맨홀조사</span></button></div>';
   var inner='<div style="background:#f5f8f6;'+(host?'width:100%;height:100%;border-radius:0':'border-radius:16px;width:min(94vw,420px);max-height:84dvh;box-shadow:0 16px 48px rgba(0,0,0,.25)')+';display:flex;flex-direction:column;overflow:hidden">'
     +'<div style="padding:15px 17px;background:#fff;border-bottom:1px solid #e7eeea;display:flex;align-items:center;gap:9px">'
       +'<span style="width:10px;height:10px;border-radius:50%;background:#1d9e75;flex:none"></span>'
       +'<b style="flex:1;font-size:16px;color:#22332b">맨홀조사 야장</b>'
       +(rows.length?'<span style="background:#e1f5ee;color:#0f6e56;border-radius:20px;padding:3px 11px;font-size:12px;font-weight:800">'+rows.length+'개</span>':'')
       +'<button id="mnLClose" style="border:none;background:#f1f3f1;border-radius:9px;padding:7px 13px;cursor:pointer;color:#555;font-weight:700;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">닫기</span></button></div>'
+    +(host?newBtn:'')
     +'<div style="padding:13px 15px 4px;overflow:auto;flex:1">'+listHtml+'</div>'
-    +'<div style="padding:11px 15px 15px"><button id="mnNew" style="width:100%;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:12px;padding:13px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(211,47,47,.15)"><span style="letter-spacing:2px;margin-right:-2px">+ 새 맨홀조사</span></button></div>'
+    +(host?'':newBtn)
     +'</div>';
   var wrap=null,root=null;
   if(host){host.innerHTML=inner;root=host;}
@@ -6843,7 +6845,7 @@ function mnOpenForm(rec){
         +(url?'<image href="'+url+'" x="598" y="'+(y-12)+'" width="34" height="34" preserveAspectRatio="xMidYMid slice" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="640" y="'+(y+6)+'" font-size="13" fill="#1d9e75" font-weight="800" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer">✓</text>'
              :'<rect x="598" y="'+(y-13)+'" width="64" height="27" rx="6" fill="#fdeaea" stroke="#d32f2f" stroke-width="1.6" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="630" y="'+(y+5)+'" text-anchor="middle" font-size="12.5" font-weight="800" fill="#d32f2f" pointer-events="none">촬영</text>');
     });
-    var svg='<svg viewBox="0 0 720 980" xmlns="http://www.w3.org/2000/svg" style="display:block;background:#fff;width:100%;max-width:720px;margin:0 auto;font-family:inherit">'
+    var svg='<svg viewBox="0 0 720 980" xmlns="http://www.w3.org/2000/svg" style="display:block;background:#fff;'+(host?'width:100%;height:100%':'width:100%;max-width:720px')+';margin:0 auto;font-family:inherit">'
       +'<rect x="12" y="12" width="696" height="956" fill="none" stroke="#777" stroke-width="1.5"/>'
       +'<rect x="380" y="26" width="316" height="34" fill="none" stroke="#555"/><text x="538" y="49" text-anchor="middle" font-size="16" font-weight="800" letter-spacing="8">맨 홀 표 찰</text>'
       +'<rect x="380" y="60" width="96" height="34" fill="none" stroke="#555"/><text x="428" y="82" text-anchor="middle" font-size="13" fill="#333">맨홀번호</text>'
