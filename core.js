@@ -7271,11 +7271,11 @@ function mnPipeEditor(rec,wall){
     o.innerHTML=Array.apply(null,Array(n)).map(function(_,i){
       return '<div style="display:flex;gap:4px;align-items:center;margin-bottom:5px"><span style="flex:none;font-size:12px;color:#667;width:26px">'+(i+1)+'단</span>'
         +'<select class="mn-rdia" style="flex:1.1;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 3px;font-size:13px;background:#fff"><option>100</option><option>50</option><option>80</option><option>150</option></select>'
-        +'<select class="mn-rcnt-sel" style="flex:0.9;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 3px;font-size:13px;background:#fff"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option value="_c">직접</option></select>'
+        +'<select class="mn-rcnt-sel" style="flex:0.9;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 3px;font-size:13px;background:#fff"><option selected>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option value="_c">직접</option></select>'
         +'<input class="mn-rcnt" type="number" min="1" max="12" value="6" inputmode="numeric" style="flex:0.9;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 4px;font-size:13px;display:none">'
         +'<span style="flex:none;font-size:12px;color:#aab">/</span>'
         +'<select class="mn-rdia2" style="flex:1.1;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 3px;font-size:13px;background:#fff;color:#889"><option value="-">관경</option><option>50</option><option>100</option><option>80</option><option>150</option></select>'
-        +'<select class="mn-rcnt2-sel" style="flex:0.9;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 3px;font-size:13px;background:#fff"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option value="_c">직접</option></select>'
+        +'<select class="mn-rcnt2-sel" style="flex:0.9;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 3px;font-size:13px;background:#fff"><option selected>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option value="_c">직접</option></select>'
         +'<input class="mn-rcnt2" type="number" min="1" max="12" value="6" inputmode="numeric" style="flex:0.9;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 4px;font-size:13px;display:none">'
         +'</div>';
     }).join('');
@@ -7314,14 +7314,17 @@ function mnPipeEditor(rec,wall){
     var d2s=wrap.querySelectorAll('.mn-rdia2'),s2s=wrap.querySelectorAll('.mn-rcnt2-sel'),c2s=wrap.querySelectorAll('.mn-rcnt2');
     for(var i=0;i<ds.length;i++){
       var segs=[];
-      var cnt=(ss[i].value==='_c')?(parseInt(cs[i].value)||1):(parseInt(ss[i].value)||1);
-      segs.push({dia:parseInt(ds[i].value)||100,cnt:Math.max(1,Math.min(12,cnt))});
+      var cnt=(ss[i].value==='_c')?(parseInt(cs[i].value)||0):(parseInt(ss[i].value)||0);
+      cnt=Math.max(0,Math.min(12,cnt));
+      if(cnt>0)segs.push({dia:parseInt(ds[i].value)||100,cnt:cnt});
       if(d2s[i]&&d2s[i].value!=='-'){
-        var cnt2=(s2s[i].value==='_c')?(parseInt(c2s[i].value)||1):(parseInt(s2s[i].value)||1);
-        segs.push({dia:parseInt(d2s[i].value)||50,cnt:Math.max(1,Math.min(12,cnt2))});
+        var cnt2=(s2s[i].value==='_c')?(parseInt(c2s[i].value)||0):(parseInt(s2s[i].value)||0);
+        cnt2=Math.max(0,Math.min(12,cnt2));
+        if(cnt2>0)segs.push({dia:parseInt(d2s[i].value)||50,cnt:cnt2});
       }
-      rowSegs.push(segs);
+      if(segs.length)rowSegs.push(segs);
     }
+    if(!rowSegs.length){toast('수량을 선택하세요');return;}
     var rows=[];rowSegs.forEach(function(sg){sg.forEach(function(s2){rows.push({dia:s2.dia,cnt:s2.cnt});});});
     var g={kind:kd,rows:rows,circles:[]};
     var maxX=0;pw.groups.forEach(function(og){(og.circles||[]).forEach(function(c){maxX=Math.max(maxX,c.x+c.dia/2);});});
