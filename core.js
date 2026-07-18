@@ -6674,23 +6674,42 @@ function mnOpenList(){
   var old=document.getElementById('mnListModal');if(old)old.remove();
   var mob=(typeof isMobileDevice==='function'&&isMobileDevice());
   var wrap=document.createElement('div');wrap.id='mnListModal';
-  wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1300;display:flex;justify-content:center;'+(mob?'align-items:flex-start;padding-top:7dvh':'align-items:center');
+  wrap.style.cssText='position:fixed;inset:0;background:rgba(20,30,26,.5);z-index:1300;display:flex;justify-content:center;'+(mob?'align-items:flex-start;padding-top:7dvh':'align-items:center');
   var rows=mnList();
-  var listHtml=rows.length?rows.map(function(r,i){
-    var pc=0;MN_SLOTS.forEach(function(sl){if(r.photos&&r.photos[sl[0]])pc++;});
-    var sp=r.spec?(r.spec.name+' · '+r.spec.orient):'규격 미판정';
-    return '<div style="display:flex;align-items:center;gap:8px;margin:5px 0"><button class="mn-row" data-i="'+i+'" style="flex:1;text-align:left;padding:11px 12px;border:1px solid #d8e4dc;border-radius:10px;background:#f7fbf8;cursor:pointer;font-size:14px"><b style="color:#155e46">'+joseoEsc(mnLabel(r))+'</b><span style="float:right;font-size:12px;color:#8aa">'+pc+'/6장</span><br><span style="font-size:12px;color:#889">'+joseoEsc(sp)+'</span></button><button class="mn-del" data-i="'+i+'" style="flex:none;border:1px solid #eec5c0;background:#fff;color:#c0392b;border-radius:8px;padding:10px;cursor:pointer">✕</button></div>';
-  }).join(''):'<div style="color:#999;padding:10px;text-align:center">조사한 맨홀이 없습니다.</div>';
-  wrap.innerHTML='<div style="background:#fff;border-radius:14px;width:min(94vw,420px);max-height:84dvh;display:flex;flex-direction:column;overflow:hidden">'
-    +'<div style="padding:14px 16px;border-bottom:1px solid #eee;display:flex;align-items:center"><b style="flex:1;font-size:16px">맨홀조사 야장</b><button id="mnLClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div>'
-    +'<div style="padding:12px 16px;overflow:auto;flex:1">'+listHtml+'</div>'
-    +'<div style="padding:0 16px 14px"><button id="mnNew" style="width:100%;background:#1d9e75;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:2px;margin-right:-2px">+ 새 맨홀조사</span></button></div>'
+  var listHtml;
+  if(rows.length){
+    listHtml=rows.map(function(r,i){
+      var pc=0;MN_SLOTS.forEach(function(sl){if(r.photos&&r.photos[sl[0]])pc++;});
+      var spBadge=r.spec
+        ?'<span style="background:#e1f5ee;color:#0f6e56;border:1px solid #bfe5d6;border-radius:20px;padding:3px 10px;font-size:11.5px;font-weight:800">'+joseoEsc(r.spec.name)+' · '+r.spec.orient+'</span>'
+        :'<span style="background:#f4f4f1;color:#9a9a94;border:1px solid #e3e3de;border-radius:20px;padding:3px 10px;font-size:11.5px;font-weight:700">규격 미판정</span>';
+      var dt=(r.at||'').slice(0,10).replace(/-/g,'.');
+      return '<div class="mn-card" data-i="'+i+'" style="background:#fff;border:1px solid #e2eae5;border-radius:13px;padding:13px 14px;margin-bottom:9px;cursor:pointer;box-shadow:0 1px 4px rgba(20,60,45,.06)">'
+        +'<div style="display:flex;align-items:center;gap:8px"><span style="flex:1;font-size:16px;font-weight:800;color:#134e3a">'+(r.no?joseoEsc(mnLabel(r)):'<span style=\"color:#b8b8b0\">번호 미입력</span>')+'</span>'+spBadge
+        +'<button class="mn-del" data-i="'+i+'" style="flex:none;border:none;background:#faf1f0;color:#c0392b;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:14px;line-height:1">✕</button></div>'
+        +'<div style="display:flex;align-items:center;gap:12px;margin-top:7px;font-size:12px;color:#8a948e"><span style="font-weight:700;color:'+(pc===6?'#1d9e75':'#8a948e')+'">사진 '+pc+'/6</span><span>'+dt+'</span></div>'
+        +'</div>';
+    }).join('');
+  }else{
+    listHtml='<div style="text-align:center;padding:26px 10px 22px">'
+      +'<div style="width:64px;height:64px;border:2px dashed #bcd8cb;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;color:#8fbfa9;font-size:12px;font-weight:800">맨홀</div>'
+      +'<div style="font-size:14.5px;font-weight:700;color:#4a5a52">조사한 맨홀이 없습니다</div>'
+      +'<div style="font-size:12.5px;color:#9aa8a0;margin-top:4px">아래 버튼으로 첫 조사를 시작하세요</div></div>';
+  }
+  wrap.innerHTML='<div style="background:#f5f8f6;border-radius:16px;width:min(94vw,420px);max-height:84dvh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 16px 48px rgba(0,0,0,.25)">'
+    +'<div style="padding:15px 17px;background:#fff;border-bottom:1px solid #e7eeea;display:flex;align-items:center;gap:9px">'
+      +'<span style="width:10px;height:10px;border-radius:50%;background:#1d9e75;flex:none"></span>'
+      +'<b style="flex:1;font-size:16px;color:#22332b">맨홀조사 야장</b>'
+      +(rows.length?'<span style="background:#e1f5ee;color:#0f6e56;border-radius:20px;padding:3px 11px;font-size:12px;font-weight:800">'+rows.length+'개</span>':'')
+      +'<button id="mnLClose" style="border:none;background:#f1f3f1;border-radius:9px;padding:7px 13px;cursor:pointer;color:#555;font-weight:700;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">닫기</span></button></div>'
+    +'<div style="padding:13px 15px 4px;overflow:auto;flex:1">'+listHtml+'</div>'
+    +'<div style="padding:11px 15px 15px"><button id="mnNew" style="width:100%;background:#1d9e75;color:#fff;border:0;border-radius:12px;padding:13px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 10px rgba(29,158,117,.3)"><span style="letter-spacing:2px;margin-right:-2px">+ 새 맨홀조사</span></button></div>'
     +'</div>';
   document.body.appendChild(wrap);
   wrap.onclick=function(e){if(e.target===wrap)wrap.remove();};
   wrap.querySelector('#mnLClose').onclick=function(){wrap.remove();};
   wrap.querySelector('#mnNew').onclick=function(){wrap.remove();mnOpenForm(null);};
-  [].forEach.call(wrap.querySelectorAll('.mn-row'),function(b){b.onclick=function(){var i=+b.getAttribute('data-i');wrap.remove();mnOpenForm(mnList()[i]);};});
+  [].forEach.call(wrap.querySelectorAll('.mn-card'),function(b){b.onclick=function(e){if(e.target.classList.contains('mn-del'))return;var i=+b.getAttribute('data-i');wrap.remove();mnOpenForm(mnList()[i]);};});
   [].forEach.call(wrap.querySelectorAll('.mn-del'),function(b){b.onclick=function(){var i=+b.getAttribute('data-i');var r=mnList()[i];if(!confirm('맨홀 '+mnLabel(r)+' 조사를 삭제할까요?'))return;mnList().splice(i,1);saveProject();wrap.remove();mnOpenList();toast('삭제됨');};});
 }
 function mnAsk(opt){
