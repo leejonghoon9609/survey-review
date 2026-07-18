@@ -6716,6 +6716,7 @@ function mnOpenForm(rec){
     +'<div style="display:flex;gap:7px;margin-bottom:8px">'+inp('mnDep','깊이',rec.dep,'m')+inp('mnW12','①-② 폭',rec.w12,'m')+inp('mnW34','③-④ 폭',rec.w34,'m')+'</div>'
     +'<div style="display:flex;gap:7px;margin-bottom:8px">'+inp('mnTopi','토피',rec.topi,'m')+inp('mnLid','뚜껑지름',rec.lid,'mm')+'<div style="flex:1"></div></div>'
     +'<div id="mnSpecLine" style="font-size:13px;font-weight:800;color:#1d9e75;background:#f2fbf7;border:1px solid #cfe8dd;border-radius:9px;padding:9px 11px;margin-bottom:12px">치수를 입력하면 규격이 자동 판정됩니다</div>'
+    +mnPipeBtnsHtml(rec)
     +'<div style="font-size:12.5px;font-weight:800;color:#334;margin-bottom:6px">사진 촬영 <span style="color:#99a;font-weight:400">①서 ②동 ③북 ④남 순서 고정</span></div>'
     +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:4px">'+slotsHtml+'</div>'
     +'</div>'
@@ -6758,6 +6759,7 @@ function mnOpenForm(rec){
     if(!document.getElementById('mnNo').value.trim()){toast('맨홀번호를 입력하세요');document.getElementById('mnNo').focus();return;}
     persist('맨홀조사 저장됨');wrap.remove();mnOpenList();
   };
+  [].forEach.call(wrap.querySelectorAll('.mn-pipe'),function(b){b.onclick=function(){var wl=b.getAttribute('data-w');collect();wrap.remove();mnPipeEditor(rec,wl);};});
   [].forEach.call(wrap.querySelectorAll('.mn-slot'),function(b){
     b.onclick=function(){
       var slot=b.getAttribute('data-s');
@@ -6781,6 +6783,190 @@ function mnOpenForm(rec){
       fi.click();
     };
   });
+}
+
+/* ===================== [BUILD 921] 맨홀 관배치 편집기 ===================== */
+var MN_WALLS=[['p1','① 서'],['p2','② 동'],['p3','③ 북'],['p4','④ 남']];
+var MN_KINDS=['FC','COD','PE','강관'];
+function mnWallDims(rec,wall){
+  var sp=rec.spec||{w:800,h:1700,dep:1100,orient:'세로'};
+  var dim12=(sp.orient==='가로')?Math.max(sp.w,sp.h):Math.min(sp.w,sp.h);
+  var dim34=(sp.orient==='가로')?Math.min(sp.w,sp.h):Math.max(sp.w,sp.h);
+  var W=(wall==='p1'||wall==='p2')?dim34:dim12;
+  return [W,sp.dep];
+}
+function mnGroupLabel(g){
+  return g.rows.map(function(r,ri){
+    var f=(g.circles||[]).filter(function(c){return c.ri===ri&&c.fill;}).length;
+    return (ri===0?(g.kind+'Ø'):'')+r.dia+'X'+r.cnt+'('+f+')';
+  }).join(' ');
+}
+function mnPipeSummary(rec,wall){
+  var pw=rec.pipes&&rec.pipes[wall];
+  if(!pw||!pw.groups||!pw.groups.length)return '';
+  return pw.groups.map(mnGroupLabel).join(' / ');
+}
+function mnPipeBtnsHtml(rec){
+  var btns=MN_WALLS.map(function(w){
+    var sm=mnPipeSummary(rec,w[0]);
+    return '<button class="mn-pipe" data-w="'+w[0]+'" style="text-align:left;padding:9px 10px;border:1px solid '+(sm?'#b9d7ea':'#ddd')+';border-radius:9px;background:'+(sm?'#f2f8fd':'#fafafa')+';cursor:pointer;font-size:12.5px;overflow:hidden"><b style="color:#335">'+w[1]+'</b><br><span style="font-size:11px;color:'+(sm?'#2471a3':'#aab')+'">'+(sm?joseoEsc(sm):'관 없음 — 눌러서 배치')+'</span></button>';
+  }).join('');
+  return '<div style="font-size:12.5px;font-weight:800;color:#334;margin-bottom:6px">관배치 (벽면별)</div><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px">'+btns+'</div>';
+}
+function mnPersistRec(rec,msg){
+  var L=mnList(),ix=-1;L.forEach(function(r,i){if(r.id===rec.id)ix=i;});
+  if(ix<0)L.push(rec);else L[ix]=rec;
+  saveProject();if(msg)toast(msg);
+}
+function mnPipeEditor(rec,wall){
+  if(!rec.pipes)rec.pipes={};
+  if(!rec.pipes[wall])rec.pipes[wall]={groups:[]};
+  var pw=rec.pipes[wall];
+  var WH=mnWallDims(rec,wall),W=WH[0],H=WH[1];
+  var wname='';MN_WALLS.forEach(function(x){if(x[0]===wall)wname=x[1];});
+  var mob=(typeof isMobileDevice==='function'&&isMobileDevice());
+  var old=document.getElementById('mnPipeModal');if(old)old.remove();
+  var wrap=document.createElement('div');wrap.id='mnPipeModal';
+  wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1310;display:flex;justify-content:center;'+(mob?'align-items:flex-start;padding-top:2dvh':'align-items:center');
+  wrap.innerHTML='<div style="background:#fff;border-radius:14px;width:min(96vw,460px);max-height:95dvh;display:flex;flex-direction:column;overflow:hidden">'
+    +'<div style="padding:12px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:15px">관배치 — '+wname+'</b><span style="font-size:11px;color:#99a">벽 '+(W/1000)+'m × 깊이 '+(H/1000)+'m</span><button id="mnPClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 11px;cursor:pointer">닫기</button></div>'
+    +'<div style="padding:10px 14px;overflow:auto;flex:1">'
+    +'<div style="display:flex;gap:6px;align-items:center;margin-bottom:7px">'
+      +'<button id="mnMdOne" style="flex:none;border:1px solid #2471a3;background:#eaf3fb;color:#2471a3;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:800;cursor:pointer">개별이동</button>'
+      +'<button id="mnMdAll" style="flex:none;border:1px solid #ccc;background:#fff;color:#667;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">전체이동</button>'
+      +'<span style="font-size:11px;color:#99a;margin-left:auto">탭=선 표시(검정)</span></div>'
+    +'<div id="mnCvBox" style="border:1.5px solid #556;border-radius:8px;overflow:hidden;background:#fff"><canvas id="mnCv" style="display:block;touch-action:none;user-select:none;-webkit-user-select:none"></canvas></div>'
+    +'<div id="mnGChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>'
+    +'<div style="border-top:1px dashed #ddd;margin-top:10px;padding-top:9px">'
+      +'<div style="display:flex;gap:6px;margin-bottom:6px"><select id="mnGKind" style="flex:1;border:1px solid #ddd;border-radius:7px;padding:7px 5px;font-size:13px;background:#fff">'+MN_KINDS.map(function(k){return '<option>'+k+'</option>';}).join('')+'<option value="_c">직접입력</option></select>'
+      +'<input id="mnGKindC" placeholder="관종" style="flex:1;display:none;border:1px solid #ddd;border-radius:7px;padding:7px 8px;font-size:13px">'
+      +'<div style="flex:1;display:flex;align-items:center;gap:4px"><span style="font-size:12px;color:#667">단수</span><input id="mnGRows" type="number" min="1" max="6" value="1" inputmode="numeric" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:7px;padding:7px 8px;font-size:14px"></div></div>'
+      +'<div id="mnGRowsBox"></div>'
+      +'<button id="mnGAdd" style="width:100%;margin-top:4px;background:#2471a3;color:#fff;border:0;border-radius:8px;padding:9px;font-weight:800;font-size:13.5px;cursor:pointer">+ 배치</button>'
+    +'</div></div>'
+    +'<div style="display:flex;gap:8px;padding:11px 14px;border-top:1px solid #eee">'
+    +'<button id="mnPDone" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer">완료</button>'
+    +'</div></div>';
+  document.body.appendChild(wrap);
+  var cv=wrap.querySelector('#mnCv'),bx=wrap.querySelector('#mnCvBox');
+  var cssW=Math.min(window.innerWidth*0.96,460)-30;
+  var sc=cssW/W;var cssH=H*sc;var maxH=window.innerHeight*0.4;
+  if(cssH>maxH){sc=maxH/H;cssH=maxH;cssW=W*sc;}
+  var dpr=window.devicePixelRatio||1;
+  cv.style.width=cssW+'px';cv.style.height=cssH+'px';cv.width=Math.round(cssW*dpr);cv.height=Math.round(cssH*dpr);
+  bx.style.width=cssW+'px';bx.style.margin='0 auto';
+  var ctx=cv.getContext('2d');
+  var mode='one';
+  function setMode(m){mode=m;var o=wrap.querySelector('#mnMdOne'),a=wrap.querySelector('#mnMdAll');
+    o.style.background=(m==='one')?'#eaf3fb':'#fff';o.style.color=(m==='one')?'#2471a3':'#667';o.style.borderColor=(m==='one')?'#2471a3':'#ccc';
+    a.style.background=(m==='all')?'#eaf3fb':'#fff';a.style.color=(m==='all')?'#2471a3':'#667';a.style.borderColor=(m==='all')?'#2471a3':'#ccc';}
+  wrap.querySelector('#mnMdOne').onclick=function(){setMode('one');};
+  wrap.querySelector('#mnMdAll').onclick=function(){setMode('all');};
+  function draw(){
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,cssW,cssH);
+    ctx.strokeStyle='#e4e8ee';ctx.lineWidth=1;
+    for(var gx=100;gx<W;gx+=100){ctx.beginPath();ctx.moveTo(gx*sc,0);ctx.lineTo(gx*sc,cssH);ctx.stroke();}
+    for(var gy=100;gy<H;gy+=100){ctx.beginPath();ctx.moveTo(0,gy*sc);ctx.lineTo(cssW,gy*sc);ctx.stroke();}
+    pw.groups.forEach(function(g){(g.circles||[]).forEach(function(c){
+      var r=c.dia/2*sc;
+      ctx.beginPath();ctx.arc(c.x*sc,c.y*sc,Math.max(r,3),0,Math.PI*2);
+      if(c.fill){ctx.fillStyle='#222';ctx.fill();}
+      else{ctx.fillStyle='#fff';ctx.fill();}
+      ctx.strokeStyle='#333';ctx.lineWidth=1.4;ctx.stroke();
+    });});
+  }
+  function chips(){
+    var o=wrap.querySelector('#mnGChips');
+    o.innerHTML=pw.groups.length?pw.groups.map(function(g,i){
+      return '<span style="display:inline-flex;align-items:center;gap:5px;border:1px solid #b9d7ea;background:#f2f8fd;color:#2471a3;border-radius:8px;padding:5px 8px;font-size:12px;font-weight:700">'+joseoEsc(mnGroupLabel(g))+'<button class="mn-gdel" data-i="'+i+'" style="border:none;background:none;color:#c0392b;cursor:pointer;font-size:13px;padding:0">✕</button></span>';
+    }).join(''):'<span style="font-size:12px;color:#aab">아래에서 관그룹을 추가하세요</span>';
+    [].forEach.call(o.querySelectorAll('.mn-gdel'),function(b){b.onclick=function(){pw.groups.splice(+b.getAttribute('data-i'),1);draw();chips();};});
+  }
+  function rowsBox(){
+    var n=Math.max(1,Math.min(6,parseInt(wrap.querySelector('#mnGRows').value)||1));
+    var o=wrap.querySelector('#mnGRowsBox');
+    o.innerHTML=Array.apply(null,Array(n)).map(function(_,i){
+      return '<div style="display:flex;gap:6px;align-items:center;margin-bottom:5px"><span style="flex:none;font-size:12px;color:#667;width:30px">'+(i+1)+'단</span>'
+        +'<select class="mn-rdia" style="flex:1;border:1px solid #ddd;border-radius:7px;padding:6px 5px;font-size:13px;background:#fff"><option>100</option><option>50</option><option>80</option><option>150</option></select>'
+        +'<div style="flex:1;display:flex;align-items:center;gap:4px"><span style="font-size:12px;color:#667">수량</span><input class="mn-rcnt" type="number" min="1" max="12" value="2" inputmode="numeric" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 8px;font-size:14px"></div></div>';
+    }).join('');
+  }
+  wrap.querySelector('#mnGRows').addEventListener('input',rowsBox);
+  wrap.querySelector('#mnGKind').addEventListener('change',function(){wrap.querySelector('#mnGKindC').style.display=(this.value==='_c')?'block':'none';});
+  rowsBox();chips();draw();
+  wrap.querySelector('#mnGAdd').onclick=function(){
+    var kd=wrap.querySelector('#mnGKind').value;
+    if(kd==='_c')kd=wrap.querySelector('#mnGKindC').value.trim()||'FC';
+    var rows=[];
+    var ds=wrap.querySelectorAll('.mn-rdia'),cs=wrap.querySelectorAll('.mn-rcnt');
+    for(var i=0;i<ds.length;i++){rows.push({dia:parseInt(ds[i].value)||100,cnt:Math.max(1,Math.min(12,parseInt(cs[i].value)||1))});}
+    var g={kind:kd,rows:rows,circles:[]};
+    var gap=1.3;
+    var maxX=0;pw.groups.forEach(function(og){(og.circles||[]).forEach(function(c){maxX=Math.max(maxX,c.x+c.dia/2);});});
+    var x0=maxX?(maxX+150):150;
+    var totH=0;rows.forEach(function(r){totH+=r.dia*gap;});
+    var y=Math.max(rows[0].dia,H/2-totH/2+rows[0].dia*gap/2);
+    rows.forEach(function(r,ri){
+      for(var j=0;j<r.cnt;j++){
+        var cx=x0+j*r.dia*gap, cy=y;
+        cx=Math.min(Math.max(cx,r.dia/2),W-r.dia/2);cy=Math.min(Math.max(cy,r.dia/2),H-r.dia/2);
+        g.circles.push({x:Math.round(cx/25)*25,y:Math.round(cy/25)*25,dia:r.dia,ri:ri,fill:false});
+      }
+      y+=r.dia*gap;
+    });
+    pw.groups.push(g);
+    draw();chips();
+  };
+  /* 포인터: 탭=선 토글, 드래그=이동(개별/전체) */
+  var pDown=null,pTarget=null,pMoved=false;
+  function hit(mx,my){
+    for(var gi=pw.groups.length-1;gi>=0;gi--){var g=pw.groups[gi];
+      for(var ci=(g.circles||[]).length-1;ci>=0;ci--){var c=g.circles[ci];
+        var dx=mx-c.x,dy=my-c.y,rr=Math.max(c.dia/2*1.3,60);
+        if(dx*dx+dy*dy<=rr*rr)return {gi:gi,ci:ci};
+      }}
+    return null;
+  }
+  function evPos(e){var r=cv.getBoundingClientRect();return [(e.clientX-r.left)/sc,(e.clientY-r.top)/sc];}
+  cv.addEventListener('pointerdown',function(e){
+    var p=evPos(e);pTarget=hit(p[0],p[1]);
+    pDown={x:e.clientX,y:e.clientY,mx:p[0],my:p[1]};pMoved=false;
+    if(pTarget)cv.setPointerCapture(e.pointerId);
+  });
+  cv.addEventListener('pointermove',function(e){
+    if(!pDown||!pTarget)return;
+    var dxp=e.clientX-pDown.x,dyp=e.clientY-pDown.y;
+    if(!pMoved&&dxp*dxp+dyp*dyp<49)return;
+    pMoved=true;
+    var p=evPos(e),dmx=p[0]-pDown.mx,dmy=p[1]-pDown.my;
+    var g=pw.groups[pTarget.gi];if(!g)return;
+    if(mode==='all'){
+      g.circles.forEach(function(c){
+        c._nx=(c._bx==null?(c._bx=c.x):c._bx)+dmx;c._ny=(c._by==null?(c._by=c.y):c._by)+dmy;
+        c.x=Math.min(Math.max(Math.round(c._nx/25)*25,c.dia/2),W-c.dia/2);
+        c.y=Math.min(Math.max(Math.round(c._ny/25)*25,c.dia/2),H-c.dia/2);
+      });
+    }else{
+      var c=g.circles[pTarget.ci];if(!c)return;
+      if(c._bx==null){c._bx=c.x;c._by=c.y;}
+      c.x=Math.min(Math.max(Math.round((c._bx+dmx)/25)*25,c.dia/2),W-c.dia/2);
+      c.y=Math.min(Math.max(Math.round((c._by+dmy)/25)*25,c.dia/2),H-c.dia/2);
+    }
+    draw();
+  });
+  function pEnd(){
+    if(pDown&&pTarget&&!pMoved){
+      var g=pw.groups[pTarget.gi],c=g&&g.circles[pTarget.ci];
+      if(c){c.fill=!c.fill;draw();chips();}
+    }
+    pw.groups.forEach(function(g){(g.circles||[]).forEach(function(c){delete c._bx;delete c._by;delete c._nx;delete c._ny;});});
+    pDown=null;pTarget=null;pMoved=false;
+  }
+  cv.addEventListener('pointerup',pEnd);
+  cv.addEventListener('pointercancel',pEnd);
+  wrap.querySelector('#mnPClose').onclick=function(){wrap.remove();mnOpenForm(rec);};
+  wrap.querySelector('#mnPDone').onclick=function(){mnPersistRec(rec,'관배치 저장됨');wrap.remove();mnOpenForm(rec);};
 }
 
 /* ===================== 실시간 사진조서 (관로) ===================== */
