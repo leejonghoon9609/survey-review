@@ -6855,6 +6855,7 @@ function mnOpenForm(rec){
     else txt='<text x="'+cx+'" y="'+cy+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="'+(v?'#558b2f':'#a8c790')+'" transform="rotate('+rot+' '+cx+' '+cy+')" dominant-baseline="central" pointer-events="none">'+joseoEsc(t)+'</text>';
     return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="5" fill="#f1f8e9" stroke="#7cb342" stroke-width="1.2" data-act="dest" data-d="'+k+'" style="cursor:pointer"/>'+txt;
   }
+  function wallHint(x,y){return '<rect x="'+(x-46)+'" y="'+(y-11)+'" width="92" height="22" rx="6" fill="#ffffff" fill-opacity="0.78" stroke="#c9d5ec" stroke-width="1" pointer-events="none"/><text x="'+x+'" y="'+(y+4)+'" text-anchor="middle" font-size="10.5" font-weight="700" fill="#a9b8d6" pointer-events="none">촬영/공수배치</text>';}
   function dimRange(x1,y1,x2,y2,color){
     var o='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+color+'" stroke-width="1.5"/>',aw=8,ah=3.2;
     if(x1===x2){
@@ -6941,6 +6942,7 @@ function mnOpenForm(rec){
       +'<line x1="548" y1="500" x2="568" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
       +'<text x="571" y="505" font-size="15" font-weight="700" fill="#333">2</text>'
       +destPill('d2',586,485,58,30,0)
+      +wallHint(320,355)+wallHint(320,645)+wallHint(175,500)+wallHint(465,500)
       +wallCircles('p3',function(nx,ny){return [250+nx*140,430-ny*150];})
       +wallCircles('p4',function(nx,ny){return [250+nx*140,570+ny*150];})
       +wallCircles('p1',function(nx,ny){return [250-ny*150,430+nx*140];})
@@ -6985,7 +6987,7 @@ function mnOpenForm(rec){
           mnAsk({title:titles[k],unit:units[k],val:rec[k],text:(k==='lidRect'),color:MN_DIMC[k],cb:function(v){rec[k]=(v===''?'':v);mnPersistRec(rec);render();}});
         }
         else if(act==='dest'){var dk=el.getAttribute('data-d');var dn={d1:'1',d2:'2',d3:'3',d4:'4'}[dk];mnAskDest((rec.dest&&rec.dest[dk])||'',dn,function(v){if(!rec.dest)rec.dest={};rec.dest[dk]=v;mnPersistRec(rec);render();});}
-        else if(act==='wall'){var wl=el.getAttribute('data-w');if(!host&&wrap)wrap.remove();mnPipeEditor(rec,wl);}
+        else if(act==='wall'){var wl=el.getAttribute('data-w');var closeIt=function(){if(!host&&wrap)wrap.remove();};if(!(rec.photos&&rec.photos[wl])){toast('벽면 사진을 먼저 촬영합니다');mnShootSlot(rec,wl,function(){closeIt();mnPipeEditor(rec,wl);});}else{closeIt();mnPipeEditor(rec,wl);}}
         else if(act==='ph'){mnShootSlot(rec,el.getAttribute('data-s'),function(){render();});}
       });
     });
@@ -7082,11 +7084,13 @@ function mnPipeEditor(rec,wall){
     +'<div style="padding:12px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:15px">관배치 — '+wname+'</b><span style="font-size:11px;color:#99a">벽 '+(W/1000)+'m × 깊이 '+(H/1000)+'m</span><button id="mnPClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 11px;cursor:pointer">닫기</button></div>'
     +'<div style="padding:10px 14px;overflow:auto;flex:1">'
     +'<div style="display:flex;gap:6px;align-items:center;margin-bottom:7px">'
-      +'<button id="mnMdOne" style="flex:none;border:1px solid #2471a3;background:#eaf3fb;color:#2471a3;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:800;cursor:pointer">개별이동</button>'
-      +'<button id="mnMdAll" style="flex:none;border:1px solid #ccc;background:#fff;color:#667;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">전체이동</button>'
-      +'<span style="font-size:11px;color:#99a;margin-left:auto">탭=선 표시(검정)</span></div>'
+      +'<button id="mnMdAll" class="mn-md" style="flex:none;border:1px solid #ccc;background:#fff;color:#667;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">전체이동</button>'
+      +'<button id="mnMdOne" class="mn-md" style="flex:none;border:1px solid #ccc;background:#fff;color:#667;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">개별이동</button>'
+      +'<button id="mnMdDel" class="mn-md" style="flex:none;border:1px solid #ccc;background:#fff;color:#667;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">삭제</button>'
+      +'<button id="mnReShoot" style="margin-left:auto;flex:none;border:1px solid #d32f2f;background:#fdeaea;color:#d32f2f;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:800;cursor:pointer">재촬영</button></div>'
     +'<div id="mnCvBox" style="border:1.5px solid #556;border-radius:8px;overflow:hidden;background:#fff"><canvas id="mnCv" style="display:block;touch-action:none;user-select:none;-webkit-user-select:none"></canvas></div>'
-    +'<div id="mnGChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px"></div>'
+    +'<div style="font-size:11px;color:#99a;margin-top:4px;text-align:right">탭=선 표시(검정) · 노란선=맨홀 바닥</div>'
+    +'<div id="mnGChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"></div>'
     +'<div style="border-top:1px dashed #ddd;margin-top:10px;padding-top:9px">'
       +'<div style="display:flex;gap:6px;margin-bottom:6px"><select id="mnGKind" style="flex:1;border:1px solid #ddd;border-radius:7px;padding:7px 5px;font-size:13px;background:#fff">'+MN_KINDS.map(function(k){return '<option>'+k+'</option>';}).join('')+'<option value="_c">직접입력</option></select>'
       +'<input id="mnGKindC" placeholder="관종" style="flex:1;display:none;border:1px solid #ddd;border-radius:7px;padding:7px 8px;font-size:13px">'
@@ -7106,21 +7110,39 @@ function mnPipeEditor(rec,wall){
   cv.style.width=cssW+'px';cv.style.height=cssH+'px';cv.width=Math.round(cssW*dpr);cv.height=Math.round(cssH*dpr);
   bx.style.width=cssW+'px';bx.style.margin='0 auto';
   var ctx=cv.getContext('2d');
-  var mode='one';
-  function setMode(m){mode=m;var o=wrap.querySelector('#mnMdOne'),a=wrap.querySelector('#mnMdAll');
-    o.style.background=(m==='one')?'#eaf3fb':'#fff';o.style.color=(m==='one')?'#2471a3':'#667';o.style.borderColor=(m==='one')?'#2471a3':'#ccc';
-    a.style.background=(m==='all')?'#eaf3fb':'#fff';a.style.color=(m==='all')?'#2471a3':'#667';a.style.borderColor=(m==='all')?'#2471a3':'#ccc';}
-  wrap.querySelector('#mnMdOne').onclick=function(){setMode('one');};
+  var mode='all';
+  function setMode(m){mode=m;
+    [['mnMdAll','all'],['mnMdOne','one'],['mnMdDel','del']].forEach(function(x){
+      var el=wrap.querySelector('#'+x[0]);var on=(m===x[1]);
+      el.style.background=on?(x[1]==='del'?'#fdeaea':'#eaf3fb'):'#fff';
+      el.style.color=on?(x[1]==='del'?'#c0392b':'#2471a3'):'#667';
+      el.style.borderColor=on?(x[1]==='del'?'#c0392b':'#2471a3'):'#ccc';
+    });
+  }
   wrap.querySelector('#mnMdAll').onclick=function(){setMode('all');};
+  wrap.querySelector('#mnMdOne').onclick=function(){setMode('one');};
+  wrap.querySelector('#mnMdDel').onclick=function(){setMode('del');};
+  setMode('all');
+  var bg=null;
+  function loadBg(){bg=null;var u=rec.photos&&rec.photos[wall];if(!u){draw();return;}
+    var im=new Image();im.crossOrigin='anonymous';
+    im.onload=function(){bg=im;draw();};im.onerror=function(){bg=null;draw();};
+    im.src=u;}
+  wrap.querySelector('#mnReShoot').onclick=function(){mnShootSlot(rec,wall,function(){loadBg();});};
   function draw(){
     ctx.setTransform(dpr,0,0,dpr,0,0);
     ctx.clearRect(0,0,cssW,cssH);
+    if(bg){var iw=bg.width,ih=bg.height;var k=Math.max(cssW/iw,cssH/ih);var dw=iw*k,dh=ih*k;ctx.globalAlpha=0.5;try{ctx.drawImage(bg,(cssW-dw)/2,(cssH-dh)/2,dw,dh);}catch(_e){}ctx.globalAlpha=1;}
     ctx.strokeStyle='#e4e8ee';ctx.lineWidth=1;
     for(var gx=100;gx<W;gx+=100){ctx.beginPath();ctx.moveTo(gx*sc,0);ctx.lineTo(gx*sc,cssH);ctx.stroke();}
     for(var gy=100;gy<H;gy+=100){ctx.beginPath();ctx.moveTo(0,gy*sc);ctx.lineTo(cssW,gy*sc);ctx.stroke();}
+    /* 바닥선 (노랑) */
+    ctx.strokeStyle='#e6c200';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(0,cssH-1.5);ctx.lineTo(cssW,cssH-1.5);ctx.stroke();
+    ctx.fillStyle='#c8a600';ctx.font='700 10px sans-serif';ctx.fillText('맨홀 바닥',6,cssH-7);
     pw.groups.forEach(function(g){(g.circles||[]).forEach(function(c){
       var r=c.dia/2*sc;
-      ctx.beginPath();ctx.arc(c.x*sc,c.y*sc,Math.max(r,3),0,Math.PI*2);
+      ctx.beginPath();ctx.arc(c.x*sc,(H-c.y)*sc,Math.max(r,3),0,Math.PI*2);
       if(c.fill){ctx.fillStyle='#222';ctx.fill();}
       else{ctx.fillStyle='#fff';ctx.fill();}
       ctx.strokeStyle='#333';ctx.lineWidth=1.4;ctx.stroke();
@@ -7144,7 +7166,7 @@ function mnPipeEditor(rec,wall){
   }
   wrap.querySelector('#mnGRows').addEventListener('input',rowsBox);
   wrap.querySelector('#mnGKind').addEventListener('change',function(){wrap.querySelector('#mnGKindC').style.display=(this.value==='_c')?'block':'none';});
-  rowsBox();chips();draw();
+  rowsBox();chips();loadBg();
   wrap.querySelector('#mnGAdd').onclick=function(){
     var kd=wrap.querySelector('#mnGKind').value;
     if(kd==='_c')kd=wrap.querySelector('#mnGKindC').value.trim()||'FC';
@@ -7156,19 +7178,18 @@ function mnPipeEditor(rec,wall){
     var maxX=0;pw.groups.forEach(function(og){(og.circles||[]).forEach(function(c){maxX=Math.max(maxX,c.x+c.dia/2);});});
     var x0=maxX?(maxX+150):150;
     var totH=0;rows.forEach(function(r){totH+=r.dia*gap;});
-    var y=Math.max(rows[0].dia,H/2-totH/2+rows[0].dia*gap/2);
+    var y=Math.min(H-rows[0].dia,H/2+totH/2-rows[0].dia*gap/2);
     rows.forEach(function(r,ri){
       for(var j=0;j<r.cnt;j++){
         var cx=x0+j*r.dia*gap, cy=y;
         cx=Math.min(Math.max(cx,r.dia/2),W-r.dia/2);cy=Math.min(Math.max(cy,r.dia/2),H-r.dia/2);
         g.circles.push({x:Math.round(cx/25)*25,y:Math.round(cy/25)*25,dia:r.dia,ri:ri,fill:false});
       }
-      y+=r.dia*gap;
+      y-=r.dia*gap;
     });
     pw.groups.push(g);
     draw();chips();
   };
-  /* 포인터: 탭=선 토글, 드래그=이동(개별/전체) */
   var pDown=null,pTarget=null,pMoved=false;
   function hit(mx,my){
     for(var gi=pw.groups.length-1;gi>=0;gi--){var g=pw.groups[gi];
@@ -7178,14 +7199,14 @@ function mnPipeEditor(rec,wall){
       }}
     return null;
   }
-  function evPos(e){var r=cv.getBoundingClientRect();return [(e.clientX-r.left)/sc,(e.clientY-r.top)/sc];}
+  function evPos(e){var r=cv.getBoundingClientRect();return [(e.clientX-r.left)/sc,H-(e.clientY-r.top)/sc];}
   cv.addEventListener('pointerdown',function(e){
     var p=evPos(e);pTarget=hit(p[0],p[1]);
     pDown={x:e.clientX,y:e.clientY,mx:p[0],my:p[1]};pMoved=false;
     if(pTarget)cv.setPointerCapture(e.pointerId);
   });
   cv.addEventListener('pointermove',function(e){
-    if(!pDown||!pTarget)return;
+    if(!pDown||!pTarget||mode==='del')return;
     var dxp=e.clientX-pDown.x,dyp=e.clientY-pDown.y;
     if(!pMoved&&dxp*dxp+dyp*dyp<49)return;
     pMoved=true;
@@ -7193,9 +7214,9 @@ function mnPipeEditor(rec,wall){
     var g=pw.groups[pTarget.gi];if(!g)return;
     if(mode==='all'){
       g.circles.forEach(function(c){
-        c._nx=(c._bx==null?(c._bx=c.x):c._bx)+dmx;c._ny=(c._by==null?(c._by=c.y):c._by)+dmy;
-        c.x=Math.min(Math.max(Math.round(c._nx/25)*25,c.dia/2),W-c.dia/2);
-        c.y=Math.min(Math.max(Math.round(c._ny/25)*25,c.dia/2),H-c.dia/2);
+        if(c._bx==null){c._bx=c.x;c._by=c.y;}
+        c.x=Math.min(Math.max(Math.round((c._bx+dmx)/25)*25,c.dia/2),W-c.dia/2);
+        c.y=Math.min(Math.max(Math.round((c._by+dmy)/25)*25,c.dia/2),H-c.dia/2);
       });
     }else{
       var c=g.circles[pTarget.ci];if(!c)return;
@@ -7208,9 +7229,15 @@ function mnPipeEditor(rec,wall){
   function pEnd(){
     if(pDown&&pTarget&&!pMoved){
       var g=pw.groups[pTarget.gi],c=g&&g.circles[pTarget.ci];
-      if(c){c.fill=!c.fill;draw();chips();}
+      if(c){
+        if(mode==='del'){
+          g.circles.splice(pTarget.ci,1);
+          if(!g.circles.length)pw.groups.splice(pTarget.gi,1);
+          draw();chips();
+        }else{c.fill=!c.fill;draw();chips();}
+      }
     }
-    pw.groups.forEach(function(g){(g.circles||[]).forEach(function(c){delete c._bx;delete c._by;delete c._nx;delete c._ny;});});
+    pw.groups.forEach(function(g){(g.circles||[]).forEach(function(c){delete c._bx;delete c._by;});});
     pDown=null;pTarget=null;pMoved=false;
   }
   cv.addEventListener('pointerup',pEnd);
@@ -7218,7 +7245,6 @@ function mnPipeEditor(rec,wall){
   wrap.querySelector('#mnPClose').onclick=function(){wrap.remove();mnOpenForm(rec);};
   wrap.querySelector('#mnPDone').onclick=function(){mnPersistRec(rec,'관배치 저장됨');wrap.remove();mnOpenForm(rec);};
 }
-
 /* ===================== 실시간 사진조서 (관로) ===================== */
 var JOSEO_TPL_URL = encodeURI('실시간조서_템플릿.xlsx');
 var _joseoTplBuf = null, joseoState = null;
