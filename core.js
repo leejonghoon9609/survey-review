@@ -6841,7 +6841,7 @@ function mnOpenForm(rec){
       +wallCircles('p2',function(nx,ny){return [390+ny*150,430+nx*140];})
       +wallLabel(398,304,'p3')+wallLabel(398,600,'p4')+wallLabel(96,424,'p1')+wallLabel(392,590,'p2')
       /* 치수: 범위선(양끝 화살표) + 작은 탭 */
-      +dimRange(258,222,382,222,'#2471a3')+dimSpot(294,197,'w34','③-④폭',52)
+      +dimRange(250,222,390,222,'#2471a3')+dimSpot(294,197,'w34','③-④폭',52)
       +dimRange(240,235,240,280,'#e67e22')+dimSpot(188,247,'topi','토피',46)
       +dimRange(240,280,240,430,'#e74c3c')+dimSpot(188,344,'dep','깊이',46)
       +dimRange(88,430,88,570,'#8e44ad')+dimSpot(30,489,'w12','①-②폭',52)
