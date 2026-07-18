@@ -7183,10 +7183,10 @@ function mnPipeEditor(rec,wall){
       +'<input id="mnGKindC" placeholder="관종" style="flex:1;display:none;border:1px solid #ddd;border-radius:7px;padding:7px 8px;font-size:13px">'
       +'<div style="flex:1;display:flex;align-items:center;gap:4px"><span style="font-size:12px;color:#667">단수</span><select id="mnGRowsSel" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:7px;padding:7px 4px;font-size:14px;background:#fff"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option value="_c">직접입력</option></select><input id="mnGRows" type="number" min="1" max="12" value="6" inputmode="numeric" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:7px;padding:7px 8px;font-size:14px;display:none"></div></div>'
       +'<div id="mnGRowsBox"></div>'
-      +'<button id="mnGAdd" style="width:100%;margin-top:4px;background:#2471a3;color:#fff;border:0;border-radius:8px;padding:9px;font-weight:800;font-size:13.5px;cursor:pointer">+ 배치</button>'
+      +'<button id="mnGAdd" style="width:100%;margin-top:4px;background:#fff;color:#1d9e75;border:1.5px solid #1d9e75;border-radius:8px;padding:9px;font-weight:800;font-size:13.5px;cursor:pointer">관위치배치 (관 위치를 조정하세요)</button>'
     +'</div></div>'
     +'<div style="display:flex;gap:8px;padding:11px 14px;border-top:1px solid #eee">'
-    +'<button id="mnPDone" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">완료</span></button>'
+    +'<button id="mnPDone" style="flex:1;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:10px;padding:12px;font-weight:800;font-size:14.5px;cursor:pointer;display:flex;align-items:center;justify-content:center">완료 ('+({p1:'1',p2:'2',p3:'3',p4:'4'}[wall])+'번 완료등록합니다)</button>'
     +'</div></div>';
   document.body.appendChild(wrap);
   var cv=wrap.querySelector('#mnCv'),bx=wrap.querySelector('#mnCvBox');
@@ -7269,13 +7269,34 @@ function mnPipeEditor(rec,wall){
     var n=rowsN();
     var o=wrap.querySelector('#mnGRowsBox');
     o.innerHTML=Array.apply(null,Array(n)).map(function(_,i){
-      return '<div style="display:flex;gap:6px;align-items:center;margin-bottom:5px"><span style="flex:none;font-size:12px;color:#667;width:30px">'+(i+1)+'단</span>'
-        +'<select class="mn-rdia" style="flex:1;border:1px solid #ddd;border-radius:7px;padding:6px 5px;font-size:13px;background:#fff"><option>100</option><option>50</option><option>80</option><option>150</option></select>'
-        +'<div style="flex:1;display:flex;align-items:center;gap:4px"><span style="font-size:12px;color:#667">수량</span><select class="mn-rcnt-sel" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 4px;font-size:14px;background:#fff"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option value="_c">직접입력</option></select><input class="mn-rcnt" type="number" min="1" max="12" value="6" inputmode="numeric" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 8px;font-size:14px;display:none"></div></div>';
+      return '<div style="display:flex;gap:4px;align-items:center;margin-bottom:5px"><span style="flex:none;font-size:12px;color:#667;width:26px">'+(i+1)+'단</span>'
+        +'<select class="mn-rdia" style="flex:1.1;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 3px;font-size:13px;background:#fff"><option>100</option><option>50</option><option>80</option><option>150</option></select>'
+        +'<select class="mn-rcnt-sel" style="flex:0.9;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 3px;font-size:13px;background:#fff"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option value="_c">직접</option></select>'
+        +'<input class="mn-rcnt" type="number" min="1" max="12" value="6" inputmode="numeric" style="flex:0.9;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 4px;font-size:13px;display:none">'
+        +'<span style="flex:none;font-size:12px;color:#aab">+</span>'
+        +'<select class="mn-rdia2" style="flex:1.1;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 3px;font-size:13px;background:#fff;color:#889"><option value="-">관경</option><option>50</option><option>100</option><option>80</option><option>150</option></select>'
+        +'<select class="mn-rcnt2-sel" style="flex:0.9;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 3px;font-size:13px;background:#fff;display:none"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option value="_c">직접</option></select>'
+        +'<input class="mn-rcnt2" type="number" min="1" max="12" value="6" inputmode="numeric" style="flex:0.9;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 4px;font-size:13px;display:none">'
+        +'</div>';
     }).join('');
     [].forEach.call(o.querySelectorAll('.mn-rcnt-sel'),function(sel){
       sel.addEventListener('change',function(){
         var inp=sel.parentNode.querySelector('.mn-rcnt');
+        inp.style.display=(sel.value==='_c')?'block':'none';
+      });
+    });
+    [].forEach.call(o.querySelectorAll('.mn-rdia2'),function(sel){
+      sel.addEventListener('change',function(){
+        var p=sel.parentNode;
+        var on=(sel.value!=='-');
+        sel.style.color=on?'#333':'#889';
+        p.querySelector('.mn-rcnt2-sel').style.display=on?'block':'none';
+        if(!on){p.querySelector('.mn-rcnt2').style.display='none';}
+      });
+    });
+    [].forEach.call(o.querySelectorAll('.mn-rcnt2-sel'),function(sel){
+      sel.addEventListener('change',function(){
+        var inp=sel.parentNode.querySelector('.mn-rcnt2');
         inp.style.display=(sel.value==='_c')?'block':'none';
       });
     });
@@ -7292,25 +7313,37 @@ function mnPipeEditor(rec,wall){
     if(mode==='del')setMode('all');
     var kd=wrap.querySelector('#mnGKind').value;
     if(kd==='_c')kd=wrap.querySelector('#mnGKindC').value.trim()||'FC';
-    var rows=[];
+    var rowSegs=[];
     var ds=wrap.querySelectorAll('.mn-rdia'),ss=wrap.querySelectorAll('.mn-rcnt-sel'),cs=wrap.querySelectorAll('.mn-rcnt');
+    var d2s=wrap.querySelectorAll('.mn-rdia2'),s2s=wrap.querySelectorAll('.mn-rcnt2-sel'),c2s=wrap.querySelectorAll('.mn-rcnt2');
     for(var i=0;i<ds.length;i++){
+      var segs=[];
       var cnt=(ss[i].value==='_c')?(parseInt(cs[i].value)||1):(parseInt(ss[i].value)||1);
-      rows.push({dia:parseInt(ds[i].value)||100,cnt:Math.max(1,Math.min(12,cnt))});
+      segs.push({dia:parseInt(ds[i].value)||100,cnt:Math.max(1,Math.min(12,cnt))});
+      if(d2s[i]&&d2s[i].value!=='-'){
+        var cnt2=(s2s[i].value==='_c')?(parseInt(c2s[i].value)||1):(parseInt(s2s[i].value)||1);
+        segs.push({dia:parseInt(d2s[i].value)||50,cnt:Math.max(1,Math.min(12,cnt2))});
+      }
+      rowSegs.push(segs);
     }
+    var rows=[];rowSegs.forEach(function(sg){sg.forEach(function(s2){rows.push({dia:s2.dia,cnt:s2.cnt});});});
     var g={kind:kd,rows:rows,circles:[]};
-    var gap=1.0;
     var maxX=0;pw.groups.forEach(function(og){(og.circles||[]).forEach(function(c){maxX=Math.max(maxX,c.x+c.dia/2);});});
     var x0=maxX?(maxX+150):150;
-    var totH=0;rows.forEach(function(r){totH+=r.dia*gap;});
-    var y=Math.min(H-rows[0].dia,H/2+totH/2-rows[0].dia*gap/2);
-    rows.forEach(function(r,ri){
-      for(var j=0;j<r.cnt;j++){
-        var cx=x0+j*r.dia*gap, cy=y;
-        cx=Math.min(Math.max(cx,r.dia/2),W-r.dia/2);cy=Math.min(Math.max(cy,r.dia/2),H-r.dia/2);
-        g.circles.push({x:Math.round(cx/25)*25,y:Math.round(cy/25)*25,dia:r.dia,ri:ri,fill:false});
-      }
-      y-=r.dia*gap;
+    var rowH=rowSegs.map(function(sg){var m=0;sg.forEach(function(s2){m=Math.max(m,s2.dia);});return m;});
+    var totH=0;rowH.forEach(function(h){totH+=h;});
+    var vv=Math.min(H,H/2+totH/2);
+    rowSegs.forEach(function(sg,ri){
+      var h=rowH[ri];var cy=vv-h/2;vv-=h;
+      cy=Math.min(Math.max(cy,h/2),H-h/2);
+      var xcur=x0;
+      sg.forEach(function(s2){
+        for(var j=0;j<s2.cnt;j++){
+          var cx=xcur+s2.dia/2;xcur+=s2.dia;
+          cx=Math.min(Math.max(cx,s2.dia/2),W-s2.dia/2);
+          g.circles.push({x:Math.round(cx/25)*25,y:Math.round(cy/25)*25,dia:s2.dia,ri:ri,st:0,fill:false});
+        }
+      });
     });
     pw.groups.push(g);
     draw();chips();
