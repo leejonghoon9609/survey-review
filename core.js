@@ -6885,14 +6885,22 @@ function mnOpenForm(rec){
     });});
     return out;
   }
-  function mnLbl(k,tx,ty,dir,ax,ay){
+  function mnLbl(k){
     var sm=mnPipeSummary(rec,k);if(!sm)return '';
     sm=sm.replace(/ \/ /g,' ');
-    var ar='';
-    if(dir==='left')ar='<path d="M'+ax+','+ay+' l8,-4 v8 z" fill="#1565d8"/>';
-    else ar='<path d="M'+ax+','+ay+' l-4,8 h8 z" fill="#1565d8"/>';
-    return ar+'<text x="'+tx+'" y="'+ty+'" font-size="11.5" font-weight="800" fill="#1565d8" pointer-events="none">'+joseoEsc(sm)+'</text>';
+    var t='#1565d8';
+    function head(x,y,dx,dy){return '<path d="M'+x+','+y+' L'+(x-dx*7-dy*3.5)+','+(y-dy*7+dx*3.5)+' L'+(x-dx*7+dy*3.5)+','+(y-dy*7-dx*3.5)+' z" fill="'+t+'"/>';}
+    if(k==='p1')return '<line x1="132" y1="427" x2="132" y2="411" stroke="'+t+'" stroke-width="1.6"/>'+head(132,409,0,-1)
+      +'<text transform="rotate(-90 132 400)" x="132" y="400" font-size="11.5" font-weight="800" fill="'+t+'" pointer-events="none">'+joseoEsc(sm)+'</text>';
+    if(k==='p3')return '<line x1="394" y1="340" x2="406" y2="340" stroke="'+t+'" stroke-width="1.6"/>'+head(410,340,1,0)
+      +'<text x="416" y="344" font-size="11.5" font-weight="800" fill="'+t+'" pointer-events="none">'+joseoEsc(sm)+'</text>';
+    if(k==='p2')return '<line x1="465" y1="574" x2="465" y2="586" stroke="'+t+'" stroke-width="1.6"/>'+head(465,590,0,1)
+      +'<text transform="rotate(90 465 598)" x="465" y="598" font-size="11.5" font-weight="800" fill="'+t+'" pointer-events="none">'+joseoEsc(sm)+'</text>';
+    if(k==='p4')return '<line x1="246" y1="645" x2="234" y2="645" stroke="'+t+'" stroke-width="1.6"/>'+head(230,645,-1,0)
+      +'<text x="226" y="649" text-anchor="end" font-size="11.5" font-weight="800" fill="'+t+'" pointer-events="none">'+joseoEsc(sm)+'</text>';
+    return '';
   }
+
   function wallLine(wallKey,x,y,rot){
     var sm=mnPipeSummary(rec,wallKey);if(!sm)return '';
     sm=sm.replace(/ \/ /g,' ');
@@ -6966,7 +6974,7 @@ function mnOpenForm(rec){
       +wallCircles('p4',function(nx,ny){return [250+nx*140,570+ny*150];})
       +wallCircles('p1',function(nx,ny){return [250-ny*150,430+nx*140];})
       +wallCircles('p2',function(nx,ny){return [390+ny*150,430+nx*140];})
-      +mnLbl('p3',398,340,'left',388,336)+mnLbl('p4',398,660,'left',388,656)+mnLbl('p1',76,590,'up',64,580)+mnLbl('p2',412,590,'up',400,580)
+      +mnLbl('p1')+mnLbl('p3')+mnLbl('p2')+mnLbl('p4')
       /* 치수: 범위선(양끝 화살표) + 작은 탭 */
       +dimRange(250,288,390,288,'#2471a3')+dimSpot(396,278,'w34','폭',46)
       +dimRange(240,235,240,280,'#e67e22')+dimSpot(188,247,'topi','토피',46)
