@@ -6841,10 +6841,10 @@ function mnOpenForm(rec){
       +wallCircles('p2',function(nx,ny){return [390+ny*150,430+nx*140];})
       +wallLabel(398,304,'p3')+wallLabel(398,600,'p4')+wallLabel(96,424,'p1')+wallLabel(392,590,'p2')
       /* 치수: 범위선(양끝 화살표) + 작은 탭 */
-      +dimRange(250,222,390,222,'#2471a3')+dimSpot(294,197,'w34','③-④폭',52)
+      +dimRange(250,222,390,222,'#2471a3')+dimSpot(294,197,'w34','폭',46)
       +dimRange(240,235,240,280,'#e67e22')+dimSpot(188,247,'topi','토피',46)
       +dimRange(240,280,240,430,'#e74c3c')+dimSpot(188,344,'dep','깊이',46)
-      +dimRange(88,430,88,570,'#8e44ad')+dimSpot(30,489,'w12','①-②폭',52)
+      +dimRange(88,430,88,570,'#8e44ad')+dimSpot(36,489,'w12','폭',46)
       +'<rect x="250" y="235" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p3" style="cursor:pointer"/>'
       +'<rect x="250" y="570" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p4" style="cursor:pointer"/>'
       +'<rect x="55" y="430" width="195" height="140" fill="rgba(0,0,0,0)" data-act="wall" data-w="p1" style="cursor:pointer"/>'
@@ -6866,7 +6866,7 @@ function mnOpenForm(rec){
         if(act==='no'){mnAskNoOwner(rec,function(){mnPersistRec(rec);render();});}
         else if(act==='dim'){
           var k=el.getAttribute('data-k');
-          var titles={dep:'깊이',w12:'①-② 폭',w34:'③-④ 폭',topi:'토피',lid:'뚜껑지름',lidRect:'사각뚜껑 SIZE'};
+          var titles={dep:'깊이',w12:'폭',w34:'폭',topi:'토피',lid:'뚜껑지름',lidRect:'사각뚜껑 SIZE'};
           var units={dep:'m',w12:'m',w34:'m',topi:'m',lid:'mm',lidRect:''};
           mnAsk({title:titles[k],unit:units[k],val:rec[k],text:(k==='lidRect'),color:MN_DIMC[k],cb:function(v){rec[k]=(v===''?'':v);mnPersistRec(rec);render();}});
         }
