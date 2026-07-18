@@ -5728,7 +5728,7 @@ function refreshProjects(){ if(!online)return;
   });
 }
 function saveProject(cb){ if(readOnly){if(typeof cb==='function')cb();return;}
-  var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:state.finalCsv||null,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
+  var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:state.finalCsv||null,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,mnList:state.mnList||[]};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
   if(!state.projectName){toast('사업명을 먼저 정하세요(새 사업)');return;}
   payload.stage=STAGE;
   if(state.loadedStage&&state.loadedStage!==STAGE){state.projectId=null;} // 다운스트림 분리: 다른 단계 사업은 처음 저장 시 새 사본 생성(원본 보호)
@@ -5761,7 +5761,7 @@ function _loadProjectRaw(id,ro,cb){ if(!online||!id)return; setReadOnly(!!ro);st
   sb.from(DB+'_projects').select('*').eq('id',id).single().then(function(res){
     if(res.error||!res.data){toast('불러오기 실패');return;}if(typeof _tgStageBackup==='function'&&state.tgStore&&(state._pointsOrig||state._linesOrig||state._depthOrig))_tgStageBackup();if(typeof _tgStageOut==='function')_tgStageOut();var _xp=document.getElementById('tangoPanel');if(_xp)_xp.style.display='none';var _xi=document.getElementById('tgInfoPanel');if(_xi)_xi.style.display='none';if(typeof tgPanelLayout==='function')tgPanelLayout(false);if(typeof tgUpdateBtn==='function')tgUpdateBtn(false);if(typeof tgSeg!=='undefined')tgSeg=-1;if(typeof _segFix!=='undefined')_segFix=null;if(typeof _tgSegs!=='undefined')_tgSegs=null;if(typeof mode!=='undefined'&&mode&&mode.indexOf('tg')===0){mode='pan';if(typeof setModeUI==='function')setModeUI();}state.tgSegLabelOff={};['tgSegHLG','tgSegHLF','tgSegHL'].forEach(function(_xid){var _xe=document.getElementById(_xid);if(_xe)_xe.remove();});
     var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;state.loadedStage=p.stage||'survey';state._importSrc=[];
-    state.points=p.points||[];state.gpsPts=p.gpsPts||[];state.tangoEdit=p.tangoEdit||null;if(p.tangoManual)state.tangoManual=p.tangoManual;state.tgStore=p.tgStore||null;if(!state.tgStore&&(p.tangoEdit||p.tangoManual)){state.tgStore={tango:{edit:p.tangoEdit,manual:p.tangoManual||{},segDel:{}}};}_tgCtx='tango';state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.bpzones=p.bpzones||[];state.roadZones=p.roadZones||[];state.depthCheck=p.depthCheck||[];if(typeof classifyRoad==='function')classifyRoad();state.depthGround=p.depthGround||null;state._depthAlign=null;state.titleBlock=p.titleBlock||null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.asbuilt=p.asbuilt||null;state.rtDone=p.rtDone||null;state._trash=p.trash||[];if(typeof rtPurgeTrash==='function')setTimeout(rtPurgeTrash,800);state.nightShift=p.nightShift||null;state.fieldDone=p.fieldDone||null;state.tamsa=!!p.tamsa;state.finalCsv=p.finalCsv?(Array.isArray(p.finalCsv)?p.finalCsv:[p.finalCsv]):[];state.bizInfo=p.bizInfo||null;
+    state.points=p.points||[];state.gpsPts=p.gpsPts||[];state.tangoEdit=p.tangoEdit||null;if(p.tangoManual)state.tangoManual=p.tangoManual;state.tgStore=p.tgStore||null;if(!state.tgStore&&(p.tangoEdit||p.tangoManual)){state.tgStore={tango:{edit:p.tangoEdit,manual:p.tangoManual||{},segDel:{}}};}_tgCtx='tango';state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.bpzones=p.bpzones||[];state.roadZones=p.roadZones||[];state.depthCheck=p.depthCheck||[];if(typeof classifyRoad==='function')classifyRoad();state.depthGround=p.depthGround||null;state._depthAlign=null;state.titleBlock=p.titleBlock||null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.asbuilt=p.asbuilt||null;state.rtDone=p.rtDone||null;state.mnList=p.mnList||[];state._trash=p.trash||[];if(typeof rtPurgeTrash==='function')setTimeout(rtPurgeTrash,800);state.nightShift=p.nightShift||null;state.fieldDone=p.fieldDone||null;state.tamsa=!!p.tamsa;state.finalCsv=p.finalCsv?(Array.isArray(p.finalCsv)?p.finalCsv:[p.finalCsv]):[];state.bizInfo=p.bizInfo||null;
     selNum=null;clearSvg(gSel);try{if(state.finalCsv&&state.finalCsv.length&&typeof finalCsvDepthSync==='function')finalCsvDepthSync();if(state.depthGround&&state.depthGround.length&&typeof computeDepth==='function')computeDepth();}catch(e){}try{mergeAftMh();}catch(_me){}if(state.tamsa&&typeof buildTamsaMh==='function')try{buildTamsaMh();}catch(_te){}if(typeof IS_TANGO!=='undefined'&&IS_TANGO&&state.tangoEdit){if(!state.tangoEdit.lines)state.tangoEdit.lines=JSON.parse(JSON.stringify(state.lines||[]));if(!state.tangoEdit.points)state.tangoEdit.points=JSON.parse(JSON.stringify(state.points||[]));if(!state.tangoEdit.depthByNo)state.tangoEdit.depthByNo={};}drawGeo();drawMarks();drawManholes();try{fitView();}catch(_e0){}updMeta();loadPhotos();fitSoon();if(typeof refreshFieldBar==='function')refreshFieldBar();toast('현장 불러옴: '+res.data.name);
     var vs=document.getElementById('vproj');if(vs)vs.value=res.data.id;
     if(viewerMode&&!IS_FIELD)setTimeout(function(){openPhotoPanel(true);},150);
@@ -6079,9 +6079,10 @@ function registerProject(){
   if(!name){toast('사업명을 입력하세요');document.getElementById('regName').focus();return;}
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
   if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&!/_S$/.test(name))name+='_S'; /* [BUILD 913] 실시간측량 사업명 _S 자동 부착 */
-  state.projectName=name;state.bizInfo=readBizInfo();
+  state.projectName=name;
+  state.mnList=[];state.bizInfo=readBizInfo();
   var crsEl=document.querySelector('input[name="regCrs"]:checked');state.crs=crsEl?crsEl.value:'5186';
-  var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:state.finalCsv||null,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null};
+  var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:state.finalCsv||null,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,mnList:state.mnList||[]};
   payload.stage=STAGE;
   var row={name:name,payload:payload,updated_at:new Date().toISOString()};
   if(state.projectId)row.id=state.projectId;
@@ -6453,7 +6454,7 @@ function importFromStage(id,srcStage){
     var _base=baseName(res.data.name),_want=_base+suffix;
     var _run=function(newName){
     state.projectId=null;state.projectName=newName;state.loadedStage=srcStage;state._importSrc=[];
-    state.points=p.points||[];state.gpsPts=p.gpsPts||[];state.tangoEdit=p.tangoEdit||null;if(p.tangoManual)state.tangoManual=p.tangoManual;state.tgStore=p.tgStore||null;if(!state.tgStore&&(p.tangoEdit||p.tangoManual)){state.tgStore={tango:{edit:p.tangoEdit,manual:p.tangoManual||{},segDel:{}}};}_tgCtx='tango';state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.bpzones=p.bpzones||[];state.roadZones=p.roadZones||[];state.depthCheck=p.depthCheck||[];if(typeof classifyRoad==='function')classifyRoad();state.depthGround=p.depthGround||null;state._depthAlign=null;state.titleBlock=p.titleBlock||null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=false;state.asbuilt=p.asbuilt||null;state.rtDone=p.rtDone||null;state._trash=p.trash||[];if(typeof rtPurgeTrash==='function')setTimeout(rtPurgeTrash,800);state.nightShift=p.nightShift||null;state.fieldDone=p.fieldDone||null;state.tamsa=!!p.tamsa;state.finalCsv=p.finalCsv?(Array.isArray(p.finalCsv)?p.finalCsv:[p.finalCsv]):[];state.bizInfo=p.bizInfo||null;
+    state.points=p.points||[];state.gpsPts=p.gpsPts||[];state.tangoEdit=p.tangoEdit||null;if(p.tangoManual)state.tangoManual=p.tangoManual;state.tgStore=p.tgStore||null;if(!state.tgStore&&(p.tangoEdit||p.tangoManual)){state.tgStore={tango:{edit:p.tangoEdit,manual:p.tangoManual||{},segDel:{}}};}_tgCtx='tango';state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.bpzones=p.bpzones||[];state.roadZones=p.roadZones||[];state.depthCheck=p.depthCheck||[];if(typeof classifyRoad==='function')classifyRoad();state.depthGround=p.depthGround||null;state._depthAlign=null;state.titleBlock=p.titleBlock||null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=false;state.asbuilt=p.asbuilt||null;state.rtDone=p.rtDone||null;state.mnList=p.mnList||[];state._trash=p.trash||[];if(typeof rtPurgeTrash==='function')setTimeout(rtPurgeTrash,800);state.nightShift=p.nightShift||null;state.fieldDone=p.fieldDone||null;state.tamsa=!!p.tamsa;state.finalCsv=p.finalCsv?(Array.isArray(p.finalCsv)?p.finalCsv:[p.finalCsv]):[];state.bizInfo=p.bizInfo||null;
     selNum=null;clearSvg(gSel);
     try{if(state.finalCsv&&state.finalCsv.length&&typeof finalCsvDepthSync==='function')finalCsvDepthSync();if(state.depthGround&&state.depthGround.length&&typeof computeDepth==='function')computeDepth();}catch(e){}
     try{if(typeof IS_TANGO!=='undefined'&&IS_TANGO&&state.finalCsv&&state.finalCsv.length&&typeof buildInspData==='function')buildInspData();}catch(_bi){}
@@ -6855,8 +6856,12 @@ function mnOpenForm(rec){
     else txt='<text x="'+cx+'" y="'+cy+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="'+(v?'#558b2f':'#a8c790')+'" transform="rotate('+rot+' '+cx+' '+cy+')" dominant-baseline="central" pointer-events="none">'+joseoEsc(t)+'</text>';
     return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="5" fill="#f1f8e9" stroke="#7cb342" stroke-width="1.2" data-act="dest" data-d="'+k+'" style="cursor:pointer"/>'+txt;
   }
-  function wallPhoto(k,x,y,w,h){var u=rec.photos&&rec.photos[k];if(!u)return '';
-    return '<image href="'+u+'" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" preserveAspectRatio="xMidYMid slice" opacity="0.35" pointer-events="none"/>';}
+  function wallPhoto(k,x,y,w,h,rot){var u=rec.photos&&rec.photos[k];if(!u)return '';
+    var cx=x+w/2,cy=y+h/2;
+    var iw=(rot===90||rot===-90)?h:w, ih=(rot===90||rot===-90)?w:h;
+    var img='<image href="'+u+'" x="'+(cx-iw/2)+'" y="'+(cy-ih/2)+'" width="'+iw+'" height="'+ih+'" preserveAspectRatio="xMidYMid slice" opacity="0.35" pointer-events="none"/>';
+    if(!rot)return img;
+    return '<g transform="rotate('+rot+' '+cx+' '+cy+')" pointer-events="none">'+img+'</g>';}
   function wallHint(x,y){return '<rect x="'+(x-46)+'" y="'+(y-11)+'" width="92" height="22" rx="6" fill="#ffffff" fill-opacity="0.78" stroke="#c9d5ec" stroke-width="1" pointer-events="none"/><text x="'+x+'" y="'+(y+4)+'" text-anchor="middle" font-size="10.5" font-weight="700" fill="#a9b8d6" pointer-events="none">촬영/공수배치</text>';}
   function dimRange(x1,y1,x2,y2,color){
     var o='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+color+'" stroke-width="1.5"/>',aw=8,ah=3.2;
@@ -6879,9 +6884,11 @@ function mnOpenForm(rec){
     });});
     return out;
   }
-  function wallLabel(x,y,wallKey,anchor){
+  function wallLine(wallKey,x,y,rot){
     var sm=mnPipeSummary(rec,wallKey);if(!sm)return '';
-    return sm.split(' / ').map(function(t,i){return '<text x="'+x+'" y="'+(y+i*13)+'" font-size="10.5" font-weight="700" fill="#1a4d80" text-anchor="'+(anchor||'start')+'" pointer-events="none">'+joseoEsc(t)+'</text>';}).join('');
+    sm=sm.replace(/ \/ /g,' ');
+    if(!rot)return '<text x="'+x+'" y="'+y+'" font-size="11.5" font-weight="800" fill="#1565d8" pointer-events="none">'+joseoEsc(sm)+'</text>';
+    return '<text transform="rotate('+rot+' '+x+' '+y+')" x="'+x+'" y="'+y+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="#1565d8" pointer-events="none">'+joseoEsc(sm)+'</text>';
   }
   function render(){
     rec.spec=mnDetectSpec(rec.dep,rec.w12,rec.w34);
@@ -6944,13 +6951,13 @@ function mnOpenForm(rec){
       +'<line x1="548" y1="500" x2="568" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
       +'<text x="571" y="505" font-size="15" font-weight="700" fill="#333">2</text>'
       +destPill('d2',586,485,58,30,0)
-      +wallPhoto('p3',250,280,140,150)+wallPhoto('p4',250,570,140,150)+wallPhoto('p1',100,430,150,140)+wallPhoto('p2',390,430,150,140)
+      +wallPhoto('p3',250,280,140,150,0)+wallPhoto('p4',250,570,140,150,180)+wallPhoto('p1',100,430,150,140,-90)+wallPhoto('p2',390,430,150,140,90)
       +wallHint(320,355)+wallHint(320,645)+wallHint(175,500)+wallHint(465,500)
       +wallCircles('p3',function(nx,ny){return [250+nx*140,430-ny*150];})
       +wallCircles('p4',function(nx,ny){return [250+nx*140,570+ny*150];})
       +wallCircles('p1',function(nx,ny){return [250-ny*150,430+nx*140];})
       +wallCircles('p2',function(nx,ny){return [390+ny*150,430+nx*140];})
-      +wallLabel(398,320,'p3')+wallLabel(398,600,'p4')+wallLabel(96,424,'p1')+wallLabel(392,590,'p2')
+      +wallLine('p3',344,204,0)+wallLine('p1',98,592,0)+wallLine('p2',600,590,90)+wallLine('p4',352,810,90)
       /* 치수: 범위선(양끝 화살표) + 작은 탭 */
       +dimRange(250,288,390,288,'#2471a3')+dimSpot(396,278,'w34','폭',46)
       +dimRange(240,235,240,280,'#e67e22')+dimSpot(188,247,'topi','토피',46)
