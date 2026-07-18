@@ -6779,7 +6779,7 @@ function mnOpenForm(rec){
     +'<div style="padding:10px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;flex:none"><b style="flex:1;font-size:15px">맨홀 조사야장</b><button id="mnFClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div>'
     +'<div id="mnSheetBox" style="flex:1;overflow:auto;-webkit-overflow-scrolling:touch;background:#f4f4f2"></div>'
     +'<div style="display:flex;gap:8px;padding:10px 14px;border-top:1px solid #eee;flex:none">'
-    +'<button id="mnSave" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">저장</span></button>'
+    +'<button id="mnSave" style="flex:1;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">저장</span></button>'
     +'<button id="mnBack" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:10px;padding:12px;font-weight:700;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:2px;margin-right:-2px">목록으로</span></button>'
     +'</div></div>';
   var root=null;
@@ -6800,6 +6800,14 @@ function mnOpenForm(rec){
     var txt=has?(val+(MN_UNITS[k]||'')):label;
     return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="21" rx="5" fill="'+c[1]+'" stroke="'+c[0]+'" stroke-width="1.5" data-act="dim" data-k="'+k+'" style="cursor:pointer"/>'
       +'<text x="'+(x+w/2)+'" y="'+(y+15)+'" text-anchor="middle" font-size="'+(has?'11.5':'10.5')+'" font-weight="800" fill="'+c[0]+'" pointer-events="none">'+txt+'</text>';
+  }
+  function destPill(k,x,y,w,h,rot){
+    var v=(rec.dest&&rec.dest[k])||'';
+    var t=v||'탭';
+    var cx=x+w/2,cy=y+h/2,txt;
+    if(rot===0)txt='<text x="'+cx+'" y="'+(cy+3.5)+'" text-anchor="middle" font-size="9.5" font-weight="800" fill="'+(v?'#558b2f':'#a8c790')+'" pointer-events="none">'+joseoEsc(t)+'</text>';
+    else txt='<text x="'+cx+'" y="'+cy+'" text-anchor="middle" font-size="9.5" font-weight="800" fill="'+(v?'#558b2f':'#a8c790')+'" transform="rotate('+rot+' '+cx+' '+cy+')" dominant-baseline="central" pointer-events="none">'+joseoEsc(t)+'</text>';
+    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="5" fill="#f1f8e9" stroke="#7cb342" stroke-width="1.2" data-act="dest" data-d="'+k+'" style="cursor:pointer"/>'+txt;
   }
   function dimRange(x1,y1,x2,y2,color){
     var o='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+color+'" stroke-width="1.5"/>',aw=8,ah=3.2;
@@ -6863,36 +6871,40 @@ function mnOpenForm(rec){
       +'<rect x="250" y="280" width="140" height="150" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p3')
       +'<polyline points="278,280 278,235 258,235" fill="none" stroke="#333" stroke-width="1.5"/>'
       +'<polyline points="362,280 362,235 382,235" fill="none" stroke="#333" stroke-width="1.5"/>'
-      +'<line x1="320" y1="310" x2="320" y2="288" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
-      +'<text x="236" y="216" font-size="15" font-weight="700" fill="#333">3</text>'
+      +'<line x1="320" y1="214" x2="320" y2="192" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
+      +'<text x="304" y="208" font-size="15" font-weight="700" fill="#333">3</text>'
+      +destPill('d3',328,182,18,50,-90)
       /* 하(4=남) */
       +'<rect x="250" y="570" width="140" height="150" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p4')
       +'<polyline points="278,720 278,765 258,765" fill="none" stroke="#333" stroke-width="1.5"/>'
       +'<polyline points="362,720 362,765 382,765" fill="none" stroke="#333" stroke-width="1.5"/>'
-      +'<line x1="320" y1="690" x2="320" y2="712" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
-      +'<text x="314" y="800" font-size="15" font-weight="700" fill="#333">4</text>'
+      +'<line x1="320" y1="788" x2="320" y2="810" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
+      +'<text x="302" y="804" font-size="15" font-weight="700" fill="#333">4</text>'
+      +destPill('d4',328,782,18,50,90)
       /* 좌(1=서) */
       +'<rect x="100" y="430" width="150" height="140" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p1')
       +'<polyline points="100,458 55,458 55,438" fill="none" stroke="#333" stroke-width="1.5"/>'
       +'<polyline points="100,542 55,542 55,562" fill="none" stroke="#333" stroke-width="1.5"/>'
-      +'<line x1="130" y1="500" x2="108" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
-      +'<text x="28" y="505" font-size="15" font-weight="700" fill="#333">1</text>'
+      +'<line x1="46" y1="500" x2="24" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
+      +'<text x="8" y="505" font-size="15" font-weight="700" fill="#333">1</text>'
+      +destPill('d1',2,478,52,18,0)
       /* 우(2=동) */
       +'<rect x="390" y="430" width="150" height="140" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p2')
       +'<polyline points="540,458 585,458 585,438" fill="none" stroke="#333" stroke-width="1.5"/>'
       +'<polyline points="540,542 585,542 585,562" fill="none" stroke="#333" stroke-width="1.5"/>'
-      +'<line x1="510" y1="500" x2="532" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
-      +'<text x="602" y="505" font-size="15" font-weight="700" fill="#333">2</text>'
+      +'<line x1="566" y1="500" x2="588" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
+      +'<text x="596" y="505" font-size="15" font-weight="700" fill="#333">2</text>'
+      +destPill('d2',560,478,52,18,0)
       +wallCircles('p3',function(nx,ny){return [250+nx*140,430-ny*150];})
       +wallCircles('p4',function(nx,ny){return [250+nx*140,570+ny*150];})
       +wallCircles('p1',function(nx,ny){return [250-ny*150,430+nx*140];})
       +wallCircles('p2',function(nx,ny){return [390+ny*150,430+nx*140];})
-      +wallLabel(398,304,'p3')+wallLabel(398,600,'p4')+wallLabel(96,424,'p1')+wallLabel(392,590,'p2')
+      +wallLabel(398,320,'p3')+wallLabel(398,600,'p4')+wallLabel(96,424,'p1')+wallLabel(392,590,'p2')
       /* 치수: 범위선(양끝 화살표) + 작은 탭 */
-      +dimRange(250,222,390,222,'#2471a3')+dimSpot(294,197,'w34','폭',46)
+      +dimRange(250,288,390,288,'#2471a3')+dimSpot(396,278,'w34','폭',46)
       +dimRange(240,235,240,280,'#e67e22')+dimSpot(188,247,'topi','토피',46)
       +dimRange(240,280,240,430,'#e74c3c')+dimSpot(188,344,'dep','깊이',46)
-      +dimRange(88,430,88,570,'#8e44ad')+dimSpot(36,489,'w12','폭',46)
+      +dimRange(106,430,106,570,'#8e44ad')+dimSpot(84,404,'w12','폭',46)
       +'<rect x="250" y="235" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p3" style="cursor:pointer"/>'
       +'<rect x="250" y="570" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p4" style="cursor:pointer"/>'
       +'<rect x="55" y="430" width="195" height="140" fill="rgba(0,0,0,0)" data-act="wall" data-w="p1" style="cursor:pointer"/>'
@@ -6926,6 +6938,7 @@ function mnOpenForm(rec){
           var units={dep:'m',w12:'m',w34:'m',topi:'m',lid:'mm',lidRect:'',lidW:'mm',lidH:'mm'};
           mnAsk({title:titles[k],unit:units[k],val:rec[k],text:(k==='lidRect'),color:MN_DIMC[k],cb:function(v){rec[k]=(v===''?'':v);mnPersistRec(rec);render();}});
         }
+        else if(act==='dest'){var dk=el.getAttribute('data-d');var dn={d1:'1',d2:'2',d3:'3',d4:'4'}[dk];mnAsk({title:'연결 맨홀 ('+dn+'방향)',text:true,color:['#558b2f','#f1f8e9'],val:(rec.dest&&rec.dest[dk])||'',cb:function(v){if(!rec.dest)rec.dest={};rec.dest[dk]=v;mnPersistRec(rec);render();}});}
         else if(act==='wall'){var wl=el.getAttribute('data-w');if(!host&&wrap)wrap.remove();mnPipeEditor(rec,wl);}
         else if(act==='ph'){mnShootSlot(rec,el.getAttribute('data-s'),function(){render();});}
       });
