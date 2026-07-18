@@ -7273,9 +7273,9 @@ function mnPipeEditor(rec,wall){
         +'<select class="mn-rdia" style="flex:1.1;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 3px;font-size:13px;background:#fff"><option>100</option><option>50</option><option>80</option><option>150</option></select>'
         +'<select class="mn-rcnt-sel" style="flex:0.9;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 3px;font-size:13px;background:#fff"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option value="_c">직접</option></select>'
         +'<input class="mn-rcnt" type="number" min="1" max="12" value="6" inputmode="numeric" style="flex:0.9;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 4px;font-size:13px;display:none">'
-        +'<span style="flex:none;font-size:12px;color:#aab">+</span>'
+        +'<span style="flex:none;font-size:12px;color:#aab">/</span>'
         +'<select class="mn-rdia2" style="flex:1.1;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 3px;font-size:13px;background:#fff;color:#889"><option value="-">관경</option><option>50</option><option>100</option><option>80</option><option>150</option></select>'
-        +'<select class="mn-rcnt2-sel" style="flex:0.9;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 3px;font-size:13px;background:#fff;display:none"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option value="_c">직접</option></select>'
+        +'<select class="mn-rcnt2-sel" style="flex:0.9;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 3px;font-size:13px;background:#fff"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option value="_c">직접</option></select>'
         +'<input class="mn-rcnt2" type="number" min="1" max="12" value="6" inputmode="numeric" style="flex:0.9;min-width:0;border:1px solid #ddd;border-radius:7px;padding:6px 4px;font-size:13px;display:none">'
         +'</div>';
     }).join('');
@@ -7287,11 +7287,7 @@ function mnPipeEditor(rec,wall){
     });
     [].forEach.call(o.querySelectorAll('.mn-rdia2'),function(sel){
       sel.addEventListener('change',function(){
-        var p=sel.parentNode;
-        var on=(sel.value!=='-');
-        sel.style.color=on?'#333':'#889';
-        p.querySelector('.mn-rcnt2-sel').style.display=on?'block':'none';
-        if(!on){p.querySelector('.mn-rcnt2').style.display='none';}
+        sel.style.color=(sel.value!=='-')?'#333':'#889';
       });
     });
     [].forEach.call(o.querySelectorAll('.mn-rcnt2-sel'),function(sel){
