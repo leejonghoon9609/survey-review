@@ -6771,25 +6771,34 @@ function mnAskNoOwner(rec,cb){
 function mnAskDest(cur,dn,cb){
   var old=document.getElementById('mnAskModal');if(old)old.remove();
   var no='',ow='LG',owc='';
-  var m=/^(.*)\((.+)\)$/.exec(cur||'');
-  if(m){no=m[1];var o=m[2];if(['LG','SKT','SKB','시청','세종','드림'].indexOf(o)>=0)ow=o;else{ow='_c';owc=o;}}
-  else no=cur||'';
+  if(cur==='전주입상'){ow='전주입상';}
+  else{
+    var m=/^(.+?)M\((.+)\)$/.exec(cur||'');
+    if(m){no=m[1];var o=m[2];if(['LG','SKT','SKB','시청','세종','드림'].indexOf(o)>=0)ow=o;else{ow='_c';owc=o;}}
+    else{var m2=/^(.+?)M$/.exec(cur||'');if(m2)no=m2[1];}
+  }
   var w=document.createElement('div');w.id='mnAskModal';
   w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:16dvh';
-  var opts=['LG','SKT','SKB','시청','세종','드림'].map(function(o){return '<option value="'+o+'"'+(ow===o?' selected':'')+'>'+o+'</option>';}).join('')+'<option value="_c"'+(ow==='_c'?' selected':'')+'>직접입력</option>';
+  var opts=['LG','SKT','SKB','시청','세종','드림','전주입상'].map(function(o){return '<option value="'+o+'"'+(ow===o?' selected':'')+'>'+o+'</option>';}).join('')+'<option value="_c"'+(ow==='_c'?' selected':'')+'>직접입력</option>';
   w.innerHTML='<div style="background:#f1f8e9;border:1.5px solid #558b2f;border-radius:12px;width:min(80vw,280px);padding:13px 14px">'
     +'<div style="font-weight:800;font-size:13.5px;color:#558b2f;margin-bottom:9px">연결 맨홀 ('+dn+'방향)</div>'
-    +'<div style="display:flex;gap:7px"><input id="mnDNo" value="'+joseoEsc(no)+'" placeholder="예: 2M" style="flex:1.1;min-width:0;border:1.5px solid #558b2f;border-radius:9px;padding:9px;font-size:15px;background:#fff"><select id="mnDOw" style="flex:1;min-width:0;border:1px solid #ccd8c0;border-radius:9px;padding:9px 6px;font-size:14px;background:#fff">'+opts+'</select></div>'
+    +'<div style="display:flex;gap:7px;align-items:center"><div style="flex:1.1;min-width:0;display:flex;align-items:center;gap:4px"><input id="mnDNo" type="text" inputmode="numeric" value="'+joseoEsc(no)+'" placeholder="예: 2" style="flex:1;min-width:0;border:1.5px solid #558b2f;border-radius:9px;padding:9px;font-size:15px;background:#fff"><b style="font-size:15px;color:#558b2f;flex:none">M</b></div>'
+    +'<select id="mnDOw" style="flex:1;min-width:0;border:1px solid #ccd8c0;border-radius:9px;padding:9px 6px;font-size:14px;background:#fff">'+opts+'</select></div>'
     +'<input id="mnDOwC" value="'+joseoEsc(owc)+'" placeholder="소유자 직접입력" style="width:100%;box-sizing:border-box;border:1px solid #ccd8c0;border-radius:9px;padding:9px;font-size:14px;margin-top:8px;background:#fff;display:'+(ow==='_c'?'block':'none')+'">'
     +'<div style="display:flex;gap:7px;margin-top:10px"><button id="mnDOk" style="flex:1;background:#558b2f;color:#fff;border:0;border-radius:9px;padding:10px;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">확인</span></button><button id="mnDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">취소</span></button></div></div>';
   document.body.appendChild(w);
-  w.querySelector('#mnDOw').addEventListener('change',function(){w.querySelector('#mnDOwC').style.display=(this.value==='_c')?'block':'none';});
+  w.querySelector('#mnDOw').addEventListener('change',function(){
+    if(this.value==='전주입상'){w.remove();cb('전주입상');return;}
+    w.querySelector('#mnDOwC').style.display=(this.value==='_c')?'block':'none';
+  });
   w.querySelector('#mnDNo2').onclick=function(){w.remove();};
   w.onclick=function(e){if(e.target===w)w.remove();};
   w.querySelector('#mnDOk').onclick=function(){
     var n=w.querySelector('#mnDNo').value.trim();
-    var o=w.querySelector('#mnDOw').value;if(o==='_c')o=w.querySelector('#mnDOwC').value.trim();
-    w.remove();cb(n?(n+(o?'('+o+')':'')):'');
+    var o=w.querySelector('#mnDOw').value;
+    if(o==='전주입상'){w.remove();cb('전주입상');return;}
+    if(o==='_c')o=w.querySelector('#mnDOwC').value.trim();
+    w.remove();cb(n?(n+'M'+(o?'('+o+')':'')):'');
   };
   setTimeout(function(){w.querySelector('#mnDNo').focus();},60);
 }
