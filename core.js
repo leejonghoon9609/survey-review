@@ -6695,12 +6695,13 @@ function mnOpenList(){
 }
 function mnAsk(opt){
   var old=document.getElementById('mnAskModal');if(old)old.remove();
+  var c=(opt.color&&opt.color[0])||'#1d9e75', cbg=(opt.color&&opt.color[1])||'#f2fbf7';
   var w=document.createElement('div');w.id='mnAskModal';
-  w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:16dvh';
-  w.innerHTML='<div style="background:#fff;border-radius:13px;width:min(86vw,300px);padding:16px">'
-    +'<div style="font-weight:800;font-size:15px;margin-bottom:10px">'+opt.title+(opt.unit?' <span style="color:#99a;font-weight:400;font-size:12px">('+opt.unit+')</span>':'')+'</div>'
-    +'<input id="mnAskIn" '+(opt.text?'type="text"':'type="number" step="0.01" inputmode="decimal"')+' value="'+(opt.val==null?'':(''+opt.val).replace(/"/g,'&quot;'))+'" style="width:100%;box-sizing:border-box;border:1.5px solid #1d9e75;border-radius:9px;padding:11px;font-size:17px;text-align:center">'
-    +'<div style="display:flex;gap:8px;margin-top:12px"><button id="mnAskOk" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:9px;padding:11px;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">확인</span></button><button id="mnAskNo" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:9px;padding:11px;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">취소</span></button></div></div>';
+  w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:18dvh';
+  w.innerHTML='<div style="background:'+cbg+';border:1.5px solid '+c+';border-radius:12px;width:min(72vw,220px);padding:12px 13px">'
+    +'<div style="font-weight:800;font-size:13.5px;color:'+c+';margin-bottom:8px">'+opt.title+(opt.unit?' <span style="font-weight:400;font-size:11px;opacity:.75">('+opt.unit+')</span>':'')+'</div>'
+    +'<input id="mnAskIn" '+(opt.text?'type="text"':'type="number" step="0.01" inputmode="decimal"')+' value="'+(opt.val==null?'':(''+opt.val).replace(/"/g,'&quot;'))+'" style="width:100%;box-sizing:border-box;border:1.5px solid '+c+';border-radius:8px;padding:8px;font-size:15px;text-align:center;background:#fff">'
+    +'<div style="display:flex;gap:6px;margin-top:9px"><button id="mnAskOk" style="flex:1;background:'+c+';color:#fff;border:0;border-radius:8px;padding:9px;font-weight:800;font-size:13.5px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">확인</span></button><button id="mnAskNo" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:8px;padding:9px;font-weight:700;font-size:13.5px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">취소</span></button></div></div>';
   document.body.appendChild(w);
   var inp=w.querySelector('#mnAskIn');setTimeout(function(){inp.focus();inp.select&&inp.select();},60);
   w.querySelector('#mnAskNo').onclick=function(){w.remove();};
@@ -6744,11 +6745,13 @@ function mnOpenForm(rec){
   var box=wrap.querySelector('#mnSheetBox');
   function fv(v){return (v===''||v==null)?null:v;}
   var MN_DIMC={dep:['#e74c3c','#fdecea'],topi:['#e67e22','#fdf3e7'],w34:['#2471a3','#eaf3fb'],w12:['#8e44ad','#f4ecf9']};
-  function dimSpot(x,y,k,w){
+  var MN_UNITS={dep:'m',w12:'m',w34:'m',topi:'m'};
+  function dimSpot(x,y,k,label,w){
     w=w||50;
     var val=rec[k];var has=!(val===''||val==null);var c=MN_DIMC[k]||['#c8a600','#fffbe6'];
-    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="22" rx="5" fill="'+c[1]+'" stroke="'+c[0]+'" stroke-width="1.5" data-act="dim" data-k="'+k+'" style="cursor:pointer"/>'
-      +'<text x="'+(x+w/2)+'" y="'+(y+15.5)+'" text-anchor="middle" font-size="'+(has?'12.5':'11')+'" font-weight="800" fill="'+(has?c[0]:'#c0c0ba')+'" pointer-events="none">'+(has?val:'탭')+'</text>';
+    var txt=has?(val+(MN_UNITS[k]||'')):label;
+    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="21" rx="5" fill="'+c[1]+'" stroke="'+c[0]+'" stroke-width="1.5" data-act="dim" data-k="'+k+'" style="cursor:pointer"/>'
+      +'<text x="'+(x+w/2)+'" y="'+(y+15)+'" text-anchor="middle" font-size="'+(has?'11.5':'10.5')+'" font-weight="800" fill="'+c[0]+'" pointer-events="none">'+txt+'</text>';
   }
   function dimRange(x1,y1,x2,y2,color){
     var o='<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+color+'" stroke-width="1.5"/>',aw=8,ah=3.2;
@@ -6810,26 +6813,26 @@ function mnOpenForm(rec){
       +'<circle cx="320" cy="500" r="30" fill="none" stroke="#333" stroke-width="1.4" stroke-dasharray="6,5"/>'
       /* 상(3=북): 목 — 되꺾임 안쪽 */
       +'<rect x="250" y="280" width="140" height="150" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p3')
-      +'<polyline points="278,280 278,235 296,235" fill="none" stroke="#333" stroke-width="1.5"/>'
-      +'<polyline points="362,280 362,235 344,235" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<polyline points="278,280 278,235 258,235" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<polyline points="362,280 362,235 382,235" fill="none" stroke="#333" stroke-width="1.5"/>'
       +'<line x1="320" y1="310" x2="320" y2="288" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
-      +'<text x="250" y="216" font-size="15" font-weight="700" fill="#333">3</text>'
+      +'<text x="236" y="216" font-size="15" font-weight="700" fill="#333">3</text>'
       /* 하(4=남) */
       +'<rect x="250" y="570" width="140" height="150" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p4')
-      +'<polyline points="278,720 278,765 296,765" fill="none" stroke="#333" stroke-width="1.5"/>'
-      +'<polyline points="362,720 362,765 344,765" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<polyline points="278,720 278,765 258,765" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<polyline points="362,720 362,765 382,765" fill="none" stroke="#333" stroke-width="1.5"/>'
       +'<line x1="320" y1="690" x2="320" y2="712" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
       +'<text x="314" y="800" font-size="15" font-weight="700" fill="#333">4</text>'
       /* 좌(1=서) */
       +'<rect x="100" y="430" width="150" height="140" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p1')
-      +'<polyline points="100,458 55,458 55,476" fill="none" stroke="#333" stroke-width="1.5"/>'
-      +'<polyline points="100,542 55,542 55,524" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<polyline points="100,458 55,458 55,438" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<polyline points="100,542 55,542 55,562" fill="none" stroke="#333" stroke-width="1.5"/>'
       +'<line x1="130" y1="500" x2="108" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
       +'<text x="28" y="505" font-size="15" font-weight="700" fill="#333">1</text>'
       /* 우(2=동) */
       +'<rect x="390" y="430" width="150" height="140" fill="#fff" stroke="#333" stroke-width="1.5"/>'+grid('p2')
-      +'<polyline points="540,458 585,458 585,476" fill="none" stroke="#333" stroke-width="1.5"/>'
-      +'<polyline points="540,542 585,542 585,524" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<polyline points="540,458 585,458 585,438" fill="none" stroke="#333" stroke-width="1.5"/>'
+      +'<polyline points="540,542 585,542 585,562" fill="none" stroke="#333" stroke-width="1.5"/>'
       +'<line x1="510" y1="500" x2="532" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
       +'<text x="602" y="505" font-size="15" font-weight="700" fill="#333">2</text>'
       +wallCircles('p3',function(nx,ny){return [250+nx*140,430-ny*150];})
@@ -6838,10 +6841,10 @@ function mnOpenForm(rec){
       +wallCircles('p2',function(nx,ny){return [390+ny*150,430+nx*140];})
       +wallLabel(398,304,'p3')+wallLabel(398,600,'p4')+wallLabel(96,424,'p1')+wallLabel(392,590,'p2')
       /* 치수: 범위선(양끝 화살표) + 작은 탭 */
-      +dimRange(278,222,362,222,'#2471a3')+'<text x="278" y="185" font-size="10.5" font-weight="800" fill="#2471a3">③-④폭</text>'+dimSpot(295,190,'w34')
-      +dimRange(240,235,240,280,'#e67e22')+'<text x="152" y="240" font-size="10.5" font-weight="800" fill="#e67e22">토피</text>'+dimSpot(150,244,'topi')
-      +dimRange(240,280,240,430,'#e74c3c')+'<text x="152" y="342" font-size="10.5" font-weight="800" fill="#e74c3c">깊이</text>'+dimSpot(150,346,'dep')
-      +dimRange(88,430,88,570,'#8e44ad')+'<text x="4" y="432" font-size="10.5" font-weight="800" fill="#8e44ad">①-②폭</text>'+dimSpot(2,436,'w12')
+      +dimRange(258,222,382,222,'#2471a3')+dimSpot(294,197,'w34','③-④폭',52)
+      +dimRange(240,235,240,280,'#e67e22')+dimSpot(188,247,'topi','토피',46)
+      +dimRange(240,280,240,430,'#e74c3c')+dimSpot(188,344,'dep','깊이',46)
+      +dimRange(88,430,88,570,'#8e44ad')+dimSpot(30,489,'w12','①-②폭',52)
       +'<rect x="250" y="235" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p3" style="cursor:pointer"/>'
       +'<rect x="250" y="570" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p4" style="cursor:pointer"/>'
       +'<rect x="55" y="430" width="195" height="140" fill="rgba(0,0,0,0)" data-act="wall" data-w="p1" style="cursor:pointer"/>'
@@ -6865,7 +6868,7 @@ function mnOpenForm(rec){
           var k=el.getAttribute('data-k');
           var titles={dep:'깊이',w12:'①-② 폭',w34:'③-④ 폭',topi:'토피',lid:'뚜껑지름',lidRect:'사각뚜껑 SIZE'};
           var units={dep:'m',w12:'m',w34:'m',topi:'m',lid:'mm',lidRect:''};
-          mnAsk({title:titles[k],unit:units[k],val:rec[k],text:(k==='lidRect'),cb:function(v){rec[k]=(v===''?'':v);mnPersistRec(rec);render();}});
+          mnAsk({title:titles[k],unit:units[k],val:rec[k],text:(k==='lidRect'),color:MN_DIMC[k],cb:function(v){rec[k]=(v===''?'':v);mnPersistRec(rec);render();}});
         }
         else if(act==='wall'){var wl=el.getAttribute('data-w');wrap.remove();mnPipeEditor(rec,wl);}
         else if(act==='ph'){mnShootSlot(rec,el.getAttribute('data-s'),function(){render();});}
