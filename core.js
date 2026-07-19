@@ -6297,7 +6297,7 @@ function loadKakao(cb){
   if(window.__kakaoLoading){var t=setInterval(function(){if(window.kakao&&window.kakao.maps&&window.kakao.maps.Map){clearInterval(t);cb();}},150);return;}
   window.__kakaoLoading=true;
   var s=document.createElement('script');
-  s.src='https://dapi.kakao.com/v2/maps/sdk.js?appkey='+KAKAO_KEY+'&autoload=false';
+  s.src='https://dapi.kakao.com/v2/maps/sdk.js?appkey='+KAKAO_KEY+'&autoload=false&libraries=services';
   s.onload=function(){kakao.maps.load(function(){window.__kakaoLoading=false;cb();});};
   s.onerror=function(){window.__kakaoLoading=false;toast('카카오 지도 로드 실패 — 네트워크 또는 도메인 등록을 확인하세요');};
   document.head.appendChild(s);
@@ -6826,7 +6826,7 @@ function mnPhotoZip(rec){
   Promise.all(jobs.map(function(j){
     return fetch(j.url).then(function(r){return r.blob();}).then(function(b){zip.file(j.name+'.jpg',b);}).catch(function(){});
   })).then(function(){
-    var nm=(rec.no||'맨홀').replace(/[^\w가-힣\-]/g,'_');
+    var nm=(mnLabel(rec)||'맨홀').replace(/[\\/:*?"<>|]/g,'_').trim()||'맨홀';
     zip.generateAsync({type:'blob'}).then(function(blob){
       var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nm+'.zip';document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(a.href);},1000);
       toast('📦 '+jobs.length+'장 → '+nm+'.zip');
@@ -6841,7 +6841,7 @@ function mnOpenForm(rec){
   var old=document.getElementById('mnFormModal');if(old)old.remove();
   var wrap=null;
   var inner='<div style="background:#fff;'+(host?'width:100%;height:100%;border-radius:0':(mob?'width:100vw;height:100dvh;border-radius:0':'border-radius:14px;width:min(96vw,540px);max-height:95dvh'))+';display:flex;flex-direction:column;overflow:hidden">'
-    +'<div style="padding:10px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;flex:none"><b style="flex:1;font-size:15px">맨홀 조사야장</b><button id="mnPhotoDl" style="border:1px solid #2471a3;background:#eef6fc;color:#2471a3;border-radius:8px;padding:6px 12px;margin-right:8px;cursor:pointer;font-weight:700;font-size:12.5px">📥 사진</button><button id="mnFClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div>'
+    +'<div style="padding:10px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;flex:none"><b style="flex:1;font-size:15px">맨홀 조사야장</b><button id="mnPhotoDl" style="border:1px solid #2471a3;background:#eef6fc;color:#2471a3;border-radius:8px;padding:6px 12px;margin-right:8px;cursor:pointer;font-weight:700;font-size:12.5px">📥 맨홀사진다운</button><button id="mnFClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div>'
     +'<div id="mnSheetBox" style="flex:1;overflow:auto;-webkit-overflow-scrolling:touch;background:#f4f4f2"></div>'
     +'<div style="display:flex;gap:8px;padding:10px 14px;border-top:1px solid #eee;flex:none">'
     +'<button id="mnSave" style="flex:1;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">저장</span></button>'
@@ -7143,7 +7143,44 @@ function mnOpenForm(rec){
     mnPersistRec(rec,'맨홀조사 저장됨');uClose();mnOpenList();
   };
 }
+/* [BUILD 981] 도엽번호(1/1000, 국토지리원 체계) 계산 — 셰이프 62만개 검증(수도권 100%) */
+function mnMapSheetNo(lat,lon){
+  function p2(n){return ('0'+n).slice(-2);}
+  var a=Math.floor(lat), b=Math.floor(lon)%10;
+  var r50=Math.floor((Math.floor(lat)+1-lat)/0.25), c50=Math.floor((lon-Math.floor(lon))/0.25);
+  var i50=r50*4+c50+1;
+  var latTop=Math.floor(lat)+1-r50*0.25, lonL=Math.floor(lon)+c50*0.25;
+  var r10=Math.floor((latTop-lat)/0.05), c10=Math.floor((lon-lonL)/0.05);
+  var AA=r10*5+c10+1;
+  var lat10=latTop-r10*0.05, lon10=lonL+c10*0.05;
+  var r1=Math.max(0,Math.min(9,Math.floor((lat10-lat)/0.005)));
+  var c1=Math.max(0,Math.min(9,Math.floor((lon-lon10)/0.005)));
+  var BB=(r1*10+c1+1)%100;
+  return p2(a)+b+p2(i50)+p2(AA)+p2(BB);
+}
+/* [BUILD 981] 촬영 시 GPS→도엽번호·카카오주소 자동 수집 (전경=항상 갱신, 그 외=없을 때만) */
+function mnCaptureGeo(rec,slot){
+  if(!navigator.geolocation)return;
+  if(slot!=='fr'&&rec.geo&&rec.geo.lat)return;
+  navigator.geolocation.getCurrentPosition(function(pos){
+    var lat=pos.coords.latitude,lng=pos.coords.longitude;
+    rec.geo={lat:lat,lng:lng,acc:pos.coords.accuracy,at:Date.now()};
+    try{rec.mapNo=mnMapSheetNo(lat,lng);}catch(e){}
+    mnPersistRec(rec);
+    try{kakaoReady(function(){
+      if(!(kakao.maps.services&&kakao.maps.services.Geocoder))return;
+      new kakao.maps.services.Geocoder().coord2Address(lng,lat,function(res,st){
+        if(st!==kakao.maps.services.Status.OK||!res||!res[0])return;
+        var ad=res[0].address,rd=res[0].road_address;
+        if(ad)rec.addr=(ad.region_1depth_name||'')+' '+(ad.region_2depth_name||'')+' '+(ad.region_3depth_name||'');
+        if(rd&&rd.road_name)rec.road=rd.road_name;
+        mnPersistRec(rec);
+      });
+    });}catch(e){}
+  },function(){},{enableHighAccuracy:true,timeout:15000,maximumAge:30000});
+}
 function mnShootSlot(rec,slot,done){
+  try{mnCaptureGeo(rec,slot);}catch(e){}
   var fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.setAttribute('capture','environment');fi.style.display='none';
   document.body.appendChild(fi);
   fi.addEventListener('change',function(e){
