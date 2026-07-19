@@ -6877,20 +6877,13 @@ function mnOpenForm(rec){
   function wallCircles(wallKey,mapFn){
     var pwv=rec.pipes&&rec.pipes[wallKey];if(!pwv||!pwv.groups)return '';
     var WHd=mnWallDims(rec,wallKey),Wm=WHd[0],Hm=WHd[1],out='';
-    var sk=150/Hm, KU=(150*Wm)/(140*Hm); /* sk=관크기(깊이 스케일) / KU=가로 맞닿음 보정 */
+    /* ★ 편집기(mnPipeEditor)와 완전히 동일한 직접 좌표 매핑 = WYSIWYG. 중심계산·재정렬 일절 없음 → 어디에 꽂든 그 자리에 표시 */
+    var hsk=140/Wm; /* 가로(벽폭) 스케일 — 편집기와 동일해 나란한 관이 딱 맞닿음(겹침없음) */
     var all=[];pwv.groups.forEach(function(g){(g.circles||[]).forEach(function(c){all.push(c);});});
     if(!all.length)return '';
-    /* WYSIWYG: 관무리 중심(cxAll)은 편집기 실제 가로위치에 고정, 관끼리 맞닿도록 퍼짐만 KU 보정 / 세로(깊이)는 실제 바닥기준 유지 */
-    var cxAll=0,minX=1e9,maxX=-1e9;all.forEach(function(c){cxAll+=c.x;if(c.x<minX)minX=c.x;if(c.x>maxX)maxX=c.x;});cxAll/=all.length;
-    /* 관이 넓게 퍼져 벽폭 초과하면 확대율(KU) 자동 축소 — 넘침 방지하며 상대위치 보존 */
-    var kEff=KU,rawSpread=(maxX-minX)*KU/Wm;if(rawSpread>0.90)kEff=KU*0.90/rawSpread;
-    var items=all.map(function(c){return {c:c,nx:(cxAll+(c.x-cxAll)*kEff)/Wm,ny:c.y/Hm};});
-    /* 벽 밖으로 넘치면 무리 전체를 안쪽으로 평행이동(맞닿음·상대배치 보존) */
-    var mn=1,mx=0;items.forEach(function(it){if(it.nx<mn)mn=it.nx;if(it.nx>mx)mx=it.nx;});
-    var shift=0;if(mn<0.04)shift=0.04-mn;else if(mx>0.96)shift=0.96-mx;
-    items.forEach(function(it){
-      var c=it.c;var p=mapFn(it.nx+shift,it.ny);
-      var r=Math.max(c.dia*0.5*sk,3);
+    all.forEach(function(c){
+      var p=mapFn(c.x/Wm,c.y/Hm); /* 편집기 좌표 그대로 */
+      var r=Math.max(c.dia*0.5*hsk*1.3,4); /* 970보다 소폭 크게(겹침 최소) */
       var st=(c.st!=null?c.st:(c.fill?1:0));
       out+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+(st===2?'#d32f2f':(st===1?'#222':'#fff'))+'" stroke="#333" stroke-width="1.2" pointer-events="none"/>';
     });
