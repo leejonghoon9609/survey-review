@@ -6876,18 +6876,45 @@ function mnOpenForm(rec){
   }
   function wallCircles(wallKey,mapFn){
     var pwv=rec.pipes&&rec.pipes[wallKey];if(!pwv||!pwv.groups)return '';
-    var WHd=mnWallDims(rec,wallKey),Wm=WHd[0],Hm=WHd[1],out='';
-    /* ★ 편집기와 동일 위치(WYSIWYG) + 등방(iso)배율로 관이 가로·세로 모두 딱 맞닿게(겹침/벌어짐 없음) */
-    var iso=Math.min(140/Wm,150/Hm); /* 가로·세로 같은 배율 → 나란한 관도 쌓인 관도 정확히 맞닿음 */
+    /* ★ 실벽폭 기준. 관을 "닿아있으면 한 덩어리"로 자동 묶고, 각 덩어리를 중심기준 비율 위치에 배치.
+       덩어리 안 관은 붙은 상대배치 유지(등방, 고정 표시크기) → 겹침/뜸 없음. 정밀좌표는 편집기(→DXF)가 보존 */
+    var Wm=mnWallRealW(rec,wallKey),Hm=(mnWallDims(rec,wallKey)[1])||1100,out='';
     var all=[];pwv.groups.forEach(function(g){(g.circles||[]).forEach(function(c){all.push(c);});});
     if(!all.length)return '';
-    all.forEach(function(c){
-      /* 가로: 절대위치 유지(iso가 가로한계면 c.x/Wm과 동일) / 세로: 바닥(c.y=0) 기준, 등방 */
-      var nx=c.x*iso/140, ny=c.y*iso/150;
-      var p=mapFn(nx,ny);
-      var r=Math.max(c.dia*0.5*iso,2.5);
-      var st=(c.st!=null?c.st:(c.fill?1:0));
-      out+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+(st===2?'#d32f2f':(st===1?'#222':'#fff'))+'" stroke="#333" stroke-width="1.2" pointer-events="none"/>';
+    /* 1) 인접(닿음) 그룹핑: 중심거리 ≤ (d1+d2)/2 * 1.4 이면 같은 덩어리 (BFS) */
+    var n=all.length,seen=new Array(n).fill(false),clusters=[];
+    for(var i=0;i<n;i++){ if(seen[i])continue;
+      var q=[i],comp=[];seen[i]=true;
+      while(q.length){ var a=q.pop();comp.push(a);
+        for(var b=0;b<n;b++){ if(seen[b])continue;
+          var dx=all[a].x-all[b].x,dy=all[a].y-all[b].y,th=(all[a].dia+all[b].dia)/2*1.4;
+          if(dx*dx+dy*dy<=th*th){seen[b]=true;q.push(b);}
+        }
+      }
+      clusters.push(comp);
+    }
+    /* 2) mapFn 단위벡터(회전 자동 반영) */
+    var o0=mapFn(0,0),e1=mapFn(1,0),e2=mapFn(0,1);
+    var ex=[e1[0]-o0[0],e1[1]-o0[1]],ey=[e2[0]-o0[0],e2[1]-o0[1]];
+    var exl=Math.hypot(ex[0],ex[1])||1,eyl=Math.hypot(ey[0],ey[1])||1;
+    var exU=[ex[0]/exl,ex[1]/exl],eyU=[ey[0]/eyl,ey[1]/eyl];
+    var DS=0.15; /* 표시 배율(px/mm) — 야장 확인용 크기. 붙은 관은 그대로 붙음 */
+    clusters.forEach(function(comp){
+      /* 덩어리 중심(편집기 실좌표) */
+      var cx=0,cy=0;comp.forEach(function(idx){cx+=all[idx].x;cy+=all[idx].y;});cx/=comp.length;cy/=comp.length;
+      /* 중심기준 비율 → 셀 중심(0.5,0.5)에서 같은 비율. 셀 밖으로 안나가게 clamp */
+      var ncx=Math.min(0.88,Math.max(0.12,0.5+(cx-Wm/2)/Wm));
+      var ncy=Math.min(0.88,Math.max(0.12,0.5+(cy-Hm/2)/Hm));
+      var pc=mapFn(ncx,ncy);
+      comp.forEach(function(idx){
+        var c=all[idx];
+        var ddx=c.x-cx,ddy=c.y-cy; /* 덩어리 내 상대(편집기 실mm, ddy=바닥기준 위 */
+        var px=pc[0]+DS*(ddx*exU[0]+ddy*eyU[0]);
+        var py=pc[1]+DS*(ddx*exU[1]+ddy*eyU[1]);
+        var r=Math.max(c.dia*0.5*DS,3);
+        var st=(c.st!=null?c.st:(c.fill?1:0));
+        out+='<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+(st===2?'#d32f2f':(st===1?'#222':'#fff'))+'" stroke="#333" stroke-width="1.2" pointer-events="none"/>';
+      });
     });
     return out;
   }
@@ -6985,10 +7012,10 @@ function mnOpenForm(rec){
       +'<line x1="548" y1="500" x2="568" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
       +'<text x="571" y="505" font-size="15" font-weight="700" fill="#333">2</text>'
       +destPill('d2',586,485,58,30,0)
-      +wallPhoto('p3',250,280,140,150,0)+wallPhoto('p4',250,570,140,150,180)+wallPhoto('p1',100,430,150,140,-90)+wallPhoto('p2',390,430,150,140,90)
+      +wallPhoto('p3',250,280,140,150,0)+wallPhoto('p4',250,570,140,150,0)+wallPhoto('p1',100,430,150,140,-90)+wallPhoto('p2',390,430,150,140,90)
       +wallHint(320,355)+wallHint(320,645)+wallHint(175,500)+wallHint(465,500)
       +wallCircles('p3',function(nx,ny){return [250+nx*140,430-ny*150];})
-      +wallCircles('p4',function(nx,ny){return [250+nx*140,570+ny*150];})
+      +wallCircles('p4',function(nx,ny){return [250+nx*140,720-ny*150];})
       +wallCircles('p1',function(nx,ny){return [250-ny*150,430+nx*140];})
       +wallCircles('p2',function(nx,ny){return [390+ny*150,430+nx*140];})
       +mnLbl('p1')+mnLbl('p3')+mnLbl('p2')+mnLbl('p4')
