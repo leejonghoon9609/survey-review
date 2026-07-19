@@ -6861,14 +6861,15 @@ function mnDxfGen(rec){
     var out='';
     ['p1','p2','p3','p4'].forEach(function(wall){
       var pw=rec.pipes&&rec.pipes[wall];if(!pw||!pw.groups)return;
-      /* [985] 규격/방향 변경 후 편집기를 안 열었어도 좌표를 현재 벽치수 비율로 재계산 (편집기 로직과 동일, 영구 반영) */
-      var _W=mnWallRealW(rec,wall),_H=(rec.spec&&rec.spec.dep)||1100;
-      if(pw.bw&&pw.bh&&(pw.bw!==_W||pw.bh!==_H)){
+      /* [986] 좌표 기준 벽치수(bw/bh)가 없으면 옛 dispW(긴변) 좌표계로 간주 → 항상 현재 벽치수로 비율 변환 */
+      var _sp=rec.spec||{w:800,h:1700,dep:1100};
+      var _W=mnWallRealW(rec,wall),_H=_sp.dep||1100;
+      if(!pw.bw||!pw.bh){pw.bw=Math.max(_sp.w||800,_sp.h||1700);pw.bh=_sp.dep||1100;}
+      if(pw.bw!==_W||pw.bh!==_H){
         var _fx=_W/pw.bw,_fy=_H/pw.bh;
         pw.groups.forEach(function(gg){(gg.circles||[]).forEach(function(cc){cc.x=Math.round(cc.x*_fx);cc.y=Math.round(cc.y*_fy);});});
         pw.bw=_W;pw.bh=_H;try{mnPersistRec(rec);}catch(_e){}
       }
-      if(!pw.bw){pw.bw=_W;pw.bh=_H;}
       var all=[];pw.groups.forEach(function(gr){(gr.circles||[]).forEach(function(c){var st=(c.st!=null?c.st:(c.fill?1:0));if(st===2)return;all.push({x:c.x,y:c.y,dia:c.dia,st:st});});});
       if(!all.length)return;
       all.forEach(function(c){
@@ -7370,8 +7371,10 @@ function mnPipeEditor(rec,wall){
   var pw=rec.pipes[wall];
   /* ★ 실벽폭 좌표계: 각 벽을 실제 폭×깊이로. dispW(긴변) 통일 폐기 */
   var WH=mnWallDims(rec,wall),W=mnWallRealW(rec,wall),H=WH[1];
-  /* 규격 변경(치수 나중 조사 등)으로 벽치수가 달라지면 기존 관 위치를 비율대로 자동 재계산 */
-  if(pw.bw&&pw.bh&&(pw.bw!==W||pw.bh!==H)){
+  /* [986] 좌표 기준 벽치수 없으면 옛 dispW 좌표계로 간주 → 항상 현재 벽치수로 비율 변환 */
+  var _sp986=rec.spec||{w:800,h:1700,dep:1100};
+  if(!pw.bw||!pw.bh){pw.bw=Math.max(_sp986.w||800,_sp986.h||1700);pw.bh=_sp986.dep||1100;}
+  if(pw.bw!==W||pw.bh!==H){
     var _fx=W/pw.bw,_fy=H/pw.bh;
     pw.groups.forEach(function(g){(g.circles||[]).forEach(function(c){c.x=Math.round(c.x*_fx);c.y=Math.round(c.y*_fy);});});
   }
