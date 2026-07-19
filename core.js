@@ -6815,6 +6815,24 @@ function mnAskDest(cur,dn,cb){
   };
   setTimeout(function(){w.querySelector('#mnDNo').focus();},60);
 }
+function mnPhotoZip(rec){
+  if(typeof JSZip==='undefined'){toast('압축 모듈 없음 — 새로고침(Ctrl+Shift+R)');return;}
+  var ph=rec.photos||{};
+  /* 표찰=표찰 / 전경=1 / 서·동·북·남 = 2-번호(파란박스 벽번호). 사진 있으면 체크여부 무관 포함 */
+  var map=[['bd','표찰'],['fr','1'],['p1','2-1'],['p2','2-2'],['p3','2-3'],['p4','2-4']];
+  var jobs=[];map.forEach(function(m){if(ph[m[0]])jobs.push({name:m[1],url:ph[m[0]]});});
+  if(!jobs.length){toast('저장된 사진이 없습니다');return;}
+  var zip=new JSZip();toast('사진 압축 중...');
+  Promise.all(jobs.map(function(j){
+    return fetch(j.url).then(function(r){return r.blob();}).then(function(b){zip.file(j.name+'.jpg',b);}).catch(function(){});
+  })).then(function(){
+    var nm=(rec.no||'맨홀').replace(/[^\w가-힣\-]/g,'_');
+    zip.generateAsync({type:'blob'}).then(function(blob){
+      var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nm+'.zip';document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(a.href);},1000);
+      toast('📦 '+jobs.length+'장 → '+nm+'.zip');
+    }).catch(function(){toast('압축 실패');});
+  });
+}
 function mnOpenForm(rec){
   var isNew=!rec;
   if(isNew)rec={id:'mn'+Date.now(),no:'',owner:'LG',ownerC:'',dep:'',w12:'',w34:'',topi:'',lid:766,lidRect:'',spec:null,photos:{},pipes:{},at:new Date().toISOString()};
@@ -6823,7 +6841,7 @@ function mnOpenForm(rec){
   var old=document.getElementById('mnFormModal');if(old)old.remove();
   var wrap=null;
   var inner='<div style="background:#fff;'+(host?'width:100%;height:100%;border-radius:0':(mob?'width:100vw;height:100dvh;border-radius:0':'border-radius:14px;width:min(96vw,540px);max-height:95dvh'))+';display:flex;flex-direction:column;overflow:hidden">'
-    +'<div style="padding:10px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;flex:none"><b style="flex:1;font-size:15px">맨홀 조사야장</b><button id="mnFClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div>'
+    +'<div style="padding:10px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;flex:none"><b style="flex:1;font-size:15px">맨홀 조사야장</b><button id="mnPhotoDl" style="border:1px solid #2471a3;background:#eef6fc;color:#2471a3;border-radius:8px;padding:6px 12px;margin-right:8px;cursor:pointer;font-weight:700;font-size:12.5px">📥 사진</button><button id="mnFClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div>'
     +'<div id="mnSheetBox" style="flex:1;overflow:auto;-webkit-overflow-scrolling:touch;background:#f4f4f2"></div>'
     +'<div style="display:flex;gap:8px;padding:10px 14px;border-top:1px solid #eee;flex:none">'
     +'<button id="mnSave" style="flex:1;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">저장</span></button>'
@@ -7114,6 +7132,7 @@ function mnOpenForm(rec){
     },{passive:false});
   }
   root.querySelector('#mnFClose').onclick=uClose;
+  var _pdl=root.querySelector('#mnPhotoDl');if(_pdl)_pdl.onclick=function(){mnPhotoZip(rec);};
   root.querySelector('#mnBack').onclick=function(){uClose();mnOpenList();};
   root.querySelector('#mnSave').onclick=function(){
     if(!rec.no){toast('맨홀번호를 입력하세요');mnAskNoOwner(rec,function(){mnPersistRec(rec);render();});return;}
