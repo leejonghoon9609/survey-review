@@ -6818,9 +6818,9 @@ function mnAskDest(cur,dn,cb){
 /* [BUILD 983] 맨홀도 DXF — 규격샘플 템플릿(dxf/) fetch → 마커치환 + 관 실좌표 재그리기 */
 var MN_DXF_GEO={"tpl_045x095": {"bx0": 139955, "bx1": 140405, "by0": -150953, "by1": -150003}, "tpl_095x045": {"bx0": 139705, "bx1": 140655, "by0": -150703, "by1": -150253}, "tpl_07x13": {"bx0": 139830, "bx1": 140530, "by0": -151128, "by1": -149828}, "tpl_13x07": {"bx0": 139530, "bx1": 140830, "by0": -150828, "by1": -150128}, "tpl_08x17": {"bx0": 139780, "bx1": 140580, "by0": -151328, "by1": -149628}, "tpl_17x08": {"bx0": 139330, "bx1": 141030, "by0": -150878, "by1": -150078}, "tpl_10x20": {"bx0": 139680, "bx1": 140680, "by0": -151478, "by1": -149478}, "tpl_20x10": {"bx0": 139180, "bx1": 141180, "by0": -150978, "by1": -149978}};
 function mnDxfPickTpl(rec){
-  var sp=rec.spec||{w:800,h:1700,dep:1100,orient:'세로'};
+  var sp=rec.spec||{w:800,h:1700,dep:1100,orient:'가로'};
   var sw=Math.min(sp.w,sp.h),lw=Math.max(sp.w,sp.h);
-  var horiz=(sp.orient!=='가로'); /* [984] 야장 orient 기준과 DXF 바닥 가로세로가 반대 — 반전 매칭 */
+  var horiz=(sp.orient==='가로'); /* [987] 편집기 좌표계(mnWallRealW)와 동일 기준 — 984 반전 롤백 */
   var key;
   if(sw===450)key=horiz?'tpl_095x045':'tpl_045x095';
   else if(sw===700&&lw===1300)key=horiz?'tpl_13x07':'tpl_07x13';
@@ -7329,7 +7329,7 @@ function mnWallDims(rec,wall){
   return [Math.max(sp.w||800,sp.h||1700),sp.dep||1100];
 }
 function mnWallRealW(rec,wall){
-  var sp=rec.spec||{w:800,h:1700,dep:1100,orient:'세로'};
+  var sp=rec.spec||{w:800,h:1700,dep:1100,orient:'가로'};
   var d12=(sp.orient==='가로')?Math.max(sp.w,sp.h):Math.min(sp.w,sp.h);
   var d34=(sp.orient==='가로')?Math.min(sp.w,sp.h):Math.max(sp.w,sp.h);
   return (wall==='p1'||wall==='p2')?d34:d12;
