@@ -7164,7 +7164,14 @@ function mnPipeEditor(rec,wall){
   if(!rec.pipes)rec.pipes={};
   if(!rec.pipes[wall])rec.pipes[wall]={groups:[]};
   var pw=rec.pipes[wall];
-  var WH=mnWallDims(rec,wall),W=WH[0],H=WH[1];
+  /* ★ 실벽폭 좌표계: 각 벽을 실제 폭×깊이로. dispW(긴변) 통일 폐기 */
+  var WH=mnWallDims(rec,wall),W=mnWallRealW(rec,wall),H=WH[1];
+  /* 규격 변경(치수 나중 조사 등)으로 벽치수가 달라지면 기존 관 위치를 비율대로 자동 재계산 */
+  if(pw.bw&&pw.bh&&(pw.bw!==W||pw.bh!==H)){
+    var _fx=W/pw.bw,_fy=H/pw.bh;
+    pw.groups.forEach(function(g){(g.circles||[]).forEach(function(c){c.x=Math.round(c.x*_fx);c.y=Math.round(c.y*_fy);});});
+  }
+  pw.bw=W;pw.bh=H;
   var wname='';MN_WALLS.forEach(function(x){if(x[0]===wall)wname=x[1];});
   var mob=(typeof isMobileDevice==='function'&&isMobileDevice());
   var old=document.getElementById('mnPipeModal');if(old)old.remove();
@@ -7194,9 +7201,8 @@ function mnPipeEditor(rec,wall){
   document.body.appendChild(wrap);
   var cv=wrap.querySelector('#mnCv'),bx=wrap.querySelector('#mnCvBox');
   var sp0=rec.spec||{w:800,h:1700,dep:1100};
-  var dispW=Math.max(sp0.w||800,sp0.h||1700);
   var cssW=Math.min(window.innerWidth*0.96,460)-30;
-  var cssH=cssW*H/dispW;var maxH=window.innerHeight*0.4;
+  var cssH=cssW*H/W;var maxH=window.innerHeight*0.4;
   if(cssH>maxH){var _f=maxH/cssH;cssH=maxH;cssW*=_f;}
   var sx=cssW/W, sy=cssH/H;
   var dpr=window.devicePixelRatio||1;
