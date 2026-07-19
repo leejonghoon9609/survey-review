@@ -6861,6 +6861,14 @@ function mnDxfGen(rec){
     var out='';
     ['p1','p2','p3','p4'].forEach(function(wall){
       var pw=rec.pipes&&rec.pipes[wall];if(!pw||!pw.groups)return;
+      /* [985] 규격/방향 변경 후 편집기를 안 열었어도 좌표를 현재 벽치수 비율로 재계산 (편집기 로직과 동일, 영구 반영) */
+      var _W=mnWallRealW(rec,wall),_H=(rec.spec&&rec.spec.dep)||1100;
+      if(pw.bw&&pw.bh&&(pw.bw!==_W||pw.bh!==_H)){
+        var _fx=_W/pw.bw,_fy=_H/pw.bh;
+        pw.groups.forEach(function(gg){(gg.circles||[]).forEach(function(cc){cc.x=Math.round(cc.x*_fx);cc.y=Math.round(cc.y*_fy);});});
+        pw.bw=_W;pw.bh=_H;try{mnPersistRec(rec);}catch(_e){}
+      }
+      if(!pw.bw){pw.bw=_W;pw.bh=_H;}
       var all=[];pw.groups.forEach(function(gr){(gr.circles||[]).forEach(function(c){var st=(c.st!=null?c.st:(c.fill?1:0));if(st===2)return;all.push({x:c.x,y:c.y,dia:c.dia,st:st});});});
       if(!all.length)return;
       all.forEach(function(c){
