@@ -6877,16 +6877,13 @@ function mnOpenForm(rec){
   function wallCircles(wallKey,mapFn){
     var pwv=rec.pipes&&rec.pipes[wallKey];if(!pwv||!pwv.groups)return '';
     var WHd=mnWallDims(rec,wallKey),Wm=WHd[0],Hm=WHd[1],out='';
-    var sk=150/Hm, KU=(150*Wm)/(140*Hm); /* 가로로 맞닿기 위한 u축 보정 */
-    /* 편집기 실제 좌표를 그대로 사용(그룹 재정렬 X — 겹침 방지). 전체 클러스터를 벽 중앙에 배치 */
+    /* 편집기(mnPipeEditor)와 동일하게 실제 좌표 그대로 표시 — 중앙정렬/재정렬 없음(WYSIWYG) */
+    var nsk=140/Wm; /* 벽폭 방향 스케일 — 나란한 관이 맞닿아 보이도록 반지름 산출 */
     var all=[];pwv.groups.forEach(function(g){(g.circles||[]).forEach(function(c){all.push(c);});});
     if(!all.length)return '';
-    var mx=0,my=0;all.forEach(function(c){mx+=c.x;my+=c.y;});mx/=all.length;my/=all.length;
     all.forEach(function(c){
-      var cu=Wm/2+(c.x-mx)*KU;
-      var cv=Hm/2+(c.y-my);
-      var p=mapFn(cu/Wm,cv/Hm);
-      var r=Math.max(c.dia*0.5*sk,3);
+      var p=mapFn(c.x/Wm,c.y/Hm);
+      var r=Math.max(c.dia*0.5*nsk,2.5);
       var st=(c.st!=null?c.st:(c.fill?1:0));
       out+='<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+(st===2?'#d32f2f':(st===1?'#222':'#fff'))+'" stroke="#333" stroke-width="1.2" pointer-events="none"/>';
     });
@@ -6936,9 +6933,9 @@ function mnOpenForm(rec){
     MN_SLOTS.forEach(function(sl,i){
       var y=182+i*36;var url=rec.photos&&rec.photos[sl[0]];
       var chkOn=!(rec.chk&&rec.chk[sl[0]]===0);
-      phRows+='<rect x="562" y="'+(y-7.5)+'" width="15" height="15" rx="3.5" fill="'+(chkOn?'#1d9e75':'#fff')+'" stroke="'+(chkOn?'#1d9e75':'#bbb')+'" stroke-width="1.4" data-act="chk" data-s="'+sl[0]+'" style="cursor:pointer"/>'
-        +(chkOn?'<path d="M565.5 '+y+' l3.7 4.2 l6.3 -7.5" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>':'')
-        +'<text x="618" y="'+(y+6)+'" text-anchor="end" font-size="13" fill="#444">'+sl[1].replace(/^[①-④] /,'')+' :</text>'
+      phRows+='<rect x="540" y="'+(y-7.5)+'" width="15" height="15" rx="3.5" fill="'+(chkOn?'#1d9e75':'#fff')+'" stroke="'+(chkOn?'#1d9e75':'#bbb')+'" stroke-width="1.4" data-act="chk" data-s="'+sl[0]+'" style="cursor:pointer"/>'
+        +(chkOn?'<path d="M543.5 '+y+' l3.7 4.2 l6.3 -7.5" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>':'')
+        +'<text x="561" y="'+(y+6)+'" text-anchor="start" font-size="13" fill="#444">'+sl[1].replace(/^[①-④] /,'')+' :</text>'
         +(url?'<image href="'+url+'" x="622" y="'+(y-12)+'" width="24" height="24" preserveAspectRatio="xMidYMid slice" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><rect x="652" y="'+(y-11.5)+'" width="42" height="23" rx="6" fill="#e1f5ee" stroke="#1d9e75" stroke-width="1.5" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="673" y="'+(y+4)+'" text-anchor="middle" font-size="11" font-weight="800" fill="#1d9e75" pointer-events="none">완료</text>'
              :'<rect x="638" y="'+(y-11.5)+'" width="56" height="23" rx="6" fill="#fdeaea" stroke="#d32f2f" stroke-width="1.6" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="666" y="'+(y+4)+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="#d32f2f" pointer-events="none">촬영</text>');
     });
