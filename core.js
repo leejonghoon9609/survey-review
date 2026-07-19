@@ -6820,7 +6820,7 @@ var MN_DXF_GEO={"tpl_045x095": {"bx0": 139955, "bx1": 140405, "by0": -150953, "b
 function mnDxfPickTpl(rec){
   var sp=rec.spec||{w:800,h:1700,dep:1100,orient:'세로'};
   var sw=Math.min(sp.w,sp.h),lw=Math.max(sp.w,sp.h);
-  var horiz=(sp.orient==='가로');
+  var horiz=(sp.orient!=='가로'); /* [984] 야장 orient 기준과 DXF 바닥 가로세로가 반대 — 반전 매칭 */
   var key;
   if(sw===450)key=horiz?'tpl_095x045':'tpl_045x095';
   else if(sw===700&&lw===1300)key=horiz?'tpl_13x07':'tpl_07x13';
