@@ -7012,10 +7012,10 @@ function mnOpenForm(rec){
       +'<line x1="548" y1="500" x2="568" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
       +'<text x="571" y="505" font-size="15" font-weight="700" fill="#333">2</text>'
       +destPill('d2',586,485,58,30,0)
-      +wallPhoto('p3',250,280,140,150,0)+wallPhoto('p4',250,570,140,150,0)+wallPhoto('p1',100,430,150,140,-90)+wallPhoto('p2',390,430,150,140,90)
+      +wallPhoto('p3',250,280,140,150,0)+wallPhoto('p4',250,570,140,150,180)+wallPhoto('p1',100,430,150,140,-90)+wallPhoto('p2',390,430,150,140,90)
       +wallHint(320,355)+wallHint(320,645)+wallHint(175,500)+wallHint(465,500)
       +wallCircles('p3',function(nx,ny){return [250+nx*140,430-ny*150];})
-      +wallCircles('p4',function(nx,ny){return [250+nx*140,720-ny*150];})
+      +wallCircles('p4',function(nx,ny){return [250+nx*140,570+ny*150];})
       +wallCircles('p1',function(nx,ny){return [250-ny*150,430+nx*140];})
       +wallCircles('p2',function(nx,ny){return [390+ny*150,430+nx*140];})
       +mnLbl('p1')+mnLbl('p3')+mnLbl('p2')+mnLbl('p4')
