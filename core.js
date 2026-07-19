@@ -6936,10 +6936,10 @@ function mnOpenForm(rec){
     MN_SLOTS.forEach(function(sl,i){
       var y=182+i*36;var url=rec.photos&&rec.photos[sl[0]];
       var chkOn=!(rec.chk&&rec.chk[sl[0]]===0);
-      phRows+='<rect x="531" y="'+(y-7.5)+'" width="15" height="15" rx="3.5" fill="'+(chkOn?'#1d9e75':'#fff')+'" stroke="'+(chkOn?'#1d9e75':'#bbb')+'" stroke-width="1.4" data-act="chk" data-s="'+sl[0]+'" style="cursor:pointer"/>'
-        +(chkOn?'<path d="M534.5 '+y+' l3.7 4.2 l6.3 -7.5" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>':'')
-        +'<text x="586" y="'+(y+6)+'" text-anchor="end" font-size="13" fill="#444">'+sl[1].replace(/^[①-④] /,'')+' :</text>'
-        +(url?'<image href="'+url+'" x="600" y="'+(y-12)+'" width="24" height="24" preserveAspectRatio="xMidYMid slice" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><rect x="652" y="'+(y-11.5)+'" width="42" height="23" rx="6" fill="#e1f5ee" stroke="#1d9e75" stroke-width="1.5" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="673" y="'+(y+4)+'" text-anchor="middle" font-size="11" font-weight="800" fill="#1d9e75" pointer-events="none">완료</text>'
+      phRows+='<rect x="562" y="'+(y-7.5)+'" width="15" height="15" rx="3.5" fill="'+(chkOn?'#1d9e75':'#fff')+'" stroke="'+(chkOn?'#1d9e75':'#bbb')+'" stroke-width="1.4" data-act="chk" data-s="'+sl[0]+'" style="cursor:pointer"/>'
+        +(chkOn?'<path d="M565.5 '+y+' l3.7 4.2 l6.3 -7.5" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" pointer-events="none"/>':'')
+        +'<text x="618" y="'+(y+6)+'" text-anchor="end" font-size="13" fill="#444">'+sl[1].replace(/^[①-④] /,'')+' :</text>'
+        +(url?'<image href="'+url+'" x="622" y="'+(y-12)+'" width="24" height="24" preserveAspectRatio="xMidYMid slice" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><rect x="652" y="'+(y-11.5)+'" width="42" height="23" rx="6" fill="#e1f5ee" stroke="#1d9e75" stroke-width="1.5" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="673" y="'+(y+4)+'" text-anchor="middle" font-size="11" font-weight="800" fill="#1d9e75" pointer-events="none">완료</text>'
              :'<rect x="638" y="'+(y-11.5)+'" width="56" height="23" rx="6" fill="#fdeaea" stroke="#d32f2f" stroke-width="1.6" data-act="ph" data-s="'+sl[0]+'" style="cursor:pointer"/><text x="666" y="'+(y+4)+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="#d32f2f" pointer-events="none">촬영</text>');
     });
     var svg='<svg viewBox="0 0 720 980" xmlns="http://www.w3.org/2000/svg" style="display:block;background:#fff;'+(host?'width:100%;height:100%':'width:100%;max-width:720px')+';margin:0 auto;font-family:inherit">'
