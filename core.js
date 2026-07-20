@@ -7386,9 +7386,9 @@ function mnPipeEditor(rec,wall){
     +'<div style="padding:12px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:15px">관배치 — '+wname+'</b><span style="font-size:11px;color:#99a">벽 '+(mnWallRealW(rec,wall)/1000)+'m × 깊이 '+(H/1000)+'m</span><button id="mnPClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 11px;cursor:pointer">닫기</button></div>'
     +'<div style="padding:10px 14px;overflow:auto;flex:1">'
     +'<div style="display:flex;gap:6px;align-items:center;margin-bottom:7px">'
-      +'<button id="mnMdAll" class="mn-md" style="flex:none;border:1px solid #ccc;background:#fff;color:#667;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">전체이동</button>'
-      +'<button id="mnMdOne" class="mn-md" style="flex:none;border:1px solid #ccc;background:#fff;color:#667;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">개별이동</button>'
-      +'<button id="mnMdDel" class="mn-md" style="flex:none;border:1px solid #ccc;background:#fff;color:#667;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">개별삭제</button>'
+      +'<button id="mnMdAll" class="mn-md" style="flex:none;border:1px solid #2471a3;background:#fff;color:#2471a3;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">전체이동</button>'
+      +'<button id="mnMdOne" class="mn-md" style="flex:none;border:1px solid #1d9e75;background:#fff;color:#1d9e75;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">개별이동</button>'
+      +'<button id="mnMdDel" class="mn-md" style="flex:none;border:1px solid #e67e22;background:#fff;color:#e67e22;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">개별삭제</button>'
       +'<button id="mnDelAll" style="flex:none;border:1px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:800;cursor:pointer">전체삭제</button>'
       +'<button id="mnReShoot" style="margin-left:auto;flex:none;border:1px solid #d32f2f;background:#fdeaea;color:#d32f2f;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:800;cursor:pointer">재촬영</button></div>'
     +'<div id="mnCvBox" style="border:1.5px solid #556;border-radius:8px;overflow:hidden;background:#fff"><canvas id="mnCv" style="display:block;touch-action:none;user-select:none;-webkit-user-select:none"></canvas></div>'
@@ -7419,11 +7419,13 @@ function mnPipeEditor(rec,wall){
   function clampView(){vz=Math.min(5,Math.max(1,vz));vox=Math.min(Math.max(vox,0),cssW*(vz-1));voy=Math.min(Math.max(voy,0),cssH*(vz-1));if(vz===1){vox=0;voy=0;}}
   var mode='all';
   function setMode(m){mode=m;
-    [['mnMdAll','all'],['mnMdOne','one'],['mnMdDel','del']].forEach(function(x){
+    /* [991] 버튼별 고유색: 전체이동=파랑 개별이동=초록 개별삭제=주황. 활성=연한 배경 */
+    [['mnMdAll','all','#2471a3','#eaf3fb'],['mnMdOne','one','#1d9e75','#e1f5ee'],['mnMdDel','del','#e67e22','#fdf0e3']].forEach(function(x){
       var el=wrap.querySelector('#'+x[0]);var on=(m===x[1]);
-      el.style.background=on?(x[1]==='del'?'#fdeaea':'#eaf3fb'):'#fff';
-      el.style.color=on?(x[1]==='del'?'#c0392b':'#2471a3'):'#667';
-      el.style.borderColor=on?(x[1]==='del'?'#c0392b':'#2471a3'):'#ccc';
+      el.style.background=on?x[3]:'#fff';
+      el.style.color=x[2];
+      el.style.borderColor=x[2];
+      el.style.borderWidth=on?'2px':'1px';
     });
   }
   wrap.querySelector('#mnMdAll').onclick=function(){setMode('all');};
