@@ -6828,6 +6828,7 @@ function mnDxfEnt(lines){return lines.join('\n')+'\n';}
 function mnDxfCircle(h,x,y,r){return mnDxfEnt(['  0','CIRCLE','  5',h,'100','AcDbEntity','  8','pipe','100','AcDbCircle',' 10',x.toFixed(1),' 20',y.toFixed(1),' 30','0.0',' 40',r.toFixed(1)]);}
 function mnDxfHatch(h,x,y,r){return mnDxfEnt(['  0','HATCH','  5',h,'100','AcDbEntity','  8','pipe','100','AcDbHatch',' 10','0.0',' 20','0.0',' 30','0.0','210','0.0','220','0.0','230','1.0','  2','SOLID',' 70','1',' 71','0',' 91','1',' 92','1',' 93','1',' 72','2',' 10',x.toFixed(1),' 20',y.toFixed(1),' 40',r.toFixed(1),' 50','0.0',' 51','360.0',' 73','1',' 97','0',' 75','1',' 76','1',' 47','1.0',' 98','1',' 10',x.toFixed(1),' 20',y.toFixed(1)]);}
 function mnDxfText(h,x,y,txt,ht,rot){return mnDxfEnt(['  0','TEXT','  5',h,'100','AcDbEntity','  8','Attr','100','AcDbText',' 10',x.toFixed(1),' 20',y.toFixed(1),' 30','0.0',' 40',String(ht),'  1',txt,' 50',String(rot||0),'100','AcDbText']);}
+function mnDxfTextC(h,cx,cy,txt,ht){return mnDxfEnt(['  0','TEXT','  5',h,'100','AcDbEntity','  8','Attr','100','AcDbText',' 10',cx.toFixed(1),' 20',cy.toFixed(1),' 30','0.0',' 40',String(ht),'  1',txt,' 50','0','  7','DIM',' 72','1',' 11',cx.toFixed(1),' 21',cy.toFixed(1),' 31','0.0','100','AcDbText',' 73','2']);}
 function mnDxfGen(rec){
   var pick=mnDxfPickTpl(rec);
   var g=MN_DXF_GEO[pick.key];
@@ -6875,19 +6876,6 @@ function mnDxfGen(rec){
       p3:{sx:g.bx1+950,sy:g.by1+950,lab:'R',ar:'left'},
       p4:{sx:g.bx0-650,sy:g.by0-1050,lab:'R',ar:'right'}
     };
-    function grpLines(pwv){ /* 그룹·관경별 'FCØ100X5(0)' 줄 목록 */
-      var lines=[];
-      pwv.groups.forEach(function(gr){
-        var lb=(typeof mnGroupLabel==='function')?mnGroupLabel(gr):'';
-        if(!lb)return;
-        var kind=lb.split('\u00d8')[0]||'';
-        lb.split(' ').forEach(function(tk){
-          if(!tk)return;
-          lines.push(tk.indexOf('\u00d8')>=0?tk:(kind+'\u00d8'+tk));
-        });
-      });
-      return lines;
-    }
     ['p1','p2','p3','p4'].forEach(function(wall){
       var pw=rec.pipes&&rec.pipes[wall];if(!pw||!pw.groups)return;
       var _sp=rec.spec||{w:800,h:1700,dep:1100};
@@ -6906,23 +6894,42 @@ function mnDxfGen(rec){
         out+=mnDxfCircle(nh(),p[0],p[1],c.dia/2);
         if(c.st===1)out+=mnDxfHatch(nh(),p[0],p[1],c.dia/2);
       });
-      /* 확대(2배) — 사분면 슬롯 */
+      /* [993] 확대(2배) — armXY 회전 그대로(전개도 팔 방향과 일치, 완성본 방식) */
       var mx=0,my=0;all.forEach(function(c){mx+=c.x;my+=c.y;});mx/=all.length;my/=all.length;
+      var pcArm=armXY(wall,mx,my);
       var sl=slots[wall];
       var minX=1e18,maxX=-1e18,minY=1e18,maxY=-1e18;
-      all.forEach(function(c){
-        var ex=sl.sx+(c.x-mx)*2, ey=sl.sy+(c.y-my)*2;
-        out+=mnDxfCircle(nh(),ex,ey,c.dia);
-        if(c.st===1)out+=mnDxfHatch(nh(),ex,ey,c.dia);
-        if(ex-c.dia<minX)minX=ex-c.dia; if(ex+c.dia>maxX)maxX=ex+c.dia;
-        if(ey-c.dia<minY)minY=ey-c.dia; if(ey+c.dia>maxY)maxY=ey+c.dia;
+      var gInfo=[]; /* 그룹별 확대 y중심(라벨 줄 순서용) */
+      pw.groups.forEach(function(gr){
+        var gys=0,gn=0;
+        (gr.circles||[]).forEach(function(c){
+          var st=(c.st!=null?c.st:(c.fill?1:0));if(st===2)return;
+          var pp=armXY(wall,c.x,c.y);
+          var ex=sl.sx+(pp[0]-pcArm[0])*2, ey=sl.sy+(pp[1]-pcArm[1])*2;
+          out+=mnDxfCircle(nh(),ex,ey,c.dia);
+          if(st===1)out+=mnDxfHatch(nh(),ex,ey,c.dia);
+          if(ex-c.dia<minX)minX=ex-c.dia; if(ex+c.dia>maxX)maxX=ex+c.dia;
+          if(ey-c.dia<minY)minY=ey-c.dia; if(ey+c.dia>maxY)maxY=ey+c.dia;
+          gys+=ey;gn++;
+        });
+        if(gn){
+          var lb=(typeof mnGroupLabel==='function')?mnGroupLabel(gr):'';
+          if(lb){
+            var kind=lb.split('\u00d8')[0]||'';
+            var ls=[];lb.split(' ').forEach(function(tk){if(!tk)return;ls.push(tk.indexOf('\u00d8')>=0?tk:(kind+'\u00d8'+tk));});
+            gInfo.push({cy:gys/gn,lines:ls});
+          }
+        }
       });
-      /* 라벨: 그룹·관경별 줄, p1=묶음 왼쪽(오른끝 맞춤), 그 외=오른쪽 */
-      var lines=grpLines(pw);
+      /* [993] 라벨: DIM 스타일·중앙정렬, 완성본 간격(묶음끝+220+폭/2), 줄간격 131, 위쪽 그룹 먼저 */
+      gInfo.sort(function(a,b){return b.cy-a.cy;});
+      var lines=[];gInfo.forEach(function(gi){gi.lines.forEach(function(L){lines.push(L);});});
+      var cymL=(minY+maxY)/2;
       lines.forEach(function(L,i){
-        var lx;
-        if(sl.lab==='L')lx=minX-260-L.length*62; else lx=maxX+260;
-        out+=mnDxfText(nh(),lx,sl.sy+((lines.length-1)/2-i)*140-35,L,100,0);
+        var half=L.length*39.5;
+        var lcx=(sl.lab==='L')?(minX-220-half):(maxX+220+half);
+        var lcy=cymL+((lines.length-1)/2-i)*131;
+        out+=mnDxfTextC(nh(),lcx,lcy,L,100);
       });
       /* 확대묶음↔벽 연결 화살표 (완성본 arrow 블록 방식) */
       var cxm=(minX+maxX)/2, cym=(minY+maxY)/2;
