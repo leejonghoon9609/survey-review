@@ -6676,16 +6676,18 @@ function mnAskSpecDim(rec,mode,cb){
   var hint=isDep?'규격 깊이를 선택하거나 직접 입력하세요':'선택한 폭이 짧은 쪽이 되고, 긴 쪽은 규격대로 자동 채워집니다';
   var rows='';
   if(isDep){
-    var deps=[{v:0.7,nm:'수공1호·2-1호'},{v:1.1,nm:'수공2호·3호'}];
+    var deps=[{v:0.7,nm:'수공1호·2-1호',c:'#e67e22',bg:'#fdf3e7'},{v:1.1,nm:'수공2호·3호',c:'#e74c3c',bg:'#fdecea'}];
     rows=deps.map(function(d){var on=(Math.abs((rec.dep||0)-d.v)<0.001);
-      return '<button type="button" class="mnSpB" data-v="'+d.v+'" style="width:100%;text-align:left;border:1.5px solid '+(on?'#e74c3c':'#ddd')+';background:'+(on?'#fdecea':'#fff')+';border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center"><b style="font-size:15px;color:#333">'+d.v+' m</b><span style="font-size:12px;color:#888">'+d.nm+'</span></button>';
+      return '<button type="button" class="mnSpB" data-v="'+d.v+'" style="width:100%;text-align:left;border:'+(on?'2.5px':'1.5px')+' solid '+d.c+';background:'+d.bg+';border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center"><b style="font-size:15px;color:'+d.c+'">'+d.v+' m</b><span style="font-size:12px;color:'+d.c+';opacity:.75">'+d.nm+'</span></button>';
     }).join('');
   }else{
     var curShort=(mode==='w12')?rec.w12:rec.w34;
+    var SPC={'수공1호':['#1d9e75','#e1f5ee'],'수공2-1호':['#e67e22','#fdf3e7'],'수공2호':['#2471a3','#eaf3fb'],'수공3호':['#8e44ad','#f4ecf9']};
     rows=MH_SPECS.map(function(sp){
       var shortM=Math.min(sp.w,sp.h)/1000, longM=Math.max(sp.w,sp.h)/1000;
       var on=(Math.abs((curShort||0)-shortM)<0.001);
-      return '<button type="button" class="mnSpB" data-s="'+shortM+'" data-l="'+longM+'" data-d="'+(sp.dep/1000)+'" style="width:100%;text-align:left;border:1.5px solid '+(on?'#2471a3':'#ddd')+';background:'+(on?'#eaf3fb':'#fff')+';border-radius:10px;padding:11px 14px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center"><b style="font-size:14.5px;color:#333">'+sp.name+'</b><span style="font-size:13px;color:#2471a3;font-weight:700">'+shortM+' m</span></button>';
+      var cc=SPC[sp.name]||['#2471a3','#eaf3fb'];
+      return '<button type="button" class="mnSpB" data-s="'+shortM+'" data-l="'+longM+'" data-d="'+(sp.dep/1000)+'" style="width:100%;text-align:left;border:'+(on?'2.5px':'1.5px')+' solid '+cc[0]+';background:'+cc[1]+';border-radius:10px;padding:11px 14px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center"><b style="font-size:14.5px;color:'+cc[0]+'">'+sp.name+'</b><span style="font-size:13.5px;color:'+cc[0]+';font-weight:800">'+shortM+' m</span></button>';
     }).join('');
   }
   w.innerHTML='<div style="background:#fff;border-radius:13px;width:min(90vw,360px);padding:16px;max-height:86dvh;overflow:auto">'
