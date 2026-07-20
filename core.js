@@ -6710,9 +6710,9 @@ function mnAskSpecDim(rec,mode,cb){
   w.querySelector('#mnSpecManual').onclick=function(){
     close();
     var t=isDep?'깊이':(mode==='w12'?'좌우벽 폭':'상하벽 폭');
-    var col=isDep?MN_DIMC.dep:(mode==='w12'?MN_DIMC.w12:MN_DIMC.w34);
+    var COLS={dep:['#e74c3c','#fdecea'],w12:['#8e44ad','#f4ecf9'],w34:['#2471a3','#eaf3fb']}; /* [1004] 전역 스코프용 자체 색상 */
     var key=isDep?'dep':mode;
-    mnAsk({title:t,unit:'m',val:rec[key],color:col,cb:function(v){rec[key]=(v===''?'':v);mnSyncSpec(rec);cb();}});
+    mnAsk({title:t,unit:'m',val:rec[key],color:COLS[key],cb:function(v){rec[key]=(v===''?'':v);mnSyncSpec(rec);cb();}});
   };
 }
 function mnDetectSpec(dep,w12,w34){
