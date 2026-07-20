@@ -8928,3 +8928,18 @@ function rtGetLoc(no){
 
 /* [BUILD 824] 실시간측량 모바일 헤더 라벨 축약 */
 try{if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){rtStartWatch();setTimeout(function(){var _pb=document.getElementById('photoBtn');if(_pb)_pb.textContent='\uD83D\uDCF7 \uC0AC\uC9C4';var _bb=document.getElementById('bgBtn');if(_bb)_bb.textContent='\uD83D\uDDFA \uC9C0\uB3C4';},400);}}catch(e){}
+
+
+/* [1006] 측량현장: 안드로이드 뒤로가기 가드 — 실수로 뒤로 눌러도 확인 후에만 이탈 */
+(function(){
+  if(document.title.indexOf('현장')<0)return;
+  function arm(){try{history.pushState({fgGuard:1},'');}catch(e){}}
+  arm();
+  window.addEventListener('popstate',function(){
+    if(confirm('측량현장 초기화면으로 돌아갑니다')){
+      try{history.back();}catch(e){}
+    }else{
+      arm();
+    }
+  });
+})();
