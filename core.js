@@ -6668,7 +6668,7 @@ function mnDetectSpec(dep,w12,w34){
   return {name:best.name,w:best.w,h:best.h,dep:best.dep,orient:(w12>=w34)?'가로':'세로'};
 }
 function mnList(){if(!state.mnList)state.mnList=[];return state.mnList;}
-function mnLabel(r){var ow=(r.owner==='_c'?(r.ownerC||''):(r.owner||''));return (r.no||'')+(ow?'('+ow+')':'');}
+function mnLabel(r){var ow=(r.owner==='_c'?(r.ownerC||''):(r.owner||''));var nt=(r.note||'').trim();return (r.no||'')+(ow?'('+ow+')':'')+(nt?nt:'');}
 var MN_SLOTS=[['bd','표찰'],['fr','전경'],['p1','① 서'],['p2','② 동'],['p3','③ 북'],['p4','④ 남']];
 /* [BUILD 935] PC: 맨홀조사를 우측 도킹 패널로 (실시간조서 방식) */
 function mnHostOpen(){
@@ -6758,25 +6758,36 @@ function mnAsk(opt){
 }
 function mnAskNoOwner(rec,cb){
   var old=document.getElementById('mnAskModal');if(old)old.remove();
-  var no=rec.no||'';
-  var m=/^(.+?)M$/.exec(no);if(m)no=m[1];
+  var no=rec.no||'';var suf=rec.suf||'M';
+  var m=/^(.+?)([MH])$/.exec(no);if(m){no=m[1];suf=m[2];}
+  var nf=rec.newFlag||'기설';
   var w=document.createElement('div');w.id='mnAskModal';
-  w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:14dvh';
+  w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:12dvh';
   var opts=['LG','SKT','SKB','시청','세종','드림'].map(function(o){return '<option value="'+o+'"'+(rec.owner===o?' selected':'')+'>'+o+'</option>';}).join('')+'<option value="_c"'+(rec.owner==='_c'?' selected':'')+'>직접입력</option>';
-  w.innerHTML='<div style="background:#fff;border-radius:13px;width:min(88vw,320px);padding:16px">'
+  function nfBtn(v){var on=(nf===v);return '<button type="button" class="mnNfB" data-v="'+v+'" style="flex:1;border:1.5px solid '+(on?'#1d9e75':'#ccc')+';background:'+(on?'#e1f5ee':'#fff')+';color:'+(on?'#0f6e56':'#667')+';border-radius:8px;padding:8px;font-weight:800;font-size:14px;cursor:pointer">'+v+'</button>';}
+  w.innerHTML='<div style="background:#fff;border-radius:13px;width:min(90vw,340px);padding:16px;max-height:86dvh;overflow:auto">'
     +'<div style="font-weight:800;font-size:15px;margin-bottom:10px">맨홀번호</div>'
-    +'<div style="display:flex;gap:7px;align-items:center"><div style="flex:1.1;min-width:0;display:flex;align-items:center;gap:4px"><input id="mnNoIn" type="text" inputmode="numeric" value="'+joseoEsc(no)+'" placeholder="예: 6" style="flex:1;min-width:0;border:1.5px solid #1d9e75;border-radius:9px;padding:10px;font-size:16px"><b style="font-size:16px;color:#1d9e75;flex:none">M</b></div>'
+    +'<div style="display:flex;gap:7px;margin-bottom:8px" id="mnNfRow">'+nfBtn('신설')+nfBtn('기설')+'</div>'
+    +'<div style="display:flex;gap:7px;align-items:center"><div style="flex:1.2;min-width:0;display:flex;align-items:center;gap:4px"><input id="mnNoIn" type="text" inputmode="numeric" value="'+joseoEsc(no)+'" placeholder="예: 6" style="flex:1;min-width:0;border:1.5px solid #1d9e75;border-radius:9px;padding:10px;font-size:16px"><select id="mnSufIn" style="flex:none;width:52px;border:1.5px solid #1d9e75;border-radius:9px;padding:10px 4px;font-size:15px;font-weight:800;color:#1d9e75;background:#fff"><option value="M"'+(suf==='M'?' selected':'')+'>M</option><option value="H"'+(suf==='H'?' selected':'')+'>H</option></select></div>'
     +'<select id="mnOwIn" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:9px;padding:10px 6px;font-size:14px;background:#fff">'+opts+'</select></div>'
     +'<input id="mnOwC" value="'+joseoEsc(rec.ownerC||'')+'" placeholder="소유자 직접입력" style="width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:9px;padding:10px;font-size:14px;margin-top:8px;display:'+(rec.owner==='_c'?'block':'none')+'">'
+    +'<input id="mnNoteIn" value="'+joseoEsc(rec.note||'')+'" placeholder="특이사항 (예: 폐, 이설 등 — 번호 뒤에 붙음)" style="width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:9px;padding:10px;font-size:14px;margin-top:8px">'
+    +'<div style="font-size:12px;color:#999;margin-top:6px" id="mnPrev"></div>'
     +'<div style="display:flex;gap:8px;margin-top:12px"><button id="mnAskOk" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:9px;padding:11px;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">확인</span></button><button id="mnAskNo2" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:9px;padding:11px;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">취소</span></button></div></div>';
   document.body.appendChild(w);
-  w.querySelector('#mnOwIn').addEventListener('change',function(){w.querySelector('#mnOwC').style.display=(this.value==='_c')?'block':'none';});
+  w.querySelectorAll('.mnNfB').forEach(function(b){b.onclick=function(){nf=this.getAttribute('data-v');w.querySelectorAll('.mnNfB').forEach(function(x){var on=(x.getAttribute('data-v')===nf);x.style.borderColor=on?'#1d9e75':'#ccc';x.style.background=on?'#e1f5ee':'#fff';x.style.color=on?'#0f6e56':'#667';});};});
+  function upPrev(){var n=w.querySelector('#mnNoIn').value.trim();var sf=w.querySelector('#mnSufIn').value;var ov=w.querySelector('#mnOwIn').value;var oc=w.querySelector('#mnOwC').value.trim();var ow=(ov==='_c'?oc:ov);var nt=w.querySelector('#mnNoteIn').value.trim();w.querySelector('#mnPrev').textContent='표시: '+(n?(n+sf):'')+(ow?'('+ow+')':'')+(nt||'');}
+  w.querySelector('#mnOwIn').addEventListener('change',function(){w.querySelector('#mnOwC').style.display=(this.value==='_c')?'block':'none';upPrev();});
+  ['mnNoIn','mnSufIn','mnOwC','mnNoteIn'].forEach(function(id){w.querySelector('#'+id).addEventListener('input',upPrev);w.querySelector('#'+id).addEventListener('change',upPrev);});
+  upPrev();
   w.querySelector('#mnAskNo2').onclick=function(){w.remove();};
   w.onclick=function(e){if(e.target===w)w.remove();};
   w.querySelector('#mnAskOk').onclick=function(){
-    var n=w.querySelector('#mnNoIn').value.trim();
-    rec.no=n?(n+'M'):'';
+    var n=w.querySelector('#mnNoIn').value.trim();var sf=w.querySelector('#mnSufIn').value;
+    rec.suf=sf;rec.newFlag=nf;
+    rec.no=n?(n+sf):'';
     rec.owner=w.querySelector('#mnOwIn').value;rec.ownerC=w.querySelector('#mnOwC').value.trim();
+    rec.note=w.querySelector('#mnNoteIn').value.trim();
     w.remove();cb();
   };
   setTimeout(function(){w.querySelector('#mnNoIn').focus();},60);
@@ -6816,7 +6827,7 @@ function mnAskDest(cur,dn,cb){
   setTimeout(function(){w.querySelector('#mnDNo').focus();},60);
 }
 /* [BUILD 983] 맨홀도 DXF — 규격샘플 템플릿(dxf/) fetch → 마커치환 + 관 실좌표 재그리기 */
-var MN_DXF_GEO={"tpl_045x095": {"bx0": 139955, "bx1": 140405, "by0": -150953, "by1": -150003, "ar": {"d1": [138854.9, -150473.3], "d3": [140179.9, -148903.2], "d4": [140179.9, -152053.2], "d2": [141504.9, -150473.3]}}, "tpl_095x045": {"bx0": 139705, "bx1": 140655, "by0": -150703, "by1": -150253, "ar": {"d1": [138604.9, -150478.2], "d3": [140174.9, -149153.2], "d2": [141754.9, -150478.2], "d4": [140174.9, -151803.2]}}, "tpl_07x13": {"bx0": 139830, "bx1": 140530, "by0": -151128, "by1": -149828, "ar": {"d4": [140179.9, -152228.2], "d1": [138729.9, -150483.2], "d2": [141629.9, -150483.2], "d3": [140179.9, -148728.2]}}, "tpl_13x07": {"bx0": 139530, "bx1": 140830, "by0": -150828, "by1": -150128, "ar": {"d2": [141929.9, -150478.2], "d4": [140183.4, -151928.2], "d1": [138429.9, -150478.2], "d3": [140183.4, -149028.2]}}, "tpl_08x17": {"bx0": 139780, "bx1": 140580, "by0": -151328, "by1": -149628, "ar": {"d4": [140179.9, -152828.2], "d1": [138279.9, -150483.2], "d2": [142079.9, -150483.2], "d3": [140179.9, -148128.2]}}, "tpl_17x08": {"bx0": 139330, "bx1": 141030, "by0": -150878, "by1": -150078, "ar": {"d2": [142529.9, -150478.2], "d4": [140184.9, -152378.2], "d3": [140184.9, -148578.2], "d1": [137829.9, -150478.2]}}, "tpl_10x20": {"bx0": 139680, "bx1": 140680, "by0": -151478, "by1": -149478, "ar": {"d4": [140179.9, -152978.2], "d1": [138179.9, -150483.2], "d2": [142179.9, -150483.2], "d3": [140179.9, -147978.2]}}, "tpl_20x10": {"bx0": 139180, "bx1": 141180, "by0": -150978, "by1": -149978, "ar": {"d2": [142679.9, -150478.2], "d4": [140184.9, -152478.2], "d3": [140184.9, -148478.2], "d1": [137679.9, -150478.2]}}};
+var MN_DXF_GEO={"tpl_045x095": {"bx0": 139955, "bx1": 140405, "by0": -150953, "by1": -150003, "ar": {"d1": [138854.9, -150473.3], "d3": [140179.9, -148903.2], "d4": [140179.9, -152053.2], "d2": [141504.9, -150473.3]}, "nk": [{"d": "L", "ax": "x", "end": 138854.9, "sign": 1, "blk": ["*D9"]}, {"d": "R", "ax": "x", "end": 141504.9, "sign": -1, "blk": ["*D5"]}, {"d": "T", "ax": "y", "end": -148903.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -152053.2, "sign": 1, "blk": []}]}, "tpl_095x045": {"bx0": 139705, "bx1": 140655, "by0": -150703, "by1": -150253, "ar": {"d1": [138604.9, -150478.2], "d3": [140174.9, -149153.2], "d2": [141754.9, -150478.2], "d4": [140174.9, -151803.2]}, "nk": [{"d": "L", "ax": "x", "end": 138604.9, "sign": 1, "blk": ["*D8"]}, {"d": "R", "ax": "x", "end": 141754.9, "sign": -1, "blk": ["*D12"]}, {"d": "T", "ax": "y", "end": -149153.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -151803.2, "sign": 1, "blk": []}]}, "tpl_07x13": {"bx0": 139830, "bx1": 140530, "by0": -151128, "by1": -149828, "ar": {"d4": [140179.9, -152228.2], "d1": [138729.9, -150483.2], "d2": [141629.9, -150483.2], "d3": [140179.9, -148728.2]}, "nk": [{"d": "L", "ax": "x", "end": 138729.9, "sign": 1, "blk": ["*D12"]}, {"d": "R", "ax": "x", "end": 141629.9, "sign": -1, "blk": ["*D6"]}, {"d": "T", "ax": "y", "end": -148728.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -152228.2, "sign": 1, "blk": []}]}, "tpl_13x07": {"bx0": 139530, "bx1": 140830, "by0": -150828, "by1": -150128, "ar": {"d2": [141929.9, -150478.2], "d4": [140183.4, -151928.2], "d1": [138429.9, -150478.2], "d3": [140183.4, -149028.2]}, "nk": [{"d": "L", "ax": "x", "end": 138429.9, "sign": 1, "blk": ["*D12"]}, {"d": "R", "ax": "x", "end": 141929.9, "sign": -1, "blk": ["*D8"]}, {"d": "T", "ax": "y", "end": -149028.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -151928.2, "sign": 1, "blk": []}]}, "tpl_08x17": {"bx0": 139780, "bx1": 140580, "by0": -151328, "by1": -149628, "ar": {"d4": [140179.9, -152828.2], "d1": [138279.9, -150483.2], "d2": [142079.9, -150483.2], "d3": [140179.9, -148128.2]}, "nk": [{"d": "L", "ax": "x", "end": 138279.9, "sign": 1, "blk": ["*D10"]}, {"d": "R", "ax": "x", "end": 142079.9, "sign": -1, "blk": ["*D6"]}, {"d": "T", "ax": "y", "end": -148128.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -152828.2, "sign": 1, "blk": []}]}, "tpl_17x08": {"bx0": 139330, "bx1": 141030, "by0": -150878, "by1": -150078, "ar": {"d2": [142529.9, -150478.2], "d4": [140184.9, -152378.2], "d3": [140184.9, -148578.2], "d1": [137829.9, -150478.2]}, "nk": [{"d": "L", "ax": "x", "end": 137829.9, "sign": 1, "blk": ["*D10"]}, {"d": "R", "ax": "x", "end": 142529.9, "sign": -1, "blk": ["*D8"]}, {"d": "T", "ax": "y", "end": -148578.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -152378.2, "sign": 1, "blk": []}]}, "tpl_10x20": {"bx0": 139680, "bx1": 140680, "by0": -151478, "by1": -149478, "ar": {"d4": [140179.9, -152978.2], "d1": [138179.9, -150483.2], "d2": [142179.9, -150483.2], "d3": [140179.9, -147978.2]}, "nk": [{"d": "L", "ax": "x", "end": 138179.9, "sign": 1, "blk": ["*D7"]}, {"d": "R", "ax": "x", "end": 142179.9, "sign": -1, "blk": ["*D9"]}, {"d": "T", "ax": "y", "end": -147978.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -152978.2, "sign": 1, "blk": []}]}, "tpl_20x10": {"bx0": 139180, "bx1": 141180, "by0": -150978, "by1": -149978, "ar": {"d2": [142679.9, -150478.2], "d4": [140184.9, -152478.2], "d3": [140184.9, -148478.2], "d1": [137679.9, -150478.2]}, "nk": [{"d": "L", "ax": "x", "end": 137679.9, "sign": 1, "blk": ["*D10"]}, {"d": "R", "ax": "x", "end": 142679.9, "sign": -1, "blk": ["*D7"]}, {"d": "T", "ax": "y", "end": -148478.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -152478.2, "sign": 1, "blk": []}]}};
 function mnDxfPickTpl(rec){
   /* [988] 상하벽 실폭(topW)으로 직접 선택 — 템플릿 tpl_AxB: 바닥 A(가로,상하팔폭) x B(세로,좌우팔폭) → 편집기 mnWallRealW와 항상 일치 */
   var sp=rec.spec||{w:800,h:1700,dep:1100,orient:'세로'};
@@ -6869,6 +6880,47 @@ function mnDxfGen(rec){
         idx=nxt;
       }
     });
+    /* [997] 토피 실측 변형: 목 구간(기본 400) 지오메트리·치수를 실측 토피로 — 팔 끝 좌표 이동 + 치수블록 '400'→실측 */
+    var topiM=Math.round((parseFloat(rec.topi)||0)*1000);
+    if(topiM>0&&topiM!==400&&g.nk){
+      var L=x.split('\n');
+      /* 치수 캐시블록·DIMENSION 청크 인덱스 범위 수집 */
+      function findBlk(nm){
+        for(var i=0;i<L.length-1;i+=2){
+          if(L[i].trim()==='2'&&L[i+1]===nm){
+            /* BLOCK 정의 헤더인지 확인(코드2가 BLOCK 시작 8라인 이내) — ENTITIES의 블록참조(그룹2)와 구분 */
+            var isDef=false;
+            for(var b=i-2;b>=Math.max(0,i-60);b-=2){if(L[b].trim()==='0'){isDef=(L[b+1]==='BLOCK');break;}}
+            if(!isDef)continue;
+            var s0=i;while(s0>0&&!(L[s0].trim()==='0'&&L[s0+1]==='BLOCK'))s0-=2;
+            var e0=i;while(e0<L.length-1&&!(L[e0].trim()==='0'&&L[e0+1]==='ENDBLK'))e0+=2;
+            return [s0,e0];
+          }
+        }
+        return null;
+      }
+      g.nk.forEach(function(nk){
+        var dx=(400-topiM)*nk.sign;
+        var xc=(nk.ax==='x'),codes=xc?{'10':1,'11':1,'13':1,'14':1}:{'20':1,'21':1,'23':1,'24':1};
+        var end=nk.end,e50=end+50*nk.sign,e200=end+200*nk.sign;
+        var rng=[];(nk.blk||[]).forEach(function(bn){var r=findBlk(bn);if(r)rng.push(r);});
+        function inBlk(i){for(var k=0;k<rng.length;k++)if(i>=rng[k][0]&&i<=rng[k][1])return true;return false;}
+        for(var i=0;i<L.length-1;i+=2){
+          var cd=L[i].trim();
+          if(codes[cd]){
+            var v=parseFloat(L[i+1]);
+            if(isFinite(v)){
+              if(Math.abs(v-end)<1.5)L[i+1]=(v+dx).toFixed(4);
+              else if(inBlk(i)&&Math.abs(v-e50)<1.5)L[i+1]=(v+dx).toFixed(4);
+              else if(Math.abs(v-e200)<1.5&&(inBlk(i)||cd==='11'||cd==='21'))L[i+1]=(v+dx/2).toFixed(4);
+            }
+          }else if(cd==='1'&&L[i+1]==='\\A1;400'&&inBlk(i)){
+            L[i+1]='\\A1;'+topiM;
+          }
+        }
+      });
+      x=L.join('\n');
+    }
     var out='';
     var slots={
       p1:{sx:g.bx0-650,sy:g.by1+1050,lab:'L',ar:'down'},
