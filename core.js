@@ -7388,7 +7388,8 @@ function mnPipeEditor(rec,wall){
     +'<div style="display:flex;gap:6px;align-items:center;margin-bottom:7px">'
       +'<button id="mnMdAll" class="mn-md" style="flex:none;border:1px solid #ccc;background:#fff;color:#667;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">전체이동</button>'
       +'<button id="mnMdOne" class="mn-md" style="flex:none;border:1px solid #ccc;background:#fff;color:#667;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">개별이동</button>'
-      +'<button id="mnMdDel" class="mn-md" style="flex:none;border:1px solid #ccc;background:#fff;color:#667;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">삭제</button>'
+      +'<button id="mnMdDel" class="mn-md" style="flex:none;border:1px solid #ccc;background:#fff;color:#667;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">개별삭제</button>'
+      +'<button id="mnDelAll" style="flex:none;border:1px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:800;cursor:pointer">전체삭제</button>'
       +'<button id="mnReShoot" style="margin-left:auto;flex:none;border:1px solid #d32f2f;background:#fdeaea;color:#d32f2f;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:800;cursor:pointer">재촬영</button></div>'
     +'<div id="mnCvBox" style="border:1.5px solid #556;border-radius:8px;overflow:hidden;background:#fff"><canvas id="mnCv" style="display:block;touch-action:none;user-select:none;-webkit-user-select:none"></canvas></div>'
     +'<div style="font-size:11px;color:#99a;margin-top:4px;text-align:right">탭: 빈관→내선(검정)→제외(빨강) · 노란선=맨홀 바닥</div>'
@@ -7428,6 +7429,16 @@ function mnPipeEditor(rec,wall){
   wrap.querySelector('#mnMdAll').onclick=function(){setMode('all');};
   wrap.querySelector('#mnMdOne').onclick=function(){setMode('one');};
   wrap.querySelector('#mnMdDel').onclick=function(){setMode('del');};
+  wrap.querySelector('#mnDelAll').onclick=function(){
+    if(!pw.groups||!pw.groups.length){toast('삭제할 관이 없습니다');return;}
+    var n=0;pw.groups.forEach(function(g){n+=(g.circles||[]).length;});
+    if(!confirm('이 벽면의 관 '+n+'개를 전부 삭제할까요?'))return;
+    pw.groups.length=0;
+    if(mode==='del')setMode('all');
+    draw();chips();
+    try{mnPersistRec(rec);}catch(e){}
+    toast('전체 삭제 완료');
+  };
   setMode('all');
   /* 삭제모드: 캔버스·삭제버튼 외 다른 곳 터치 시 자동 해제 */
   wrap.addEventListener('pointerdown',function(e){
