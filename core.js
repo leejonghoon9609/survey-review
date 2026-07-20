@@ -6720,7 +6720,7 @@ function mnOpenList(){
       +'<span style="width:10px;height:10px;border-radius:50%;background:#1d9e75;flex:none"></span>'
       +'<b style="flex:1;font-size:16px;color:#22332b">맨홀조사 야장</b>'
       +(rows.length?'<span style="background:#e1f5ee;color:#0f6e56;border-radius:20px;padding:3px 11px;font-size:12px;font-weight:800">'+rows.length+'개</span>':'')
-      +'<button id="mnLClose" style="border:none;background:#f1f3f1;border-radius:9px;padding:7px 13px;cursor:pointer;color:#555;font-weight:700;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">닫기</span></button></div>'
+      +'<button id="mnLClose" style="border:1.5px solid #d32f2f;background:#fff;border-radius:9px;padding:7px 15px;cursor:pointer;color:#d32f2f;font-weight:800;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">닫기</span></button></div>'
     +(host?newBtn:'')
     +'<div style="padding:13px 15px 4px;overflow:auto;flex:1">'+listHtml+'</div>'
     +(host?'':newBtn)
@@ -7011,12 +7011,12 @@ function mnOpenForm(rec){
   var old=document.getElementById('mnFormModal');if(old)old.remove();
   var wrap=null;
   var inner='<div style="background:#fff;'+(host?'width:100%;height:100%;border-radius:0':(mob?'width:100vw;height:100dvh;border-radius:0':'border-radius:14px;width:min(96vw,540px);max-height:95dvh'))+';display:flex;flex-direction:column;overflow:hidden">'
-    +'<div style="padding:9px 14px 7px;border-bottom:1px solid #f2f2f0;display:flex;align-items:center;flex:none"><b style="flex:1;font-size:15.5px;white-space:nowrap">맨홀 조사야장</b><button id="mnFClose" style="border:1.5px solid #2471a3;background:#eef6fc;color:#2471a3;border-radius:9px;padding:8px 20px;cursor:pointer;font-size:14.5px;font-weight:800">닫기</button></div>'
+    +'<div style="padding:9px 14px 7px;border-bottom:1px solid #f2f2f0;display:flex;align-items:center;flex:none"><b style="flex:1;font-size:15.5px;white-space:nowrap">맨홀 조사야장</b><button id="mnFClose" style="border:1.5px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:9px;padding:8px 20px;cursor:pointer;font-size:14.5px;font-weight:800">닫기</button></div>'
     +'<div style="padding:7px 12px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:6px;flex:none;flex-wrap:nowrap;overflow-x:auto"><button id="mnDxfBtn" style="flex:1;border:1px solid #c0392b;background:#fdeaea;color:#c0392b;border-radius:8px;padding:7px 4px;cursor:pointer;font-weight:700;font-size:12.5px;white-space:nowrap">📐 맨홀도DXF</button><button id="mnEqXls" style="flex:1;border:1px solid #1d9e75;background:#e1f5ee;color:#0f6e56;border-radius:8px;padding:7px 4px;cursor:pointer;font-weight:700;font-size:12.5px;white-space:nowrap">📄 설비사진엑셀</button><button id="mnPhotoDl" style="flex:1;border:1px solid #2471a3;background:#eef6fc;color:#2471a3;border-radius:8px;padding:7px 4px;cursor:pointer;font-weight:700;font-size:12.5px;white-space:nowrap">📥 맨홀사진다운</button></div>'
     +'<div id="mnSheetBox" style="flex:1;overflow:auto;-webkit-overflow-scrolling:touch;background:#f4f4f2"></div>'
     +'<div style="display:flex;gap:8px;padding:10px 14px;border-top:1px solid #eee;flex:none">'
     +'<button id="mnSave" style="flex:1;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">저장</span></button>'
-    +'<button id="mnBack" style="flex:1;background:#eef6fc;color:#2471a3;border:1.5px solid #2471a3;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:2px;margin-right:-2px">목록으로</span></button>'
+    +'<button id="mnBack" style="flex:1;background:#fff;color:#1d9e75;border:1.5px solid #1d9e75;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:2px;margin-right:-2px">목록보기</span></button>'
     +'</div></div>';
   var root=null;
   if(host){host.innerHTML=inner;root=host;}
