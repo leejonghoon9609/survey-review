@@ -7150,7 +7150,7 @@ function mnOpenForm(rec){
       +wallHint(320,355)+wallHint(320,645)+wallHint(175,500)+wallHint(465,500)
       +wallCircles('p3',function(nx,ny){return [250+nx*140,430-ny*150];})
       +wallCircles('p4',function(nx,ny){return [250+nx*140,570+ny*150];})
-      +wallCircles('p1',function(nx,ny){return [250-ny*150,430+nx*140];})
+      +wallCircles('p1',function(nx,ny){return [250-ny*150,570-nx*140];})
       +wallCircles('p2',function(nx,ny){return [390+ny*150,430+nx*140];})
       +mnLbl('p1')+mnLbl('p3')+mnLbl('p2')+mnLbl('p4')
       /* 치수: 범위선(양끝 화살표) + 작은 탭 */
