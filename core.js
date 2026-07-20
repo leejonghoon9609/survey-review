@@ -6660,6 +6660,44 @@ var MH_SPECS=[
   {name:'수공2호',w:800,h:1700,dep:1100},
   {name:'수공3호',w:1000,h:2000,dep:1100}
 ];
+/* [1002] 규격 선택 모달 — 하나 고르면 좌우벽폭(w12=짧은변)·상하벽폭(w34=긴변)·깊이 자동채움 */
+function mnAskSpec(rec,cb){
+  var cur=rec.spec&&rec.spec.name;
+  var w=document.createElement('div');w.id='mnSpecModal';
+  w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1332;display:flex;align-items:flex-start;justify-content:center;padding-top:12dvh';
+  var rows=MH_SPECS.map(function(sp){
+    var on=(cur===sp.name);
+    return '<button type="button" class="mnSpB" data-n="'+sp.name+'" style="width:100%;text-align:left;border:1.5px solid '+(on?'#2471a3':'#ddd')+';background:'+(on?'#eaf3fb':'#fff')+';border-radius:10px;padding:11px 13px;margin-bottom:8px;cursor:pointer;display:flex;justify-content:space-between;align-items:center"><b style="font-size:14.5px;color:#333">'+sp.name+'</b><span style="font-size:12.5px;color:#777">'+(sp.w/1000)+' × '+(sp.h/1000)+' m · 깊이 '+(sp.dep/1000)+'m</span></button>';
+  }).join('');
+  w.innerHTML='<div style="background:#fff;border-radius:13px;width:min(90vw,360px);padding:16px;max-height:86dvh;overflow:auto">'
+    +'<div style="font-weight:800;font-size:15px;margin-bottom:4px">맨홀 규격 선택</div>'
+    +'<div style="font-size:12px;color:#999;margin-bottom:11px">하나 선택하면 폭·깊이가 자동으로 채워집니다</div>'
+    +rows
+    +'<button id="mnSpecManual" style="width:100%;border:1px dashed #bbb;background:#fafafa;color:#667;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;margin-top:2px">직접 치수 입력</button>'
+    +'<button id="mnSpecCancel" style="width:100%;border:0;background:#f1f1ee;color:#333;border-radius:10px;padding:11px;font-weight:700;font-size:14px;margin-top:8px;cursor:pointer">취소</button></div>';
+  document.body.appendChild(w);
+  function close(){w.remove();}
+  w.onclick=function(e){if(e.target===w)close();};
+  w.querySelector('#mnSpecCancel').onclick=close;
+  w.querySelectorAll('.mnSpB').forEach(function(b){b.onclick=function(){
+    var nm=this.getAttribute('data-n');var sp=null;MH_SPECS.forEach(function(x){if(x.name===nm)sp=x;});
+    if(sp){
+      rec.w12=Math.min(sp.w,sp.h)/1000;  /* 좌우벽 = 짧은변 */
+      rec.w34=Math.max(sp.w,sp.h)/1000;  /* 상하벽 = 긴변 */
+      rec.dep=sp.dep/1000;
+      rec.spec=mnDetectSpec(rec.dep,rec.w12,rec.w34);
+    }
+    close();cb();
+  };});
+  w.querySelector('#mnSpecManual').onclick=function(){
+    close();
+    mnAsk({title:'좌우벽 폭',unit:'m',val:rec.w12,color:MN_DIMC.w12,cb:function(v){rec.w12=(v===''?'':v);
+      mnAsk({title:'상하벽 폭',unit:'m',val:rec.w34,color:MN_DIMC.w34,cb:function(v2){rec.w34=(v2===''?'':v2);
+        mnAsk({title:'깊이',unit:'m',val:rec.dep,color:MN_DIMC.dep,cb:function(v3){rec.dep=(v3===''?'':v3);rec.spec=mnDetectSpec(rec.dep,rec.w12,rec.w34);mnPersistRec(rec);if(typeof render==='function')render();}});
+      }});
+    }});
+  };
+}
 function mnDetectSpec(dep,w12,w34){
   if(!(dep>0)||!(w12>0)||!(w34>0))return null;
   var d=dep*1000,a=Math.min(w12,w34)*1000,b=Math.max(w12,w34)*1000,best=null,bs=1e18;
@@ -7297,6 +7335,7 @@ function mnOpenForm(rec){
         if(act==='no'){mnAskNoOwner(rec,function(){mnPersistRec(rec);render();});}
         else if(act==='dim'){
           var k=el.getAttribute('data-k');
+          if(k==='w12'||k==='w34'){mnAskSpec(rec,function(){mnPersistRec(rec);render();});return;}
           var titles={dep:'깊이',w12:'폭',w34:'폭',topi:'토피',lid:'뚜껑지름',lidRect:'사각뚜껑 SIZE',lidW:'사각뚜껑 가로',lidH:'사각뚜껑 세로'};
           var units={dep:'m',w12:'m',w34:'m',topi:'m',lid:'mm',lidRect:'',lidW:'mm',lidH:'mm'};
           mnAsk({title:titles[k],unit:units[k],val:rec[k],text:(k==='lidRect'),color:MN_DIMC[k],cb:function(v){rec[k]=(v===''?'':v);mnPersistRec(rec);render();}});
