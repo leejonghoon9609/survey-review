@@ -6987,10 +6987,10 @@ function mnDxfGen(rec){
       });
       /* 확대묶음↔벽 연결 화살표 (완성본 arrow 블록 방식) */
       var cxm=(minX+maxX)/2, cym=(minY+maxY)/2;
-      if(sl.ar==='down')out+=mnDxfIns(nh(),cxm,minY-380,0.5,0.5,90);
-      else if(sl.ar==='up')out+=mnDxfIns(nh(),cxm,maxY+380,-0.5,0.5,90);
-      else if(sl.ar==='left')out+=mnDxfIns(nh(),minX-380,cym,0.5,0.5,180);
-      else out+=mnDxfIns(nh(),maxX+380,cym,-0.5,0.5,180);
+      if(sl.ar==='down')out+=mnDxfIns(nh(),cxm,minY-200,0.5,0.5,90);
+      else if(sl.ar==='up')out+=mnDxfIns(nh(),cxm,maxY+200,-0.5,0.5,90);
+      else if(sl.ar==='left')out+=mnDxfIns(nh(),minX-200,cym,0.5,0.5,180);
+      else out+=mnDxfIns(nh(),maxX+200,cym,-0.5,0.5,180);
     });
     var ei=x.indexOf('\nENTITIES\n');
     var end=x.indexOf('\n  0\nENDSEC',ei);
