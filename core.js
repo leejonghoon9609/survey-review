@@ -6816,7 +6816,7 @@ function mnAskDest(cur,dn,cb){
   setTimeout(function(){w.querySelector('#mnDNo').focus();},60);
 }
 /* [BUILD 983] 맨홀도 DXF — 규격샘플 템플릿(dxf/) fetch → 마커치환 + 관 실좌표 재그리기 */
-var MN_DXF_GEO={"tpl_045x095": {"bx0": 139955, "bx1": 140405, "by0": -150953, "by1": -150003}, "tpl_095x045": {"bx0": 139705, "bx1": 140655, "by0": -150703, "by1": -150253}, "tpl_07x13": {"bx0": 139830, "bx1": 140530, "by0": -151128, "by1": -149828}, "tpl_13x07": {"bx0": 139530, "bx1": 140830, "by0": -150828, "by1": -150128}, "tpl_08x17": {"bx0": 139780, "bx1": 140580, "by0": -151328, "by1": -149628}, "tpl_17x08": {"bx0": 139330, "bx1": 141030, "by0": -150878, "by1": -150078}, "tpl_10x20": {"bx0": 139680, "bx1": 140680, "by0": -151478, "by1": -149478}, "tpl_20x10": {"bx0": 139180, "bx1": 141180, "by0": -150978, "by1": -149978}};
+var MN_DXF_GEO={"tpl_045x095": {"bx0": 139955, "bx1": 140405, "by0": -150953, "by1": -150003, "ar": {"d1": [138854.9, -150473.3], "d3": [140179.9, -148903.2], "d4": [140179.9, -152053.2], "d2": [141504.9, -150473.3]}}, "tpl_095x045": {"bx0": 139705, "bx1": 140655, "by0": -150703, "by1": -150253, "ar": {"d1": [138604.9, -150478.2], "d3": [140174.9, -149153.2], "d2": [141754.9, -150478.2], "d4": [140174.9, -151803.2]}}, "tpl_07x13": {"bx0": 139830, "bx1": 140530, "by0": -151128, "by1": -149828, "ar": {"d4": [140179.9, -152228.2], "d1": [138729.9, -150483.2], "d2": [141629.9, -150483.2], "d3": [140179.9, -148728.2]}}, "tpl_13x07": {"bx0": 139530, "bx1": 140830, "by0": -150828, "by1": -150128, "ar": {"d2": [141929.9, -150478.2], "d4": [140183.4, -151928.2], "d1": [138429.9, -150478.2], "d3": [140183.4, -149028.2]}}, "tpl_08x17": {"bx0": 139780, "bx1": 140580, "by0": -151328, "by1": -149628, "ar": {"d4": [140179.9, -152828.2], "d1": [138279.9, -150483.2], "d2": [142079.9, -150483.2], "d3": [140179.9, -148128.2]}}, "tpl_17x08": {"bx0": 139330, "bx1": 141030, "by0": -150878, "by1": -150078, "ar": {"d2": [142529.9, -150478.2], "d4": [140184.9, -152378.2], "d3": [140184.9, -148578.2], "d1": [137829.9, -150478.2]}}, "tpl_10x20": {"bx0": 139680, "bx1": 140680, "by0": -151478, "by1": -149478, "ar": {"d4": [140179.9, -152978.2], "d1": [138179.9, -150483.2], "d2": [142179.9, -150483.2], "d3": [140179.9, -147978.2]}}, "tpl_20x10": {"bx0": 139180, "bx1": 141180, "by0": -150978, "by1": -149978, "ar": {"d2": [142679.9, -150478.2], "d4": [140184.9, -152478.2], "d3": [140184.9, -148478.2], "d1": [137679.9, -150478.2]}}};
 function mnDxfPickTpl(rec){
   /* [988] 상하벽 실폭(topW)으로 직접 선택 — 템플릿 tpl_AxB: 바닥 A(가로,상하팔폭) x B(세로,좌우팔폭) → 편집기 mnWallRealW와 항상 일치 */
   var sp=rec.spec||{w:800,h:1700,dep:1100,orient:'세로'};
@@ -6852,12 +6852,44 @@ function mnDxfGen(rec){
       if(wall==='p3')return [g.bx0+px, g.by1+py];
       return [g.bx0+px, g.by0-py];
     }
-    var cyc=(g.by0+g.by1)/2;
-    var slots={p1:[g.bx0-1500,g.by1+800],p3:[g.bx1+700,g.by1+800],p2:[g.bx1+700,cyc+200],p4:[g.bx1+700,g.by0-1000]};
+    /* [992] 완성본(1M_SKB) 규칙: 확대묶음 사분면 배치 + 그룹·관경별 라벨 줄바꿈(FCØ 접두) + 벽 연결 화살표 + dest 없는 방향화살표 제거 */
+    function mnDxfIns(h,ax,ay,sx,sy,rot){return mnDxfEnt(['  0','INSERT','  5',h,'100','AcDbEntity','  8','arrow','100','AcDbBlockReference','  2','arrow',' 10',ax.toFixed(1),' 20',ay.toFixed(1),' 30','0.0',' 41',String(sx),' 42',String(sy),' 43','1.0',' 50',String(rot)]);}
+    /* dest 없는 방향의 4방 화살표 INSERT 제거 */
+    ['d1','d2','d3','d4'].forEach(function(dk){
+      if(d[dk])return; var ap=g.ar&&g.ar[dk]; if(!ap)return;
+      var idx=0;
+      while((idx=x.indexOf('\n  0\nINSERT\n',idx))>=0){
+        var nxt=x.indexOf('\n  0\n',idx+11); if(nxt<0)break;
+        var chunk=x.slice(idx,nxt);
+        var mx2=chunk.match(/\n 10\n([\-0-9.]+)\n 20\n([\-0-9.]+)/);
+        if(mx2&&Math.abs(parseFloat(mx2[1])-ap[0])<2&&Math.abs(parseFloat(mx2[2])-ap[1])<2&&chunk.indexOf('\narrow\n')>=0){
+          x=x.slice(0,idx)+x.slice(nxt);break;
+        }
+        idx=nxt;
+      }
+    });
     var out='';
+    var slots={
+      p1:{sx:g.bx0-650,sy:g.by1+1050,lab:'L',ar:'down'},
+      p2:{sx:g.bx1+850,sy:g.by0-900,lab:'R',ar:'up'},
+      p3:{sx:g.bx1+950,sy:g.by1+950,lab:'R',ar:'left'},
+      p4:{sx:g.bx0-650,sy:g.by0-1050,lab:'R',ar:'right'}
+    };
+    function grpLines(pwv){ /* 그룹·관경별 'FCØ100X5(0)' 줄 목록 */
+      var lines=[];
+      pwv.groups.forEach(function(gr){
+        var lb=(typeof mnGroupLabel==='function')?mnGroupLabel(gr):'';
+        if(!lb)return;
+        var kind=lb.split('\u00d8')[0]||'';
+        lb.split(' ').forEach(function(tk){
+          if(!tk)return;
+          lines.push(tk.indexOf('\u00d8')>=0?tk:(kind+'\u00d8'+tk));
+        });
+      });
+      return lines;
+    }
     ['p1','p2','p3','p4'].forEach(function(wall){
       var pw=rec.pipes&&rec.pipes[wall];if(!pw||!pw.groups)return;
-      /* [986] 좌표 기준 벽치수(bw/bh)가 없으면 옛 dispW(긴변) 좌표계로 간주 → 항상 현재 벽치수로 비율 변환 */
       var _sp=rec.spec||{w:800,h:1700,dep:1100};
       var _W=mnWallRealW(rec,wall),_H=_sp.dep||1100;
       if(!pw.bw||!pw.bh){pw.bw=Math.max(_sp.w||800,_sp.h||1700);pw.bh=_sp.dep||1100;}
@@ -6868,21 +6900,36 @@ function mnDxfGen(rec){
       }
       var all=[];pw.groups.forEach(function(gr){(gr.circles||[]).forEach(function(c){var st=(c.st!=null?c.st:(c.fill?1:0));if(st===2)return;all.push({x:c.x,y:c.y,dia:c.dia,st:st});});});
       if(!all.length)return;
+      /* 실척 */
       all.forEach(function(c){
         var p=armXY(wall,c.x,c.y);
         out+=mnDxfCircle(nh(),p[0],p[1],c.dia/2);
         if(c.st===1)out+=mnDxfHatch(nh(),p[0],p[1],c.dia/2);
       });
+      /* 확대(2배) — 사분면 슬롯 */
       var mx=0,my=0;all.forEach(function(c){mx+=c.x;my+=c.y;});mx/=all.length;my/=all.length;
-      var sl=slots[wall],maxX=-1e18;
+      var sl=slots[wall];
+      var minX=1e18,maxX=-1e18,minY=1e18,maxY=-1e18;
       all.forEach(function(c){
-        var ex=sl[0]+(c.x-mx)*2, ey=sl[1]+(c.y-my)*2;
+        var ex=sl.sx+(c.x-mx)*2, ey=sl.sy+(c.y-my)*2;
         out+=mnDxfCircle(nh(),ex,ey,c.dia);
         if(c.st===1)out+=mnDxfHatch(nh(),ex,ey,c.dia);
-        if(ex+c.dia>maxX)maxX=ex+c.dia;
+        if(ex-c.dia<minX)minX=ex-c.dia; if(ex+c.dia>maxX)maxX=ex+c.dia;
+        if(ey-c.dia<minY)minY=ey-c.dia; if(ey+c.dia>maxY)maxY=ey+c.dia;
       });
-      var sm=(typeof mnPipeSummary==='function')?mnPipeSummary(rec,wall):'';
-      if(sm){sm.split(' / ').forEach(function(L,i){out+=mnDxfText(nh(),maxX+250,sl[1]-60-i*160,L,100,0);});}
+      /* 라벨: 그룹·관경별 줄, p1=묶음 왼쪽(오른끝 맞춤), 그 외=오른쪽 */
+      var lines=grpLines(pw);
+      lines.forEach(function(L,i){
+        var lx;
+        if(sl.lab==='L')lx=minX-260-L.length*62; else lx=maxX+260;
+        out+=mnDxfText(nh(),lx,sl.sy+((lines.length-1)/2-i)*140-35,L,100,0);
+      });
+      /* 확대묶음↔벽 연결 화살표 (완성본 arrow 블록 방식) */
+      var cxm=(minX+maxX)/2, cym=(minY+maxY)/2;
+      if(sl.ar==='down')out+=mnDxfIns(nh(),cxm,minY-380,0.5,0.5,90);
+      else if(sl.ar==='up')out+=mnDxfIns(nh(),cxm,maxY+380,-0.5,0.5,90);
+      else if(sl.ar==='left')out+=mnDxfIns(nh(),minX-380,cym,0.5,0.5,180);
+      else out+=mnDxfIns(nh(),maxX+380,cym,-0.5,0.5,180);
     });
     var ei=x.indexOf('\nENTITIES\n');
     var end=x.indexOf('\n  0\nENDSEC',ei);
