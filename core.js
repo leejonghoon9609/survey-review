@@ -6958,11 +6958,11 @@ function mnEfbGen(rec){
     function eTxt(cx,cy,txt,ht,rot,sty,ly){return mnDxfEnt(['  0','TEXT','  5',nh(),'100','AcDbEntity','  8',ly||'Attr','100','AcDbText',' 10',fx(cx),' 20',fx(cy),' 30','0.0',' 40',String(ht),'  1',txt,' 50',String(rot||0),'  7',sty||'DIM',' 72','1',' 11',fx(cx),' 21',fx(cy),' 31','0.0','100','AcDbText',' 73','2']);}
     function eOpen(ax,ay,rot){return mnDxfEnt(['  0','INSERT','  5',nh(),'100','AcDbEntity','  8','Dim','100','AcDbBlockReference','  2','_OPEN',' 10',fx(ax),' 20',fx(ay),' 30','0.0',' 41','50',' 42','50',' 43','50',' 50',String(rot)]);}
     function eArrow(ax,ay,sx,rot){return mnDxfEnt(['  0','INSERT','  5',nh(),'100','AcDbEntity','  8','arrow','100','AcDbBlockReference','  2','arrow',' 10',fx(ax),' 20',fx(ay),' 30','0.0',' 41',String(sx),' 42','0.5',' 43','1.0',' 50',String(rot)]);}
-    function hatchTailA(){return [' 75','0',' 76','1',' 52','90.0',' 41','1.0',' 77','0',' 78','1',' 53','135.0',' 43','0.0',' 44','0.0',' 45','-2.245064',' 46','-2.245064',' 79','0',' 98','0'];}
+    function hatchTailA(sx,sy){return [' 75','0',' 76','1',' 52','90.0',' 41','1.0',' 77','0',' 78','1',' 53','135.0',' 43','0.0',' 44','0.0',' 45','-2.245064',' 46','-2.245064',' 79','0',' 98','1',' 10',sx,' 20',sy];}
     function eHatchCirc(cx,cy,r,solid,col){
       var a=['  0','HATCH','  5',nh(),'100','AcDbEntity','  8','Pipe'];if(col)a.push(' 62',String(col));
       a=a.concat(['100','AcDbHatch',' 10','0.0',' 20','0.0',' 30','0.0','210','0.0','220','0.0','230','1.0','  2',solid?'SOLID':'ANSI31',' 70',solid?'1':'0',' 71','0',' 91','1',' 92','1',' 93','1',' 72','2',' 10',fx(cx),' 20',fx(cy),' 40',fx(r),' 50','0.0',' 51','360.0',' 73','1',' 97','0']);
-      a=a.concat(solid?[' 75','1',' 76','1',' 47','1.0',' 98','0']:hatchTailA());
+      a=a.concat(solid?[' 75','1',' 76','1',' 47','1.0',' 98','1',' 10',fx(cx),' 20',fx(cy)]:hatchTailA(fx(cx),fx(cy)));
       return mnDxfEnt(a);
     }
     function eHatchPoly(pts,solid,col){
@@ -6970,7 +6970,8 @@ function mnEfbGen(rec){
       a=a.concat(['100','AcDbHatch',' 10','0.0',' 20','0.0',' 30','0.0','210','0.0','220','0.0','230','1.0','  2',solid?'SOLID':'ANSI31',' 70',solid?'1':'0',' 71','0',' 91','1',' 92','1',' 93',String(pts.length)]);
       for(var i=0;i<pts.length;i++){var p=pts[i],q=pts[(i+1)%pts.length];a.push(' 72','1',' 10',fx(p[0]),' 20',fx(p[1]),' 11',fx(q[0]),' 21',fx(q[1]));}
       a.push(' 97','0');
-      a=a.concat(solid?[' 75','1',' 76','1',' 47','1.0',' 98','0']:hatchTailA());
+      var scx=0,scy=0;pts.forEach(function(q){scx+=q[0];scy+=q[1];});scx=fx(scx/pts.length);scy=fx(scy/pts.length);
+      a=a.concat(solid?[' 75','1',' 76','1',' 47','1.0',' 98','1',' 10',scx,' 20',scy]:hatchTailA(scx,scy));
       return mnDxfEnt(a);
     }
     /* ── 몸체 ── */
