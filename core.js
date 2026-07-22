@@ -7283,7 +7283,7 @@ function mnOpenForm(rec){
           st+='<rect x="'+x0+'" y="30" width="74" height="54" fill="'+(u?'#fff':'#fafaf7')+'" stroke="#bbb" stroke-width="0.8"/>';
           if(u)st+='<image href="'+u+'" x="'+(x0+1)+'" y="31" width="72" height="52" preserveAspectRatio="xMidYMid meet" data-act="pview" data-s="'+it[0]+'" style="cursor:pointer"/>';
           st+='<text x="'+(x0+37)+'" y="97" text-anchor="middle" font-size="11" fill="#555" font-weight="700">'+it[1]+'</text>';
-          if(u&&rec.rotP&&rec.rotP[it[0]])st+='<text x="'+(x0+37)+'" y="109" text-anchor="middle" font-size="9.5" font-weight="800" fill="#d32f2f">회전</text>';
+          if(u&&rec.rotP&&rec.rotP[it[0]])st+='<text x="'+(x0+37)+'" y="109" text-anchor="middle" font-size="9" font-weight="800" fill="#d32f2f">회전적용됨</text>';
         });
         return st;
       })()
@@ -7376,9 +7376,30 @@ function mnOpenForm(rec){
           var vs=el.getAttribute('data-s');var vu=rec.photos&&rec.photos[vs];
           if(vu){
             var ov=document.createElement('div');
-            ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1340;display:flex;align-items:center;justify-content:center;padding:16px';
-            ov.innerHTML='<img src="'+vu+'" style="max-width:96vw;max-height:92dvh;object-fit:contain;border-radius:8px">';
-            ov.onclick=function(){ov.remove();};
+            ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:1340;overflow:hidden;touch-action:none';
+            ov.innerHTML='<img src="'+vu+'" style="position:absolute;left:50%;top:50%;max-width:96vw;max-height:88dvh;transform:translate(-50%,-50%) scale(1);transform-origin:center;object-fit:contain;border-radius:8px;will-change:transform">'
+              +'<button style="position:fixed;right:16px;bottom:18px;z-index:2;border:1.5px solid #fff;background:rgba(211,47,47,.92);color:#fff;border-radius:10px;padding:11px 22px;font-weight:800;font-size:15px;cursor:pointer">사진 닫기</button>';
+            var im=ov.querySelector('img'),sc=1,tx=0,ty=0;
+            function ap(){im.style.transform='translate(calc(-50% + '+tx+'px), calc(-50% + '+ty+'px)) scale('+sc+')';}
+            ov.querySelector('button').onclick=function(){ov.remove();};
+            /* PC 휠 줌 */
+            ov.addEventListener('wheel',function(e){e.preventDefault();sc=Math.min(6,Math.max(1,sc*(e.deltaY<0?1.15:1/1.15)));if(sc===1){tx=0;ty=0;}ap();},{passive:false});
+            /* 드래그 팬(마우스) */
+            var dg=null;
+            im.addEventListener('mousedown',function(e){e.preventDefault();dg=[e.clientX-tx,e.clientY-ty];});
+            window.addEventListener('mousemove',function(e){if(dg&&sc>1){tx=e.clientX-dg[0];ty=e.clientY-dg[1];ap();}});
+            window.addEventListener('mouseup',function(){dg=null;});
+            /* 터치: 핀치 줌 + 한손 팬 */
+            var pt=null,pd=0,ps=1;
+            ov.addEventListener('touchstart',function(e){
+              if(e.touches.length===2){pd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);ps=sc;}
+              else if(e.touches.length===1){pt=[e.touches[0].clientX-tx,e.touches[0].clientY-ty];}
+            },{passive:true});
+            ov.addEventListener('touchmove',function(e){
+              if(e.touches.length===2){e.preventDefault();var d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);sc=Math.min(6,Math.max(1,ps*d/(pd||d)));if(sc===1){tx=0;ty=0;}ap();}
+              else if(e.touches.length===1&&pt&&sc>1){e.preventDefault();tx=e.touches[0].clientX-pt[0];ty=e.touches[0].clientY-pt[1];ap();}
+            },{passive:false});
+            ov.addEventListener('touchend',function(e){if(e.touches.length<2)pd=0;if(!e.touches.length)pt=null;});
             document.body.appendChild(ov);
           }
         }
