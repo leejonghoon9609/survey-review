@@ -6725,7 +6725,7 @@ function mnDetectSpec(dep,w12,w34){
   return {name:best.name,w:best.w,h:best.h,dep:best.dep,orient:(w12>=w34)?'가로':'세로'};
 }
 function mnList(){if(!state.mnList)state.mnList=[];return state.mnList;}
-function mnLabel(r){var ow=(r.owner==='_c'?(r.ownerC||''):(r.owner||''));var nt=(r.note||'').trim();var pf=(r.newFlag==='신설'?'신설':'');return pf+(r.no||'')+(ow?'('+ow+')':'')+(nt?nt:'');}
+function mnLabel(r){var ow=(r.owner==='_c'?(r.ownerC||''):(r.owner||''));var nt=(r.note||'').trim();var pf=(r.newFlag==='신설'?'신설':(r.newFlag==='기설'?'기설':''));return pf+(r.no||'')+(ow?'('+ow+')':'')+(nt?nt:'');}
 var MN_SLOTS=[['bd','표찰'],['fr','전경'],['p1','① 서'],['p2','② 동'],['p3','③ 북'],['p4','④ 남']];
 /* [BUILD 935] PC: 맨홀조사를 우측 도킹 패널로 (실시간조서 방식) */
 function mnHostOpen(){
@@ -6795,7 +6795,7 @@ function mnOpenList(){
       var recent=(k===0&&rows.length>1)?'<span style="background:#1d9e75;color:#fff;border-radius:20px;padding:2px 8px;font-size:10.5px;font-weight:800">최근 작업</span>':'';
       return '<div class="mn-card" data-i="'+i+'" style="background:#fff;border:1px solid '+(k===0?'#9fd4bd':'#e2eae5')+';border-radius:13px;padding:13px 14px;margin-bottom:9px;cursor:pointer;box-shadow:0 1px 4px rgba(20,60,45,.06)">'
         +'<div style="display:flex;align-items:center;gap:8px"><span style="flex:1;font-size:16px;font-weight:800;color:#134e3a">'+(r.no?joseoEsc(mnLabel(r)):'<span style=\"color:#b8b8b0\">번호 미입력</span>')+'</span>'+recent+spBadge
-        +'<button class="mn-del" data-i="'+i+'" style="flex:none;border:none;background:#faf1f0;color:#c0392b;border-radius:8px;width:30px;height:30px;cursor:pointer;font-size:14px;line-height:1">✕</button></div>'
+        +'<button class="mn-del" data-i="'+i+'" style="flex:none;border:none;background:#faf1f0;color:#c0392b;border-radius:6px;width:16px;height:16px;padding:0;cursor:pointer;font-size:10px;line-height:1">✕</button></div>'
         +'<div style="display:flex;align-items:center;gap:12px;margin-top:7px;font-size:12px;color:#8a948e"><span style="font-weight:700;color:'+(pc===6?'#1d9e75':'#8a948e')+'">사진 '+pc+'/6</span><span>'+dt+'</span></div>'
         +'</div>';
     }).join('');
@@ -6871,7 +6871,7 @@ function mnAskNoOwner(rec,cb){
   w.querySelectorAll('.mnNfB').forEach(function(b){b.onclick=function(){nf=this.getAttribute('data-v');w.querySelectorAll('.mnNfB').forEach(function(x){var on=(x.getAttribute('data-v')===nf);x.style.borderColor=on?'#1d9e75':'#ccc';x.style.background=on?'#e1f5ee':'#fff';x.style.color=on?'#0f6e56':'#667';});};});
   function noVal(){var sel=w.querySelector('#mnNoSel').value;return sel==='_c'?w.querySelector('#mnNoIn').value.trim():sel;}
   w.querySelector('#mnNoSel').addEventListener('change',function(){var c=(this.value==='_c');w.querySelector('#mnNoIn').style.display=c?'block':'none';if(c)setTimeout(function(){w.querySelector('#mnNoIn').focus();},30);upPrev();});
-  function upPrev(){var n=noVal();var sf=w.querySelector('#mnSufIn').value;var ov=w.querySelector('#mnOwIn').value;var oc=w.querySelector('#mnOwC').value.trim();var ow=(ov==='_c'?oc:ov);var nt=w.querySelector('#mnNoteIn').value.trim();var pf=(nf==='신설'?'신설':'');w.querySelector('#mnPrev').textContent='표시: '+pf+(n?(n+sf):'')+(ow?'('+ow+')':'')+(nt||'');}
+  function upPrev(){var n=noVal();var sf=w.querySelector('#mnSufIn').value;var ov=w.querySelector('#mnOwIn').value;var oc=w.querySelector('#mnOwC').value.trim();var ow=(ov==='_c'?oc:ov);var nt=w.querySelector('#mnNoteIn').value.trim();var pf=(nf==='신설'?'신설':(nf==='기설'?'기설':''));w.querySelector('#mnPrev').textContent='표시: '+pf+(n?(n+sf):'')+(ow?'('+ow+')':'')+(nt||'');}
   w.querySelector('#mnOwIn').addEventListener('change',function(){w.querySelector('#mnOwC').style.display=(this.value==='_c')?'block':'none';upPrev();});
   ['mnNoIn','mnSufIn','mnOwC','mnNoteIn'].forEach(function(id){w.querySelector('#'+id).addEventListener('input',upPrev);w.querySelector('#'+id).addEventListener('change',upPrev);});
   upPrev();
