@@ -6935,6 +6935,10 @@ function mnDxfCircle(h,x,y,r){return mnDxfEnt(['  0','CIRCLE','  5',h,'100','AcD
 function mnDxfHatch(h,x,y,r){return mnDxfEnt(['  0','HATCH','  5',h,'100','AcDbEntity','  8','pipe','100','AcDbHatch',' 10','0.0',' 20','0.0',' 30','0.0','210','0.0','220','0.0','230','1.0','  2','SOLID',' 70','1',' 71','0',' 91','1',' 92','1',' 93','1',' 72','2',' 10',x.toFixed(1),' 20',y.toFixed(1),' 40',r.toFixed(1),' 50','0.0',' 51','360.0',' 73','1',' 97','0',' 75','1',' 76','1',' 47','1.0',' 98','1',' 10',x.toFixed(1),' 20',y.toFixed(1)]);}
 function mnDxfText(h,x,y,txt,ht,rot){return mnDxfEnt(['  0','TEXT','  5',h,'100','AcDbEntity','  8','Attr','100','AcDbText',' 10',x.toFixed(1),' 20',y.toFixed(1),' 30','0.0',' 40',String(ht),'  1',txt,' 50',String(rot||0),'100','AcDbText']);}
 function mnDxfTextC(h,cx,cy,txt,ht){return mnDxfEnt(['  0','TEXT','  5',h,'100','AcDbEntity','  8','Attr','100','AcDbText',' 10',cx.toFixed(1),' 20',cy.toFixed(1),' 30','0.0',' 40',String(ht),'  1',txt,' 50','0','  7','DIM',' 72','1',' 11',cx.toFixed(1),' 21',cy.toFixed(1),' 31','0.0','100','AcDbText',' 73','2']);}
+/* ===== [BUILD 1015] 현장전자야장 (전자야장 심사 허용 대응) — 기능 협의 후 구현 ===== */
+function mnEfbGen(rec){
+  alert('현장전자야장 기능 준비중입니다.');
+}
 function mnDxfGen(rec){
   var pick=mnDxfPickTpl(rec);
   var g=MN_DXF_GEO[pick.key];
@@ -7201,7 +7205,7 @@ function mnOpenForm(rec){
   var wrap=null;
   var inner='<div style="background:#fff;'+(host?'width:100%;height:100%;border-radius:0':(mob?'width:100vw;height:100dvh;border-radius:0':'border-radius:14px;width:min(96vw,540px);max-height:95dvh'))+';display:flex;flex-direction:column;overflow:hidden">'
     +'<div style="padding:9px 14px 7px;border-bottom:1px solid #f2f2f0;display:flex;align-items:center;flex:none"><b style="font-size:15.5px;white-space:nowrap">맨홀 조사야장</b><button id="mnFTrash" style="border:1px solid #b58900;background:#fdf6e3;color:#8a6d00;border-radius:9px;padding:7px 11px;margin-left:10px;cursor:pointer;font-weight:800;font-size:12px">🗑 삭제목록</button><span style="flex:1"></span><button id="mnFClose" style="border:1.5px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:9px;padding:8px 20px;cursor:pointer;font-size:14.5px;font-weight:800">닫기</button></div>'
-    +'<div style="padding:7px 12px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:6px;flex:none;flex-wrap:nowrap;overflow-x:auto"><button id="mnDxfBtn" style="flex:1;border:1px solid #c0392b;background:#fdeaea;color:#c0392b;border-radius:8px;padding:7px 4px;cursor:pointer;font-weight:700;font-size:12.5px;white-space:nowrap">📐 맨홀도DXF</button><button id="mnEqXls" style="flex:1;border:1px solid #1d9e75;background:#e1f5ee;color:#0f6e56;border-radius:8px;padding:7px 4px;cursor:pointer;font-weight:700;font-size:12.5px;white-space:nowrap">📄 설비사진엑셀</button><button id="mnPhotoDl" style="flex:1;border:1px solid #2471a3;background:#eef6fc;color:#2471a3;border-radius:8px;padding:7px 4px;cursor:pointer;font-weight:700;font-size:12.5px;white-space:nowrap">📥 맨홀사진다운</button></div>'
+    +'<div style="padding:7px 12px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:4px;flex:none;flex-wrap:nowrap;overflow-x:auto"><button id="mnDxfBtn" style="flex:1;border:1px solid #c0392b;background:#fdeaea;color:#c0392b;border-radius:8px;padding:6px 2px;cursor:pointer;font-weight:700;font-size:11px;white-space:nowrap">📐 맨홀도DXF</button><button id="mnEqXls" style="flex:1;border:1px solid #1d9e75;background:#e1f5ee;color:#0f6e56;border-radius:8px;padding:6px 2px;cursor:pointer;font-weight:700;font-size:11px;white-space:nowrap">📄 설비사진엑셀</button><button id="mnPhotoDl" style="flex:1;border:1px solid #2471a3;background:#eef6fc;color:#2471a3;border-radius:8px;padding:6px 2px;cursor:pointer;font-weight:700;font-size:11px;white-space:nowrap">📥 맨홀사진다운</button><button id="mnEfb" style="flex:1;border:1px solid #8e44ad;background:#f4ecf9;color:#8e44ad;border-radius:8px;padding:6px 2px;cursor:pointer;font-weight:700;font-size:11px;white-space:nowrap">🖋 현장전자야장</button></div>'
     +'<div id="mnSheetBox" style="flex:1;overflow:auto;-webkit-overflow-scrolling:touch;background:#f4f4f2"></div>'
     +'<div style="display:flex;gap:8px;padding:10px 14px;border-top:1px solid #eee;flex:none">'
     +'<button id="mnSave" style="flex:1;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:10px;padding:12px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">저장</span></button>'
@@ -7560,6 +7564,7 @@ function mnOpenForm(rec){
   var _pdl=root.querySelector('#mnPhotoDl');if(_pdl)_pdl.onclick=function(){mnPhotoZip(rec);};
   var _eqx=root.querySelector('#mnEqXls');if(_eqx)_eqx.onclick=function(){mnEquipXls(rec);};
   var _dxb=root.querySelector('#mnDxfBtn');if(_dxb)_dxb.onclick=function(){mnDxfGen(rec);};
+  var _efb=root.querySelector('#mnEfb');if(_efb)_efb.onclick=function(){mnEfbGen(rec);};
   root.querySelector('#mnBack').onclick=function(){uClose();mnOpenList();};
   root.querySelector('#mnSave').onclick=function(){
     if(!rec.no){toast('맨홀번호를 입력하세요');mnAskNoOwner(rec,function(){mnPersistRec(rec);render();});return;}
