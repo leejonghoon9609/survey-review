@@ -6935,9 +6935,168 @@ function mnDxfCircle(h,x,y,r){return mnDxfEnt(['  0','CIRCLE','  5',h,'100','AcD
 function mnDxfHatch(h,x,y,r){return mnDxfEnt(['  0','HATCH','  5',h,'100','AcDbEntity','  8','pipe','100','AcDbHatch',' 10','0.0',' 20','0.0',' 30','0.0','210','0.0','220','0.0','230','1.0','  2','SOLID',' 70','1',' 71','0',' 91','1',' 92','1',' 93','1',' 72','2',' 10',x.toFixed(1),' 20',y.toFixed(1),' 40',r.toFixed(1),' 50','0.0',' 51','360.0',' 73','1',' 97','0',' 75','1',' 76','1',' 47','1.0',' 98','1',' 10',x.toFixed(1),' 20',y.toFixed(1)]);}
 function mnDxfText(h,x,y,txt,ht,rot){return mnDxfEnt(['  0','TEXT','  5',h,'100','AcDbEntity','  8','Attr','100','AcDbText',' 10',x.toFixed(1),' 20',y.toFixed(1),' 30','0.0',' 40',String(ht),'  1',txt,' 50',String(rot||0),'100','AcDbText']);}
 function mnDxfTextC(h,cx,cy,txt,ht){return mnDxfEnt(['  0','TEXT','  5',h,'100','AcDbEntity','  8','Attr','100','AcDbText',' 10',cx.toFixed(1),' 20',cy.toFixed(1),' 30','0.0',' 40',String(ht),'  1',txt,' 50','0','  7','DIM',' 72','1',' 11',cx.toFixed(1),' 21',cy.toFixed(1),' 31','0.0','100','AcDbText',' 73','2']);}
-/* ===== [BUILD 1015] 현장전자야장 (전자야장 심사 허용 대응) — 기능 협의 후 구현 ===== */
+/* ===== [BUILD 1017] 현장전자야장 DXF — 평면 맨홀도(샘플 규격) 생성 ===== */
+/* 몸체=실측 벽폭, 팔=관 있는 방향만(1100+목320), 목 개구=766 기준, 내선=ANSI31 해치, 제외관=빨강, 뚜껑=rec.lid */
 function mnEfbGen(rec){
-  alert('현장전자야장 기능 준비중입니다.');
+  toast('현장전자야장 DXF 생성 중...');
+  fetch('dxf/tpl_efb.dxf').then(function(r){
+    if(!r.ok)throw new Error('tpl');
+    return r.text();
+  }).then(function(x){
+    x=x.split('{{MHNO}}').join(mnLabel(rec)||'');
+    var hm=x.match(/\$HANDSEED\n  5\n([0-9A-Fa-f]+)/);
+    var seed=hm?parseInt(hm[1],16):0x50000;
+    function nh(){return (seed++).toString(16).toUpperCase();}
+    var CX=524932, CY=677315;
+    var bw=mnWallRealW(rec,'p3'), bh=mnWallRealW(rec,'p1');
+    var x0=CX-bw/2,x1=CX+bw/2,y0=CY-bh/2,y1=CY+bh/2;
+    var A=1100,N=320,out='';
+    function fx(v){return (Math.round(v*10)/10).toFixed(1);}
+    function eL(ly,ax,ay,bx,by,col){var a=['  0','LINE','  5',nh(),'100','AcDbEntity','  8',ly];if(col)a.push(' 62',String(col));a.push('100','AcDbLine',' 10',fx(ax),' 20',fx(ay),' 30','0.0',' 11',fx(bx),' 21',fx(by),' 31','0.0');return mnDxfEnt(a);}
+    function ePL(ly,pts,closed,lt,col){var a=['  0','LWPOLYLINE','  5',nh(),'100','AcDbEntity','  8',ly];if(lt)a.push('  6',lt);if(col)a.push(' 62',String(col));a.push('100','AcDbPolyline',' 90',String(pts.length),' 70',closed?'1':'0',' 43','0.0');pts.forEach(function(p){a.push(' 10',fx(p[0]),' 20',fx(p[1]));if(p[2]!=null)a.push(' 42',String(p[2]));});return mnDxfEnt(a);}
+    function eC(ly,cx,cy,r,col){var a=['  0','CIRCLE','  5',nh(),'100','AcDbEntity','  8',ly];if(col)a.push(' 62',String(col));a.push('100','AcDbCircle',' 10',fx(cx),' 20',fx(cy),' 30','0.0',' 40',fx(r));return mnDxfEnt(a);}
+    function eTxt(cx,cy,txt,ht,rot,sty,ly){return mnDxfEnt(['  0','TEXT','  5',nh(),'100','AcDbEntity','  8',ly||'Attr','100','AcDbText',' 10',fx(cx),' 20',fx(cy),' 30','0.0',' 40',String(ht),'  1',txt,' 50',String(rot||0),'  7',sty||'DIM',' 72','1',' 11',fx(cx),' 21',fx(cy),' 31','0.0','100','AcDbText',' 73','2']);}
+    function eOpen(ax,ay,rot){return mnDxfEnt(['  0','INSERT','  5',nh(),'100','AcDbEntity','  8','Dim','100','AcDbBlockReference','  2','_OPEN',' 10',fx(ax),' 20',fx(ay),' 30','0.0',' 41','50',' 42','50',' 43','50',' 50',String(rot)]);}
+    function eArrow(ax,ay,sx,rot){return mnDxfEnt(['  0','INSERT','  5',nh(),'100','AcDbEntity','  8','arrow','100','AcDbBlockReference','  2','arrow',' 10',fx(ax),' 20',fx(ay),' 30','0.0',' 41',String(sx),' 42','0.5',' 43','1.0',' 50',String(rot)]);}
+    function hatchTailA(){return [' 75','0',' 76','1',' 52','90.0',' 41','1.0',' 77','0',' 78','1',' 53','135.0',' 43','0.0',' 44','0.0',' 45','-2.245064',' 46','-2.245064',' 79','0',' 98','0'];}
+    function eHatchCirc(cx,cy,r,solid,col){
+      var a=['  0','HATCH','  5',nh(),'100','AcDbEntity','  8','Pipe'];if(col)a.push(' 62',String(col));
+      a=a.concat(['100','AcDbHatch',' 10','0.0',' 20','0.0',' 30','0.0','210','0.0','220','0.0','230','1.0','  2',solid?'SOLID':'ANSI31',' 70',solid?'1':'0',' 71','0',' 91','1',' 92','1',' 93','1',' 72','2',' 10',fx(cx),' 20',fx(cy),' 40',fx(r),' 50','0.0',' 51','360.0',' 73','1',' 97','0']);
+      a=a.concat(solid?[' 75','1',' 76','1',' 47','1.0',' 98','0']:hatchTailA());
+      return mnDxfEnt(a);
+    }
+    function eHatchPoly(pts,solid,col){
+      var a=['  0','HATCH','  5',nh(),'100','AcDbEntity','  8','Pipe'];if(col)a.push(' 62',String(col));
+      a=a.concat(['100','AcDbHatch',' 10','0.0',' 20','0.0',' 30','0.0','210','0.0','220','0.0','230','1.0','  2',solid?'SOLID':'ANSI31',' 70',solid?'1':'0',' 71','0',' 91','1',' 92','1',' 93',String(pts.length)]);
+      for(var i=0;i<pts.length;i++){var p=pts[i],q=pts[(i+1)%pts.length];a.push(' 72','1',' 10',fx(p[0]),' 20',fx(p[1]),' 11',fx(q[0]),' 21',fx(q[1]));}
+      a.push(' 97','0');
+      a=a.concat(solid?[' 75','1',' 76','1',' 47','1.0',' 98','0']:hatchTailA());
+      return mnDxfEnt(a);
+    }
+    /* ── 몸체 ── */
+    out+=ePL('Con',[[x0,y0],[x1,y0],[x1,y1],[x0,y1]],true);
+    /* ── 뚜껑(DASHED2 원 + 지름 치수) ── */
+    var lid=parseFloat(rec.lid)||766, lr=lid/2;
+    out+=ePL('mh',[[CX+lr,CY,1],[CX-lr,CY,1],[CX+lr,CY]],false,'DASHED2');
+    out+=eL('mh',CX-lr,CY+10,CX-lr,CY+50)+eL('mh',CX+lr,CY+10,CX+lr,CY+50)+eL('mh',CX-lr+50,CY,CX+lr-50,CY);
+    out+=eOpen(CX-lr,CY,180)+eOpen(CX+lr,CY,0)+eTxt(CX,CY+43,String(lid),50,0,'DIM','mh');
+    /* ── 몸체 치수 (세로=우벽 안쪽, 가로=하벽 안쪽) ── */
+    var xd=x1-62;
+    out+=eL('Dim',x1-10,y0,x1-112,y0)+eL('Dim',x1-10,y1,x1-112,y1)+eL('Dim',xd,y0+50,xd,y1-50);
+    out+=eOpen(xd,y0,270)+eOpen(xd,y1,90)+eTxt(xd-43,CY,String(Math.round(bh)),50,0,'DIM','Dim');
+    var yd=y0+52;
+    out+=eL('Dim',x1,y0+10,x1,y0+102)+eL('Dim',x0,y0+10,x0,y0+102)+eL('Dim',x0+50,yd,x1-50,yd);
+    out+=eOpen(x1,yd,0)+eOpen(x0,yd,180)+eTxt(CX,yd+42,String(Math.round(bw)),50,0,'DIM','Dim');
+    /* ── 방향별 팔·관·라벨 ── */
+    var d=rec.dest||{};
+    var dm={p1:'d1',p2:'d2',p3:'d3',p4:'d4'};
+    function armXY(w,px,py){
+      if(w==='p1')return [x0-py,y0+px];
+      if(w==='p2')return [x1+py,y0+px];
+      if(w==='p3')return [x0+px,y1+py];
+      return [x0+px,y0-py];
+    }
+    function armDims(w){ /* 팔 치수 1100+320 — 좌우팔=하단(y0-107), 상하팔=우측(x1+107) */
+      var o='';
+      if(w==='p1'||w==='p2'){
+        var s=(w==='p1'?-1:1), bx=(w==='p1'?x0:x1), ya=y0-107;
+        var e1=bx+s*A, e2=bx+s*(A+N);
+        o+=eL('Dim',bx,y0-10,bx,y0-157)+eL('Dim',e1,y0-10,e1,y0-157)+eL('Dim',e2,y0-10,e2,y0-157);
+        o+=eL('Dim',bx+s*50,ya,e1-s*50,ya)+eOpen(bx,ya,s<0?0:180)+eOpen(e1,ya,s<0?180:0)+eTxt((bx+e1)/2,ya+43,'1100',50,0,'DIM','Dim');
+        o+=eL('Dim',e1+s*50,ya,e2-s*50,ya)+eOpen(e1,ya,s<0?0:180)+eOpen(e2,ya,s<0?180:0)+eTxt((e1+e2)/2,ya+43,'320',50,0,'DIM','Dim');
+      }else{
+        var s2=(w==='p3'?1:-1), by=(w==='p3'?y1:y0), xa=x1+107;
+        var f1=by+s2*A, f2=by+s2*(A+N);
+        o+=eL('Dim',x1+10,by,x1+157,by)+eL('Dim',x1+10,f1,x1+157,f1)+eL('Dim',x1+10,f2,x1+157,f2);
+        o+=eL('Dim',xa,by+s2*50,xa,f1-s2*50,0)+eOpen(xa,by,s2>0?270:90)+eOpen(xa,f1,s2>0?90:270)+eTxt(xa-43,(by+f1)/2,'1100',50,0,'DIM','Dim');
+        o+=eL('Dim',xa,f1+s2*50,xa,f2-s2*50,0)+eOpen(xa,f1,s2>0?270:90)+eOpen(xa,f2,s2>0?90:270)+eTxt(xa-43,(f1+f2)/2,'320',50,0,'DIM','Dim');
+      }
+      return o;
+    }
+    function armWalls(w){ /* 팔 외벽 2체인: 목 개구 766 기준 si/flare */
+      var armW=(w==='p1'||w==='p2')?bh:bw;
+      var si=Math.max(17,armW/2-383), fl=Math.max(41,armW/2-383);
+      var o='';
+      if(w==='p1'||w==='p2'){
+        var s=(w==='p1'?-1:1), bx=(w==='p1'?x0:x1);
+        var e1=bx+s*A, e2=bx+s*(A+N);
+        o+=ePL('Con',[[bx,y1],[e1,y1],[e1,y1-si],[e2,y1-si],[e2,y1-si+fl]],false);
+        o+=ePL('Con',[[bx,y0],[e1,y0],[e1,y0+si],[e2,y0+si],[e2,y0+si-fl]],false);
+      }else{
+        var s2=(w==='p3'?1:-1), by=(w==='p3'?y1:y0);
+        var f1=by+s2*A, f2=by+s2*(A+N);
+        o+=ePL('Con',[[x0,by],[x0,f1],[x0+si,f1],[x0+si,f2],[x0+si-fl,f2]],false);
+        o+=ePL('Con',[[x1,by],[x1,f1],[x1-si,f1],[x1-si,f2],[x1-si+fl,f2]],false);
+      }
+      return o;
+    }
+    function drawPipe(w,c){ /* 심볼: Ø50=삼각형, Ø120=사각형, 그외=원(실척) */
+      var st=(c.st!=null?c.st:(c.fill?1:0));
+      var p=armXY(w,c.x,c.y), px=p[0],py=p[1];
+      var col=(st===2?1:0), o='';
+      if(c.dia===50){
+        var tri=[[px-21,py-14],[px,py+28],[px+21,py-14]];
+        o+=ePL('Pipe',tri,true,null,col||null);
+        if(st===1)o+=eHatchPoly(tri,false);
+        if(st===2)o+=eHatchPoly(tri,true,1);
+      }else if(c.dia===120){
+        var sq=[[px-60,py-60],[px+60,py-60],[px+60,py+60],[px-60,py+60]];
+        o+=ePL('Pipe',sq,true,null,col||null);
+        if(st===1)o+=eHatchPoly(sq,false);
+        if(st===2)o+=eHatchPoly(sq,true,1);
+      }else{
+        var r=c.dia/2;
+        o+=eC('Pipe',px,py,r,col||null);
+        if(st===1)o+=eHatchCirc(px,py,r,false);
+        if(st===2)o+=eHatchCirc(px,py,r,true,1);
+      }
+      return o;
+    }
+    ['p1','p2','p3','p4'].forEach(function(w){
+      var pw=rec.pipes&&rec.pipes[w];if(!pw||!pw.groups)return;
+      var all=[];pw.groups.forEach(function(gr){(gr.circles||[]).forEach(function(c){all.push(c);});});
+      if(!all.length)return;
+      out+=armWalls(w)+armDims(w);
+      var mnx=1e18,mxx=-1e18,mny=1e18,mxy=-1e18;
+      all.forEach(function(c){
+        out+=drawPipe(w,c);
+        var p=armXY(w,c.x,c.y);
+        mnx=Math.min(mnx,p[0]);mxx=Math.max(mxx,p[0]);mny=Math.min(mny,p[1]);mxy=Math.max(mxy,p[1]);
+      });
+      var ccx=(mnx+mxx)/2, ccy=(mny+mxy)/2;
+      /* FCØ 라벨(관경별 X공수(내선수), 제외관은 공수 제외) + 지시 화살표 */
+      var agg={};all.forEach(function(c){var st=(c.st!=null?c.st:(c.fill?1:0));if(st===2)return;if(!agg[c.dia])agg[c.dia]={n:0,f:0};agg[c.dia].n++;if(st===1)agg[c.dia].f++;});
+      var dias=Object.keys(agg).map(Number).sort(function(a,b){return a-b;});
+      if(dias.length){
+        var tip,lsx,lst,lstep;
+        if(w==='p1'){tip=[ccx-438,ccy+961];out+=eArrow(tip[0],tip[1],0.5,90);lst=[tip[0]-40,tip[1]+165];lstep=131;}
+        else if(w==='p2'){tip=[ccx+399,ccy-865];out+=eArrow(tip[0],tip[1],-0.5,90);lst=[tip[0]+24,tip[1]-164];lstep=-131;}
+        else if(w==='p3'){tip=[Math.max(ccx+865,x1+420),ccy+399];out+=eArrow(tip[0],tip[1],-0.5,180);lst=[tip[0]+320,tip[1]+164];lstep=131;}
+        else{tip=[Math.max(ccx+865,x1+420),ccy-399];out+=eArrow(tip[0],tip[1],0.5,180);lst=[tip[0]+320,tip[1]-164];lstep=-131;}
+        dias.forEach(function(dv,i){
+          out+=eTxt(lst[0],lst[1]+lstep*i,'FC\u00d8'+dv+'X'+agg[dv].n+'('+agg[dv].f+')',100,0,'DIM','Attr');
+        });
+      }
+      /* 방향 화살표 + 이웃 맨홀 라벨 (dest 있을 때만) */
+      var dv2=d[dm[w]];
+      if(dv2){
+        if(w==='p1'){out+=eArrow(x0-A-N,CY,0.5,180)+eTxt(x0-A-N-182,CY,dv2,100,90,'DIM','Attr');}
+        else if(w==='p2'){out+=eArrow(x1+A+N,CY,-0.5,180)+eTxt(x1+A+N+181,CY,dv2,100,270,'DIM','Attr');}
+        else if(w==='p3'){out+=eArrow(CX,y1+A+N,0.5,90)+eTxt(CX,y1+A+N+182,dv2,100,0,'DIM','Attr');}
+        else{out+=eArrow(CX,y0-A-N,0.5,270)+eTxt(CX,y0-A-N-182,dv2,100,0,'DIM','Attr');}
+      }
+    });
+    var ei=x.indexOf('\nENTITIES\n');
+    var end=x.indexOf('\n  0\nENDSEC',ei);
+    if(ei<0||end<0)throw new Error('sec');
+    x=x.slice(0,end+1)+out+x.slice(end+1);
+    if(hm)x=x.replace(/\$HANDSEED\n  5\n[0-9A-Fa-f]+/,'$HANDSEED\n  5\n'+seed.toString(16).toUpperCase());
+    var nm=(mnLabel(rec)||'맨홀').replace(/[\\/:*?"<>|]/g,'_');
+    var blob=new Blob([x],{type:'application/dxf'});
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nm+'_전자야장.dxf';document.body.appendChild(a);a.click();
+    setTimeout(function(){a.remove();URL.revokeObjectURL(a.href);},1000);
+    toast('현장전자야장 '+nm+'_전자야장.dxf 다운로드');
+  }).catch(function(e){console.error('mnEfbGen',e);toast('전자야장 생성 실패 — dxf/tpl_efb.dxf 배포 확인');});
 }
 function mnDxfGen(rec){
   var pick=mnDxfPickTpl(rec);
