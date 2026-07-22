@@ -6976,13 +6976,16 @@ function mnEfbGen(rec){
     /* ── 몸체 ── */
     out+=ePL('Con',[[x0,y0],[x1,y0],[x1,y1],[x0,y1]],true);
     /* ── 뚜껑(DASHED2 원 + 지름 치수) ── */
-    var lid=parseFloat(rec.lid)||766, lr=lid/2;
+    var lid=Math.min(parseFloat(rec.lid)||766, Math.min(bw,bh)-34), lr=lid/2;
     out+=ePL('mh',[[CX+lr,CY,1],[CX-lr,CY,1],[CX+lr,CY]],false,'DASHED2');
     out+=eL('mh',CX-lr,CY+10,CX-lr,CY+50)+eL('mh',CX+lr,CY+10,CX+lr,CY+50)+eL('mh',CX-lr+50,CY,CX+lr-50,CY);
     out+=eOpen(CX-lr,CY,180)+eOpen(CX+lr,CY,0)+eTxt(CX,CY+43,String(lid),50,0,'DIM','mh');
     /* ── 몸체 치수 (세로=우벽 안쪽, 가로=하벽 안쪽) ── */
-    var xd=x1-62;
-    out+=eL('Dim',x1-10,y0,x1-112,y0)+eL('Dim',x1-10,y1,x1-112,y1)+eL('Dim',xd,y0+50,xd,y1-50);
+    var dimIn=(x1-62)-(CX+lr)>=50; /* 안쪽 치수선이 둫꺽과 안 겹칠 때만 샘플식 안쪽 배치 */
+    var xd=dimIn?(x1-62):(x1+62);
+    if(dimIn)out+=eL('Dim',x1-10,y0,x1-112,y0)+eL('Dim',x1-10,y1,x1-112,y1);
+    else out+=eL('Dim',x1+10,y0,x1+112,y0)+eL('Dim',x1+10,y1,x1+112,y1);
+    out+=eL('Dim',xd,y0+50,xd,y1-50);
     out+=eOpen(xd,y0,270)+eOpen(xd,y1,90)+eTxt(xd-43,CY,String(Math.round(bh)),50,0,'DIM','Dim');
     var yd=y0+52;
     out+=eL('Dim',x1,y0+10,x1,y0+102)+eL('Dim',x0,y0+10,x0,y0+102)+eL('Dim',x0+50,yd,x1-50,yd);
@@ -7015,7 +7018,7 @@ function mnEfbGen(rec){
     }
     function armWalls(w){ /* 팔 외벽 2체인: 목 개구 766 기준 si/flare */
       var armW=(w==='p1'||w==='p2')?bh:bw;
-      var si=Math.max(17,armW/2-383), fl=Math.max(41,armW/2-383);
+      var si=Math.max(17,armW/2-lr), fl=Math.max(41,armW/2-lr);
       var o='';
       if(w==='p1'||w==='p2'){
         var s=(w==='p1'?-1:1), bx=(w==='p1'?x0:x1);
@@ -7053,10 +7056,17 @@ function mnEfbGen(rec){
       return o;
     }
     ['p1','p2','p3','p4'].forEach(function(w){
+      out+=armWalls(w)+armDims(w); /* 팔·치수는 4방 항상 (샘플 규칙) */
+      var dv2=d[dm[w]];
+      if(dv2){
+        if(w==='p1'){out+=eArrow(x0-A-N,CY,0.5,180)+eTxt(x0-A-N-182,CY,dv2,100,90,'DIM','Attr');}
+        else if(w==='p2'){out+=eArrow(x1+A+N,CY,-0.5,180)+eTxt(x1+A+N+181,CY,dv2,100,270,'DIM','Attr');}
+        else if(w==='p3'){out+=eArrow(CX,y1+A+N,0.5,90)+eTxt(CX,y1+A+N+182,dv2,100,0,'DIM','Attr');}
+        else{out+=eArrow(CX,y0-A-N,0.5,270)+eTxt(CX,y0-A-N-182,dv2,100,0,'DIM','Attr');}
+      }
       var pw=rec.pipes&&rec.pipes[w];if(!pw||!pw.groups)return;
       var all=[];pw.groups.forEach(function(gr){(gr.circles||[]).forEach(function(c){all.push(c);});});
       if(!all.length)return;
-      out+=armWalls(w)+armDims(w);
       var mnx=1e18,mxx=-1e18,mny=1e18,mxy=-1e18;
       all.forEach(function(c){
         out+=drawPipe(w,c);
@@ -7077,15 +7087,9 @@ function mnEfbGen(rec){
           out+=eTxt(lst[0],lst[1]+lstep*i,'FC\u00d8'+dv+'X'+agg[dv].n+'('+agg[dv].f+')',100,0,'DIM','Attr');
         });
       }
-      /* 방향 화살표 + 이웃 맨홀 라벨 (dest 있을 때만) */
-      var dv2=d[dm[w]];
-      if(dv2){
-        if(w==='p1'){out+=eArrow(x0-A-N,CY,0.5,180)+eTxt(x0-A-N-182,CY,dv2,100,90,'DIM','Attr');}
-        else if(w==='p2'){out+=eArrow(x1+A+N,CY,-0.5,180)+eTxt(x1+A+N+181,CY,dv2,100,270,'DIM','Attr');}
-        else if(w==='p3'){out+=eArrow(CX,y1+A+N,0.5,90)+eTxt(CX,y1+A+N+182,dv2,100,0,'DIM','Attr');}
-        else{out+=eArrow(CX,y0-A-N,0.5,270)+eTxt(CX,y0-A-N-182,dv2,100,0,'DIM','Attr');}
-      }
     });
+    var _hasPipe=false;['p1','p2','p3','p4'].forEach(function(w){var pw=rec.pipes&&rec.pipes[w];if(pw&&pw.groups&&pw.groups.some(function(g){return g.circles&&g.circles.length;}))_hasPipe=true;});
+    if(!_hasPipe)toast('⚠ 관배치 없음 — 관·라벨 없이 출력 (벽면별 관배치 후 재생성 가능)');
     var ei=x.indexOf('\nENTITIES\n');
     var end=x.indexOf('\n  0\nENDSEC',ei);
     if(ei<0||end<0)throw new Error('sec');
