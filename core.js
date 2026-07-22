@@ -6741,15 +6741,49 @@ function mnHostOpen(){
   return pn;
 }
 function mnHostClose(){var pn=document.getElementById('mnPanel');if(pn){pn.classList.remove('open');pn.style.display='none';pn.innerHTML='';}}
+/* [1012] 삭제목록(7일 휴지통) — 남은 일수 표시 + 복원 */
+function mnTrashList(afterClose){
+  var old=document.getElementById('mnTrashModal');if(old)old.remove();
+  var all=mnList(),now=Date.now();
+  var items=[];all.forEach(function(r,i){if(r.delAt)items.push({r:r,i:i});});
+  items.sort(function(a,b){return b.r.delAt-a.r.delAt;});
+  var rows=items.length?items.map(function(o){
+    var left=Math.max(0,7-Math.floor((now-o.r.delAt)/86400000));
+    return '<div style="background:#fff;border:1px solid #eee2c8;border-radius:11px;padding:11px 13px;margin-bottom:8px;display:flex;align-items:center;gap:9px">'
+      +'<div style="flex:1;min-width:0"><div style="font-size:14.5px;font-weight:800;color:#5a4a12;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(o.r.no?joseoEsc(mnLabel(o.r)):'번호 미입력')+'</div>'
+      +'<div style="font-size:11.5px;color:#a08a4a;margin-top:2px">'+left+'일 후 완전삭제</div></div>'
+      +'<button class="mnTrRe" data-i="'+o.i+'" style="flex:none;border:1.5px solid #1d9e75;background:#fff;color:#1d9e75;border-radius:9px;padding:8px 14px;font-weight:800;font-size:13px;cursor:pointer">복원</button></div>';
+  }).join('')
+  :'<div style="text-align:center;color:#b0a070;font-size:13.5px;padding:24px 0">삭제된 항목이 없습니다</div>';
+  var w=document.createElement('div');w.id='mnTrashModal';
+  w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1335;display:flex;align-items:flex-start;justify-content:center;padding-top:10dvh';
+  w.innerHTML='<div style="background:#fdfbf4;border-radius:14px;width:min(92vw,400px);max-height:78dvh;display:flex;flex-direction:column;overflow:hidden">'
+    +'<div style="padding:13px 16px;background:#fff;border-bottom:1px solid #eee2c8;display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:15px;color:#5a4a12">🗑 삭제목록 (7일 보관)</b>'
+    +'<button id="mnTrClose" style="border:1.5px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:9px;padding:6px 14px;font-weight:800;cursor:pointer">닫기</button></div>'
+    +'<div style="padding:12px 14px;overflow:auto;flex:1">'+rows+'</div></div>';
+  document.body.appendChild(w);
+  w.onclick=function(e){if(e.target===w)w.remove();};
+  w.querySelector('#mnTrClose').onclick=function(){w.remove();};
+  [].forEach.call(w.querySelectorAll('.mnTrRe'),function(b){b.onclick=function(){
+    var i=+b.getAttribute('data-i');var r=mnList()[i];if(!r)return;
+    delete r.delAt;saveProject();w.remove();
+    toast('복원됨: '+(r.no?mnLabel(r):'번호 미입력'));
+    if(afterClose){afterClose();mnOpenList();}
+  };});
+}
 function mnOpenList(){
   if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
   var host=mnHostOpen();
   var old=document.getElementById('mnListModal');if(old)old.remove();
   var mob=(typeof isMobileDevice==='function'&&isMobileDevice());
-  var rows=mnList();
+  /* [1012] 7일 지난 휴지통 항목 완전삭제 */
+  var _all=mnList(),_nowT=Date.now(),_purged=false;
+  for(var _pi=_all.length-1;_pi>=0;_pi--){if(_all[_pi].delAt&&_nowT-_all[_pi].delAt>7*86400000){_all.splice(_pi,1);_purged=true;}}
+  if(_purged)saveProject();
+  var rows=_all.filter(function(r){return !r.delAt;});
   var listHtml;
   if(rows.length){
-    var arr=rows.map(function(r,i){return {r:r,i:i};});
+    var arr=[];_all.forEach(function(r,i){if(!r.delAt)arr.push({r:r,i:i});});
     arr.sort(function(a,b){return ((b.r.up||b.r.at||'')+'').localeCompare((a.r.up||a.r.at||'')+'');});
     listHtml=arr.map(function(o,k){
       var r=o.r,i=o.i;
@@ -6777,6 +6811,7 @@ function mnOpenList(){
       +'<span style="width:10px;height:10px;border-radius:50%;background:#1d9e75;flex:none"></span>'
       +'<b style="flex:1;font-size:16px;color:#22332b">맨홀조사 야장</b>'
       +(rows.length?'<span style="background:#e1f5ee;color:#0f6e56;border-radius:20px;padding:3px 11px;font-size:12px;font-weight:800">'+rows.length+'개</span>':'')
+      +'<button id="mnTrashBtn" style="border:1px solid #b58900;background:#fdf6e3;color:#8a6d00;border-radius:9px;padding:7px 11px;cursor:pointer;font-weight:800;font-size:12.5px">🗑 삭제목록</button>'
       +'<button id="mnLClose" style="border:1.5px solid #d32f2f;background:#fff;border-radius:9px;padding:7px 15px;cursor:pointer;color:#d32f2f;font-weight:800;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">닫기</span></button></div>'
     +(host?newBtn:'')
     +'<div style="padding:13px 15px 4px;overflow:auto;flex:1">'+listHtml+'</div>'
@@ -6794,7 +6829,8 @@ function mnOpenList(){
   root.querySelector('#mnLClose').onclick=uClose;
   root.querySelector('#mnNew').onclick=function(){uClose();mnOpenForm(null);};
   [].forEach.call(root.querySelectorAll('.mn-card'),function(b){b.onclick=function(e){if(e.target.classList.contains('mn-del'))return;var i=+b.getAttribute('data-i');uClose();mnOpenForm(mnList()[i]);};});
-  [].forEach.call(root.querySelectorAll('.mn-del'),function(b){b.onclick=function(){var i=+b.getAttribute('data-i');var r=mnList()[i];if(!confirm('맨홀 '+mnLabel(r)+' 조사를 삭제할까요?'))return;mnList().splice(i,1);saveProject();uClose();mnOpenList();toast('삭제됨');};});
+  [].forEach.call(root.querySelectorAll('.mn-del'),function(b){b.onclick=function(){var i=+b.getAttribute('data-i');var r=mnList()[i];if(!confirm('맨홀 '+mnLabel(r)+' 조사를 삭제할까요?\n(7일 보관 후 완전삭제 — 삭제목록에서 복원 가능)'))return;r.delAt=Date.now();saveProject();uClose();mnOpenList();toast('🗑 삭제됨 (7일 보관)');};});
+  var _tb=root.querySelector('#mnTrashBtn');if(_tb)_tb.onclick=function(){mnTrashList(uClose);};
 }
 function mnAsk(opt){
   var old=document.getElementById('mnAskModal');if(old)old.remove();
@@ -7122,7 +7158,7 @@ function mnOpenForm(rec){
   var old=document.getElementById('mnFormModal');if(old)old.remove();
   var wrap=null;
   var inner='<div style="background:#fff;'+(host?'width:100%;height:100%;border-radius:0':(mob?'width:100vw;height:100dvh;border-radius:0':'border-radius:14px;width:min(96vw,540px);max-height:95dvh'))+';display:flex;flex-direction:column;overflow:hidden">'
-    +'<div style="padding:9px 14px 7px;border-bottom:1px solid #f2f2f0;display:flex;align-items:center;flex:none"><b style="flex:1;font-size:15.5px;white-space:nowrap">맨홀 조사야장</b><button id="mnFClose" style="border:1.5px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:9px;padding:8px 20px;cursor:pointer;font-size:14.5px;font-weight:800">닫기</button></div>'
+    +'<div style="padding:9px 14px 7px;border-bottom:1px solid #f2f2f0;display:flex;align-items:center;flex:none"><b style="font-size:15.5px;white-space:nowrap">맨홀 조사야장</b><button id="mnFTrash" style="border:1px solid #b58900;background:#fdf6e3;color:#8a6d00;border-radius:9px;padding:7px 11px;margin-left:10px;cursor:pointer;font-weight:800;font-size:12px">🗑 삭제목록</button><span style="flex:1"></span><button id="mnFClose" style="border:1.5px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:9px;padding:8px 20px;cursor:pointer;font-size:14.5px;font-weight:800">닫기</button></div>'
     +'<div style="padding:7px 12px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:6px;flex:none;flex-wrap:nowrap;overflow-x:auto"><button id="mnDxfBtn" style="flex:1;border:1px solid #c0392b;background:#fdeaea;color:#c0392b;border-radius:8px;padding:7px 4px;cursor:pointer;font-weight:700;font-size:12.5px;white-space:nowrap">📐 맨홀도DXF</button><button id="mnEqXls" style="flex:1;border:1px solid #1d9e75;background:#e1f5ee;color:#0f6e56;border-radius:8px;padding:7px 4px;cursor:pointer;font-weight:700;font-size:12.5px;white-space:nowrap">📄 설비사진엑셀</button><button id="mnPhotoDl" style="flex:1;border:1px solid #2471a3;background:#eef6fc;color:#2471a3;border-radius:8px;padding:7px 4px;cursor:pointer;font-weight:700;font-size:12.5px;white-space:nowrap">📥 맨홀사진다운</button></div>'
     +'<div id="mnSheetBox" style="flex:1;overflow:auto;-webkit-overflow-scrolling:touch;background:#f4f4f2"></div>'
     +'<div style="display:flex;gap:8px;padding:10px 14px;border-top:1px solid #eee;flex:none">'
@@ -7478,6 +7514,7 @@ function mnOpenForm(rec){
     },{passive:false});
   }
   root.querySelector('#mnFClose').onclick=uClose;
+  var _ft=root.querySelector('#mnFTrash');if(_ft)_ft.onclick=function(){mnTrashList(null);};
   var _pdl=root.querySelector('#mnPhotoDl');if(_pdl)_pdl.onclick=function(){mnPhotoZip(rec);};
   var _eqx=root.querySelector('#mnEqXls');if(_eqx)_eqx.onclick=function(){mnEquipXls(rec);};
   var _dxb=root.querySelector('#mnDxfBtn');if(_dxb)_dxb.onclick=function(){mnDxfGen(rec);};
