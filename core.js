@@ -7276,6 +7276,17 @@ function mnOpenForm(rec){
       +'<text x="610" y="82" text-anchor="middle" font-size="14" font-weight="800" fill="'+(rec.no?'#c0392b':'#c8b8a0')+'" pointer-events="none">'+(rec.no?joseoEsc(mnLabel(rec)):'탭하여 입력')+'</text>'
       +'<rect x="440" y="94" width="84" height="34" fill="none" stroke="#555"/><text x="482" y="116" text-anchor="middle" font-size="13" fill="#333">맨홀규격</text>'
       +'<rect x="524" y="94" width="172" height="34" fill="none" stroke="#555"/><text x="610" y="116" text-anchor="middle" font-size="12.5" font-weight="800" fill="#1d9e75">'+(specTxt||'치수 입력 시 자동')+'</text>'
+      +(function(){ /* [1007] 상단 사진 스트립: 1(전경)·2-1~2-4, 회전사진 표시 */
+        var st='';var items=[['fr','1'],['p1','2-1'],['p2','2-2'],['p3','2-3'],['p4','2-4']];
+        items.forEach(function(it,i){
+          var u=rec.photos&&rec.photos[it[0]];var x0=28+i*80;
+          st+='<rect x="'+x0+'" y="30" width="74" height="54" fill="'+(u?'#fff':'#fafaf7')+'" stroke="#bbb" stroke-width="0.8"/>';
+          if(u)st+='<image href="'+u+'" x="'+(x0+1)+'" y="31" width="72" height="52" preserveAspectRatio="xMidYMid slice" data-act="ph" data-s="'+it[0]+'" style="cursor:pointer"/>';
+          st+='<text x="'+(x0+37)+'" y="97" text-anchor="middle" font-size="11" fill="#555" font-weight="700">'+it[1]+'</text>';
+          if(u&&rec.rotP&&rec.rotP[it[0]])st+='<rect x="'+(x0+42)+'" y="32" width="30" height="14" rx="3" fill="#d32f2f" opacity="0.88" pointer-events="none"/><text x="'+(x0+57)+'" y="42.5" text-anchor="middle" font-size="9" font-weight="800" fill="#fff" pointer-events="none">회전</text>';
+        });
+        return st;
+      })()
       +'<text x="660" y="152" text-anchor="end" font-size="12.5" fill="#555" font-weight="700">사진번호</text>'+phRows
       +'<defs><marker id="mnArw" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#333"/></marker></defs>'
       /* ===== 전개도 (중앙) ===== */
@@ -7464,6 +7475,24 @@ function mnCaptureGeo(rec,slot){
     });}catch(e){}
   },function(){},{enableHighAccuracy:true,timeout:15000,maximumAge:30000});
 }
+/* [1007] 세로로 찍힌 맨홀 사진 → 반시계 90° 자동 회전(가로화). 회전 여부 반환 */
+function mnFixOrient(blob){
+  return new Promise(function(res){
+    var img=new Image();
+    img.onload=function(){
+      var w=img.naturalWidth,h=img.naturalHeight;
+      if(w>=h){URL.revokeObjectURL(img.src);res({blob:blob,rotated:false});return;}
+      var cv=document.createElement('canvas');cv.width=h;cv.height=w;
+      var ctx=cv.getContext('2d');
+      ctx.translate(0,w);ctx.rotate(-Math.PI/2);
+      ctx.drawImage(img,0,0);
+      URL.revokeObjectURL(img.src);
+      cv.toBlob(function(b){res({blob:b||blob,rotated:!!b});},'image/jpeg',0.85);
+    };
+    img.onerror=function(){res({blob:blob,rotated:false});};
+    img.src=URL.createObjectURL(blob);
+  });
+}
 function mnShootSlot(rec,slot,done){
   try{mnCaptureGeo(rec,slot);}catch(e){}
   var fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.setAttribute('capture','environment');fi.style.display='none';
@@ -7472,7 +7501,10 @@ function mnShootSlot(rec,slot,done){
     var f=e.target.files&&e.target.files[0];fi.remove();if(!f)return;
     if(!online){toast('로컬 모드 — 사진 저장 불가');return;}
     toast('사진 업로드 중…');
-    compressImage(f,1280,0.7).then(function(blob){
+    compressImage(f,1280,0.7).then(function(blob){return mnFixOrient(blob);}).then(function(fx){
+      var blob=fx.blob;
+      if(!rec.rotP)rec.rotP={};
+      if(fx.rotated)rec.rotP[slot]=1;else delete rec.rotP[slot];
       var path=state.projectId+'/mh_'+rec.id+'_'+slot+'.jpg';
       return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
         if(up.error)throw up.error;
