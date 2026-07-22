@@ -7283,8 +7283,29 @@ function mnOpenForm(rec){
           st+='<rect x="'+x0+'" y="30" width="74" height="54" fill="'+(u?'#fff':'#fafaf7')+'" stroke="#bbb" stroke-width="0.8"/>';
           if(u)st+='<image href="'+u+'" x="'+(x0+1)+'" y="31" width="72" height="52" preserveAspectRatio="xMidYMid meet" data-act="pview" data-s="'+it[0]+'" style="cursor:pointer"/>';
           st+='<text x="'+(x0+37)+'" y="97" text-anchor="middle" font-size="11" fill="#555" font-weight="700">'+it[1]+'</text>';
-          if(u&&rec.rotP&&rec.rotP[it[0]])st+='<text x="'+(x0+37)+'" y="109" text-anchor="middle" font-size="9" font-weight="800" fill="#d32f2f">회전적용됨</text>';
+          if(u&&rec.rotP&&rec.rotP[it[0]]===1)st+='<text x="'+(x0+37)+'" y="109" text-anchor="middle" font-size="9" font-weight="800" fill="#d32f2f">회전적용됨</text>';
         });
+        /* [1011] 기존 사진(플래그 없음)도 실제 비율 검사로 회전 여부 자동 판정 → 1회 재렌더 */
+        if(!rec._rotScan){
+          var need=items.filter(function(it){return rec.photos&&rec.photos[it[0]]&&!(rec.rotP&&rec.rotP[it[0]]!==undefined);});
+          if(need.length){
+            rec._rotScan=1;
+            setTimeout(function(){
+              var left=need.length,changed=false;
+              need.forEach(function(it){
+                var im=new Image();
+                im.onload=function(){
+                  if(!rec.rotP)rec.rotP={};
+                  var p=(im.naturalHeight>im.naturalWidth)?1:0;
+                  if(rec.rotP[it[0]]!==p){rec.rotP[it[0]]=p;changed=true;}
+                  if(--left===0){rec._rotScan=0;if(changed){try{mnPersistRec(rec);}catch(e){}render();}}
+                };
+                im.onerror=function(){if(--left===0){rec._rotScan=0;if(changed){try{mnPersistRec(rec);}catch(e){}render();}}};
+                im.src=rec.photos[it[0]];
+              });
+            },50);
+          }
+        }
         return st;
       })()
       +'<text x="660" y="152" text-anchor="end" font-size="12.5" fill="#555" font-weight="700">사진번호</text>'+phRows
