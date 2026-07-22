@@ -6939,12 +6939,12 @@ function mnDxfTextC(h,cx,cy,txt,ht){return mnDxfEnt(['  0','TEXT','  5',h,'100',
 /* 몸체=실측 벽폭, 팔=관 있는 방향만(1100+목320), 목 개구=766 기준, 내선=ANSI31 해치, 제외관=빨강, 뚜껑=rec.lid */
 function mnEfbGen(rec){
   toast('현장전자야장 DXF 생성 중...');
-  fetch('dxf/tpl_efb.dxf').then(function(r){
+  fetch('dxf/tpl_efb.dxf?v='+Date.now()).then(function(r){
     if(!r.ok)throw new Error('tpl');
     return r.text();
   }).then(function(x){
     x=x.split('{{MHNO}}').join(mnLabel(rec)||'');
-    var hm=x.match(/\$HANDSEED\n  5\n([0-9A-Fa-f]+)/);
+    var hm=x.match(/\$HANDSEED\r?\n  5\r?\n([0-9A-Fa-f]+)/);
     var seed=hm?parseInt(hm[1],16):0x50000;
     function nh(){return (seed++).toString(16).toUpperCase();}
     var CX=524932, CY=677315;
@@ -6982,7 +6982,7 @@ function mnEfbGen(rec){
     out+=eL('mh',CX-lr,CY+10,CX-lr,CY+50)+eL('mh',CX+lr,CY+10,CX+lr,CY+50)+eL('mh',CX-lr+50,CY,CX+lr-50,CY);
     out+=eOpen(CX-lr,CY,180)+eOpen(CX+lr,CY,0)+eTxt(CX,CY+43,String(lid),50,0,'DIM','mh');
     /* ── 몸체 치수 (세로=우벽 안쪽, 가로=하벽 안쪽) ── */
-    var dimIn=(x1-62)-(CX+lr)>=50; /* 안쪽 치수선이 둫꺽과 안 겹칠 때만 샘플식 안쪽 배치 */
+    var dimIn=(x1-62)-(CX+lr)>=50; /* 안쪽 치수선이 뚜껑과 안 겹칠 때만 샘플식 안쪽 배치 */
     var xd=dimIn?(x1-62):(x1+62);
     if(dimIn)out+=eL('Dim',x1-10,y0,x1-112,y0)+eL('Dim',x1-10,y1,x1-112,y1);
     else out+=eL('Dim',x1+10,y0,x1+112,y0)+eL('Dim',x1+10,y1,x1+112,y1);
@@ -7091,11 +7091,14 @@ function mnEfbGen(rec){
     });
     var _hasPipe=false;['p1','p2','p3','p4'].forEach(function(w){var pw=rec.pipes&&rec.pipes[w];if(pw&&pw.groups&&pw.groups.some(function(g){return g.circles&&g.circles.length;}))_hasPipe=true;});
     if(!_hasPipe)toast('⚠ 관배치 없음 — 관·라벨 없이 출력 (벽면별 관배치 후 재생성 가능)');
-    var ei=x.indexOf('\nENTITIES\n');
-    var end=x.indexOf('\n  0\nENDSEC',ei);
+    var CRLF=x.indexOf('\r\nENTITIES\r\n')>=0;
+    var Q=CRLF?'\r\n':'\n';
+    var ei=x.indexOf(Q+'ENTITIES'+Q);
+    var end=x.indexOf(Q+'  0'+Q+'ENDSEC',ei);
     if(ei<0||end<0)throw new Error('sec');
-    x=x.slice(0,end+1)+out+x.slice(end+1);
-    if(hm)x=x.replace(/\$HANDSEED\n  5\n[0-9A-Fa-f]+/,'$HANDSEED\n  5\n'+seed.toString(16).toUpperCase());
+    if(CRLF)out=out.replace(/\n/g,'\r\n');
+    x=x.slice(0,end+Q.length)+out+x.slice(end+Q.length);
+    if(hm)x=x.replace(/\$HANDSEED\r?\n  5\r?\n[0-9A-Fa-f]+/,'$HANDSEED'+Q+'  5'+Q+seed.toString(16).toUpperCase());
     var nm=(mnLabel(rec)||'맨홀').replace(/[\\/:*?"<>|]/g,'_');
     var blob=new Blob([x],{type:'application/dxf'});
     var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nm+'_전자야장.dxf';document.body.appendChild(a);a.click();
