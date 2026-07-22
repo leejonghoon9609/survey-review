@@ -7084,7 +7084,7 @@ function mnEquipXls(rec){
       var mapImg=[['fr','xl/media/image2.jpeg'],['p1','xl/media/image3.jpeg'],['p2','xl/media/image4.jpeg'],['p3','xl/media/image5.jpeg'],['p4','xl/media/image6.jpeg']];
       return Promise.all(mapImg.map(function(m){
         if(!ph[m[0]])return null;
-        return fetch(ph[m[0]]).then(function(r){return r.blob();}).then(function(b){zip.file(m[1],b);}).catch(function(){});
+        return fetch(ph[m[0]]).then(function(r){return r.blob();}).then(function(b){return mnFixOrient(b);}).then(function(fx){zip.file(m[1],fx.blob);}).catch(function(){});
       })).then(function(){return zip;});
     });
   }).then(function(zip){
@@ -7105,7 +7105,7 @@ function mnPhotoZip(rec){
   if(!jobs.length){toast('저장된 사진이 없습니다');return;}
   var zip=new JSZip();toast('사진 압축 중...');
   Promise.all(jobs.map(function(j){
-    return fetch(j.url).then(function(r){return r.blob();}).then(function(b){zip.file(j.name+'.jpg',b);}).catch(function(){});
+    return fetch(j.url).then(function(r){return r.blob();}).then(function(b){return mnFixOrient(b);}).then(function(fx){zip.file(j.name+'.jpg',fx.blob);}).catch(function(){});
   })).then(function(){
     var nm=(mnLabel(rec)||'맨홀').replace(/[\\/:*?"<>|]/g,'_').trim()||'맨홀';
     zip.generateAsync({type:'blob'}).then(function(blob){
@@ -7283,7 +7283,7 @@ function mnOpenForm(rec){
           st+='<rect x="'+x0+'" y="30" width="74" height="54" fill="'+(u?'#fff':'#fafaf7')+'" stroke="#bbb" stroke-width="0.8"/>';
           if(u)st+='<image href="'+u+'" x="'+(x0+1)+'" y="31" width="72" height="52" preserveAspectRatio="xMidYMid slice" data-act="ph" data-s="'+it[0]+'" style="cursor:pointer"/>';
           st+='<text x="'+(x0+37)+'" y="97" text-anchor="middle" font-size="11" fill="#555" font-weight="700">'+it[1]+'</text>';
-          if(u&&rec.rotP&&rec.rotP[it[0]])st+='<rect x="'+(x0+42)+'" y="32" width="30" height="14" rx="3" fill="#d32f2f" opacity="0.88" pointer-events="none"/><text x="'+(x0+57)+'" y="42.5" text-anchor="middle" font-size="9" font-weight="800" fill="#fff" pointer-events="none">회전</text>';
+          if(u&&rec.rotP&&rec.rotP[it[0]])st+='<text x="'+(x0+37)+'" y="109" text-anchor="middle" font-size="9.5" font-weight="800" fill="#d32f2f">회전적용</text>';
         });
         return st;
       })()
@@ -7501,10 +7501,13 @@ function mnShootSlot(rec,slot,done){
     var f=e.target.files&&e.target.files[0];fi.remove();if(!f)return;
     if(!online){toast('로컬 모드 — 사진 저장 불가');return;}
     toast('사진 업로드 중…');
-    compressImage(f,1280,0.7).then(function(blob){return mnFixOrient(blob);}).then(function(fx){
+    compressImage(f,1280,0.7).then(function(blob){
+      /* [1008] 저장은 촬영 원본 그대로. 세로 사진이면 rotP 기록 → 내보낼 때만 회전 적용 */
+      return new Promise(function(res){var img=new Image();img.onload=function(){var p=(img.naturalHeight>img.naturalWidth);URL.revokeObjectURL(img.src);res({blob:blob,portrait:p});};img.onerror=function(){res({blob:blob,portrait:false});};img.src=URL.createObjectURL(blob);});
+    }).then(function(fx){
       var blob=fx.blob;
       if(!rec.rotP)rec.rotP={};
-      if(fx.rotated)rec.rotP[slot]=1;else delete rec.rotP[slot];
+      if(fx.portrait)rec.rotP[slot]=1;else delete rec.rotP[slot];
       var path=state.projectId+'/mh_'+rec.id+'_'+slot+'.jpg';
       return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
         if(up.error)throw up.error;
