@@ -7273,7 +7273,7 @@ function mnOpenForm(rec){
       +'<rect x="440" y="26" width="256" height="34" fill="none" stroke="#555"/><text x="568" y="49" text-anchor="middle" font-size="16" font-weight="800" letter-spacing="8">맨 홀 표 찰</text>'
       +'<rect x="440" y="60" width="84" height="34" fill="none" stroke="#555"/><text x="482" y="82" text-anchor="middle" font-size="13" fill="#333">맨홀번호</text>'
       +'<rect x="524" y="60" width="172" height="34" fill="'+(rec.no?'#fff':'#fffdf2')+'" stroke="#c0392b" stroke-width="1.6" data-act="no" style="cursor:pointer"/>'
-      +'<text x="610" y="82" text-anchor="middle" font-size="14" font-weight="800" fill="'+(rec.no?'#c0392b':'#c8b8a0')+'" pointer-events="none">'+(rec.no?joseoEsc(mnLabel(rec)):'탭하여 입력')+'</text>'
+      +(function(){var lb=rec.no?mnLabel(rec):'탭하여 입력';var wpx=0;for(var ci=0;ci<lb.length;ci++){wpx+=(lb.charCodeAt(ci)>0x2500?13.5:8);}var tl=(rec.no&&wpx>164)?' textLength="164" lengthAdjust="spacingAndGlyphs"':'';return '<text x="610" y="82" text-anchor="middle" font-size="14" font-weight="800" fill="'+(rec.no?'#c0392b':'#c8b8a0')+'" pointer-events="none"'+tl+'>'+joseoEsc(lb)+'</text>';})()
       +'<rect x="440" y="94" width="84" height="34" fill="none" stroke="#555"/><text x="482" y="116" text-anchor="middle" font-size="13" fill="#333">맨홀규격</text>'
       +'<rect x="524" y="94" width="172" height="34" fill="none" stroke="#555"/><text x="610" y="116" text-anchor="middle" font-size="12.5" font-weight="800" fill="#1d9e75">'+(specTxt||'치수 입력 시 자동')+'</text>'
       +(function(){ /* [1007] 상단 사진 스트립: 1(전경)·2-1~2-4, 회전사진 표시 */
@@ -7281,9 +7281,9 @@ function mnOpenForm(rec){
         items.forEach(function(it,i){
           var u=rec.photos&&rec.photos[it[0]];var x0=28+i*80;
           st+='<rect x="'+x0+'" y="30" width="74" height="54" fill="'+(u?'#fff':'#fafaf7')+'" stroke="#bbb" stroke-width="0.8"/>';
-          if(u)st+='<image href="'+u+'" x="'+(x0+1)+'" y="31" width="72" height="52" preserveAspectRatio="xMidYMid slice" data-act="ph" data-s="'+it[0]+'" style="cursor:pointer"/>';
+          if(u)st+='<image href="'+u+'" x="'+(x0+1)+'" y="31" width="72" height="52" preserveAspectRatio="xMidYMid meet" data-act="pview" data-s="'+it[0]+'" style="cursor:pointer"/>';
           st+='<text x="'+(x0+37)+'" y="97" text-anchor="middle" font-size="11" fill="#555" font-weight="700">'+it[1]+'</text>';
-          if(u&&rec.rotP&&rec.rotP[it[0]])st+='<text x="'+(x0+37)+'" y="109" text-anchor="middle" font-size="9.5" font-weight="800" fill="#d32f2f">회전적용</text>';
+          if(u&&rec.rotP&&rec.rotP[it[0]])st+='<text x="'+(x0+37)+'" y="109" text-anchor="middle" font-size="9.5" font-weight="800" fill="#d32f2f">회전</text>';
         });
         return st;
       })()
@@ -7372,6 +7372,16 @@ function mnOpenForm(rec){
         }
         else if(act==='dest'){var dk=el.getAttribute('data-d');var dn={d1:'1',d2:'2',d3:'3',d4:'4'}[dk];mnAskDest((rec.dest&&rec.dest[dk])||'',dn,function(v){if(!rec.dest)rec.dest={};rec.dest[dk]=v;mnPersistRec(rec);render();});}
         else if(act==='wall'){var wl=el.getAttribute('data-w');var closeIt=function(){if(!host&&wrap)wrap.remove();};if(!(rec.photos&&rec.photos[wl])){toast('벽면 사진을 먼저 촬영합니다');mnShootSlot(rec,wl,function(){closeIt();mnPipeEditor(rec,wl);});}else{closeIt();mnPipeEditor(rec,wl);}}
+        else if(act==='pview'){
+          var vs=el.getAttribute('data-s');var vu=rec.photos&&rec.photos[vs];
+          if(vu){
+            var ov=document.createElement('div');
+            ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1340;display:flex;align-items:center;justify-content:center;padding:16px';
+            ov.innerHTML='<img src="'+vu+'" style="max-width:96vw;max-height:92dvh;object-fit:contain;border-radius:8px">';
+            ov.onclick=function(){ov.remove();};
+            document.body.appendChild(ov);
+          }
+        }
         else if(act==='chk'){var cs=el.getAttribute('data-s');if(!rec.chk)rec.chk={bd:1,fr:1,p1:1,p2:1,p3:1,p4:1};rec.chk[cs]=(rec.chk[cs]===0?1:0);mnPersistRec(rec);render();}
         else if(act==='ph'){mnShootSlot(rec,el.getAttribute('data-s'),function(){render();});}
       });
