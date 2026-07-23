@@ -6345,7 +6345,7 @@ function pickRoadview(clientX,clientY){
 function toggleRvPick(){
   var btn=document.getElementById('rvBtn');
   if(rvPick){rvPick=false;btn.classList.remove('on');var _vr=document.getElementById('vRv');if(_vr)_vr.classList.remove('on');cv.style.cursor='';toast('로드뷰 위치찍기 종료');return;}
-  if((!state.points||!state.points.length)&&(!state.gpsPts||!state.gpsPts.length)){toast('먼저 측점을 불러오거나 촬영하세요');return;}
+  if((!state.points||!state.points.length)&&(!state.gpsPts||!state.gpsPts.length)&&!((typeof REF!=='undefined')&&REF.ents&&REF.box)){toast('먼저 측점을 불러오거나 결선을 불러오세요');return;}
   if(!bgMapOn)toggleBgMap();
   rvPick=true;btn.classList.add('on');var _vr2=document.getElementById('vRv');if(_vr2)_vr2.classList.add('on');cv.style.cursor='pointer';
   toast('지도에서 로드뷰 볼 위치를 클릭하세요 (측점을 찍으면 아래에 사진)');
@@ -8708,7 +8708,7 @@ function syncMapBgNow(){
 function toggleBgMap(){
   var btn=document.getElementById('bgBtn'),div=document.getElementById('kmapBg');
   if(bgMapOn){bgMapOn=false;div.style.display='none';btn.classList.remove('on');var _vm=document.getElementById('vMap');if(_vm)_vm.classList.remove('on');return;}
-  if((!state.points||!state.points.length)&&(!state.gpsPts||!state.gpsPts.length)){toast('먼저 측점을 불러오거나 촬영하세요');return;}
+  if((!state.points||!state.points.length)&&(!state.gpsPts||!state.gpsPts.length)&&!((typeof REF!=='undefined')&&REF.ents&&REF.box)){toast('먼저 측점을 불러오거나 결선을 불러오세요');return;}
   div.style.display='block';btn.classList.add('on');var _vm2=document.getElementById('vMap');if(_vm2)_vm2.classList.add('on');
   loadKakao(function(){
     if(!bgmap){
@@ -9874,10 +9874,11 @@ function refPzCreate(){
     var p=refMhParse(g.folder);
     if(!p){bad++;return;}
     var mh=byK[g.key];
-    L.push({id:'mn'+(base+n),no:p.no,owner:p.owner,ownerC:p.ownerC,
+    var _pr={id:'mn'+(base+n),no:p.no,owner:p.owner,ownerC:p.ownerC,
       dep:'',w12:'',w34:'',topi:'',lid:766,lidRect:'',spec:null,
-      photos:{},pipes:{},refXY:mh?[mh.x,mh.y]:null,at:new Date().toISOString()});
-    n++;
+      photos:{},pipes:{},refXY:mh?[mh.x,mh.y]:null,at:new Date().toISOString()};
+    if(mh)refGeoFill(_pr,mh.x,mh.y);
+    L.push(_pr);n++;
   });
   if(n)saveProject();
   refPzMatch();
@@ -10173,6 +10174,28 @@ function refMhClick(lab,rec){
   if(confirm(lab+' \u2014 \uc57c\uc7a5\uc5d0 \uc5c6\uc2b5\ub2c8\ub2e4.\n\uc774 \ub9e8\ud640 \uc57c\uc7a5\uc744 \ub9cc\ub4dc\uc2dc\uaca0\uc2b5\ub2c8\uae4c?'))refMhCreate([lab]);
 }
 
+/* [BUILD 1046] 결선 측량좌표(EPSG:5186) → 야장 geo · 도엽번호
+   폰 GPS(오차 수십 m)보다 측량좌표(cm급)가 정확하므로 덮어쓴다 */
+function refGeoFill(rec,x,y){
+  if(!rec||!isFinite(x)||!isFinite(y))return false;
+  if(typeof toLatLng!=='function')return false;
+  var ll=null;try{ll=toLatLng(x,y,(typeof state!=='undefined'&&state.crs)||'5186');}catch(e){return false;}
+  if(!ll||!isFinite(ll.lat)||!isFinite(ll.lng))return false;
+  rec.geo={lat:ll.lat,lng:ll.lng,acc:0,src:'ref'};
+  if(typeof mnMapSheetNo==='function'){try{rec.mapNo=mnMapSheetNo(ll.lat,ll.lng);}catch(e){}}
+  return true;
+}
+function refSyncGeo(){
+  if(!REF.mh||!REF.mh.length){toast('결선을 먼저 불러오세요');return;}
+  var mm=refMhMatch(),n=0,g=0;
+  mm.matched.forEach(function(x){
+    x.rec.refXY=[x.mh.x,x.mh.y];n++;
+    if(refGeoFill(x.rec,x.mh.x,x.mh.y))g++;
+  });
+  if(n)saveProject();
+  try{if(typeof refDrawMh==='function')refDrawMh();}catch(e){}
+  toast('좌표 연결 '+n+'개 · 도엽번호 '+g+'개');
+}
 /* ---------- 야장 자동 생성 ---------- */
 function refMhCreate(only){
   if(!REF.mh){toast('\uacb0\uc120\uc744 \uba3c\uc800 \ubd88\ub7ec\uc624\uc138\uc694');return;}
@@ -10181,14 +10204,14 @@ function refMhCreate(only){
     if(only&&only.indexOf(m.label)<0)return;
     var p=refMhParse(m.label);
     if(!p){bad++;return;}
-    L.push({id:'mn'+(base+n),no:p.no,owner:p.owner,ownerC:p.ownerC,
+    var _nr={id:'mn'+(base+n),no:p.no,owner:p.owner,ownerC:p.ownerC,
       dep:'',w12:'',w34:'',topi:'',lid:766,lidRect:'',spec:null,
-      photos:{},pipes:{},refXY:[m.x,m.y],at:new Date().toISOString()});
-    n++;
+      photos:{},pipes:{},refXY:[m.x,m.y],at:new Date().toISOString()};
+    refGeoFill(_nr,m.x,m.y);L.push(_nr);n++;
   });
   mm.matched.forEach(function(x){
-    if(!x.rec.refXY||x.rec.refXY[0]!==x.mh.x||x.rec.refXY[1]!==x.mh.y){
-      x.rec.refXY=[x.mh.x,x.mh.y];u++;
+    if(!x.rec.refXY||x.rec.refXY[0]!==x.mh.x||x.rec.refXY[1]!==x.mh.y||!(x.rec.geo&&x.rec.geo.lat)){
+      x.rec.refXY=[x.mh.x,x.mh.y];refGeoFill(x.rec,x.mh.x,x.mh.y);u++;
     }
   });
   if(n||u)saveProject();
@@ -10233,6 +10256,7 @@ function refMhPanel(){
      '<div style="flex:1;background:#fdecea;border:1px solid #e74c3c;border-radius:9px;padding:8px;text-align:center"><div style="font-size:19px;font-weight:800;color:#c0392b">'+mm.noRec.length+'</div><div style="font-size:10.5px;color:#c0392b">\uc57c\uc7a5\uc5d0 \uc5c6\uc74c</div></div>'+
      '<div style="flex:1;background:#fff6e9;border:1px solid #e3a008;border-radius:9px;padding:8px;text-align:center"><div style="font-size:19px;font-weight:800;color:#b45309">'+mm.noMh.length+'</div><div style="font-size:10.5px;color:#b45309">\uacb0\uc120\uc5d0 \uc5c6\uc74c</div></div>'+
    '</div>'+
+   (mm.matched.length?('<button id="refMhGeo" style="width:100%;padding:11px;margin-bottom:9px;border:1px solid #3b6fd4;background:#eef4ff;color:#1f4fa8;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer">\uc88c\ud45c\u00b7\ub3c4\uc5fd\ubc88\ud638 \uac31\uc2e0 ('+mm.matched.length+'\uac1c)</button>'):'')+
    (mm.noRec.length?('<button id="refMhGen" style="width:100%;padding:12px;margin-bottom:13px;border:1px solid #d32f2f;background:#fdeaea;color:#c0392b;border-radius:10px;font-size:13.5px;font-weight:800;cursor:pointer">\uc57c\uc7a5 '+mm.noRec.length+'\uac1c \uc77c\uad04 \uc0dd\uc131</button>'):'')+
    '<div style="font-size:12px;font-weight:700;color:#0f7a57;margin:6px 0 3px">\u2713 \ub9e4\uce6d \uc644\ub8cc</div>'+
    chips(mm.matched,function(x){return '<span class="refchip" data-x="'+x.mh.x+'" data-y="'+x.mh.y+'" style="border:1px solid #1d9e75;background:#f3fbf7;color:#0f7a57;border-radius:7px;padding:3px 8px;font-size:11.5px;cursor:pointer">'+x.mh.label+'</span>';})+
@@ -10248,6 +10272,8 @@ function refMhPanel(){
   w.addEventListener('click',function(ev){if(ev.target===w)w.remove();});
   document.getElementById('refMhX').onclick=function(){w.remove();};
   document.getElementById('refMhTog').onclick=function(){refMhShow=!refMhShow;refDrawMh();w.remove();toast(refMhShow?'\ub9e8\ud640 \ud45c\uc2dc':'\ub9e8\ud640 \uc228\uae40');};
+  var gg=document.getElementById('refMhGeo');
+  if(gg)gg.onclick=function(){w.remove();refSyncGeo();};
   var gb=document.getElementById('refMhGen');
   if(gb)gb.onclick=function(){w.remove();refMhCreate(null);setTimeout(refMhPanel,300);};
   [].forEach.call(b.querySelectorAll('.refchip'),function(el2){
