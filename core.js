@@ -7398,14 +7398,16 @@ function mnAskAddr(rec,cb){
     +'<label style="font-size:12.5px;font-weight:800;color:#444">도로명<input id="mnAdRoad" type="text" placeholder="예) 낙성대로" style="width:100%;margin-top:5px;box-sizing:border-box;border:1.5px solid #ccc;border-radius:9px;padding:11px;font-size:15px"></label>'
     +'<label style="font-size:12.5px;font-weight:800;color:#444">행정구역<input id="mnAdArea" type="text" placeholder="예) 서울특별시 관악구 낙성대동" style="width:100%;margin-top:5px;box-sizing:border-box;border:1.5px solid #ccc;border-radius:9px;padding:11px;font-size:15px"></label>'
     +'</div>'
-    +'<div style="display:flex;gap:8px;padding:0 15px 14px">'
-    +'<button id="mnAdSkip" style="flex:1;border:1.5px solid #bbb;background:#fff;color:#666;border-radius:10px;padding:11px;font-weight:800;font-size:14px;cursor:pointer">건너뛰기</button>'
-    +'<button id="mnAdOk" style="flex:1.4;border:1.5px solid #1d9e75;background:#1d9e75;color:#fff;border-radius:10px;padding:11px;font-weight:800;font-size:14px;cursor:pointer">확인</button>'
+    +'<div style="display:flex;gap:7px;padding:0 15px 14px">'
+    +'<button id="mnAdCancel" style="flex:1;border:1.5px solid #e74c3c;background:#fdeceb;color:#c0392b;border-radius:10px;padding:11px 6px;font-weight:800;font-size:13.5px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center;white-space:nowrap">취소</button>'
+    +'<button id="mnAdSkip" style="flex:1.15;border:1.5px solid #e3a008;background:#fff8e6;color:#a16207;border-radius:10px;padding:11px 6px;font-weight:800;font-size:13.5px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center;white-space:nowrap">건너뛰기</button>'
+    +'<button id="mnAdOk" style="flex:1.35;border:1.5px solid #1d9e75;background:#1d9e75;color:#fff;border-radius:10px;padding:11px 6px;font-weight:800;font-size:13.5px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center;white-space:nowrap">확인</button>'
     +'</div></div>';
   document.body.appendChild(w);
   var ir=w.querySelector('#mnAdRoad'),ia=w.querySelector('#mnAdArea');
   ir.value=rec.road||'';ia.value=rec.addr||'';
   function close(){w.remove();}
+  w.querySelector('#mnAdCancel').onclick=function(){close();cb(true);};
   w.querySelector('#mnAdSkip').onclick=function(){close();cb();};
   w.querySelector('#mnAdOk').onclick=function(){
     rec.road=(ir.value||'').trim();rec.addr=(ia.value||'').trim();
@@ -7430,9 +7432,9 @@ function mnEquipXls(rec){
   toast('설비사진 엑셀 생성 중...');
   mnEnsureAddr(rec).then(function(){
     /* [1031] 자동 조회 결과가 비었으면 직접 입력받기 */
-    return new Promise(function(_go){
+    return new Promise(function(_go,_no){
       if(rec.road&&rec.addr){_go();return;}
-      mnAskAddr(rec,_go);
+      mnAskAddr(rec,function(_cx){if(_cx)_no('__cancel');else _go();});
     });
   }).then(function(){
   return JSZip.loadAsync(MN_XLS_TPL,{base64:true}).then(function(zip){
@@ -7467,7 +7469,7 @@ function mnEquipXls(rec){
     var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nm+'.xlsx';document.body.appendChild(a);a.click();
     setTimeout(function(){a.remove();URL.revokeObjectURL(a.href);},1000);
     toast('📄 '+nm+'.xlsx 다운로드');
-  }).catch(function(e){console.error('mnEquipXls',e);toast('엑셀 생성 실패');});
+  }).catch(function(e){if(e==='__cancel'){toast('취소됨');return;}console.error('mnEquipXls',e);toast('엑셀 생성 실패');});
   });
 }
 function mnPhotoZip(rec){
