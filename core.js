@@ -9515,16 +9515,62 @@ function refAnchor(e){var p=refPts(e);return p.length?p[0]:null;}
 
 /* ---------- 렌더 ---------- */
 function refClear(){var g=document.getElementById('gRefDxf');if(g&&g.parentNode)g.parentNode.removeChild(g);}
-function refReset(){REF.ents=null;REF.layers=null;REF.blocks=null;REF.lgbox=null;REF.mh=null;REF.name='';REF.box=null;REF.cnt=0;REF.on=true;refClear();}
+function refReset(){REF.ents=null;REF.layers=null;REF.blocks=null;REF.lgbox=null;REF.mh=null;REF.name='';REF.box=null;REF.cnt=0;REF.on=true;REF.ox=0;REF.oy=0;refClear();}
+
+/* ★ [1037] 로컬 원점.
+   EPSG:5186 절대좌표(50만대)를 SVG에 그대로 넣으면, 브라우저가 device 좌표를
+   float32 로 계산하면서 a*x 가 수억이 되어 최소간격이 128px 까지 벌어진다.
+   → 확대 시 심볼과 선이 어긋나고 텍스트가 화면 밖으로 밀려 사라짐.
+   큰 값은 그룹 transform 으로 빼내고 자식은 원점 기준 작은 좌표만 쓴다. */
+function refSR(x,y){return [x-REF.ox,-(y-REF.oy)];}
+/* depth>0 = 블록 내부(로컬좌표) → 원점 빼면 안 됨 */
+function refXY(d,x,y){return d?[x,-y]:refSR(x,y);}
+
+function refHatchC(e){
+  var xs=e.g[10],ys=e.g[20],rr=e.g[40];
+  if(!xs||xs.length<2||!ys||ys.length<2)return null;
+  var cx=parseFloat(xs[1]),cy=parseFloat(ys[1]);
+  if(!isFinite(cx)||!isFinite(cy))return null;
+  var r=(rr&&rr.length)?Math.abs(parseFloat(rr[0])):0;
+  return [cx,cy,isFinite(r)?r:0];
+}
+function refCalcBox(){
+  var b=null,rs=[];
+  var FITT={LINE:1,LWPOLYLINE:1,CIRCLE:1,ARC:1,TEXT:1,MTEXT:1,INSERT:1};
+  REF.ents.forEach(function(e){
+    if(e.t==='HATCH'){var h=refHatchC(e);if(h&&h[2]>0)rs.push(h[2]);return;}
+    if(!FITT[e.t])return;
+    if(!refLayerOn(refStr(e,8,'')))return;
+    var ps=refPts(e);
+    if(e.t==='INSERT'||e.t==='TEXT'||e.t==='MTEXT'||e.t==='CIRCLE'||e.t==='ARC')ps=[[refNum(e,10,0),refNum(e,20,0)]];
+    if(e.t==='LINE')ps=[[refNum(e,10,0),refNum(e,20,0)],[refNum(e,11,0),refNum(e,21,0)]];
+    ps.forEach(function(p){
+      if(refInLegend(p))return;
+      if(!b)b={x0:p[0],y0:p[1],x1:p[0],y1:p[1]};
+      else{b.x0=Math.min(b.x0,p[0]);b.y0=Math.min(b.y0,p[1]);b.x1=Math.max(b.x1,p[0]);b.y1=Math.max(b.y1,p[1]);}
+    });
+  });
+  REF.box=b;
+  REF.ox=b?Math.round((b.x0+b.x1)/2):0;
+  REF.oy=b?Math.round((b.y0+b.y1)/2):0;
+  rs.sort(function(a,c){return a-c;});
+  REF.hsp=rs.length?Math.max(0.02,rs[Math.floor(rs.length/2)]/4):0.12;
+  return b;
+}
 function refDraw(){
   refClear();
   if(!REF.ents||!REF.on)return;
+  if(!REF.box)refCalcBox();
   var g=document.createElementNS(SVGNS,'g');g.id='gRefDxf';g.setAttribute('pointer-events','none');
+  g.setAttribute('transform','translate('+REF.ox+','+(-REF.oy)+')');
+  var sp=REF.hsp||0.12;
+  var defs=document.createElementNS(SVGNS,'defs');
+  var pat=el('pattern',{id:'refHatchP',patternUnits:'userSpaceOnUse',width:sp,height:sp,patternTransform:'rotate(45)'});
+  pat.appendChild(el('line',{x1:0,y1:0,x2:0,y2:sp,stroke:'#000','stroke-width':sp*0.16}));
+  defs.appendChild(pat);g.appendChild(defs);
   cv.insertBefore(g,cv.firstChild);
   var n=0;
-  REF.ents.forEach(function(e){
-    if(refDrawOne(g,e,0))n++;
-  });
+  REF.ents.forEach(function(e){if(refDrawOne(g,e,0))n++;});
   REF.cnt=n;
 }
 function refLayerOn(lay){
@@ -9549,53 +9595,66 @@ function refDrawOne(g,e,depth,inhCol){
   var lay=refStr(e,8,'0');
   if(depth===0){
     if(!refLayerOn(lay))return 0;
-    var a=refAnchor(e);
+    var a;
+    if(e.t==='HATCH'){var h0=refHatchC(e);a=h0?[h0[0],h0[1]]:null;}
+    else if(e.t==='INSERT'||e.t==='TEXT'||e.t==='MTEXT'||e.t==='CIRCLE'||e.t==='ARC')a=[refNum(e,10,0),refNum(e,20,0)];
+    else a=refAnchor(e);
     if(a&&refInLegend(a))return 0;
-    if(e.t==='INSERT'){var ip=[refNum(e,10,0),refNum(e,20,0)];if(refInLegend(ip))return 0;}
-    if(e.t==='TEXT'||e.t==='MTEXT'){var tp=[refNum(e,10,0),refNum(e,20,0)];if(refInLegend(tp))return 0;}
-    if(e.t==='CIRCLE'||e.t==='ARC'){var cp=[refNum(e,10,0),refNum(e,20,0)];if(refInLegend(cp))return 0;}
   }
   var col=refEntCol(e,inhCol);
   var t=e.t,o=null;
   if(t==='LINE'){
-    var s1=S(refNum(e,10,0),refNum(e,20,0)),s2=S(refNum(e,11,0),refNum(e,21,0));
+    var s1=refXY(depth,refNum(e,10,0),refNum(e,20,0)),s2=refXY(depth,refNum(e,11,0),refNum(e,21,0));
     o=el('line',{x1:s1[0],y1:s1[1],x2:s2[0],y2:s2[1],stroke:col,'stroke-width':0.9,'vector-effect':'non-scaling-stroke'});
   }else if(t==='LWPOLYLINE'){
     var ps=refPts(e);if(ps.length<2)return 0;
     var closed=e.cl||((parseInt(refStr(e,70,'0'),10)||0)&1);
-    var str=ps.map(function(p){var s=S(p[0],p[1]);return s[0]+','+s[1];}).join(' ');
+    var str=ps.map(function(p){var s=refXY(depth,p[0],p[1]);return s[0]+','+s[1];}).join(' ');
     o=el(closed?'polygon':'polyline',{points:str,fill:'none',stroke:col,'stroke-width':0.9,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round'});
   }else if(t==='CIRCLE'){
-    var s=S(refNum(e,10,0),refNum(e,20,0));
+    var s=refXY(depth,refNum(e,10,0),refNum(e,20,0));
     o=el('circle',{cx:s[0],cy:s[1],r:Math.abs(refNum(e,40,1)),fill:'none',stroke:col,'stroke-width':0.9,'vector-effect':'non-scaling-stroke'});
   }else if(t==='ARC'){
     var cx=refNum(e,10,0),cy=refNum(e,20,0),r=Math.abs(refNum(e,40,1));
     var a1=refNum(e,50,0)*Math.PI/180,a2=refNum(e,51,0)*Math.PI/180;
-    var p1=S(cx+r*Math.cos(a1),cy+r*Math.sin(a1)),p2=S(cx+r*Math.cos(a2),cy+r*Math.sin(a2));
+    var p1=refXY(depth,cx+r*Math.cos(a1),cy+r*Math.sin(a1)),p2=refXY(depth,cx+r*Math.cos(a2),cy+r*Math.sin(a2));
     var sweepDeg=((refNum(e,51,0)-refNum(e,50,0))%360+360)%360;
     o=el('path',{d:'M '+p1[0]+' '+p1[1]+' A '+r+' '+r+' 0 '+(sweepDeg>180?1:0)+' 0 '+p2[0]+' '+p2[1],
         fill:'none',stroke:col,'stroke-width':0.9,'vector-effect':'non-scaling-stroke'});
+  }else if(t==='HATCH'){
+    /* [1037] 관공공수 해치 — 경계는 전부 원(ARC edge). solid 면 채움, 아니면 사선패턴 */
+    var h=refHatchC(e);if(!h)return 0;
+    var solid=(refStr(e,70,'0')==='1');
+    var sc=refXY(depth,h[0],h[1]);
+    if(h[2]>0){
+      o=el('circle',{cx:sc[0],cy:sc[1],r:h[2],fill:solid?col:'url(#refHatchP)',stroke:'none'});
+    }else{
+      var xs=e.g[10]||[],ys=e.g[20]||[];
+      if(xs.length<4)return 0;
+      var pp=[];for(var q=1;q<xs.length;q++){var s3=refXY(depth,parseFloat(xs[q]),parseFloat(ys[q]));pp.push(s3[0]+','+s3[1]);}
+      o=el('polygon',{points:pp.join(' '),fill:solid?col:'url(#refHatchP)',stroke:'none'});
+    }
   }else if(t==='TEXT'||t==='MTEXT'){
-    var h=Math.abs(refNum(e,40,1))||1;
+    var ht=Math.abs(refNum(e,40,1))||1;
     var ha=parseInt(refStr(e,72,'0'),10)||0, va=parseInt(refStr(e,73,'0'),10)||0;
     var ax=refNum(e,10,0),ay=refNum(e,20,0);
     if((ha||va)&&e.g[11]!=null){ax=refNum(e,11,ax);ay=refNum(e,21,ay);}
-    var sp=S(ax,ay);
+    var sp2=refXY(depth,ax,ay);
     var body=refTxt(refStr(e,1,''));
     if(!body)return 0;
-    o=el('text',{x:sp[0],y:sp[1],'font-size':h*1.05,fill:col,
+    o=el('text',{x:sp2[0],y:sp2[1],'font-size':ht*1.05,fill:col,
         'text-anchor':(ha===1?'middle':(ha===2?'end':'start')),
         'dominant-baseline':(va===2?'middle':(va===3?'hanging':'auto'))});
     var rot=refNum(e,50,0);
-    if(rot)o.setAttribute('transform','rotate('+(-rot)+' '+sp[0]+' '+sp[1]+')');
+    if(rot)o.setAttribute('transform','rotate('+(-rot)+' '+sp2[0]+' '+sp2[1]+')');
     o.textContent=body;
   }else if(t==='INSERT'){
     if(depth>2)return 0;
     var nm=refStr(e,2,'');
     var blk=REF.blocks[nm];if(!blk||!blk.length)return 0;
-    var ox=refNum(e,10,0),oy=refNum(e,20,0);
+    var ip=refXY(depth,refNum(e,10,0),refNum(e,20,0));
     var sx=refNum(e,41,1)||1, sy=refNum(e,42,1)||1, rt=refNum(e,50,0);
-    var gg=el('g',{transform:'translate('+ox+','+(-oy)+') rotate('+(-rt)+') scale('+sx+','+sy+')'});
+    var gg=el('g',{transform:'translate('+ip[0]+','+ip[1]+') rotate('+(-rt)+') scale('+sx+','+sy+')'});
     var m=0;
     blk.forEach(function(be){m+=refDrawOne(gg,be,depth+1,col)?1:0;});
     if(!m)return 0;
@@ -9658,6 +9717,7 @@ function refLoadDxfFile(f){
       REF.lgbox=refLegendBox(r.ents);
       REF.name=f.name;REF.on=true;
       REF.mh=refExtractMh();
+      refCalcBox();
       refDraw();
       refFit();
       var nl=0;for(var k in REF.layers)nl++;
@@ -9672,48 +9732,14 @@ function refLoadDxfFile(f){
 }
 function refFit(){
   if(!REF.ents)return;
-  var b=null;
-  var FITT={LINE:1,LWPOLYLINE:1,CIRCLE:1,ARC:1,TEXT:1,MTEXT:1,INSERT:1};
-  REF.ents.forEach(function(e){
-    if(!FITT[e.t])return;                       /* HATCH 고도점(0,0)이 bbox 오염 */
-    if(!refLayerOn(refStr(e,8,'')))return;
-    var ps=refPts(e);
-    if(e.t==='INSERT'||e.t==='TEXT'||e.t==='MTEXT'||e.t==='CIRCLE'||e.t==='ARC')ps=[[refNum(e,10,0),refNum(e,20,0)]];
-    if(e.t==='LINE')ps=[[refNum(e,10,0),refNum(e,20,0)],[refNum(e,11,0),refNum(e,21,0)]];
-    ps.forEach(function(p){
-      if(refInLegend(p))return;
-      if(!b)b={x0:p[0],y0:p[1],x1:p[0],y1:p[1]};
-      else{b.x0=Math.min(b.x0,p[0]);b.y0=Math.min(b.y0,p[1]);b.x1=Math.max(b.x1,p[0]);b.y1=Math.max(b.y1,p[1]);}
-    });
-  });
+  var b=refCalcBox();
   if(!b||b.x1-b.x0<1)return;
-  REF.box=b;
   var pad=Math.max(b.x1-b.x0,b.y1-b.y0)*0.05;
   vb0={x:b.x0-pad,y:-(b.y1+pad),w:(b.x1-b.x0)+2*pad,h:(b.y1-b.y0)+2*pad};
   vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};
   if(typeof fixAspect==='function')fixAspect();
   if(typeof applyVB==='function')applyVB();
 }
-/* ===== [BUILD 1036] 드롭박스 모달 + 맨홀사진 ZIP 일괄 로딩 ===== */
-
-/* 맨홀 라벨 정규화 — 번호+소유자만 뽑아 비교 (신설/기설 접두·특이사항 무시) */
-function refNormLab(s){
-  s=String(s==null?'':s).replace(/\s+/g,'');
-  var m=s.match(/(\d+[A-Za-z]*)\(([^)]*)\)/);
-  if(m)return (m[1]+'|'+m[2]).toUpperCase();
-  return s.toUpperCase();
-}
-function refSlotOf(fn){
-  var b=String(fn||'').replace(/\.[^.]*$/,'').trim();
-  if(b==='1')return 'fr';
-  if(b==='2-1')return 'p1';
-  if(b==='2-2')return 'p2';
-  if(b==='2-3')return 'p3';
-  if(b==='2-4')return 'p4';
-  if(b==='\ud45c\ucc30'||b==='0')return 'bd';
-  return null;
-}
-
 /* ---------- ZIP 구조 분석 + 야장 매칭 ---------- */
 var REF_PZ=null;   /* {zip, groups:[{folder,key,files:[{slot,name}],rec}], noRec:[], noPhoto:[]} */
 function refPhotoZip(f){
