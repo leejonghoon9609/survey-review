@@ -6962,21 +6962,23 @@ function mnEfbGen(rec){
     function eL(ly,ax,ay,bx,by,col){var a=['  0','LINE','  5',nh(),'330','2','100','AcDbEntity','  8',ly];if(col)a.push(' 62',String(col));a.push('100','AcDbLine',' 10',fx(ax),' 20',fx(ay),' 30','0.0',' 11',fx(bx),' 21',fx(by),' 31','0.0');return mnDxfEnt(a);}
     function ePL(ly,pts,closed,lt,col){var a=['  0','LWPOLYLINE','  5',nh(),'330','2','100','AcDbEntity','  8',ly];if(lt)a.push('  6',lt);if(col)a.push(' 62',String(col));a.push('100','AcDbPolyline',' 90',String(pts.length),' 70',closed?'1':'0',' 43','0.0');pts.forEach(function(p){a.push(' 10',fx(p[0]),' 20',fx(p[1]));if(p[2]!=null)a.push(' 42',String(p[2]));});return mnDxfEnt(a);}
     function eC(ly,cx,cy,r,col){var a=['  0','CIRCLE','  5',nh(),'330','2','100','AcDbEntity','  8',ly];if(col)a.push(' 62',String(col));a.push('100','AcDbCircle',' 10',fx(cx),' 20',fx(cy),' 30','0.0',' 40',fx(r));return mnDxfEnt(a);}
-    function eTxt(cx,cy,txt,ht,rot,sty,ly){return mnDxfEnt(['  0','TEXT','  5',nh(),'330','2','100','AcDbEntity','  8',ly||'Attr','100','AcDbText',' 10',fx(cx),' 20',fx(cy),' 30','0.0',' 40',String(ht),'  1',txt,' 50',String(rot||0),'  7',sty||'DIM',' 72','1',' 11',fx(cx),' 21',fx(cy),' 31','0.0','100','AcDbText',' 73','2']);}
+    function eTxt(cx,cy,txt,ht,rot,sty,ly,col){var a=['  0','TEXT','  5',nh(),'330','2','100','AcDbEntity','  8',ly||'Attr'];if(col)a.push(' 62',String(col));a=a.concat(['100','AcDbText',' 10',fx(cx),' 20',fx(cy),' 30','0.0',' 40',String(ht),'  1',txt,' 50',String(rot||0),'  7',sty||'DIM',' 72','1',' 11',fx(cx),' 21',fx(cy),' 31','0.0','100','AcDbText',' 73','2']);return mnDxfEnt(a);}
     function eOpen(ax,ay,rot){return mnDxfEnt(['  0','INSERT','  5',nh(),'330','2','100','AcDbEntity','  8','Dim','100','AcDbBlockReference','  2','_OPEN',' 10',fx(ax),' 20',fx(ay),' 30','0.0',' 41','50',' 42','50',' 43','50',' 50',String(rot)]);}
     function eArrow(ax,ay,sx,rot){return mnDxfEnt(['  0','INSERT','  5',nh(),'330','2','100','AcDbEntity','  8','arrow','100','AcDbBlockReference','  2','arrow',' 10',fx(ax),' 20',fx(ay),' 30','0.0',' 41',String(sx),' 42','0.5',' 43','1.0',' 50',String(rot)]);}
     function hatchTailA(){return [' 75','1',' 76','1',' 52','0.0',' 41','1.0',' 77','0',' 78','1',' 53','45.0',' 43','0.0',' 44','0.0',' 45','-2.2450640303',' 46','2.2450640303',' 79','0',' 98','0'];}
-    function eHatchCirc(cx,cy,r,solid,col){
+    /* [1034] 범례용 ANSI31 : 축척100/각도90 (샘플 DXF 실측 그룹코드) */
+    function hatchTailB(){return [' 75','1',' 76','1',' 52','90.0',' 41','100.0',' 77','0',' 78','1',' 53','135.0',' 43','0.0',' 44','0.0',' 45','-8.838834764831842',' 46','-8.838834764831842',' 79','0',' 98','0'];}
+    function eHatchCirc(cx,cy,r,solid,col,t100){
       var a=['  0','HATCH','  5',nh(),'330','2','100','AcDbEntity','  8','Pipe'];if(col)a.push(' 62',String(col));
       a=a.concat(['100','AcDbHatch',' 10','0.0',' 20','0.0',' 30','0.0','210','0.0','220','0.0','230','1.0','  2',solid?'SOLID':'ANSI31',' 70',solid?'1':'0',' 71','0',' 91','1',' 92','1',' 93','1',' 72','2',' 10',fx(cx),' 20',fx(cy),' 40',fx(r),' 50','0.0',' 51','360.0',' 73','1']);
-      a=a.concat(solid?[' 97','0',' 75','1',' 76','1',' 98','0']:[' 97','0'].concat(hatchTailA()));
+      a=a.concat(solid?[' 97','0',' 75','1',' 76','1',' 98','0']:[' 97','0'].concat(t100?hatchTailB():hatchTailA()));
       return mnDxfEnt(a);
     }
-    function eHatchPoly(pts,solid,col){
+    function eHatchPoly(pts,solid,col,t100){
       var a=['  0','HATCH','  5',nh(),'330','2','100','AcDbEntity','  8','Pipe'];if(col)a.push(' 62',String(col));
       a=a.concat(['100','AcDbHatch',' 10','0.0',' 20','0.0',' 30','0.0','210','0.0','220','0.0','230','1.0','  2',solid?'SOLID':'ANSI31',' 70',solid?'1':'0',' 71','0',' 91','1',' 92','3',' 72','0',' 73','1',' 93',String(pts.length)]);
       for(var i=0;i<pts.length;i++){a.push(' 10',fx(pts[i][0]),' 20',fx(pts[i][1]));}
-      a=a.concat(solid?[' 97','0',' 75','1',' 76','1',' 98','0']:[' 97','0'].concat(hatchTailA()));
+      a=a.concat(solid?[' 97','0',' 75','1',' 76','1',' 98','0']:[' 97','0'].concat(t100?hatchTailB():hatchTailA()));
       return mnDxfEnt(a);
     }
     /* ── 몸체 ── */
@@ -7103,6 +7105,26 @@ function mnEfbGen(rec){
     });
     var _hasPipe=false;['p1','p2','p3','p4'].forEach(function(w){var pw=rec.pipes&&rec.pipes[w];if(pw&&pw.groups&&pw.groups.some(function(g){return g.circles&&g.circles.length;}))_hasPipe=true;});
     if(!_hasPipe)toast('⚠ 관배치 없음 — 관·라벨 없이 출력 (벽면별 관배치 후 재생성 가능)');
+    /* == [BUILD 1034] 범례 '작업외 관로' 2행 추가 == */
+    (function(){
+      var LX0=520461.7, LXM=521129.3, LX1=522130.8;      /* 표 좌/열구분/우 */
+      var LY0=681886.8, LY1=681619.7, LY2=681352.7;      /* 행높이 267.07 */
+      var SX=520795.5, TX1=521430.6, TX2=521796.4;       /* 기호칸·관경·문구 중심 */
+      var cyA=(LY0+LY1)/2, cyB=(LY1+LY2)/2, TH=60, R=58.42;
+      out+=ePL('\uce58\uc218',[[LX0,LY1],[LX1,LY1]],false,null,5);
+      out+=ePL('\uce58\uc218',[[LX0,LY2],[LX1,LY2]],false,null,5);
+      out+=ePL('\uce58\uc218',[[LXM,LY0],[LXM,LY2]],false,null,5);
+      out+=ePL('\uce58\uc218',[[LX1,LY0],[LX1,LY2]],false,null,5);
+      /* ① Ø100 작업외 관로 — 원 + 빨강 사선해치 */
+      out+=eC('\uce58\uc218',SX,cyA,R)+eHatchCirc(SX,cyA,R,false,1,true);
+      out+=eTxt(TX1,cyA+3.7,'\u00d8100',TH,0,'Form_Text','\uce58\uc218',1);
+      out+=eTxt(TX2,cyA+3.7,'\uc791\uc5c5\uc678 \uad00\ub85c',TH,0,'Form_Text','\uce58\uc218',1);
+      /* ② Ø50 작업외 관로 — 삼각형 + 빨강 사선해치 */
+      var tp=[[SX-58.42,cyB-38.93],[SX,cyB+77.91],[SX+58.42,cyB-38.93]];
+      out+=ePL('\uce58\uc218',tp,true)+eHatchPoly(tp,false,1,true);
+      out+=eTxt(TX1,cyB+3.7,'\u00d850',TH,0,'Form_Text','\uce58\uc218',1);
+      out+=eTxt(TX2,cyB+3.7,'\uc791\uc5c5\uc678 \uad00\ub85c',TH,0,'Form_Text','\uce58\uc218',1);
+    })();
     var CRLF=x.indexOf('\r\nENTITIES\r\n')>=0;
     var Q=CRLF?'\r\n':'\n';
     var ei=x.indexOf(Q+'ENTITIES'+Q);
