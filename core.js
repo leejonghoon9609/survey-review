@@ -5504,7 +5504,8 @@ cv.addEventListener('pointerdown',function(e){
   if(mode==='pan'){/* 측점/맨홀 위=선택(pointerup), 빈 곳 드래그=화면이동 */
     if(typeof _tgMode==='function'&&_tgMode()&&e.button===0){var _tw2=toWorld(e.clientX,e.clientY);var _twx=_tw2[0],_twy=-_tw2[1];var _tp2=(typeof nearBpPoint==='function')?nearBpPoint(_twx,_twy):null;var _mTol=Math.max((typeof pxToWorld==='function')?pxToWorld()*22:3,1.5);var _mm=null,_mmd=1e18;(state.manholes||[]).forEach(function(mh){if(mh.wx==null)return;var _md=Math.hypot(mh.wx-_twx,mh.wy-_twy);if(_md<_mmd){_mmd=_md;_mm=mh;}});if(_mm&&_mmd<=_mTol){if(typeof tgSelectMh==='function'&&tgSelectMh(_mm.wx,_mm.wy)){if(typeof drawGeo==='function')drawGeo();return;}}if(_tp2){tgSelectPt(_tp2.no);if(typeof drawGeo==='function')drawGeo();return;}}
     var w0=toWorld(e.clientX,e.clientY);var nr0=nearestSnapWorld(w0[0],w0[1]);
-    if(!(nr0.pt&&nr0.d<vb.w*0.025)){dragging=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};cv.style.cursor='grabbing';try{cv.setPointerCapture(e.pointerId);}catch(x){}}
+    var _onRef=(typeof refNearMh==='function')&&refNearMh(e.clientX,e.clientY);
+    if(!(nr0.pt&&nr0.d<vb.w*0.025)&&!_onRef){dragging=true;startC=[e.clientX,e.clientY];startVB={x:vb.x,y:vb.y,w:vb.w,h:vb.h};cv.style.cursor='grabbing';try{cv.setPointerCapture(e.pointerId);}catch(x){}}
   }
   else if(mode==='tgsegfix'){var _sw=toWorld(e.clientX,e.clientY);var _wx=_sw[0],_wy=-_sw[1];var _tol=(typeof pxToWorld==='function')?pxToWorld()*28:3;var _key=null,_kx=0,_ky=0,_bd=_tol;var _BB=window._tgBnd;if(_BB&&Object.keys(_BB).length){for(var _bq2 in _BB){var _dd2=Math.hypot(_BB[_bq2].x-_wx,_BB[_bq2].y-_wy);if(_dd2<_bd){_bd=_dd2;_key=_bq2;_kx=_BB[_bq2].x;_ky=_BB[_bq2].y;}}}else{(state.lines||[]).forEach(function(L){if(L.layer!=='\uD1B5\uC2E0\uAD00\uB85C'||!L.pts)return;L.pts.forEach(function(pt){var _dd=Math.hypot(pt[0]-_wx,pt[1]-_wy);if(_dd<_bd){_bd=_dd;_key=Math.round(pt[0]*100)+'_'+Math.round(pt[1]*100);_kx=pt[0];_ky=pt[1];}});});}if(_key){if(!_segFix){_segFix={a:_key,ax:_kx,ay:_ky};if(typeof toast==='function')toast('\uC885\uB8CC \uC2DC\uC124\uBB3C\uC744 \uD074\uB9AD\uD558\uC138\uC694');}else{if(typeof tgApplySegFix==='function')tgApplySegFix(_segFix.a,_key);_segFix=null;if(typeof tgSegFixRubber==='function')tgSegFixRubber(null);mode='pan';if(typeof setModeUI==='function')setModeUI();}if(typeof drawGeo==='function')drawGeo();}else{if(typeof toast==='function')toast('\uC2DC\uC124\uBB3C(\uB9E8\uD640\u00B7\uC785\uC0C1\u00B7\uAD00\uB9D0) \uAC00\uAE4C\uC774\uB97C \uD074\uB9AD\uD558\uC138\uC694');}return;}else if(mode==='tgptedit'){var _tw=toWorld(e.clientX,e.clientY);var _tp=(typeof nearBpPoint==='function')?nearBpPoint(_tw[0],-_tw[1]):null;if(_tp){tgSelectPt(_tp.no);if(typeof drawGeo==='function')drawGeo();}return;}
   else if(mode==='tglineedit'){var _lw=toWorld(e.clientX,e.clientY);var _lp=(typeof nearBpPoint==='function')?nearBpPoint(_lw[0],-_lw[1]):null;if(_lp){if(_tgDrawLast&&_tgDrawLast.no!==_lp.no){if(typeof tgSnap==='function')tgSnap();state.lines.push({pts:[[_tgDrawLast.x,_tgDrawLast.y],[_lp.x,_lp.y]],layer:'통신관로'});if(state._linesOrig&&state.tangoEdit)state.tangoEdit.lines=state.lines;if(typeof saveProject==='function')saveProject();if(typeof tangoFill==='function')tangoFill();if(typeof tangoSelSeg==='function'&&tgSeg>=0)tangoSelSeg(tgSeg);}_tgDrawLast=_lp;if(typeof drawGeo==='function')drawGeo();}return;}
@@ -10149,6 +10150,22 @@ function refDrawMh(){
     (function(lab,r0){c.addEventListener('click',function(ev){ev.stopPropagation();refMhClick(lab,r0);});})(m.label,rec);
     g.appendChild(c);
   });
+}
+/* [BUILD 1045] pan 모드 pointerdown 이 cv.setPointerCapture 를 걸면
+   자식(맨홀 원)의 click 이벤트가 cv 로 리타깃돼 사라진다.
+   앱 측점과 동일하게, 결선 맨홀 위에서는 드래그/캡처를 시작하지 않도록 예외 처리 */
+function refNearMh(cx,cy){
+  if(!REF.ents||!REF.on||!refMhShow||!REF.mh||!REF.mh.length)return false;
+  if(typeof toWorld!=='function')return false;
+  var w;try{w=toWorld(cx,cy);}catch(e){return false;}
+  var wx=w[0],wy=-w[1];
+  var tol=Math.max(1.6,(vb&&vb.w?vb.w:100)*0.012);
+  for(var i=0;i<REF.mh.length;i++){
+    var m=REF.mh[i];
+    if(!m||!m.label)continue;
+    if(Math.abs(m.x-wx)<tol&&Math.abs(m.y-wy)<tol&&Math.hypot(m.x-wx,m.y-wy)<tol)return true;
+  }
+  return false;
 }
 function refMhClick(lab,rec){
   REF_SEL=refNormLab(lab);refDrawMh();
