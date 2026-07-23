@@ -9803,56 +9803,83 @@ function refNormLab(s){
   if(m)return m[1].toUpperCase()+'|'+refOwKey(m[2]);
   return s.toUpperCase();
 }
+/* [BUILD 1041] 2-4-1 / 2-4-2 처럼 한 벽면을 나눠 찍은 파일도 인식 */
 function refSlotOf(fn){
   var b=String(fn||'').replace(/\.[^.]*$/,'').trim();
-  if(b==='1')return 'fr';
-  if(b==='2-1')return 'p1';
-  if(b==='2-2')return 'p2';
-  if(b==='2-3')return 'p3';
-  if(b==='2-4')return 'p4';
-  if(b==='\ud45c\ucc30'||b==='0')return 'bd';
+  if(b==='1'||/^1-\d+$/.test(b))return 'fr';
+  var m=b.match(/^2-([1-4])(?:-\d+)?$/);
+  if(m)return 'p'+m[1];
+  if(b==='\ud45c\ucc30'||b==='0'||/^0[_-]/.test(b))return 'bd';
   return null;
 }
 /* ---------- ZIP 구조 분석 + 야장 매칭 ---------- */
-var REF_PZ=null;   /* {zip, groups:[{folder,key,files:[{slot,name}],rec}], noRec:[], noPhoto:[]} */
+var REF_PZ=null;   /* {zip,map,groups,noRec,noPhoto,extra,skip,name} */
+function refPzMatch(){
+  var P=REF_PZ;if(!P)return;
+  var recs=(typeof mnList==='function')?mnList().filter(function(r){return r&&!r.delAt;}):[];
+  var byKey={};
+  recs.forEach(function(r){var k=refNormLab(mnLabel(r));if(k)byKey[k]=r;});
+  var groups=[],noRec=[],used={},extra=[];
+  Object.keys(P.map).sort().forEach(function(fold){
+    var arr=P.map[fold].slice().sort(function(a,b){return a.fn<b.fn?-1:(a.fn>b.fn?1:0);});
+    var files=[],seen={};
+    arr.forEach(function(f){
+      if(seen[f.slot]){extra.push({folder:fold,fn:f.fn,slot:f.slot});return;}
+      seen[f.slot]=1;files.push(f);
+    });
+    var k=refNormLab(fold),r=byKey[k];
+    var g={folder:fold,key:k,files:files,rec:r||null};
+    if(r){used[k]=1;groups.push(g);}else noRec.push(g);
+  });
+  var noPhoto=[];
+  recs.forEach(function(r){
+    var k=refNormLab(mnLabel(r));
+    if(k&&!used[k])noPhoto.push({label:mnLabel(r),rec:r});
+  });
+  P.groups=groups;P.noRec=noRec;P.noPhoto=noPhoto;P.extra=extra;P.recCnt=recs.length;
+}
 function refPhotoZip(f){
   if(typeof JSZip==='undefined'){toast('JSZip \ubbf8\ub85c\ub4dc \u2014 \uc0c8\ub85c\uace0\uce68 \ud6c4 \uc7ac\uc2dc\ub3c4');return;}
   if(!state.projectId){toast('\uc0ac\uc5c5\uc744 \uba3c\uc800 \uc120\ud0dd\ud558\uc138\uc694');return;}
   toast('ZIP \uc5b4\ub294 \uc911...');
   JSZip.loadAsync(f).then(function(z){
-    var map={};
+    var map={},skip=[];
     z.forEach(function(path,ent){
       if(ent.dir)return;
       var parts=path.split('/').filter(function(x){return x!=='';});
       if(parts.length<2)return;
-      var fn=parts[parts.length-1], fold=parts[parts.length-2];
+      var fn=parts[parts.length-1],fold=parts[parts.length-2];
       if(/^__MACOSX/.test(path)||/^\./.test(fn))return;
+      if(!/\.(jpe?g|png)$/i.test(fn)){skip.push(fold+'/'+fn);return;}
       var slot=refSlotOf(fn);
-      if(!slot)return;
-      (map[fold]=map[fold]||[]).push({slot:slot,name:path});
+      if(!slot){skip.push(fold+'/'+fn);return;}
+      (map[fold]=map[fold]||[]).push({slot:slot,name:path,fn:fn});
     });
-    var recs=(typeof mnList==='function')?mnList():[];
-    var byKey={};
-    recs.forEach(function(r){
-      if(r&&r.delAt)return;
-      var k=refNormLab(typeof mnLabel==='function'?mnLabel(r):'');
-      if(k)byKey[k]=r;
-    });
-    var groups=[],noRec=[],used={};
-    Object.keys(map).forEach(function(fold){
-      var k=refNormLab(fold), r=byKey[k];
-      var g={folder:fold,key:k,files:map[fold],rec:r||null};
-      if(r){used[k]=1;groups.push(g);}else noRec.push(g);
-    });
-    var noPhoto=[];
-    recs.forEach(function(r){
-      if(r&&r.delAt)return;
-      var k=refNormLab(typeof mnLabel==='function'?mnLabel(r):'');
-      if(k&&!used[k])noPhoto.push({label:(typeof mnLabel==='function'?mnLabel(r):''),rec:r});
-    });
-    REF_PZ={zip:z,groups:groups,noRec:noRec,noPhoto:noPhoto,name:f.name};
+    REF_PZ={zip:z,map:map,name:f.name,skip:skip};
+    refPzMatch();
     refPhotoPreview();
   }).catch(function(e){console.error('refPhotoZip',e);toast('ZIP \uc77d\uae30 \uc2e4\ud328');});
+}
+
+/* 사진 폴더명만으로 야장 생성 (결선이 있으면 좌표도 함께) */
+function refPzCreate(){
+  var P=REF_PZ;if(!P||!P.noRec.length)return;
+  var L=mnList(),n=0,bad=0,base=Date.now();
+  var byK={};(REF.mh||[]).forEach(function(m){if(m.label)byK[refNormLab(m.label)]=m;});
+  P.noRec.forEach(function(g){
+    var p=refMhParse(g.folder);
+    if(!p){bad++;return;}
+    var mh=byK[g.key];
+    L.push({id:'mn'+(base+n),no:p.no,owner:p.owner,ownerC:p.ownerC,
+      dep:'',w12:'',w34:'',topi:'',lid:766,lidRect:'',spec:null,
+      photos:{},pipes:{},refXY:mh?[mh.x,mh.y]:null,at:new Date().toISOString()});
+    n++;
+  });
+  if(n)saveProject();
+  refPzMatch();
+  try{if(typeof refDrawMh==='function')refDrawMh();}catch(e){}
+  toast('\uc57c\uc7a5 '+n+'\uac1c \uc0dd\uc131'+(bad?(' \u00b7 \ubc88\ud638\ud615\uc2dd \uc774\uc0c1 '+bad):''));
+  refPhotoPreview();
 }
 
 /* ---------- 매칭 결과 미리보기 ---------- */
@@ -9868,27 +9895,43 @@ function refPhotoPreview(){
     if(!list.length)return '<div style="color:#bbb;font-size:11.5px;padding:3px 0">\u2014</div>';
     return list.map(fn).join('');
   }
+  var warn='';
+  if(!P.recCnt){
+    warn='<div style="background:#fff8e6;border:1px solid #e3a008;border-radius:10px;padding:11px 13px;margin-bottom:12px;font-size:12px;color:#8a5a00;line-height:1.6">'+
+      '<b>\uc57c\uc7a5\uc774 \ud558\ub098\ub3c4 \uc5c6\uc2b5\ub2c8\ub2e4.</b><br>'+
+      '\uc0ac\uc9c4\uc740 \uc57c\uc7a5\uc5d0 \ubd99\ub294 \uac83\uc774\ub77c \ub9e4\uce6d\ud560 \ub300\uc0c1\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.<br>'+
+      '\uc544\ub798 <b>\uc57c\uc7a5 \uc77c\uad04 \uc0dd\uc131</b>\uc744 \uba3c\uc800 \ub204\ub974\uc138\uc694.</div>';
+  }
   b.innerHTML=
    '<div style="font-size:15px;font-weight:800;color:#222">\ub9e8\ud640\uc0ac\uc9c4 \ub9e4\uce6d \uacb0\uacfc</div>'+
-   '<div style="font-size:11.5px;color:#888;margin:3px 0 12px">'+P.name+'</div>'+
+   '<div style="font-size:11.5px;color:#888;margin:3px 0 12px">'+P.name+' \u00b7 \uc57c\uc7a5 '+P.recCnt+'\uac1c</div>'+
+   warn+
    '<div style="display:flex;gap:7px;margin-bottom:12px">'+
      '<div style="flex:1;background:#eafaf3;border:1px solid #1d9e75;border-radius:9px;padding:8px;text-align:center"><div style="font-size:19px;font-weight:800;color:#0f7a57">'+P.groups.length+'</div><div style="font-size:10.5px;color:#0f7a57">\ub9e4\uce6d \uc644\ub8cc</div></div>'+
      '<div style="flex:1;background:#fff6e9;border:1px solid #e3a008;border-radius:9px;padding:8px;text-align:center"><div style="font-size:19px;font-weight:800;color:#b45309">'+P.noRec.length+'</div><div style="font-size:10.5px;color:#b45309">\uc57c\uc7a5\uc5d0 \uc5c6\uc74c</div></div>'+
      '<div style="flex:1;background:#fdecea;border:1px solid #e74c3c;border-radius:9px;padding:8px;text-align:center"><div style="font-size:19px;font-weight:800;color:#c0392b">'+P.noPhoto.length+'</div><div style="font-size:10.5px;color:#c0392b">\uc0ac\uc9c4 \uc5c6\ub294 \ub9e8\ud640</div></div>'+
    '</div>'+
+   (P.noRec.length?('<button id="refPzGen" style="width:100%;padding:12px;margin-bottom:12px;border:1px solid #d32f2f;background:#fdeaea;color:#c0392b;border-radius:10px;font-size:13.5px;font-weight:800;cursor:pointer">\uc57c\uc7a5 '+P.noRec.length+'\uac1c \uc77c\uad04 \uc0dd\uc131</button>'):'')+
    '<div style="font-size:12px;font-weight:700;color:#0f7a57;margin:8px 0 4px">\u2713 \ub9e4\uce6d \uc644\ub8cc ('+nf+'\uc7a5)</div>'+
    rows(P.groups,function(g){return '<div style="font-size:12px;color:#333;padding:2px 0">'+g.folder+' <span style="color:#999">\u2192 '+g.files.length+'\uc7a5</span></div>';})+
    '<div style="font-size:12px;font-weight:700;color:#b45309;margin:11px 0 4px">\u26a0 \uc57c\uc7a5\uc5d0 \uc5c6\ub294 \ud3f4\ub354</div>'+
    rows(P.noRec,function(g){return '<div style="font-size:12px;color:#333;padding:2px 0">'+g.folder+' <span style="color:#999">('+g.files.length+'\uc7a5)</span></div>';})+
    '<div style="font-size:12px;font-weight:700;color:#c0392b;margin:11px 0 4px">\u25cb \uc0ac\uc9c4 \uc5c6\ub294 \ub9e8\ud640</div>'+
    rows(P.noPhoto,function(g){return '<div style="font-size:12px;color:#333;padding:2px 0">'+g.label+'</div>';})+
+   ((P.extra&&P.extra.length)?('<div style="font-size:12px;font-weight:700;color:#7a52e0;margin:11px 0 4px">\u26a1 \uac19\uc740 \uce78 \uc911\ubcf5 \u2014 \uc55e \uc7a5\ub9cc \uc0ac\uc6a9</div>'+
+     rows(P.extra,function(x){return '<div style="font-size:11.5px;color:#666;padding:1px 0">'+x.folder+'/'+x.fn+' <span style="color:#aaa">('+x.slot+' \uc81c\uc678)</span></div>';})):'')+
+   ((P.skip&&P.skip.length)?('<div style="font-size:12px;font-weight:700;color:#999;margin:11px 0 4px">\u2013 \uc81c\uc678\ub41c \ud30c\uc77c '+P.skip.length+'\uac1c</div>'+
+     '<div style="font-size:11px;color:#aaa">'+P.skip.slice(0,6).join(', ')+(P.skip.length>6?' \u2026':'')+'</div>'):'')+
    '<div style="display:flex;gap:8px;margin-top:15px">'+
-     '<button id="refPzGo" style="flex:2;padding:11px;border:1px solid #1d9e75;background:#eafaf3;color:#0f7a57;border-radius:9px;font-size:13px;font-weight:800;cursor:pointer">\uc5c5\ub85c\ub4dc \uc2dc\uc791 ('+nf+'\uc7a5)</button>'+
-     '<button id="refPzX" style="flex:1;padding:11px;border:none;background:#f2f2f2;color:#555;border-radius:9px;font-size:13px;cursor:pointer">\ucde8\uc18c</button>'+
+     '<button id="refPzGo" style="flex:2;padding:11px;border:1px solid #1d9e75;background:#eafaf3;color:#0f7a57;border-radius:9px;font-size:13px;font-weight:800;cursor:'+(nf?'pointer':'not-allowed')+';opacity:'+(nf?1:.45)+'">\uc5c5\ub85c\ub4dc \uc2dc\uc791 ('+nf+'\uc7a5)</button>'+
+     '<button id="refPzX" style="flex:1;padding:11px;border:none;background:#f2f2f2;color:#555;border-radius:9px;font-size:13px;cursor:pointer">\ub2eb\uae30</button>'+
    '</div>';
   w.appendChild(b);document.body.appendChild(w);
+  w.addEventListener('click',function(ev){if(ev.target===w)w.remove();});
   document.getElementById('refPzX').onclick=function(){w.remove();};
-  document.getElementById('refPzGo').onclick=function(){w.remove();refPhotoUpload();};
+  var gb=document.getElementById('refPzGen');
+  if(gb)gb.onclick=function(){w.remove();refPzCreate();};
+  document.getElementById('refPzGo').onclick=function(){if(!nf)return;w.remove();refPhotoUpload();};
 }
 
 /* ---------- 업로드 ---------- */
