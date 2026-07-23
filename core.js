@@ -7080,7 +7080,13 @@ function mnEfbGen(rec){
         var tip,lsx,lst,lstep;
         /* [1026] 라벨·화살표는 팔 바깥 모서리 기준 (샘플: 위+441 / 아래-450). 관 묶음 고정거리 방식은 몸체가 길면 팔 안으로 들어감 */
         if(w==='p1'){tip=[ccx-438,y1+441];out+=eArrow(tip[0],tip[1],0.5,90);lst=[tip[0]-40,tip[1]+165];lstep=131;}
-        else if(w==='p2'){tip=[ccx+399,y0-450];out+=eArrow(tip[0],tip[1],-0.5,90);lst=[tip[0]+24,tip[1]-164];lstep=-131;}
+        else if(w==='p2'){
+          /* [1027] 우측 세로 치수선(x1+107·연장선 x1+157)과 겹침 방지: 라벨 왼끝이 x1+382 이상 */
+          var _mw=0;dias.forEach(function(dv){_mw=Math.max(_mw,('FC\u00d8'+dv+'X'+agg[dv].n+'('+agg[dv].f+')').length);});
+          var _half=_mw*39.5;
+          tip=[ccx+399,y0-450];out+=eArrow(tip[0],tip[1],-0.5,90);
+          lst=[Math.max(tip[0]+24,x1+382+_half),tip[1]-164];lstep=-131;
+        }
         else if(w==='p3'){tip=[x1+441,ccy+399];out+=eArrow(tip[0],tip[1],-0.5,180);lst=[tip[0]+320,tip[1]+164];lstep=131;}
         else{tip=[x1+441,ccy-399];out+=eArrow(tip[0],tip[1],0.5,180);lst=[tip[0]+320,tip[1]-164];lstep=-131;}
         dias.forEach(function(dv,i){
@@ -7603,7 +7609,7 @@ function mnOpenForm(rec){
       +dimRange(250,288,390,288,'#2471a3')+dimSpot(396,278,'w34','폭',46)
       +dimRange(240,235,240,280,'#e67e22')+dimSpot(188,247,'topi','토피',46)
       +dimRange(240,280,240,430,'#e74c3c')+dimSpot(188,344,'dep','깊이',46)
-      +dimRange(106,430,106,570,'#8e44ad')+dimSpot(34,442,'w12','폭',46)
+      +dimRange(106,430,106,570,'#8e44ad')+dimSpot(34,409,'w12','폭',46)
       +'<rect x="250" y="430" width="140" height="140" fill="rgba(0,0,0,0)" data-act="ph" data-s="fr" style="cursor:pointer"/>'
       +'<rect x="250" y="235" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p3" style="cursor:pointer"/>'
       +'<rect x="250" y="570" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p4" style="cursor:pointer"/>'
