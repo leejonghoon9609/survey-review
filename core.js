@@ -9694,42 +9694,225 @@ function refFit(){
   if(typeof fixAspect==='function')fixAspect();
   if(typeof applyVB==='function')applyVB();
 }
+/* ===== [BUILD 1036] 드롭박스 모달 + 맨홀사진 ZIP 일괄 로딩 ===== */
 
-/* ---------- 모달 ---------- */
+/* 맨홀 라벨 정규화 — 번호+소유자만 뽑아 비교 (신설/기설 접두·특이사항 무시) */
+function refNormLab(s){
+  s=String(s==null?'':s).replace(/\s+/g,'');
+  var m=s.match(/(\d+[A-Za-z]*)\(([^)]*)\)/);
+  if(m)return (m[1]+'|'+m[2]).toUpperCase();
+  return s.toUpperCase();
+}
+function refSlotOf(fn){
+  var b=String(fn||'').replace(/\.[^.]*$/,'').trim();
+  if(b==='1')return 'fr';
+  if(b==='2-1')return 'p1';
+  if(b==='2-2')return 'p2';
+  if(b==='2-3')return 'p3';
+  if(b==='2-4')return 'p4';
+  if(b==='\ud45c\ucc30'||b==='0')return 'bd';
+  return null;
+}
+
+/* ---------- ZIP 구조 분석 + 야장 매칭 ---------- */
+var REF_PZ=null;   /* {zip, groups:[{folder,key,files:[{slot,name}],rec}], noRec:[], noPhoto:[]} */
+function refPhotoZip(f){
+  if(typeof JSZip==='undefined'){toast('JSZip \ubbf8\ub85c\ub4dc \u2014 \uc0c8\ub85c\uace0\uce68 \ud6c4 \uc7ac\uc2dc\ub3c4');return;}
+  if(!state.projectId){toast('\uc0ac\uc5c5\uc744 \uba3c\uc800 \uc120\ud0dd\ud558\uc138\uc694');return;}
+  toast('ZIP \uc5b4\ub294 \uc911...');
+  JSZip.loadAsync(f).then(function(z){
+    var map={};
+    z.forEach(function(path,ent){
+      if(ent.dir)return;
+      var parts=path.split('/').filter(function(x){return x!=='';});
+      if(parts.length<2)return;
+      var fn=parts[parts.length-1], fold=parts[parts.length-2];
+      if(/^__MACOSX/.test(path)||/^\./.test(fn))return;
+      var slot=refSlotOf(fn);
+      if(!slot)return;
+      (map[fold]=map[fold]||[]).push({slot:slot,name:path});
+    });
+    var recs=(typeof mnList==='function')?mnList():[];
+    var byKey={};
+    recs.forEach(function(r){
+      if(r&&r.delAt)return;
+      var k=refNormLab(typeof mnLabel==='function'?mnLabel(r):'');
+      if(k)byKey[k]=r;
+    });
+    var groups=[],noRec=[],used={};
+    Object.keys(map).forEach(function(fold){
+      var k=refNormLab(fold), r=byKey[k];
+      var g={folder:fold,key:k,files:map[fold],rec:r||null};
+      if(r){used[k]=1;groups.push(g);}else noRec.push(g);
+    });
+    var noPhoto=[];
+    recs.forEach(function(r){
+      if(r&&r.delAt)return;
+      var k=refNormLab(typeof mnLabel==='function'?mnLabel(r):'');
+      if(k&&!used[k])noPhoto.push({label:(typeof mnLabel==='function'?mnLabel(r):''),rec:r});
+    });
+    REF_PZ={zip:z,groups:groups,noRec:noRec,noPhoto:noPhoto,name:f.name};
+    refPhotoPreview();
+  }).catch(function(e){console.error('refPhotoZip',e);toast('ZIP \uc77d\uae30 \uc2e4\ud328');});
+}
+
+/* ---------- 매칭 결과 미리보기 ---------- */
+function refPhotoPreview(){
+  var P=REF_PZ;if(!P)return;
+  var old=document.getElementById('refPzModal');if(old)old.remove();
+  var nf=0;P.groups.forEach(function(g){nf+=g.files.length;});
+  var w=document.createElement('div');w.id='refPzModal';
+  w.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.34);z-index:100000;display:flex;align-items:center;justify-content:center';
+  var b=document.createElement('div');
+  b.style.cssText='background:#fff;border-radius:14px;padding:17px 19px 15px;width:min(560px,92vw);max-height:84vh;overflow:auto;box-shadow:0 12px 44px rgba(0,0,0,.3)';
+  function rows(list,fn){
+    if(!list.length)return '<div style="color:#bbb;font-size:11.5px;padding:3px 0">\u2014</div>';
+    return list.map(fn).join('');
+  }
+  b.innerHTML=
+   '<div style="font-size:15px;font-weight:800;color:#222">\ub9e8\ud640\uc0ac\uc9c4 \ub9e4\uce6d \uacb0\uacfc</div>'+
+   '<div style="font-size:11.5px;color:#888;margin:3px 0 12px">'+P.name+'</div>'+
+   '<div style="display:flex;gap:7px;margin-bottom:12px">'+
+     '<div style="flex:1;background:#eafaf3;border:1px solid #1d9e75;border-radius:9px;padding:8px;text-align:center"><div style="font-size:19px;font-weight:800;color:#0f7a57">'+P.groups.length+'</div><div style="font-size:10.5px;color:#0f7a57">\ub9e4\uce6d \uc644\ub8cc</div></div>'+
+     '<div style="flex:1;background:#fff6e9;border:1px solid #e3a008;border-radius:9px;padding:8px;text-align:center"><div style="font-size:19px;font-weight:800;color:#b45309">'+P.noRec.length+'</div><div style="font-size:10.5px;color:#b45309">\uc57c\uc7a5\uc5d0 \uc5c6\uc74c</div></div>'+
+     '<div style="flex:1;background:#fdecea;border:1px solid #e74c3c;border-radius:9px;padding:8px;text-align:center"><div style="font-size:19px;font-weight:800;color:#c0392b">'+P.noPhoto.length+'</div><div style="font-size:10.5px;color:#c0392b">\uc0ac\uc9c4 \uc5c6\ub294 \ub9e8\ud640</div></div>'+
+   '</div>'+
+   '<div style="font-size:12px;font-weight:700;color:#0f7a57;margin:8px 0 4px">\u2713 \ub9e4\uce6d \uc644\ub8cc ('+nf+'\uc7a5)</div>'+
+   rows(P.groups,function(g){return '<div style="font-size:12px;color:#333;padding:2px 0">'+g.folder+' <span style="color:#999">\u2192 '+g.files.length+'\uc7a5</span></div>';})+
+   '<div style="font-size:12px;font-weight:700;color:#b45309;margin:11px 0 4px">\u26a0 \uc57c\uc7a5\uc5d0 \uc5c6\ub294 \ud3f4\ub354</div>'+
+   rows(P.noRec,function(g){return '<div style="font-size:12px;color:#333;padding:2px 0">'+g.folder+' <span style="color:#999">('+g.files.length+'\uc7a5)</span></div>';})+
+   '<div style="font-size:12px;font-weight:700;color:#c0392b;margin:11px 0 4px">\u25cb \uc0ac\uc9c4 \uc5c6\ub294 \ub9e8\ud640</div>'+
+   rows(P.noPhoto,function(g){return '<div style="font-size:12px;color:#333;padding:2px 0">'+g.label+'</div>';})+
+   '<div style="display:flex;gap:8px;margin-top:15px">'+
+     '<button id="refPzGo" style="flex:2;padding:11px;border:1px solid #1d9e75;background:#eafaf3;color:#0f7a57;border-radius:9px;font-size:13px;font-weight:800;cursor:pointer">\uc5c5\ub85c\ub4dc \uc2dc\uc791 ('+nf+'\uc7a5)</button>'+
+     '<button id="refPzX" style="flex:1;padding:11px;border:none;background:#f2f2f2;color:#555;border-radius:9px;font-size:13px;cursor:pointer">\ucde8\uc18c</button>'+
+   '</div>';
+  w.appendChild(b);document.body.appendChild(w);
+  document.getElementById('refPzX').onclick=function(){w.remove();};
+  document.getElementById('refPzGo').onclick=function(){w.remove();refPhotoUpload();};
+}
+
+/* ---------- 업로드 ---------- */
+function refPhotoUpload(){
+  var P=REF_PZ;if(!P||!P.groups.length){toast('\uc5c5\ub85c\ub4dc\ud560 \uc0ac\uc9c4 \uc5c6\uc74c');return;}
+  if(!online){toast('\uc624\ud504\ub77c\uc778 \u2014 \uc5c5\ub85c\ub4dc \ubd88\uac00');return;}
+  var jobs=[];
+  P.groups.forEach(function(g){
+    g.files.forEach(function(f){jobs.push({rec:g.rec,slot:f.slot,name:f.name,folder:g.folder});});
+  });
+  var dup=jobs.filter(function(j){return j.rec.photos&&j.rec.photos[j.slot];});
+  var ov=document.createElement('div');ov.id='refPgOv';
+  ov.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:100001;display:flex;align-items:center;justify-content:center';
+  ov.innerHTML='<div style="background:#fff;border-radius:14px;padding:20px 24px;min-width:300px;text-align:center;box-shadow:0 12px 44px rgba(0,0,0,.3)">'+
+    '<div id="refPgT" style="font-size:14px;font-weight:800;color:#222;margin-bottom:9px">\uc0ac\uc9c4 \uc5c5\ub85c\ub4dc \uc911...</div>'+
+    '<div style="background:#eee;border-radius:6px;height:9px;overflow:hidden"><div id="refPgB" style="background:#1d9e75;height:100%;width:0%"></div></div>'+
+    '<div id="refPgS" style="font-size:11.5px;color:#888;margin-top:8px">0 / '+jobs.length+'</div>'+
+    '<button id="refPgC" style="margin-top:13px;padding:7px 18px;border:1px solid #ddd;background:#fff;color:#666;border-radius:8px;font-size:12px;cursor:pointer">\uc911\ub2e8</button></div>';
+  function start(over){
+    document.body.appendChild(ov);
+    var stop=false,i=0,okn=0,skip=0,err=0,touched={};
+    document.getElementById('refPgC').onclick=function(){stop=true;};
+    function fin(){
+      Object.keys(touched).forEach(function(k){try{mnPersistRec(touched[k]);}catch(e){}});
+      ov.remove();
+      toast('\uc0ac\uc9c4 \uc644\ub8cc \u2014 \uc131\uacf5 '+okn+' \u00b7 \uac74\ub108\ub700 '+skip+' \u00b7 \uc2e4\ud328 '+err);
+      if(typeof mnRefreshPhotos==='function'){try{mnRefreshPhotos();}catch(e){}}
+    }
+    function next(){
+      if(stop||i>=jobs.length){fin();return;}
+      var j=jobs[i++];
+      var pc=Math.round(i*100/jobs.length);
+      var pb=document.getElementById('refPgB'),ps=document.getElementById('refPgS'),pt=document.getElementById('refPgT');
+      if(pb)pb.style.width=pc+'%';
+      if(ps)ps.textContent=i+' / '+jobs.length;
+      if(pt)pt.textContent=j.folder+' \u00b7 '+j.slot;
+      if(!over&&j.rec.photos&&j.rec.photos[j.slot]){skip++;setTimeout(next,0);return;}
+      REF_PZ.zip.file(j.name).async('blob').then(function(raw){
+        return compressImage(raw,1280,0.7);
+      }).then(function(blob){
+        return new Promise(function(res){
+          var im=new Image();im.onload=function(){var p=(im.naturalHeight>im.naturalWidth);URL.revokeObjectURL(im.src);res({blob:blob,portrait:p});};
+          im.onerror=function(){res({blob:blob,portrait:false});};im.src=URL.createObjectURL(blob);
+        });
+      }).then(function(fx){
+        var r=j.rec;
+        if(!r.rotP)r.rotP={};
+        if(fx.portrait)r.rotP[j.slot]=1;else delete r.rotP[j.slot];
+        var path=state.projectId+'/mh_'+r.id+'_'+j.slot+'.jpg';
+        return sb.storage.from('photos').upload(path,fx.blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
+          if(up.error)throw up.error;
+          var url=sb.storage.from('photos').getPublicUrl(path).data.publicUrl+'?t='+Date.now();
+          if(!r.photos)r.photos={};
+          r.photos[j.slot]=url;
+          touched[r.id]=r;okn++;
+        });
+      }).catch(function(e){console.error('refPhoto',j.name,e);err++;}).then(function(){setTimeout(next,0);});
+    }
+    next();
+  }
+  if(dup.length){
+    if(confirm('\uc774\ubbf8 \uc0ac\uc9c4\uc774 \uc788\ub294 \uce78\uc774 '+dup.length+'\uac1c \uc785\ub2c8\ub2e4.\n\n\ud655\uc778 = \ub36e\uc5b4\uc4f0\uae30 / \ucde8\uc18c = \uac74\ub108\ub6f0\uae30'))start(true);
+    else start(false);
+  }else start(false);
+}
+
+/* ---------- 드롭박스 모달 ---------- */
+function refBox(id,icon,title,sub,accept,onfile){
+  return '<div id="'+id+'" data-acc="'+accept+'" style="flex:1;border:2px dashed #cbd5e1;border-radius:12px;padding:18px 10px;text-align:center;cursor:pointer;background:#fbfcfe;transition:.12s">'+
+    '<div style="font-size:26px;line-height:1.1">'+icon+'</div>'+
+    '<div style="font-size:13px;font-weight:800;color:#334155;margin-top:7px">'+title+'</div>'+
+    '<div style="font-size:10.5px;color:#94a3b8;margin-top:4px;line-height:1.5">'+sub+'</div></div>';
+}
+function refWire(id,accept,onfile){
+  var z=document.getElementById(id);if(!z)return;
+  function hi(on){z.style.borderColor=on?'#1d9e75':'#cbd5e1';z.style.background=on?'#eafaf3':'#fbfcfe';}
+  z.addEventListener('dragover',function(e){e.preventDefault();e.stopPropagation();hi(true);});
+  z.addEventListener('dragleave',function(e){e.preventDefault();e.stopPropagation();hi(false);});
+  z.addEventListener('drop',function(e){
+    e.preventDefault();e.stopPropagation();hi(false);
+    var fs=e.dataTransfer&&e.dataTransfer.files;
+    if(fs&&fs.length){var m=document.getElementById('refModal');if(m)m.remove();onfile(fs[0]);}
+  });
+  z.addEventListener('click',function(){
+    var fi=document.createElement('input');fi.type='file';fi.accept=accept;fi.style.display='none';
+    document.body.appendChild(fi);
+    fi.addEventListener('change',function(ev){
+      var f=ev.target.files&&ev.target.files[0];fi.remove();
+      if(f){var m=document.getElementById('refModal');if(m)m.remove();onfile(f);}
+    });
+    fi.click();
+  });
+}
 function refOpen(){
   var old=document.getElementById('refModal');if(old)old.remove();
   var w=document.createElement('div');w.id='refModal';
   w.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.32);z-index:99998;display:flex;align-items:center;justify-content:center';
   var b=document.createElement('div');
-  b.style.cssText='background:#fff;border-radius:14px;padding:18px 20px 16px;min-width:330px;box-shadow:0 12px 44px rgba(0,0,0,.28)';
+  b.style.cssText='background:#fff;border-radius:14px;padding:18px 20px 16px;width:min(520px,93vw);box-shadow:0 12px 44px rgba(0,0,0,.28)';
   var st=REF.ents?('\ud604\uc7ac: '+REF.name+' \u00b7 '+REF.cnt+'\uac1c \ud45c\uc2dc \uc911'):'\ubd88\ub7ec\uc628 \uacb0\uc120 \uc5c6\uc74c';
   b.innerHTML=
     '<div style="font-size:15px;font-weight:800;color:#222;margin-bottom:3px">\uc644\ub8cc\uacb0\uc120 \uc5c5\ub85c\ub4dc</div>'+
-    '<div id="refSt" style="font-size:11.5px;color:#888;margin-bottom:13px">'+st+'</div>'+
-    '<button id="refB1" style="width:100%;padding:11px;margin-bottom:8px;border:1px solid #1d9e75;background:#eafaf3;color:#0f7a57;border-radius:9px;font-size:13.5px;font-weight:700;cursor:pointer">\ud83d\udcd0 \uacb0\uc120 DXF \ubd88\ub7ec\uc624\uae30</button>'+
-    '<button id="refB2" style="width:100%;padding:11px;margin-bottom:8px;border:1px solid #ddd;background:#fafafa;color:#aaa;border-radius:9px;font-size:13.5px;font-weight:700;cursor:not-allowed">\ud83d\uddbc \ub9e8\ud640\uc0ac\uc9c4 ZIP \ubd88\ub7ec\uc624\uae30 (\ub2e4\uc74c \ube4c\ub4dc)</button>'+
-    (REF.ents?('<div style="display:flex;gap:7px;margin-top:4px">'+
+    '<div style="font-size:11.5px;color:#888;margin-bottom:14px">'+st+'</div>'+
+    '<div style="display:flex;gap:11px">'+
+      refBox('refZ1','\ud83d\udcd0','\uacb0\uc120 DXF','\ud074\ub9ad \ub610\ub294<br>\uc5ec\uae30\uc5d0 \ub04c\uc5b4\ub2e4 \ub193\uae30','.dxf')+
+      refBox('refZ2','\ud83d\uddbc\ufe0f','\ub9e8\ud640\uc0ac\uc9c4 ZIP','\uc0ac\uc5c5\uba85/\ub9e8\ud640\ubc88\ud638(\uc18c\uc720\uc790)/1.jpg','.zip')+
+    '</div>'+
+    (REF.ents?('<div style="display:flex;gap:7px;margin-top:13px">'+
       '<button id="refB3" style="flex:1;padding:9px;border:1px solid #bbb;background:#fff;color:#444;border-radius:8px;font-size:12.5px;cursor:pointer">'+(REF.on?'\ud45c\uc2dc \ub044\uae30':'\ud45c\uc2dc \ucf1c\uae30')+'</button>'+
-      '<button id="refB4" style="flex:1;padding:9px;border:1px solid #f0c4c4;background:#fff;color:#d32f2f;border-radius:8px;font-size:12.5px;cursor:pointer">\uc81c\uac70</button>'+
-      '<button id="refB5" style="flex:1;padding:9px;border:1px solid #bbb;background:#fff;color:#444;border-radius:8px;font-size:12.5px;cursor:pointer">\uc804\uccb4\ubcf4\uae30</button></div>'):'')+
-    '<button id="refBx" style="width:100%;padding:9px;margin-top:11px;border:none;background:#f2f2f2;color:#555;border-radius:8px;font-size:12.5px;cursor:pointer">\ub2eb\uae30</button>';
+      '<button id="refB5" style="flex:1;padding:9px;border:1px solid #bbb;background:#fff;color:#444;border-radius:8px;font-size:12.5px;cursor:pointer">\uc804\uccb4\ubcf4\uae30</button>'+
+      '<button id="refB4" style="flex:1;padding:9px;border:1px solid #f0c4c4;background:#fff;color:#d32f2f;border-radius:8px;font-size:12.5px;cursor:pointer">\uc81c\uac70</button></div>'):'')+
+    '<button id="refBx" style="width:100%;padding:9px;margin-top:12px;border:none;background:#f2f2f2;color:#555;border-radius:8px;font-size:12.5px;cursor:pointer">\ub2eb\uae30</button>';
   w.appendChild(b);document.body.appendChild(w);
-  function close(){w.remove();}
-  w.addEventListener('click',function(ev){if(ev.target===w)close();});
-  document.getElementById('refBx').onclick=close;
-  document.getElementById('refB1').onclick=function(){
-    var fi=document.createElement('input');fi.type='file';fi.accept='.dxf';fi.style.display='none';
-    document.body.appendChild(fi);
-    fi.addEventListener('change',function(ev){
-      var f=ev.target.files&&ev.target.files[0];fi.remove();close();
-      if(f)refLoadDxfFile(f);
-    });
-    fi.click();
-  };
+  w.addEventListener('click',function(ev){if(ev.target===w)w.remove();});
+  w.addEventListener('dragover',function(e){e.preventDefault();});
+  w.addEventListener('drop',function(e){e.preventDefault();});
+  document.getElementById('refBx').onclick=function(){w.remove();};
+  refWire('refZ1','.dxf',refLoadDxfFile);
+  refWire('refZ2','.zip',refPhotoZip);
   var b3=document.getElementById('refB3');
-  if(b3)b3.onclick=function(){REF.on=!REF.on;refDraw();close();toast(REF.on?'\uacb0\uc120 \ud45c\uc2dc':'\uacb0\uc120 \uc228\uae40');};
+  if(b3)b3.onclick=function(){REF.on=!REF.on;refDraw();w.remove();toast(REF.on?'\uacb0\uc120 \ud45c\uc2dc':'\uacb0\uc120 \uc228\uae40');};
   var b4=document.getElementById('refB4');
-  if(b4)b4.onclick=function(){REF.ents=null;REF.mh=null;REF.name='';refClear();close();toast('\uacb0\uc120 \uc81c\uac70\ub428');};
+  if(b4)b4.onclick=function(){refReset();w.remove();toast('\uacb0\uc120 \uc81c\uac70\ub428');};
   var b5=document.getElementById('refB5');
-  if(b5)b5.onclick=function(){refFit();close();};
+  if(b5)b5.onclick=function(){refFit();w.remove();};
 }

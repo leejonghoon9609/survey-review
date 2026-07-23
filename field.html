@@ -215,12 +215,13 @@
   .jz-link.off{border-color:#9ca3af;background:#f3f4f6;color:#6b7280}
   .jz-done{background:#eef2ff;border:1px solid #4f46e5;color:#4f46e5;border-radius:7px;padding:4px 10px;font-weight:700;cursor:pointer}
   .jz-done.on{background:#16a34a;border-color:#16a34a;color:#fff}
-  .fbtn{background:#fff;border:1.5px solid #cfd8e3;color:#33415a;border-radius:9px;padding:9px 14px;font-size:13.5px;font-weight:700;cursor:pointer;box-shadow:0 2px 9px rgba(0,0,0,.12)}
+  .fbtn{background:#fff;border:1.5px solid #cfd8e3;color:#33415a;border-radius:8px;padding:6px 9px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 2px 9px rgba(0,0,0,.12)}
   .fbtn:hover{filter:brightness(.97)}
   #fldCsv{background:#eff4ff;border-color:#3b82f6;color:#2563eb}
   #fldJoseo{background:#e7faf5;border-color:#0d9488;color:#0d9488}
   #fldManhole{background:#fff7e6;border-color:#e3a008;color:#b45309}
   #fldRefLoad{background:#eef4ff;border-color:#3b6fd4;color:#1f4fa8;font-weight:700}
+  #fldReg{background:#f3fbf6;border-color:#1d9e75;color:#0f7a57;font-weight:700}
   .fbtn.done{background:#eafaf0!important;border-color:#16a34a!important;color:#16a34a!important}
   .fbtn-final{background:#eef2ff;border-color:#4f46e5;color:#4f46e5}
   .fbtn-final:hover{filter:brightness(.97)}
@@ -330,7 +331,7 @@
   .lvchk{display:inline-flex;align-items:center;gap:3px;font-size:12px;color:#444;font-weight:600;white-space:nowrap;cursor:pointer;margin:0 2px}
   .lvchk input{cursor:pointer;margin:0}
 
-/* ===== [BUILD 1035] 현장 모바일 헤더 3단 (실시간측량 틀) ===== */
+/* ===== [BUILD 1036] 현장 모바일 헤더 3단 (실시간측량 틀) ===== */
 .hdr-break{display:none}
 @media(max-width:760px){
   header{row-gap:5px!important;column-gap:5px!important;padding:6px 8px!important}
@@ -375,7 +376,7 @@
     </span>
     <div id="fieldBar" style="order:3;flex:1;min-width:0;display:none;gap:8px;align-items:center;flex-wrap:wrap">
       <button class="fbtn" id="fldSave">💾 저장</button>
-      <button class="fbtn" id="fldReg" style="display:none">탐사사업등록</button>
+      <button class="fbtn" id="fldReg">✚ 사업등록</button>
       <button class="fbtn" id="fldDel" style="color:#d32f2f;border-color:#f0c4c4">🗑 사업 삭제</button>
       <button class="fbtn" id="fldCsv">후측량 csv</button>
       <button class="fbtn" id="fldJoseo">실시간 사진조서</button>
@@ -395,7 +396,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 1035</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 1036</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -558,6 +559,6 @@
     </div>
   </div>
 
-<script src="login.js?v=1035"></script><script src="core.js?v=1035"></script>
+<script src="login.js?v=1036"></script><script src="core.js?v=1036"></script>
 </body>
 </html>
