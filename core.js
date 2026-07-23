@@ -5757,7 +5757,7 @@ function pickProject(id){ if(!id)return;
     });
   });
 }
-function _loadProjectRaw(id,ro,cb){ if(!online||!id)return; setReadOnly(!!ro);state._tgCmpRemote=null;state._tgCmpRemoteOrig=null;
+function _loadProjectRaw(id,ro,cb){ if(!online||!id)return; try{if(typeof mnCloseAll==='function')mnCloseAll();}catch(e){} setReadOnly(!!ro);state._tgCmpRemote=null;state._tgCmpRemoteOrig=null;
   sb.from(DB+'_projects').select('*').eq('id',id).single().then(function(res){
     if(res.error||!res.data){toast('불러오기 실패');return;}if(typeof _tgStageBackup==='function'&&state.tgStore&&(state._pointsOrig||state._linesOrig||state._depthOrig))_tgStageBackup();if(typeof _tgStageOut==='function')_tgStageOut();var _xp=document.getElementById('tangoPanel');if(_xp)_xp.style.display='none';var _xi=document.getElementById('tgInfoPanel');if(_xi)_xi.style.display='none';if(typeof tgPanelLayout==='function')tgPanelLayout(false);if(typeof tgUpdateBtn==='function')tgUpdateBtn(false);if(typeof tgSeg!=='undefined')tgSeg=-1;if(typeof _segFix!=='undefined')_segFix=null;if(typeof _tgSegs!=='undefined')_tgSegs=null;if(typeof mode!=='undefined'&&mode&&mode.indexOf('tg')===0){mode='pan';if(typeof setModeUI==='function')setModeUI();}state.tgSegLabelOff={};['tgSegHLG','tgSegHLF','tgSegHL'].forEach(function(_xid){var _xe=document.getElementById(_xid);if(_xe)_xe.remove();});
     var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;state.loadedStage=p.stage||'survey';state._importSrc=[];
@@ -6741,6 +6741,13 @@ function mnHostOpen(){
   return pn;
 }
 function mnHostClose(){var pn=document.getElementById('mnPanel');if(pn){pn.classList.remove('open');pn.style.display='none';pn.innerHTML='';}}
+/* [1030] 사업 전환 시 맨홀야장 UI 전부 닫기 — 이전 사업 내용이 화면에 남아 혼동되는 문제 방지 */
+function mnCloseAll(){
+  try{mnHostClose();}catch(e){}
+  ['mnFormModal','mnListModal','mnPipeModal','mnTrashModal','mnSpecModal','mnAskModal'].forEach(function(id){
+    var el=document.getElementById(id);if(el)el.remove();
+  });
+}
 /* [1012] 삭제목록(7일 휴지통) — 남은 일수 표시 + 복원 */
 function mnTrashList(afterClose){
   var old=document.getElementById('mnTrashModal');if(old)old.remove();
