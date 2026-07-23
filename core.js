@@ -5762,7 +5762,7 @@ function _loadProjectRaw(id,ro,cb){ if(!online||!id)return; try{if(typeof mnClos
     if(res.error||!res.data){toast('불러오기 실패');return;}if(typeof _tgStageBackup==='function'&&state.tgStore&&(state._pointsOrig||state._linesOrig||state._depthOrig))_tgStageBackup();if(typeof _tgStageOut==='function')_tgStageOut();var _xp=document.getElementById('tangoPanel');if(_xp)_xp.style.display='none';var _xi=document.getElementById('tgInfoPanel');if(_xi)_xi.style.display='none';if(typeof tgPanelLayout==='function')tgPanelLayout(false);if(typeof tgUpdateBtn==='function')tgUpdateBtn(false);if(typeof tgSeg!=='undefined')tgSeg=-1;if(typeof _segFix!=='undefined')_segFix=null;if(typeof _tgSegs!=='undefined')_tgSegs=null;if(typeof mode!=='undefined'&&mode&&mode.indexOf('tg')===0){mode='pan';if(typeof setModeUI==='function')setModeUI();}state.tgSegLabelOff={};['tgSegHLG','tgSegHLF','tgSegHL'].forEach(function(_xid){var _xe=document.getElementById(_xid);if(_xe)_xe.remove();});
     var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;state.loadedStage=p.stage||'survey';state._importSrc=[];
     state.points=p.points||[];state.gpsPts=p.gpsPts||[];state.tangoEdit=p.tangoEdit||null;if(p.tangoManual)state.tangoManual=p.tangoManual;state.tgStore=p.tgStore||null;if(!state.tgStore&&(p.tangoEdit||p.tangoManual)){state.tgStore={tango:{edit:p.tangoEdit,manual:p.tangoManual||{},segDel:{}}};}_tgCtx='tango';state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.bpzones=p.bpzones||[];state.roadZones=p.roadZones||[];state.depthCheck=p.depthCheck||[];if(typeof classifyRoad==='function')classifyRoad();state.depthGround=p.depthGround||null;state._depthAlign=null;state.titleBlock=p.titleBlock||null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.asbuilt=p.asbuilt||null;state.rtDone=p.rtDone||null;state.mnList=p.mnList||[];state._trash=p.trash||[];if(typeof rtPurgeTrash==='function')setTimeout(rtPurgeTrash,800);state.nightShift=p.nightShift||null;state.fieldDone=p.fieldDone||null;state.tamsa=!!p.tamsa;state.finalCsv=p.finalCsv?(Array.isArray(p.finalCsv)?p.finalCsv:[p.finalCsv]):[];state.bizInfo=p.bizInfo||null;
-    selNum=null;clearSvg(gSel);try{if(state.finalCsv&&state.finalCsv.length&&typeof finalCsvDepthSync==='function')finalCsvDepthSync();if(state.depthGround&&state.depthGround.length&&typeof computeDepth==='function')computeDepth();}catch(e){}try{mergeAftMh();}catch(_me){}if(state.tamsa&&typeof buildTamsaMh==='function')try{buildTamsaMh();}catch(_te){}if(typeof IS_TANGO!=='undefined'&&IS_TANGO&&state.tangoEdit){if(!state.tangoEdit.lines)state.tangoEdit.lines=JSON.parse(JSON.stringify(state.lines||[]));if(!state.tangoEdit.points)state.tangoEdit.points=JSON.parse(JSON.stringify(state.points||[]));if(!state.tangoEdit.depthByNo)state.tangoEdit.depthByNo={};}drawGeo();drawMarks();drawManholes();try{fitView();}catch(_e0){}updMeta();loadPhotos();fitSoon();if(typeof refreshFieldBar==='function')refreshFieldBar();toast('현장 불러옴: '+res.data.name);
+    selNum=null;clearSvg(gSel);try{if(state.finalCsv&&state.finalCsv.length&&typeof finalCsvDepthSync==='function')finalCsvDepthSync();if(state.depthGround&&state.depthGround.length&&typeof computeDepth==='function')computeDepth();}catch(e){}try{mergeAftMh();}catch(_me){}if(state.tamsa&&typeof buildTamsaMh==='function')try{buildTamsaMh();}catch(_te){}if(typeof IS_TANGO!=='undefined'&&IS_TANGO&&state.tangoEdit){if(!state.tangoEdit.lines)state.tangoEdit.lines=JSON.parse(JSON.stringify(state.lines||[]));if(!state.tangoEdit.points)state.tangoEdit.points=JSON.parse(JSON.stringify(state.points||[]));if(!state.tangoEdit.depthByNo)state.tangoEdit.depthByNo={};}drawGeo();drawMarks();drawManholes();try{fitView();}catch(_e0){}updMeta();loadPhotos();fitSoon();if(typeof refreshFieldBar==='function')refreshFieldBar();toast('현장 불러옴: '+res.data.name);try{if(typeof refCloudLoad==='function')refCloudLoad();}catch(_re){}
     var vs=document.getElementById('vproj');if(vs)vs.value=res.data.id;
     if(viewerMode&&!IS_FIELD)setTimeout(function(){openPhotoPanel(true);},150);
     try{toolsOpen=false;inspmkOpen=false;activeCat='pan';if(typeof renderRail==='function')renderRail();if(typeof renderSub==='function')renderSub();}catch(_e){}if(typeof cb==='function')cb();
@@ -9704,6 +9704,59 @@ function refExtractMh(){
 }
 
 /* ---------- 로딩 ---------- */
+/* [BUILD 1038] \ud30c\uc2f1\u00b7\uc801\uc6a9 \uacf5\ud1b5\ubd80 (\ud30c\uc77c \uc120\ud0dd\u00b7\ud074\ub77c\uc6b0\ub4dc \ubcf5\uc6d0 \uacf5\uc6a9) */
+function refApplyDxf(txt,name){
+  var r=refParseDxf(txt);
+  if(!r.ents.length)throw new Error('empty');
+  REF.raw=null;REF.ents=r.ents;REF.layers=r.layers;REF.blocks=r.blocks;
+  REF.lgbox=refLegendBox(r.ents);
+  REF.name=name||'ref.dxf';REF.on=true;
+  REF.mh=refExtractMh();
+  refCalcBox();refDraw();
+  return r;
+}
+/* ---------- \ud074\ub77c\uc6b0\ub4dc \uc790\ub3d9 \uc800\uc7a5/\ubcf5\uc6d0 ---------- */
+function refCloudPath(){return state.projectId+'/refdxf.zip';}
+function refCloudSave(txt,name){
+  if(!online||!state.projectId||typeof JSZip==='undefined')return;
+  toast('\uacb0\uc120 \uc800\uc7a5 \uc911...');
+  var z=new JSZip();
+  z.file('ref.dxf',txt);
+  z.file('name.txt',name||'ref.dxf');
+  z.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}}).then(function(b){
+    console.log('[ref] \uc555\ucd95 '+(b.size/1048576).toFixed(2)+'MB');
+    return sb.storage.from('photos').upload(refCloudPath(),b,{upsert:true,contentType:'application/zip'});
+  }).then(function(up){
+    if(up&&up.error)throw up.error;
+    toast('\uacb0\uc120 \uc800\uc7a5\ub428 \u2014 \ub2e4\uc74c\uc5d0 \uc790\ub3d9\uc73c\ub85c \ubd88\ub7ec\uc635\ub2c8\ub2e4');
+  }).catch(function(e){
+    console.error('refCloudSave',e);
+    toast('\uacb0\uc120 \uc790\ub3d9\uc800\uc7a5 \uc2e4\ud328 \u2014 \ucf58\uc194 \ud655\uc778');
+  });
+}
+function refCloudLoad(){
+  if(!online||!state.projectId||typeof JSZip==='undefined')return;
+  var pid=state.projectId;
+  var url=sb.storage.from('photos').getPublicUrl(refCloudPath()).data.publicUrl+'?t='+Date.now();
+  fetch(url).then(function(r){return r.ok?r.blob():null;}).then(function(b){
+    if(!b||b.size<100||pid!==state.projectId)return;
+    return JSZip.loadAsync(b).then(function(z){
+      var fe=z.file('ref.dxf');if(!fe)return;
+      var ne=z.file('name.txt');
+      return Promise.all([fe.async('string'),ne?ne.async('string'):Promise.resolve('ref.dxf')]).then(function(a){
+        if(pid!==state.projectId)return;
+        refApplyDxf(a[0],a[1]);
+        var own=((state.points||[]).length||(state.lines||[]).length);
+        if(!own)refFit();
+        toast('\uacb0\uc120 \uc790\ub3d9 \ubd88\ub7ec\uc634 \u2014 '+REF.cnt+'\uac1c');
+      });
+    });
+  }).catch(function(e){console.log('[ref] \uc800\uc7a5\ub41c \uacb0\uc120 \uc5c6\uc74c');});
+}
+function refCloudDelete(){
+  if(!online||!state.projectId)return;
+  try{sb.storage.from('photos').remove([refCloudPath()]);}catch(e){}
+}
 function refLoadDxfFile(f){
   if(!f)return;
   toast('\uacb0\uc120 DXF \uc77d\ub294 \uc911...');
@@ -9711,15 +9764,9 @@ function refLoadDxfFile(f){
   rd.onload=function(){
     try{
       var txt=String(rd.result||'');
-      var r=refParseDxf(txt);
-      if(!r.ents.length){toast('ENTITIES\uac00 \ube44\uc5b4\uc788\uc2b5\ub2c8\ub2e4 \u2014 DXF \ud655\uc778 \ud544\uc694');return;}
-      REF.raw=null;REF.ents=r.ents;REF.layers=r.layers;REF.blocks=r.blocks;
-      REF.lgbox=refLegendBox(r.ents);
-      REF.name=f.name;REF.on=true;
-      REF.mh=refExtractMh();
-      refCalcBox();
-      refDraw();
+      var r=refApplyDxf(txt,f.name);
       refFit();
+      refCloudSave(txt,f.name);
       var nl=0;for(var k in REF.layers)nl++;
       var okn=0;REF.mh.forEach(function(m){if(m.label)okn++;});
       console.log('[ref] \uc5d4\ud2f0\ud2f0 '+r.ents.length+' / \ub808\uc774\uc5b4 '+nl+' / \uadf8\ub9b0\uac83 '+REF.cnt+' / \ub9e8\ud640 '+REF.mh.length+'(\ubc88\ud638\uc778\uc2dd '+okn+')');
@@ -9938,7 +9985,7 @@ function refOpen(){
   var b3=document.getElementById('refB3');
   if(b3)b3.onclick=function(){REF.on=!REF.on;refDraw();w.remove();toast(REF.on?'\uacb0\uc120 \ud45c\uc2dc':'\uacb0\uc120 \uc228\uae40');};
   var b4=document.getElementById('refB4');
-  if(b4)b4.onclick=function(){refReset();w.remove();toast('\uacb0\uc120 \uc81c\uac70\ub428');};
+  if(b4)b4.onclick=function(){refCloudDelete();refReset();w.remove();toast('\uacb0\uc120 \uc81c\uac70\ub428');};
   var b5=document.getElementById('refB5');
   if(b5)b5.onclick=function(){refFit();w.remove();};
 }
