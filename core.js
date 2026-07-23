@@ -7372,6 +7372,15 @@ function mnEnsureAddr(rec){
     if(rec.addr&&!String(rec.addr).trim())rec.addr='';
     if(rec.road&&!String(rec.road).trim())rec.road='';
     if(rec.addr&&rec.road){res();return;}
+    /* [BUILD 1047] geo 가 없으면 결선 측량좌표로 자동 보충 (버튼 조작 불필요) */
+    if(!(rec.geo&&rec.geo.lat)&&typeof refGeoFill==='function'){
+      var _xy=(rec.refXY&&rec.refXY.length===2)?rec.refXY:null;
+      if(!_xy&&typeof REF!=='undefined'&&REF.mh&&typeof refNormLab==='function'){
+        var _k=refNormLab(mnLabel(rec));
+        REF.mh.forEach(function(m){if(m&&m.label&&refNormLab(m.label)===_k)_xy=[m.x,m.y];});
+      }
+      if(_xy&&refGeoFill(rec,_xy[0],_xy[1])){rec.refXY=[_xy[0],_xy[1]];try{mnPersistRec(rec);}catch(e){}}
+    }
     if(!(rec.geo&&rec.geo.lat)){toast('⚠ GPS 좌표 없음 — 사진 재촬영 시 수집됩니다');res();return;}
     var done=false;
     function fin(){if(done)return;done=true;res();}
@@ -7400,9 +7409,9 @@ function mnAskAddr(rec,cb){
     +'<label style="font-size:12.5px;font-weight:800;color:#444">행정구역<input id="mnAdArea" type="text" placeholder="예) 서울특별시 관악구 낙성대동" style="width:100%;margin-top:5px;box-sizing:border-box;border:1.5px solid #ccc;border-radius:9px;padding:11px;font-size:15px"></label>'
     +'</div>'
     +'<div style="display:flex;gap:7px;padding:0 15px 14px">'
-    +'<button id="mnAdCancel" style="flex:1;border:1.5px solid #e74c3c;background:#fdeceb;color:#c0392b;border-radius:10px;padding:11px 6px;font-weight:800;font-size:13.5px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center;white-space:nowrap">취소</button>'
     +'<button id="mnAdSkip" style="flex:1.15;border:1.5px solid #e3a008;background:#fff8e6;color:#a16207;border-radius:10px;padding:11px 6px;font-weight:800;font-size:13.5px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center;white-space:nowrap">건너뛰기</button>'
     +'<button id="mnAdOk" style="flex:1.35;border:1.5px solid #1d9e75;background:#1d9e75;color:#fff;border-radius:10px;padding:11px 6px;font-weight:800;font-size:13.5px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center;white-space:nowrap">확인</button>'
+    +'<button id="mnAdCancel" style="flex:1;border:1.5px solid #e74c3c;background:#fdeceb;color:#c0392b;border-radius:10px;padding:11px 6px;font-weight:800;font-size:13.5px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center;white-space:nowrap">취소</button>'
     +'</div></div>';
   document.body.appendChild(w);
   var ir=w.querySelector('#mnAdRoad'),ia=w.querySelector('#mnAdArea');
@@ -9751,6 +9760,7 @@ function refCloudLoad(){
       return Promise.all([fe.async('string'),ne?ne.async('string'):Promise.resolve('ref.dxf')]).then(function(a){
         if(pid!==state.projectId)return;
         refApplyDxf(a[0],a[1]);
+        try{refSyncGeo(true);}catch(_e){}
         var own=((state.points||[]).length||(state.lines||[]).length);
         if(!own)refFit();
         toast('\uacb0\uc120 \uc790\ub3d9 \ubd88\ub7ec\uc634 \u2014 '+REF.cnt+'\uac1c');
@@ -9771,6 +9781,7 @@ function refLoadDxfFile(f){
       var txt=String(rd.result||'');
       var r=refApplyDxf(txt,f.name);
       refFit();
+      try{refSyncGeo(true);}catch(_e){}
       refCloudSave(txt,f.name);
       var nl=0;for(var k in REF.layers)nl++;
       var okn=0;REF.mh.forEach(function(m){if(m.label)okn++;});
@@ -10185,8 +10196,8 @@ function refGeoFill(rec,x,y){
   if(typeof mnMapSheetNo==='function'){try{rec.mapNo=mnMapSheetNo(ll.lat,ll.lng);}catch(e){}}
   return true;
 }
-function refSyncGeo(){
-  if(!REF.mh||!REF.mh.length){toast('결선을 먼저 불러오세요');return;}
+function refSyncGeo(quiet){
+  if(!REF.mh||!REF.mh.length){if(!quiet)toast('결선을 먼저 불러오세요');return 0;}
   var mm=refMhMatch(),n=0,g=0;
   mm.matched.forEach(function(x){
     x.rec.refXY=[x.mh.x,x.mh.y];n++;
@@ -10194,7 +10205,9 @@ function refSyncGeo(){
   });
   if(n)saveProject();
   try{if(typeof refDrawMh==='function')refDrawMh();}catch(e){}
-  toast('좌표 연결 '+n+'개 · 도엽번호 '+g+'개');
+  if(!quiet)toast('좌표 연결 '+n+'개 · 도엽번호 '+g+'개');
+  else if(g)toast('결선 좌표로 도엽번호 '+g+'개 자동 반영');
+  return g;
 }
 /* ---------- 야장 자동 생성 ---------- */
 function refMhCreate(only){
