@@ -6898,7 +6898,7 @@ function mnAskNoOwner(rec,cb){
 function mnAskDest(cur,dn,cb){
   var old=document.getElementById('mnAskModal');if(old)old.remove();
   var no='',ow='LG',owc='';
-  if(cur==='전주입상'){ow='전주입상';}
+  if(cur==='전주입상'||cur==='통신주입상'){ow=cur;}
   else{
     var m=/^(.+?)M\((.+)\)$/.exec(cur||'');
     if(m){no=m[1];var o=m[2];if(['LG','SKT','SKB','시청','세종','드림'].indexOf(o)>=0)ow=o;else{ow='_c';owc=o;}}
@@ -6906,7 +6906,7 @@ function mnAskDest(cur,dn,cb){
   }
   var w=document.createElement('div');w.id='mnAskModal';
   w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:16dvh';
-  var opts=['LG','SKT','SKB','시청','세종','드림','전주입상'].map(function(o){return '<option value="'+o+'"'+(ow===o?' selected':'')+'>'+o+'</option>';}).join('')+'<option value="_c"'+(ow==='_c'?' selected':'')+'>직접입력</option>';
+  var opts=['LG','SKT','SKB','시청','세종','드림','통신주입상','전주입상'].map(function(o){return '<option value="'+o+'"'+(ow===o?' selected':'')+'>'+o+'</option>';}).join('')+'<option value="_c"'+(ow==='_c'?' selected':'')+'>직접입력</option>';
   w.innerHTML='<div style="background:#f1f8e9;border:1.5px solid #558b2f;border-radius:12px;width:min(80vw,280px);padding:13px 14px">'
     +'<div style="font-weight:800;font-size:13.5px;color:#558b2f;margin-bottom:9px">연결 맨홀 ('+dn+'방향)</div>'
     +'<div style="display:flex;gap:7px;align-items:center"><div style="flex:1.1;min-width:0;display:flex;align-items:center;gap:4px"><input id="mnDNo" type="text" inputmode="numeric" value="'+joseoEsc(no)+'" placeholder="예: 2" style="flex:1;min-width:0;border:1.5px solid #558b2f;border-radius:9px;padding:9px;font-size:15px;background:#fff"><b style="font-size:15px;color:#558b2f;flex:none">M</b></div>'
@@ -6915,7 +6915,7 @@ function mnAskDest(cur,dn,cb){
     +'<div style="display:flex;gap:7px;margin-top:10px"><button id="mnDOk" style="flex:1;background:#558b2f;color:#fff;border:0;border-radius:9px;padding:10px;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">확인</span></button><button id="mnDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">취소</span></button></div></div>';
   document.body.appendChild(w);
   w.querySelector('#mnDOw').addEventListener('change',function(){
-    if(this.value==='전주입상'){w.remove();cb('전주입상');return;}
+    if(this.value==='전주입상'||this.value==='통신주입상'){w.remove();cb(this.value);return;}
     w.querySelector('#mnDOwC').style.display=(this.value==='_c')?'block':'none';
   });
   w.querySelector('#mnDNo2').onclick=function(){w.remove();};
@@ -6923,9 +6923,10 @@ function mnAskDest(cur,dn,cb){
   w.querySelector('#mnDOk').onclick=function(){
     var n=w.querySelector('#mnDNo').value.trim();
     var o=w.querySelector('#mnDOw').value;
-    if(o==='전주입상'){w.remove();cb('전주입상');return;}
+    if(o==='전주입상'||o==='통신주입상'){w.remove();cb(o);return;}
     if(o==='_c')o=w.querySelector('#mnDOwC').value.trim();
-    w.remove();cb(n?(n+'M'+(o?'('+o+')':'')):'');
+    /* [BUILD 1055] 번호가 비어도 소유자만으로 저장 (직접입력이 무시되던 문제) */
+    w.remove();cb(n?(n+'M'+(o?'('+o+')':'')):(o||''));
   };
   setTimeout(function(){w.querySelector('#mnDNo').focus();},60);
 }
@@ -10387,11 +10388,23 @@ function refSiteEsc(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace
 function refSiteTargets(rec){
   var d=(rec&&rec.dest)||{},out=[];
   if(!REF.mh||typeof refNormLab!=='function')return null;
+  var c0=refSiteXY(rec);
   [d.d1,d.d2,d.d3,d.d4].forEach(function(v){
     v=String(v==null?'':v).trim();
     if(!v)return;
-    var k=refNormLab(v);
-    REF.mh.forEach(function(m){if(m&&m.label&&refNormLab(m.label)===k)out.push([m.x,m.y]);});
+    var k=refNormLab(v),hit=0;
+    REF.mh.forEach(function(m){if(m&&m.label&&refNormLab(m.label)===k){out.push([m.x,m.y]);hit=1;}});
+    if(hit||!c0)return;
+    /* [1055] 통신주입상·전주입상 등은 라벨이 여러 개 → 가장 가까운 심벌로 해석 */
+    var best=null,bd=1e18;
+    REF.ents.forEach(function(e){
+      if(e.t!=='INSERT')return;
+      var nm=refStr(e,2,'');
+      if(nm!=='SD300'&&nm!=='SD301'&&nm!=='SD000')return;
+      var x=refNum(e,10,0),y=refNum(e,20,0),dd=Math.hypot(x-c0[0],y-c0[1]);
+      if(dd<bd){bd=dd;best=[x,y];}
+    });
+    if(best&&bd<300)out.push(best);
   });
   return out.length?out:null;
 }
