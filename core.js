@@ -6835,7 +6835,7 @@ function mnOpenList(){
   function uClose(){if(host)mnHostClose();else if(wrap)wrap.remove();}
   root.querySelector('#mnLClose').onclick=uClose;
   root.querySelector('#mnNew').onclick=function(){uClose();mnOpenForm(null);};
-  [].forEach.call(root.querySelectorAll('.mn-card'),function(b){b.onclick=function(e){if(e.target.classList.contains('mn-del'))return;var i=+b.getAttribute('data-i');uClose();mnOpenForm(mnList()[i]);};});
+  [].forEach.call(root.querySelectorAll('.mn-card'),function(b){b.onclick=function(e){if(e.target.classList.contains('mn-del'))return;var i=+b.getAttribute('data-i');var _r=mnList()[i];try{if(typeof refMhFocus==='function')refMhFocus(_r);}catch(_e){}uClose();mnOpenForm(_r);};});
   [].forEach.call(root.querySelectorAll('.mn-del'),function(b){b.onclick=function(){var i=+b.getAttribute('data-i');var r=mnList()[i];if(!confirm('맨홀 '+mnLabel(r)+' 조사를 삭제할까요?\n(7일 보관 후 완전삭제 — 삭제목록에서 복원 가능)'))return;r.delAt=Date.now();saveProject();uClose();mnOpenList();toast('🗑 삭제됨 (7일 보관)');};});
   var _tb=root.querySelector('#mnTrashBtn');if(_tb)_tb.onclick=function(){mnTrashList(uClose);};
 }
@@ -7994,6 +7994,7 @@ function mnPersistRec(rec,msg){
   var L=mnList(),ix=-1;L.forEach(function(r,i){if(r.id===rec.id)ix=i;});
   if(ix<0)L.push(rec);else L[ix]=rec;
   saveProject();if(msg)toast(msg);
+  try{if(typeof refDrawMh==='function')refDrawMh();}catch(_e){}
 }
 function mnPipeEditor(rec,wall){
   if(!rec.pipes)rec.pipes={};
@@ -9515,7 +9516,7 @@ function refAnchor(e){var p=refPts(e);return p.length?p[0]:null;}
 
 /* ---------- 렌더 ---------- */
 function refClear(){var g=document.getElementById('gRefDxf');if(g&&g.parentNode)g.parentNode.removeChild(g);try{if(typeof refMhClear==='function')refMhClear();}catch(_e){}}
-function refReset(){REF.ents=null;REF.layers=null;REF.blocks=null;REF.lgbox=null;REF.mh=null;REF.name='';REF.box=null;REF.cnt=0;REF.on=true;REF.ox=0;REF.oy=0;refClear();}
+function refReset(){REF_SEL=null;REF.ents=null;REF.layers=null;REF.blocks=null;REF.lgbox=null;REF.mh=null;REF.name='';REF.box=null;REF.cnt=0;REF.on=true;REF.ox=0;REF.oy=0;refClear();}
 
 /* ★ [1037] 로컬 원점.
    EPSG:5186 절대좌표(50만대)를 SVG에 그대로 넣으면, 브라우저가 device 좌표를
@@ -10096,6 +10097,7 @@ function refOpen(){
 /* ===== [BUILD 1039] 결선 맨홀 ↔ 야장 매칭 : 도면 표시 + 패널 + 야장 자동생성 ===== */
 var REF_OWNERS=['LG','SKT','SKB','\uc2dc\uccad','\uc138\uc885','\ub4dc\ub9bc'];
 var refMhShow=true;
+var REF_SEL=null;   /* [1043] 선택된 맨홀(정규화 키) — 마젠타 표시 */
 
 /* 결선 시설물번호 → 야장 필드. 소유자는 DXF 원문 그대로 유지해야
    결선·야장·사진폴더 세 곳의 키가 어긋나지 않는다(DL 등은 직접입력으로) */
@@ -10133,11 +10135,13 @@ function refDrawMh(){
   mm.matched.forEach(function(x){ok[refNormLab(x.mh.label)]=x.rec;});
   REF.mh.forEach(function(m){
     if(!m.label)return;
-    var rec=ok[refNormLab(m.label)];
-    var col=rec?'#00a651':'#e60000';
+    var key=refNormLab(m.label);
+    var rec=ok[key];
+    var sel=(REF_SEL&&key===REF_SEL);
+    var col=sel?'#d100d1':(rec?'#00a651':'#e60000');
     var s=refSR(m.x,m.y);
-    var c=el('circle',{cx:s[0],cy:s[1],r:1.0,fill:col,'fill-opacity':rec?0.10:0.16,
-      stroke:col,'stroke-width':2.4,'vector-effect':'non-scaling-stroke'});
+    var c=el('circle',{cx:s[0],cy:s[1],r:sel?1.5:1.0,fill:col,'fill-opacity':sel?0.20:(rec?0.10:0.16),
+      stroke:col,'stroke-width':sel?3.6:2.4,'vector-effect':'non-scaling-stroke'});
     c.style.cursor='pointer';
     c.setAttribute('pointer-events','auto');
     (function(lab,r0){c.addEventListener('click',function(ev){ev.stopPropagation();refMhClick(lab,r0);});})(m.label,rec);
@@ -10145,6 +10149,7 @@ function refDrawMh(){
   });
 }
 function refMhClick(lab,rec){
+  REF_SEL=refNormLab(lab);refDrawMh();
   if(rec){if(typeof mnOpenForm==='function')mnOpenForm(rec);return;}
   if(confirm(lab+' \u2014 \uc57c\uc7a5\uc5d0 \uc5c6\uc2b5\ub2c8\ub2e4.\n\uc774 \ub9e8\ud640 \uc57c\uc7a5\uc744 \ub9cc\ub4dc\uc2dc\uaca0\uc2b5\ub2c8\uae4c?'))refMhCreate([lab]);
 }
@@ -10174,10 +10179,21 @@ function refMhCreate(only){
 
 /* ---------- 매칭 패널 ---------- */
 function refMhGoto(x,y){
-  var span=40;
+  var span=Math.min(40,(vb&&vb.w>1)?vb.w:40);
   vb={x:x-span/2,y:-(y+span/2),w:span,h:span};
   if(typeof fixAspect==='function')fixAspect();
   if(typeof applyVB==='function')applyVB();
+}
+/* [1043] 야장 → 도면 : 선택 + 자동이동 */
+function refMhFocus(rec){
+  if(!rec||!REF.ents)return;
+  var k=refNormLab(mnLabel(rec));
+  REF_SEL=k;
+  var xy=null;
+  (REF.mh||[]).forEach(function(m){if(m.label&&refNormLab(m.label)===k)xy=[m.x,m.y];});
+  if(!xy&&rec.refXY&&rec.refXY.length===2)xy=[rec.refXY[0],rec.refXY[1]];
+  refDrawMh();
+  if(xy)refMhGoto(xy[0],xy[1]);
 }
 function refMhPanel(){
   if(!REF.mh){toast('\uacb0\uc120\uc744 \uba3c\uc800 \ubd88\ub7ec\uc624\uc138\uc694');return;}
@@ -10218,7 +10234,8 @@ function refMhPanel(){
   [].forEach.call(b.querySelectorAll('.refchip'),function(el2){
     el2.onclick=function(){
       var x=parseFloat(el2.getAttribute('data-x')),y=parseFloat(el2.getAttribute('data-y'));
-      if(isFinite(x)&&isFinite(y)){w.remove();refMhGoto(x,y);}
+      var lb=el2.textContent||'';if(lb)REF_SEL=refNormLab(lb);
+      if(isFinite(x)&&isFinite(y)){w.remove();refDrawMh();refMhGoto(x,y);}
     };
   });
 }
