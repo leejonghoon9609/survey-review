@@ -7078,10 +7078,11 @@ function mnEfbGen(rec){
       var dias=Object.keys(agg).map(Number).sort(function(a,b){return a-b;});
       if(dias.length){
         var tip,lsx,lst,lstep;
-        if(w==='p1'){tip=[ccx-438,ccy+961];out+=eArrow(tip[0],tip[1],0.5,90);lst=[tip[0]-40,tip[1]+165];lstep=131;}
-        else if(w==='p2'){tip=[ccx+399,ccy-865];out+=eArrow(tip[0],tip[1],-0.5,90);lst=[tip[0]+24,tip[1]-164];lstep=-131;}
-        else if(w==='p3'){tip=[Math.max(ccx+865,x1+420),ccy+399];out+=eArrow(tip[0],tip[1],-0.5,180);lst=[tip[0]+320,tip[1]+164];lstep=131;}
-        else{tip=[Math.max(ccx+865,x1+420),ccy-399];out+=eArrow(tip[0],tip[1],0.5,180);lst=[tip[0]+320,tip[1]-164];lstep=-131;}
+        /* [1026] 라벨·화살표는 팔 바깥 모서리 기준 (샘플: 위+441 / 아래-450). 관 묶음 고정거리 방식은 몸체가 길면 팔 안으로 들어감 */
+        if(w==='p1'){tip=[ccx-438,y1+441];out+=eArrow(tip[0],tip[1],0.5,90);lst=[tip[0]-40,tip[1]+165];lstep=131;}
+        else if(w==='p2'){tip=[ccx+399,y0-450];out+=eArrow(tip[0],tip[1],-0.5,90);lst=[tip[0]+24,tip[1]-164];lstep=-131;}
+        else if(w==='p3'){tip=[x1+441,ccy+399];out+=eArrow(tip[0],tip[1],-0.5,180);lst=[tip[0]+320,tip[1]+164];lstep=131;}
+        else{tip=[x1+441,ccy-399];out+=eArrow(tip[0],tip[1],0.5,180);lst=[tip[0]+320,tip[1]-164];lstep=-131;}
         dias.forEach(function(dv,i){
           out+=eTxt(lst[0],lst[1]+lstep*i,'FC\u00d8'+dv+'X'+agg[dv].n+'('+agg[dv].f+')',100,0,'DIM','Attr');
         });
