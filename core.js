@@ -10416,7 +10416,7 @@ function refSiteView(rec,span){
   var w,h;
   if(b){
     var pw=(b.x1-b.x0),ph=(b.y1-b.y0);
-    var pad=Math.max(pw,ph)*0.12+4;
+    var pad=Math.max(pw,ph)*0.06+3;
     pw+=pad*2;ph+=pad*2;
     if(pw/ph<REF_SITE_RATIO)pw=ph*REF_SITE_RATIO;else ph=pw/REF_SITE_RATIO;
     return {cx:(b.x0+b.x1)/2,cy:(b.y0+b.y1)/2,w:pw,h:ph};
@@ -10454,8 +10454,8 @@ function refSiteSVG(rec,W,H,span,at){
     if(!isTerr&&!refLayerOnSite(lay)&&e.t!=='INSERT')return;
     var col,w;
     if(isTerr){col='#a3a3a3';w=1.0*kW;}
-    else if(isPipe){col='#0033cc';w=7.0*kW;}            /* 관로 = 더 두껍게 */
-    else if(isHyun){col='#8ddc4a';w=2.2*kW;}            /* 현황측량 = 연두, 얇게 */
+    else if(isPipe){col='#0033cc';w=10.0*kW;}            /* 관로 = 더 두껍게 */
+    else if(isHyun){col='#8ddc4a';w=2.0*kW;}            /* 현황측량 = 연두, 얇게 */
     else {col='#333333';w=1.8*kW;}
     if(e.t==='LINE'){
       var a=[refNum(e,10,0),refNum(e,20,0)],bb=[refNum(e,11,0),refNum(e,21,0)];
@@ -10496,10 +10496,10 @@ function refSiteSVG(rec,W,H,span,at){
   });
   /* 대상 맨홀 강조 */
   var mc=P(c[0],c[1]);
-  var R=v.w*0.030;
+  var R=v.w*0.060;   /* [1052] 2배 */
   body.push('<circle cx="'+mc[0]+'" cy="'+mc[1]+'" r="'+R.toFixed(2)+'" fill="none" stroke="#e60000" stroke-width="'+(3.0*kW)+'"/>');
   var lab=refSiteEsc((typeof mnLabel==='function'?mnLabel(rec):'')||'');
-  var fs=v.w*0.050;
+  var fs=v.w*0.058;
   body.push('<text x="'+mc[0]+'" y="'+(parseFloat(mc[1])-R-fs*0.45).toFixed(2)+'" font-size="'+fs.toFixed(2)+
     '" fill="#e60000" font-weight="bold" text-anchor="middle" font-family="Malgun Gothic, Dotum, sans-serif">'+lab+'</text>');
   var vb=[(x0-OX).toFixed(3),(-(y1-OY)).toFixed(3),v.w.toFixed(3),v.h.toFixed(3)].join(' ');
