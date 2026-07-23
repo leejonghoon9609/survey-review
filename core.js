@@ -6647,7 +6647,7 @@ function openFinalStatus(){
   var sv=document.getElementById('fldSave');if(sv)sv.onclick=function(){saveProject();};
   var c=document.getElementById('fldCsv');if(c)c.onclick=openFinalCsvUpload;
   var j=document.getElementById('fldJoseo');if(j)j.onclick=openJoseoPanel;
-  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){if(typeof mnOpenList==='function')mnOpenList();};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){openImportList('survey');};var _frl=document.getElementById('fldRefLoad');if(_frl)_frl.onclick=function(){if(typeof refOpen==='function')refOpen();};var _ftr=document.getElementById('fldTerr');if(_ftr){_ftr.onclick=function(){if(typeof refTerrToggle==='function')refTerrToggle();};if(typeof refTerrBtn==='function')refTerrBtn();}var _fdd=document.getElementById('fldDel');if(_fdd)_fdd.onclick=fieldDelProject;
+  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){if(typeof mnOpenList==='function')mnOpenList();};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){openImportList('survey');};var _frl=document.getElementById('fldRefLoad');if(_frl)_frl.onclick=function(){if(typeof refOpen==='function')refOpen();};try{var _ftr=document.getElementById('fldTerr');if(_ftr){_ftr.onclick=function(){if(typeof refTerrToggle==='function')refTerrToggle();};if(typeof refTerrBtn==='function')refTerrBtn();}}catch(_te){console.error('fldTerr wire',_te);}var _fdd=document.getElementById('fldDel');if(_fdd)_fdd.onclick=fieldDelProject;
   var f=document.getElementById('fldFinal');if(f)f.onclick=openFinalStatus;
   var _rg=document.getElementById('fldReg');if(_rg)_rg.onclick=function(){if(typeof openRegModal==='function')openRegModal();};
   if(typeof isMobileDevice==='function'&&isMobileDevice()){var _vp=document.getElementById('vPhoto');if(_vp)_vp.textContent='📷 사진';if(f)f.textContent='후측량 최종성과등록';}
@@ -10076,19 +10076,20 @@ function refDelPhotos(){
 }
 /* ===== [BUILD 1048] \uacb0\uc120 \uc218\uce58\uc9c0\ub3c4(\ubc31\ud310) \ucf1c\uae30/\ub044\uae30 ===== */
 function refTerrCount(){
-  if(!REF.ents)return 0;
+  if(typeof REF==='undefined'||!REF||!REF.ents)return 0;
   var n=0;REF.ents.forEach(function(e){if(refStr(e,8,'')===REF_TERR)n++;});
   return n;
 }
 function refTerrBtn(){
   var b=document.getElementById('fldTerr');
   if(!b)return;
-  var on=!!(REF.ents&&REF.terrOn);
+  /* [1049] REF \uc815\uc758(\ud30c\uc77c \ub9c8\uc9c0\ub9c9)\ubcf4\ub2e4 \uba3c\uc800 \uc2e4\ud589\ub418\ub294 \ucd08\uae30\ud654 IIFE \uc5d0\uc11c\ub3c4 \uc548\uc804\ud574\uc57c \ud568 */
+  var on=!!(typeof REF!=='undefined'&&REF&&REF.ents&&REF.terrOn);
   b.textContent=(on?'\ud83d\uddfa \ubc31\ud310 \ucf1c\uc9d0':'\ud83d\uddfa \ubc31\ud310 \uaebc\uc9d0');
   b.classList.toggle('on',on);
 }
 function refTerrToggle(){
-  if(!REF.ents){toast('\uacb0\uc120\uc744 \uba3c\uc800 \ubd88\ub7ec\uc624\uc138\uc694');return;}
+  if(typeof REF==='undefined'||!REF||!REF.ents){toast('\uacb0\uc120\uc744 \uba3c\uc800 \ubd88\ub7ec\uc624\uc138\uc694');return;}
   var n=refTerrCount();
   if(!n){toast('\uc774 \uacb0\uc120\uc5d0\ub294 \uc218\uce58\uc9c0\ub3c4(_\uc9c0\ud615)\uac00 \uc5c6\uc2b5\ub2c8\ub2e4');return;}
   REF.terrOn=!REF.terrOn;
