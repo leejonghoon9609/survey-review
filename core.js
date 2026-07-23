@@ -10025,6 +10025,35 @@ function refWire(id,accept,onfile){
     fi.click();
   });
 }
+/* ===== [BUILD 1042] 결선·맨홀사진 개별 삭제 ===== */
+function refPhotoCount(){
+  var n=0,r=0;
+  ((typeof mnList==='function')?mnList():[]).forEach(function(rec){
+    if(!rec||rec.delAt||!rec.photos)return;
+    var k=0;for(var sl in rec.photos){if(rec.photos[sl])k++;}
+    if(k){n+=k;r++;}
+  });
+  return {n:n,r:r};
+}
+function refDelDxf(){
+  if(!confirm('\ubd88\ub7ec\uc628 \uacb0\uc120\uc744 \uc0ad\uc81c\ud569\ub2c8\ub2e4.\n\n\uc11c\ubc84\uc5d0 \uc800\uc7a5\ub41c \uc0ac\ubcf8\ub3c4 \ud568\uaed8 \uc9c0\uc6cc\uc9d1\ub2c8\ub2e4.\n\uc57c\uc7a5\u00b7\uc0ac\uc9c4\uc740 \uadf8\ub300\ub85c \ub0a8\uc2b5\ub2c8\ub2e4. \uacc4\uc18d\ud560\uae4c\uc694?'))return;
+  refCloudDelete();refReset();
+  toast('\uacb0\uc120 \uc0ad\uc81c\ub428');
+}
+function refDelPhotos(){
+  var c=refPhotoCount();
+  if(!c.n){toast('\uc0ad\uc81c\ud560 \uc0ac\uc9c4\uc774 \uc5c6\uc2b5\ub2c8\ub2e4');return;}
+  if(!confirm('\ub9e8\ud640 '+c.r+'\uac1c\uc758 \uc0ac\uc9c4 '+c.n+'\uc7a5\uc744 \ubaa8\ub450 \uc0ad\uc81c\ud569\ub2c8\ub2e4.\n\n\uc57c\uc7a5 \uae30\ub85d(\uce58\uc218\u00b7\uad00\ubc30\uce58)\ub294 \ub0a8\uc2b5\ub2c8\ub2e4.\n\ub418\ub3cc\ub9b4 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4. \uacc4\uc18d\ud560\uae4c\uc694?'))return;
+  var paths=[];
+  mnList().forEach(function(rec){
+    if(!rec||rec.delAt||!rec.photos)return;
+    for(var sl in rec.photos){if(rec.photos[sl])paths.push(state.projectId+'/mh_'+rec.id+'_'+sl+'.jpg');}
+    rec.photos={};if(rec.rotP)rec.rotP={};
+  });
+  saveProject();
+  if(online&&paths.length){try{sb.storage.from('photos').remove(paths);}catch(e){console.error('refDelPhotos',e);}}
+  toast('\uc0ac\uc9c4 '+c.n+'\uc7a5 \uc0ad\uc81c\ub428');
+}
 function refOpen(){
   var old=document.getElementById('refModal');if(old)old.remove();
   var w=document.createElement('div');w.id='refModal';
@@ -10039,10 +10068,13 @@ function refOpen(){
       refBox('refZ1','\ud83d\udcd0','\uacb0\uc120 DXF','\ud074\ub9ad \ub610\ub294<br>\uc5ec\uae30\uc5d0 \ub04c\uc5b4\ub2e4 \ub193\uae30','.dxf')+
       refBox('refZ2','\ud83d\uddbc\ufe0f','\ub9e8\ud640\uc0ac\uc9c4 ZIP','\uc0ac\uc5c5\uba85/\ub9e8\ud640\ubc88\ud638(\uc18c\uc720\uc790)/1.jpg','.zip')+
     '</div>'+
+    '<div style="display:flex;gap:11px;margin-top:9px">'+
+      '<button id="refDelD" style="flex:1;padding:8px;border:1px solid #f0c4c4;background:#fff;color:#d32f2f;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">\ud83d\uddd1 \uacb0\uc120 \uc0ad\uc81c</button>'+
+      '<button id="refDelP" style="flex:1;padding:8px;border:1px solid #f0c4c4;background:#fff;color:#d32f2f;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">\ud83d\uddd1 \ub9e8\ud640\uc0ac\uc9c4 \uc0ad\uc81c ('+refPhotoCount().n+'\uc7a5)</button>'+
+    '</div>'+
     (REF.ents?('<button id="refMhB" style="width:100%;padding:11px;margin-top:13px;border:1px solid #1d9e75;background:#eafaf3;color:#0f7a57;border-radius:9px;font-size:13px;font-weight:800;cursor:pointer">\ub9e8\ud640 \ub9e4\uce6d \ud655\uc778 \u00b7 \uc57c\uc7a5 \uc790\ub3d9\uc0dd\uc131</button>'+'<div style="display:flex;gap:7px;margin-top:8px">'+
       '<button id="refB3" style="flex:1;padding:9px;border:1px solid #bbb;background:#fff;color:#444;border-radius:8px;font-size:12.5px;cursor:pointer">'+(REF.on?'\ud45c\uc2dc \ub044\uae30':'\ud45c\uc2dc \ucf1c\uae30')+'</button>'+
-      '<button id="refB5" style="flex:1;padding:9px;border:1px solid #bbb;background:#fff;color:#444;border-radius:8px;font-size:12.5px;cursor:pointer">\uc804\uccb4\ubcf4\uae30</button>'+
-      '<button id="refB4" style="flex:1;padding:9px;border:1px solid #f0c4c4;background:#fff;color:#d32f2f;border-radius:8px;font-size:12.5px;cursor:pointer">\uc81c\uac70</button></div>'):'')+
+      '<button id="refB5" style="flex:1;padding:9px;border:1px solid #bbb;background:#fff;color:#444;border-radius:8px;font-size:12.5px;cursor:pointer">\uc804\uccb4\ubcf4\uae30</button>'+'</div>'):'')+
     '<button id="refBx" style="width:100%;padding:9px;margin-top:12px;border:none;background:#f2f2f2;color:#555;border-radius:8px;font-size:12.5px;cursor:pointer">\ub2eb\uae30</button>';
   w.appendChild(b);document.body.appendChild(w);
   w.addEventListener('click',function(ev){if(ev.target===w)w.remove();});
@@ -10051,12 +10083,12 @@ function refOpen(){
   document.getElementById('refBx').onclick=function(){w.remove();};
   refWire('refZ1','.dxf',refLoadDxfFile);
   refWire('refZ2','.zip',refPhotoZip);
+  document.getElementById('refDelD').onclick=function(){w.remove();refDelDxf();};
+  document.getElementById('refDelP').onclick=function(){w.remove();refDelPhotos();};
   var mb=document.getElementById('refMhB');
   if(mb)mb.onclick=function(){w.remove();refMhPanel();};
   var b3=document.getElementById('refB3');
   if(b3)b3.onclick=function(){REF.on=!REF.on;refDraw();w.remove();toast(REF.on?'\uacb0\uc120 \ud45c\uc2dc':'\uacb0\uc120 \uc228\uae40');};
-  var b4=document.getElementById('refB4');
-  if(b4)b4.onclick=function(){refCloudDelete();refReset();w.remove();toast('\uacb0\uc120 \uc81c\uac70\ub428');};
   var b5=document.getElementById('refB5');
   if(b5)b5.onclick=function(){refFit();w.remove();};
 }
