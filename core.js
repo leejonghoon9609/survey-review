@@ -7467,10 +7467,17 @@ function mnEquipXls(rec){
       /* 사진: image2=전경 image3=① image4=② image5=③ image6=④ (image1=설비위치, 추후) */
       var ph=rec.photos||{};
       var mapImg=[['fr','xl/media/image2.jpeg'],['p1','xl/media/image3.jpeg'],['p2','xl/media/image4.jpeg'],['p3','xl/media/image5.jpeg'],['p4','xl/media/image6.jpeg']];
-      return Promise.all(mapImg.map(function(m){
+      var jobs=mapImg.map(function(m){
         if(!ph[m[0]])return null;
         return fetch(ph[m[0]]).then(function(r){return r.blob();}).then(function(b){return mnFixOrient(b);}).then(function(fx){zip.file(m[1],fx.blob);}).catch(function(){});
-      })).then(function(){return zip;});
+      });
+      /* [BUILD 1050] image1 = \uc124\ube44\uc704\uce58 (\uacb0\uc120 \ub3c4\uba74 396x360 \ube44\uc728) */
+      if(typeof refSitePNG==='function'&&REF&&REF.ents){
+        jobs.push(refSitePNG(rec,1188,1080,REF_SITE_SPAN).then(function(b){
+          if(b)zip.file('xl/media/image1.jpeg',b);
+        }).catch(function(){}));
+      }
+      return Promise.all(jobs).then(function(){return zip;});
     });
   }).then(function(zip){
     return zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
@@ -7764,6 +7771,17 @@ function mnOpenForm(rec){
       +'<text x="34" y="902.5" text-anchor="middle" font-size="10.5" font-weight="800" fill="#d4537e" pointer-events="none">'+(fv(rec.lidH)!=null?rec.lidH:'세로')+'</text>'
       +'<text x="128" y="960" text-anchor="middle" font-size="12" fill="#444">사각맨홀뚜껑</text>'
       +'<text x="420" y="960" text-anchor="middle" font-size="11.5" fill="#aab">벽면=관배치 · 색칸=치수 · 표찰표=번호 · 우측=사진</text>'
+      +(function(){ /* [BUILD 1050] 설비위치 미리보기 */
+        try{
+          if(typeof refSiteSVG!=='function'||typeof REF==='undefined'||!REF||!REF.ents)return '';
+          var _sv=refSiteSVG(rec,200,182,REF_SITE_SPAN,[400,768]);
+          if(!_sv)return '';
+          return '<rect x="399" y="767" width="202" height="184" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
+               +_sv
+               +'<rect x="399" y="767" width="202" height="184" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
+               +'<text x="500" y="761" text-anchor="middle" font-size="11.5" font-weight="800" fill="#c0392b">설비 위치</text>';
+        }catch(_se){console.error('sitePreview',_se);return '';}
+      })()
       +'</svg>';
     box.innerHTML=svg;
     [].forEach.call(box.querySelectorAll('[data-act]'),function(el){
@@ -10322,5 +10340,141 @@ function refMhPanel(){
       var lb=el2.textContent||'';if(lb)REF_SEL=refNormLab(lb);
       if(isFinite(x)&&isFinite(y)){w.remove();refDrawMh();refMhGoto(x,y);}
     };
+  });
+}
+/* ===== [BUILD 1050] 설비위치 도면 — 야장 미리보기 + 설비사진엑셀 image1 ===== */
+/* 현황측량선=초록 굵게 / 관로선=파랑 굵게 / 심벌 유지 / 텍스트 제외
+   해당 맨홀에 빨간 원 + 맨홀번호(소유자). 회전 없음, 비율만 맞춤 */
+var REF_SITE_SPAN=200;                 /* 가로 기준 범위(m) */
+var REF_SITE_PIPE={'SD001':1,'SD001_1':1,'SD001_2':1,'SD002':1,'SD002_1':1,'SD002_2':1,'SD999':1,'SD110':1};
+var REF_SITE_HYUN={'DORO':1};
+var REF_SITE_SKIP={'SD911':1,'SD911-1':1,'SDDIM':1,'SDDIM1':1,'SD219':1,'SD910':1};
+
+function refSiteXY(rec){
+  if(rec&&rec.refXY&&rec.refXY.length===2&&isFinite(rec.refXY[0]))return [rec.refXY[0],rec.refXY[1]];
+  if(!REF.mh||typeof refNormLab!=='function')return null;
+  var k=refNormLab(mnLabel(rec)),xy=null;
+  REF.mh.forEach(function(m){if(m&&m.label&&refNormLab(m.label)===k)xy=[m.x,m.y];});
+  return xy;
+}
+function refSiteEsc(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+/* 설비위치 SVG 문자열 (독립 — 도면창과 무관, 로컬원점 사용) */
+function refSiteSVG(rec,W,H,span,at){
+  if(!REF.ents)return null;
+  var c=refSiteXY(rec);if(!c)return null;
+  W=W||792;H=H||720;span=span||REF_SITE_SPAN;
+  var sy=span*H/W;                                   /* 회전 없이 비율만 맞춤 */
+  var x0=c[0]-span/2,x1=c[0]+span/2,y0=c[1]-sy/2,y1=c[1]+sy/2;
+  var OX=Math.round(c[0]),OY=Math.round(c[1]);
+  function P(x,y){return [(x-OX).toFixed(3),(-(y-OY)).toFixed(3)];}
+  var pad=span*0.15;
+  function inView(px,py){return px>x0-pad&&px<x1+pad&&py>y0-pad&&py<y1+pad;}
+  var body=[];
+  function line(pts,col,w,fill){
+    if(pts.length<2)return;
+    var d=pts.map(function(p){var s=P(p[0],p[1]);return s[0]+','+s[1];}).join(' ');
+    body.push('<polyline points="'+d+'" fill="none" stroke="'+col+'" stroke-width="'+w+'" stroke-linejoin="round" stroke-linecap="round"/>');
+  }
+  var kW=span/1000;                                  /* 선 굵기 기준(범위 비례) */
+  REF.ents.forEach(function(e){
+    var lay=refStr(e,8,'');
+    if(REF_SITE_SKIP[lay])return;
+    if(e.t==='TEXT'||e.t==='MTEXT')return;
+    var isTerr=(lay===REF_TERR);
+    if(!isTerr&&!refLayerOnSite(lay))return;
+    var col,w;
+    if(isTerr){col='#8f8f8f';w=1.1*kW;}
+    else if(REF_SITE_PIPE[lay]){col='#0033cc';w=4.2*kW;}
+    else if(REF_SITE_HYUN[lay]){col='#00a02c';w=3.4*kW;}
+    else {col=refEntCol(e);w=1.8*kW;}
+    if(e.t==='LINE'){
+      var a=[refNum(e,10,0),refNum(e,20,0)],b=[refNum(e,11,0),refNum(e,21,0)];
+      if(!inView(a[0],a[1])&&!inView(b[0],b[1]))return;
+      line([a,b],col,w);
+    }else if(e.t==='LWPOLYLINE'){
+      var ps=refPts(e);if(ps.length<2)return;
+      var any=false;for(var q=0;q<ps.length;q++){if(inView(ps[q][0],ps[q][1])){any=true;break;}}
+      if(!any)return;
+      line(ps,col,w);
+    }else if(e.t==='CIRCLE'){
+      var cx=refNum(e,10,0),cy=refNum(e,20,0);
+      if(!inView(cx,cy))return;
+      var s=P(cx,cy);
+      body.push('<circle cx="'+s[0]+'" cy="'+s[1]+'" r="'+Math.abs(refNum(e,40,1)).toFixed(3)+'" fill="none" stroke="'+col+'" stroke-width="'+w+'"/>');
+    }else if(e.t==='ARC'){
+      var ax=refNum(e,10,0),ay=refNum(e,20,0);
+      if(!inView(ax,ay))return;
+      var r=Math.abs(refNum(e,40,1)),a1=refNum(e,50,0)*Math.PI/180,a2=refNum(e,51,0)*Math.PI/180;
+      var p1=P(ax+r*Math.cos(a1),ay+r*Math.sin(a1)),p2=P(ax+r*Math.cos(a2),ay+r*Math.sin(a2));
+      var sw=((refNum(e,51,0)-refNum(e,50,0))%360+360)%360;
+      body.push('<path d="M '+p1[0]+' '+p1[1]+' A '+r+' '+r+' 0 '+(sw>180?1:0)+' 0 '+p2[0]+' '+p2[1]+'" fill="none" stroke="'+col+'" stroke-width="'+w+'"/>');
+    }else if(e.t==='HATCH'){
+      var h=refHatchC(e);if(!h||!inView(h[0],h[1]))return;
+      if(h[2]>0){var s2=P(h[0],h[1]);
+        body.push('<circle cx="'+s2[0]+'" cy="'+s2[1]+'" r="'+h[2].toFixed(3)+'" fill="#333" fill-opacity="0.55" stroke="none"/>');}
+    }else if(e.t==='INSERT'){
+      var ix=refNum(e,10,0),iy=refNum(e,20,0);
+      if(!inView(ix,iy))return;
+      var blk=REF.blocks[refStr(e,2,'')];if(!blk||!blk.length)return;
+      var s3=P(ix,iy);
+      var xs=refNum(e,41,1)||1,ys=refNum(e,42,1)||1,rt=refNum(e,50,0);
+      var sub=[];
+      blk.forEach(function(be){
+        if(be.t==='LWPOLYLINE'){
+          var bp=refPts(be);if(bp.length<2)return;
+          sub.push('<polyline points="'+bp.map(function(p){return p[0].toFixed(3)+','+(-p[1]).toFixed(3);}).join(' ')+'" fill="none" stroke="'+col+'" stroke-width="'+(w/Math.abs(xs||1))+'" stroke-linejoin="round"/>');
+        }else if(be.t==='CIRCLE'){
+          sub.push('<circle cx="'+refNum(be,10,0).toFixed(3)+'" cy="'+(-refNum(be,20,0)).toFixed(3)+'" r="'+Math.abs(refNum(be,40,1)).toFixed(3)+'" fill="none" stroke="'+col+'" stroke-width="'+(w/Math.abs(xs||1))+'"/>');
+        }
+      });
+      if(sub.length)body.push('<g transform="translate('+s3[0]+','+s3[1]+') rotate('+(-rt)+') scale('+xs+','+ys+')">'+sub.join('')+'</g>');
+    }
+  });
+  /* 대상 맨홀 강조 */
+  var mc=P(c[0],c[1]);
+  var R=span*0.035;
+  body.push('<circle cx="'+mc[0]+'" cy="'+mc[1]+'" r="'+R.toFixed(2)+'" fill="none" stroke="#e60000" stroke-width="'+(3.2*kW)+'"/>');
+  var lab=refSiteEsc((typeof mnLabel==='function'?mnLabel(rec):'')||'');
+  var fs=span*0.055;
+  body.push('<text x="'+mc[0]+'" y="'+(parseFloat(mc[1])-R-fs*0.45).toFixed(2)+'" font-size="'+fs.toFixed(2)+
+    '" fill="#e60000" font-weight="bold" text-anchor="middle" font-family="Malgun Gothic, Dotum, sans-serif">'+lab+'</text>');
+  var vb=[(x0-OX).toFixed(3),(-(y1-OY)).toFixed(3),span.toFixed(3),sy.toFixed(3)].join(' ');
+  var pos=at?(' x="'+at[0]+'" y="'+at[1]+'"'):'';
+  /* [1050] \uc911\ucc29 svg \ud074\ub9ac\ud551\uc744 \ub80c\ub354\ub7ec\uc5d0 \ub9e1\uae30\uc9c0 \uc54a\uace0 clipPath \ub85c \uba85\uc2dc
+     (\uc548 \uadf8\ub7ec\uba74 \uc57c\uc7a5 \uc2dc\ud2b8 \uc804\uccb4\ub85c \uacb0\uc120\uc774 \ubc88\uc9d0) */
+  var cid='rsc'+Math.random().toString(36).slice(2,9);
+  var bg='<rect x="'+(x0-OX).toFixed(3)+'" y="'+(-(y1-OY)).toFixed(3)+'" width="'+span+'" height="'+sy+'" fill="#ffffff"/>';
+  return '<svg xmlns="http://www.w3.org/2000/svg"'+pos+' width="'+W+'" height="'+H+'" viewBox="'+vb+'" overflow="hidden">'+
+         '<defs><clipPath id="'+cid+'">'+bg+'</clipPath></defs>'+bg+
+         '<g clip-path="url(#'+cid+')">'+body.join('')+'</g></svg>';
+}
+/* 설비위치용 레이어 판정 — 화면 백판 토글과 무관하게 지형은 항상 포함 */
+function refLayerOnSite(lay){
+  var d=REF.layers[lay];
+  if(!d)return true;
+  return d.c>=0;
+}
+
+/* SVG 문자열 → PNG Blob (브라우저 canvas). 외부 이미지 없음 → tainted 아님 */
+function refSitePNG(rec,W,H,span){
+  return new Promise(function(res){
+    var svg=null;
+    try{svg=refSiteSVG(rec,W,H,span);}catch(e){console.error('refSiteSVG',e);}
+    if(!svg){res(null);return;}
+    var url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}));
+    var im=new Image();
+    im.onload=function(){
+      try{
+        var cv2=document.createElement('canvas');cv2.width=W;cv2.height=H;
+        var cx=cv2.getContext('2d');
+        cx.fillStyle='#fff';cx.fillRect(0,0,W,H);
+        cx.drawImage(im,0,0,W,H);
+        URL.revokeObjectURL(url);
+        cv2.toBlob(function(b){res(b);},'image/jpeg',0.92);
+      }catch(e){console.error('refSitePNG',e);URL.revokeObjectURL(url);res(null);}
+    };
+    im.onerror=function(){URL.revokeObjectURL(url);res(null);};
+    im.src=url;
   });
 }
