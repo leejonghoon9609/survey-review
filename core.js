@@ -6647,7 +6647,7 @@ function openFinalStatus(){
   var sv=document.getElementById('fldSave');if(sv)sv.onclick=function(){saveProject();};
   var c=document.getElementById('fldCsv');if(c)c.onclick=openFinalCsvUpload;
   var j=document.getElementById('fldJoseo');if(j)j.onclick=openJoseoPanel;
-  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){if(typeof mnOpenList==='function')mnOpenList();};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){openImportList('survey');};var _frl=document.getElementById('fldRefLoad');if(_frl)_frl.onclick=function(){if(typeof refOpen==='function')refOpen();};var _fdd=document.getElementById('fldDel');if(_fdd)_fdd.onclick=fieldDelProject;
+  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){if(typeof mnOpenList==='function')mnOpenList();};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){openImportList('survey');};var _frl=document.getElementById('fldRefLoad');if(_frl)_frl.onclick=function(){if(typeof refOpen==='function')refOpen();};var _ftr=document.getElementById('fldTerr');if(_ftr){_ftr.onclick=function(){if(typeof refTerrToggle==='function')refTerrToggle();};if(typeof refTerrBtn==='function')refTerrBtn();}var _fdd=document.getElementById('fldDel');if(_fdd)_fdd.onclick=fieldDelProject;
   var f=document.getElementById('fldFinal');if(f)f.onclick=openFinalStatus;
   var _rg=document.getElementById('fldReg');if(_rg)_rg.onclick=function(){if(typeof openRegModal==='function')openRegModal();};
   if(typeof isMobileDevice==='function'&&isMobileDevice()){var _vp=document.getElementById('vPhoto');if(_vp)_vp.textContent='📷 사진';if(f)f.textContent='후측량 최종성과등록';}
@@ -9428,7 +9428,7 @@ try{if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){rtStartWatch();setTimeout(
    - DXF 레이어 ON/OFF(색 음수) 상태를 그대로 존중
    - '통신범례외곽' 레이어 bbox 안쪽(범례) 자동 제외
    =================================================================== */
-var REF={raw:null,ents:null,layers:null,blocks:null,lgbox:null,name:'',on:true,box:null,mh:null,cnt:0};
+var REF={raw:null,ents:null,layers:null,blocks:null,lgbox:null,name:'',on:true,box:null,mh:null,cnt:0,terrOn:false};
 
 var REF_ACI={1:'#e60000',2:'#b8860b',3:'#00a651',4:'#00b0f0',5:'#0047ab',6:'#cc00cc',
              7:'#000000',8:'#808080',9:'#a6a6a6',30:'#ff7f00',
@@ -9527,8 +9527,8 @@ function refPts(e){
 function refAnchor(e){var p=refPts(e);return p.length?p[0]:null;}
 
 /* ---------- 렌더 ---------- */
-function refClear(){var g=document.getElementById('gRefDxf');if(g&&g.parentNode)g.parentNode.removeChild(g);try{if(typeof refMhClear==='function')refMhClear();}catch(_e){}}
-function refReset(){REF_SEL=null;REF.ents=null;REF.layers=null;REF.blocks=null;REF.lgbox=null;REF.mh=null;REF.name='';REF.box=null;REF.cnt=0;REF.on=true;REF.ox=0;REF.oy=0;refClear();}
+function refClear(){var g=document.getElementById('gRefDxf');if(g&&g.parentNode)g.parentNode.removeChild(g);try{if(typeof refMhClear==='function')refMhClear();}catch(_e){}try{if(typeof refTerrBtn==='function')refTerrBtn();}catch(_e){}}
+function refReset(){REF_SEL=null;REF.terrOn=false;REF.ents=null;REF.layers=null;REF.blocks=null;REF.lgbox=null;REF.mh=null;REF.name='';REF.box=null;REF.cnt=0;REF.on=true;REF.ox=0;REF.oy=0;refClear();}
 
 /* ★ [1037] 로컬 원점.
    EPSG:5186 절대좌표(50만대)를 SVG에 그대로 넣으면, 브라우저가 device 좌표를
@@ -9553,6 +9553,7 @@ function refCalcBox(){
   REF.ents.forEach(function(e){
     if(e.t==='HATCH'){var h=refHatchC(e);if(h&&h[2]>0)rs.push(h[2]);return;}
     if(!FITT[e.t])return;
+    if(refStr(e,8,'')===REF_TERR)return;   /* \uc9c0\ud615\uc740 \ubc94\uc704 \uc0b0\uc815\uc5d0\uc11c \uc81c\uc678 */
     if(!refLayerOn(refStr(e,8,'')))return;
     var ps=refPts(e);
     if(e.t==='INSERT'||e.t==='TEXT'||e.t==='MTEXT'||e.t==='CIRCLE'||e.t==='ARC')ps=[[refNum(e,10,0),refNum(e,20,0)]];
@@ -9586,13 +9587,16 @@ function refDraw(){
   REF.ents.forEach(function(e){if(refDrawOne(g,e,0))n++;});
   REF.cnt=n;
   try{if(typeof refDrawMh==='function')refDrawMh();}catch(_e){}
+  try{if(typeof refTerrBtn==='function')refTerrBtn();}catch(_e){}
 }
 function refLayerOn(lay){
+  if(lay===REF_TERR)return !!REF.terrOn;   /* [1048] \ubc31\ud310 \ubc84\ud2bc\uc73c\ub85c\ub9cc \ucf1c\uc9d0 */
   var d=REF.layers[lay];
   if(!d)return true;
   return d.c>=0;
 }
 function refEntCol(e,inh){
+  if(refStr(e,8,'')===REF_TERR)return '#9a9a9a';
   var c=e.g[62]?parseInt(e.g[62][0],10):null;
   if(c===0||c===256||c==null){
     if(inh)return inh;
@@ -10070,6 +10074,27 @@ function refDelPhotos(){
   if(online&&paths.length){try{sb.storage.from('photos').remove(paths);}catch(e){console.error('refDelPhotos',e);}}
   toast('\uc0ac\uc9c4 '+c.n+'\uc7a5 \uc0ad\uc81c\ub428');
 }
+/* ===== [BUILD 1048] \uacb0\uc120 \uc218\uce58\uc9c0\ub3c4(\ubc31\ud310) \ucf1c\uae30/\ub044\uae30 ===== */
+function refTerrCount(){
+  if(!REF.ents)return 0;
+  var n=0;REF.ents.forEach(function(e){if(refStr(e,8,'')===REF_TERR)n++;});
+  return n;
+}
+function refTerrBtn(){
+  var b=document.getElementById('fldTerr');
+  if(!b)return;
+  var on=!!(REF.ents&&REF.terrOn);
+  b.textContent=(on?'\ud83d\uddfa \ubc31\ud310 \ucf1c\uc9d0':'\ud83d\uddfa \ubc31\ud310 \uaebc\uc9d0');
+  b.classList.toggle('on',on);
+}
+function refTerrToggle(){
+  if(!REF.ents){toast('\uacb0\uc120\uc744 \uba3c\uc800 \ubd88\ub7ec\uc624\uc138\uc694');return;}
+  var n=refTerrCount();
+  if(!n){toast('\uc774 \uacb0\uc120\uc5d0\ub294 \uc218\uce58\uc9c0\ub3c4(_\uc9c0\ud615)\uac00 \uc5c6\uc2b5\ub2c8\ub2e4');return;}
+  REF.terrOn=!REF.terrOn;
+  refDraw();refTerrBtn();
+  toast(REF.terrOn?('\ubc31\ud310 \ucf1c\uc9d0 \u2014 '+n+'\uac1c'):'\ubc31\ud310 \uaebc\uc9d0');
+}
 function refOpen(){
   var old=document.getElementById('refModal');if(old)old.remove();
   var w=document.createElement('div');w.id='refModal';
@@ -10112,7 +10137,8 @@ function refOpen(){
 /* ===== [BUILD 1039] 결선 맨홀 ↔ 야장 매칭 : 도면 표시 + 패널 + 야장 자동생성 ===== */
 var REF_OWNERS=['LG','SKT','SKB','\uc2dc\uccad','\uc138\uc885','\ub4dc\ub9bc'];
 var refMhShow=true;
-var REF_SEL=null;   /* [1043] 선택된 맨홀(정규화 키) — 마젠타 표시 */
+var REF_SEL=null;
+var REF_TERR='_\uc9c0\ud615';   /* [BUILD 1048] \uacb0\uc120 DXF \uc548\uc758 \uc218\uce58\uc9c0\ub3c4 \ub808\uc774\uc5b4 */   /* [1043] 선택된 맨홀(정규화 키) — 마젠타 표시 */
 
 /* 결선 시설물번호 → 야장 필드. 소유자는 DXF 원문 그대로 유지해야
    결선·야장·사진폴더 세 곳의 키가 어긋나지 않는다(DL 등은 직접입력으로) */
