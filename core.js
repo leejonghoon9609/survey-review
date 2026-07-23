@@ -9514,7 +9514,7 @@ function refPts(e){
 function refAnchor(e){var p=refPts(e);return p.length?p[0]:null;}
 
 /* ---------- 렌더 ---------- */
-function refClear(){var g=document.getElementById('gRefDxf');if(g&&g.parentNode)g.parentNode.removeChild(g);}
+function refClear(){var g=document.getElementById('gRefDxf');if(g&&g.parentNode)g.parentNode.removeChild(g);try{if(typeof refMhClear==='function')refMhClear();}catch(_e){}}
 function refReset(){REF.ents=null;REF.layers=null;REF.blocks=null;REF.lgbox=null;REF.mh=null;REF.name='';REF.box=null;REF.cnt=0;REF.on=true;REF.ox=0;REF.oy=0;refClear();}
 
 /* ★ [1037] 로컬 원점.
@@ -9572,6 +9572,7 @@ function refDraw(){
   var n=0;
   REF.ents.forEach(function(e){if(refDrawOne(g,e,0))n++;});
   REF.cnt=n;
+  try{if(typeof refDrawMh==='function')refDrawMh();}catch(_e){}
 }
 function refLayerOn(lay){
   var d=REF.layers[lay];
@@ -9787,6 +9788,31 @@ function refFit(){
   if(typeof fixAspect==='function')fixAspect();
   if(typeof applyVB==='function')applyVB();
 }
+/* ===== [BUILD 1036] 드롭박스 모달 + 맨홀사진 ZIP 일괄 로딩 ===== */
+/* 맨홀 라벨 정규화 — 번호+소유자만 뽑아 비교 (신설/기설 접두·특이사항 무시) */
+/* [BUILD 1040] 소유자 동의어 — 결선(DL)·야장 드롭다운(드림)·사진폴더가
+   섞여 있어도 같은 맨홀로 인식. 양방향 동일 취급 */
+var REF_OWALIAS={'DL':'DL','드림':'DL','드림라인':'DL','DREAM':'DL','DREAMLINE':'DL'};
+function refOwKey(ow){
+  var k=String(ow||'').replace(/[\s._\-]/g,'').toUpperCase();
+  return REF_OWALIAS[k]||k;
+}
+function refNormLab(s){
+  s=String(s==null?'':s).replace(/\s+/g,'');
+  var m=s.match(/(\d+[A-Za-z]*)\(([^)]*)\)/);
+  if(m)return m[1].toUpperCase()+'|'+refOwKey(m[2]);
+  return s.toUpperCase();
+}
+function refSlotOf(fn){
+  var b=String(fn||'').replace(/\.[^.]*$/,'').trim();
+  if(b==='1')return 'fr';
+  if(b==='2-1')return 'p1';
+  if(b==='2-2')return 'p2';
+  if(b==='2-3')return 'p3';
+  if(b==='2-4')return 'p4';
+  if(b==='\ud45c\ucc30'||b==='0')return 'bd';
+  return null;
+}
 /* ---------- ZIP 구조 분석 + 야장 매칭 ---------- */
 var REF_PZ=null;   /* {zip, groups:[{folder,key,files:[{slot,name}],rec}], noRec:[], noPhoto:[]} */
 function refPhotoZip(f){
@@ -9970,7 +9996,7 @@ function refOpen(){
       refBox('refZ1','\ud83d\udcd0','\uacb0\uc120 DXF','\ud074\ub9ad \ub610\ub294<br>\uc5ec\uae30\uc5d0 \ub04c\uc5b4\ub2e4 \ub193\uae30','.dxf')+
       refBox('refZ2','\ud83d\uddbc\ufe0f','\ub9e8\ud640\uc0ac\uc9c4 ZIP','\uc0ac\uc5c5\uba85/\ub9e8\ud640\ubc88\ud638(\uc18c\uc720\uc790)/1.jpg','.zip')+
     '</div>'+
-    (REF.ents?('<div style="display:flex;gap:7px;margin-top:13px">'+
+    (REF.ents?('<button id="refMhB" style="width:100%;padding:11px;margin-top:13px;border:1px solid #1d9e75;background:#eafaf3;color:#0f7a57;border-radius:9px;font-size:13px;font-weight:800;cursor:pointer">\ub9e8\ud640 \ub9e4\uce6d \ud655\uc778 \u00b7 \uc57c\uc7a5 \uc790\ub3d9\uc0dd\uc131</button>'+'<div style="display:flex;gap:7px;margin-top:8px">'+
       '<button id="refB3" style="flex:1;padding:9px;border:1px solid #bbb;background:#fff;color:#444;border-radius:8px;font-size:12.5px;cursor:pointer">'+(REF.on?'\ud45c\uc2dc \ub044\uae30':'\ud45c\uc2dc \ucf1c\uae30')+'</button>'+
       '<button id="refB5" style="flex:1;padding:9px;border:1px solid #bbb;background:#fff;color:#444;border-radius:8px;font-size:12.5px;cursor:pointer">\uc804\uccb4\ubcf4\uae30</button>'+
       '<button id="refB4" style="flex:1;padding:9px;border:1px solid #f0c4c4;background:#fff;color:#d32f2f;border-radius:8px;font-size:12.5px;cursor:pointer">\uc81c\uac70</button></div>'):'')+
@@ -9982,10 +10008,142 @@ function refOpen(){
   document.getElementById('refBx').onclick=function(){w.remove();};
   refWire('refZ1','.dxf',refLoadDxfFile);
   refWire('refZ2','.zip',refPhotoZip);
+  var mb=document.getElementById('refMhB');
+  if(mb)mb.onclick=function(){w.remove();refMhPanel();};
   var b3=document.getElementById('refB3');
   if(b3)b3.onclick=function(){REF.on=!REF.on;refDraw();w.remove();toast(REF.on?'\uacb0\uc120 \ud45c\uc2dc':'\uacb0\uc120 \uc228\uae40');};
   var b4=document.getElementById('refB4');
   if(b4)b4.onclick=function(){refCloudDelete();refReset();w.remove();toast('\uacb0\uc120 \uc81c\uac70\ub428');};
   var b5=document.getElementById('refB5');
   if(b5)b5.onclick=function(){refFit();w.remove();};
+}
+
+/* ===== [BUILD 1039] 결선 맨홀 ↔ 야장 매칭 : 도면 표시 + 패널 + 야장 자동생성 ===== */
+var REF_OWNERS=['LG','SKT','SKB','\uc2dc\uccad','\uc138\uc885','\ub4dc\ub9bc'];
+var refMhShow=true;
+
+/* 결선 시설물번호 → 야장 필드. 소유자는 DXF 원문 그대로 유지해야
+   결선·야장·사진폴더 세 곳의 키가 어긋나지 않는다(DL 등은 직접입력으로) */
+function refMhParse(lab){
+  var m=String(lab||'').replace(/\s+/g,'').match(/^(\d+[A-Za-z]*)\(([^)]*)\)$/);
+  if(!m)return null;
+  var ow=m[2];
+  return (REF_OWNERS.indexOf(ow)>=0)?{no:m[1],owner:ow,ownerC:''}:{no:m[1],owner:'_c',ownerC:ow};
+}
+function refMhMatch(){
+  var mhs=(REF.mh||[]).filter(function(m){return m.label;});
+  var recs=(typeof mnList==='function')?mnList().filter(function(r){return r&&!r.delAt;}):[];
+  var byKey={};
+  recs.forEach(function(r){var k=refNormLab(mnLabel(r));if(k)byKey[k]=r;});
+  var matched=[],noRec=[],seen={};
+  mhs.forEach(function(m){
+    var k=refNormLab(m.label);
+    if(byKey[k]){matched.push({mh:m,rec:byKey[k]});seen[k]=1;}
+    else noRec.push(m);
+  });
+  var noMh=recs.filter(function(r){return !seen[refNormLab(mnLabel(r))];});
+  return {matched:matched,noRec:noRec,noMh:noMh};
+}
+
+/* ---------- 도면 표시 ---------- */
+function refMhClear(){var g=document.getElementById('gRefMH');if(g&&g.parentNode)g.parentNode.removeChild(g);}
+function refDrawMh(){
+  refMhClear();
+  if(!REF.ents||!REF.on||!refMhShow||!REF.mh||!REF.mh.length)return;
+  var host=document.getElementById('gRefDxf');if(!host)return;
+  var g=document.createElementNS(SVGNS,'g');g.id='gRefMH';
+  g.setAttribute('transform','translate('+REF.ox+','+(-REF.oy)+')');
+  if(host.nextSibling)cv.insertBefore(g,host.nextSibling);else cv.appendChild(g);
+  var mm=refMhMatch(),ok={};
+  mm.matched.forEach(function(x){ok[refNormLab(x.mh.label)]=x.rec;});
+  REF.mh.forEach(function(m){
+    if(!m.label)return;
+    var rec=ok[refNormLab(m.label)];
+    var col=rec?'#00a651':'#e60000';
+    var s=refSR(m.x,m.y);
+    var c=el('circle',{cx:s[0],cy:s[1],r:1.0,fill:col,'fill-opacity':rec?0.10:0.16,
+      stroke:col,'stroke-width':2.4,'vector-effect':'non-scaling-stroke'});
+    c.style.cursor='pointer';
+    c.setAttribute('pointer-events','auto');
+    (function(lab,r0){c.addEventListener('click',function(ev){ev.stopPropagation();refMhClick(lab,r0);});})(m.label,rec);
+    g.appendChild(c);
+  });
+}
+function refMhClick(lab,rec){
+  if(rec){if(typeof mnOpenForm==='function')mnOpenForm(rec);return;}
+  if(confirm(lab+' \u2014 \uc57c\uc7a5\uc5d0 \uc5c6\uc2b5\ub2c8\ub2e4.\n\uc774 \ub9e8\ud640 \uc57c\uc7a5\uc744 \ub9cc\ub4dc\uc2dc\uaca0\uc2b5\ub2c8\uae4c?'))refMhCreate([lab]);
+}
+
+/* ---------- 야장 자동 생성 ---------- */
+function refMhCreate(only){
+  if(!REF.mh){toast('\uacb0\uc120\uc744 \uba3c\uc800 \ubd88\ub7ec\uc624\uc138\uc694');return;}
+  var mm=refMhMatch(),L=mnList(),n=0,u=0,base=Date.now(),bad=0;
+  mm.noRec.forEach(function(m){
+    if(only&&only.indexOf(m.label)<0)return;
+    var p=refMhParse(m.label);
+    if(!p){bad++;return;}
+    L.push({id:'mn'+(base+n),no:p.no,owner:p.owner,ownerC:p.ownerC,
+      dep:'',w12:'',w34:'',topi:'',lid:766,lidRect:'',spec:null,
+      photos:{},pipes:{},refXY:[m.x,m.y],at:new Date().toISOString()});
+    n++;
+  });
+  mm.matched.forEach(function(x){
+    if(!x.rec.refXY||x.rec.refXY[0]!==x.mh.x||x.rec.refXY[1]!==x.mh.y){
+      x.rec.refXY=[x.mh.x,x.mh.y];u++;
+    }
+  });
+  if(n||u)saveProject();
+  refDrawMh();
+  toast('\uc57c\uc7a5 '+n+'\uac1c \uc0dd\uc131 \u00b7 \uc88c\ud45c \uc5f0\uacb0 '+u+'\uac1c'+(bad?(' \u00b7 \ubc88\ud638\ud615\uc2dd \uc774\uc0c1 '+bad):''));
+}
+
+/* ---------- 매칭 패널 ---------- */
+function refMhGoto(x,y){
+  var span=40;
+  vb={x:x-span/2,y:-(y+span/2),w:span,h:span};
+  if(typeof fixAspect==='function')fixAspect();
+  if(typeof applyVB==='function')applyVB();
+}
+function refMhPanel(){
+  if(!REF.mh){toast('\uacb0\uc120\uc744 \uba3c\uc800 \ubd88\ub7ec\uc624\uc138\uc694');return;}
+  var mm=refMhMatch();
+  var old=document.getElementById('refMhModal');if(old)old.remove();
+  var w=document.createElement('div');w.id='refMhModal';
+  w.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.32);z-index:99999;display:flex;align-items:center;justify-content:center';
+  var b=document.createElement('div');
+  b.style.cssText='background:#fff;border-radius:14px;padding:17px 19px 15px;width:min(520px,93vw);max-height:84vh;overflow:auto;box-shadow:0 12px 44px rgba(0,0,0,.3)';
+  function chips(list,fn,col){
+    if(!list.length)return '<div style="color:#bbb;font-size:11.5px;padding:3px 0">\u2014</div>';
+    return '<div style="display:flex;flex-wrap:wrap;gap:5px;padding:2px 0">'+list.map(fn).join('')+'</div>';
+  }
+  b.innerHTML=
+   '<div style="font-size:15px;font-weight:800;color:#222;margin-bottom:12px">\ub9e8\ud640 \ub9e4\uce6d</div>'+
+   '<div style="display:flex;gap:7px;margin-bottom:13px">'+
+     '<div style="flex:1;background:#eafaf3;border:1px solid #1d9e75;border-radius:9px;padding:8px;text-align:center"><div style="font-size:19px;font-weight:800;color:#0f7a57">'+mm.matched.length+'</div><div style="font-size:10.5px;color:#0f7a57">\ub9e4\uce6d \uc644\ub8cc</div></div>'+
+     '<div style="flex:1;background:#fdecea;border:1px solid #e74c3c;border-radius:9px;padding:8px;text-align:center"><div style="font-size:19px;font-weight:800;color:#c0392b">'+mm.noRec.length+'</div><div style="font-size:10.5px;color:#c0392b">\uc57c\uc7a5\uc5d0 \uc5c6\uc74c</div></div>'+
+     '<div style="flex:1;background:#fff6e9;border:1px solid #e3a008;border-radius:9px;padding:8px;text-align:center"><div style="font-size:19px;font-weight:800;color:#b45309">'+mm.noMh.length+'</div><div style="font-size:10.5px;color:#b45309">\uacb0\uc120\uc5d0 \uc5c6\uc74c</div></div>'+
+   '</div>'+
+   (mm.noRec.length?('<button id="refMhGen" style="width:100%;padding:12px;margin-bottom:13px;border:1px solid #d32f2f;background:#fdeaea;color:#c0392b;border-radius:10px;font-size:13.5px;font-weight:800;cursor:pointer">\uc57c\uc7a5 '+mm.noRec.length+'\uac1c \uc77c\uad04 \uc0dd\uc131</button>'):'')+
+   '<div style="font-size:12px;font-weight:700;color:#0f7a57;margin:6px 0 3px">\u2713 \ub9e4\uce6d \uc644\ub8cc</div>'+
+   chips(mm.matched,function(x){return '<span class="refchip" data-x="'+x.mh.x+'" data-y="'+x.mh.y+'" style="border:1px solid #1d9e75;background:#f3fbf7;color:#0f7a57;border-radius:7px;padding:3px 8px;font-size:11.5px;cursor:pointer">'+x.mh.label+'</span>';})+
+   '<div style="font-size:12px;font-weight:700;color:#c0392b;margin:11px 0 3px">\u26a0 \uc57c\uc7a5\uc5d0 \uc5c6\uc74c (\uacb0\uc120\uc5d0\ub9cc \uc788\uc74c)</div>'+
+   chips(mm.noRec,function(m){return '<span class="refchip" data-x="'+m.x+'" data-y="'+m.y+'" style="border:1px solid #e74c3c;background:#fdf2f1;color:#c0392b;border-radius:7px;padding:3px 8px;font-size:11.5px;cursor:pointer">'+m.label+'</span>';})+
+   '<div style="font-size:12px;font-weight:700;color:#b45309;margin:11px 0 3px">\u25cb \uacb0\uc120\uc5d0 \uc5c6\uc74c (\uc57c\uc7a5\uc5d0\ub9cc \uc788\uc74c)</div>'+
+   chips(mm.noMh,function(r){return '<span style="border:1px solid #e3a008;background:#fffaf0;color:#b45309;border-radius:7px;padding:3px 8px;font-size:11.5px">'+mnLabel(r)+'</span>';})+
+   '<div style="display:flex;gap:8px;margin-top:15px">'+
+     '<button id="refMhTog" style="flex:1;padding:10px;border:1px solid #bbb;background:#fff;color:#444;border-radius:9px;font-size:12.5px;cursor:pointer">'+(refMhShow?'\ub3c4\uba74 \ud45c\uc2dc \ub044\uae30':'\ub3c4\uba74 \ud45c\uc2dc \ucf1c\uae30')+'</button>'+
+     '<button id="refMhX" style="flex:1;padding:10px;border:none;background:#f2f2f2;color:#555;border-radius:9px;font-size:12.5px;cursor:pointer">\ub2eb\uae30</button>'+
+   '</div>';
+  w.appendChild(b);document.body.appendChild(w);
+  w.addEventListener('click',function(ev){if(ev.target===w)w.remove();});
+  document.getElementById('refMhX').onclick=function(){w.remove();};
+  document.getElementById('refMhTog').onclick=function(){refMhShow=!refMhShow;refDrawMh();w.remove();toast(refMhShow?'\ub9e8\ud640 \ud45c\uc2dc':'\ub9e8\ud640 \uc228\uae40');};
+  var gb=document.getElementById('refMhGen');
+  if(gb)gb.onclick=function(){w.remove();refMhCreate(null);setTimeout(refMhPanel,300);};
+  [].forEach.call(b.querySelectorAll('.refchip'),function(el2){
+    el2.onclick=function(){
+      var x=parseFloat(el2.getAttribute('data-x')),y=parseFloat(el2.getAttribute('data-y'));
+      if(isFinite(x)&&isFinite(y)){w.remove();refMhGoto(x,y);}
+    };
+  });
 }
