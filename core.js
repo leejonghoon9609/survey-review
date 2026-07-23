@@ -10346,7 +10346,8 @@ function refMhPanel(){
 /* ===== [BUILD 1050] 설비위치 도면 — 야장 미리보기 + 설비사진엑셀 image1 ===== */
 /* 현황측량선=연두 얇게 / 관로선=파랑 굵게 / 맨홀·입상 심벌만 / 텍스트 제외
    범위 = 대상 맨홀에서 관로를 따라가 다른 맨홀·입상에 닿는 곳까지 (BUILD 1051) */
-var REF_SITE_SPAN=200;                 /* 연결 추적 실패 시 대체 범위(m) */
+var REF_SITE_SPAN=200;
+var REF_SITE_MIN=35;                   /* 방향 지정이 너무 가까울 때 최소 폭(m) */                 /* 연결 추적 실패 시 대체 범위(m) */
 var REF_SITE_RATIO=503/361;            /* 엑셀 설비위치 칸 실측 비율 */
 var REF_SITE_PIPE={'SD001':1,'SD001_1':1,'SD001_2':1,'SD002':1,'SD002_1':1,'SD002_2':1,'SD999':1,'SD110':1};
 var REF_SITE_HYUN={'DORO':1};
@@ -10362,25 +10363,40 @@ function refSiteXY(rec){
 }
 function refSiteEsc(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
-/* [1051] 관로 연결 추적 — 대상 맨홀에서 출발해 다른 맨홀·입상에 닿을 때까지 */
-function refSiteRange(rec){
+/* [1053] 관로 연결 추적
+   - 방향(rec.dest)이 지정되면 그 맨홀·입상에서 멈추고, 파란 관로선도 거기까지만
+   - 지정이 없으면 닿는 모든 맨홀·입상까지 */
+function refSiteTargets(rec){
+  var d=(rec&&rec.dest)||{},out=[];
+  if(!REF.mh||typeof refNormLab!=='function')return null;
+  [d.d1,d.d2,d.d3,d.d4].forEach(function(v){
+    v=String(v==null?'':v).trim();
+    if(!v)return;
+    var k=refNormLab(v);
+    REF.mh.forEach(function(m){if(m&&m.label&&refNormLab(m.label)===k)out.push([m.x,m.y]);});
+  });
+  return out.length?out:null;
+}
+function refSiteTrace(rec){
   if(!REF.ents)return null;
   var c=refSiteXY(rec);if(!c)return null;
   function Q(x,y){return Math.round(x*20)+'_'+Math.round(y*20);}
-  var segs=[],sym={};
+  var segs=[],ents=[],sym={};
   REF.ents.forEach(function(e){
     var lay=refStr(e,8,'');
     if(e.t==='LWPOLYLINE'&&REF_SITE_PIPE[lay]){
-      var ps=refPts(e);if(ps.length>=2)segs.push(ps);
+      var ps=refPts(e);if(ps.length>=2){segs.push(ps);ents.push(e);}
     }else if(e.t==='INSERT'&&REF_SITE_SYM[refStr(e,2,'')]){
       sym[Q(refNum(e,10,0),refNum(e,20,0))]=1;
     }
   });
-  if(!segs.length)return null;
+  var tg=refSiteTargets(rec), stop={};
+  if(tg)tg.forEach(function(p){stop[Q(p[0],p[1])]=1;});
+  if(!segs.length)return {pts:[[c[0],c[1]]],used:[],targets:tg,c:c};
   var idx={};
-  segs.forEach(function(ps,i){
+  segs.forEach(function(ps,n){
     [ps[0],ps[ps.length-1]].forEach(function(p){
-      var k=Q(p[0],p[1]);(idx[k]=idx[k]||[]).push(i);
+      var k=Q(p[0],p[1]);(idx[k]=idx[k]||[]).push(n);
     });
   });
   var start=Q(c[0],c[1]);
@@ -10388,48 +10404,56 @@ function refSiteRange(rec){
   seen[start]=1;
   while(q.length&&guard++<400){
     var k=q.shift();
-    (idx[k]||[]).forEach(function(i){
-      if(used[i])return;used[i]=1;
-      var ps=segs[i];
-      for(var j=0;j<ps.length;j++)pts.push(ps[j]);
-      [ps[0],ps[ps.length-1]].forEach(function(p){
-        var nk=Q(p[0],p[1]);
-        if(seen[nk])return;
-        seen[nk]=1;
-        if(sym[nk])return;            /* 다른 맨홀·입상 도달 → 여기서 멈춤 */
-        q.push(nk);
-      });
+    (idx[k]||[]).forEach(function(n){
+      if(used[n])return;used[n]=1;
+      var ps=segs[n];
+      /* [1053] 진입점에서 출발해 정점을 따라가다 맨홀·입상을 만나면 그 자리에서 끊는다.
+         (끝점만 보면 중간의 맨홀을 지나쳐 범위가 과하게 넓어짐) */
+      var fromStart=(Q(ps[0][0],ps[0][1])===k);
+      var seq=fromStart?ps:ps.slice().reverse();
+      var cut=false;
+      for(var m2=0;m2<seq.length;m2++){
+        pts.push(seq[m2]);
+        var vk=Q(seq[m2][0],seq[m2][1]);
+        if(m2>0&&(sym[vk]||stop[vk])){cut=true;break;}
+      }
+      if(cut)return;
+      var last=seq[seq.length-1],nk=Q(last[0],last[1]);
+      if(seen[nk])return;
+      seen[nk]=1;
+      q.push(nk);
     });
   }
-  if(pts.length<2)return null;
-  var b={x0:pts[0][0],y0:pts[0][1],x1:pts[0][0],y1:pts[0][1]};
-  pts.forEach(function(p){
-    if(p[0]<b.x0)b.x0=p[0];if(p[0]>b.x1)b.x1=p[0];
-    if(p[1]<b.y0)b.y0=p[1];if(p[1]>b.y1)b.y1=p[1];
-  });
-  return b;
+  var ue=[];Object.keys(used).forEach(function(n){ue.push(ents[+n]);});
+  return {pts:pts,used:ue,targets:tg,c:c};
 }
-/* 범위 → 비율 맞춘 뷰 (여백 12%) */
-function refSiteView(rec,span){
-  var c=refSiteXY(rec);if(!c)return null;
-  var b=refSiteRange(rec);
-  var w,h;
-  if(b){
-    var pw=(b.x1-b.x0),ph=(b.y1-b.y0);
-    var pad=Math.max(pw,ph)*0.06+3;
-    pw+=pad*2;ph+=pad*2;
-    if(pw/ph<REF_SITE_RATIO)pw=ph*REF_SITE_RATIO;else ph=pw/REF_SITE_RATIO;
-    return {cx:(b.x0+b.x1)/2,cy:(b.y0+b.y1)/2,w:pw,h:ph};
+/* 뷰 — 선택 맨홀을 중앙에 두고 대상이 모두 들어가게, 비율 맞춤 */
+function refSiteView(rec,span,tr){
+  tr=tr||refSiteTrace(rec);
+  if(!tr)return null;
+  var c=tr.c,dx=0,dy=0;
+  function ext(p){var a=Math.abs(p[0]-c[0]),b=Math.abs(p[1]-c[1]);if(a>dx)dx=a;if(b>dy)dy=b;}
+  if(tr.targets&&tr.targets.length){
+    /* [1053] 방향이 지정되면 그 맨홀·입상까지만 (다른 방향은 범위에서 제외) */
+    tr.targets.forEach(ext);
+  }else{
+    (tr.pts||[]).forEach(ext);
   }
-  w=span||REF_SITE_SPAN;h=w/REF_SITE_RATIO;
-  return {cx:c[0],cy:c[1],w:w,h:h};
+  if(dx<3&&dy<3){var sp=span||REF_SITE_SPAN;dx=sp/2;dy=dx/REF_SITE_RATIO;}
+  var M=1.06;                       /* 여유 6% — 위아래를 바짝 잘라 채움 */
+  var w=2*dx*M,h=2*dy*M;
+  if(w<REF_SITE_MIN){var kk=REF_SITE_MIN/Math.max(w,0.001);w*=kk;h*=kk;}   /* 너무 좁으면 최소범위 */
+  if(w/h<REF_SITE_RATIO)w=h*REF_SITE_RATIO;else h=w/REF_SITE_RATIO;
+  return {cx:c[0],cy:c[1],w:w,h:h,used:tr.used,limit:!!tr.targets};
 }
-
 /* 설비위치 SVG — at 가 있으면 중첩 svg(야장 시트용) */
 function refSiteSVG(rec,W,H,span,at){
   if(!REF.ents)return null;
   var c=refSiteXY(rec);if(!c)return null;
-  var v=refSiteView(rec,span);if(!v)return null;
+  var tr=refSiteTrace(rec);
+  var v=refSiteView(rec,span,tr);if(!v)return null;
+  var lim=v.limit,useSet=null;
+  if(lim&&v.used){useSet=[];v.used.forEach(function(e){useSet.push(e);});}
   W=W||1509;H=H||1083;
   var x0=v.cx-v.w/2,x1=v.cx+v.w/2,y0=v.cy-v.h/2,y1=v.cy+v.h/2;
   var OX=Math.round(v.cx),OY=Math.round(v.cy);
@@ -10448,6 +10472,7 @@ function refSiteSVG(rec,W,H,span,at){
     if(e.t==='TEXT'||e.t==='MTEXT')return;
     var isTerr=(lay===REF_TERR);
     var isPipe=!!REF_SITE_PIPE[lay], isHyun=!!REF_SITE_HYUN[lay];
+    if(isPipe&&useSet&&useSet.indexOf(e)<0)return;   /* 방향 지정 시 그 맨홀까지만 */
     if(e.t==='INSERT'){
       if(!REF_SITE_SYM[refStr(e,2,'')])return;          /* 맨홀·입상 심벌만 */
     }else if(!isTerr&&!isPipe&&!isHyun)return;          /* 그 외 선은 지형/관로/현황만 */
@@ -10455,7 +10480,7 @@ function refSiteSVG(rec,W,H,span,at){
     var col,w;
     if(isTerr){col='#a3a3a3';w=1.0*kW;}
     else if(isPipe){col='#0033cc';w=10.0*kW;}            /* 관로 = 더 두껍게 */
-    else if(isHyun){col='#8ddc4a';w=2.0*kW;}            /* 현황측량 = 연두, 얇게 */
+    else if(isHyun){col='#aef255';w=2.0*kW;}            /* 현황측량 = 연두, 얇게 */
     else {col='#333333';w=1.8*kW;}
     if(e.t==='LINE'){
       var a=[refNum(e,10,0),refNum(e,20,0)],bb=[refNum(e,11,0),refNum(e,21,0)];
