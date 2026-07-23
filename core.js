@@ -7609,7 +7609,7 @@ function mnOpenForm(rec){
       +dimRange(250,288,390,288,'#2471a3')+dimSpot(396,278,'w34','폭',46)
       +dimRange(240,235,240,280,'#e67e22')+dimSpot(188,247,'topi','토피',46)
       +dimRange(240,280,240,430,'#e74c3c')+dimSpot(188,344,'dep','깊이',46)
-      +dimRange(106,430,106,570,'#8e44ad')+dimSpot(34,409,'w12','폭',46)
+      +dimRange(106,430,106,570,'#8e44ad')+dimSpot(60,409,'w12','폭',46)
       +'<rect x="250" y="430" width="140" height="140" fill="rgba(0,0,0,0)" data-act="ph" data-s="fr" style="cursor:pointer"/>'
       +'<rect x="250" y="235" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p3" style="cursor:pointer"/>'
       +'<rect x="250" y="570" width="140" height="195" fill="rgba(0,0,0,0)" data-act="wall" data-w="p4" style="cursor:pointer"/>'
