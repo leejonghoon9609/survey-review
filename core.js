@@ -6744,7 +6744,7 @@ function mnHostClose(){var pn=document.getElementById('mnPanel');if(pn){pn.class
 /* [1030] 사업 전환 시 맨홀야장 UI 전부 닫기 — 이전 사업 내용이 화면에 남아 혼동되는 문제 방지 */
 function mnCloseAll(){
   try{mnHostClose();}catch(e){}
-  ['mnFormModal','mnListModal','mnPipeModal','mnTrashModal','mnSpecModal','mnAskModal'].forEach(function(id){
+  ['mnFormModal','mnListModal','mnPipeModal','mnTrashModal','mnSpecModal','mnAskModal','mnAddrModal'].forEach(function(id){
     var el=document.getElementById(id);if(el)el.remove();
   });
 }
@@ -7330,10 +7330,45 @@ function mnEnsureAddr(rec){
     }catch(e){fin('⚠ 카카오 로드 오류');}
   });
 }
+/* [1031] 자동 조회 실패 시 도로명·행정구역 직접 입력 (값은 기록에 저장되어 다음부터 그대로 사용) */
+function mnAskAddr(rec,cb){
+  var mob=(typeof isMobileDevice==='function'&&isMobileDevice());
+  var old=document.getElementById('mnAddrModal');if(old)old.remove();
+  var w=document.createElement('div');w.id='mnAddrModal';
+  w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1340;display:flex;justify-content:center;'+(mob?'align-items:flex-start;padding-top:6dvh':'align-items:center');
+  w.innerHTML='<div style="background:#fff;border-radius:14px;width:min(94vw,420px);overflow:hidden">'
+    +'<div style="padding:12px 15px;border-bottom:1px solid #eee"><b style="font-size:15px">도로명 · 행정구역 입력</b>'
+    +'<div style="font-size:11.5px;color:#888;margin-top:4px">자동 조회가 비어 있습니다. 직접 입력하면 저장되어 다음부터 그대로 쓰입니다.</div></div>'
+    +'<div style="padding:14px 15px;display:flex;flex-direction:column;gap:11px">'
+    +'<label style="font-size:12.5px;font-weight:800;color:#444">도로명<input id="mnAdRoad" type="text" placeholder="예) 낙성대로" style="width:100%;margin-top:5px;box-sizing:border-box;border:1.5px solid #ccc;border-radius:9px;padding:11px;font-size:15px"></label>'
+    +'<label style="font-size:12.5px;font-weight:800;color:#444">행정구역<input id="mnAdArea" type="text" placeholder="예) 서울특별시 관악구 낙성대동" style="width:100%;margin-top:5px;box-sizing:border-box;border:1.5px solid #ccc;border-radius:9px;padding:11px;font-size:15px"></label>'
+    +'</div>'
+    +'<div style="display:flex;gap:8px;padding:0 15px 14px">'
+    +'<button id="mnAdSkip" style="flex:1;border:1.5px solid #bbb;background:#fff;color:#666;border-radius:10px;padding:11px;font-weight:800;font-size:14px;cursor:pointer">건너뛰기</button>'
+    +'<button id="mnAdOk" style="flex:1.4;border:1.5px solid #1d9e75;background:#1d9e75;color:#fff;border-radius:10px;padding:11px;font-weight:800;font-size:14px;cursor:pointer">확인</button>'
+    +'</div></div>';
+  document.body.appendChild(w);
+  var ir=w.querySelector('#mnAdRoad'),ia=w.querySelector('#mnAdArea');
+  ir.value=rec.road||'';ia.value=rec.addr||'';
+  function close(){w.remove();}
+  w.querySelector('#mnAdSkip').onclick=function(){close();cb();};
+  w.querySelector('#mnAdOk').onclick=function(){
+    rec.road=(ir.value||'').trim();rec.addr=(ia.value||'').trim();
+    try{mnPersistRec(rec);}catch(e){}
+    close();cb();
+  };
+  setTimeout(function(){try{(ir.value?ia:ir).focus();}catch(e){}},80);
+}
 function mnEquipXls(rec){
   if(typeof JSZip==='undefined'){toast('압축 모듈 없음 — 새로고침(Ctrl+Shift+R)');return;}
   toast('설비사진 엑셀 생성 중...');
   mnEnsureAddr(rec).then(function(){
+    /* [1031] 자동 조회 결과가 비었으면 직접 입력받기 */
+    return new Promise(function(_go){
+      if(rec.road&&rec.addr){_go();return;}
+      mnAskAddr(rec,_go);
+    });
+  }).then(function(){
   return JSZip.loadAsync(MN_XLS_TPL,{base64:true}).then(function(zip){
     return zip.file('xl/worksheets/sheet1.xml').async('string').then(function(x){
       var dest=rec.dest||{};
