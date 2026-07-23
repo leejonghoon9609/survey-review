@@ -7794,9 +7794,23 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               +'<text x="497" y="761" text-anchor="middle" font-size="11.5" font-weight="800" fill="#c0392b">설비 위치</text>'
-               +'<text x="612" y="761" text-anchor="middle" font-size="10.5" font-weight="800" fill="#1f4fa8" data-act="sitearea" style="cursor:pointer">[영역설정]</text>'
-               +(rec.siteBox?'<text x="678" y="761" text-anchor="middle" font-size="10.5" font-weight="800" fill="#8a8a84" data-act="siteclr" style="cursor:pointer">[초기화]</text>':'');
+               /* [BUILD 1057] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
+               +(function(){
+                  var RX=697,btn='',bx;
+                  function mk(x,w,fill,line,txt,act,tc){
+                    return '<g data-act="'+act+'" style="cursor:pointer">'
+                      +'<rect x="'+x+'" y="750" width="'+w+'" height="16" rx="4" fill="'+fill+'" stroke="'+line+'" stroke-width="1"/>'
+                      +'<text x="'+(x+w/2)+'" y="762" text-anchor="middle" font-size="11" font-weight="800" fill="'+tc+'" pointer-events="none">'+txt+'</text></g>';
+                  }
+                  if(rec.siteBox){
+                    bx=RX-44;btn+=mk(bx,44,'#f4f4f2','#c9c9c4','초기화','siteclr','#8a8a84');
+                    btn+=mk(bx-60,56,'#eef4ff','#3b6fd4','영역설정','sitearea','#1f4fa8');
+                  }else{
+                    btn+=mk(RX-56,56,'#eef4ff','#3b6fd4','영역설정','sitearea','#1f4fa8');
+                  }
+                  return btn;
+                })();
         }catch(_se){console.error('sitePreview',_se);return '';}
       })()
       +'</svg>';
