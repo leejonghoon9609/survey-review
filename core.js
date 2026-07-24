@@ -7054,25 +7054,20 @@ function mnAskDest(cur,dn,cb,rec,dk){
   });
   /* [1066] 입상 전용 버튼 — 결선에 심볼이 여러 개면 가까운 순으로 골라 좌표를 고정한다 */
   function pickRiser(lab){
-    var cands=(typeof refRiserList==='function')?refRiserList(rec):null;
-    if(!cands||!cands.length){w.remove();cb(lab);return;}
-    if(cands.length===1){riserSave(lab,cands[0]);return;}
-    var body=cands.slice(0,8).map(function(q,i){
-      return '<button data-ri="'+i+'" style="width:100%;text-align:left;background:#fff;border:1.5px solid #ccd8c0;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:13px;font-weight:700;color:#33415a;cursor:pointer">'
-        +(i+1)+'. '+q.dir+' \u00B7 '+q.d.toFixed(1)+'m</button>';
-    }).join('');
-    var box=w.firstChild;
-    box.innerHTML='<div style="font-weight:800;font-size:13.5px;color:#558b2f;margin-bottom:4px">'+lab+' \uC120\uD0DD ('+dn+'\uBC29\uD5A5)</div>'
-      +'<div style="font-size:11.5px;color:#7a8">\uB3C4\uBA74\uC5D0\uC11C \uAC00\uAE4C\uC6B4 \uC21C\uC11C\uC785\uB2C8\uB2E4</div>'+body
-      +'<button id="mnDRc" style="width:100%;margin-top:9px;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:9px;font-weight:700;font-size:13px;cursor:pointer">\uCDE8\uC18C</button>';
-    box.querySelector('#mnDRc').onclick=function(){w.remove();};
-    [].forEach.call(box.querySelectorAll('[data-ri]'),function(b){
-      b.onclick=function(){riserSave(lab,cands[+b.getAttribute('data-ri')]);};
-    });
-  }
-  function riserSave(lab,q){
-    try{if(rec&&dk){if(!rec.destXY)rec.destXY={};rec.destXY[dk]=[q.x,q.y];}}catch(_e){}
-    w.remove();cb(lab);
+    /* [1067] 도면에서 직접 클릭해 고른다 (목록은 현장에서 알아보기 어렵다) */
+    w.remove();
+    var okStart=false;
+    try{
+      if(typeof refRiserPick==='function'){
+        okStart=refRiserPick(rec,lab,function(q){
+          if(q===false)return;                       /* 취소 — 아무것도 등록 안 함 */
+          if(q&&rec&&dk){try{if(!rec.destXY)rec.destXY={};rec.destXY[dk]=[q.x,q.y];}catch(_e){}}
+          else{try{if(rec&&dk&&rec.destXY)delete rec.destXY[dk];}catch(_e2){}}
+          cb(lab);
+        });
+      }
+    }catch(_pe){okStart=false;}
+    if(!okStart){try{if(rec&&dk&&rec.destXY)delete rec.destXY[dk];}catch(_e3){}cb(lab);}
   }
   var _bj=w.querySelector('#mnDJeon');if(_bj)_bj.onclick=function(){pickRiser('전주입상');};
   var _bt=w.querySelector('#mnDTong');if(_bt)_bt.onclick=function(){pickRiser('통신주입상');};
@@ -8003,7 +7998,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1066] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1067] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -9904,7 +9899,8 @@ function refAnchor(e){var p=refPts(e);return p.length?p[0]:null;}
 
 /* ---------- 렌더 ---------- */
 function refClear(){var g=document.getElementById('gRefDxf');if(g&&g.parentNode)g.parentNode.removeChild(g);try{if(typeof refMhClear==='function')refMhClear();}catch(_e){}try{if(typeof refTerrBtn==='function')refTerrBtn();}catch(_e){}}
-function refReset(){REF_SEL=null;REF.terrOn=false;REF.ents=null;REF.layers=null;REF.blocks=null;REF.lgbox=null;REF.mh=null;REF.name='';REF.box=null;REF.cnt=0;REF.on=true;REF.ox=0;REF.oy=0;refClear();}
+function refReset(){try{if(refRiserSel)refRiserEnd(false);}catch(_e){}  /* [1067] */
+REF_SEL=null;REF.terrOn=false;REF.ents=null;REF.layers=null;REF.blocks=null;REF.lgbox=null;REF.mh=null;REF.name='';REF.box=null;REF.cnt=0;REF.on=true;REF.ox=0;REF.oy=0;refClear();}
 
 /* ★ [1037] 로컬 원점.
    EPSG:5186 절대좌표(50만대)를 SVG에 그대로 넣으면, 브라우저가 device 좌표를
@@ -10571,6 +10567,8 @@ function refDrawMh(){
    자식(맨홀 원)의 click 이벤트가 cv 로 리타깃돼 사라진다.
    앱 측점과 동일하게, 결선 맨홀 위에서는 드래그/캡처를 시작하지 않도록 예외 처리 */
 function refNearMh(cx,cy){
+  /* [1067] 입상 선택 중에는 주황 원을 놓치면 안 되므로 드래그/캐프처를 시작하지 않는다 */
+  if(refRiserSel)return true;
   if(!REF.ents||!REF.on||!refMhShow||!REF.mh||!REF.mh.length)return false;
   if(typeof toWorld!=='function')return false;
   var w;try{w=toWorld(cx,cy);}catch(e){return false;}
@@ -10731,7 +10729,7 @@ function refSiteEsc(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace
    - 방향(rec.dest)이 지정되면 그 맨홀·입상에서 멈추고, 파란 관로선도 거기까지만
    - 지정이 없으면 닿는 모든 맨홀·입상까지 */
 /* [1066] 결선의 입상 심볼(SD300/301/SD000) 를 맨홀 기준 가까운 순으로 */
-function refRiserList(rec){
+function refRiserList(rec,lim){
   try{
     if(typeof REF==='undefined'||!REF.ents)return null;
     var c0=refSiteXY(rec);if(!c0)return null;
@@ -10741,7 +10739,7 @@ function refRiserList(rec){
       var nm=refStr(e,2,'');
       if(nm!=='SD300'&&nm!=='SD301'&&nm!=='SD000')return;
       var x=refNum(e,10,0),y=refNum(e,20,0),d=Math.hypot(x-c0[0],y-c0[1]);
-      if(d>300)return;
+      if(d>(lim||300))return;
       var ang=Math.atan2(y-c0[1],x-c0[0])*180/Math.PI;
       var D=['\uB3D9','\uBD81\uB3D9','\uBD81','\uBD81\uC11C','\uC11C','\uB0A8\uC11C','\uB0A8','\uB0A8\uB3D9'];
       out.push({x:x,y:y,d:d,dir:D[((Math.round(ang/45)%8)+8)%8]});
@@ -10749,6 +10747,44 @@ function refRiserList(rec){
     out.sort(function(a,b){return a.d-b.d;});
     return out;
   }catch(_e){return null;}
+}
+/* [1067] 입상 도면 직접 선택 — 주황 원으로 표시 → 클릭 시 등록되고 원 사라짐 */
+var refRiserSel=null;
+function refRiserClear(){
+  var g=document.getElementById('gRefRiser');if(g&&g.parentNode)g.parentNode.removeChild(g);
+  var b=document.getElementById('refRiserBar');if(b&&b.parentNode)b.parentNode.removeChild(b);
+}
+function refRiserEnd(q){
+  var s=refRiserSel;refRiserSel=null;refRiserClear();
+  try{cv.style.cursor='';}catch(_e){}
+  if(s&&s.cb)s.cb(q);
+}
+function refRiserPick(rec,lab,cb){
+  if(typeof REF==='undefined'||!REF.ents||!REF.on)return false;   /* [1067] cb 는 호출자가 처리 (중복등록 방지) */
+  var host=document.getElementById('gRefDxf');if(!host)return false;
+  var list=refRiserList(rec,400);
+  if(!list||!list.length)return false;
+  refRiserClear();
+  var g=document.createElementNS(SVGNS,'g');g.id='gRefRiser';
+  g.setAttribute('transform','translate('+REF.ox+','+(-REF.oy)+')');
+  if(host.nextSibling)cv.insertBefore(g,host.nextSibling);else cv.appendChild(g);
+  refRiserSel={cb:cb};
+  list.forEach(function(q){
+    var s=refSR(q.x,q.y);
+    var c=el('circle',{cx:s[0],cy:s[1],r:1.7,fill:'#ff8f00','fill-opacity':0.20,
+      stroke:'#ef6c00','stroke-width':3.6,'vector-effect':'non-scaling-stroke'});
+    c.style.cursor='pointer';c.setAttribute('pointer-events','auto');
+    c.addEventListener('click',function(ev){ev.stopPropagation();refRiserEnd(q);});
+    g.appendChild(c);
+  });
+  var bar=document.createElement('div');bar.id='refRiserBar';
+  bar.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:56px;z-index:13000;background:#fff;border:2px solid #ef6c00;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:9px 13px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;color:#bf360c';
+  bar.innerHTML='<span>'+lab+' \uC744(\uB97C) \uB3C4\uBA74\uC5D0\uC11C \uD074\uB9AD\uD558\uC138\uC694 ('+list.length+'\uAC1C \u00B7 \uC8FC\uD669 \uC6D0)</span>'
+    +'<button id="refRiserCx" style="background:#fff;border:1.5px solid #ddd;color:#555;border-radius:8px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer">\uCDE8\uC18C</button>';
+  document.body.appendChild(bar);
+  document.getElementById('refRiserCx').onclick=function(){refRiserEnd(false);};
+  try{cv.style.cursor='pointer';}catch(_e){}
+  return true;
 }
 function refSiteTargets(rec){
   var d=(rec&&rec.dest)||{},out=[];
@@ -11036,6 +11072,7 @@ function refAreaEnd(save){
     toast('\uce90\ud504\uccb4 \uc601\uc5ed \uc800\uc7a5\ub428 \u2014 '+Math.round(W)+' x '+Math.round(H)+' m');
   },true);
   document.addEventListener('keydown',function(e){
+    if(refRiserSel&&e.key==='Escape'){refRiserEnd(false);toast('\uc785\uc0c1 \uc120\ud0dd \ucde8\uc18c');return;}   /* [1067] */
     if(refAreaSel&&e.key==='Escape'){refAreaEnd(false);toast('\uc601\uc5ed \uc9c0\uc815 \ucde8\uc18c');}
   });
 })();
