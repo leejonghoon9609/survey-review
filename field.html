@@ -340,24 +340,27 @@
   header button,header select{font-size:11px!important;padding:4px 6px!important;border-radius:7px!important}
   header #viewerBar{display:contents!important}
   header #fieldBar{display:contents!important}
-  /* 1줄: 측량현장 · 홈 · 사업목록 */
-  header h1{font-size:13px!important;margin:0!important;order:1!important;flex:none!important;display:inline-block!important}
-  header #homeBtn{order:2!important;display:inline-flex!important}
-  header #vproj{order:3!important;flex:1 1 auto!important;min-width:0!important;max-width:none!important;display:inline-block!important}
+  /* [1069] 1줄: 홈 · 측량(현장) · 완료결선업로드 · 백판 · 현장사업목록 (한 줄에 다)
+     — fldRefLoad·fldTerr 가 order 지정이 없어 기본값 0 으로 맨 앞에 밀려 있었다 */
+  header #homeBtn{order:1!important;display:inline-flex!important;flex:none!important;font-size:9.5px!important;padding:3px 5px!important}
+  header h1{font-size:11.5px!important;margin:0!important;order:2!important;flex:none!important;display:inline-block!important;white-space:nowrap!important}
+  header #fldRefLoad{order:3!important;display:inline-flex!important;flex:none!important;font-size:9.5px!important;padding:3px 5px!important;white-space:nowrap!important}
+  header #fldTerr{order:4!important;display:inline-flex!important;flex:none!important;font-size:9.5px!important;padding:3px 5px!important;white-space:nowrap!important}
+  header #vproj{order:5!important;flex:1 1 60px!important;min-width:60px!important;max-width:none!important;display:inline-block!important;font-size:9.5px!important;padding:3px 2px!important}
   header .hdr-break{display:block!important;flex-basis:100%!important;width:100%!important;height:0!important;margin:0!important;padding:0!important;border:0!important}
-  header #hdrBreak1{order:4!important}
+  header #hdrBreak1{order:6!important}
   /* 2줄: 저장 · 사업삭제 · 완료성과목록 · (우)사진 · 지도 */
-  header #fldSave{order:5!important;display:inline-flex!important}
-  header #fldDel{order:6!important;display:inline-flex!important}
-  header #fldImport{order:7!important;display:inline-flex!important;margin-left:0!important}
-  header #vPhoto{order:8!important;display:inline-flex!important;margin-left:auto!important}
-  header #vMap{order:9!important;display:inline-flex!important}
-  header #hdrBreak2{order:10!important}
+  header #fldSave{order:7!important;display:inline-flex!important}
+  header #fldDel{order:8!important;display:inline-flex!important}
+  header #fldImport{order:9!important;display:inline-flex!important;margin-left:0!important}
+  header #vPhoto{order:10!important;display:inline-flex!important;margin-left:auto!important}
+  header #vMap{order:11!important;display:inline-flex!important}
+  header #hdrBreak2{order:12!important}
   /* 3줄: 탐사사업등록 · 후측량최종성과등록 · (우)CSV · 맨홀도제작 — 세로 여유 */
-  header #fldReg{order:11!important;display:inline-flex!important;padding:8px 8px!important;font-weight:700!important}
-  header #fldFinal{order:12!important;display:inline-flex!important;font-size:10px!important;padding:9px 6px!important;line-height:1.15!important}
-  header #fldCsv{order:13!important;display:inline-flex!important;margin-left:auto!important;background:#2563eb!important;border-color:#2563eb!important;color:#fff!important;font-weight:800!important;padding:8px 9px!important}
-  header #fldManhole{order:14!important;display:inline-flex!important;background:#d32f2f!important;border-color:#d32f2f!important;color:#fff!important;font-weight:800!important;padding:8px 9px!important}
+  header #fldReg{order:13!important;display:inline-flex!important;padding:8px 8px!important;font-weight:700!important}
+  header #fldFinal{order:14!important;display:inline-flex!important;font-size:10px!important;padding:9px 6px!important;line-height:1.15!important}
+  header #fldCsv{order:15!important;display:inline-flex!important;margin-left:auto!important;background:#2563eb!important;border-color:#2563eb!important;color:#fff!important;font-weight:800!important;padding:8px 9px!important}
+  header #fldManhole{order:16!important;display:inline-flex!important;background:#d32f2f!important;border-color:#d32f2f!important;color:#fff!important;font-weight:800!important;padding:8px 9px!important}
   /* 나머지 숨김 */
   header #fldTrash,header #modeToggle,header #sysSwitch,header #roBadge,header #vRv,header #fldJoseo,header #proj,header #save,header #delProj,header #bpToggle,header #doneListBtn,header #doneSummary,header #asbuiltBtn,header #photoBtn,header #bgBtn,header #rvBtn,header #buildno,header #conn,header #tamsaBadge,header #globalbtns{display:none!important}
 }
@@ -400,7 +403,7 @@
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 1068</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 1069</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -563,6 +566,6 @@
     </div>
   </div>
 
-<script src="login.js?v=1068"></script><script src="core.js?v=1068"></script>
+<script src="login.js?v=1069"></script><script src="core.js?v=1069"></script>
 </body>
 </html>
