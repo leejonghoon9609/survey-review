@@ -36,3 +36,24 @@ function pickWorker(){
   box.querySelector('#_wkEmpOk').onclick=function(){ var v=box.querySelector('#_wkEmp').value; if(!v){alert('\uc9c1\uc6d0\uc744 \uc120\ud0dd\ud558\uc138\uc694');return;} done(v); };
 }
 try{ updWorkerChip(); if(!ME) setTimeout(pickWorker, 400); }catch(e){}
+
+/* [BUILD 1062] header BUILD badge auto-sync with script ?v= (prevents manual mismatch) */
+(function(){
+  function syncBuildNo(){
+    try{
+      var best=0,ss=document.getElementsByTagName('script');
+      for(var i=0;i<ss.length;i++){
+        var src=ss[i].getAttribute('src')||'';
+        var m=/(?:core|login)\.js\?v=(\d+)/.exec(src);
+        if(m&&(+m[1])>best)best=+m[1];
+      }
+      if(!best)return;
+      var e=document.getElementById('buildno');
+      if(e&&e.textContent!=='BUILD '+best)e.textContent='BUILD '+best;
+    }catch(_e){}
+  }
+  syncBuildNo();
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncBuildNo);
+  else setTimeout(syncBuildNo,0);
+  setTimeout(syncBuildNo,600);
+})();

@@ -7926,7 +7926,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1061] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1063] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -8219,10 +8219,14 @@ function mnPipeEditor(rec,wall){
       +'<button id="mnMdDel" class="mn-md" style="flex:none;border:1px solid #e67e22;background:#fff;color:#e67e22;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">개별삭제</button>'
       +'<button id="mnDelAll" style="flex:none;border:1px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:800;cursor:pointer">전체삭제</button>'
       +'<button id="mnReShoot" style="margin-left:auto;flex:none;border:1px solid #d32f2f;background:#fdeaea;color:#d32f2f;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:800;cursor:pointer">재촬영</button></div>'
+    +'<div id="mnRefBox" style="display:none;margin-bottom:7px">'
+      +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><b style="font-size:12px;color:#2471a3">\uCC38\uACE0 \uC0AC\uC9C4</b>'
+      +'<span style="font-size:11px;color:#99a">\uC544\uB798 \uCE78\uC5D0 \uAD00\uC744 \uB04C\uC5B4 \uB9DE\uCD94\uC138\uC694</span></div>'
+      +'<div id="mnRefImgBox" style="border:1.5px solid #cfd8e3;border-radius:8px;overflow:hidden;background:#f7f9fb;display:flex;align-items:center;justify-content:center;max-height:32dvh"></div></div>'
     +'<div id="mnCvBox" style="border:1.5px solid #556;border-radius:8px;overflow:hidden;background:#fff"><canvas id="mnCv" style="display:block;touch-action:none;user-select:none;-webkit-user-select:none"></canvas></div>'
     +'<div style="font-size:11px;color:#99a;margin-top:4px;text-align:right">탭: 빈관→내선(검정)→제외(빨강) · 노란선=맨홀 바닥</div>'
     +'<div id="mnGChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"></div>'
-    +'<div style="border-top:1px dashed #ddd;margin-top:10px;padding-top:9px">'
+    +'<div id="mnGBox" style="border-top:1px dashed #ddd;margin-top:10px;padding-top:9px">'
       +'<div style="display:flex;gap:6px;margin-bottom:6px"><select id="mnGKind" style="flex:1;border:1px solid #ddd;border-radius:7px;padding:7px 5px;font-size:13px;background:#fff">'+MN_KINDS.map(function(k){return '<option>'+k+'</option>';}).join('')+'<option value="_c">직접입력</option></select>'
       +'<input id="mnGKindC" placeholder="관종" style="flex:1;display:none;border:1px solid #ddd;border-radius:7px;padding:7px 8px;font-size:13px">'
       +'<div style="flex:1;display:flex;align-items:center;gap:4px"><span style="font-size:12px;color:#667">단수</span><select id="mnGRowsSel" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:7px;padding:7px 4px;font-size:14px;background:#fff"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option value="_c">직접입력</option></select><input id="mnGRows" type="number" min="1" max="12" value="6" inputmode="numeric" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:7px;padding:7px 8px;font-size:14px;display:none"></div></div>'
@@ -8231,6 +8235,7 @@ function mnPipeEditor(rec,wall){
     +'</div></div>'
     +'<div style="display:flex;gap:8px;padding:11px 14px;border-top:1px solid #eee">'
     +'<button id="mnPDone" style="flex:1;background:#fff;color:#d32f2f;border:2.5px solid #d32f2f;border-radius:10px;padding:12px;font-weight:800;font-size:14.5px;cursor:pointer;display:flex;align-items:center;justify-content:center">완료 ('+({p1:'1',p2:'2',p3:'3',p4:'4'}[wall])+'번 완료등록합니다)</button>'
+    +'<button id="mnPlaceDone" style="display:none;flex:1;background:#fff;color:#1d9e75;border:2.5px solid #1d9e75;border-radius:10px;padding:12px;font-weight:800;font-size:14.5px;cursor:pointer;align-items:center;justify-content:center">\uBC30\uCE58 \uC644\uB8CC</button>'
     +'</div></div>';
   document.body.appendChild(wrap);
   var cv=wrap.querySelector('#mnCv'),bx=wrap.querySelector('#mnCvBox');
@@ -8291,13 +8296,38 @@ function mnPipeEditor(rec,wall){
           var octx=oc.getContext('2d');
           octx.translate(0,iw);octx.rotate(-Math.PI/2);
           octx.drawImage(im,0,0);
-          bg=oc;draw();return;
+          bg=oc;refFill();draw();return;
         }catch(_re){}
       }
-      bg=im;draw();
+      bg=im;refFill();draw();
     };
     im.onerror=function(){bg=null;draw();};
     im.src=u;}
+  /* [1063] 참고 사진 패널 — bg 는 loadBg 에서 이미 가로화된 상태 */
+  function refFill(){
+    var holder=wrap.querySelector('#mnRefImgBox');if(!holder)return;
+    holder.innerHTML='';
+    if(!bg)return;
+    var st='display:block;max-width:100%;max-height:32dvh;width:auto;height:auto';
+    try{
+      if(bg.tagName==='IMG'){var i2=new Image();i2.crossOrigin='anonymous';i2.style.cssText=st;i2.src=bg.src;holder.appendChild(i2);}
+      else{var c2=document.createElement('canvas');c2.width=bg.width;c2.height=bg.height;
+           c2.getContext('2d').drawImage(bg,0,0);c2.style.cssText=st;holder.appendChild(c2);}
+    }catch(_fe){}
+  }
+  /* [1063] 배치 모드 : 위=참고사진 / 아래=관배치 캔버스 / 푸터=배치 완료 */
+  var _placeOn=false;
+  function setPlaceMode(on){
+    _placeOn=!!on;
+    var rb=wrap.querySelector('#mnRefBox'),gb=wrap.querySelector('#mnGBox'),
+        pd=wrap.querySelector('#mnPDone'),bd=wrap.querySelector('#mnPlaceDone');
+    if(rb)rb.style.display=on?'block':'none';
+    if(gb)gb.style.display=on?'none':'block';
+    if(pd)pd.style.display=on?'flex':'none';
+    if(bd)bd.style.display=on?'flex':'none';
+    if(on){refFill();try{var bd2=wrap.querySelector('#mnRefBox');if(bd2&&bd2.scrollIntoView)bd2.scrollIntoView({block:'start'});}catch(_se){}}
+  }
+  wrap.querySelector('#mnPlaceDone').onclick=function(){setPlaceMode(false);};
   wrap.querySelector('#mnReShoot').onclick=function(){if(mode==='del')setMode('all');mnShootSlot(rec,wall,function(){loadBg();});};
   function draw(){
     ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -8416,6 +8446,7 @@ function mnPipeEditor(rec,wall){
     });
     pw.groups.push(g);
     draw();chips();
+    setPlaceMode(true);   /* [1063] 관을 넣은 직후 바로 배치 화면으로 */
   };
   var pDown=null,pTarget=null,pMoved=false;
   var _pts={},_pinch=null;
