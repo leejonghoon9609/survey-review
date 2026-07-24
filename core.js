@@ -8006,7 +8006,7 @@ function mnOpenForm(rec){
       +'<text x="660" y="152" text-anchor="end" font-size="12.5" fill="#555" font-weight="700">사진번호</text>'+phRows
       +'<defs><marker id="mnArw" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="#333"/></marker></defs>'
       /* ===== 전개도 (중앙) ===== */
-      +'<g transform="translate(40,0)">'
+      +'<g transform="translate(40,-12)">'
       +'<rect x="250" y="430" width="140" height="140" fill="#fff" stroke="#333" stroke-width="1.6"/>'
       +'<circle cx="320" cy="500" r="30" fill="none" stroke="#333" stroke-width="1.4" stroke-dasharray="6,5"/>'
       +(rec.photos&&rec.photos.fr?'<image href="'+rec.photos.fr+'" x="250" y="430" width="140" height="140" preserveAspectRatio="xMidYMid slice" opacity="0.35" pointer-events="none"/>':'')
@@ -8081,7 +8081,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1073] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1074] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
