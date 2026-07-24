@@ -7998,7 +7998,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1071] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1072] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -11039,12 +11039,13 @@ function refSiteSVG(rec,W,H,span,at){
       var s3=P(ix,iy);
       var xs=refNum(e,41,1)||1,ys=refNum(e,42,1)||1,rt=refNum(e,50,0);
       /* [1051] 원래 심벌은 반경 0.15m 라 이 축척에선 1px 미만 → 화면 비례로 키움 */
-      /* [1068] 통신주·전주입상 심볼은 도면창과 동일한 색(빨강)으로. 나머지 심볼은 검정 */
+      /* [1071] 통신주·전주입상 심볼은 도면창 색을 그대로 따른다.
+         (1068에서 빨강 강제 폴백을 두는 바람에 통신주까지 빨간색으로 나왔다) */
       var _bn=refStr(e,2,'');
       var symCol='#111';
       if(_bn==='SD300'||_bn==='SD301'||_bn==='SD000'){
         var _dc='';try{_dc=refEntCol(e);}catch(_ce){}
-        symCol=(_dc&&_dc!=='#000000'&&_dc!=='#666666'&&_dc!=='#9a9a9a')?_dc:'#e60000';
+        if(_dc)symCol=_dc;     /* refEntCol = 도면창이 쓰는 바로 그 함수 */
       }
       var br=refBlockR(refStr(e,2,''));
       if(br>0){var tr=v.w*0.011/br;xs=(xs<0?-1:1)*tr;ys=(ys<0?-1:1)*tr;}
