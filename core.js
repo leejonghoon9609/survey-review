@@ -7102,6 +7102,92 @@ function mnDxfText(h,x,y,txt,ht,rot){return mnDxfEnt(['  0','TEXT','  5',h,'330'
 function mnDxfTextC(h,cx,cy,txt,ht){return mnDxfEnt(['  0','TEXT','  5',h,'330','2','100','AcDbEntity','  8','Attr','100','AcDbText',' 10',cx.toFixed(1),' 20',cy.toFixed(1),' 30','0.0',' 40',String(ht),'  1',txt,' 50','0','  7','DIM',' 72','1',' 11',cx.toFixed(1),' 21',cy.toFixed(1),' 31','0.0','100','AcDbText',' 73','2']);}
 /* ===== [BUILD 1017] 현장전자야장 DXF — 평면 맨홀도(샘플 규격) 생성 ===== */
 /* 몸체=실측 벽폭, 팔=관 있는 방향만(1100+목320), 목 개구=766 기준, 내선=ANSI31 해치, 제외관=빨강, 뚜껑=rec.lid */
+/* ===== [BUILD 1073] 내보내기 공통 출력지점 · 전체/선택 출력 ===== */
+var MN_BULK=null;
+function mnOut(blob,name){
+  if(MN_BULK){
+    try{
+      var nm=name,i=2;
+      while(MN_BULK.used[nm]){var d=name.lastIndexOf('.');nm=(d>0?name.slice(0,d):name)+'_'+(i++)+(d>0?name.slice(d):'');}
+      MN_BULK.used[nm]=1;MN_BULK.zip.file(nm,blob);MN_BULK.n++;
+    }catch(_e){}
+    var cb=MN_BULK.cb;MN_BULK.cb=null;if(cb)cb();
+    return;
+  }
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){try{a.remove();URL.revokeObjectURL(a.href);}catch(_e){}},1200);
+}
+function mnExpFn(k){return {dxf:mnDxfGen,xls:mnEquipXls,zip:mnPhotoZip,efb:mnEfbGen}[k];}
+function mnExpTitle(k){return {dxf:'\uB9E8\uD640\uB3C4DXF',xls:'\uC124\uBE44\uC0AC\uC9C4\uC5D1\uC140',zip:'\uB9E8\uD640\uC0AC\uC9C4',efb:'\uD604\uC7A5\uC804\uC790\uC57C\uC7A5'}[k]||'';}
+function mnExpList(){
+  var l=(typeof mnList==='function')?mnList():[];
+  return (l||[]).filter(function(r){return r&&!r.delAt;});
+}
+/* 버튼 클릭 → 이 맨홀만 / 전체 선택 */
+function mnExpAsk(kind,rec){
+  var list=mnExpList();
+  if(list.length<2||MN_BULK){var f0=mnExpFn(kind);if(f0)f0(rec);return;}
+  var old=document.getElementById('mnExpModal');if(old)old.remove();
+  var w=document.createElement('div');w.id='mnExpModal';
+  w.style.cssText='position:fixed;inset:0;background:rgba(20,26,36,.42);z-index:13500;display:flex;align-items:center;justify-content:center';
+  w.onmousedown=function(e){if(e.target===w)w.remove();};
+  w.innerHTML='<div style="background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.22);width:min(420px,92vw);padding:16px 18px">'
+   +'<div style="font-size:15px;font-weight:800;color:#33415a;margin-bottom:3px">'+mnExpTitle(kind)+' \uCD9C\uB825</div>'
+   +'<div style="font-size:12px;color:#8a94a6;margin-bottom:13px">\uC5B4\uB290 \uBC94\uC704\uB85C \uB0B4\uB824\uBC1B\uC744\uAE4C\uC694?</div>'
+   +'<button id="mnExpOne" style="width:100%;background:#fff;border:2px solid #1d9e75;color:#1d9e75;border-radius:9px;padding:11px;font-size:13.5px;font-weight:800;cursor:pointer">\uC774 \uB9E8\uD640\uB9CC \u2014 '+((typeof mnLabel==='function'?mnLabel(rec):'')||'')+'</button>'
+   +'<button id="mnExpAll" style="width:100%;margin-top:8px;background:#fff;border:2px solid #2471a3;color:#2471a3;border-radius:9px;padding:11px;font-size:13.5px;font-weight:800;cursor:pointer">\uC804\uCCB4 \uB9E8\uD640 '+list.length+'\uAC1C \u2014 ZIP \uD55C \uAC1C\uB85C</button>'
+   +'<button id="mnExpCx" style="width:100%;margin-top:8px;background:#fff;border:1.5px solid #ddd;color:#555;border-radius:9px;padding:9px;font-size:13px;font-weight:700;cursor:pointer">\uCDE8\uC18C</button></div>';
+  document.body.appendChild(w);
+  w.querySelector('#mnExpCx').onclick=function(){w.remove();};
+  w.querySelector('#mnExpOne').onclick=function(){w.remove();var f=mnExpFn(kind);if(f)f(rec);};
+  w.querySelector('#mnExpAll').onclick=function(){w.remove();mnExpAll(kind);};
+}
+function mnExpAll(kind){
+  var fn=mnExpFn(kind);if(!fn)return;
+  var list=mnExpList();
+  if(!list.length){toast('\uB9E8\uD640\uC774 \uC5C6\uC2B5\uB2C8\uB2E4');return;}
+  if(typeof JSZip==='undefined'){toast('\uC555\uCD95 \uBAA8\uB4C8\uC744 \uBD88\uB7EC\uC624\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4');return;}
+  MN_BULK={zip:new JSZip(),n:0,cb:null,stop:false,used:{}};
+  var w=document.createElement('div');w.id='mnExpProg';
+  w.style.cssText='position:fixed;inset:0;background:rgba(20,26,36,.45);z-index:13600;display:flex;align-items:center;justify-content:center';
+  w.innerHTML='<div style="background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.22);width:min(420px,92vw);padding:16px 18px">'
+   +'<div style="font-size:14.5px;font-weight:800;color:#33415a">'+mnExpTitle(kind)+' \uC804\uCCB4 \uCD9C\uB825</div>'
+   +'<div id="mnExpMsg" style="font-size:12.5px;color:#5b6577;margin-top:8px">\uC900\uBE44 \uC911\u2026</div>'
+   +'<div style="height:8px;background:#eef2f7;border-radius:5px;margin-top:10px;overflow:hidden"><div id="mnExpBar" style="height:100%;width:0%;background:#2471a3"></div></div>'
+   +'<button id="mnExpStop" style="width:100%;margin-top:12px;background:#fff;border:1.5px solid #f0c4c4;color:#d32f2f;border-radius:9px;padding:9px;font-size:13px;font-weight:700;cursor:pointer">\uC911\uB2E8</button></div>';
+  document.body.appendChild(w);
+  document.getElementById('mnExpStop').onclick=function(){if(MN_BULK)MN_BULK.stop=true;};
+  function upd(i,tot,lab){
+    var m=document.getElementById('mnExpMsg'),b=document.getElementById('mnExpBar');
+    if(m)m.textContent=i+' / '+tot+'  \u00B7  '+(lab||'');
+    if(b)b.style.width=Math.round(i*100/Math.max(1,tot))+'%';
+  }
+  function close(){var e=document.getElementById('mnExpProg');if(e)e.remove();}
+  var i=0;
+  (function nx(){
+    if(!MN_BULK||MN_BULK.stop||i>=list.length){fin();return;}
+    var rec=list[i++];
+    upd(i,list.length,(typeof mnLabel==='function')?mnLabel(rec):'');
+    var done=false;
+    var to=setTimeout(function(){step();},45000);   /* 안전장치 — 중간에 멈춰도 계속 */
+    function step(){if(done)return;done=true;clearTimeout(to);if(MN_BULK)MN_BULK.cb=null;setTimeout(nx,80);}
+    MN_BULK.cb=step;
+    try{fn(rec);}catch(_e){step();}
+  })();
+  function fin(){
+    if(!MN_BULK){close();return;}
+    var z=MN_BULK.zip,n=MN_BULK.n,st=MN_BULK.stop;MN_BULK=null;
+    if(!n){close();toast('\uC0DD\uC131\uB41C \uD30C\uC77C\uC774 \uC5C6\uC2B5\uB2C8\uB2E4');return;}
+    var m=document.getElementById('mnExpMsg');if(m)m.textContent='\uC555\uCD95 \uC911\u2026 ('+n+'\uAC1C)';
+    z.generateAsync({type:'blob'}).then(function(b){
+      close();
+      var base=((state&&state.projectName)||'\uB9E8\uD640')+'_'+mnExpTitle(kind);
+      mnOut(b,base+'.zip');
+      toast((st?'\uC911\uB2E8 \u2014 ':'')+'\uC804\uCCB4 '+n+'\uAC1C \uB0B4\uB824\uBC1B\uC74C');
+    })['catch'](function(){close();toast('\uC555\uCD95 \uC2E4\uD328');});
+  }
+}
 function mnEfbGen(rec){
   toast('현장전자야장 DXF 생성 중...');
   fetch('dxf/tpl_efb.dxf?v='+Date.now()).then(function(r){
@@ -7293,8 +7379,7 @@ function mnEfbGen(rec){
     if(hm)x=x.replace(/\$HANDSEED\r?\n  5\r?\n[0-9A-Fa-f]+/,'$HANDSEED'+Q+'  5'+Q+seed.toString(16).toUpperCase());
     var nm=(mnLabel(rec)||'맨홀').replace(/[\\/:*?"<>|]/g,'_');
     var blob=new Blob([x],{type:'application/dxf'});
-    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nm+'_전자야장.dxf';document.body.appendChild(a);a.click();
-    setTimeout(function(){a.remove();URL.revokeObjectURL(a.href);},1000);
+    mnOut(blob,nm+'_전자야장.dxf');
     toast('현장전자야장 '+nm+'_전자야장.dxf 다운로드');
   }).catch(function(e){console.error('mnEfbGen',e);toast('전자야장 생성 실패 — dxf/tpl_efb.dxf 배포 확인');});
 }
@@ -7480,8 +7565,7 @@ function mnDxfGen(rec){
     if(hm)x=x.replace(/\$HANDSEED\n  5\n[0-9A-Fa-f]+/,'$HANDSEED\n  5\n'+seed.toString(16).toUpperCase());
     var nm2=(mnLabel(rec)||'맨홀').replace(/[\\/:*?"<>|]/g,'_');
     var blob=new Blob([x],{type:'application/dxf'});
-    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nm2+'.dxf';document.body.appendChild(a);a.click();
-    setTimeout(function(){a.remove();URL.revokeObjectURL(a.href);},1000);
+    mnOut(blob,nm2+'.dxf');
     toast('맨홀도 '+nm2+'.dxf 다운로드');
   }).catch(function(e){console.error('mnDxfGen',e);toast('DXF 생성 실패 — dxf 폴더 배포 확인');});
 }
@@ -7701,8 +7785,7 @@ function mnEquipXls(rec){
     return zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
   }).then(function(blob){
     var nm=(mnLabel(rec)||'맨홀').replace(/[\\/:*?"<>|]/g,'_').trim()||'맨홀';
-    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nm+'.xlsx';document.body.appendChild(a);a.click();
-    setTimeout(function(){a.remove();URL.revokeObjectURL(a.href);},1000);
+    mnOut(blob,nm+'.xlsx');
     toast('📄 '+nm+'.xlsx 다운로드');
   }).catch(function(e){if(e==='__cancel'){toast('취소됨');return;}console.error('mnEquipXls',e);toast('엑셀 생성 실패');});
   });
@@ -7720,7 +7803,7 @@ function mnPhotoZip(rec){
   })).then(function(){
     var nm=(mnLabel(rec)||'맨홀').replace(/[\\/:*?"<>|]/g,'_').trim()||'맨홀';
     zip.generateAsync({type:'blob'}).then(function(blob){
-      var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nm+'.zip';document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(a.href);},1000);
+      mnOut(blob,nm+'.zip');
       toast('📦 '+jobs.length+'장 → '+nm+'.zip');
     }).catch(function(){toast('압축 실패');});
   });
@@ -7998,7 +8081,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1072] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1073] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -8120,10 +8203,10 @@ function mnOpenForm(rec){
   }
   root.querySelector('#mnFClose').onclick=uClose;
   var _ft=root.querySelector('#mnFTrash');if(_ft)_ft.onclick=function(){mnTrashList(null);};
-  var _pdl=root.querySelector('#mnPhotoDl');if(_pdl)_pdl.onclick=function(){mnPhotoZip(rec);};
-  var _eqx=root.querySelector('#mnEqXls');if(_eqx)_eqx.onclick=function(){mnEquipXls(rec);};
-  var _dxb=root.querySelector('#mnDxfBtn');if(_dxb)_dxb.onclick=function(){mnDxfGen(rec);};
-  var _efb=root.querySelector('#mnEfb');if(_efb)_efb.onclick=function(){mnEfbGen(rec);};
+  var _pdl=root.querySelector('#mnPhotoDl');if(_pdl)_pdl.onclick=function(){mnExpAsk('zip',rec);};
+  var _eqx=root.querySelector('#mnEqXls');if(_eqx)_eqx.onclick=function(){mnExpAsk('xls',rec);};
+  var _dxb=root.querySelector('#mnDxfBtn');if(_dxb)_dxb.onclick=function(){mnExpAsk('dxf',rec);};
+  var _efb=root.querySelector('#mnEfb');if(_efb)_efb.onclick=function(){mnExpAsk('efb',rec);};
   root.querySelector('#mnBack').onclick=function(){uClose();mnOpenList();};
   root.querySelector('#mnSave').onclick=function(){
     if(!rec.no){toast('맨홀번호를 입력하세요');mnAskNoOwner(rec,function(){mnPersistRec(rec);render();});return;}
