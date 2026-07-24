@@ -7998,7 +7998,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1069] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1070] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -10750,39 +10750,97 @@ function refRiserList(rec,lim){
 }
 /* [1067] 입상 도면 직접 선택 — 주황 원으로 표시 → 클릭 시 등록되고 원 사라짐 */
 var refRiserSel=null;
+function _refMob(){try{return (typeof isMobileDevice==='function'&&isMobileDevice())||window.innerWidth<=760;}catch(_e){return false;}}
 function refRiserClear(){
   var g=document.getElementById('gRefRiser');if(g&&g.parentNode)g.parentNode.removeChild(g);
   var b=document.getElementById('refRiserBar');if(b&&b.parentNode)b.parentNode.removeChild(b);
 }
+/* [1070] 모바일은 야장이 도면을 덮으므로 잠시 숨기고, 끝나면 다시 돌려놓는다 */
+function _refHideSheet(){
+  var out=[];
+  ['mnFormModal','mnListModal','mnPipeModal'].forEach(function(id){
+    var e=document.getElementById(id);
+    if(e&&e.style.display!=='none'){out.push([e,e.style.display||'']);e.style.display='none';}
+  });
+  return out;
+}
+function _refShowSheet(list){
+  (list||[]).forEach(function(p){try{p[0].style.display=p[1];}catch(_e){}});
+}
+function refRiserFit(rec,list){
+  try{
+    var c=refSiteXY(rec);if(!c||typeof vb==='undefined')return;
+    var x0=c[0],x1=c[0],y0=c[1],y1=c[1];
+    list.forEach(function(q){if(q.x<x0)x0=q.x;if(q.x>x1)x1=q.x;if(q.y<y0)y0=q.y;if(q.y>y1)y1=q.y;});
+    var sp=Math.max(30,Math.max(x1-x0,y1-y0)*1.35);
+    vb={x:(x0+x1)/2-sp/2,y:-((y0+y1)/2+sp/2),w:sp,h:sp};
+    if(typeof fixAspect==='function')fixAspect();
+    if(typeof applyVB==='function')applyVB();
+  }catch(_e){}
+}
 function refRiserEnd(q){
   var s=refRiserSel;refRiserSel=null;refRiserClear();
   try{cv.style.cursor='';}catch(_e){}
+  if(s)_refShowSheet(s.hidden);          /* 야장 먼저 복원 → render() 가 보이는 상태에서 동작 */
   if(s&&s.cb)s.cb(q);
 }
+function _refRiserBar(html){
+  var b=document.getElementById('refRiserBar');if(!b)return null;
+  b.innerHTML=html;return b;
+}
+function _refRiserAsk(){
+  if(!refRiserSel)return;
+  var s=refRiserSel;
+  _refRiserBar('<span>'+s.lab+' \uC120\uD0DD\uB428 \u2014 \uB4F1\uB85D\uD560\uAE4C\uC694?</span>'
+    +'<button id="refRiserOk" style="background:#1d9e75;border:0;color:#fff;border-radius:8px;padding:6px 14px;font-size:12.5px;font-weight:800;cursor:pointer">\uC644\uB8CC</button>'
+    +'<button id="refRiserCx" style="background:#fff;border:1.5px solid #ddd;color:#555;border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer">\uCDE8\uC18C</button>');
+  var ok=document.getElementById('refRiserOk');if(ok)ok.onclick=function(){refRiserEnd(s.pend);};
+  var cx=document.getElementById('refRiserCx');if(cx)cx.onclick=function(){refRiserEnd(false);};
+}
+function _refRiserPickBar(){
+  if(!refRiserSel)return;
+  var s=refRiserSel;
+  _refRiserBar('<span>'+s.lab+' \uC744(\uB97C) \uB3C4\uBA74\uC5D0\uC11C \uD074\uB9AD\uD558\uC138\uC694 ('+s.n+'\uAC1C \u00B7 \uC8FC\uD669 \uC6D0)</span>'
+    +'<button id="refRiserCx" style="background:#fff;border:1.5px solid #ddd;color:#555;border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer">\uCDE8\uC18C</button>');
+  var cx=document.getElementById('refRiserCx');if(cx)cx.onclick=function(){refRiserEnd(false);};
+}
+/* 원 클릭 — PC는 즉시 등록, 모바일은 완료/취소 확인 */
+function refRiserChoose(q,elc){
+  if(!refRiserSel)return;
+  if(!refRiserSel.mob){refRiserEnd(q);return;}
+  refRiserSel.pend=q;
+  var g=document.getElementById('gRefRiser');
+  if(g)[].forEach.call(g.childNodes,function(n){
+    try{n.setAttribute('stroke',(n===elc)?'#d100d1':'#ef6c00');
+        n.setAttribute('fill',(n===elc)?'#d100d1':'#ff8f00');
+        n.setAttribute('fill-opacity',(n===elc)?'0.35':'0.20');}catch(_e){}
+  });
+  _refRiserAsk();
+}
 function refRiserPick(rec,lab,cb){
-  if(typeof REF==='undefined'||!REF.ents||!REF.on)return false;   /* [1067] cb 는 호출자가 처리 (중복등록 방지) */
+  if(typeof REF==='undefined'||!REF.ents||!REF.on)return false;
   var host=document.getElementById('gRefDxf');if(!host)return false;
   var list=refRiserList(rec,400);
   if(!list||!list.length)return false;
   refRiserClear();
+  var mob=_refMob();
   var g=document.createElementNS(SVGNS,'g');g.id='gRefRiser';
   g.setAttribute('transform','translate('+REF.ox+','+(-REF.oy)+')');
   if(host.nextSibling)cv.insertBefore(g,host.nextSibling);else cv.appendChild(g);
-  refRiserSel={cb:cb};
+  refRiserSel={cb:cb,lab:lab,n:list.length,mob:mob,pend:null,hidden:(mob?_refHideSheet():[])};
   list.forEach(function(q){
     var s=refSR(q.x,q.y);
     var c=el('circle',{cx:s[0],cy:s[1],r:1.7,fill:'#ff8f00','fill-opacity':0.20,
       stroke:'#ef6c00','stroke-width':3.6,'vector-effect':'non-scaling-stroke'});
     c.style.cursor='pointer';c.setAttribute('pointer-events','auto');
-    c.addEventListener('click',function(ev){ev.stopPropagation();refRiserEnd(q);});
+    c.addEventListener('click',function(ev){ev.stopPropagation();refRiserChoose(q,c);});
     g.appendChild(c);
   });
   var bar=document.createElement('div');bar.id='refRiserBar';
-  bar.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:56px;z-index:13000;background:#fff;border:2px solid #ef6c00;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:9px 13px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;color:#bf360c';
-  bar.innerHTML='<span>'+lab+' \uC744(\uB97C) \uB3C4\uBA74\uC5D0\uC11C \uD074\uB9AD\uD558\uC138\uC694 ('+list.length+'\uAC1C \u00B7 \uC8FC\uD669 \uC6D0)</span>'
-    +'<button id="refRiserCx" style="background:#fff;border:1.5px solid #ddd;color:#555;border-radius:8px;padding:5px 11px;font-size:12px;font-weight:700;cursor:pointer">\uCDE8\uC18C</button>';
+  bar.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:56px;z-index:13000;background:#fff;border:2px solid #ef6c00;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:9px 12px;display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:800;color:#bf360c;max-width:94vw;flex-wrap:wrap;justify-content:center';
   document.body.appendChild(bar);
-  document.getElementById('refRiserCx').onclick=function(){refRiserEnd(false);};
+  _refRiserPickBar();
+  if(mob)refRiserFit(rec,list);        /* 도면을 후보가 다 보이는 범위로 */
   try{cv.style.cursor='pointer';}catch(_e){}
   return true;
 }
