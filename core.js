@@ -7120,6 +7120,13 @@ function mnOut(blob,name){
 }
 function mnExpFn(k){return {dxf:mnDxfGen,xls:mnEquipXls,zip:mnPhotoZip,efb:mnEfbGen}[k];}
 function mnExpTitle(k){return {dxf:'\uB9E8\uD640\uB3C4DXF',xls:'\uC124\uBE44\uC0AC\uC9C4\uC5D1\uC140',zip:'\uB9E8\uD640\uC0AC\uC9C4',efb:'\uD604\uC7A5\uC804\uC790\uC57C\uC7A5'}[k]||'';}
+/* [1075] 헤더 4버튼과 같은 계열색 */
+function mnExpPal(k){
+  return {dxf:{b:'#c0392b',g:'#fdeaea',f:'#c0392b'},
+          xls:{b:'#1d9e75',g:'#e1f5ee',f:'#0f6e56'},
+          zip:{b:'#2471a3',g:'#eef6fc',f:'#2471a3'},
+          efb:{b:'#8e44ad',g:'#f4ecf9',f:'#8e44ad'}}[k]||{b:'#33415a',g:'#f5f7fa',f:'#33415a'};
+}
 function mnExpList(){
   var l=(typeof mnList==='function')?mnList():[];
   return (l||[]).filter(function(r){return r&&!r.delAt;});
@@ -7132,11 +7139,12 @@ function mnExpAsk(kind,rec){
   var w=document.createElement('div');w.id='mnExpModal';
   w.style.cssText='position:fixed;inset:0;background:rgba(20,26,36,.42);z-index:13500;display:flex;align-items:center;justify-content:center';
   w.onmousedown=function(e){if(e.target===w)w.remove();};
-  w.innerHTML='<div style="background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.22);width:min(420px,92vw);padding:16px 18px">'
-   +'<div style="font-size:15px;font-weight:800;color:#33415a;margin-bottom:3px">'+mnExpTitle(kind)+' \uCD9C\uB825</div>'
+  var _p=mnExpPal(kind);
+  w.innerHTML='<div style="background:#fff;border-top:5px solid '+_p.b+';border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.22);width:min(420px,92vw);padding:16px 18px">'
+   +'<div style="font-size:15px;font-weight:800;color:'+_p.f+';margin-bottom:3px">'+mnExpTitle(kind)+' \uCD9C\uB825</div>'
    +'<div style="font-size:12px;color:#8a94a6;margin-bottom:13px">\uC5B4\uB290 \uBC94\uC704\uB85C \uB0B4\uB824\uBC1B\uC744\uAE4C\uC694?</div>'
-   +'<button id="mnExpOne" style="width:100%;background:#fff;border:2px solid #1d9e75;color:#1d9e75;border-radius:9px;padding:11px;font-size:13.5px;font-weight:800;cursor:pointer">\uC774 \uB9E8\uD640\uB9CC \u2014 '+((typeof mnLabel==='function'?mnLabel(rec):'')||'')+'</button>'
-   +'<button id="mnExpAll" style="width:100%;margin-top:8px;background:#fff;border:2px solid #2471a3;color:#2471a3;border-radius:9px;padding:11px;font-size:13.5px;font-weight:800;cursor:pointer">\uC804\uCCB4 \uB9E8\uD640 '+list.length+'\uAC1C \u2014 ZIP \uD55C \uAC1C\uB85C</button>'
+   +'<button id="mnExpOne" style="width:100%;background:'+_p.g+';border:1.5px solid '+_p.b+';color:'+_p.f+';border-radius:9px;padding:11px;font-size:13.5px;font-weight:800;cursor:pointer">\uC774 \uB9E8\uD640\uB9CC \u2014 '+((typeof mnLabel==='function'?mnLabel(rec):'')||'')+'</button>'
+   +'<button id="mnExpAll" style="width:100%;margin-top:8px;background:'+_p.b+';border:1.5px solid '+_p.b+';color:#fff;border-radius:9px;padding:11px;font-size:13.5px;font-weight:800;cursor:pointer">\uC804\uCCB4 \uB9E8\uD640 '+list.length+'\uAC1C \u2014 ZIP \uD55C \uAC1C\uB85C</button>'
    +'<button id="mnExpCx" style="width:100%;margin-top:8px;background:#fff;border:1.5px solid #ddd;color:#555;border-radius:9px;padding:9px;font-size:13px;font-weight:700;cursor:pointer">\uCDE8\uC18C</button></div>';
   document.body.appendChild(w);
   w.querySelector('#mnExpCx').onclick=function(){w.remove();};
@@ -7151,10 +7159,11 @@ function mnExpAll(kind){
   MN_BULK={zip:new JSZip(),n:0,cb:null,stop:false,used:{}};
   var w=document.createElement('div');w.id='mnExpProg';
   w.style.cssText='position:fixed;inset:0;background:rgba(20,26,36,.45);z-index:13600;display:flex;align-items:center;justify-content:center';
-  w.innerHTML='<div style="background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.22);width:min(420px,92vw);padding:16px 18px">'
-   +'<div style="font-size:14.5px;font-weight:800;color:#33415a">'+mnExpTitle(kind)+' \uC804\uCCB4 \uCD9C\uB825</div>'
+  var _p=mnExpPal(kind);
+  w.innerHTML='<div style="background:#fff;border-top:5px solid '+_p.b+';border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.22);width:min(420px,92vw);padding:16px 18px">'
+   +'<div style="font-size:14.5px;font-weight:800;color:'+_p.f+'">'+mnExpTitle(kind)+' \uC804\uCCB4 \uCD9C\uB825</div>'
    +'<div id="mnExpMsg" style="font-size:12.5px;color:#5b6577;margin-top:8px">\uC900\uBE44 \uC911\u2026</div>'
-   +'<div style="height:8px;background:#eef2f7;border-radius:5px;margin-top:10px;overflow:hidden"><div id="mnExpBar" style="height:100%;width:0%;background:#2471a3"></div></div>'
+   +'<div style="height:8px;background:#eef2f7;border-radius:5px;margin-top:10px;overflow:hidden"><div id="mnExpBar" style="height:100%;width:0%;background:'+_p.b+'"></div></div>'
    +'<button id="mnExpStop" style="width:100%;margin-top:12px;background:#fff;border:1.5px solid #f0c4c4;color:#d32f2f;border-radius:9px;padding:9px;font-size:13px;font-weight:700;cursor:pointer">\uC911\uB2E8</button></div>';
   document.body.appendChild(w);
   document.getElementById('mnExpStop').onclick=function(){if(MN_BULK)MN_BULK.stop=true;};
@@ -7201,7 +7210,16 @@ function mnEfbGen(rec){
     var CX=524932, CY=677315;
     var bw=mnWallRealW(rec,'p3'), bh=mnWallRealW(rec,'p1');
     var x0=CX-bw/2,x1=CX+bw/2,y0=CY-bh/2,y1=CY+bh/2;
-    var A=1100,N=320,out='';
+    /* [1076] 팔=깊이(rec.spec.dep), 목=토피(rec.topi) — 예전에는 1100/320 하드코딩이라 야장 수치가 안 먹혔다.
+       맨홀도(mnDxfGen)는 이미 목 400 을 토피 실측으로 바꾸고 있음 — 같은 규칙으로 맞춤 */
+    var A=1100,N=320;
+    try{
+      var _dp=Math.round(parseFloat((rec.spec&&rec.spec.dep)||0)||0);
+      if(_dp>0)A=_dp;
+      var _tp=Math.round((parseFloat(rec.topi)||0)*1000);
+      if(_tp>0)N=_tp;
+    }catch(_ae){}
+    var out='';
     function fx(v){return (Math.round(v*10)/10).toFixed(1);}
     function eL(ly,ax,ay,bx,by,col){var a=['  0','LINE','  5',nh(),'330','2','100','AcDbEntity','  8',ly];if(col)a.push(' 62',String(col));a.push('100','AcDbLine',' 10',fx(ax),' 20',fx(ay),' 30','0.0',' 11',fx(bx),' 21',fx(by),' 31','0.0');return mnDxfEnt(a);}
     function ePL(ly,pts,closed,lt,col){var a=['  0','LWPOLYLINE','  5',nh(),'330','2','100','AcDbEntity','  8',ly];if(lt)a.push('  6',lt);if(col)a.push(' 62',String(col));a.push('100','AcDbPolyline',' 90',String(pts.length),' 70',closed?'1':'0',' 43','0.0');pts.forEach(function(p){a.push(' 10',fx(p[0]),' 20',fx(p[1]));if(p[2]!=null)a.push(' 42',String(p[2]));});return mnDxfEnt(a);}
@@ -7251,20 +7269,20 @@ function mnEfbGen(rec){
       if(w==='p3')return [x0+px,y1+py];
       return [x0+px,y0-py];
     }
-    function armDims(w){ /* 팔 치수 1100+320 — 좌우팔=하단(y0-107), 상하팔=우측(x1+107) */
+    function armDims(w){ /* 팔 치수 A(깊이)+N(토피) — 좌우팔=하단(y0-107), 상하팔=우측(x1+107) */
       var o='';
       if(w==='p1'||w==='p2'){
         var s=(w==='p1'?-1:1), bx=(w==='p1'?x0:x1), ya=y0-107;
         var e1=bx+s*A, e2=bx+s*(A+N);
         o+=eL('Dim',bx,y0-10,bx,y0-157)+eL('Dim',e1,y0-10,e1,y0-157)+eL('Dim',e2,y0-10,e2,y0-157);
-        o+=eL('Dim',bx+s*50,ya,e1-s*50,ya)+eOpen(bx,ya,s<0?0:180)+eOpen(e1,ya,s<0?180:0)+eTxt((bx+e1)/2,ya+43,'1100',50,0,'DIM','Dim');
-        o+=eL('Dim',e1+s*50,ya,e2-s*50,ya)+eOpen(e1,ya,s<0?0:180)+eOpen(e2,ya,s<0?180:0)+eTxt((e1+e2)/2,ya+43,'320',50,0,'DIM','Dim');
+        o+=eL('Dim',bx+s*50,ya,e1-s*50,ya)+eOpen(bx,ya,s<0?0:180)+eOpen(e1,ya,s<0?180:0)+eTxt((bx+e1)/2,ya+43,String(A),50,0,'DIM','Dim');
+        o+=eL('Dim',e1+s*50,ya,e2-s*50,ya)+eOpen(e1,ya,s<0?0:180)+eOpen(e2,ya,s<0?180:0)+eTxt((e1+e2)/2,ya+43,String(N),50,0,'DIM','Dim');
       }else{
         var s2=(w==='p3'?1:-1), by=(w==='p3'?y1:y0), xa=x1+107;
         var f1=by+s2*A, f2=by+s2*(A+N);
         o+=eL('Dim',x1+10,by,x1+157,by)+eL('Dim',x1+10,f1,x1+157,f1)+eL('Dim',x1+10,f2,x1+157,f2);
-        o+=eL('Dim',xa,by+s2*50,xa,f1-s2*50,0)+eOpen(xa,by,s2>0?270:90)+eOpen(xa,f1,s2>0?90:270)+eTxt(xa-43,(by+f1)/2,'1100',50,0,'DIM','Dim');
-        o+=eL('Dim',xa,f1+s2*50,xa,f2-s2*50,0)+eOpen(xa,f1,s2>0?270:90)+eOpen(xa,f2,s2>0?90:270)+eTxt(xa-43,(f1+f2)/2,'320',50,0,'DIM','Dim');
+        o+=eL('Dim',xa,by+s2*50,xa,f1-s2*50,0)+eOpen(xa,by,s2>0?270:90)+eOpen(xa,f1,s2>0?90:270)+eTxt(xa-43,(by+f1)/2,String(A),50,0,'DIM','Dim');
+        o+=eL('Dim',xa,f1+s2*50,xa,f2-s2*50,0)+eOpen(xa,f1,s2>0?270:90)+eOpen(xa,f2,s2>0?90:270)+eTxt(xa-43,(f1+f2)/2,String(N),50,0,'DIM','Dim');
       }
       return o;
     }
@@ -8081,7 +8099,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1074] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1076] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
