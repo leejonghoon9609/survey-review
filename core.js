@@ -7281,8 +7281,8 @@ function mnEfbGen(rec){
         var s2=(w==='p3'?1:-1), by=(w==='p3'?y1:y0), xa=x1+107;
         var f1=by+s2*A, f2=by+s2*(A+N);
         o+=eL('Dim',x1+10,by,x1+157,by)+eL('Dim',x1+10,f1,x1+157,f1)+eL('Dim',x1+10,f2,x1+157,f2);
-        o+=eL('Dim',xa,by+s2*50,xa,f1-s2*50,0)+eOpen(xa,by,s2>0?270:90)+eOpen(xa,f1,s2>0?90:270)+eTxt(xa-43,(by+f1)/2,String(A),50,0,'DIM','Dim');
-        o+=eL('Dim',xa,f1+s2*50,xa,f2-s2*50,0)+eOpen(xa,f1,s2>0?270:90)+eOpen(xa,f2,s2>0?90:270)+eTxt(xa-43,(f1+f2)/2,String(N),50,0,'DIM','Dim');
+        o+=eL('Dim',xa,by+s2*50,xa,f1-s2*50,0)+eOpen(xa,by,s2>0?270:90)+eOpen(xa,f1,s2>0?90:270)+eTxt(xa-43,(by+f1)/2,String(A),50,90,'DIM','Dim');  /* [1078] 세로 치수는 텍스트도 세로 — 치수선 겹침 방지 */
+        o+=eL('Dim',xa,f1+s2*50,xa,f2-s2*50,0)+eOpen(xa,f1,s2>0?270:90)+eOpen(xa,f2,s2>0?90:270)+eTxt(xa-43,(f1+f2)/2,String(N),50,90,'DIM','Dim');  /* [1078] */
       }
       return o;
     }
@@ -8099,7 +8099,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1077] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1078] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
