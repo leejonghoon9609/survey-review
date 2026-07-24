@@ -7122,10 +7122,12 @@ function mnExpFn(k){return {dxf:mnDxfGen,xls:mnEquipXls,zip:mnPhotoZip,efb:mnEfb
 function mnExpTitle(k){return {dxf:'\uB9E8\uD640\uB3C4DXF',xls:'\uC124\uBE44\uC0AC\uC9C4\uC5D1\uC140',zip:'\uB9E8\uD640\uC0AC\uC9C4',efb:'\uD604\uC7A5\uC804\uC790\uC57C\uC7A5'}[k]||'';}
 /* [1075] 헤더 4버튼과 같은 계열색 */
 function mnExpPal(k){
-  return {dxf:{b:'#c0392b',g:'#fdeaea',f:'#c0392b'},
-          xls:{b:'#1d9e75',g:'#e1f5ee',f:'#0f6e56'},
-          zip:{b:'#2471a3',g:'#eef6fc',f:'#2471a3'},
-          efb:{b:'#8e44ad',g:'#f4ecf9',f:'#8e44ad'}}[k]||{b:'#33415a',g:'#f5f7fa',f:'#33415a'};
+  /* [1079] b=진한원색(헤더버튼) / s=연한 테두리 / m=연한 채움 / f=글자 */
+  return {dxf:{b:'#c0392b',g:'#fdeaea',f:'#c0392b',s:'#e6a49d',m:'#fbe4e1'},
+          xls:{b:'#1d9e75',g:'#e1f5ee',f:'#0f6e56',s:'#9ad3c0',m:'#ddf2ea'},
+          zip:{b:'#2471a3',g:'#eef6fc',f:'#2471a3',s:'#a3c4dc',m:'#e2eef8'},
+          efb:{b:'#8e44ad',g:'#f4ecf9',f:'#8e44ad',s:'#c9a7d8',m:'#efe4f5'}}[k]
+         ||{b:'#33415a',g:'#f5f7fa',f:'#33415a',s:'#c9d2de',m:'#eef2f7'};
 }
 function mnExpList(){
   var l=(typeof mnList==='function')?mnList():[];
@@ -7140,11 +7142,11 @@ function mnExpAsk(kind,rec){
   w.style.cssText='position:fixed;inset:0;background:rgba(20,26,36,.42);z-index:13500;display:flex;align-items:center;justify-content:center';
   w.onmousedown=function(e){if(e.target===w)w.remove();};
   var _p=mnExpPal(kind);
-  w.innerHTML='<div style="background:#fff;border-top:5px solid '+_p.b+';border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.22);width:min(420px,92vw);padding:16px 18px">'
+  w.innerHTML='<div style="background:#fff;border-top:5px solid '+_p.s+';border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.22);width:min(420px,92vw);padding:16px 18px">'
    +'<div style="font-size:15px;font-weight:800;color:'+_p.f+';margin-bottom:3px">'+mnExpTitle(kind)+' \uCD9C\uB825</div>'
    +'<div style="font-size:12px;color:#8a94a6;margin-bottom:13px">\uC5B4\uB290 \uBC94\uC704\uB85C \uB0B4\uB824\uBC1B\uC744\uAE4C\uC694?</div>'
-   +'<button id="mnExpOne" style="width:100%;background:'+_p.g+';border:1.5px solid '+_p.b+';color:'+_p.f+';border-radius:9px;padding:11px;font-size:13.5px;font-weight:800;cursor:pointer">\uC774 \uB9E8\uD640\uB9CC \u2014 '+((typeof mnLabel==='function'?mnLabel(rec):'')||'')+'</button>'
-   +'<button id="mnExpAll" style="width:100%;margin-top:8px;background:'+_p.b+';border:1.5px solid '+_p.b+';color:#fff;border-radius:9px;padding:11px;font-size:13.5px;font-weight:800;cursor:pointer">\uC804\uCCB4 \uB9E8\uD640 '+list.length+'\uAC1C \u2014 ZIP \uD55C \uAC1C\uB85C</button>'
+   +'<button id="mnExpOne" style="width:100%;background:#fff;border:1.5px solid '+_p.s+';color:'+_p.f+';border-radius:9px;padding:11px;font-size:13.5px;font-weight:800;cursor:pointer">\uC774 \uB9E8\uD640\uB9CC \u2014 '+((typeof mnLabel==='function'?mnLabel(rec):'')||'')+'</button>'
+   +'<button id="mnExpAll" style="width:100%;margin-top:8px;background:'+_p.m+';border:1.5px solid '+_p.s+';color:'+_p.f+';border-radius:9px;padding:11px;font-size:13.5px;font-weight:800;cursor:pointer">\uC804\uCCB4 \uB9E8\uD640 '+list.length+'\uAC1C \u2014 ZIP \uD55C \uAC1C\uB85C</button>'
    +'<button id="mnExpCx" style="width:100%;margin-top:8px;background:#fff;border:1.5px solid #ddd;color:#555;border-radius:9px;padding:9px;font-size:13px;font-weight:700;cursor:pointer">\uCDE8\uC18C</button></div>';
   document.body.appendChild(w);
   w.querySelector('#mnExpCx').onclick=function(){w.remove();};
@@ -7160,10 +7162,10 @@ function mnExpAll(kind){
   var w=document.createElement('div');w.id='mnExpProg';
   w.style.cssText='position:fixed;inset:0;background:rgba(20,26,36,.45);z-index:13600;display:flex;align-items:center;justify-content:center';
   var _p=mnExpPal(kind);
-  w.innerHTML='<div style="background:#fff;border-top:5px solid '+_p.b+';border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.22);width:min(420px,92vw);padding:16px 18px">'
+  w.innerHTML='<div style="background:#fff;border-top:5px solid '+_p.s+';border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.22);width:min(420px,92vw);padding:16px 18px">'
    +'<div style="font-size:14.5px;font-weight:800;color:'+_p.f+'">'+mnExpTitle(kind)+' \uC804\uCCB4 \uCD9C\uB825</div>'
    +'<div id="mnExpMsg" style="font-size:12.5px;color:#5b6577;margin-top:8px">\uC900\uBE44 \uC911\u2026</div>'
-   +'<div style="height:8px;background:#eef2f7;border-radius:5px;margin-top:10px;overflow:hidden"><div id="mnExpBar" style="height:100%;width:0%;background:'+_p.b+'"></div></div>'
+   +'<div style="height:8px;background:#eef2f7;border-radius:5px;margin-top:10px;overflow:hidden"><div id="mnExpBar" style="height:100%;width:0%;background:'+_p.s+'"></div></div>'
    +'<button id="mnExpStop" style="width:100%;margin-top:12px;background:#fff;border:1.5px solid #f0c4c4;color:#d32f2f;border-radius:9px;padding:9px;font-size:13px;font-weight:700;cursor:pointer">\uC911\uB2E8</button></div>';
   document.body.appendChild(w);
   document.getElementById('mnExpStop').onclick=function(){if(MN_BULK)MN_BULK.stop=true;};
@@ -8099,7 +8101,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1078] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1079] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
