@@ -7461,8 +7461,9 @@ function mnXmlEsc(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/
 function mnRevGeo(lat,lng,cb){
   var done=false;
   function ok(a,d,src){if(done)return;done=true;try{console.log('[revgeo]',src,'|',a,'|',d);}catch(e){}cb(a||'',d||'',src);}
+  var _keepAddr=null,_probing=false;   /* [1065] 행정구역은 카카오 것을 쓰고 도로명만 보충할 때 */
   function osm(why){
-    if(done)return;
+    if(done||_probing)return;
     try{
       var u='https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&accept-language=ko&lat='+lat+'&lon='+lng;
       fetch(u,{headers:{'Accept':'application/json'}}).then(function(r){return r.json();}).then(function(j){
@@ -7476,9 +7477,43 @@ function mnRevGeo(lat,lng,cb){
         var L2=mid.join(' ');
         var L3=A.town||A.quarter||A.neighbourhood||A.suburb||A.village||'';
         var parts=[];[L1,L2,L3].forEach(function(v){if(v)parts.push(v);});
-        ok(parts.join(' ').replace(/\s+/g,' ').trim(),A.road||'','osm/'+why);
-      })['catch'](function(){ok('','','fail/'+why);});
-    }catch(e){ok('','','fail/'+why);}
+        var _oa=parts.join(' ').replace(/\s+/g,' ').trim();
+        if(_keepAddr&&!A.road){probeRoad(_keepAddr,'osm-noroad');return;}   /* [1065] OSM 에도 도로명이 없으면 근처 탐색 */
+        ok(_keepAddr||_oa,A.road||'','osm/'+why);
+      })['catch'](function(){if(_keepAddr){probeRoad(_keepAddr,'osm-fail');return;}ok('','','fail/'+why);});
+    }catch(e){if(_keepAddr){probeRoad(_keepAddr,'osm-err');return;}ok('','','fail/'+why);}
+  }
+  /* [1065] 도로명이 안 나오는 시골·리 지역 — 주변 지점을 찍어 가장 가까운 도로명을 찾는다 */
+  function probeRoad(addr,why){
+    if(done||_probing)return;_probing=true;
+    try{
+      if(!(window.kakao&&kakao.maps&&kakao.maps.services&&kakao.maps.services.Geocoder)){ok(addr,'',why+'/no-svc');return;}
+      var gc=new kakao.maps.services.Geocoder();
+      var mLat=1/111320,mLng=1/(111320*Math.max(0.2,Math.cos(lat*Math.PI/180)));
+      var jobs=[];
+      [25,60,120].forEach(function(r){
+        [[0,1],[1,0],[0,-1],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(function(d){
+          jobs.push([lat+d[1]*r*mLat, lng+d[0]*r*mLng, r]);
+        });
+      });
+      var i=0;
+      (function nx(){
+        if(done)return;
+        if(i>=jobs.length){ok(addr,'',why+'/probe-none');return;}
+        var j=jobs[i++];
+        try{
+          gc.coord2Address(j[1],j[0],function(r2,st2){
+            if(done)return;
+            try{
+              if(st2===kakao.maps.services.Status.OK&&r2&&r2[0]&&r2[0].road_address&&r2[0].road_address.road_name){
+                ok(addr,r2[0].road_address.road_name,why+'/probe'+j[2]+'m');return;
+              }
+            }catch(_pe){}
+            nx();
+          });
+        }catch(_ce){nx();}
+      })();
+    }catch(_e){ok(addr,'',why+'/probe-err');}
   }
   setTimeout(function(){osm('kakao-timeout');},5000);
   try{
@@ -7490,7 +7525,11 @@ function mnRevGeo(lat,lng,cb){
             var ad=r[0].address,rd=r[0].road_address;
             var a=ad?((ad.region_1depth_name||'')+' '+(ad.region_2depth_name||'')+' '+(ad.region_3depth_name||'')).replace(/\s+/g,' ').trim():'';
             var d=(rd&&rd.road_name)?rd.road_name:'';
-            if(a||d){ok(a,d,'kakao');return;}
+            if(a&&d){ok(a,d,'kakao');return;}
+            /* [1065] 행정구역만 나오고 도로명이 빈 경우 — 예전에는 그대로 빈칸 확정해버렸다.
+               OSM → 근처 탐색 순으로 도로명만 보충한다. */
+            if(a&&!d){_keepAddr=a;osm('kakao-noroad');return;}
+            if(d){ok(a,d,'kakao');return;}
           }
           osm('kakao-'+st);
         });
@@ -7926,7 +7965,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1064] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1065] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -10632,6 +10671,12 @@ var REF_SITE_MIN=35;                   /* 방향 지정이 너무 가까울 때 
 var REF_SITE_RATIO=503/361;            /* 엑셀 설비위치 칸 실측 비율 */
 var REF_SITE_PIPE={'SD001':1,'SD001_1':1,'SD001_2':1,'SD002':1,'SD002_1':1,'SD002_2':1,'SD999':1,'SD110':1};
 var REF_SITE_HYUN={'DORO':1};
+/* [1065] 관로 레이어 판정 — SD001_3 처럼 목록에 없는 변형까지 접두로 잡는다 */
+function refIsPipeLay(l){
+  if(!l)return false;
+  if(REF_SITE_PIPE[l])return true;
+  return /^SD(001|002|999|110)(_|$)/i.test(l);
+}
 /* 남길 심벌 — 맨홀/통신주/입상 계열만. 관공공수·심도·측점 마크는 제외 */
 var REF_SITE_SYM={'SD100':1,'SD101':1,'\uae30\ud0c0':1,'SD300':1,'SD301':1,'SD000':1,'SD213':1,'sd216':1,'SD214':1,'SD234':1};
 
@@ -10677,7 +10722,7 @@ function refSiteTrace(rec){
   var segs=[],ents=[],sym={};
   REF.ents.forEach(function(e){
     var lay=refStr(e,8,'');
-    if(e.t==='LWPOLYLINE'&&REF_SITE_PIPE[lay]){
+    if(e.t==='LWPOLYLINE'&&refIsPipeLay(lay)){
       var ps=refPts(e);if(ps.length>=2){segs.push(ps);ents.push(e);}
     }else if(e.t==='INSERT'&&REF_SITE_SYM[refStr(e,2,'')]){
       sym[Q(refNum(e,10,0),refNum(e,20,0))]=1;
@@ -10732,29 +10777,17 @@ function refSiteView(rec,span,tr){
     if(bw2/bh2<REF_SITE_RATIO)bw2=bh2*REF_SITE_RATIO;else bh2=bw2/REF_SITE_RATIO;
     return {cx:(sb.x0+sb.x1)/2,cy:(sb.y0+sb.y1)/2,w:bw2,h:bh2,used:tr.used,limit:!!tr.targets};
   }
-  /* [1059] 맨홀을 중앙에 고정하지 않는다.
-     방향을 넣은 맨홀·입상이 시작과 끝이 되도록 bbox 로 잡고 양끝에 여유만 둔다.
-     (예전에는 c 기준 최대거리를 반경으로 썼서 한쪽이 멀면 화면이 2배로 널어졌다) */
-  var ax0=c[0],ax1=c[0],ay0=c[1],ay1=c[1];
-  function ext(p){if(p[0]<ax0)ax0=p[0];if(p[0]>ax1)ax1=p[0];if(p[1]<ay0)ay0=p[1];if(p[1]>ay1)ay1=p[1];}
+  /* [1065] 선택 맨홀이 항상 정중앙.
+     반경 = 맨홀에서 가장 먼 방향대상까지의 거리 → 등록된 맨홀·입상이 전부 들어온다. */
+  function ext(p){var a=Math.abs(p[0]-c[0]),b=Math.abs(p[1]-c[1]);if(a>dx)dx=a;if(b>dy)dy=b;}
   if(tr.targets&&tr.targets.length)tr.targets.forEach(ext);
   else (tr.pts||[]).forEach(ext);
-  var w=ax1-ax0,h=ay1-ay0;
-  if(w<3&&h<3){var sp=span||REF_SITE_SPAN;w=sp;h=sp/REF_SITE_RATIO;ax0=c[0]-w/2;ax1=c[0]+w/2;ay0=c[1]-h/2;ay1=c[1]+h/2;}
-  var MG=Math.max(3,Math.max(w,h)*0.08);   /* 시작·끝 여유간격 */
-  w+=MG*2;h+=MG*2;
-  var cx=(ax0+ax1)/2,cy=(ay0+ay1)/2;
-  /* [1060] 방향이 한쪽으로만 잡히면 대상 맨홀이 바로 가장자리에 붙어
-     빨간 원(w*0.072)과 맨홀번호(w*0.058)가 잘린다. 최소 여백을 보장한다. */
-  for(var _it=0;_it<2;_it++){
-    var pX=w*0.115,pY=h*0.185;
-    var nx0=Math.min(cx-w/2,c[0]-pX),nx1=Math.max(cx+w/2,c[0]+pX);
-    var ny0=Math.min(cy-h/2,c[1]-pY),ny1=Math.max(cy+h/2,c[1]+pY);
-    w=nx1-nx0;h=ny1-ny0;cx=(nx0+nx1)/2;cy=(ny0+ny1)/2;
-  }
-  if(w<REF_SITE_MIN){var kk=REF_SITE_MIN/Math.max(w,0.001);w*=kk;h*=kk;}   /* 너무 좁으면 최소범위 */
+  if(dx<3&&dy<3){var sp=span||REF_SITE_SPAN;dx=sp/2;dy=dx/REF_SITE_RATIO;}
+  var MG=Math.max(3,Math.max(dx,dy)*0.14);   /* 끝 여유간격 */
+  var w=2*(dx+MG),h=2*(dy+MG);
+  if(w<REF_SITE_MIN){var kk=REF_SITE_MIN/Math.max(w,0.001);w*=kk;h*=kk;}
   if(w/h<REF_SITE_RATIO)w=h*REF_SITE_RATIO;else h=w/REF_SITE_RATIO;
-  return {cx:cx,cy:cy,w:w,h:h,used:tr.used,limit:!!tr.targets};
+  return {cx:c[0],cy:c[1],w:w,h:h,used:tr.used,limit:!!tr.targets};
 }
 /* 설비위치 SVG — at 가 있으면 중첩 svg(야장 시트용) */
 function refSiteSVG(rec,W,H,span,at){
@@ -10781,12 +10814,13 @@ function refSiteSVG(rec,W,H,span,at){
     var lay=refStr(e,8,'');
     if(e.t==='TEXT'||e.t==='MTEXT')return;
     var isTerr=(lay===REF_TERR);
-    var isPipe=!!REF_SITE_PIPE[lay], isHyun=!!REF_SITE_HYUN[lay];
+    var isPipe=refIsPipeLay(lay), isHyun=!!REF_SITE_HYUN[lay];
     /* [1059] 관로선은 자르지 않고 보이는 범위까지 그대로 이어그린다 */
     if(e.t==='INSERT'){
       if(!REF_SITE_SYM[refStr(e,2,'')])return;          /* 맨홀·입상 심벌만 */
     }else if(!isTerr&&!isPipe&&!isHyun)return;          /* 그 외 선은 지형/관로/현황만 */
-    if(!isTerr&&!refLayerOnSite(lay)&&e.t!=='INSERT')return;
+    /* [1065] 관로선은 AutoCAD에서 꺼져 있어도 성과품에는 반드시 그린다 (선이 끊기는 원인) */
+    if(!isTerr&&!isPipe&&!refLayerOnSite(lay)&&e.t!=='INSERT')return;
     var col,w;
     if(isTerr){col='#a3a3a3';w=1.0*kW;}
     else if(isPipe){col='#0033cc';w=7.0*kW;}            /* 관로 = 더 두껍게 */
