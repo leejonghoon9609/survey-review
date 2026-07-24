@@ -7063,10 +7063,10 @@ function mnDxfPickTpl(rec){
   return {key:map[topW]||'tpl_17x08',dep:sp.dep||1100};
 }
 function mnDxfEnt(lines){return lines.join('\n')+'\n';}
-function mnDxfCircle(h,x,y,r){return mnDxfEnt(['  0','CIRCLE','  5',h,'100','AcDbEntity','  8','pipe','100','AcDbCircle',' 10',x.toFixed(1),' 20',y.toFixed(1),' 30','0.0',' 40',r.toFixed(1)]);}
-function mnDxfHatch(h,x,y,r){return mnDxfEnt(['  0','HATCH','  5',h,'100','AcDbEntity','  8','pipe','100','AcDbHatch',' 10','0.0',' 20','0.0',' 30','0.0','210','0.0','220','0.0','230','1.0','  2','SOLID',' 70','1',' 71','0',' 91','1',' 92','1',' 93','1',' 72','2',' 10',x.toFixed(1),' 20',y.toFixed(1),' 40',r.toFixed(1),' 50','0.0',' 51','360.0',' 73','1',' 97','0',' 75','1',' 76','1',' 47','1.0',' 98','1',' 10',x.toFixed(1),' 20',y.toFixed(1)]);}
-function mnDxfText(h,x,y,txt,ht,rot){return mnDxfEnt(['  0','TEXT','  5',h,'100','AcDbEntity','  8','Attr','100','AcDbText',' 10',x.toFixed(1),' 20',y.toFixed(1),' 30','0.0',' 40',String(ht),'  1',txt,' 50',String(rot||0),'100','AcDbText']);}
-function mnDxfTextC(h,cx,cy,txt,ht){return mnDxfEnt(['  0','TEXT','  5',h,'100','AcDbEntity','  8','Attr','100','AcDbText',' 10',cx.toFixed(1),' 20',cy.toFixed(1),' 30','0.0',' 40',String(ht),'  1',txt,' 50','0','  7','DIM',' 72','1',' 11',cx.toFixed(1),' 21',cy.toFixed(1),' 31','0.0','100','AcDbText',' 73','2']);}
+function mnDxfCircle(h,x,y,r){return mnDxfEnt(['  0','CIRCLE','  5',h,'330','2','100','AcDbEntity','  8','pipe','100','AcDbCircle',' 10',x.toFixed(1),' 20',y.toFixed(1),' 30','0.0',' 40',r.toFixed(1)]);}
+function mnDxfHatch(h,x,y,r){return mnDxfEnt(['  0','HATCH','  5',h,'330','2','100','AcDbEntity','  8','pipe','100','AcDbHatch',' 10','0.0',' 20','0.0',' 30','0.0','210','0.0','220','0.0','230','1.0','  2','SOLID',' 70','1',' 71','0',' 91','1',' 92','1',' 93','1',' 72','2',' 10',x.toFixed(1),' 20',y.toFixed(1),' 40',r.toFixed(1),' 50','0.0',' 51','360.0',' 73','1',' 97','0',' 75','1',' 76','1',' 98','0']);}
+function mnDxfText(h,x,y,txt,ht,rot){return mnDxfEnt(['  0','TEXT','  5',h,'330','2','100','AcDbEntity','  8','Attr','100','AcDbText',' 10',x.toFixed(1),' 20',y.toFixed(1),' 30','0.0',' 40',String(ht),'  1',txt,' 50',String(rot||0),'100','AcDbText']);}
+function mnDxfTextC(h,cx,cy,txt,ht){return mnDxfEnt(['  0','TEXT','  5',h,'330','2','100','AcDbEntity','  8','Attr','100','AcDbText',' 10',cx.toFixed(1),' 20',cy.toFixed(1),' 30','0.0',' 40',String(ht),'  1',txt,' 50','0','  7','DIM',' 72','1',' 11',cx.toFixed(1),' 21',cy.toFixed(1),' 31','0.0','100','AcDbText',' 73','2']);}
 /* ===== [BUILD 1017] 현장전자야장 DXF — 평면 맨홀도(샘플 규격) 생성 ===== */
 /* 몸체=실측 벽폭, 팔=관 있는 방향만(1100+목320), 목 개구=766 기준, 내선=ANSI31 해치, 제외관=빨강, 뚜껑=rec.lid */
 function mnEfbGen(rec){
@@ -7306,7 +7306,7 @@ function mnDxfGen(rec){
       return [g.bx0+px, g.by0-py];
     }
     /* [992] 완성본(1M_SKB) 규칙: 확대묶음 사분면 배치 + 그룹·관경별 라벨 줄바꿈(FCØ 접두) + 벽 연결 화살표 + dest 없는 방향화살표 제거 */
-    function mnDxfIns(h,ax,ay,sx,sy,rot){return mnDxfEnt(['  0','INSERT','  5',h,'100','AcDbEntity','  8','arrow','100','AcDbBlockReference','  2','arrow',' 10',ax.toFixed(1),' 20',ay.toFixed(1),' 30','0.0',' 41',String(sx),' 42',String(sy),' 43','1.0',' 50',String(rot)]);}
+    function mnDxfIns(h,ax,ay,sx,sy,rot){return mnDxfEnt(['  0','INSERT','  5',h,'330','2','100','AcDbEntity','  8','arrow','100','AcDbBlockReference','  2','arrow',' 10',ax.toFixed(1),' 20',ay.toFixed(1),' 30','0.0',' 41',String(sx),' 42',String(sy),' 43','1.0',' 50',String(rot)]);}
     /* dest 없는 방향의 4방 화살표 INSERT 제거 */
     ['d1','d2','d3','d4'].forEach(function(dk){
       if(d[dk])return; var ap=g.ar&&g.ar[dk]; if(!ap)return;
@@ -7926,7 +7926,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1059] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1060] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -10628,6 +10628,14 @@ function refSiteView(rec,span,tr){
   var MG=Math.max(3,Math.max(w,h)*0.08);   /* 시작·끝 여유간격 */
   w+=MG*2;h+=MG*2;
   var cx=(ax0+ax1)/2,cy=(ay0+ay1)/2;
+  /* [1060] 방향이 한쪽으로만 잡히면 대상 맨홀이 바로 가장자리에 붙어
+     빨간 원(w*0.072)과 맨홀번호(w*0.058)가 잘린다. 최소 여백을 보장한다. */
+  for(var _it=0;_it<2;_it++){
+    var pX=w*0.115,pY=h*0.185;
+    var nx0=Math.min(cx-w/2,c[0]-pX),nx1=Math.max(cx+w/2,c[0]+pX);
+    var ny0=Math.min(cy-h/2,c[1]-pY),ny1=Math.max(cy+h/2,c[1]+pY);
+    w=nx1-nx0;h=ny1-ny0;cx=(nx0+nx1)/2;cy=(ny0+ny1)/2;
+  }
   if(w<REF_SITE_MIN){var kk=REF_SITE_MIN/Math.max(w,0.001);w*=kk;h*=kk;}   /* 너무 좁으면 최소범위 */
   if(w/h<REF_SITE_RATIO)w=h*REF_SITE_RATIO;else h=w/REF_SITE_RATIO;
   return {cx:cx,cy:cy,w:w,h:h,used:tr.used,limit:!!tr.targets};
