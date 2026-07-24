@@ -7018,7 +7018,7 @@ function mnAskNoOwner(rec,cb){
   };
   setTimeout(function(){var c=w.querySelector('#mnNoSel').value==='_c';(c?w.querySelector('#mnNoIn'):w.querySelector('#mnNoSel')).focus();},60);
 }
-function mnAskDest(cur,dn,cb){
+function mnAskDest(cur,dn,cb,rec,dk){
   var old=document.getElementById('mnAskModal');if(old)old.remove();
   var no='',ow='LG',owc='';
   if(cur==='전주입상'||cur==='통신주입상'){ow=cur;}
@@ -7029,29 +7029,67 @@ function mnAskDest(cur,dn,cb){
   }
   var w=document.createElement('div');w.id='mnAskModal';
   w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:16dvh';
+  var noSel=(no&&['1','2','3','4','5'].indexOf(no)>=0)?no:(no?'_c':'1');
+  var noOpts=['1','2','3','4','5'].map(function(v){return '<option value="'+v+'"'+(noSel===v?' selected':'')+'>'+v+'</option>';}).join('')
+             +'<option value="_c"'+(noSel==='_c'?' selected':'')+'>\uC9C1\uC811\uC785\uB825</option>';
   var opts=['LG','SKT','SKB','시청','세종','드림','통신주입상','전주입상'].map(function(o){return '<option value="'+o+'"'+(ow===o?' selected':'')+'>'+o+'</option>';}).join('')+'<option value="_c"'+(ow==='_c'?' selected':'')+'>직접입력</option>';
   w.innerHTML='<div style="background:#f1f8e9;border:1.5px solid #558b2f;border-radius:12px;width:min(80vw,280px);padding:13px 14px">'
     +'<div style="font-weight:800;font-size:13.5px;color:#558b2f;margin-bottom:9px">연결 맨홀 ('+dn+'방향)</div>'
-    +'<div style="display:flex;gap:7px;align-items:center"><div style="flex:1.1;min-width:0;display:flex;align-items:center;gap:4px"><input id="mnDNo" type="text" inputmode="numeric" value="'+joseoEsc(no)+'" placeholder="예: 2" style="flex:1;min-width:0;border:1.5px solid #558b2f;border-radius:9px;padding:9px;font-size:15px;background:#fff"><b style="font-size:15px;color:#558b2f;flex:none">M</b></div>'
+    +'<div style="display:flex;gap:7px;align-items:center"><div style="flex:1.1;min-width:0;display:flex;align-items:center;gap:4px"><select id="mnDNoSel" style="flex:1;min-width:0;border:1.5px solid #558b2f;border-radius:9px;padding:9px 5px;font-size:15px;background:#fff">'+noOpts+'</select><input id="mnDNo" type="text" inputmode="numeric" value="'+joseoEsc(no)+'" placeholder="직접입력" style="flex:1;min-width:0;display:'+(noSel==='_c'?'block':'none')+';border:1.5px solid #558b2f;border-radius:9px;padding:9px;font-size:15px;background:#fff"><b style="font-size:15px;color:#558b2f;flex:none">M</b></div>'
     +'<select id="mnDOw" style="flex:1;min-width:0;border:1px solid #ccd8c0;border-radius:9px;padding:9px 6px;font-size:14px;background:#fff">'+opts+'</select></div>'
     +'<input id="mnDOwC" value="'+joseoEsc(owc)+'" placeholder="소유자 직접입력" style="width:100%;box-sizing:border-box;border:1px solid #ccd8c0;border-radius:9px;padding:9px;font-size:14px;margin-top:8px;background:#fff;display:'+(ow==='_c'?'block':'none')+'">'
+    +'<div style="display:flex;gap:6px;margin-top:9px">'
+      +'<button id="mnDJeon" style="flex:1;background:#fff;color:#7a6a3a;border:1.5px solid #b9a86a;border-radius:9px;padding:9px 4px;font-weight:800;font-size:12.5px;cursor:pointer">\uD83D\uDDFC \uC804\uC8FC\uC785\uC0C1</button>'
+      +'<button id="mnDTong" style="flex:1;background:#fff;color:#2471a3;border:1.5px solid #8fb8d6;border-radius:9px;padding:9px 4px;font-weight:800;font-size:12.5px;cursor:pointer">\uD83D\uDCE1 \uD1B5\uC2E0\uC8FC\uC785\uC0C1</button></div>'
     +'<div style="display:flex;gap:7px;margin-top:10px"><button id="mnDOk" style="flex:1;background:#558b2f;color:#fff;border:0;border-radius:9px;padding:10px;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">확인</span></button><button id="mnDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">취소</span></button></div></div>';
   document.body.appendChild(w);
   w.querySelector('#mnDOw').addEventListener('change',function(){
-    if(this.value==='전주입상'||this.value==='통신주입상'){w.remove();cb(this.value);return;}
+    if(this.value==='전주입상'||this.value==='통신주입상'){pickRiser(this.value);return;}
     w.querySelector('#mnDOwC').style.display=(this.value==='_c')?'block':'none';
   });
+  w.querySelector('#mnDNoSel').addEventListener('change',function(){
+    var e=w.querySelector('#mnDNo');
+    if(this.value==='_c'){e.style.display='block';e.focus();}
+    else{e.style.display='none';e.value=this.value;}
+  });
+  /* [1066] 입상 전용 버튼 — 결선에 심볼이 여러 개면 가까운 순으로 골라 좌표를 고정한다 */
+  function pickRiser(lab){
+    var cands=(typeof refRiserList==='function')?refRiserList(rec):null;
+    if(!cands||!cands.length){w.remove();cb(lab);return;}
+    if(cands.length===1){riserSave(lab,cands[0]);return;}
+    var body=cands.slice(0,8).map(function(q,i){
+      return '<button data-ri="'+i+'" style="width:100%;text-align:left;background:#fff;border:1.5px solid #ccd8c0;border-radius:8px;padding:8px 10px;margin-top:6px;font-size:13px;font-weight:700;color:#33415a;cursor:pointer">'
+        +(i+1)+'. '+q.dir+' \u00B7 '+q.d.toFixed(1)+'m</button>';
+    }).join('');
+    var box=w.firstChild;
+    box.innerHTML='<div style="font-weight:800;font-size:13.5px;color:#558b2f;margin-bottom:4px">'+lab+' \uC120\uD0DD ('+dn+'\uBC29\uD5A5)</div>'
+      +'<div style="font-size:11.5px;color:#7a8">\uB3C4\uBA74\uC5D0\uC11C \uAC00\uAE4C\uC6B4 \uC21C\uC11C\uC785\uB2C8\uB2E4</div>'+body
+      +'<button id="mnDRc" style="width:100%;margin-top:9px;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:9px;font-weight:700;font-size:13px;cursor:pointer">\uCDE8\uC18C</button>';
+    box.querySelector('#mnDRc').onclick=function(){w.remove();};
+    [].forEach.call(box.querySelectorAll('[data-ri]'),function(b){
+      b.onclick=function(){riserSave(lab,cands[+b.getAttribute('data-ri')]);};
+    });
+  }
+  function riserSave(lab,q){
+    try{if(rec&&dk){if(!rec.destXY)rec.destXY={};rec.destXY[dk]=[q.x,q.y];}}catch(_e){}
+    w.remove();cb(lab);
+  }
+  var _bj=w.querySelector('#mnDJeon');if(_bj)_bj.onclick=function(){pickRiser('전주입상');};
+  var _bt=w.querySelector('#mnDTong');if(_bt)_bt.onclick=function(){pickRiser('통신주입상');};
   w.querySelector('#mnDNo2').onclick=function(){w.remove();};
   w.onclick=function(e){if(e.target===w)w.remove();};
   w.querySelector('#mnDOk').onclick=function(){
-    var n=w.querySelector('#mnDNo').value.trim();
+    var _ns=w.querySelector('#mnDNoSel');
+    var n=(_ns&&_ns.value!=='_c')?_ns.value:w.querySelector('#mnDNo').value.trim();
     var o=w.querySelector('#mnDOw').value;
-    if(o==='전주입상'||o==='통신주입상'){w.remove();cb(o);return;}
+    if(o==='전주입상'||o==='통신주입상'){pickRiser(o);return;}
     if(o==='_c')o=w.querySelector('#mnDOwC').value.trim();
     /* [BUILD 1055] 번호가 비어도 소유자만으로 저장 (직접입력이 무시되던 문제) */
+    /* [1066] 입상이 아닌 값으로 바꾸면 이전에 고른 입상 좌표는 버린다 */
+    try{if(rec&&dk&&rec.destXY)delete rec.destXY[dk];}catch(_de){}
     w.remove();cb(n?(n+'M'+(o?'('+o+')':'')):(o||''));
   };
-  setTimeout(function(){w.querySelector('#mnDNo').focus();},60);
+  setTimeout(function(){var _f=w.querySelector('#mnDNo');if(_f&&_f.style.display!=='none')_f.focus();},60);
 }
 /* [BUILD 983] 맨홀도 DXF — 규격샘플 템플릿(dxf/) fetch → 마커치환 + 관 실좌표 재그리기 */
 var MN_DXF_GEO={"tpl_045x095": {"bx0": 139955, "bx1": 140405, "by0": -150953, "by1": -150003, "ar": {"d1": [138854.9, -150473.3], "d3": [140179.9, -148903.2], "d4": [140179.9, -152053.2], "d2": [141504.9, -150473.3]}, "nk": [{"d": "L", "ax": "x", "end": 138854.9, "sign": 1, "blk": ["*D9"]}, {"d": "R", "ax": "x", "end": 141504.9, "sign": -1, "blk": ["*D5"]}, {"d": "T", "ax": "y", "end": -148903.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -152053.2, "sign": 1, "blk": []}]}, "tpl_095x045": {"bx0": 139705, "bx1": 140655, "by0": -150703, "by1": -150253, "ar": {"d1": [138604.9, -150478.2], "d3": [140174.9, -149153.2], "d2": [141754.9, -150478.2], "d4": [140174.9, -151803.2]}, "nk": [{"d": "L", "ax": "x", "end": 138604.9, "sign": 1, "blk": ["*D8"]}, {"d": "R", "ax": "x", "end": 141754.9, "sign": -1, "blk": ["*D12"]}, {"d": "T", "ax": "y", "end": -149153.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -151803.2, "sign": 1, "blk": []}]}, "tpl_07x13": {"bx0": 139830, "bx1": 140530, "by0": -151128, "by1": -149828, "ar": {"d4": [140179.9, -152228.2], "d1": [138729.9, -150483.2], "d2": [141629.9, -150483.2], "d3": [140179.9, -148728.2]}, "nk": [{"d": "L", "ax": "x", "end": 138729.9, "sign": 1, "blk": ["*D12"]}, {"d": "R", "ax": "x", "end": 141629.9, "sign": -1, "blk": ["*D6"]}, {"d": "T", "ax": "y", "end": -148728.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -152228.2, "sign": 1, "blk": []}]}, "tpl_13x07": {"bx0": 139530, "bx1": 140830, "by0": -150828, "by1": -150128, "ar": {"d2": [141929.9, -150478.2], "d4": [140183.4, -151928.2], "d1": [138429.9, -150478.2], "d3": [140183.4, -149028.2]}, "nk": [{"d": "L", "ax": "x", "end": 138429.9, "sign": 1, "blk": ["*D12"]}, {"d": "R", "ax": "x", "end": 141929.9, "sign": -1, "blk": ["*D8"]}, {"d": "T", "ax": "y", "end": -149028.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -151928.2, "sign": 1, "blk": []}]}, "tpl_08x17": {"bx0": 139780, "bx1": 140580, "by0": -151328, "by1": -149628, "ar": {"d4": [140179.9, -152828.2], "d1": [138279.9, -150483.2], "d2": [142079.9, -150483.2], "d3": [140179.9, -148128.2]}, "nk": [{"d": "L", "ax": "x", "end": 138279.9, "sign": 1, "blk": ["*D10"]}, {"d": "R", "ax": "x", "end": 142079.9, "sign": -1, "blk": ["*D6"]}, {"d": "T", "ax": "y", "end": -148128.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -152828.2, "sign": 1, "blk": []}]}, "tpl_17x08": {"bx0": 139330, "bx1": 141030, "by0": -150878, "by1": -150078, "ar": {"d2": [142529.9, -150478.2], "d4": [140184.9, -152378.2], "d3": [140184.9, -148578.2], "d1": [137829.9, -150478.2]}, "nk": [{"d": "L", "ax": "x", "end": 137829.9, "sign": 1, "blk": ["*D10"]}, {"d": "R", "ax": "x", "end": 142529.9, "sign": -1, "blk": ["*D8"]}, {"d": "T", "ax": "y", "end": -148578.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -152378.2, "sign": 1, "blk": []}]}, "tpl_10x20": {"bx0": 139680, "bx1": 140680, "by0": -151478, "by1": -149478, "ar": {"d4": [140179.9, -152978.2], "d1": [138179.9, -150483.2], "d2": [142179.9, -150483.2], "d3": [140179.9, -147978.2]}, "nk": [{"d": "L", "ax": "x", "end": 138179.9, "sign": 1, "blk": ["*D7"]}, {"d": "R", "ax": "x", "end": 142179.9, "sign": -1, "blk": ["*D9"]}, {"d": "T", "ax": "y", "end": -147978.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -152978.2, "sign": 1, "blk": []}]}, "tpl_20x10": {"bx0": 139180, "bx1": 141180, "by0": -150978, "by1": -149978, "ar": {"d2": [142679.9, -150478.2], "d4": [140184.9, -152478.2], "d3": [140184.9, -148478.2], "d1": [137679.9, -150478.2]}, "nk": [{"d": "L", "ax": "x", "end": 137679.9, "sign": 1, "blk": ["*D10"]}, {"d": "R", "ax": "x", "end": 142679.9, "sign": -1, "blk": ["*D7"]}, {"d": "T", "ax": "y", "end": -148478.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -152478.2, "sign": 1, "blk": []}]}};
@@ -7965,7 +8003,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1065] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1066] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -7999,7 +8037,7 @@ function mnOpenForm(rec){
           var units={dep:'m',w12:'m',w34:'m',topi:'m',lid:'mm',lidRect:'',lidW:'mm',lidH:'mm'};
           mnAsk({title:titles[k],unit:units[k],val:rec[k],text:(k==='lidRect'),color:MN_DIMC[k],cb:function(v){rec[k]=(v===''?'':v);mnPersistRec(rec);render();}});
         }
-        else if(act==='dest'){var dk=el.getAttribute('data-d');var dn={d1:'1',d2:'2',d3:'3',d4:'4'}[dk];mnAskDest((rec.dest&&rec.dest[dk])||'',dn,function(v){if(!rec.dest)rec.dest={};rec.dest[dk]=v;mnPersistRec(rec);render();});}
+        else if(act==='dest'){var dk=el.getAttribute('data-d');var dn={d1:'1',d2:'2',d3:'3',d4:'4'}[dk];mnAskDest((rec.dest&&rec.dest[dk])||'',dn,function(v){if(!rec.dest)rec.dest={};rec.dest[dk]=v;mnPersistRec(rec);render();},rec,dk);}
         else if(act==='wall'){var wl=el.getAttribute('data-w');var closeIt=function(){if(!host&&wrap)wrap.remove();};if(!(rec.photos&&rec.photos[wl])){toast('벽면 사진을 먼저 촬영합니다');mnShootSlot(rec,wl,function(){closeIt();mnPipeEditor(rec,wl);});}else{closeIt();mnPipeEditor(rec,wl);}}
         else if(act==='pview'){
           var vs=el.getAttribute('data-s');var vu=rec.photos&&rec.photos[vs];
@@ -10692,13 +10730,36 @@ function refSiteEsc(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace
 /* [1053] 관로 연결 추적
    - 방향(rec.dest)이 지정되면 그 맨홀·입상에서 멈추고, 파란 관로선도 거기까지만
    - 지정이 없으면 닿는 모든 맨홀·입상까지 */
+/* [1066] 결선의 입상 심볼(SD300/301/SD000) 를 맨홀 기준 가까운 순으로 */
+function refRiserList(rec){
+  try{
+    if(typeof REF==='undefined'||!REF.ents)return null;
+    var c0=refSiteXY(rec);if(!c0)return null;
+    var out=[];
+    REF.ents.forEach(function(e){
+      if(e.t!=='INSERT')return;
+      var nm=refStr(e,2,'');
+      if(nm!=='SD300'&&nm!=='SD301'&&nm!=='SD000')return;
+      var x=refNum(e,10,0),y=refNum(e,20,0),d=Math.hypot(x-c0[0],y-c0[1]);
+      if(d>300)return;
+      var ang=Math.atan2(y-c0[1],x-c0[0])*180/Math.PI;
+      var D=['\uB3D9','\uBD81\uB3D9','\uBD81','\uBD81\uC11C','\uC11C','\uB0A8\uC11C','\uB0A8','\uB0A8\uB3D9'];
+      out.push({x:x,y:y,d:d,dir:D[((Math.round(ang/45)%8)+8)%8]});
+    });
+    out.sort(function(a,b){return a.d-b.d;});
+    return out;
+  }catch(_e){return null;}
+}
 function refSiteTargets(rec){
   var d=(rec&&rec.dest)||{},out=[];
   if(!REF.mh||typeof refNormLab!=='function')return null;
   var c0=refSiteXY(rec);
-  [d.d1,d.d2,d.d3,d.d4].forEach(function(v){
-    v=String(v==null?'':v).trim();
+  var _dxy=(rec&&rec.destXY)||{};
+  ['d1','d2','d3','d4'].forEach(function(_k){
+    var v=String(d[_k]==null?'':d[_k]).trim();
     if(!v)return;
+    /* [1066] 사용자가 직접 고른 입상이 있으면 추정하지 않는다 */
+    if(_dxy[_k]&&_dxy[_k].length===2){out.push([_dxy[_k][0],_dxy[_k][1]]);return;}
     var k=refNormLab(v),hit=0;
     REF.mh.forEach(function(m){if(m&&m.label&&refNormLab(m.label)===k){out.push([m.x,m.y]);hit=1;}});
     if(hit||!c0)return;
