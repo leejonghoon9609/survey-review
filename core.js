@@ -7364,10 +7364,12 @@ function mnDxfGen(rec){
     }
     var out='';
     var slots={
-      p1:{sx:g.bx0-650,sy:g.by1+1050,lab:'L',ar:'down'},
-      p2:{sx:g.bx1+850,sy:g.by0-900,lab:'R',ar:'up'},
-      p3:{sx:g.bx1+950,sy:g.by1+950,lab:'R',ar:'left'},
-      p4:{sx:g.bx0-650,sy:g.by0-1050,lab:'R',ar:'right'}
+      /* [1059] 완료샘플 실측: 수평 700 / 수직 560 — 몸체에 더 붙임.
+         라벨은 항상 화살표 반대편 (U/D/L/R) */
+      p1:{sx:g.bx0-700,sy:g.by1+560,lab:'U',ar:'down'},
+      p2:{sx:g.bx1+700,sy:g.by0-560,lab:'D',ar:'up'},
+      p3:{sx:g.bx1+700,sy:g.by1+560,lab:'R',ar:'left'},
+      p4:{sx:g.bx0-700,sy:g.by0-560,lab:'L',ar:'right'}
     };
     ['p1','p2','p3','p4'].forEach(function(wall){
       var pw=rec.pipes&&rec.pipes[wall];if(!pw||!pw.groups)return;
@@ -7418,10 +7420,17 @@ function mnDxfGen(rec){
       gInfo.sort(function(a,b){return b.cy-a.cy;});
       var lines=[];gInfo.forEach(function(gi){gi.lines.forEach(function(L){lines.push(L);});});
       var cymL=(minY+maxY)/2;
+      var cxmL=(minX+maxX)/2;
       lines.forEach(function(L,i){
-        var half=L.length*39.5;
-        var lcx=(sl.lab==='L')?(minX-220-half):(maxX+220+half);
-        var lcy=cymL+((lines.length-1)/2-i)*131;
+        var half=L.length*39.5,lcx,lcy;
+        if(sl.lab==='U'){        /* [1059] 샘플 실측 +159 → 170 */
+          lcx=cxmL; lcy=maxY+170+((lines.length-1)-i)*131;
+        }else if(sl.lab==='D'){  /* 샘플 실측 -180 → 170 */
+          lcx=cxmL; lcy=minY-170-i*131;
+        }else{
+          lcx=(sl.lab==='L')?(minX-220-half):(maxX+220+half);
+          lcy=cymL+((lines.length-1)/2-i)*131;
+        }
         out+=mnDxfTextC(nh(),lcx,lcy,L,100);
       });
       /* 확대묶음↔벽 연결 화살표 (완성본 arrow 블록 방식) */
@@ -7917,7 +7926,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1058] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1059] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -10607,19 +10616,21 @@ function refSiteView(rec,span,tr){
     if(bw2/bh2<REF_SITE_RATIO)bw2=bh2*REF_SITE_RATIO;else bh2=bw2/REF_SITE_RATIO;
     return {cx:(sb.x0+sb.x1)/2,cy:(sb.y0+sb.y1)/2,w:bw2,h:bh2,used:tr.used,limit:!!tr.targets};
   }
-  function ext(p){var a=Math.abs(p[0]-c[0]),b=Math.abs(p[1]-c[1]);if(a>dx)dx=a;if(b>dy)dy=b;}
-  if(tr.targets&&tr.targets.length){
-    /* [1053] 방향이 지정되면 그 맨홀·입상까지만 (다른 방향은 범위에서 제외) */
-    tr.targets.forEach(ext);
-  }else{
-    (tr.pts||[]).forEach(ext);
-  }
-  if(dx<3&&dy<3){var sp=span||REF_SITE_SPAN;dx=sp/2;dy=dx/REF_SITE_RATIO;}
-  var M=1.06;                       /* 여유 6% — 위아래를 바짝 잘라 채움 */
-  var w=2*dx*M,h=2*dy*M;
+  /* [1059] 맨홀을 중앙에 고정하지 않는다.
+     방향을 넣은 맨홀·입상이 시작과 끝이 되도록 bbox 로 잡고 양끝에 여유만 둔다.
+     (예전에는 c 기준 최대거리를 반경으로 썼서 한쪽이 멀면 화면이 2배로 널어졌다) */
+  var ax0=c[0],ax1=c[0],ay0=c[1],ay1=c[1];
+  function ext(p){if(p[0]<ax0)ax0=p[0];if(p[0]>ax1)ax1=p[0];if(p[1]<ay0)ay0=p[1];if(p[1]>ay1)ay1=p[1];}
+  if(tr.targets&&tr.targets.length)tr.targets.forEach(ext);
+  else (tr.pts||[]).forEach(ext);
+  var w=ax1-ax0,h=ay1-ay0;
+  if(w<3&&h<3){var sp=span||REF_SITE_SPAN;w=sp;h=sp/REF_SITE_RATIO;ax0=c[0]-w/2;ax1=c[0]+w/2;ay0=c[1]-h/2;ay1=c[1]+h/2;}
+  var MG=Math.max(3,Math.max(w,h)*0.08);   /* 시작·끝 여유간격 */
+  w+=MG*2;h+=MG*2;
+  var cx=(ax0+ax1)/2,cy=(ay0+ay1)/2;
   if(w<REF_SITE_MIN){var kk=REF_SITE_MIN/Math.max(w,0.001);w*=kk;h*=kk;}   /* 너무 좁으면 최소범위 */
   if(w/h<REF_SITE_RATIO)w=h*REF_SITE_RATIO;else h=w/REF_SITE_RATIO;
-  return {cx:c[0],cy:c[1],w:w,h:h,used:tr.used,limit:!!tr.targets};
+  return {cx:cx,cy:cy,w:w,h:h,used:tr.used,limit:!!tr.targets};
 }
 /* 설비위치 SVG — at 가 있으면 중첩 svg(야장 시트용) */
 function refSiteSVG(rec,W,H,span,at){
@@ -10647,7 +10658,7 @@ function refSiteSVG(rec,W,H,span,at){
     if(e.t==='TEXT'||e.t==='MTEXT')return;
     var isTerr=(lay===REF_TERR);
     var isPipe=!!REF_SITE_PIPE[lay], isHyun=!!REF_SITE_HYUN[lay];
-    if(isPipe&&useSet&&useSet.indexOf(e)<0)return;   /* 방향 지정 시 그 맨홀까지만 */
+    /* [1059] 관로선은 자르지 않고 보이는 범위까지 그대로 이어그린다 */
     if(e.t==='INSERT'){
       if(!REF_SITE_SYM[refStr(e,2,'')])return;          /* 맨홀·입상 심벌만 */
     }else if(!isTerr&&!isPipe&&!isHyun)return;          /* 그 외 선은 지형/관로/현황만 */
