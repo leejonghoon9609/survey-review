@@ -8099,7 +8099,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1076] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1077] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -8348,7 +8348,29 @@ function mnGroupLabel(g){
 function mnPipeSummary(rec,wall){
   var pw=rec.pipes&&rec.pipes[wall];
   if(!pw||!pw.groups||!pw.groups.length)return '';
-  return pw.groups.map(mnGroupLabel).filter(function(t){return t;}).join(' / ');
+  /* [1077] 관종+관경이 같으면 그룹이 달라도 합산. 관경이 다를 때만 줄을 나눈다.
+     (전자야장 DXF 는 이미 벽 전체를 관경별로 합산 — 시트만 그룹별로 나눠져 있었다) */
+  var order=[],agg={};
+  pw.groups.forEach(function(g){
+    var kd=(g&&g.kind)||'FC';
+    ((g&&g.circles)||[]).forEach(function(c){
+      var st=(c.st!=null?c.st:(c.fill?1:0));
+      if(st===2)return;                       /* 제외관은 공수에서 제외 */
+      var k=kd+'|'+c.dia;
+      if(!(k in agg)){agg[k]={kind:kd,dia:c.dia,cnt:0,fill:0};order.push(k);}
+      agg[k].cnt++;if(st===1)agg[k].fill++;
+    });
+  });
+  /* 같은 관종 안에서는 관경 오름차순 */
+  order.sort(function(a,b){
+    var A=agg[a],B=agg[b];
+    if(A.kind!==B.kind)return 0;
+    return A.dia-B.dia;
+  });
+  var out=[];
+  order.forEach(function(k){var a=agg[k];if(!a.cnt)return;
+    out.push(a.kind+'\u00d8'+a.dia+'X'+a.cnt+'('+a.fill+')');});
+  return out.join(' / ');
 }
 function mnPipeBtnsHtml(rec){
   var btns=MN_WALLS.map(function(w){
