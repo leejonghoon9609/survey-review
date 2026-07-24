@@ -7926,7 +7926,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1060] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1061] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -8281,7 +8281,22 @@ function mnPipeEditor(rec,wall){
   var bg=null;
   function loadBg(){bg=null;var u=rec.photos&&rec.photos[wall];if(!u){draw();return;}
     var im=new Image();im.crossOrigin='anonymous';
-    im.onload=function(){bg=im;draw();};im.onerror=function(){bg=null;draw();};
+    im.onload=function(){
+      /* [1061] 저장은 촬영 원본이라 세로 사진이 그대로 깔렸다.
+         내보내기(mnFixOrient)와 동일하게 반시계 90° 회전해서 깔아준다. */
+      var iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height;
+      if(ih>iw){
+        try{
+          var oc=document.createElement('canvas');oc.width=ih;oc.height=iw;
+          var octx=oc.getContext('2d');
+          octx.translate(0,iw);octx.rotate(-Math.PI/2);
+          octx.drawImage(im,0,0);
+          bg=oc;draw();return;
+        }catch(_re){}
+      }
+      bg=im;draw();
+    };
+    im.onerror=function(){bg=null;draw();};
     im.src=u;}
   wrap.querySelector('#mnReShoot').onclick=function(){if(mode==='del')setMode('all');mnShootSlot(rec,wall,function(){loadBg();});};
   function draw(){
