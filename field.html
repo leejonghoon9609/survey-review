@@ -15,7 +15,7 @@
   :root{--line:#e3e3e0;--ink:#1c1c1a;--muted:#6b6b66;--bg:#fafaf8;--ok:#2a9e50;--bad:#d32f2f;--accent:#1f6fd6}
   body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);background:var(--bg);height:100vh;display:flex;flex-direction:column;overflow:hidden}
   header{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:9px 14px;border-bottom:1px solid var(--line);background:#fff}
-  header>button,header>select{padding:5px 8px;font-size:12.5px}
+  header>button,header>select{padding:4px 7px;font-size:11.5px}
   header h1{font-size:14px;font-weight:600;margin-right:6px}
   #bpToggle.off{background:#f3f3f0;color:#999;opacity:.75}
   select,input[type=text]{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink)}
@@ -215,7 +215,7 @@
   .jz-link.off{border-color:#9ca3af;background:#f3f4f6;color:#6b7280}
   .jz-done{background:#eef2ff;border:1px solid #4f46e5;color:#4f46e5;border-radius:7px;padding:4px 10px;font-weight:700;cursor:pointer}
   .jz-done.on{background:#16a34a;border-color:#16a34a;color:#fff}
-  .fbtn{background:#fff;border:1.5px solid #cfd8e3;color:#33415a;border-radius:8px;padding:6px 9px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 2px 9px rgba(0,0,0,.12)}
+  .fbtn{background:#fff;border:1.5px solid #cfd8e3;color:#33415a;border-radius:7px;padding:5px 7px;font-size:11px;font-weight:700;cursor:pointer;box-shadow:0 2px 7px rgba(0,0,0,.11)}
   .fbtn:hover{filter:brightness(.97)}
   #fldCsv{background:#eff4ff;border-color:#3b82f6;color:#2563eb}
   #fldJoseo{background:#e7faf5;border-color:#0d9488;color:#0d9488}
@@ -359,7 +359,7 @@
   header #fldCsv{order:13!important;display:inline-flex!important;margin-left:auto!important;background:#2563eb!important;border-color:#2563eb!important;color:#fff!important;font-weight:800!important;padding:8px 9px!important}
   header #fldManhole{order:14!important;display:inline-flex!important;background:#d32f2f!important;border-color:#d32f2f!important;color:#fff!important;font-weight:800!important;padding:8px 9px!important}
   /* 나머지 숨김 */
-  header #modeToggle,header #sysSwitch,header #roBadge,header #vRv,header #fldJoseo,header #proj,header #save,header #delProj,header #bpToggle,header #doneListBtn,header #doneSummary,header #asbuiltBtn,header #photoBtn,header #bgBtn,header #rvBtn,header #buildno,header #conn,header #tamsaBadge,header #globalbtns{display:none!important}
+  header #fldTrash,header #modeToggle,header #sysSwitch,header #roBadge,header #vRv,header #fldJoseo,header #proj,header #save,header #delProj,header #bpToggle,header #doneListBtn,header #doneSummary,header #asbuiltBtn,header #photoBtn,header #bgBtn,header #rvBtn,header #buildno,header #conn,header #tamsaBadge,header #globalbtns{display:none!important}
 }
 </style>
 </head>
@@ -380,6 +380,7 @@
       <button class="fbtn" id="fldSave">💾 저장</button>
       <button class="fbtn" id="fldReg">✚ 사업등록</button>
       <button class="fbtn" id="fldDel" style="color:#d32f2f;border-color:#f0c4c4">🗑 사업 삭제</button>
+      <button class="fbtn" id="fldTrash" title="삭제목록 (7일 보관)">🗂 삭제목록</button>
       <button class="fbtn" id="fldCsv">후측량 csv</button>
       <button class="fbtn" id="fldJoseo">실시간 사진조서</button>
       <button class="fbtn" id="fldManhole">맨홀도 제작</button>
@@ -562,6 +563,6 @@
     </div>
   </div>
 
-<script src="login.js?v=1057"></script><script src="core.js?v=1057"></script>
+<script src="login.js?v=1058"></script><script src="core.js?v=1058"></script>
 </body>
 </html>
