@@ -935,6 +935,7 @@ function openBpEdit(z){
 function drawGeo(){
   (function(){var _tb=document.getElementById('tamsaBadge');if(_tb)_tb.style.display=state.tamsa?'':'none';})();
   clearSvg(gGeo); clearSvg(gPts); clearSvg(gHit); clearSvg(gAnc); clearLabels('pt');clearLabels('depth');clearLabels('depthchk');
+  try{if(typeof hoverClear==='function')hoverClear();}catch(e){}   /* [1095] 재렌더 시 호버 쟔상 제거 */
   if(typeof drawBpZones==='function')drawBpZones();
   if(typeof drawRoadZones==='function')drawRoadZones();
   if(typeof drawDepthCheck==='function')drawDepthCheck();
@@ -986,6 +987,10 @@ function drawGeo(){
       gPts.appendChild(el('line',{x1:ax1,y1:ay1,x2:ax1-dv[0]*hl+pr[0]*hl,y2:ay1-dv[1]*hl+pr[1]*hl,stroke:AC,'stroke-width':2.6,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));
       gPts.appendChild(el('line',{x1:ax1,y1:ay1,x2:ax1-dv[0]*hl-pr[0]*hl,y2:ay1-dv[1]*hl-pr[1]*hl,stroke:AC,'stroke-width':2.6,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));})();
     var hit=el('circle',{cx:s[0],cy:s[1],r:hitR,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
+    (function(_p){    /* [1095] 호버 미리보기 */
+      hit.addEventListener('pointerenter',function(){if(typeof hoverPt==='function')hoverPt(_p);});
+      hit.addEventListener('pointerleave',function(){if(typeof hoverClear==='function')hoverClear();});
+    })(p);
     hit.addEventListener('click',function(ev){if(this._lpFired){this._lpFired=false;ev.stopPropagation();return;}if(mode==='ptdel'||mode==='delall2'){ev.stopPropagation();ev.preventDefault();deletePoint(p);return;}if(mode!=='pan'||labelDragging||noteMode)return;ev.stopPropagation();if(photoLink)selectPoint(p.no);else{selNum=p.no;drawGeo();highlightSel();if(typeof joseoSyncTo==='function')joseoSyncTo(p.no);}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
     hit.addEventListener('mouseenter',function(){if(mode==='ptdel'||mode==='delall2'){hit.setAttribute('fill','rgba(211,47,47,0.28)');hit.setAttribute('stroke','#d32f2f');hit.setAttribute('stroke-width',1.6);hit.setAttribute('vector-effect','non-scaling-stroke');}});
     hit.addEventListener('mouseleave',function(){hit.setAttribute('fill','transparent');hit.removeAttribute('stroke');});
@@ -8183,7 +8188,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1094] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1095] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -9643,6 +9648,18 @@ function loadSample(){
 /* ====== 측점 사진 ====== */
 var photoMap={}, afterMap={}, afterTargetNum=null, selNum=null, photoPanelOpen=false, photoLink=true;
 var gSel=document.createElementNS(SVGNS,'g'); gSel.setAttribute('pointer-events','none'); cv.appendChild(gSel);
+/* [1095] 마우스를 측점 근처로 가져가면 ‘지금 고르려는 측점’을 마젠타 원으로 미리 보여준다 */
+var gHov=document.createElementNS(SVGNS,'g'); gHov.setAttribute('pointer-events','none'); cv.appendChild(gHov);
+function hoverPt(p){
+  try{
+    if(typeof clearSvg==='function')clearSvg(gHov);
+    if(!p)return;
+    var s=S(p.x,p.y);
+    gHov.appendChild(el('circle',{cx:s[0],cy:s[1],r:1.15,fill:'none',stroke:'#d500f2',
+      'stroke-width':2.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+  }catch(e){}
+}
+function hoverClear(){try{if(typeof clearSvg==='function')clearSvg(gHov);}catch(e){}}
 var gDraw=document.createElementNS(SVGNS,'g'); gDraw.setAttribute('pointer-events','none'); cv.appendChild(gDraw);
 var gAnc=document.createElementNS(SVGNS,'g'); cv.appendChild(gAnc); // 지거 멘트 앵커 (최상위 — 측점보다 위에서 클릭 우선)
 var gMeasure=document.createElementNS(SVGNS,'g'); cv.appendChild(gMeasure); // 거리산출 표시
