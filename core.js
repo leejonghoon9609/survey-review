@@ -9010,11 +9010,17 @@ function rtSyncRefStakes(){
 }
 function rtStakesFromRef(){
   if(typeof REF==='undefined'||!REF.ents)return [];
-  var byLay={};
+  var byLay={}, sd901Sym=[];
   REF.ents.forEach(function(e){
-    if(e.t!=='TEXT'&&e.t!=='MTEXT')return;
     var lay=refStr(e,8,'');if(!lay)return;
-    (byLay[lay]=byLay[lay]||[]).push({x:refNum(e,10,0),y:refNum(e,20,0),s:refTxt(refStr(e,1,''))});
+    if(e.t==='TEXT'||e.t==='MTEXT'){
+      (byLay[lay]=byLay[lay]||[]).push({x:refNum(e,10,0),y:refNum(e,20,0),s:refTxt(refStr(e,1,''))});
+    }
+    /* [1128] SD901 = 측점 심벨(POINT/INSERT/CIRCLE 등). 삽입점 = 측점 좌표 */
+    if(lay==='SD901'&&e.t!=='TEXT'&&e.t!=='MTEXT'){
+      var _a=(typeof refAnchor==='function')?refAnchor(e):[refNum(e,10,0),refNum(e,20,0)];
+      if(_a&&isFinite(_a[0]))sd901Sym.push({x:_a[0],y:_a[1]});
+    }
   });
   /* [1125] 결선완료업로드 측점 추출 규칙 */
   /* [1125] 앵커 = SD_실측번호 (번호 1개 = 측점 1개, 중복 원천 불가)
@@ -9042,10 +9048,9 @@ function rtStakesFromRef(){
     var _rep={};_tl.forEach(function(k){_rep[k]=_lc[k];});
     console.log('[gate] 텍스트레이어(측점관련):',JSON.stringify(_rep));
     var _sn=byLay['SD_\uc2e4\uce21\ubc88\ud638']||[];
-    var _s9=byLay['SD901']||[];
-    console.log('[gate] SD_실측번호='+_sn.length+' SD901='+_s9.length);
+    console.log('[gate] SD_실측번호(TEXT)='+_sn.length+' SD901심벨='+sd901Sym.length);
     if(_sn.length)console.log('[gate] 실측번호 예:',JSON.stringify(_sn.slice(0,2)));
-    if(_s9.length)console.log('[gate] SD901 예:',JSON.stringify(_s9.slice(0,2)));
+
   }catch(e){console.error('gate diag',e);}
   var anchors=byLay['SD_\uc2e4\uce21\ubc88\ud638']||[];
   function near(x,y,arr,tol){if(!arr)return null;var b=null,bd=tol*tol;for(var k=0;k<arr.length;k++){var dx=arr[k].x-x,dy=arr[k].y-y,dd=dx*dx+dy*dy;if(dd<bd){bd=dd;b=arr[k];}}return b;}
@@ -9055,10 +9060,9 @@ function rtStakesFromRef(){
     if(!m)return;
     var dateNum=m[1]+'-'+m[2];
     if(seen[dateNum])return;
-    var sd=near(a.x,a.y,byLay['SD901'],SDTOL);
+    var sd=near(a.x,a.y,sd901Sym,SDTOL);   /* [1128] SD901 심벨 삽입점 = 측점 위치 */
     if(!sd)return;
-    var _pd=(pipeVerts.length?nearestPipeDist(sd.x,sd.y):-1);   /* [1126] 진단: 거리만 측정, 통과 */
-    if(_pd>PIPE_EPS)_rej++;
+    if(!onPipeVertex(sd.x,sd.y)){_rej++;return;}   /* [1128] 관로선 정점 0.01m 안일 때만 인정 (심사기준) */
     seen[dateNum]=1;
     var X=sd.x, Y=sd.y, Z=null;
     var c1=near(sd.x,sd.y,byLay['PO_\uc88c\ud45c1'],TOL)||near(sd.x,sd.y,byLay['PO_\uc88c\ud45c'],TOL);
@@ -9068,7 +9072,7 @@ function rtStakesFromRef(){
     var cE=near(sd.x,sd.y,byLay['PO_code'],TOL);
     out.push({no:dateNum,x:X,y:Y,z:Z,code:cE?(cE.s||'').trim():'',depth:(depth!=null&&isFinite(depth))?depth:null});
   });
-  try{console.log('[rtstk] 추출 '+out.length+' · 관로정점 0.01m밖 '+_rej+'개(진단용,통과함) · 게이트 비활성');}catch(e){}
+  try{console.log('[rtstk] 인정 '+out.length+' · 관로선 미붙음(심사불합) 제외 '+_rej+' · SD901심벨 '+sd901Sym.length);}catch(e){}
   out.sort(function(p,q){var da=p.no.split('-')[0],db=q.no.split('-')[0];if(da!==db)return da<db?-1:1;return (parseInt(p.no.split('-')[1],10)||0)-(parseInt(q.no.split('-')[1],10)||0);});
   return out;
 }
