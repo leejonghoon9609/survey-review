@@ -8185,7 +8185,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1102] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1103] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -10953,10 +10953,10 @@ function refPhotoUpload(){
 
 /* ---------- 드롭박스 모달 ---------- */
 function refBox(id,icon,title,sub,accept,onfile){
-  return '<div id="'+id+'" data-acc="'+accept+'" style="flex:1;border:2px dashed #cbd5e1;border-radius:12px;padding:30px 10px 26px;min-height:132px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;text-align:center;cursor:pointer;background:#fbfcfe;transition:.12s">'+   /* [1101] 세로 비율 */
-    '<div style="font-size:26px;line-height:1.1">'+icon+'</div>'+
-    '<div style="font-size:13px;font-weight:800;color:#334155;margin-top:7px">'+title+'</div>'+
-    '<div style="font-size:10.5px;color:#94a3b8;margin-top:4px;line-height:1.5">'+sub+'</div></div>';
+  return '<div id="'+id+'" data-acc="'+accept+'" style="flex:1;border:2px dashed #cbd5e1;border-radius:12px;padding:22px 12px;min-height:196px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;cursor:pointer;background:#fbfcfe;transition:.12s">'+   /* [1103] 세로 196px */
+    '<div style="font-size:38px;line-height:1.05">'+icon+'</div>'+
+    '<div style="font-size:14px;font-weight:800;color:#334155;margin-top:10px">'+title+'</div>'+
+    '<div style="font-size:11px;color:#94a3b8;margin-top:6px;line-height:1.55">'+sub+'</div></div>';
 }
 function refWire(id,accept,onfile){
   var z=document.getElementById(id);if(!z)return;
