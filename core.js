@@ -10953,7 +10953,7 @@ function refPhotoUpload(){
 
 /* ---------- 드롭박스 모달 ---------- */
 function refBox(id,icon,title,sub,accept,onfile){
-  return '<div id="'+id+'" data-acc="'+accept+'" style="flex:1;border:2px dashed #cbd5e1;border-radius:12px;padding:22px 12px;min-height:196px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;cursor:pointer;background:#fbfcfe;transition:.12s">'+   /* [1103] 세로 196px */
+  return '<div id="'+id+'" data-acc="'+accept+'" style="flex:1;border:2px dashed #cbd5e1;border-radius:12px;padding:22px 12px;min-height:240px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;cursor:pointer;background:#fbfcfe;transition:.12s">'+   /* [1106] 세로 240px */
     '<div style="font-size:38px;line-height:1.05">'+icon+'</div>'+
     '<div style="font-size:14px;font-weight:800;color:#334155;margin-top:10px">'+title+'</div>'+
     '<div style="font-size:11px;color:#94a3b8;margin-top:6px;line-height:1.55">'+sub+'</div></div>';
@@ -10992,6 +10992,7 @@ function refDelDxf(){
   if(!confirm('\ubd88\ub7ec\uc628 \uacb0\uc120\uc744 \uc0ad\uc81c\ud569\ub2c8\ub2e4.\n\n\uc11c\ubc84\uc5d0 \uc800\uc7a5\ub41c \uc0ac\ubcf8\ub3c4 \ud568\uaed8 \uc9c0\uc6cc\uc9d1\ub2c8\ub2e4.\n\uc57c\uc7a5\u00b7\uc0ac\uc9c4\uc740 \uadf8\ub300\ub85c \ub0a8\uc2b5\ub2c8\ub2e4. \uacc4\uc18d\ud560\uae4c\uc694?'))return;
   refCloudDelete();refReset();
   toast('\uacb0\uc120 \uc0ad\uc81c\ub428');
+  try{if(typeof refOpenStat==='function')refOpenStat();}catch(e){}   /* [1106] */
 }
 function refDelPhotos(){
   var c=refPhotoCount();
@@ -11006,6 +11007,7 @@ function refDelPhotos(){
   saveProject();
   if(online&&paths.length){try{sb.storage.from('photos').remove(paths);}catch(e){console.error('refDelPhotos',e);}}
   toast('\uc0ac\uc9c4 '+c.n+'\uc7a5 \uc0ad\uc81c\ub428');
+  try{if(typeof refOpenStat==='function')refOpenStat();}catch(e){}   /* [1106] */
 }
 /* ===== [BUILD 1048] \uacb0\uc120 \uc218\uce58\uc9c0\ub3c4(\ubc31\ud310) \ucf1c\uae30/\ub044\uae30 ===== */
 function refTerrCount(){
@@ -11054,6 +11056,7 @@ function refDelJoseoPhotos(kind){
     nos.forEach(function(no){delete map[no];});
     try{if(typeof drawGeo==='function')drawGeo();}catch(e){}
     try{if(typeof joseoState!=='undefined'&&joseoState&&typeof joseoRenderPreview==='function')joseoRenderPreview(joseoState.cur);}catch(e){}
+    try{if(typeof refOpenStat==='function')refOpenStat();}catch(e){}   /* [1106] */
     toast('✓ '+lab+' 사진 '+nos.length+'장 삭제됨');
   }
   try{
@@ -11123,6 +11126,33 @@ function refJoseoZip(f,kind){
     })();
   })['catch'](function(e){refJoseoStat(kind,'ZIP 읽기 실패','#d32f2f');});
 }
+/* [1106] 업로드 모달 4박스 안내문 = 실제 저장된 정보 + 삭제버튼 수량 (N)
+   모달 열 때 부름. 삭제 3경로(refDelDxf/refDelPhotos/refDelJoseoPhotos)에서도 부름 */
+function refOpenStat(){
+  if(!document.getElementById('refModal'))return;
+  var HINT_OK='#1d9e75', HINT='#94a3b8';
+  function put(id,msg,col){var e=document.getElementById(id);if(e){e.innerHTML=msg;e.style.color=col;e.style.fontWeight=(col===HINT?'400':'700');}}
+  /* 1) 결선 DXF */
+  if(typeof REF!=='undefined'&&REF&&REF.ents){
+    put('refZ1S','✓ '+(REF.name||'결선')+'<br>'+(REF.cnt||REF.ents.length)+'개 표시 중',HINT_OK);
+  }else put('refZ1S','클릭 또는 끌어다 놓기',HINT);
+  /* 2) 맨홀사진 */
+  var pc=(typeof refPhotoCount==='function')?refPhotoCount():{n:0,r:0};
+  if(pc.n)put('refZ2S','✓ 맨홀 '+pc.r+'개 · 사진 '+pc.n+'장',HINT_OK);
+  else put('refZ2S','사업명/맨홀번호/1.jpg',HINT);
+  /* 3·4) 노출관로 · 후측량 */
+  var ne=Object.keys((typeof photoMap!=='undefined'&&photoMap)||{}).length;
+  var na=Object.keys((typeof afterMap!=='undefined'&&afterMap)||{}).length;
+  if(ne)put('refZ3S','✓ 사진 '+ne+'장 연동됨',HINT_OK);
+  else put('refZ3S','250624/3.jpg → 실시간사진',HINT);
+  if(na)put('refZ4S','✓ 사진 '+na+'장 연동됨',HINT_OK);
+  else put('refZ4S','250624/3.jpg → 공사후사진',HINT);
+  /* 삭제 버튼 수량 */
+  function btn(id,txt){var e=document.getElementById(id);if(e)e.textContent=txt;}
+  btn('refDelP','🗑 맨홀사진 삭제 ('+pc.n+')');
+  btn('refDelE','🗑 노출관로 삭제 ('+ne+')');
+  btn('refDelA','🗑 후측량 삭제 ('+na+')');
+}
 function refOpen(){
   var old=document.getElementById('refModal');if(old)old.remove();
   var w=document.createElement('div');w.id='refModal';
@@ -11186,6 +11216,7 @@ function refOpen(){
   if(b3)b3.onclick=function(){REF.on=!REF.on;refDraw();b3.textContent=(REF.on?'\ud45c\uc2dc \ub044\uae30':'\ud45c\uc2dc \ucf1c\uae30');toast(REF.on?'\uacb0\uc120 \ud45c\uc2dc':'\uacb0\uc120 \uc228\uae40');};
   var b5=document.getElementById('refB5');
   if(b5)b5.onclick=function(){refFit();};   /* [1104] */
+  try{refOpenStat();}catch(e){}   /* [1106] 저장된 정보로 안내문 채움 */
 }
 
 /* ===== [BUILD 1039] 결선 맨홀 ↔ 야장 매칭 : 도면 표시 + 패널 + 야장 자동생성 ===== */
