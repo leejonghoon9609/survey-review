@@ -987,10 +987,7 @@ function drawGeo(){
       gPts.appendChild(el('line',{x1:ax1,y1:ay1,x2:ax1-dv[0]*hl+pr[0]*hl,y2:ay1-dv[1]*hl+pr[1]*hl,stroke:AC,'stroke-width':2.6,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));
       gPts.appendChild(el('line',{x1:ax1,y1:ay1,x2:ax1-dv[0]*hl-pr[0]*hl,y2:ay1-dv[1]*hl-pr[1]*hl,stroke:AC,'stroke-width':2.6,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));})();
     var hit=el('circle',{cx:s[0],cy:s[1],r:hitR,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
-    (function(_p){    /* [1095] 호버 미리보기 */
-      hit.addEventListener('pointerenter',function(){if(typeof hoverPt==='function')hoverPt(_p);});
-      hit.addEventListener('pointerleave',function(){if(typeof hoverClear==='function')hoverClear();});
-    })(p);
+
     hit.addEventListener('click',function(ev){if(this._lpFired){this._lpFired=false;ev.stopPropagation();return;}if(mode==='ptdel'||mode==='delall2'){ev.stopPropagation();ev.preventDefault();deletePoint(p);return;}if(mode!=='pan'||labelDragging||noteMode)return;ev.stopPropagation();if(photoLink)selectPoint(p.no);else{selNum=p.no;drawGeo();highlightSel();if(typeof joseoSyncTo==='function')joseoSyncTo(p.no);}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
     hit.addEventListener('mouseenter',function(){if(mode==='ptdel'||mode==='delall2'){hit.setAttribute('fill','rgba(211,47,47,0.28)');hit.setAttribute('stroke','#d32f2f');hit.setAttribute('stroke-width',1.6);hit.setAttribute('vector-effect','non-scaling-stroke');}});
     hit.addEventListener('mouseleave',function(){hit.setAttribute('fill','transparent');hit.removeAttribute('stroke');});
@@ -8188,7 +8185,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1095] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1096] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -9650,16 +9647,60 @@ var photoMap={}, afterMap={}, afterTargetNum=null, selNum=null, photoPanelOpen=f
 var gSel=document.createElementNS(SVGNS,'g'); gSel.setAttribute('pointer-events','none'); cv.appendChild(gSel);
 /* [1095] 마우스를 측점 근처로 가져가면 ‘지금 고르려는 측점’을 마젠타 원으로 미리 보여준다 */
 var gHov=document.createElementNS(SVGNS,'g'); gHov.setAttribute('pointer-events','none'); cv.appendChild(gHov);
+var _hovPt=null;
 function hoverPt(p){
   try{
+    if(_hovPt===p)return;                 /* 같은 측점이면 다시 그리지 않음 → 깜빡임 없음 */
+    _hovPt=p||null;
     if(typeof clearSvg==='function')clearSvg(gHov);
     if(!p)return;
-    var s=S(p.x,p.y);
-    gHov.appendChild(el('circle',{cx:s[0],cy:s[1],r:1.15,fill:'none',stroke:'#d500f2',
+    var s=S(p.x,p.y), r=Math.max(0.35, 13*pxToWorld());   /* 항상 화면 13px — 축소해도 동일 */
+    gHov.appendChild(el('circle',{cx:s[0],cy:s[1],r:r,fill:'none',stroke:'#d500f2',
       'stroke-width':2.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
   }catch(e){}
 }
-function hoverClear(){try{if(typeof clearSvg==='function')clearSvg(gHov);}catch(e){}}
+function hoverClear(){_hovPt=null;try{if(typeof clearSvg==='function')clearSvg(gHov);}catch(e){}}
+/* 화면 기준 반경 안의 가장 가까운 측점 */
+function nearestPt(cx,cy){
+  try{
+    if(!state.points||!state.points.length)return null;
+    var w=toWorld(cx,cy), wx=w[0], wy=-w[1];
+    var tol=14*pxToWorld(), best=null, bd=tol*tol;
+    for(var i=0;i<state.points.length;i++){
+      var p=state.points[i];if(!p||p.x==null||p.y==null)continue;
+      var dx=p.x-wx, dy=p.y-wy, dd=dx*dx+dy*dy;
+      if(dd<bd){bd=dd;best=p;}
+    }
+    return best;
+  }catch(e){return null;}
+}
+/* [1096] 도면 전역 마우스 추적 — 조서가 열려 있을 때만 동작 */
+(function(){
+  try{
+    if(typeof cv==='undefined'||!cv)return;
+    cv.addEventListener('pointermove',function(e){
+      if(typeof joseoUiOpen==='function'&&!joseoUiOpen()){if(_hovPt)hoverClear();return;}
+      if(typeof mode!=='undefined'&&mode!=='pan'){if(_hovPt)hoverClear();return;}
+      var p=nearestPt(e.clientX,e.clientY);
+      hoverPt(p);
+      try{cv.style.cursor=p?'pointer':'';}catch(_c){}
+    });
+    cv.addEventListener('pointerleave',function(){hoverClear();try{cv.style.cursor='';}catch(_c){}});
+    /* 호버 중인 측점 클릭 → 선택 + 조서 이동 (축소 상태에서도 잡힘) */
+    cv.addEventListener('click',function(e){
+      if(typeof joseoUiOpen!=='function'||!joseoUiOpen())return;
+      if(typeof mode!=='undefined'&&mode!=='pan')return;
+      var p=_hovPt||nearestPt(e.clientX,e.clientY);
+      if(!p||!p.no)return;
+      if(selNum!==p.no){
+        selNum=p.no;
+        if(typeof highlightSel==='function')highlightSel();
+        if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();
+      }
+      try{if(typeof joseoSyncFromMap==='function')joseoSyncFromMap();}catch(_s){}
+    });
+  }catch(e){}
+})();
 var gDraw=document.createElementNS(SVGNS,'g'); gDraw.setAttribute('pointer-events','none'); cv.appendChild(gDraw);
 var gAnc=document.createElementNS(SVGNS,'g'); cv.appendChild(gAnc); // 지거 멘트 앵커 (최상위 — 측점보다 위에서 클릭 우선)
 var gMeasure=document.createElementNS(SVGNS,'g'); cv.appendChild(gMeasure); // 거리산출 표시
@@ -9698,7 +9739,7 @@ function highlightSel(){clearSvg(gSel);if(selNum==null)return;
   if(typeof joseoUiOpen==='function'&&!joseoUiOpen())return;   /* [1094] 조서 꺼지면 선택표시도 꺼짐 */var p=pointByNo(selNum);if(!p&&state.gpsPts){for(var _gi=0;_gi<state.gpsPts.length;_gi++){if(state.gpsPts[_gi].no===selNum){var _gg=state.gpsPts[_gi],_ggs=S(_gg.x,_gg.y);gSel.appendChild(el('circle',{cx:_ggs[0],cy:_ggs[1],r:2.4,fill:'none',stroke:'#12b312','stroke-width':3.4,'stroke-dasharray':'5 3','vector-effect':'non-scaling-stroke'}));return;}}}if(!p)return;
   var nbs=neighborsOf(selNum);
   [nbs.up,nbs.down].forEach(function(q){if(q){var sy=S(q.x,q.y);gSel.appendChild(el('circle',{cx:sy[0],cy:sy[1],r:0.224,fill:'none',stroke:'#ffcc00','stroke-width':1.4,'vector-effect':'non-scaling-stroke'}));}});
-  var s=S(p.x,p.y);gSel.appendChild(el('circle',{cx:s[0],cy:s[1],r:1.6,fill:'none',stroke:'#22cc00','stroke-width':3.6,'stroke-dasharray':'4 2.5','vector-effect':'non-scaling-stroke'}));}
+  var s=S(p.x,p.y),_sr=Math.max(0.5,18*pxToWorld());gSel.appendChild(el('circle',{cx:s[0],cy:s[1],r:_sr,fill:'none',stroke:'#e11d1d','stroke-width':3.6,'stroke-dasharray':'4 2.5','vector-effect':'non-scaling-stroke'}));}   /* [1096] 선택=빨간원 통일 · 화면비례 */
 function compressImage(file,maxW,q){return new Promise(function(res,rej){var img=new Image(),u=URL.createObjectURL(file);img.onload=function(){URL.revokeObjectURL(u);var w=img.width,h=img.height;if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(function(b){b?res(b):rej(new Error('blob'));},'image/jpeg',q);};img.onerror=function(){rej(new Error('img'));};img.src=u;});}
 var zoomState={img:null,scale:1,tx:0,ty:0,drag:false,sx:0,sy:0};
 function applyZoom(){var z=zoomState;if(!z.img)return;z.img.style.transform='translate('+z.tx+'px,'+z.ty+'px) scale('+z.scale+')';z.img.style.cursor=z.scale>1?(z.drag?'grabbing':'grab'):'zoom-in';}
