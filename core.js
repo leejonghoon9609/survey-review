@@ -9156,7 +9156,7 @@ function joseoParseCode(code){
 function joseoPoints(){
   return (state.points||[]).filter(function(p){
     if(!p||!p.no) return false;
-    if(isManhole(p)) return false;                                              // 맨홀 제외
+    /* [1122] 맨홀 측점도 조서 포함 — 노출관로/후측량 사진 방식 그대로 적용 */
     if(/보강판/.test((p.no||'')+'|'+(p.code||''))) return false;                 // 보강판 제외
     return true;
   });
@@ -9888,7 +9888,16 @@ function highlightSel(){clearSvg(gSel);if(selNum==null)return;
   if(typeof joseoUiOpen==='function'&&!joseoUiOpen())return;   /* [1094] 조서 꺼지면 선택표시도 꺼짐 */var p=pointByNo(selNum);if(!p&&state.gpsPts){for(var _gi=0;_gi<state.gpsPts.length;_gi++){if(state.gpsPts[_gi].no===selNum){var _gg=state.gpsPts[_gi],_ggs=S(_gg.x,_gg.y);gSel.appendChild(el('circle',{cx:_ggs[0],cy:_ggs[1],r:2.4,fill:'none',stroke:'#12b312','stroke-width':3.4,'stroke-dasharray':'5 3','vector-effect':'non-scaling-stroke'}));return;}}}if(!p)return;
   var nbs=neighborsOf(selNum);
   [nbs.up,nbs.down].forEach(function(q){if(q){var sy=S(q.x,q.y);gSel.appendChild(el('circle',{cx:sy[0],cy:sy[1],r:0.224,fill:'none',stroke:'#ffcc00','stroke-width':1.4,'vector-effect':'non-scaling-stroke'}));}});
-  var s=S(p.x,p.y),_sr=Math.max(0.5,18*pxToWorld());gSel.appendChild(el('circle',{cx:s[0],cy:s[1],r:_sr,fill:'none',stroke:'#e11d1d','stroke-width':3.6,'stroke-dasharray':'4 2.5','vector-effect':'non-scaling-stroke'}));}   /* [1096] 선택=빨간원 통일 · 화면비례 */
+  var s=S(p.x,p.y),_sr=Math.max(0.5,18*pxToWorld());
+  /* [1122] 원 + 중심 얇은 X — 로컬원점 그룹으로 묶어 float32 어긋남 예방(함정 A) */
+  var _sg=document.createElementNS(SVGNS,'g');
+  var _sx=Math.round(s[0]),_sy=Math.round(s[1]);
+  _sg.setAttribute('transform','translate('+_sx+','+_sy+')');
+  var _lx=s[0]-_sx,_ly=s[1]-_sy,_xr=_sr*0.45;
+  _sg.appendChild(el('circle',{cx:_lx,cy:_ly,r:_sr,fill:'none',stroke:'#e11d1d','stroke-width':3.6,'stroke-dasharray':'4 2.5','vector-effect':'non-scaling-stroke'}));
+  _sg.appendChild(el('line',{x1:_lx-_xr,y1:_ly-_xr,x2:_lx+_xr,y2:_ly+_xr,stroke:'#e11d1d','stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+  _sg.appendChild(el('line',{x1:_lx-_xr,y1:_ly+_xr,x2:_lx+_xr,y2:_ly-_xr,stroke:'#e11d1d','stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+  gSel.appendChild(_sg);}   /* [1096/1122] 선택=빨간원+중심X · 화면비례 */
 function compressImage(file,maxW,q){return new Promise(function(res,rej){var img=new Image(),u=URL.createObjectURL(file);img.onload=function(){URL.revokeObjectURL(u);var w=img.width,h=img.height;if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(function(b){b?res(b):rej(new Error('blob'));},'image/jpeg',q);};img.onerror=function(){rej(new Error('img'));};img.src=u;});}
 var zoomState={img:null,scale:1,tx:0,ty:0,drag:false,sx:0,sy:0};
 function applyZoom(){var z=zoomState;if(!z.img)return;z.img.style.transform='translate('+z.tx+'px,'+z.ty+'px) scale('+z.scale+')';z.img.style.cursor=z.scale>1?(z.drag?'grabbing':'grab'):'zoom-in';}
