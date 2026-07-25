@@ -9437,6 +9437,37 @@ function joseoSyncFromMap(){
     joseoMarkCard(selNum);
   }catch(e){}
 }
+/* [1116] 조서 카드 개별 사진 업로드/변경 — kind: exp(실시간)/aft(후측량) */
+function joseoPhotoPick(no,kind){
+  if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
+  if(!online){toast('로컬 모드 — 업로드 불가');return;}
+  var fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.style.display='none';
+  document.body.appendChild(fi);
+  fi.addEventListener('change',function(ev){
+    var f=ev.target.files&&ev.target.files[0];fi.remove();
+    if(!f)return;
+    var lab=(kind==='aft')?'후측량':'실시간';
+    toast(lab+' 사진 업로드 중…');
+    compressImage(f,1280,0.7).then(function(blob){
+      var pno=(kind==='aft')?(no+'_A'):no;
+      var path=state.projectId+'/'+safeName(pno)+'.jpg';
+      return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
+        if(up.error)throw up.error;
+        var url=sb.storage.from('photos').getPublicUrl(path).data.publicUrl+'?t='+Date.now();
+        return sb.from(DB+'_photos')['delete']().eq('project_id',state.projectId).eq('point_no',pno).then(function(){
+          return sb.from(DB+'_photos').insert({project_id:state.projectId,point_no:pno,url:url});
+        }).then(function(){
+          if(kind==='aft'){if(typeof afterMap!=='undefined')afterMap[no]=url;}
+          else{if(typeof photoMap!=='undefined')photoMap[no]=url;}
+          try{if(typeof drawGeo==='function')drawGeo();}catch(e){}
+          try{if(typeof joseoState!=='undefined'&&joseoState&&typeof joseoRenderPreview==='function')joseoRenderPreview(joseoState.cur);}catch(e){}
+          toast('✓ '+lab+' 사진 변경됨 — '+no);
+        });
+      });
+    })['catch'](function(e){console.error('joseoPhotoPick',e);toast('업로드 실패: '+((e&&e.message)||e));});
+  });
+  fi.click();
+}
 function joseoRenderPreview(dk){
   var box=document.getElementById('joseoPreview'); if(!box)return;
   var recs=(joseoState.groups[dk]||[]).map(joseoRec);
@@ -9452,8 +9483,8 @@ function joseoRenderPreview(dk){
       +'<tr><td class="lbl">X(N)</td><td class="lbl">Y(E)</td></tr>'
       +'<tr><td class="val">'+joseoEsc(r.x)+'</td><td class="val">'+joseoEsc(r.y)+'</td><td class="val">'+joseoEsc(r.facility)+'</td><td class="val">'+joseoEsc(r.mat)+'</td><td class="val">'+joseoEsc(r.dia)+'</td><td class="val">'+joseoEsc(r.gap)+'</td><td class="val">'+joseoEsc(r.depth)+'</td></tr>'
       +'</table>'
-      +'<div class="jz-ph2"><div class="jz-pc">'+exp+'<div class="jz-cap">실시간 측량점</div></div>'
-      +'<div class="jz-pc">'+aft+'<div class="jz-cap">공사 후 관로</div></div></div>'
+      +'<div class="jz-ph2"><div class="jz-pc">'+exp+'<div class="jz-cap">실시간 측량점 <button data-jzchg="exp" data-jzno="'+joseoEsc(r.fullNo||r.name)+'" style="margin-left:8px;padding:2px 9px;border:1px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer">실시간 사진변경</button></div></div>'
+      +'<div class="jz-pc">'+aft+'<div class="jz-cap">공사 후 관로 <button data-jzchg="aft" data-jzno="'+joseoEsc(r.fullNo||r.name)+'" style="margin-left:8px;padding:2px 9px;border:1px solid #1565c0;background:#fff;color:#1565c0;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer">후측량 사진변경</button></div></div></div>'
       +'</div>';
   });
   box.innerHTML=html;
@@ -9471,6 +9502,9 @@ function joseoRenderPreview(dk){
         joseoMarkCard(no);
       };
     });
+    [].forEach.call(box.querySelectorAll('button[data-jzchg]'),function(bt){
+      bt.onclick=function(ev){ev.stopPropagation();joseoPhotoPick(bt.getAttribute('data-jzno'),bt.getAttribute('data-jzchg'));};
+    });   /* [1116] 카드 클릭(도면 이동)과 분리 */
     if(typeof selNum!=='undefined'&&selNum!=null)joseoMarkCard(selNum);
   }catch(_je){}
 
@@ -11115,6 +11149,8 @@ function refJoseoZip(f,kind){
   refJoseoStat(kind,'읽는 중…','#2471a3');
   JSZip.loadAsync(f).then(function(z){
     var items=[],skip=0;
+    /* [1116] 알려진 측점 날짜 사전 — 파일명에 년도가 없을 때(월일 4자리) 매칭용 */
+    var kdates={};(state.points||[]).forEach(function(p){var d=String((p&&p.no)||'').slice(0,6);if(/^\d{6}$/.test(d))kdates[d]=1;});
     z.forEach(function(path,ent){
       if(ent.dir)return;
       var nm=path.split('/').pop();
@@ -11128,8 +11164,17 @@ function refJoseoZip(f,kind){
          사진_12.jpg               -> 마지막 _ 뒤 숫자 */
       var base=nm.replace(/\.[^.]+$/,'');
       var num='';
-      var fm=base.match(/^(\d{6})[-_](\d+)$/);
-      if(fm){if(!dm)dm=fm[1];num=fm[2];}
+      /* [1116] 년월일(6자리) 또는 월일(4자리) + [-_] + 번호.
+         월일만 있고 폴더 날짜도 없으면 기존 측점 날짜에서 년도를 찾아 매칭 */
+      var fm=base.match(/^(\d{4}|\d{6})[-_](\d+)$/);
+      if(fm){
+        num=fm[2];
+        if(!dm){
+          if(fm[1].length===6)dm=fm[1];
+          else{var _cand=Object.keys(kdates).filter(function(d){return d.slice(2)===fm[1];}).sort();
+               if(_cand.length)dm=_cand[_cand.length-1];}
+        }
+      }
       else if(/[-_]/.test(base)){num=(base.split(/[-_]/).pop().match(/(\d+)/)||[])[1]||'';}   /* [1110] 0624-3 형식: -/_ 뒤 = 무조건 번호 */
       if(!num)num=(base.match(/(\d+)/)||[])[1]||'';
       if(!dm||!num){skip++;return;}
@@ -11191,6 +11236,84 @@ function refJoseoZip(f,kind){
 }
 /* [1106] 업로드 모달 4박스 안내문 = 실제 저장된 정보 + 삭제버튼 수량 (N)
    모달 열 때 부름. 삭제 3경로(refDelDxf/refDelPhotos/refDelJoseoPhotos)에서도 부름 */
+/* [1116] 누적 목록 삭제 — 삭제 버튼을 누르면 목록(맨홀별/날짜별)을 보여주고
+   체크 선택 삭제 또는 전체 삭제. kind: mh / exp / aft */
+function refDelList(kind){
+  var old=document.getElementById('refDelLM');if(old)old.remove();
+  var items=[];
+  if(kind==='mh'){
+    ((typeof mnList==='function')?mnList():[]).forEach(function(rec){
+      if(!rec||rec.delAt||!rec.photos)return;
+      var k=0;for(var sl in rec.photos){if(rec.photos[sl])k++;}
+      if(k)items.push({key:rec.id,label:(typeof mnLabel==='function')?mnLabel(rec):String(rec.id),cnt:k});
+    });
+  }else{
+    var map=(kind==='aft')?((typeof afterMap!=='undefined')?afterMap:{}):((typeof photoMap!=='undefined')?photoMap:{});
+    var byD={};Object.keys(map||{}).forEach(function(no){var d=String(no).slice(0,6);(byD[d]=byD[d]||[]).push(no);});
+    Object.keys(byD).sort().forEach(function(d){items.push({key:d,label:'날짜 '+d,cnt:byD[d].length,nos:byD[d]});});
+  }
+  if(!items.length){toast('삭제할 사진이 없습니다');return;}
+  var ttl=(kind==='mh')?'맨홀사진':(kind==='exp'?'노출관로측량 사진':'후측량 사진');
+  var w=document.createElement('div');w.id='refDelLM';
+  w.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.35);z-index:99999;display:flex;align-items:center;justify-content:center';
+  var rows=items.map(function(it,ix){return '<label style="display:flex;align-items:center;gap:8px;padding:7px 4px;border-bottom:1px solid #eee;font-size:13px;cursor:pointer"><input type="checkbox" data-rdix="'+ix+'"> <b>'+it.label+'</b> · '+it.cnt+'장</label>';}).join('');
+  var b=document.createElement('div');
+  b.style.cssText='background:#fff;border-radius:12px;padding:16px 18px;width:min(420px,92vw);max-height:74vh;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.3)';
+  b.innerHTML='<div style="font-weight:800;font-size:14px;color:#c62828;margin-bottom:8px">🗑 '+ttl+' — 누적 목록</div>'
+    +'<div style="overflow:auto;flex:1;border:1px solid #eee;border-radius:8px;padding:2px 8px">'+rows+'</div>'
+    +'<div style="display:flex;gap:7px;margin-top:11px">'
+    +'<button id="rdSel" style="flex:1;padding:9px;border:1px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:8px;font-weight:700;cursor:pointer">선택 삭제</button>'
+    +'<button id="rdAll" style="flex:1;padding:9px;border:none;background:#d32f2f;color:#fff;border-radius:8px;font-weight:700;cursor:pointer">전체 삭제</button>'
+    +'<button id="rdX" style="flex:1;padding:9px;border:1px solid #ccc;background:#fff;color:#555;border-radius:8px;cursor:pointer">닫기</button></div>';
+  w.appendChild(b);document.body.appendChild(w);
+  document.getElementById('rdX').onclick=function(){w.remove();};
+  function run(list){
+    if(!list.length){toast('선택된 항목이 없습니다');return;}
+    var tot=0;list.forEach(function(it){tot+=it.cnt;});
+    if(!confirm(ttl+' '+list.length+'개 항목 · 사진 '+tot+'장을 삭제합니다.\n되돌릴 수 없습니다. 계속할까요?'))return;
+    w.remove();refDelExec(kind,list);
+  }
+  document.getElementById('rdSel').onclick=function(){
+    var sel=[];[].forEach.call(b.querySelectorAll('input[data-rdix]'),function(c){if(c.checked)sel.push(items[+c.getAttribute('data-rdix')]);});
+    run(sel);
+  };
+  document.getElementById('rdAll').onclick=function(){run(items.slice());};
+}
+function refDelExec(kind,list){
+  if(kind==='mh'){
+    var ids={};list.forEach(function(it){ids[it.key]=1;});
+    var paths=[],cnt=0;
+    ((typeof mnList==='function')?mnList():[]).forEach(function(rec){
+      if(!rec||rec.delAt||!ids[rec.id])return;
+      for(var sl in (rec.photos||{})){if(rec.photos[sl]){paths.push(state.projectId+'/mh_'+rec.id+'_'+sl+'.jpg');cnt++;}}
+      rec.photos={};if(rec.rotP)rec.rotP={};
+    });
+    try{saveProject();}catch(e){}
+    if(online&&paths.length){try{sb.storage.from('photos').remove(paths);}catch(e){console.error('refDelExec mh',e);}}
+    toast('✓ 맨홀사진 '+cnt+'장 삭제됨');
+    try{if(typeof refOpenStat==='function')refOpenStat();}catch(e){}
+    return;
+  }
+  var lab=(kind==='aft')?'후측량':'노출관로측량';
+  var map=(kind==='aft')?afterMap:photoMap;
+  var nos=[];list.forEach(function(it){(it.nos||[]).forEach(function(n){nos.push(n);});});
+  if(!nos.length)return;
+  var pnos=nos.map(function(no){return (kind==='aft')?(no+'_A'):no;});
+  var paths=pnos.map(function(pn){return state.projectId+'/'+safeName(pn)+'.jpg';});
+  toast(lab+' 사진 삭제 중…');
+  function fin(){
+    nos.forEach(function(no){delete map[no];});
+    try{if(typeof drawGeo==='function')drawGeo();}catch(e){}
+    try{if(typeof joseoState!=='undefined'&&joseoState&&typeof joseoRenderPreview==='function')joseoRenderPreview(joseoState.cur);}catch(e){}
+    try{if(typeof refOpenStat==='function')refOpenStat();}catch(e){}
+    toast('✓ '+lab+' 사진 '+nos.length+'장 삭제됨');
+  }
+  try{
+    sb.storage.from('photos').remove(paths).then(function(){
+      return sb.from(DB+'_photos')['delete']().eq('project_id',state.projectId)['in']('point_no',pnos);
+    }).then(fin,function(e){console.error('refDelExec',e);fin();});
+  }catch(e){console.error('refDelExec',e);fin();}
+}
 function refOpenStat(){
   if(!document.getElementById('refModal'))return;
   var HINT_OK='#1d9e75', HINT='#94a3b8';
@@ -11224,14 +11347,16 @@ function refOpen(){
   b.style.cssText='background:#fff;border-radius:14px;padding:18px 20px 16px;width:min(880px,95vw);box-shadow:0 12px 44px rgba(0,0,0,.28)';   /* [1099] 4개 한 줄 */
   var st=REF.ents?('\ud604\uc7ac: '+REF.name+' \u00b7 '+REF.cnt+'\uac1c \ud45c\uc2dc \uc911'):'\ubd88\ub7ec\uc628 \uacb0\uc120 \uc5c6\uc74c';
   b.innerHTML=
-    '<div id="refMdTitle" style="font-size:15px;font-weight:800;color:#222;margin-bottom:3px;cursor:move;user-select:none">\uc644\ub8cc\uacb0\uc120 \uc5c5\ub85c\ub4dc <span style="font-size:11px;color:#bbb;font-weight:400">(잡고 이동)</span></div>'+
-    '<div style="font-size:11.5px;color:#888;margin-bottom:14px">'+st+'</div>'+
+    '<div id="refMdTitle" style="cursor:move;user-select:none;margin:-18px -20px 12px;padding:14px 20px 8px;border-radius:14px 14px 0 0;background:#fafbfc;border-bottom:1px solid #f0f2f5">'+
+      '<div style="font-size:15px;font-weight:800;color:#222;margin-bottom:3px">\uc644\ub8cc\uacb0\uc120 \uc5c5\ub85c\ub4dc <span style="font-size:11px;color:#bbb;font-weight:400">(잡고 이동)</span></div>'+
+      '<div style="font-size:11.5px;color:#888">'+st+'</div>'+
+    '</div>'+
     /* [1099] 드롭박스 4개 한 줄 */
     '<div style="display:flex;gap:10px">'+
       refBox('refZ1','\ud83d\udcd0','\uacb0\uc120 DXF','<span id="refZ1S">\ud074\ub9ad \ub610\ub294 \ub04c\uc5b4\ub2e4 \ub193\uae30</span>','.dxf')+
-      refBox('refZ2','\ud83d\uddbc\ufe0f','\ub9e8\ud640\uc0ac\uc9c4 ZIP','<span id="refZ2S">\uc0ac\uc5c5\uba85/\ub9e8\ud640\ubc88\ud638/1.jpg</span>','.zip')+
-      refBox('refZ3','\ud83d\udcf7','\ub178\ucd9c\uad00\ub85c\uce21\ub7c9 \uc0ac\uc9c4','<span id="refZ3S">250624/3.jpg \u2192 \uc2e4\uc2dc\uac04\uc0ac\uc9c4</span>','.zip')+
-      refBox('refZ4','\ud83c\udfd7\ufe0f','\ud6c4\uce21\ub7c9 \uc0ac\uc9c4','<span id="refZ4S">250624/3.jpg \u2192 \uacf5\uc0ac\ud6c4\uc0ac\uc9c4</span>','.zip')+
+      refBox('refZ2','\ud83d\uddbc\ufe0f','\ub9e8\ud640\uc0ac\uc9c4 ZIP (\ub204\uc801)','<span id="refZ2S">\uc0ac\uc5c5\uba85/\ub9e8\ud640\ubc88\ud638/1.jpg</span>','.zip')+
+      refBox('refZ3','\ud83d\udcf7','\ub178\ucd9c\uad00\ub85c\uce21\ub7c9 \uc0ac\uc9c4 (\ub204\uc801)','<span id="refZ3S">250624/3.jpg \u2192 \uc2e4\uc2dc\uac04\uc0ac\uc9c4</span>','.zip')+
+      refBox('refZ4','\ud83c\udfd7\ufe0f','\ud6c4\uce21\ub7c9 \uc0ac\uc9c4 (\ub204\uc801)','<span id="refZ4S">250624/3.jpg \u2192 \uacf5\uc0ac\ud6c4\uc0ac\uc9c4</span>','.zip')+
     '</div>'+
     /* [1099] 각 드롭박스 아래 삭제 버튼 */
     '<div style="display:flex;gap:10px;margin-top:9px">'+
@@ -11283,9 +11408,9 @@ function refOpen(){
     toast('✓ 반영되었습니다');
   };
   document.getElementById('refDelD').onclick=function(){refDelDxf();};   /* [1104] */
-  document.getElementById('refDelP').onclick=function(){refDelPhotos();};
-  var _de=document.getElementById('refDelE');if(_de)_de.onclick=function(){refDelJoseoPhotos('exp');};   /* [1099] */
-  var _da=document.getElementById('refDelA');if(_da)_da.onclick=function(){refDelJoseoPhotos('aft');};
+  document.getElementById('refDelP').onclick=function(){refDelList('mh');};   /* [1116] 누적 목록 삭제 */
+  var _de=document.getElementById('refDelE');if(_de)_de.onclick=function(){refDelList('exp');};
+  var _da=document.getElementById('refDelA');if(_da)_da.onclick=function(){refDelList('aft');};
   var mb=document.getElementById('refMhB');
   if(mb)mb.onclick=function(){w.remove();refMhPanel();};
   var b3=document.getElementById('refB3');
