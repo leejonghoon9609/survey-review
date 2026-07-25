@@ -7624,11 +7624,12 @@ function mnRevGeo(lat,lng,cb){
   function probeRoad(addr,why){
     if(done||_probing)return;_probing=true;
     try{
-      if(!(window.kakao&&kakao.maps&&kakao.maps.services&&kakao.maps.services.Geocoder)){ok(addr,'',why+'/no-svc');return;}
+      if(!(window.kakao&&kakao.maps&&kakao.maps.services)){ok(addr,'',why+'/no-svc');return;}
       var gc=new kakao.maps.services.Geocoder();
       var mLat=1/111320,mLng=1/(111320*Math.max(0.2,Math.cos(lat*Math.PI/180)));
+      /* [1081] 1단계: 주변 지점을 coord2Address 로 찍어 가장 가까운 도로명 */
       var jobs=[];
-      [25,60,120].forEach(function(r){
+      [20,45,80,130,200].forEach(function(r){
         [[0,1],[1,0],[0,-1],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]].forEach(function(d){
           jobs.push([lat+d[1]*r*mLat, lng+d[0]*r*mLng, r]);
         });
@@ -7636,7 +7637,7 @@ function mnRevGeo(lat,lng,cb){
       var i=0;
       (function nx(){
         if(done)return;
-        if(i>=jobs.length){ok(addr,'',why+'/probe-none');return;}
+        if(i>=jobs.length){keywordPhase();return;}
         var j=jobs[i++];
         try{
           gc.coord2Address(j[1],j[0],function(r2,st2){
@@ -7650,9 +7651,52 @@ function mnRevGeo(lat,lng,cb){
           });
         }catch(_ce){nx();}
       })();
+      /* [1081] 2단계: 행정동명으로 주소 검색해 가장 가까운 도로명을 고른다
+         (coord2Address는 그 지점에 도로명이 없으면 계속 빈값 — 시골은 이게 함정) */
+      function keywordPhase(){
+        if(done){return;}
+        if(!addr||!(kakao.maps.services.Places||kakao.maps.services.Geocoder)){ok(addr,'',why+'/probe-none');return;}
+        try{
+          var gc2=new kakao.maps.services.Geocoder();
+          gc2.addressSearch(addr,function(rs,stt){
+            if(done)return;
+            try{
+              if(stt===kakao.maps.services.Status.OK&&rs&&rs.length){
+                var best=null,bd=1e18;
+                rs.forEach(function(it){
+                  var ra=it.road_address;
+                  if(ra&&ra.road_name){
+                    var dx=(parseFloat(it.x)-lng),dy=(parseFloat(it.y)-lat),dd=dx*dx+dy*dy;
+                    if(dd<bd){bd=dd;best=ra.road_name;}
+                  }
+                });
+                if(best){ok(addr,best,why+'/kw-addr');return;}
+              }
+            }catch(_ke){}
+            /* 장소 검색으로 한 번 더 */
+            try{
+              if(kakao.maps.services.Places){
+                var ps=new kakao.maps.services.Places();
+                ps.keywordSearch(addr,function(rs2,st2){
+                  if(done)return;
+                  try{
+                    if(st2===kakao.maps.services.Status.OK&&rs2&&rs2.length&&rs2[0].road_address_name){
+                      var rn=(''+rs2[0].road_address_name).split(' ').filter(function(w){return /\uB85C$|\uAE38$/.test(w);})[0]||'';
+                      if(rn){ok(addr,rn,why+'/kw-place');return;}
+                    }
+                  }catch(_pe2){}
+                  ok(addr,'',why+'/probe-none');
+                },{location:new kakao.maps.LatLng(lat,lng),radius:1000});
+                return;
+              }
+            }catch(_pe3){}
+            ok(addr,'',why+'/probe-none');
+          });
+        }catch(_ae){ok(addr,'',why+'/probe-none');}
+      }
     }catch(_e){ok(addr,'',why+'/probe-err');}
   }
-  setTimeout(function(){osm('kakao-timeout');},5000);
+  setTimeout(function(){osm('kakao-timeout');},8000);
   try{
     kakaoReady(function(){
       try{
@@ -8119,7 +8163,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1080] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1081] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
