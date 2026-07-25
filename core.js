@@ -11123,15 +11123,21 @@ function refJoseoZip(f,kind){
         try{if(typeof drawGeo==='function')drawGeo();}catch(e){}
         try{if(typeof joseoState!=='undefined'&&joseoState&&typeof joseoRenderPreview==='function')joseoRenderPreview(joseoState.cur);}catch(e){}
         toast('✓ '+(kind==='exp'?'노출관로':'후측량')+' 사진 '+ok+'장 연동됨');
+        try{console.log('[joseo] 총 '+ok+'장 '+((Date.now()-_ts)/1000).toFixed(1)+'초');}catch(_e){}
       }
     }
-    var i=0;
-    (function nx(){
+    /* [1112] 3장 동시 업로드 — 장당 네트워크 왕복 3회(업로드+delete+insert)가
+       직렬이라 느렸다. 카운터(i/done)는 단일스레드라 3체인 공유 안전.
+       콘솔 [joseo] 로그로 단계별 시간 실측 가능 */
+    var i=0,_ts=Date.now();
+    function nx(){
       if(i>=hit.length)return;
-      var it=hit[i++];
+      var it=hit[i++],_t0=Date.now(),_t1=0,_t2=0;
       it.ent.async('blob').then(function(bl){
+        _t1=Date.now();
         return compressImage(new File([bl],'p.jpg',{type:'image/jpeg'}),1280,0.7);
       }).then(function(blob){
+        _t2=Date.now();
         var pno=(kind==='aft')?(it.no+'_A'):it.no;
         var path=state.projectId+'/'+safeName(pno)+'.jpg';
         return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
@@ -11146,8 +11152,13 @@ function refJoseoZip(f,kind){
           });
         });
       })['catch'](function(err){console.error('joseo photo',it.no,err);fail++;})
-       .then(function(){step();setTimeout(nx,20);});
-    })();
+       .then(function(){
+         step();
+         try{console.log('[joseo] '+it.no+' zip '+(_t1?_t1-_t0:'-')+'ms comp '+((_t1&&_t2)?_t2-_t1:'-')+'ms net '+(_t2?Date.now()-_t2:'-')+'ms · '+done+'/'+hit.length);}catch(_e){}
+         nx();
+       });
+    }
+    nx();nx();nx();   /* [1112] 동시 3장 */
   })['catch'](function(e){refJoseoStat(kind,'ZIP 읽기 실패','#d32f2f');});
 }
 /* [1106] 업로드 모달 4박스 안내문 = 실제 저장된 정보 + 삭제버튼 수량 (N)
