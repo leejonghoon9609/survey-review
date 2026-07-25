@@ -11224,7 +11224,7 @@ function refOpen(){
   b.style.cssText='background:#fff;border-radius:14px;padding:18px 20px 16px;width:min(880px,95vw);box-shadow:0 12px 44px rgba(0,0,0,.28)';   /* [1099] 4개 한 줄 */
   var st=REF.ents?('\ud604\uc7ac: '+REF.name+' \u00b7 '+REF.cnt+'\uac1c \ud45c\uc2dc \uc911'):'\ubd88\ub7ec\uc628 \uacb0\uc120 \uc5c6\uc74c';
   b.innerHTML=
-    '<div style="font-size:15px;font-weight:800;color:#222;margin-bottom:3px">\uc644\ub8cc\uacb0\uc120 \uc5c5\ub85c\ub4dc</div>'+
+    '<div id="refMdTitle" style="font-size:15px;font-weight:800;color:#222;margin-bottom:3px;cursor:move;user-select:none">\uc644\ub8cc\uacb0\uc120 \uc5c5\ub85c\ub4dc <span style="font-size:11px;color:#bbb;font-weight:400">(잡고 이동)</span></div>'+
     '<div style="font-size:11.5px;color:#888;margin-bottom:14px">'+st+'</div>'+
     /* [1099] 드롭박스 4개 한 줄 */
     '<div style="display:flex;gap:10px">'+
@@ -11249,6 +11249,19 @@ function refOpen(){
       '<button id="refBx" style="flex:1;padding:11px 8px;border:1px solid #ddd;background:#fff;color:#666;border-radius:9px;font-size:13.5px;font-weight:700;cursor:pointer">\ub2eb\uae30</button>'+   /* [1101] 가로 동일 */
     '</div>';
   w.appendChild(b);document.body.appendChild(w);
+  /* [1115] 제목 줄을 잡고 모달 이동 */
+  (function(){
+    var hd=document.getElementById('refMdTitle');if(!hd)return;
+    var _dx=0,_dy=0;
+    hd.addEventListener('pointerdown',function(e){
+      e.preventDefault();
+      var sx=e.clientX-_dx, sy=e.clientY-_dy;
+      function mv(ev){_dx=ev.clientX-sx;_dy=ev.clientY-sy;b.style.transform='translate('+_dx+'px,'+_dy+'px)';}
+      function up(){window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);}
+      window.addEventListener('pointermove',mv);
+      window.addEventListener('pointerup',up);
+    });
+  })();
   /* [1104] 배경 클릭으로는 안 닫힘 — 완료/닫기로만 */
   w.addEventListener('dragover',function(e){e.preventDefault();});
   w.addEventListener('drop',function(e){e.preventDefault();});
