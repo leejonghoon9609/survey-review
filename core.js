@@ -8185,7 +8185,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1103] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1104] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -10966,14 +10966,14 @@ function refWire(id,accept,onfile){
   z.addEventListener('drop',function(e){
     e.preventDefault();e.stopPropagation();hi(false);
     var fs=e.dataTransfer&&e.dataTransfer.files;
-    if(fs&&fs.length){var m=document.getElementById('refModal');if(m)m.remove();onfile(fs[0]);}
+    if(fs&&fs.length){onfile(fs[0]);}   /* [1104] 모달 유지 */
   });
   z.addEventListener('click',function(){
     var fi=document.createElement('input');fi.type='file';fi.accept=accept;fi.style.display='none';
     document.body.appendChild(fi);
     fi.addEventListener('change',function(ev){
       var f=ev.target.files&&ev.target.files[0];fi.remove();
-      if(f){var m=document.getElementById('refModal');if(m)m.remove();onfile(f);}
+      if(f){onfile(f);}   /* [1104] 모달 유지 */
     });
     fi.click();
   });
@@ -11156,7 +11156,7 @@ function refOpen(){
       '<button id="refBx" style="flex:1;padding:11px 8px;border:1px solid #ddd;background:#fff;color:#666;border-radius:9px;font-size:13.5px;font-weight:700;cursor:pointer">\ub2eb\uae30</button>'+   /* [1101] 가로 동일 */
     '</div>';
   w.appendChild(b);document.body.appendChild(w);
-  w.addEventListener('click',function(ev){if(ev.target===w)w.remove();});
+  /* [1104] 배경 클릭으로는 안 닫힘 — 완료/닫기로만 */
   w.addEventListener('dragover',function(e){e.preventDefault();});
   w.addEventListener('drop',function(e){e.preventDefault();});
   document.getElementById('refBx').onclick=function(){w.remove();};
@@ -11176,16 +11176,16 @@ function refOpen(){
     w.remove();
     toast('✓ 반영되었습니다');
   };
-  document.getElementById('refDelD').onclick=function(){w.remove();refDelDxf();};
-  document.getElementById('refDelP').onclick=function(){w.remove();refDelPhotos();};
-  var _de=document.getElementById('refDelE');if(_de)_de.onclick=function(){w.remove();refDelJoseoPhotos('exp');};   /* [1099] */
-  var _da=document.getElementById('refDelA');if(_da)_da.onclick=function(){w.remove();refDelJoseoPhotos('aft');};
+  document.getElementById('refDelD').onclick=function(){refDelDxf();};   /* [1104] */
+  document.getElementById('refDelP').onclick=function(){refDelPhotos();};
+  var _de=document.getElementById('refDelE');if(_de)_de.onclick=function(){refDelJoseoPhotos('exp');};   /* [1099] */
+  var _da=document.getElementById('refDelA');if(_da)_da.onclick=function(){refDelJoseoPhotos('aft');};
   var mb=document.getElementById('refMhB');
   if(mb)mb.onclick=function(){w.remove();refMhPanel();};
   var b3=document.getElementById('refB3');
-  if(b3)b3.onclick=function(){REF.on=!REF.on;refDraw();w.remove();toast(REF.on?'\uacb0\uc120 \ud45c\uc2dc':'\uacb0\uc120 \uc228\uae40');};
+  if(b3)b3.onclick=function(){REF.on=!REF.on;refDraw();b3.textContent=(REF.on?'\ud45c\uc2dc \ub044\uae30':'\ud45c\uc2dc \ucf1c\uae30');toast(REF.on?'\uacb0\uc120 \ud45c\uc2dc':'\uacb0\uc120 \uc228\uae40');};
   var b5=document.getElementById('refB5');
-  if(b5)b5.onclick=function(){refFit();w.remove();};
+  if(b5)b5.onclick=function(){refFit();};   /* [1104] */
 }
 
 /* ===== [BUILD 1039] 결선 맨홀 ↔ 야장 매칭 : 도면 표시 + 패널 + 야장 자동생성 ===== */
