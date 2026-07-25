@@ -8167,7 +8167,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1083] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1084] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -9027,7 +9027,8 @@ function rtImportPreview(pts){
       try{redrawAll();}catch(e){}
       try{updMeta();}catch(e){}
       try{if(typeof saveProject==='function')saveProject();}catch(e){}
-      toast('✓ 측점 '+add+'개 추가됨 — 사진조서에서 날짜별로 확인하세요');
+      toast('✓ 측점 '+add+'개 추가됨');
+      try{if(typeof openJoseoPanel==='function')setTimeout(openJoseoPanel,150);}catch(e){}   /* [1084] 바로 조서 열기 */
     }else toast('추가된 측점이 없습니다 (이미 있거나 미선택)');
   };
 }
