@@ -774,6 +774,7 @@ function tbLayout(dxf){
 }
 function drawTitleBlock(){
   if(typeof gGeo==='undefined'||!gGeo)return;
+  if((typeof LV!=='undefined')&&LV.bizbox===0)return;   /* [1089] 사업정보 레이어 */
   var L=tbLayout(); if(!L)return;
   var COL={name:'#111',label:'#111',red:'#d00',blue:'#1633ff'};
   var bx=L.box, c0=S(bx.x,bx.y), c1=S(bx.x+bx.w,bx.y+bx.h);
@@ -5970,7 +5971,7 @@ function toneStyle(tone,active){var c=TONE[tone]||{bg:'#f3f3f0',fg:'#333'};retur
 function railStyle(col,active){col=col||{bg:'#f3f3f0',fg:'#333'};return active?('background:'+col.bg+';color:'+col.fg+';border:1px solid '+col.fg+';border-left:4px solid '+col.fg+';border-radius:0 8px 8px 0;font-weight:700;'):('background:#fff;color:'+col.fg+';border:1px solid #e3e3df;border-left:4px solid '+col.fg+';border-radius:0 8px 8px 0;font-weight:600;');}
 var activeCat='pan';
 var toolsOpen=false;try{toolsOpen=(localStorage.getItem('toolsOpen')==='1');}catch(e){}
-var LV_KEY='layerVis_'+STAGE;var LV=(function(){try{return JSON.parse(localStorage.getItem(LV_KEY))||{};}catch(e){return {};}})();['no','date','code','depth','mh','riser','hyun','bp','bpbox','selbox','tagbox','stake'].forEach(function(k){if(LV[k]==null)LV[k]=1;});if(typeof IS_TANGO!=='undefined'&&!IS_TANGO&&(typeof IS_FIELD==='undefined'||!IS_FIELD)){['no','date','code','depth','mh','riser','hyun','bp','bpbox','selbox','tagbox'].forEach(function(k){LV[k]=1;});} /* 결선/현장: 레이어체크바와 무관하게 전부 표시(탱고 전용 기능) */function applyLayerVis(){var b=document.body;if(!b)return;['no','date','code','depth','mh','riser','hyun'].forEach(function(k){b.classList.toggle('hide-'+k,!LV[k]);});}function setLayerVis(k,on){LV[k]=on?1:0;try{localStorage.setItem(LV_KEY,JSON.stringify(LV));}catch(e){}if(k==='tgcmp'){var _isTTn=/_TT\d*$/.test(state.projectName||'');if(on&&online&&!_isTTn){_tgFetchRemoteCmp();}else if(!on){state._tgCmpRemote=null;state._tgCmpRemoteOrig=null;}}applyLayerVis();if(typeof drawGeo==='function')drawGeo();if(typeof tgDrawSegHL==='function'){if(LV.tgseg&&(typeof _tgSegs==='undefined'||!_tgSegs||!_tgSegs.length)&&typeof tangoBuildSegs==='function'){try{_tgSegs=tangoBuildSegs();}catch(e){}}if(typeof _tgSegs!=='undefined'&&_tgSegs&&_tgSegs.length)tgDrawSegHL(typeof tgSeg!=='undefined'?tgSeg:-1);}}
+var LV_KEY='layerVis_'+STAGE;var LV=(function(){try{return JSON.parse(localStorage.getItem(LV_KEY))||{};}catch(e){return {};}})();['no','date','code','depth','mh','riser','hyun','bp','bpbox','selbox','tagbox','stake','bizbox'].forEach(function(k){if(LV[k]==null)LV[k]=1;});if(typeof IS_TANGO!=='undefined'&&!IS_TANGO&&(typeof IS_FIELD==='undefined'||!IS_FIELD)){['no','date','code','depth','mh','riser','hyun','bp','bpbox','selbox','tagbox'].forEach(function(k){LV[k]=1;});} /* 결선/현장: 레이어체크바와 무관하게 전부 표시(탱고 전용 기능) */function applyLayerVis(){var b=document.body;if(!b)return;['no','date','code','depth','mh','riser','hyun'].forEach(function(k){b.classList.toggle('hide-'+k,!LV[k]);});}function setLayerVis(k,on){LV[k]=on?1:0;try{localStorage.setItem(LV_KEY,JSON.stringify(LV));}catch(e){}if(k==='tgcmp'){var _isTTn=/_TT\d*$/.test(state.projectName||'');if(on&&online&&!_isTTn){_tgFetchRemoteCmp();}else if(!on){state._tgCmpRemote=null;state._tgCmpRemoteOrig=null;}}applyLayerVis();if(typeof drawGeo==='function')drawGeo();if(typeof tgDrawSegHL==='function'){if(LV.tgseg&&(typeof _tgSegs==='undefined'||!_tgSegs||!_tgSegs.length)&&typeof tangoBuildSegs==='function'){try{_tgSegs=tangoBuildSegs();}catch(e){}}if(typeof _tgSegs!=='undefined'&&_tgSegs&&_tgSegs.length)tgDrawSegHL(typeof tgSeg!=='undefined'?tgSeg:-1);}}
 function curCat(){for(var i=0;i<TB.length;i++)if(TB[i].k===activeCat)return TB[i];return TB[0];}
 function renderRail(){
   var r=document.getElementById('rail'),html='';
@@ -6134,7 +6135,7 @@ window.addEventListener('keydown',function(e){
 renderRail();renderSub();
 bind('save',saveProject);
 bind('delProj',deleteProject);bind('trashProj',projTrashOpen);
-bind('fldCrop',function(){if(typeof fldCropArea==='function')fldCropArea();});bind('bpToggle',function(){bpOff=!bpOff;var b=document.getElementById('bpToggle');if(b){b.classList.toggle('off',bpOff);b.textContent=bpOff?'🗺 백판 OFF':'🗺 백판 ON';}drawGeo();});
+bind('fldCrop',function(){if(typeof refCropToggle==='function')refCropToggle();});bind('bpToggle',function(){bpOff=!bpOff;var b=document.getElementById('bpToggle');if(b){b.classList.toggle('off',bpOff);b.textContent=bpOff?'🗺 백판 OFF':'🗺 백판 ON';}drawGeo();});
 
 /* ====== 사업 등록 모달 ====== */
 var pendingPhotos=null, pendingAsbuilt=null;
@@ -8167,7 +8168,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1088] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1089] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -9870,10 +9871,10 @@ try{ window.addEventListener('beforeunload', function(){ _lockRelease(); }); }ca
 
 /* ===== [BUILD 796] 현장(field) 레이어 패널 (도면 위 떠있는 접이식) ===== */
 function fldLayerBox(){
-  var ALL=['no','stake','code','depth','date','mh','riser','bp','bpbox','hyun','roadzone','photoDir','depthchk','surfacedot','selbox','tagbox','tgseg'];
+  var ALL=['no','stake','code','depth','date','mh','riser','bizbox','bp','bpbox','hyun','roadzone','photoDir','depthchk','surfacedot','selbox','tagbox','tgseg'];
   ALL.forEach(function(k){ if(LV[k]==null) LV[k]=1; });
   try{ localStorage.setItem(LV_KEY,JSON.stringify(LV)); }catch(e){}
-  var defs=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)?[['no','점번호'],['code','관정보'],['date','날짜'],['mh','맨홀 정보'],['riser','입상주'],['bp','보강판 측점'],['bpbox','보강판 박스'],['photoDir','사진방향'],['tagbox','태그 이동']]:[['no','점번호'],['stake','측점'],['code','관정보'],['depth','심도'],['date','날짜'],['mh','맨홀 정보'],['riser','입상주'],['bp','보강판 측점'],['bpbox','보강판 박스'],['photoDir','사진방향'],['tgseg','구간 색칠']];
+  var defs=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)?[['no','점번호'],['code','관정보'],['date','날짜'],['mh','맨홀 정보'],['riser','입상주'],['bp','보강판 측점'],['bpbox','보강판 박스'],['photoDir','사진방향'],['tagbox','태그 이동']]:[['no','점번호'],['stake','측점'],['code','관정보'],['depth','심도'],['date','날짜'],['mh','맨홀 정보'],['riser','입상주'],['bizbox','사업정보'],['bp','보강판 측점'],['bpbox','보강판 박스'],['photoDir','사진방향'],['tgseg','구간 색칠']];
   var open=(function(){try{return localStorage.getItem('fldLayerOpen')!=='0';}catch(e){return true;}})();
   var h='<div style="border:1px solid #f1c40f;border-radius:8px;padding:6px 10px;background:#fffdf5;box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:92px">';
   h+='<div onclick="fldLayerToggleOpen()" style="font-weight:700;font-size:12px;color:#0a3ea0;cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none'+(open?';margin-bottom:5px':'')+'">레이어 <span style="font-size:9px">'+(open?'▼':'▶')+'</span></div>';
@@ -10305,6 +10306,7 @@ function refCalcBox(){
     if(e.t==='HATCH'){var h=refHatchC(e);if(h&&h[2]>0)rs.push(h[2]);return;}
     if(!FITT[e.t])return;
     if(refStr(e,8,'')===REF_TERR)return;   /* \uc9c0\ud615\uc740 \ubc94\uc704 \uc0b0\uc815\uc5d0\uc11c \uc81c\uc678 */
+    if(typeof refCropBox==='function'&&refCropBox()){var _a0=(e.t==='INSERT'||e.t==='TEXT'||e.t==='MTEXT'||e.t==='CIRCLE'||e.t==='ARC')?[refNum(e,10,0),refNum(e,20,0)]:refAnchor(e);if(_a0&&!refInCrop(_a0[0],_a0[1]))return;}   /* [1089] */
     if(!refLayerOn(refStr(e,8,'')))return;
     var ps=refPts(e);
     if(e.t==='INSERT'||e.t==='TEXT'||e.t==='MTEXT'||e.t==='CIRCLE'||e.t==='ARC')ps=[[refNum(e,10,0),refNum(e,20,0)]];
@@ -10337,8 +10339,19 @@ function refDraw(){
   var n=0;
   REF.ents.forEach(function(e){if(refDrawOne(g,e,0))n++;});
   REF.cnt=n;
+  /* [1089] 크롭 사각형 테두리 (백판 크롭과 동일한 검정 선) */
+  try{
+    var _cb=(typeof refCropBox==='function')?refCropBox():null;
+    if(_cb){
+      var p0=refSR(_cb[0],_cb[1]), p1=refSR(_cb[2],_cb[3]);
+      var rx=Math.min(p0[0],p1[0]),ry=Math.min(p0[1],p1[1]);
+      var rw=Math.abs(p1[0]-p0[0]),rh=Math.abs(p1[1]-p0[1]);
+      g.appendChild(el('rect',{x:rx,y:ry,width:rw,height:rh,fill:'none',stroke:'#000','stroke-width':1.4,'vector-effect':'non-scaling-stroke'}));
+    }
+  }catch(_ce){}
   try{if(typeof refDrawMh==='function')refDrawMh();}catch(_e){}
   try{if(typeof refTerrBtn==='function')refTerrBtn();}catch(_e){}
+  try{if(typeof refCropBtn==='function')refCropBtn();}catch(_e){}
 }
 function refLayerOn(lay){
   if(lay===REF_TERR)return !!REF.terrOn;   /* [1048] \ubc31\ud310 \ubc84\ud2bc\uc73c\ub85c\ub9cc \ucf1c\uc9d0 */
@@ -10369,6 +10382,7 @@ function refDrawOne(g,e,depth,inhCol){
     else if(e.t==='INSERT'||e.t==='TEXT'||e.t==='MTEXT'||e.t==='CIRCLE'||e.t==='ARC')a=[refNum(e,10,0),refNum(e,20,0)];
     else a=refAnchor(e);
     if(a&&refInLegend(a))return 0;
+    if(a&&typeof refInCrop==='function'&&!refInCrop(a[0],a[1]))return 0;   /* [1089] 크롭 영역 밖 */
   }
   var col=refEntCol(e,inhCol);
   var t=e.t,o=null;
@@ -10482,7 +10496,7 @@ function refApplyDxf(txt,name){
   REF.name=name||'ref.dxf';REF.on=true;
   /* [1087] 결선 로딩 직후 레이어 체크바 전부 켜기 (localStorage 먼저 갱신 후 UI 재렌더) */
   try{
-    ['no','stake','code','depth','date','mh','riser','bp','bpbox','photoDir','hyun'].forEach(function(k){LV[k]=1;});
+    ['no','stake','code','depth','date','mh','riser','bizbox','bp','bpbox','photoDir','hyun'].forEach(function(k){LV[k]=1;});
     try{if(typeof LV_KEY!=='undefined')localStorage.setItem(LV_KEY,JSON.stringify(LV));}catch(_se){}
     if(typeof applyLayerVis==='function')applyLayerVis();
     /* 레이어바 UI 갱신 — 다음 틱에 반영되도록 */
@@ -10563,43 +10577,47 @@ function refLoadDxfFile(f){
   rd.onerror=function(){toast('\ud30c\uc77c \uc77d\uae30 \uc2e4\ud328');};
   rd.readAsText(f,'utf-8');
 }
-/* [1086] 영역 크롭 — 드래그로 고른 범위를 PNG로 저장 */
-function fldEnsureH2C(cb){
-  if(typeof html2canvas!=='undefined'){cb();return;}
-  var s=document.createElement('script');
-  s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-  s.onload=function(){cb();};
-  s.onerror=function(){toast('크롭 라이브러리 로드 실패');};
-  document.head.appendChild(s);
+/* [1089] 결선 영역 크롭 — 영역 밖을 안 그린다. 원본 보존 → 「크롭 해제」로 복구 가능.
+   (백판 bpcrop 은 데이터를 직접 잘라내지만, 결선은 원본 DXF가 클라우드에 있어 법위만 기억) */
+function refCropBox(){
+  var c=(typeof state!=='undefined'&&state)?state.refCrop:null;
+  return (c&&c.length===4)?c:null;
 }
-function fldCropArea(){
+function refInCrop(x,y){
+  var c=refCropBox();if(!c)return true;
+  return x>=c[0]&&x<=c[2]&&y>=c[1]&&y<=c[3];
+}
+function refCropStart(){
+  if(typeof REF==='undefined'||!REF.ents||!REF.on){toast('먼저 완료결선을 불러오세요');return;}
   if(typeof startAreaSelect!=='function'){toast('영역 선택 불가');return;}
+  toast('자를 영역을 드래그하세요 (ESC 취소)');
   startAreaSelect(function(sel){
-    var rect=(sel&&sel!=='FULL')?sel:null;
-    if(!rect){toast('크롭 취소');return;}
-    toast('크롭 이미지 생성 중…');
-    fldEnsureH2C(function(){
-      var wrap=document.querySelector('.canvas-wrap');
-      if(!wrap){toast('도면을 찾을 수 없음');return;}
-      var sc=Math.max(2,Math.min(6,3600/Math.max(rect.w,rect.h)));
-      var opt={backgroundColor:'#ffffff',scale:sc,useCORS:true,logging:false,
-               x:rect.x,y:rect.y,width:rect.w,height:rect.h};
-      html2canvas(wrap,opt).then(function(canvas){
-        try{
-          canvas.toBlob(function(blob){
-            if(!blob){toast('크롭 실패');return;}
-            var a=document.createElement('a');a.href=URL.createObjectURL(blob);
-            var nm=((state&&state.projectName)||'crop').replace(/[\\/:*?"<>|]/g,'_');
-            var d=new Date();var ts=('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2)+'_'+('0'+d.getHours()).slice(-2)+('0'+d.getMinutes()).slice(-2);
-            a.download=nm+'_crop_'+ts+'.png';
-            document.body.appendChild(a);a.click();
-            setTimeout(function(){try{a.remove();URL.revokeObjectURL(a.href);}catch(e){}},1200);
-            toast('✓ 크롭 저장 완료');
-          },'image/png');
-        }catch(e){toast('크롭 저장 오류');}
-      })['catch'](function(){toast('크롭 생성 실패');});
-    });
+    if(!sel||sel==='FULL'){toast('크롭 취소');return;}
+    /* 화면좌표 → 월드좌표 */
+    var w1=toWorld(sel.x,sel.y), w2=toWorld(sel.x+sel.w,sel.y+sel.h);
+    var x1=Math.min(w1[0],w2[0]),x2=Math.max(w1[0],w2[0]);
+    /* S(x,y)=[x,-y] 이므로 월드 Y 는 부호 반전 */
+    var y1=Math.min(-w1[1],-w2[1]),y2=Math.max(-w1[1],-w2[1]);
+    if((x2-x1)<1||(y2-y1)<1){toast('영역이 너무 작습니다');return;}
+    state.refCrop=[x1,y1,x2,y2];
+    try{if(typeof saveProject==='function')saveProject();}catch(e){}
+    refCalcBox();refDraw();refCropBtn();
+    toast('✓ 결선 크롭 완료 — 다시 누르면 해제');
   });
+}
+function refCropClear(){
+  if(typeof state==='undefined')return;
+  state.refCrop=null;
+  try{if(typeof saveProject==='function')saveProject();}catch(e){}
+  if(typeof REF!=='undefined'&&REF.ents){refCalcBox();refDraw();}
+  refCropBtn();
+  toast('크롭 해제 — 결선 전체 표시');
+}
+function refCropToggle(){ if(refCropBox())refCropClear(); else refCropStart(); }
+function refCropBtn(){
+  var b=document.getElementById('fldCrop');if(!b)return;
+  if(refCropBox()){b.textContent='✖ 크롭 해제';b.style.background='#fdeaea';b.style.borderColor='#e6a49d';b.style.color='#c0392b';}
+  else{b.textContent='✂ 영역 크롭';b.style.background='#fff3e0';b.style.borderColor='#f0a94e';b.style.color='#e8710a';}
 }
 function refFit(){
   if(!REF.ents)return;
