@@ -9035,6 +9035,18 @@ function rtStakesFromRef(){
   });
   function nearestPipeDist(x,y){var bd=1e18;for(var v=0;v<pipeVerts.length;v++){var dx=pipeVerts[v][0]-x,dy=pipeVerts[v][1]-y;var dd=dx*dx+dy*dy;if(dd<bd)bd=dd;}return Math.sqrt(bd);}
   try{console.log('[gate] 관로선 레이어:',JSON.stringify(_pipeLays),'· 정점수',pipeVerts.length);}catch(e){}
+  /* [1126b] 앵커·SD901 레이어 진단 — 추출 0 원인 추적 */
+  try{
+    var _lc={};REF.ents.forEach(function(e){if(e.t!=='TEXT'&&e.t!=='MTEXT')return;var _l=refStr(e,8,'');if(_l)_lc[_l]=(_lc[_l]||0)+1;});
+    var _tl=Object.keys(_lc).filter(function(k){return /901|실측|번호|SIM|PO_/i.test(k);});
+    var _rep={};_tl.forEach(function(k){_rep[k]=_lc[k];});
+    console.log('[gate] 텍스트레이어(측점관련):',JSON.stringify(_rep));
+    var _sn=byLay['SD_\uc2e4\uce21\ubc88\ud638']||[];
+    var _s9=byLay['SD901']||[];
+    console.log('[gate] SD_실측번호='+_sn.length+' SD901='+_s9.length);
+    if(_sn.length)console.log('[gate] 실측번호 예:',JSON.stringify(_sn.slice(0,2)));
+    if(_s9.length)console.log('[gate] SD901 예:',JSON.stringify(_s9.slice(0,2)));
+  }catch(e){console.error('gate diag',e);}
   var anchors=byLay['SD_\uc2e4\uce21\ubc88\ud638']||[];
   function near(x,y,arr,tol){if(!arr)return null;var b=null,bd=tol*tol;for(var k=0;k<arr.length;k++){var dx=arr[k].x-x,dy=arr[k].y-y,dd=dx*dx+dy*dy;if(dd<bd){bd=dd;b=arr[k];}}return b;}
   var TOL=0.25, SDTOL=1.0, out=[], seen={}, _rej=0;
