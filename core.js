@@ -9316,13 +9316,39 @@ async function exportTango(){
  var _tno=(tb.tango||tb.tangoNo||biz.bizNo||'').toString().trim();var _pn=(state.projectName||'').toString().trim();var _fn=((_tno?_tno+'_':'')+(_pn||'탱고성과')).replace(/[\\/:*?"<>|]/g,'_')+'.xlsx';
  joseoSaveBlob(buf,_fn);
 }
+/* [1113] 결선 자동 추출은 날짜선택 모달 없이 전량 바로 추가.
+   (파일 직접 불러오기 rtImportSurveyDxf 는 기존 미리보기 유지) */
+function rtImportAuto(pts){
+  var haveNos={};(state.points||[]).forEach(function(p){if(p&&p.no)haveNos[p.no]=1;});
+  if(!state.points)state.points=[];
+  var add=0;
+  (pts||[]).forEach(function(p){
+    if(!p||!p.no||haveNos[p.no])return;
+    state.points.push({no:p.no, x:p.x, y:p.y, z:p.z,
+      code:p.code, depth:(p.depth!=null)?(+p.depth).toFixed(1):'',
+      src:'refdxf'});
+    haveNos[p.no]=1;add++;
+  });
+  if(add){
+    try{if(typeof pushHist==='function')pushHist();}catch(e){}
+    try{redrawAll();}catch(e){}
+    try{updMeta();}catch(e){}
+    try{if(typeof saveProject==='function')saveProject();}catch(e){}
+    toast('✓ 결선에서 측점 '+add+'개 자동 추가');
+  }
+  return add;
+}
 function openJoseoPanel(){
   if(!joseoEnsureLibs()) return;
   if(!state.projectName){ toast('먼저 사업을 불러오세요'); return; }
   var groups=joseoGroups(), dates=Object.keys(groups).sort();
   if(!dates.length){
     var fromRef=(typeof rtStakesFromRef==='function')?rtStakesFromRef():[];   /* [1085] 업로드된 결선에서 추출 */
-    if(fromRef.length){ rtImportPreview(fromRef); return; }
+    if(fromRef.length){
+      /* [1113] 모달 없이 전량 자동 추가 후 바로 조서 열기. 0개면 기존 모달 폴백 */
+      if(typeof rtImportAuto==='function'&&rtImportAuto(fromRef)){ setTimeout(openJoseoPanel,120); return; }
+      rtImportPreview(fromRef); return;
+    }
     if(typeof rtImportSurveyDxf==='function'){ if(confirm('조서를 만들 관로 측점이 없습니다.\n결선 DXF 파일을 불러올까요?')) rtImportSurveyDxf(); return; }
     toast('관로 측점이 없습니다 (맨홀·보강판 제외)'); return;
   }
