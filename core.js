@@ -8185,7 +8185,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1096] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1097] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -11027,6 +11027,73 @@ function refTerrToggle(){
   refDraw();refTerrBtn();
   toast(REF.terrOn?('\ubc31\ud310 \ucf1c\uc9d0 \u2014 '+n+'\uac1c'):'\ubc31\ud310 \uaebc\uc9d0');
 }
+/* [1097] 조서 사진 ZIP — 날짜폴더/측점번호.jpg → 실시간(exp)/공사후(aft) 자동 연동
+   point_no 규칙: 실시간=측점no / 공사후=측점no+'_A'  (기존 사진 체계 그대로) */
+function refJoseoStat(kind,msg,col){
+  var e=document.getElementById(kind==='exp'?'refZ3S':'refZ4S');
+  if(e){e.innerHTML=msg;e.style.color=col||'#94a3b8';e.style.fontWeight='700';}
+}
+function refJoseoZip(f,kind){
+  if(!f){return;}
+  if(typeof JSZip==='undefined'){toast('압축 모듈 없음');return;}
+  if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
+  refJoseoStat(kind,'읽는 중…','#2471a3');
+  JSZip.loadAsync(f).then(function(z){
+    var items=[],skip=0;
+    z.forEach(function(path,ent){
+      if(ent.dir)return;
+      var nm=path.split('/').pop();
+      if(!/\.(jpe?g|png)$/i.test(nm)){skip++;return;}
+      var parts=path.split('/').filter(function(s){return s;});
+      var folder=(parts.length>=2)?parts[parts.length-2]:'';
+      var dm=(folder.match(/(\d{6})/)||[])[1]||'';          /* 날짜 폴더 250624 */
+      var num=(nm.replace(/\.[^.]+$/,'').match(/(\d+)/)||[])[1]||'';
+      if(!dm||!num){skip++;return;}
+      items.push({no:dm+'-'+num, ent:ent});
+    });
+    if(!items.length){refJoseoStat(kind,'인식된 사진 없음 (날짜폴더/번호.jpg)','#d32f2f');return;}
+    /* 측점 존재 여부 */
+    var have={};(state.points||[]).forEach(function(p){if(p&&p.no)have[p.no]=1;});
+    var hit=items.filter(function(it){return have[it.no];});
+    var miss=items.length-hit.length;
+    refJoseoStat(kind,'총 '+items.length+'장 · 매칭 '+hit.length+(miss?(' · 측점없음 '+miss):''),'#2471a3');
+    if(!hit.length){toast('일치하는 측점이 없습니다 — 결선 측점을 먼저 불러오세요');return;}
+    var done=0,ok=0,fail=0;
+    function step(){
+      done++;
+      refJoseoStat(kind,'업로드 '+done+' / '+hit.length+(fail?(' · 실패 '+fail):''),'#2471a3');
+      if(done>=hit.length){
+        refJoseoStat(kind,'✓ 완료 '+ok+'장'+(miss?(' · 측점없음 '+miss):'')+(fail?(' · 실패 '+fail):''),'#1d9e75');
+        try{if(typeof drawGeo==='function')drawGeo();}catch(e){}
+        try{if(typeof joseoState!=='undefined'&&joseoState&&typeof joseoRenderPreview==='function')joseoRenderPreview(joseoState.cur);}catch(e){}
+        toast('✓ '+(kind==='exp'?'노출관로':'후측량')+' 사진 '+ok+'장 연동됨');
+      }
+    }
+    var i=0;
+    (function nx(){
+      if(i>=hit.length)return;
+      var it=hit[i++];
+      it.ent.async('blob').then(function(bl){
+        return compressImage(new File([bl],'p.jpg',{type:'image/jpeg'}),1280,0.7);
+      }).then(function(blob){
+        var pno=(kind==='aft')?(it.no+'_A'):it.no;
+        var path=state.projectId+'/'+safeName(pno)+'.jpg';
+        return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
+          if(up.error)throw up.error;
+          var url=sb.storage.from('photos').getPublicUrl(path).data.publicUrl+'?t='+Date.now();
+          return sb.from(DB+'_photos').delete().eq('project_id',state.projectId).eq('point_no',pno).then(function(){
+            return sb.from(DB+'_photos').insert({project_id:state.projectId,point_no:pno,url:url});
+          }).then(function(){
+            if(kind==='aft'){if(typeof afterMap!=='undefined')afterMap[it.no]=url;}
+            else{if(typeof photoMap!=='undefined')photoMap[it.no]=url;}
+            ok++;
+          });
+        });
+      })['catch'](function(err){console.error('joseo photo',it.no,err);fail++;})
+       .then(function(){step();setTimeout(nx,20);});
+    })();
+  })['catch'](function(e){refJoseoStat(kind,'ZIP 읽기 실패','#d32f2f');});
+}
 function refOpen(){
   var old=document.getElementById('refModal');if(old)old.remove();
   var w=document.createElement('div');w.id='refModal';
@@ -11040,6 +11107,11 @@ function refOpen(){
     '<div style="display:flex;gap:11px">'+
       refBox('refZ1','\ud83d\udcd0','\uacb0\uc120 DXF','\ud074\ub9ad \ub610\ub294<br>\uc5ec\uae30\uc5d0 \ub04c\uc5b4\ub2e4 \ub193\uae30','.dxf')+
       refBox('refZ2','\ud83d\uddbc\ufe0f','\ub9e8\ud640\uc0ac\uc9c4 ZIP','\uc0ac\uc5c5\uba85/\ub9e8\ud640\ubc88\ud638(\uc18c\uc720\uc790)/1.jpg','.zip')+
+    '</div>'+
+    /* [1097] 조서 사진 2종 — 날짜폴더/측점번호.jpg */
+    '<div style="display:flex;gap:11px;margin-top:11px">'+
+      refBox('refZ3','\ud83d\udcf7','\ub178\ucd9c\uad00\ub85c\uce21\ub7c9 \uc0ac\uc9c4','<span id="refZ3S">250624/3.jpg \u2192 \uc2e4\uc2dc\uac04\uc0ac\uc9c4</span>','.zip')+
+      refBox('refZ4','\ud83c\udfd7\ufe0f','\ud6c4\uce21\ub7c9 \uc0ac\uc9c4','<span id="refZ4S">250624/3.jpg \u2192 \uacf5\uc0ac\ud6c4\uc0ac\uc9c4</span>','.zip')+
     '</div>'+
     '<div style="display:flex;gap:11px;margin-top:9px">'+
       '<button id="refDelD" style="flex:1;padding:8px;border:1px solid #f0c4c4;background:#fff;color:#d32f2f;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">\ud83d\uddd1 \uacb0\uc120 \uc0ad\uc81c</button>'+
@@ -11056,6 +11128,8 @@ function refOpen(){
   document.getElementById('refBx').onclick=function(){w.remove();};
   refWire('refZ1','.dxf',refLoadDxfFile);
   refWire('refZ2','.zip',refPhotoZip);
+  refWire('refZ3','.zip',function(f){refJoseoZip(f,'exp');});   /* [1097] */
+  refWire('refZ4','.zip',function(f){refJoseoZip(f,'aft');});
   document.getElementById('refDelD').onclick=function(){w.remove();refDelDxf();};
   document.getElementById('refDelP').onclick=function(){w.remove();refDelPhotos();};
   var mb=document.getElementById('refMhB');
