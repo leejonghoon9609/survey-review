@@ -1026,11 +1026,18 @@ function drawGeo(){
     if(typeof LV!=='undefined'){if(LV.missExp===0)_anyB=false;if(LV.missAft===0)_anyA=false;}
     if(_anyB||_anyA){var _pdrawn={};var _Up=(typeof pxToWorld==='function')?pxToWorld():0.05;
     var _pr=Math.max(6*_Up, Math.min(1.3, 12*_Up));
+    /* [1119] 함정 A: 절대좌표(50만대)를 그대로 쓰면 float32 오차로
+       테두리(non-scaling-stroke)와 채움이 어긋나고 줌마다 원이 흔들린다.
+       -> 로컬 원점 그룹 translate + 자식은 작은 좌표만 (refSR 방식과 동일) */
+    var _mg=document.createElementNS(SVGNS,'g');_mg.id='gMissPh';
+    var _mox=null,_moy=null;
     state.points.forEach(function(p){if(p._hyun)return;if(typeof isRiserPt==='function'&&isRiserPt(p))return;var _k=(typeof ptNum==='function')?ptNum(p):String(p.no||'');if(!_k||_pdrawn[_k])return;var _hasB=photoMap[_k]||photoMap[p.no];var _hasA=afterMap[_k]||afterMap[p.no];
     var _mB=_anyB&&!_hasB,_mA=_anyA&&!_hasA;
     if(_mB||_mA){_pdrawn[_k]=1;var _ps=S(p.x,p.y);
+      if(_mox===null){_mox=Math.round(_ps[0]);_moy=Math.round(_ps[1]);_mg.setAttribute('transform','translate('+_mox+','+_moy+')');}
       var _pc=(_mB&&_mA)?'#d32f2f':(_mB?'#ff8f00':'#1565c0');
-      gPts.appendChild(el('circle',{cx:_ps[0],cy:_ps[1],r:_pr,fill:_pc,'fill-opacity':0.25,stroke:_pc,'stroke-width':2.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}});}}}catch(e){}
+      _mg.appendChild(el('circle',{cx:_ps[0]-_mox,cy:_ps[1]-_moy,r:_pr,fill:_pc,'fill-opacity':0.25,stroke:_pc,'stroke-width':2.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}});
+    if(_mox!==null)gPts.appendChild(_mg);}}}catch(e){}
   /* [BUILD 818] 폰GPS 파란 임시측점 (CSV 점 없는 것만) */
   try{if(typeof clearLabels==='function')clearLabels('gps');if(state.gpsPts&&state.gpsPts.length){var _have={};(state.points||[]).forEach(function(p){_have[p.no]=1;});var _nsF=state.nightShift,_cutF=(_nsF&&_nsF.on)?_nsF.cut:null;state.gpsPts.forEach(function(g){var _wnoF=g.no;if(g._d0!=null&&g._nm!=null){var _dtF=g._d0;if(_cutF!=null&&g._tm!=null&&g._tm<_cutF)_dtF=prevDayYMD(g._d0);_wnoF=_dtF+'-'+g._nm;}if(_have[g.no]||_have[_wnoF])return;var _gs=S(g.x,g.y);var _hc=el('circle',{cx:_gs[0],cy:_gs[1],r:1.9,fill:'transparent'});_hc.style.cursor='pointer';_hc.setAttribute('pointer-events','all');var _bc=el('circle',{cx:_gs[0],cy:_gs[1],r:0.5,fill:'#2196f3','fill-opacity':0.9,stroke:'#0d47a1','stroke-width':1.6,'vector-effect':'non-scaling-stroke'});_bc.setAttribute('pointer-events','none');(function(gno){_hc.addEventListener('pointerdown',function(ev){ev.stopPropagation();ev.preventDefault();try{this.setPointerCapture(ev.pointerId);}catch(_pe){}var self=this;self._lp=setTimeout(function(){self._lp=null;rtPointMenu(gno);},1000);});_hc.addEventListener('pointerup',function(ev){ev.stopPropagation();if(this._lp){clearTimeout(this._lp);this._lp=null;selNum=gno;if(typeof highlightSel==='function')highlightSel();if(typeof photoPanelOpen!=='undefined'&&!photoPanelOpen&&typeof openPhotoPanel==='function')openPhotoPanel();var _sel=document.getElementById('photoSel');if(_sel)_sel.value=gno;if(typeof refreshPhotoPanel==='function')refreshPhotoPanel();}});_hc.addEventListener('pointercancel',function(){if(this._lp){clearTimeout(this._lp);this._lp=null;}});})(g.no);gPts.appendChild(_hc);gPts.appendChild(_bc);var _n=(g.no||'').split('-').pop();if(typeof mkLabel==='function')mkLabel(_gs[0],_gs[1]+0.9,_n,{fill:'#0d47a1',weight:'800',anchor:'middle',grp:'gps',px:Math.max(11,Math.min(20,0.9/((typeof pxToWorld==='function'&&pxToWorld())||0.06)))});});}}catch(e){}
   drawDepthMarks();
