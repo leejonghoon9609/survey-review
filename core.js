@@ -9346,7 +9346,7 @@ function joseoSyncTo(no){
   if(joseoState.cur!==dk && joseoState.groups[dk]){ joseoState.cur=dk; joseoRenderTabs(); joseoRenderPreview(dk); }
   var box=document.getElementById('joseoPreview'); if(!box) return;
   var cards=box.querySelectorAll('.jz-card'), hit=null;
-  [].forEach.call(cards,function(c){ c.classList.remove('sel'); if(c.getAttribute('data-no')===String(p.no)) hit=c; });
+  [].forEach.call(cards,function(c){ c.classList.remove('sel'); c.style.outline=''; c.style.outlineOffset=''; if(c.getAttribute('data-no')===String(p.no)) hit=c; });   /* [1108] 인라인 표시도 청소 — 이중 강조 방지 */
   if(hit){ hit.classList.add('sel'); hit.scrollIntoView({behavior:'smooth',block:'center'}); }
 }
 function joseoRegisterDone(){
@@ -9390,6 +9390,7 @@ function joseoMarkCard(no){
   var hit=null;
   [].forEach.call(box.querySelectorAll('.jz-card'),function(cd){
     var on=(cd.getAttribute('data-no')===String(no));
+    cd.classList.remove('sel');   /* [1108] .sel(구 노랑) 표시도 청소 — 이중 강조 방지 */
     cd.style.outline=on?'3px solid #d500f2':'';
     cd.style.outlineOffset=on?'-3px':'';
     if(on)hit=cd;
