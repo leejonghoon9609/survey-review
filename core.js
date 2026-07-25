@@ -8185,7 +8185,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1097] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1100] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -10688,6 +10688,7 @@ function refCloudDelete(){
 function refLoadDxfFile(f){
   if(!f)return;
   toast('\uacb0\uc120 DXF \uc77d\ub294 \uc911...');
+  try{if(typeof refZStat==='function')refZStat('refZ1S','읽는 중…','#2471a3');}catch(e){}
   var rd=new FileReader();
   rd.onload=function(){
     try{
@@ -10696,6 +10697,7 @@ function refLoadDxfFile(f){
       refFit();
       try{refSyncGeo(true);}catch(_e){}
       refCloudSave(txt,f.name);
+      try{if(typeof refZStat==='function')refZStat('refZ1S','✓ '+REF.cnt+'개 표시 중','#1d9e75');}catch(_z){}
       var nl=0;for(var k in REF.layers)nl++;
       var okn=0;REF.mh.forEach(function(m){if(m.label)okn++;});
       console.log('[ref] \uc5d4\ud2f0\ud2f0 '+r.ents.length+' / \ub808\uc774\uc5b4 '+nl+' / \uadf8\ub9b0\uac83 '+REF.cnt+' / \ub9e8\ud640 '+REF.mh.length+'(\ubc88\ud638\uc778\uc2dd '+okn+')');
@@ -11029,9 +11031,36 @@ function refTerrToggle(){
 }
 /* [1097] 조서 사진 ZIP — 날짜폴더/측점번호.jpg → 실시간(exp)/공사후(aft) 자동 연동
    point_no 규칙: 실시간=측점no / 공사후=측점no+'_A'  (기존 사진 체계 그대로) */
+function refZStat(id,msg,col){   /* [1100] 4박스 공통 상태 표시 */
+  var e=document.getElementById(id);
+  if(e){e.innerHTML=msg;e.style.color=col||'#94a3b8';e.style.fontWeight='700';}
+}
 function refJoseoStat(kind,msg,col){
   var e=document.getElementById(kind==='exp'?'refZ3S':'refZ4S');
   if(e){e.innerHTML=msg;e.style.color=col||'#94a3b8';e.style.fontWeight='700';}
+}
+/* [1099] 조서 사진 일괄 삭제 (exp=노출관로 / aft=후측량) */
+function refDelJoseoPhotos(kind){
+  if(!state.projectId){toast('사업을 먼저 선택하세요');return;}
+  var lab=(kind==='aft')?'후측량':'노출관로측량';
+  var map=(kind==='aft')?(typeof afterMap!=='undefined'?afterMap:{}):(typeof photoMap!=='undefined'?photoMap:{});
+  var nos=Object.keys(map||{});
+  if(!nos.length){toast('삭제할 '+lab+' 사진이 없습니다');return;}
+  if(!confirm(lab+' 사진 '+nos.length+'장을 모두 삭제합니다.\n되돌릴 수 없습니다. 계속할까요?'))return;
+  toast(lab+' 사진 삭제 중…');
+  var paths=nos.map(function(no){return state.projectId+'/'+safeName((kind==='aft')?(no+'_A'):no)+'.jpg';});
+  var pnos=nos.map(function(no){return (kind==='aft')?(no+'_A'):no;});
+  function fin(){
+    nos.forEach(function(no){delete map[no];});
+    try{if(typeof drawGeo==='function')drawGeo();}catch(e){}
+    try{if(typeof joseoState!=='undefined'&&joseoState&&typeof joseoRenderPreview==='function')joseoRenderPreview(joseoState.cur);}catch(e){}
+    toast('✓ '+lab+' 사진 '+nos.length+'장 삭제됨');
+  }
+  try{
+    sb.storage.from('photos').remove(paths).then(function(){
+      return sb.from(DB+'_photos').delete().eq('project_id',state.projectId).in('point_no',pnos);
+    }).then(fin)['catch'](function(e){console.error('del joseo photos',e);fin();});
+  }catch(e){fin();}
 }
 function refJoseoZip(f,kind){
   if(!f){return;}
@@ -11099,28 +11128,33 @@ function refOpen(){
   var w=document.createElement('div');w.id='refModal';
   w.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.32);z-index:99998;display:flex;align-items:center;justify-content:center';
   var b=document.createElement('div');
-  b.style.cssText='background:#fff;border-radius:14px;padding:18px 20px 16px;width:min(520px,93vw);box-shadow:0 12px 44px rgba(0,0,0,.28)';
+  b.style.cssText='background:#fff;border-radius:14px;padding:18px 20px 16px;width:min(880px,95vw);box-shadow:0 12px 44px rgba(0,0,0,.28)';   /* [1099] 4개 한 줄 */
   var st=REF.ents?('\ud604\uc7ac: '+REF.name+' \u00b7 '+REF.cnt+'\uac1c \ud45c\uc2dc \uc911'):'\ubd88\ub7ec\uc628 \uacb0\uc120 \uc5c6\uc74c';
   b.innerHTML=
     '<div style="font-size:15px;font-weight:800;color:#222;margin-bottom:3px">\uc644\ub8cc\uacb0\uc120 \uc5c5\ub85c\ub4dc</div>'+
     '<div style="font-size:11.5px;color:#888;margin-bottom:14px">'+st+'</div>'+
-    '<div style="display:flex;gap:11px">'+
-      refBox('refZ1','\ud83d\udcd0','\uacb0\uc120 DXF','\ud074\ub9ad \ub610\ub294<br>\uc5ec\uae30\uc5d0 \ub04c\uc5b4\ub2e4 \ub193\uae30','.dxf')+
-      refBox('refZ2','\ud83d\uddbc\ufe0f','\ub9e8\ud640\uc0ac\uc9c4 ZIP','\uc0ac\uc5c5\uba85/\ub9e8\ud640\ubc88\ud638(\uc18c\uc720\uc790)/1.jpg','.zip')+
-    '</div>'+
-    /* [1097] 조서 사진 2종 — 날짜폴더/측점번호.jpg */
-    '<div style="display:flex;gap:11px;margin-top:11px">'+
+    /* [1099] 드롭박스 4개 한 줄 */
+    '<div style="display:flex;gap:10px">'+
+      refBox('refZ1','\ud83d\udcd0','\uacb0\uc120 DXF','<span id="refZ1S">\ud074\ub9ad \ub610\ub294 \ub04c\uc5b4\ub2e4 \ub193\uae30</span>','.dxf')+
+      refBox('refZ2','\ud83d\uddbc\ufe0f','\ub9e8\ud640\uc0ac\uc9c4 ZIP','<span id="refZ2S">\uc0ac\uc5c5\uba85/\ub9e8\ud640\ubc88\ud638/1.jpg</span>','.zip')+
       refBox('refZ3','\ud83d\udcf7','\ub178\ucd9c\uad00\ub85c\uce21\ub7c9 \uc0ac\uc9c4','<span id="refZ3S">250624/3.jpg \u2192 \uc2e4\uc2dc\uac04\uc0ac\uc9c4</span>','.zip')+
       refBox('refZ4','\ud83c\udfd7\ufe0f','\ud6c4\uce21\ub7c9 \uc0ac\uc9c4','<span id="refZ4S">250624/3.jpg \u2192 \uacf5\uc0ac\ud6c4\uc0ac\uc9c4</span>','.zip')+
     '</div>'+
-    '<div style="display:flex;gap:11px;margin-top:9px">'+
-      '<button id="refDelD" style="flex:1;padding:8px;border:1px solid #f0c4c4;background:#fff;color:#d32f2f;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">\ud83d\uddd1 \uacb0\uc120 \uc0ad\uc81c</button>'+
-      '<button id="refDelP" style="flex:1;padding:8px;border:1px solid #f0c4c4;background:#fff;color:#d32f2f;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer">\ud83d\uddd1 \ub9e8\ud640\uc0ac\uc9c4 \uc0ad\uc81c ('+refPhotoCount().n+'\uc7a5)</button>'+
+    /* [1099] 각 드롭박스 아래 삭제 버튼 */
+    '<div style="display:flex;gap:10px;margin-top:9px">'+
+      '<button id="refDelD" style="flex:1;padding:8px 4px;border:1px solid #f0c4c4;background:#fff;color:#d32f2f;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer">\ud83d\uddd1 \uacb0\uc120 \uc0ad\uc81c</button>'+
+      '<button id="refDelP" style="flex:1;padding:8px 4px;border:1px solid #f0c4c4;background:#fff;color:#d32f2f;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer">\ud83d\uddd1 \ub9e8\ud640\uc0ac\uc9c4 ('+refPhotoCount().n+')</button>'+
+      '<button id="refDelE" style="flex:1;padding:8px 4px;border:1px solid #f0c4c4;background:#fff;color:#d32f2f;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer">\ud83d\uddd1 \ub178\ucd9c\uad00\ub85c \uc0ad\uc81c</button>'+
+      '<button id="refDelA" style="flex:1;padding:8px 4px;border:1px solid #f0c4c4;background:#fff;color:#d32f2f;border-radius:8px;font-size:11.5px;font-weight:700;cursor:pointer">\ud83d\uddd1 \ud6c4\uce21\ub7c9 \uc0ad\uc81c</button>'+
     '</div>'+
     (REF.ents?('<button id="refMhB" style="width:100%;padding:11px;margin-top:13px;border:1px solid #1d9e75;background:#eafaf3;color:#0f7a57;border-radius:9px;font-size:13px;font-weight:800;cursor:pointer">\ub9e8\ud640 \ub9e4\uce6d \ud655\uc778 \u00b7 \uc57c\uc7a5 \uc790\ub3d9\uc0dd\uc131</button>'+'<div style="display:flex;gap:7px;margin-top:8px">'+
       '<button id="refB3" style="flex:1;padding:9px;border:1px solid #bbb;background:#fff;color:#444;border-radius:8px;font-size:12.5px;cursor:pointer">'+(REF.on?'\ud45c\uc2dc \ub044\uae30':'\ud45c\uc2dc \ucf1c\uae30')+'</button>'+
       '<button id="refB5" style="flex:1;padding:9px;border:1px solid #bbb;background:#fff;color:#444;border-radius:8px;font-size:12.5px;cursor:pointer">\uc804\uccb4\ubcf4\uae30</button>'+'</div>'):'')+
-    '<button id="refBx" style="width:100%;padding:9px;margin-top:12px;border:none;background:#f2f2f2;color:#555;border-radius:8px;font-size:12.5px;cursor:pointer">\ub2eb\uae30</button>';
+    /* [1100] 완료 · 닫기 한 줄 (닫기는 좁게) */
+    '<div style="display:flex;gap:8px;margin-top:12px">'+
+      '<button id="refBok" style="flex:1;padding:11px;border:none;background:#1d9e75;color:#fff;border-radius:9px;font-size:13.5px;font-weight:800;cursor:pointer">\u2713 \uc644\ub8cc</button>'+
+      '<button id="refBx" style="flex:none;width:96px;padding:11px 8px;border:1px solid #ddd;background:#fff;color:#666;border-radius:9px;font-size:12.5px;font-weight:700;cursor:pointer">\ub2eb\uae30</button>'+
+    '</div>';
   w.appendChild(b);document.body.appendChild(w);
   w.addEventListener('click',function(ev){if(ev.target===w)w.remove();});
   w.addEventListener('dragover',function(e){e.preventDefault();});
@@ -11130,8 +11164,22 @@ function refOpen(){
   refWire('refZ2','.zip',refPhotoZip);
   refWire('refZ3','.zip',function(f){refJoseoZip(f,'exp');});   /* [1097] */
   refWire('refZ4','.zip',function(f){refJoseoZip(f,'aft');});
+  var _bok=document.getElementById('refBok');
+  if(_bok)_bok.onclick=function(){   /* [1100] 넣은 것들을 도면에 반영하고 닫기 */
+    try{
+      if(typeof REF!=='undefined'&&REF.ents){REF.on=true;refCalcBox();refDraw();}
+      if(typeof drawGeo==='function')drawGeo();
+      if(typeof refDrawMh==='function')refDrawMh();
+      if(typeof joseoState!=='undefined'&&joseoState&&typeof joseoRenderPreview==='function')joseoRenderPreview(joseoState.cur);
+      if(typeof saveProject==='function')saveProject();
+    }catch(e){}
+    w.remove();
+    toast('✓ 반영되었습니다');
+  };
   document.getElementById('refDelD').onclick=function(){w.remove();refDelDxf();};
   document.getElementById('refDelP').onclick=function(){w.remove();refDelPhotos();};
+  var _de=document.getElementById('refDelE');if(_de)_de.onclick=function(){w.remove();refDelJoseoPhotos('exp');};   /* [1099] */
+  var _da=document.getElementById('refDelA');if(_da)_da.onclick=function(){w.remove();refDelJoseoPhotos('aft');};
   var mb=document.getElementById('refMhB');
   if(mb)mb.onclick=function(){w.remove();refMhPanel();};
   var b3=document.getElementById('refB3');
@@ -11194,7 +11242,9 @@ function refDrawMh(){
     var sel=(REF_SEL&&key===REF_SEL);
     var col=sel?'#d100d1':(rec?'#00a651':'#e60000');
     var s=refSR(m.x,m.y);
-    var c=el('circle',{cx:s[0],cy:s[1],r:sel?1.5:1.0,fill:col,'fill-opacity':sel?0.20:(rec?0.10:0.16),
+    /* [1098] 월드고정 1.0m 이라 축소하면 1px 로 줄어 클릭이 안 됐다 → 항상 화면 기준 */
+    var _mr=Math.max(1.0, 15*pxToWorld());
+    var c=el('circle',{cx:s[0],cy:s[1],r:sel?_mr*1.5:_mr,fill:col,'fill-opacity':sel?0.20:(rec?0.10:0.16),
       stroke:col,'stroke-width':sel?3.6:2.4,'vector-effect':'non-scaling-stroke'});
     c.style.cursor='pointer';
     c.setAttribute('pointer-events','auto');
@@ -11225,7 +11275,7 @@ function refNearMh(cx,cy){
   if(typeof toWorld!=='function')return false;
   var w;try{w=toWorld(cx,cy);}catch(e){return false;}
   var wx=w[0],wy=-w[1];
-  var tol=Math.max(1.6,(vb&&vb.w?vb.w:100)*0.012);
+  var tol=Math.max(1.6, 20*pxToWorld());   /* [1098] 항상 화면 20px */
   for(var i=0;i<REF.mh.length;i++){
     var m=REF.mh[i];
     if(!m||!m.label)continue;
