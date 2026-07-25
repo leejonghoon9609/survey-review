@@ -967,8 +967,8 @@ function drawGeo(){
   state.points.forEach(function(p,i){if(p._hideMark&&!isRiserPt(p))return;if((typeof LV!=='undefined')&&LV.bp===0&&/보강판/.test((p.no||'')+'|'+(p.code||'')))return;var isBp=/보강판/.test((p.no||'')+'|'+(p.code||''));var bpHide=isBp&&(typeof bpPtHidden==='function')&&bpPtHidden(p);var s=S(p.x,p.y);if(p._hyun){var _hxh=0.1875,_hxc=({b:'#4fc3f7',d:'#1976d2',s:'#8d6e63',bd:'#e53935',db:'#e53935'})[(p._tcode||'').toLowerCase()]||'#1a7a5e';gPts.appendChild(el('line',{x1:s[0]-_hxh,y1:s[1]-_hxh,x2:s[0]+_hxh,y2:s[1]+_hxh,stroke:_hxc,'stroke-width':1.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));gPts.appendChild(el('line',{x1:s[0]-_hxh,y1:s[1]+_hxh,x2:s[0]+_hxh,y2:s[1]-_hxh,stroke:_hxc,'stroke-width':1.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));return;}
     // 측점 심벌(속빈 사각) — 월드고정 정사각: 줌하면 크기는 변하지만 절대 안 찌그러짐, 위치 정확
     if(isRiserPt(p)){var _xh=0.045,_xc='#d500f2';gPts.appendChild(el('line',{x1:s[0]-_xh,y1:s[1]-_xh,x2:s[0]+_xh,y2:s[1]+_xh,stroke:_xc,'stroke-width':1.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));gPts.appendChild(el('line',{x1:s[0]-_xh,y1:s[1]+_xh,x2:s[0]+_xh,y2:s[1]-_xh,stroke:_xc,'stroke-width':1.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));return;}else{
-    if(!((typeof LV!=='undefined')&&LV.stake===0))gPts.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:(state.tamsa?'#111':(isBp?'#b8860b':(isManhole(p)?'#0d47a1':(isTpoint(p)?'#e53935':(p.surface==='\uB3C4\uB85C'?'#d9534f':(p.surface==='\uBCF4\uB3C4'?'#1a7a5e':'#111')))))),'stroke-width':isManhole(p)?3.8:2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));if(p.surface&&(typeof LV==='undefined'||LV.surfacedot!==0)){gPts.appendChild(el('circle',{cx:s[0]+(typeof pxToWorld==='function'?pxToWorld()*6:0.8),cy:s[1]-(typeof pxToWorld==='function'?pxToWorld()*6:0.8),r:(typeof pxToWorld==='function'?pxToWorld()*4.5:0.6),fill:p.surface==='\uB3C4\uB85C'?'#d9534f':'#1a7a5e',stroke:'#fff','stroke-width':(typeof pxToWorld==='function'?pxToWorld()*1:0.15),'pointer-events':'none'}));}
-    gPts.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#111','stroke-width':4,'stroke-linecap':'square','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // 중심 점(박스와 동일 vector-effect → 줌 고정)
+    if(!((typeof LV!=='undefined')&&LV.stake===0)){gPts.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:(state.tamsa?'#111':(isBp?'#b8860b':(isManhole(p)?'#0d47a1':(isTpoint(p)?'#e53935':(p.surface==='\uB3C4\uB85C'?'#d9534f':(p.surface==='\uBCF4\uB3C4'?'#1a7a5e':'#111')))))),'stroke-width':isManhole(p)?3.8:2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}if(p.surface&&(typeof LV==='undefined'||LV.surfacedot!==0)){gPts.appendChild(el('circle',{cx:s[0]+(typeof pxToWorld==='function'?pxToWorld()*6:0.8),cy:s[1]-(typeof pxToWorld==='function'?pxToWorld()*6:0.8),r:(typeof pxToWorld==='function'?pxToWorld()*4.5:0.6),fill:p.surface==='\uB3C4\uB85C'?'#d9534f':'#1a7a5e',stroke:'#fff','stroke-width':(typeof pxToWorld==='function'?pxToWorld()*1:0.15),'pointer-events':'none'}));}
+    if(!((typeof LV!=='undefined')&&LV.stake===0))gPts.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#111','stroke-width':4,'stroke-linecap':'square','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // [1087] 중심 점도 측점 레이어로
     }
     if(showDirArrows!==false&&(typeof LV==='undefined'||LV.photoDir!==0))(function(){var d4=getPhotoDir(p),dv=photoDirVec(p,d4),pr=[-dv[1],dv[0]],hl=0.16,AC='#d500f2';
       var ax0=s[0]+dv[0]*0.22,ay0=s[1]+dv[1]*0.22,ax1=s[0]+dv[0]*0.62,ay1=s[1]+dv[1]*0.62;
@@ -8167,7 +8167,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1086] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1087] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -10480,14 +10480,19 @@ function refApplyDxf(txt,name){
   REF.raw=null;REF.ents=r.ents;REF.layers=r.layers;REF.blocks=r.blocks;
   REF.lgbox=refLegendBox(r.ents);
   REF.name=name||'ref.dxf';REF.on=true;
-  /* [1086] 결선 로딩 직후 레이어 체크바 전부 켜기 */
+  /* [1087] 결선 로딩 직후 레이어 체크바 전부 켜기 (localStorage 먼저 갱신 후 UI 재렌더) */
   try{
-    ['no','stake','code','depth','date','mh','riser','bp','bpbox','photoDir'].forEach(function(k){LV[k]=1;});
-    if(typeof LV_KEY!=='undefined')localStorage.setItem(LV_KEY,JSON.stringify(LV));
+    ['no','stake','code','depth','date','mh','riser','bp','bpbox','photoDir','hyun'].forEach(function(k){LV[k]=1;});
+    try{if(typeof LV_KEY!=='undefined')localStorage.setItem(LV_KEY,JSON.stringify(LV));}catch(_se){}
     if(typeof applyLayerVis==='function')applyLayerVis();
-    var _lw=document.getElementById('fldLayerWrap');
-    if(_lw&&typeof fldLayerBox==='function')_lw.innerHTML=fldLayerBox();
-    if(typeof drawGeo==='function')drawGeo();
+    /* 레이어바 UI 갱신 — 다음 틱에 반영되도록 */
+    setTimeout(function(){
+      try{
+        var _lw=document.getElementById('fldLayerWrap');
+        if(_lw&&typeof fldLayerBox==='function')_lw.innerHTML=fldLayerBox();
+        if(typeof drawGeo==='function')drawGeo();
+      }catch(_e2){}
+    },0);
   }catch(_le){}
   REF.mh=refExtractMh();
   REF_BLKR={};
