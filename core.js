@@ -988,7 +988,7 @@ function drawGeo(){
       gPts.appendChild(el('line',{x1:ax1,y1:ay1,x2:ax1-dv[0]*hl-pr[0]*hl,y2:ay1-dv[1]*hl-pr[1]*hl,stroke:AC,'stroke-width':2.6,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));})();
     var hit=el('circle',{cx:s[0],cy:s[1],r:hitR,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
 
-    hit.addEventListener('click',function(ev){if(this._lpFired){this._lpFired=false;ev.stopPropagation();return;}if(mode==='ptdel'||mode==='delall2'){ev.stopPropagation();ev.preventDefault();deletePoint(p);return;}if(mode!=='pan'||labelDragging||noteMode)return;ev.stopPropagation();if(photoLink)selectPoint(p.no);else{selNum=p.no;drawGeo();highlightSel();if(typeof joseoSyncTo==='function')joseoSyncTo(p.no);}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
+    hit.addEventListener('click',function(ev){if(this._lpFired){this._lpFired=false;ev.stopPropagation();return;}if(mode==='ptdel'||mode==='delall2'){ev.stopPropagation();ev.preventDefault();deletePoint(p);return;}if(mode!=='pan'||labelDragging||noteMode)return;ev.stopPropagation();if(typeof refMhClickAt==='function'&&refMhClickAt(ev.clientX,ev.clientY))return;/* [1110] 맨홀 위 측점이 클릭을 먹던 문제 — 야장 열림 시 맨홀 우선 */if(photoLink)selectPoint(p.no);else{selNum=p.no;drawGeo();highlightSel();if(typeof joseoSyncTo==='function')joseoSyncTo(p.no);}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
     hit.addEventListener('mouseenter',function(){if(mode==='ptdel'||mode==='delall2'){hit.setAttribute('fill','rgba(211,47,47,0.28)');hit.setAttribute('stroke','#d32f2f');hit.setAttribute('stroke-width',1.6);hit.setAttribute('vector-effect','non-scaling-stroke');}});
     hit.addEventListener('mouseleave',function(){hit.setAttribute('fill','transparent');hit.removeAttribute('stroke');});
     gHit.appendChild(hit);
@@ -11102,7 +11102,7 @@ function refJoseoZip(f,kind){
       var num='';
       var fm=base.match(/^(\d{6})[-_](\d+)$/);
       if(fm){if(!dm)dm=fm[1];num=fm[2];}
-      else if(base.indexOf('_')>=0){num=(base.split('_').pop().match(/(\d+)/)||[])[1]||'';}
+      else if(/[-_]/.test(base)){num=(base.split(/[-_]/).pop().match(/(\d+)/)||[])[1]||'';}   /* [1110] 0624-3 형식: -/_ 뒤 = 무조건 번호 */
       if(!num)num=(base.match(/(\d+)/)||[])[1]||'';
       if(!dm||!num){skip++;return;}
       items.push({no:dm+'-'+num, ent:ent});
