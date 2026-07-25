@@ -7690,7 +7690,25 @@ function mnEnsureAddr(rec){
       }
       if(_xy&&refGeoFill(rec,_xy[0],_xy[1])){rec.refXY=[_xy[0],_xy[1]];try{mnPersistRec(rec);}catch(e){}}
     }
-    if(!(rec.geo&&rec.geo.lat)){toast('⚠ GPS 좌표 없음 — 사진 재촬영 시 수집됩니다');res();return;}
+    if(!(rec.geo&&rec.geo.lat)){
+      /* [1080] geo 가 없어도 refXY(결선 좌표)가 있으면 좌표로 직접 조회해 도로명을 채운다 */
+      var _rx=(rec.refXY&&rec.refXY.length===2)?rec.refXY:null;
+      if(_rx&&typeof toLatLng==='function'){
+        try{
+          var _ll=toLatLng(_rx[0],_rx[1]);   /* refXY=[east,north] — refGeoFill과 동일 순서 */
+          if(_ll&&_ll.lat){
+            var _dn2=false;function _f2(){if(_dn2)return;_dn2=true;res();}
+            setTimeout(_f2,14000);
+            mnRevGeo(_ll.lat,_ll.lng,function(a,d){
+              if(a&&!rec.addr)rec.addr=a;
+              if(d&&!rec.road)rec.road=d;
+              if(a||d){try{mnPersistRec(rec);}catch(e){}}
+              _f2();
+            });return;
+          }
+        }catch(_re){}
+      }
+      toast('⚠ GPS 좌표 없음 — 사진 재촬영 시 수집됩니다');res();return;}
     var done=false;
     function fin(){if(done)return;done=true;res();}
     setTimeout(fin,14000);
@@ -8101,7 +8119,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1079] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1080] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
