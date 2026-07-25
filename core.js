@@ -443,7 +443,7 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
   var lx=ls[0],ly=ls[1],dragging=false,moved=false,gx=0,gy=0;
   handle.addEventListener('pointerdown',function(ev){
     if(mode!=='pan'||viewerMode||readOnly)return;ev.stopPropagation();ev.preventDefault();
-    if(p.no!==selNum){selNum=p.no;highlightSel();if(photoPanelOpen)refreshPhotoPanel();}
+    if(p.no!==selNum){selNum=p.no;highlightSel();if(photoPanelOpen)refreshPhotoPanel();try{if(typeof joseoSyncFromMap==='function')joseoSyncFromMap();}catch(_se){}}   /* [1094] */
     dragging=true;moved=false;labelDragging=true;var w=toWorld(ev.clientX,ev.clientY);gx=w[0]-lx;gy=w[1]-ly;
     try{handle.setPointerCapture(ev.pointerId);}catch(e){}});
   handle.addEventListener('pointermove',function(ev){
@@ -6882,7 +6882,8 @@ function mnHostOpen(){
   pn.classList.add('open');pn.style.display='flex';pn.innerHTML='';
   return pn;
 }
-function mnHostClose(){var pn=document.getElementById('mnPanel');if(pn){pn.classList.remove('open');pn.style.display='none';pn.innerHTML='';}}
+function mnHostClose(){try{setTimeout(function(){if(typeof refDrawMh==='function')refDrawMh();},0);}catch(e){}   /* [1094] */
+  var pn=document.getElementById('mnPanel');if(pn){pn.classList.remove('open');pn.style.display='none';pn.innerHTML='';}}
 /* [1030] 사업 전환 시 맨홀야장 UI 전부 닫기 — 이전 사업 내용이 화면에 남아 혼동되는 문제 방지 */
 function mnCloseAll(){
   try{mnHostClose();}catch(e){}
@@ -6923,6 +6924,7 @@ function mnTrashList(afterClose){
 function mnOpenList(){
   if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
   var host=mnHostOpen();
+  try{setTimeout(function(){if(typeof refDrawMh==='function')refDrawMh();},0);}catch(e){}   /* [1094] 야장 열면 맨홀원 다시 표시 */
   var old=document.getElementById('mnListModal');if(old)old.remove();
   var mob=(typeof isMobileDevice==='function'&&isMobileDevice());
   /* [1012] 7일 지난 휴지통 항목 완전삭제 */
@@ -8181,7 +8183,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1093] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1094] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -9313,6 +9315,7 @@ function openJoseoPanel(){
   joseoState={ groups:groups, dates:dates, cur:dates[0] };
   var panel=document.getElementById('joseoPanel'); panel.style.display='flex';
   joseoProgHide(); joseoRenderTabs(); joseoRenderPreview(joseoState.cur);
+  try{if(typeof highlightSel==='function')highlightSel();}catch(e){}   /* [1094] */
   joseoSyncDoneBtn();
 }
 var joseoLink=true;
@@ -9348,7 +9351,8 @@ function joseoRegisterDone(){
   var dd=document.getElementById('joseoDlDate');
   if(dd) dd.onclick=function(e){ e.stopPropagation(); joseoToggleDateMenu(); };
 })();
-function closeJoseoPanel(){ var p=document.getElementById('joseoPanel'); if(p)p.style.display='none'; }
+function closeJoseoPanel(){ var p=document.getElementById('joseoPanel'); if(p)p.style.display='none';
+  try{if(typeof highlightSel==='function')highlightSel();}catch(e){}   /* [1094] 조서 닫으면 선택표시도 지움 */ }
 function joseoRenderTabs(){
   var t=document.getElementById('joseoTabs'); if(!t)return; t.innerHTML='';
   joseoState.dates.forEach(function(dk){
@@ -9356,6 +9360,39 @@ function joseoRenderTabs(){
     b.onclick=function(){ joseoState.cur=dk; joseoRenderTabs(); joseoRenderPreview(dk); };
     t.appendChild(b);
   });
+}
+/* [1094] 조서 ↔ 도면 양방향 이동 */
+function joseoGoto(p){
+  try{
+    if(!p||typeof vb==='undefined')return;
+    var span=Math.min(30,(vb&&vb.w>1)?vb.w:30);
+    vb={x:p.x-span/2,y:-(p.y+span/2),w:span,h:span};
+    if(typeof fixAspect==='function')fixAspect();
+    if(typeof applyVB==='function')applyVB();
+  }catch(e){}
+}
+function joseoMarkCard(no){
+  var box=document.getElementById('joseoPreview');if(!box)return;
+  var hit=null;
+  [].forEach.call(box.querySelectorAll('.jz-card'),function(cd){
+    var on=(cd.getAttribute('data-no')===String(no));
+    cd.style.outline=on?'3px solid #d500f2':'';
+    cd.style.outlineOffset=on?'-3px':'';
+    if(on)hit=cd;
+  });
+  if(hit&&hit.scrollIntoView){try{hit.scrollIntoView({block:'center',behavior:'smooth'});}catch(e){hit.scrollIntoView();}}
+}
+/* 도면에서 측점을 고르면 조서도 그 카드로 자동 이동 */
+function joseoSyncFromMap(){
+  if(typeof joseoUiOpen!=='function'||!joseoUiOpen())return;
+  if(typeof selNum==='undefined'||selNum==null)return;
+  try{
+    var dk=(typeof joseoDate==='function')?joseoDate(selNum):'';
+    if(dk&&joseoState&&joseoState.groups&&joseoState.groups[dk]&&joseoState.cur!==dk){
+      joseoState.cur=dk;joseoRenderTabs();joseoRenderPreview(dk);return;
+    }
+    joseoMarkCard(selNum);
+  }catch(e){}
 }
 function joseoRenderPreview(dk){
   var box=document.getElementById('joseoPreview'); if(!box)return;
@@ -9377,6 +9414,23 @@ function joseoRenderPreview(dk){
       +'</div>';
   });
   box.innerHTML=html;
+  /* [1094] 조서 카드 클릭 → 도면에서 그 측점 선택·이동 */
+  try{
+    [].forEach.call(box.querySelectorAll('.jz-card'),function(cd){
+      cd.style.cursor='pointer';
+      cd.onclick=function(){
+        var no=cd.getAttribute('data-no');if(!no)return;
+        var p=(typeof pointByNo==='function')?pointByNo(no):null;
+        if(!p)return;
+        selNum=p.no;
+        if(typeof highlightSel==='function')highlightSel();
+        if(typeof joseoGoto==='function')joseoGoto(p);
+        joseoMarkCard(no);
+      };
+    });
+    if(typeof selNum!=='undefined'&&selNum!=null)joseoMarkCard(selNum);
+  }catch(_je){}
+
 }
 async function joseoDownloadDate(forceDk){
   if(!joseoState)return;
@@ -9623,7 +9677,8 @@ function neighborsOf(sel){var selP=pointByNo(sel),up=null,down=null;if(!selP)ret
   if(nb.length){nb.forEach(function(q){if(q.y>selP.y){if(!up||q.y<up.y)up=q;}else{if(!down||q.y>down.y)down=q;}});}
   else{var ups=[],downs=[];state.points.forEach(function(q){if(q.no===sel)return;var d=Math.hypot(q.x-selP.x,q.y-selP.y);(q.y>selP.y?ups:downs).push({q:q,d:d});});ups.sort(function(a,b){return a.d-b.d;});downs.sort(function(a,b){return a.d-b.d;});if(ups[0])up=ups[0].q;if(downs[0])down=downs[0].q;}
   return {up:up,down:down};}
-function highlightSel(){clearSvg(gSel);if(selNum==null)return;var p=pointByNo(selNum);if(!p&&state.gpsPts){for(var _gi=0;_gi<state.gpsPts.length;_gi++){if(state.gpsPts[_gi].no===selNum){var _gg=state.gpsPts[_gi],_ggs=S(_gg.x,_gg.y);gSel.appendChild(el('circle',{cx:_ggs[0],cy:_ggs[1],r:2.4,fill:'none',stroke:'#12b312','stroke-width':3.4,'stroke-dasharray':'5 3','vector-effect':'non-scaling-stroke'}));return;}}}if(!p)return;
+function highlightSel(){clearSvg(gSel);if(selNum==null)return;
+  if(typeof joseoUiOpen==='function'&&!joseoUiOpen())return;   /* [1094] 조서 꺼지면 선택표시도 꺼짐 */var p=pointByNo(selNum);if(!p&&state.gpsPts){for(var _gi=0;_gi<state.gpsPts.length;_gi++){if(state.gpsPts[_gi].no===selNum){var _gg=state.gpsPts[_gi],_ggs=S(_gg.x,_gg.y);gSel.appendChild(el('circle',{cx:_ggs[0],cy:_ggs[1],r:2.4,fill:'none',stroke:'#12b312','stroke-width':3.4,'stroke-dasharray':'5 3','vector-effect':'non-scaling-stroke'}));return;}}}if(!p)return;
   var nbs=neighborsOf(selNum);
   [nbs.up,nbs.down].forEach(function(q){if(q){var sy=S(q.x,q.y);gSel.appendChild(el('circle',{cx:sy[0],cy:sy[1],r:0.224,fill:'none',stroke:'#ffcc00','stroke-width':1.4,'vector-effect':'non-scaling-stroke'}));}});
   var s=S(p.x,p.y);gSel.appendChild(el('circle',{cx:s[0],cy:s[1],r:1.6,fill:'none',stroke:'#22cc00','stroke-width':3.6,'stroke-dasharray':'4 2.5','vector-effect':'non-scaling-stroke'}));}
@@ -10956,6 +11011,12 @@ function refOpen(){
 /* ===== [BUILD 1039] 결선 맨홀 ↔ 야장 매칭 : 도면 표시 + 패널 + 야장 자동생성 ===== */
 var REF_OWNERS=['LG','SKT','SKB','\uc2dc\uccad','\uc138\uc885','\ub4dc\ub9bc'];
 var refMhShow=true;
+/* [1094] 맨홀 야장·조서 패널이 열려 있을 때만 해당 표시를 보여준다 */
+function _uiVisible(id){var e=document.getElementById(id);if(!e)return false;
+  if(e.style&&e.style.display==='none')return false;
+  return !!(e.offsetParent||(e.getClientRects&&e.getClientRects().length));}
+function mnUiOpen(){return _uiVisible('mnPanel')||_uiVisible('mnListModal')||_uiVisible('mnFormModal');}
+function joseoUiOpen(){return _uiVisible('joseoPanel');}
 var REF_SEL=null;
 var REF_TERR='_\uc9c0\ud615';   /* [BUILD 1048] \uacb0\uc120 DXF \uc548\uc758 \uc218\uce58\uc9c0\ub3c4 \ub808\uc774\uc5b4 */   /* [1043] 선택된 맨홀(정규화 키) — 마젠타 표시 */
 
@@ -10987,6 +11048,7 @@ function refMhClear(){var g=document.getElementById('gRefMH');if(g&&g.parentNode
 function refDrawMh(){
   refMhClear();
   if(!REF.ents||!REF.on||!refMhShow||!REF.mh||!REF.mh.length)return;
+  if(typeof mnUiOpen==='function'&&!mnUiOpen())return;   /* [1094] 맨홀도 꺼지면 초록원도 꺼짐 */
   var host=document.getElementById('gRefDxf');if(!host)return;
   var g=document.createElementNS(SVGNS,'g');g.id='gRefMH';
   g.setAttribute('transform','translate('+REF.ox+','+(-REF.oy)+')');
@@ -11027,6 +11089,7 @@ function refNearMh(cx,cy){
     return false;
   }
   if(!REF.ents||!REF.on||!refMhShow||!REF.mh||!REF.mh.length)return false;
+  if(typeof mnUiOpen==='function'&&!mnUiOpen())return false;   /* [1094] */
   if(typeof toWorld!=='function')return false;
   var w;try{w=toWorld(cx,cy);}catch(e){return false;}
   var wx=w[0],wy=-w[1];
