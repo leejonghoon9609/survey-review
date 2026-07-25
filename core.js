@@ -1536,8 +1536,12 @@ function applyBpCrop(c){
   nb.push({layer:'CROP',pts:[[xmin,ymin],[xmax,ymin],[xmax,ymax],[xmin,ymax],[xmin,ymin]],base:true,crop:true});
   state.lines=nb;
   state.baseTexts=(state.baseTexts||[]).filter(function(t){return t.x>=xmin&&t.x<=xmax&&t.y>=ymin&&t.y<=ymax;});
+  /* [1091] 결선(REF)에도 같은 영역 적용 — 사업 영역 자체가 이 범위가 된다 */
+  state.refCrop=[xmin,ymin,xmax,ymax];
+  try{if(typeof REF!=='undefined'&&REF.ents){refCalcBox();refDraw();}}catch(_re){}
+  try{if(typeof refCropBtn==='function')refCropBtn();}catch(_be){}
   mode='pan';if(typeof setModeUI==='function')setModeUI();
-  drawGeo();toast('백판 크롭 완료 — 영역 안만 남기고 테두리선 추가');
+  drawGeo();toast('✓ 사업 영역 설정 완료 ('+Math.round(xmax-xmin)+'×'+Math.round(ymax-ymin)+'m) — 되돌리기로 복구');
   if(state.projectId&&typeof saveProject==='function'){try{saveProject();if(typeof toast==='function')toast('크롭 자동 저장됨');}catch(e){}}
 }
 var BP_APP={'통신관로':1,'지거':1,'압입구간':1,'주입상인출선':1};
@@ -6143,7 +6147,7 @@ window.addEventListener('keydown',function(e){
 renderRail();renderSub();
 bind('save',saveProject);
 bind('delProj',deleteProject);bind('trashProj',projTrashOpen);
-bind('fldCrop',function(){if(typeof refCropToggle==='function')refCropToggle();});bind('bpToggle',function(){bpOff=!bpOff;var b=document.getElementById('bpToggle');if(b){b.classList.toggle('off',bpOff);b.textContent=bpOff?'🗺 백판 OFF':'🗺 백판 ON';}drawGeo();});
+bind('fldCrop',function(){if(typeof refCropStart==='function')refCropStart();});bind('bpToggle',function(){bpOff=!bpOff;var b=document.getElementById('bpToggle');if(b){b.classList.toggle('off',bpOff);b.textContent=bpOff?'🗺 백판 OFF':'🗺 백판 ON';}drawGeo();});
 
 /* ====== 사업 등록 모달 ====== */
 var pendingPhotos=null, pendingAsbuilt=null;
@@ -8176,7 +8180,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1090] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1091] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -9589,8 +9593,8 @@ var gAnc=document.createElementNS(SVGNS,'g'); cv.appendChild(gAnc); // 지거 �
 var gMeasure=document.createElementNS(SVGNS,'g'); cv.appendChild(gMeasure); // 거리산출 표시
 /* ====== 실행취소(Undo) / 다시실행(Redo) ====== */
 var undoStack=[],redoStack=[];
-function snapHist(){return JSON.stringify({l:state.lines,bt:state.baseTexts,m:state.manholes,lo:state.labelOff,pt:state.points,gp:state.gpsPts,tr:state._trash,mk:state.markups.map(function(x){var o={};for(var k in x)if(k!=='el')o[k]=x[k];return o;})});}
-function restoreHist(s){var o=JSON.parse(s);state.lines=o.l||[];if(o.bt)state.baseTexts=o.bt;state.manholes=o.m||[];state.labelOff=o.lo||{};if(o.pt)state.points=o.pt;if(o.gp)state.gpsPts=o.gp;if(o.tr)state._trash=o.tr;state.markups.forEach(function(x){if(x.el)x.el.remove();});state.markups=o.mk||[];drawGeo();drawManholes();drawMarks();updMeta();}
+function snapHist(){return JSON.stringify({rc:state.refCrop,l:state.lines,bt:state.baseTexts,m:state.manholes,lo:state.labelOff,pt:state.points,gp:state.gpsPts,tr:state._trash,mk:state.markups.map(function(x){var o={};for(var k in x)if(k!=='el')o[k]=x[k];return o;})});}
+function restoreHist(s){var o=JSON.parse(s);state.refCrop=o.rc||null;try{if(typeof REF!=='undefined'&&REF.ents){refCalcBox();refDraw();}if(typeof refCropBtn==='function')refCropBtn();}catch(_re){}state.lines=o.l||[];if(o.bt)state.baseTexts=o.bt;state.manholes=o.m||[];state.labelOff=o.lo||{};if(o.pt)state.points=o.pt;if(o.gp)state.gpsPts=o.gp;if(o.tr)state._trash=o.tr;state.markups.forEach(function(x){if(x.el)x.el.remove();});state.markups=o.mk||[];drawGeo();drawManholes();drawMarks();updMeta();}
 function pushHist(){undoStack.push(snapHist());if(undoStack.length>60)undoStack.shift();redoStack=[];if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&typeof rtSaveSoon==='function'){try{rtSaveSoon();}catch(e){}}}
 function doUndo(){if(!undoStack.length){toast('되돌릴 작업이 없습니다');return;}redoStack.push(snapHist());restoreHist(undoStack.pop());toast('되돌렸습니다');}
 function doRedo(){if(!redoStack.length){toast('다시 실행할 작업이 없습니다');return;}undoStack.push(snapHist());restoreHist(redoStack.pop());toast('다시 실행했습니다');}
@@ -10585,8 +10589,8 @@ function refLoadDxfFile(f){
   rd.onerror=function(){toast('\ud30c\uc77c \uc77d\uae30 \uc2e4\ud328');};
   rd.readAsText(f,'utf-8');
 }
-/* [1089] 결선 영역 크롭 — 영역 밖을 안 그린다. 원본 보존 → 「크롭 해제」로 복구 가능.
-   (백판 bpcrop 은 데이터를 직접 잘라내지만, 결선은 원본 DXF가 클라우드에 있어 법위만 기억) */
+/* [1091] 결선 크롭 — 기존 백판 「영역 크롭」(bpcrop)이 정한 영역을 결선에도 그대로 적용.
+   별도 해제 버튼 없음 — 되돌리기(doUndo)로 복구하는 기존 설계를 따른다. */
 function refCropBox(){
   var c=(typeof state!=='undefined'&&state)?state.refCrop:null;
   return (c&&c.length===4)?c:null;
@@ -10597,33 +10601,10 @@ function refInCrop(x,y){
 }
 function refCropStart(){
   if(typeof REF==='undefined'||!REF.ents||!REF.on){toast('먼저 완료결선을 불러오세요');return;}
-  if(typeof startAreaSelect!=='function'){toast('영역 선택 불가');return;}
-  toast('자를 영역을 드래그하세요 (ESC 취소)');
-  startAreaSelect(function(sel){
-    if(!sel||sel==='FULL'){toast('크롭 취소');return;}
-    /* 화면좌표 → 월드좌표 */
-    var w1=toWorld(sel.x,sel.y), w2=toWorld(sel.x+sel.w,sel.y+sel.h);
-    var x1=Math.min(w1[0],w2[0]),x2=Math.max(w1[0],w2[0]);
-    /* S(x,y)=[x,-y] 이므로 월드 Y 는 부호 반전 */
-    var y1=Math.min(-w1[1],-w2[1]),y2=Math.max(-w1[1],-w2[1]);
-    if((x2-x1)<1||(y2-y1)<1){toast('영역이 너무 작습니다');return;}
-    state.refCrop=[x1,y1,x2,y2];
-    try{if(typeof saveProject==='function')saveProject();}catch(e){}
-    refCalcBox();refDraw();refCropBtn();
-    try{if(typeof drawGeo==='function')drawGeo();}catch(e){}    /* 사업정보 박스 재배치 */
-    try{if(typeof refFit==='function')refFit();}catch(e){}
-    toast('✓ 사업 영역 설정 완료 ('+Math.round(x2-x1)+'×'+Math.round(y2-y1)+'m)');
-  });
+  mode='bpcrop';
+  if(typeof setModeUI==='function')setModeUI();
+  toast('자를 영역을 드래그하세요');
 }
-function refCropClear(){
-  if(typeof state==='undefined')return;
-  state.refCrop=null;
-  try{if(typeof saveProject==='function')saveProject();}catch(e){}
-  if(typeof REF!=='undefined'&&REF.ents){refCalcBox();refDraw();}
-  refCropBtn();
-  toast('크롭 해제 — 결선 전체 표시');
-}
-function refCropToggle(){ refCropStart(); }   /* [1089] 해제 버튼 없음 — 다시 드래그하면 영역 교체 */
 function refCropBtn(){
   var b=document.getElementById('fldCrop');if(!b)return;
   b.textContent='✂ 영역 크롭';
