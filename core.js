@@ -8984,15 +8984,27 @@ function rtSyncRefStakes(){
         depth:(q.depth!=null)?(+q.depth).toFixed(1):'',src:'refdxf'});
       have[q.no]=1;added++;
     });
-    if(removed||added){
+    /* [1124] 번호는 같은데 좌표가 잘못 붙은 점(관공 자리 등)은
+       유령 판정에 안 걸리므로, 새 추출값으로 좌표·정보를 갱신 */
+    var fmap={};fresh.forEach(function(q){fmap[q.no]=q;});
+    var upd=0;
+    state.points.forEach(function(q){
+      if(!q||q.src!=='refdxf'||!q.no)return;
+      var f=fmap[q.no];if(!f)return;
+      if(Math.hypot((q.x||0)-f.x,(q.y||0)-f.y)>0.001){q.x=f.x;q.y=f.y;upd++;}
+      if(f.z!=null)q.z=f.z;
+      if(f.code)q.code=f.code;
+      if(f.depth!=null)q.depth=(+f.depth).toFixed(1);
+    });
+    if(removed||added||upd){
       if(typeof selNum!=='undefined'&&selNum!=null&&!have[selNum])selNum=null;
       try{if(typeof pushHist==='function')pushHist();}catch(e){}
       try{redrawAll();}catch(e){}
       try{updMeta();}catch(e){}
       try{if(typeof saveProject==='function')saveProject();}catch(e){}
       try{if(typeof joseoState!=='undefined'&&joseoState&&typeof joseoRenderPreview==='function'&&typeof joseoUiOpen==='function'&&joseoUiOpen()){var g=joseoGroups();joseoState.groups=g;joseoState.dates=Object.keys(g).sort();if(!g[joseoState.cur])joseoState.cur=joseoState.dates[0];joseoRenderTabs();joseoRenderPreview(joseoState.cur);}}catch(e){}
-      toast('결선 측점 동기화: 추가 '+added+' · 유령 제거 '+removed);
-      try{console.log('[refsync] added='+added+' removed='+removed+' total='+state.points.length);}catch(e){}
+      toast('결선 측점 동기화: 추가 '+added+' · 제거 '+removed+' · 좌표갱신 '+upd);
+      try{console.log('[refsync] added='+added+' removed='+removed+' updated='+upd+' total='+state.points.length);}catch(e){}
     }
   }catch(e){console.error('rtSyncRefStakes',e);}
 }
@@ -9004,28 +9016,26 @@ function rtStakesFromRef(){
     var lay=refStr(e,8,'');if(!lay)return;
     (byLay[lay]=byLay[lay]||[]).push({x:refNum(e,10,0),y:refNum(e,20,0),s:refTxt(refStr(e,1,''))});
   });
-  var anchors=byLay['PO_num']||[];
+  /* [1124] 측점 기준 = SD901(심도) 레이어 삽입점. 좌표는 무조건 이 위치.
+     (PO_num 앵커 + 0.25m 수집 방식은 밀집 구간에서 다른 점의 좌표 텍스트를
+      집어와 측점이 관공 자리에 붙는 사고 → 전면 교체)
+     나머지 텍스트(실측번호·관정보·Z)는 그 측점에 붙은 정보로만 수집 */
+  var anchors=byLay['SD901']||[];
   function near(x,y,arr,tol){if(!arr)return null;var b=null,bd=tol*tol;for(var k=0;k<arr.length;k++){var dx=arr[k].x-x,dy=arr[k].y-y,dd=dx*dx+dy*dy;if(dd<bd){bd=dd;b=arr[k];}}return b;}
   var TOL=0.25,out=[];
   anchors.forEach(function(a){
-    var c1=near(a.x,a.y,byLay['PO_\uc88c\ud45c1'],TOL)||near(a.x,a.y,byLay['PO_\uc88c\ud45c'],TOL);
-    if(!c1)return;
-    var parts=(c1.s||'').split(',');if(parts.length<2)return;
-    var Y=parseFloat(parts[0]),X=parseFloat(parts[1]);
-    var Z=(parts.length>=3)?parseFloat(parts[2]):null;
-    if(!isFinite(X)||!isFinite(Y))return;
-    var simE=near(a.x,a.y,byLay['SDSIM_T'],TOL);
-    var depth=simE?parseFloat(simE.s):null;
     var snE=near(a.x,a.y,byLay['SD_\uc2e4\uce21\ubc88\ud638'],TOL);
     var dateNum='';
     if(snE){var m=/(\d{6})\s*-\s*(\d+)/.exec(snE.s||'');if(m)dateNum=m[1]+'-'+m[2];}
-    /* [1120] SD_실측번호 있는 점만 조서 대상.
-       (예전에는 PO_DATE+PO_num 으로 날짜-번호를 합성했는데,
-       삭제된 측점의 남은 텍스트가 유령 측점이 되어
-       살아있는 번호와 키 충돌 → 조서 오연동 사고) */
-    if(!dateNum)return;
+    if(!dateNum)return;   /* [1120] SD_실측번호 없으면 조서 제외 (유령 방지) */
+    var X=a.x, Y=a.y;     /* [1124] 무조건 SD901 삽입점 */
+    var Z=null;
+    var c1=near(a.x,a.y,byLay['PO_\uc88c\ud45c1'],TOL)||near(a.x,a.y,byLay['PO_\uc88c\ud45c'],TOL);
+    if(c1){var parts=(c1.s||'').split(',');if(parts.length>=3){var _z=parseFloat(parts[2]);if(isFinite(_z))Z=_z;}}
+    var simE=near(a.x,a.y,byLay['SDSIM_T'],TOL);
+    var depth=simE?parseFloat(simE.s):parseFloat(a.s);   /* 심사심도 우선, 없으면 SD901 자체값 */
     var cE=near(a.x,a.y,byLay['PO_code'],TOL);
-    out.push({no:dateNum,x:X,y:Y,z:(Z!=null&&isFinite(Z))?Z:null,code:cE?(cE.s||'').trim():'',depth:(depth!=null&&isFinite(depth))?depth:null});
+    out.push({no:dateNum,x:X,y:Y,z:Z,code:cE?(cE.s||'').trim():'',depth:(depth!=null&&isFinite(depth))?depth:null});
   });
   out.sort(function(p,q){var da=p.no.split('-')[0],db=q.no.split('-')[0];if(da!==db)return da<db?-1:1;return (parseInt(p.no.split('-')[1],10)||0)-(parseInt(q.no.split('-')[1],10)||0);});
   return out;
@@ -9034,7 +9044,7 @@ function rtParseSurveyDxf(txt){
   var ents=rtDxfText(txt);
   var byLay={};
   ents.forEach(function(e){(byLay[e.lay]=byLay[e.lay]||[]).push(e);});
-  var anchors=byLay['PO_num']||[];
+  var anchors=byLay['SD901']||[];   /* [1124] 측점 기준 = SD901 삽입점 */
   function near(x,y,arr,tol){
     if(!arr)return null;var best=null,bd=tol*tol;
     for(var k=0;k<arr.length;k++){var dx=arr[k].x-x,dy=arr[k].y-y,dd=dx*dx+dy*dy;if(dd<bd){bd=dd;best=arr[k];}}
@@ -9042,26 +9052,19 @@ function rtParseSurveyDxf(txt){
   }
   var TOL=0.25, out=[];
   anchors.forEach(function(a){
-    var c1=near(a.x,a.y,byLay['PO_\uc88c\ud45c1'],TOL);   /* PO_좌표1 */
-    if(!c1)c1=near(a.x,a.y,byLay['PO_\uc88c\ud45c'],TOL);
-    if(!c1)return;
-    var parts=(c1.s||'').split(',');
-    if(parts.length<2)return;
-    var Y=parseFloat(parts[0]), X=parseFloat(parts[1]);      /* PO좌표1 = Y,X,Z */
-    var Z=(parts.length>=3)?parseFloat(parts[2]):null;
-    if(!isFinite(X)||!isFinite(Y))return;
-    /* 심도 : SDSIM_T (성과심사 — 소수점 한자리) */
-    var simE=near(a.x,a.y,byLay['SDSIM_T'],TOL);
-    var depth=simE?parseFloat(simE.s):null;
-    /* 날짜-번호 : SD_실측번호 에서만 (번호:250624-3) — [1120] 폴백 제거 */
     var snE=near(a.x,a.y,byLay['SD_\uc2e4\uce21\ubc88\ud638'],TOL);
     var dateNum='';
     if(snE){var m=/(\d{6})\s*-\s*(\d+)/.exec(snE.s||'');if(m)dateNum=m[1]+'-'+m[2];}
     if(!dateNum)return;                                       /* [1120] SD_실측번호 없으면 조서 제외 */
-    /* 관정보 : PO_code */
+    var X=a.x, Y=a.y;                                         /* [1124] 무조건 SD901 삽입점 */
+    var Z=null;
+    var c1=near(a.x,a.y,byLay['PO_\uc88c\ud45c1'],TOL)||near(a.x,a.y,byLay['PO_\uc88c\ud45c'],TOL);
+    if(c1){var parts=(c1.s||'').split(',');if(parts.length>=3){var _z=parseFloat(parts[2]);if(isFinite(_z))Z=_z;}}
+    var simE=near(a.x,a.y,byLay['SDSIM_T'],TOL);
+    var depth=simE?parseFloat(simE.s):parseFloat(a.s);
     var cE=near(a.x,a.y,byLay['PO_code'],TOL);
     var code=cE?(cE.s||'').trim():'';
-    out.push({no:dateNum, x:X, y:Y, z:(Z!=null&&isFinite(Z))?Z:null,
+    out.push({no:dateNum, x:X, y:Y, z:Z,
               code:code, depth:(depth!=null&&isFinite(depth))?depth:null});
   });
   /* 날짜→번호 오름차순 */
@@ -9898,10 +9901,10 @@ function highlightSel(){clearSvg(gSel);if(selNum==null)return;
   var _sg=document.createElementNS(SVGNS,'g');
   var _sx=Math.round(s[0]),_sy=Math.round(s[1]);
   _sg.setAttribute('transform','translate('+_sx+','+_sy+')');
-  var _lx=s[0]-_sx,_ly=s[1]-_sy,_xr=_sr*0.45;
+  var _lx=s[0]-_sx,_ly=s[1]-_sy,_xr=_sr*0.7071;   /* [1124] X 끝 = 원 둥은 위 (r/√2) */
   _sg.appendChild(el('circle',{cx:_lx,cy:_ly,r:_sr,fill:'none',stroke:'#e11d1d','stroke-width':3.6,'stroke-dasharray':'4 2.5','vector-effect':'non-scaling-stroke'}));
-  _sg.appendChild(el('line',{x1:_lx-_xr,y1:_ly-_xr,x2:_lx+_xr,y2:_ly+_xr,stroke:'#e11d1d','stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-  _sg.appendChild(el('line',{x1:_lx-_xr,y1:_ly+_xr,x2:_lx+_xr,y2:_ly-_xr,stroke:'#e11d1d','stroke-width':1.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+  _sg.appendChild(el('line',{x1:_lx-_xr,y1:_ly-_xr,x2:_lx+_xr,y2:_ly+_xr,stroke:'#e11d1d','stroke-width':0.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+  _sg.appendChild(el('line',{x1:_lx-_xr,y1:_ly+_xr,x2:_lx+_xr,y2:_ly-_xr,stroke:'#e11d1d','stroke-width':0.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
   gSel.appendChild(_sg);}   /* [1096/1122] 선택=빨간원+중심X · 화면비례 */
 function compressImage(file,maxW,q){return new Promise(function(res,rej){var img=new Image(),u=URL.createObjectURL(file);img.onload=function(){URL.revokeObjectURL(u);var w=img.width,h=img.height;if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(function(b){b?res(b):rej(new Error('blob'));},'image/jpeg',q);};img.onerror=function(){rej(new Error('img'));};img.src=u;});}
 var zoomState={img:null,scale:1,tx:0,ty:0,drag:false,sx:0,sy:0};
