@@ -974,7 +974,7 @@ function drawGeo(){
     addNoteHandle(L,t,ld,lx,ly,s[0],tw);
   });
   var Up=pxToWorld();
-  var hitR=Math.min(0.45, 9*Up);   // 클릭 히트: 작은 줌에선 화면 고정, 큰 줌에선 월드 0.45 상한
+  var hitR=12*Up;   /* [1121] 항상 화면 12px — 최근접 재판정과 결합, 월드고정(14.3) 해소 */
   state.points.forEach(function(p,i){if(p._hideMark&&!isRiserPt(p))return;if((typeof LV!=='undefined')&&LV.bp===0&&/보강판/.test((p.no||'')+'|'+(p.code||'')))return;var isBp=/보강판/.test((p.no||'')+'|'+(p.code||''));var bpHide=isBp&&(typeof bpPtHidden==='function')&&bpPtHidden(p);var s=S(p.x,p.y);if(p._hyun){var _hxh=0.1875,_hxc=({b:'#4fc3f7',d:'#1976d2',s:'#8d6e63',bd:'#e53935',db:'#e53935'})[(p._tcode||'').toLowerCase()]||'#1a7a5e';gPts.appendChild(el('line',{x1:s[0]-_hxh,y1:s[1]-_hxh,x2:s[0]+_hxh,y2:s[1]+_hxh,stroke:_hxc,'stroke-width':1.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));gPts.appendChild(el('line',{x1:s[0]-_hxh,y1:s[1]+_hxh,x2:s[0]+_hxh,y2:s[1]-_hxh,stroke:_hxc,'stroke-width':1.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));return;}
     // 측점 심벌(속빈 사각) — 월드고정 정사각: 줌하면 크기는 변하지만 절대 안 찌그러짐, 위치 정확
     if(isRiserPt(p)){var _xh=0.045,_xc='#d500f2';gPts.appendChild(el('line',{x1:s[0]-_xh,y1:s[1]-_xh,x2:s[0]+_xh,y2:s[1]+_xh,stroke:_xc,'stroke-width':1.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));gPts.appendChild(el('line',{x1:s[0]-_xh,y1:s[1]+_xh,x2:s[0]+_xh,y2:s[1]-_xh,stroke:_xc,'stroke-width':1.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));return;}else{
@@ -988,7 +988,7 @@ function drawGeo(){
       gPts.appendChild(el('line',{x1:ax1,y1:ay1,x2:ax1-dv[0]*hl-pr[0]*hl,y2:ay1-dv[1]*hl-pr[1]*hl,stroke:AC,'stroke-width':2.6,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));})();
     var hit=el('circle',{cx:s[0],cy:s[1],r:hitR,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
 
-    hit.addEventListener('click',function(ev){if(this._lpFired){this._lpFired=false;ev.stopPropagation();return;}if(mode==='ptdel'||mode==='delall2'){ev.stopPropagation();ev.preventDefault();deletePoint(p);return;}if(mode!=='pan'||labelDragging||noteMode)return;ev.stopPropagation();if(typeof refMhClickAt==='function'&&refMhClickAt(ev.clientX,ev.clientY))return;/* [1110] 맨홀 위 측점이 클릭을 먹던 문제 — 야장 열림 시 맨홀 우선 */if(photoLink)selectPoint(p.no);else{selNum=p.no;drawGeo();highlightSel();if(typeof joseoSyncTo==='function')joseoSyncTo(p.no);}toast('측점 '+p.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
+    hit.addEventListener('click',function(ev){if(this._lpFired){this._lpFired=false;ev.stopPropagation();return;}/* [1121] 히트원이 겹치면 위에 있는 점만 선택되던 문제 — 클릭 지점 최근접 측점으로 재판정 */var _np=p;try{var _w=toWorld(ev.clientX,ev.clientY);var _nr=nearestPointWorld(_w[0],_w[1]);if(_nr&&_nr.p)_np=_nr.p;}catch(_ne){}if(mode==='ptdel'||mode==='delall2'){ev.stopPropagation();ev.preventDefault();deletePoint(_np);return;}if(mode!=='pan'||labelDragging||noteMode)return;ev.stopPropagation();if(typeof refMhClickAt==='function'&&refMhClickAt(ev.clientX,ev.clientY))return;/* [1110] 맨홀 위 측점이 클릭을 먹던 문제 — 야장 열림 시 맨홀 우선 */if(photoLink)selectPoint(_np.no);else{selNum=_np.no;drawGeo();highlightSel();if(typeof joseoSyncTo==='function')joseoSyncTo(_np.no);}toast('측점 '+_np.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
     hit.addEventListener('mouseenter',function(){if(mode==='ptdel'||mode==='delall2'){hit.setAttribute('fill','rgba(211,47,47,0.28)');hit.setAttribute('stroke','#d32f2f');hit.setAttribute('stroke-width',1.6);hit.setAttribute('vector-effect','non-scaling-stroke');}});
     hit.addEventListener('mouseleave',function(){hit.setAttribute('fill','transparent');hit.removeAttribute('stroke');});
     gHit.appendChild(hit);
@@ -8956,6 +8956,41 @@ function rtDxfText(txt){
   return ents;
 }
 /* [1085] 이미 업로드된 결선(REF.ents)에서 직접 측점 추출 */
+/* [1121] 결선 적용 시 측점 동기화:
+   src='refdxf' 인데 새 추출(SD_실측번호 기준)에 없는 점 = 유령 → 제거.
+   새로 생긴 번호는 추가. 수기 추가·CSV 측점(src 다름)은 건드리지 않는다.
+   추출 0개(옷 양식 파일)면 안전을 위해 아무것도 안 함. */
+function rtSyncRefStakes(){
+  try{
+    if(typeof REF==='undefined'||!REF.ents)return;
+    var fresh=rtStakesFromRef();
+    if(!fresh.length)return;
+    var valid={};fresh.forEach(function(q){valid[q.no]=1;});
+    var removed=0;
+    state.points=(state.points||[]).filter(function(q){
+      if(q&&q.src==='refdxf'&&q.no&&!valid[q.no]){removed++;return false;}
+      return true;
+    });
+    var have={};state.points.forEach(function(q){if(q&&q.no)have[q.no]=1;});
+    var added=0;
+    fresh.forEach(function(q){
+      if(have[q.no])return;
+      state.points.push({no:q.no,x:q.x,y:q.y,z:q.z,code:q.code,
+        depth:(q.depth!=null)?(+q.depth).toFixed(1):'',src:'refdxf'});
+      have[q.no]=1;added++;
+    });
+    if(removed||added){
+      if(typeof selNum!=='undefined'&&selNum!=null&&!have[selNum])selNum=null;
+      try{if(typeof pushHist==='function')pushHist();}catch(e){}
+      try{redrawAll();}catch(e){}
+      try{updMeta();}catch(e){}
+      try{if(typeof saveProject==='function')saveProject();}catch(e){}
+      try{if(typeof joseoState!=='undefined'&&joseoState&&typeof joseoRenderPreview==='function'&&typeof joseoUiOpen==='function'&&joseoUiOpen()){var g=joseoGroups();joseoState.groups=g;joseoState.dates=Object.keys(g).sort();if(!g[joseoState.cur])joseoState.cur=joseoState.dates[0];joseoRenderTabs();joseoRenderPreview(joseoState.cur);}}catch(e){}
+      toast('결선 측점 동기화: 추가 '+added+' · 유령 제거 '+removed);
+      try{console.log('[refsync] added='+added+' removed='+removed+' total='+state.points.length);}catch(e){}
+    }
+  }catch(e){console.error('rtSyncRefStakes',e);}
+}
 function rtStakesFromRef(){
   if(typeof REF==='undefined'||!REF.ents)return [];
   var byLay={};
@@ -10756,6 +10791,7 @@ function refApplyDxf(txt,name){
   REF.mh=refExtractMh();
   REF_BLKR={};
   refCalcBox();refDraw();
+  try{setTimeout(function(){if(typeof rtSyncRefStakes==='function')rtSyncRefStakes();},0);}catch(e){}   /* [1121] 유령점 정리 */
   return r;
 }
 /* ---------- \ud074\ub77c\uc6b0\ub4dc \uc790\ub3d9 \uc800\uc7a5/\ubcf5\uc6d0 ---------- */
