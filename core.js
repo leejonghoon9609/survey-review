@@ -8185,7 +8185,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1101] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1102] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -10000,7 +10000,7 @@ function fldLayerBox(){
   var ALL=['no','stake','code','depth','date','mh','riser','bizbox','dogak','bp','bpbox','hyun','roadzone','photoDir','depthchk','surfacedot','selbox','tagbox','tgseg'];
   ALL.forEach(function(k){ if(LV[k]==null) LV[k]=1; });
   try{ localStorage.setItem(LV_KEY,JSON.stringify(LV)); }catch(e){}
-  var defs=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)?[['no','점번호'],['code','관정보'],['date','날짜'],['mh','맨홀 정보'],['riser','입상주'],['bp','보강판 측점'],['bpbox','보강판 박스'],['photoDir','사진방향'],['tagbox','태그 이동']]:[['no','점번호'],['stake','측점'],['code','관정보'],['depth','심도'],['date','날짜'],['mh','맨홀 정보'],['riser','입상주'],['bizbox','사업정보'],['dogak','도곽'],['bp','보강판 측점'],['bpbox','보강판 박스'],['photoDir','사진방향'],['tgseg','구간 색칠']];
+  var defs=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)?[['no','점번호'],['code','관정보'],['date','날짜'],['mh','맨홀 정보'],['riser','입상주'],['bp','보강판 측점'],['bpbox','보강판 박스'],['photoDir','사진방향'],['tagbox','태그 이동']]:[['no','점번호'],['stake','측점'],['code','관정보'],['depth','심도'],['date','날짜'],['mh','맨홀 정보'],['riser','입상주'],['bizbox','사업정보'],['dogak','도곽'],['tagbox','인출선 이동'],['bp','보강판 측점'],['bpbox','보강판 박스'],['photoDir','사진방향'],['tgseg','구간 색칠']];
   var open=(function(){try{return localStorage.getItem('fldLayerOpen')!=='0';}catch(e){return true;}})();
   var h='<div style="border:1px solid #f1c40f;border-radius:8px;padding:6px 10px;background:#fffdf5;box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:92px">';
   h+='<div onclick="fldLayerToggleOpen()" style="font-weight:700;font-size:12px;color:#0a3ea0;cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none'+(open?';margin-bottom:5px':'')+'">레이어 <span style="font-size:9px">'+(open?'▼':'▶')+'</span></div>';
@@ -10625,7 +10625,7 @@ function refApplyDxf(txt,name){
   /* [1093] 결선 로딩 직후 레이어 체크바 전부 ‘꺼짐’ 으로 시작
      (도면이 깔끔하게 보이도록 — 필요한 레이어만 켜서 본다) */
   try{
-    ['no','stake','code','depth','date','mh','riser','bizbox','dogak','bp','bpbox','photoDir','tgseg','hyun'].forEach(function(k){LV[k]=0;});
+    ['no','stake','code','depth','date','mh','riser','bizbox','dogak','bp','bpbox','photoDir','tgseg','hyun','tagbox'].forEach(function(k){LV[k]=0;});   /* [1102] tagbox=인출선 이동 핸들 — 켜져있으면 맨홀·측점 클릭을 가로채다 */
     try{if(typeof LV_KEY!=='undefined')localStorage.setItem(LV_KEY,JSON.stringify(LV));}catch(_se){}
     if(typeof applyLayerVis==='function')applyLayerVis();
     /* 레이어바 UI 갱신 — 다음 틱에 반영되도록 */
@@ -11245,8 +11245,8 @@ function refDrawMh(){
     /* [1101] 보이는 원은 예전 크기(월드 1.0m) 유지 · 단 화면 7px 미만으로는 안 줄어듦.
        클릭은 별도 투명 원(항상 18px)이 받아 → 원은 작아도 잘 잡힌다 */
     var _Up=pxToWorld();
-    var _mr=Math.max(7*_Up, Math.min(1.0, 40*_Up));
-    var _hr=Math.max(_mr, 18*_Up);
+    var _mr=Math.max(10*_Up, Math.min(1.2, 46*_Up));   /* [1102] 조금 크게 */
+    var _hr=Math.max(_mr, 20*_Up);
     var c=el('circle',{cx:s[0],cy:s[1],r:sel?_mr*1.4:_mr,fill:col,'fill-opacity':sel?0.20:(rec?0.10:0.16),
       stroke:col,'stroke-width':sel?3.4:2.2,'vector-effect':'non-scaling-stroke'});
     c.setAttribute('pointer-events','none');
