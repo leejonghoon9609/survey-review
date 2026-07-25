@@ -9016,27 +9016,39 @@ function rtStakesFromRef(){
     var lay=refStr(e,8,'');if(!lay)return;
     (byLay[lay]=byLay[lay]||[]).push({x:refNum(e,10,0),y:refNum(e,20,0),s:refTxt(refStr(e,1,''))});
   });
-  /* [1124] 측점 기준 = SD901(심도) 레이어 삽입점. 좌표는 무조건 이 위치.
-     (PO_num 앵커 + 0.25m 수집 방식은 밀집 구간에서 다른 점의 좌표 텍스트를
-      집어와 측점이 관공 자리에 붙는 사고 → 전면 교체)
-     나머지 텍스트(실측번호·관정보·Z)는 그 측점에 붙은 정보로만 수집 */
-  var anchors=byLay['SD901']||[];
+  /* [1125] 결선완료업로드 측점 추출 규칙 */
+  /* [1125] 앵커 = SD_실측번호 (번호 1개 = 측점 1개, 중복 원천 불가)
+     → 최근접 SD901 위치 = 측점 좌표.
+     ★ 그 SD901이 관로선(SD001/002/999/110) 정점과 0.01m 안일 때만 인정.
+       삭제된 유령 SD901은 관로선 정점과 연결 없음 → 걸러짐 */
+  var PIPE_EPS=0.01, pipeVerts=[];
+  REF.ents.forEach(function(e){
+    if(typeof refIsPipeLay!=='function'||!refIsPipeLay(refStr(e,8,'')))return;
+    var ps=(typeof refPts==='function')?refPts(e):null;
+    if(ps&&ps.length)ps.forEach(function(pp){pipeVerts.push(pp);});
+  });
+  function onPipeVertex(x,y){for(var v=0;v<pipeVerts.length;v++){var dx=pipeVerts[v][0]-x,dy=pipeVerts[v][1]-y;if(dx*dx+dy*dy<=PIPE_EPS*PIPE_EPS)return true;}return false;}
+  var anchors=byLay['SD_\uc2e4\uce21\ubc88\ud638']||[];
   function near(x,y,arr,tol){if(!arr)return null;var b=null,bd=tol*tol;for(var k=0;k<arr.length;k++){var dx=arr[k].x-x,dy=arr[k].y-y,dd=dx*dx+dy*dy;if(dd<bd){bd=dd;b=arr[k];}}return b;}
-  var TOL=0.25,out=[];
+  var TOL=0.25, SDTOL=1.0, out=[], seen={}, _rej=0;
   anchors.forEach(function(a){
-    var snE=near(a.x,a.y,byLay['SD_\uc2e4\uce21\ubc88\ud638'],TOL);
-    var dateNum='';
-    if(snE){var m=/(\d{6})\s*-\s*(\d+)/.exec(snE.s||'');if(m)dateNum=m[1]+'-'+m[2];}
-    if(!dateNum)return;   /* [1120] SD_실측번호 없으면 조서 제외 (유령 방지) */
-    var X=a.x, Y=a.y;     /* [1124] 무조건 SD901 삽입점 */
-    var Z=null;
-    var c1=near(a.x,a.y,byLay['PO_\uc88c\ud45c1'],TOL)||near(a.x,a.y,byLay['PO_\uc88c\ud45c'],TOL);
+    var m=/(\d{6})\s*-\s*(\d+)/.exec(a.s||'');
+    if(!m)return;
+    var dateNum=m[1]+'-'+m[2];
+    if(seen[dateNum])return;
+    var sd=near(a.x,a.y,byLay['SD901'],SDTOL);
+    if(!sd)return;
+    if(!onPipeVertex(sd.x,sd.y)){_rej++;return;}   /* [1125] 관로선 정점 미연결 = 유령 → 제외 */
+    seen[dateNum]=1;
+    var X=sd.x, Y=sd.y, Z=null;
+    var c1=near(sd.x,sd.y,byLay['PO_\uc88c\ud45c1'],TOL)||near(sd.x,sd.y,byLay['PO_\uc88c\ud45c'],TOL);
     if(c1){var parts=(c1.s||'').split(',');if(parts.length>=3){var _z=parseFloat(parts[2]);if(isFinite(_z))Z=_z;}}
-    var simE=near(a.x,a.y,byLay['SDSIM_T'],TOL);
-    var depth=simE?parseFloat(simE.s):parseFloat(a.s);   /* 심사심도 우선, 없으면 SD901 자체값 */
-    var cE=near(a.x,a.y,byLay['PO_code'],TOL);
+    var simE=near(sd.x,sd.y,byLay['SDSIM_T'],TOL);
+    var depth=simE?parseFloat(simE.s):parseFloat(sd.s);
+    var cE=near(sd.x,sd.y,byLay['PO_code'],TOL);
     out.push({no:dateNum,x:X,y:Y,z:Z,code:cE?(cE.s||'').trim():'',depth:(depth!=null&&isFinite(depth))?depth:null});
   });
+  try{console.log('[rtstk] 인정 '+out.length+' · 관로선미연결 제외 '+_rej+' · 관로정점 '+pipeVerts.length);}catch(e){}
   out.sort(function(p,q){var da=p.no.split('-')[0],db=q.no.split('-')[0];if(da!==db)return da<db?-1:1;return (parseInt(p.no.split('-')[1],10)||0)-(parseInt(q.no.split('-')[1],10)||0);});
   return out;
 }
@@ -9044,25 +9056,27 @@ function rtParseSurveyDxf(txt){
   var ents=rtDxfText(txt);
   var byLay={};
   ents.forEach(function(e){(byLay[e.lay]=byLay[e.lay]||[]).push(e);});
-  var anchors=byLay['SD901']||[];   /* [1124] 측점 기준 = SD901 삽입점 */
+  var anchors=byLay['SD_\uc2e4\uce21\ubc88\ud638']||[];   /* [1125] 앵커=실측번호, 위치=최근접 SD901 */
   function near(x,y,arr,tol){
     if(!arr)return null;var best=null,bd=tol*tol;
     for(var k=0;k<arr.length;k++){var dx=arr[k].x-x,dy=arr[k].y-y,dd=dx*dx+dy*dy;if(dd<bd){bd=dd;best=arr[k];}}
     return best;
   }
-  var TOL=0.25, out=[];
+  var TOL=0.25, SDTOL=1.0, out=[], seen={};
   anchors.forEach(function(a){
-    var snE=near(a.x,a.y,byLay['SD_\uc2e4\uce21\ubc88\ud638'],TOL);
-    var dateNum='';
-    if(snE){var m=/(\d{6})\s*-\s*(\d+)/.exec(snE.s||'');if(m)dateNum=m[1]+'-'+m[2];}
-    if(!dateNum)return;                                       /* [1120] SD_실측번호 없으면 조서 제외 */
-    var X=a.x, Y=a.y;                                         /* [1124] 무조건 SD901 삽입점 */
-    var Z=null;
-    var c1=near(a.x,a.y,byLay['PO_\uc88c\ud45c1'],TOL)||near(a.x,a.y,byLay['PO_\uc88c\ud45c'],TOL);
+    var m=/(\d{6})\s*-\s*(\d+)/.exec(a.s||'');
+    if(!m)return;
+    var dateNum=m[1]+'-'+m[2];
+    if(seen[dateNum])return;
+    var sd=near(a.x,a.y,byLay['SD901'],SDTOL);
+    if(!sd)return;
+    seen[dateNum]=1;
+    var X=sd.x, Y=sd.y, Z=null;
+    var c1=near(sd.x,sd.y,byLay['PO_\uc88c\ud45c1'],TOL)||near(sd.x,sd.y,byLay['PO_\uc88c\ud45c'],TOL);
     if(c1){var parts=(c1.s||'').split(',');if(parts.length>=3){var _z=parseFloat(parts[2]);if(isFinite(_z))Z=_z;}}
-    var simE=near(a.x,a.y,byLay['SDSIM_T'],TOL);
-    var depth=simE?parseFloat(simE.s):parseFloat(a.s);
-    var cE=near(a.x,a.y,byLay['PO_code'],TOL);
+    var simE=near(sd.x,sd.y,byLay['SDSIM_T'],TOL);
+    var depth=simE?parseFloat(simE.s):parseFloat(sd.s);
+    var cE=near(sd.x,sd.y,byLay['PO_code'],TOL);
     var code=cE?(cE.s||'').trim():'';
     out.push({no:dateNum, x:X, y:Y, z:Z,
               code:code, depth:(depth!=null&&isFinite(depth))?depth:null});
