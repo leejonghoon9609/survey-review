@@ -9438,17 +9438,54 @@ function joseoSyncFromMap(){
   }catch(e){}
 }
 /* [1116] 조서 카드 개별 사진 업로드/변경 — kind: exp(실시간)/aft(후측량) */
+/* [1118] 사진변경 = 드롭존 모달 (끌어다 놓기 + 파일 찾기 버튼) */
 function joseoPhotoPick(no,kind){
   if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
   if(!online){toast('로컬 모드 — 업로드 불가');return;}
-  var fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.style.display='none';
-  document.body.appendChild(fi);
-  fi.addEventListener('change',function(ev){
-    var f=ev.target.files&&ev.target.files[0];fi.remove();
+  var lab=(kind==='aft')?'공사 후 관로':'실시간 측량점';
+  var col=(kind==='aft')?'#1565c0':'#d32f2f';
+  var old=document.getElementById('jzPickM');if(old)old.remove();
+  var w=document.createElement('div');w.id='jzPickM';
+  w.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.35);z-index:99999;display:flex;align-items:center;justify-content:center';
+  var b=document.createElement('div');
+  b.style.cssText='background:#fff;border-radius:12px;padding:16px 18px 14px;width:min(400px,92vw);box-shadow:0 12px 40px rgba(0,0,0,.3)';
+  b.innerHTML='<div style="font-weight:800;font-size:14px;color:'+col+';margin-bottom:10px">사진변경 — '+no+' · '+lab+'</div>'
+    +'<div id="jzDrop" style="border:2px dashed #cbd5e1;border-radius:10px;min-height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:#fbfcfe;cursor:pointer;transition:.12s">'
+      +'<div style="font-size:30px">📷</div>'
+      +'<div style="font-size:12px;color:#94a3b8">사진을 여기에 끌어다 놓으세요</div>'
+    +'</div>'
+    +'<div style="display:flex;gap:7px;margin-top:11px">'
+    +'<button id="jzBrowse" style="flex:1;padding:9px;border:1px solid '+col+';background:#fff;color:'+col+';border-radius:8px;font-weight:700;cursor:pointer">📁 파일 찾기</button>'
+    +'<button id="jzCancel" style="flex:1;padding:9px;border:1px solid #ccc;background:#fff;color:#555;border-radius:8px;cursor:pointer">취소</button></div>';
+  w.appendChild(b);document.body.appendChild(w);
+  function go(f){
     if(!f)return;
-    var lab=(kind==='aft')?'후측량':'실시간';
-    toast(lab+' 사진 업로드 중…');
-    compressImage(f,1280,0.7).then(function(blob){
+    if(!/^image\//.test(f.type||'')&&!/\.(jpe?g|png)$/i.test(f.name||'')){toast('이미지 파일만 가능합니다');return;}
+    w.remove();
+    joseoPhotoUpload(no,kind,f);
+  }
+  var dz=document.getElementById('jzDrop');
+  function hi(on){dz.style.borderColor=on?col:'#cbd5e1';dz.style.background=on?'#f6faff':'#fbfcfe';}
+  dz.addEventListener('dragover',function(e){e.preventDefault();e.stopPropagation();hi(true);});
+  dz.addEventListener('dragleave',function(e){e.preventDefault();e.stopPropagation();hi(false);});
+  dz.addEventListener('drop',function(e){e.preventDefault();e.stopPropagation();hi(false);
+    var fs=e.dataTransfer&&e.dataTransfer.files;if(fs&&fs.length)go(fs[0]);});
+  w.addEventListener('dragover',function(e){e.preventDefault();});
+  w.addEventListener('drop',function(e){e.preventDefault();});
+  function browse(){
+    var fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.style.display='none';
+    document.body.appendChild(fi);
+    fi.addEventListener('change',function(ev){var f=ev.target.files&&ev.target.files[0];fi.remove();go(f);});
+    fi.click();
+  }
+  dz.addEventListener('click',browse);
+  document.getElementById('jzBrowse').onclick=browse;
+  document.getElementById('jzCancel').onclick=function(){w.remove();};
+}
+function joseoPhotoUpload(no,kind,f){
+  var lab=(kind==='aft')?'후측량':'실시간';
+  toast(lab+' 사진 업로드 중…');
+  compressImage(f,1280,0.7).then(function(blob){
       var pno=(kind==='aft')?(no+'_A'):no;
       var path=state.projectId+'/'+safeName(pno)+'.jpg';
       return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
@@ -9464,9 +9501,7 @@ function joseoPhotoPick(no,kind){
           toast('✓ '+lab+' 사진 변경됨 — '+no);
         });
       });
-    })['catch'](function(e){console.error('joseoPhotoPick',e);toast('업로드 실패: '+((e&&e.message)||e));});
-  });
-  fi.click();
+    })['catch'](function(e){console.error('joseoPhotoUpload',e);toast('업로드 실패: '+((e&&e.message)||e));});
 }
 function joseoRenderPreview(dk){
   var box=document.getElementById('joseoPreview'); if(!box)return;
