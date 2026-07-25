@@ -8167,7 +8167,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1084] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1085] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -8916,6 +8916,38 @@ function rtDxfText(txt){
   }
   return ents;
 }
+/* [1085] 이미 업로드된 결선(REF.ents)에서 직접 측점 추출 */
+function rtStakesFromRef(){
+  if(typeof REF==='undefined'||!REF.ents)return [];
+  var byLay={};
+  REF.ents.forEach(function(e){
+    if(e.t!=='TEXT'&&e.t!=='MTEXT')return;
+    var lay=refStr(e,8,'');if(!lay)return;
+    (byLay[lay]=byLay[lay]||[]).push({x:refNum(e,10,0),y:refNum(e,20,0),s:refTxt(refStr(e,1,''))});
+  });
+  var anchors=byLay['PO_num']||[];
+  function near(x,y,arr,tol){if(!arr)return null;var b=null,bd=tol*tol;for(var k=0;k<arr.length;k++){var dx=arr[k].x-x,dy=arr[k].y-y,dd=dx*dx+dy*dy;if(dd<bd){bd=dd;b=arr[k];}}return b;}
+  var TOL=0.25,out=[];
+  anchors.forEach(function(a){
+    var c1=near(a.x,a.y,byLay['PO_\uc88c\ud45c1'],TOL)||near(a.x,a.y,byLay['PO_\uc88c\ud45c'],TOL);
+    if(!c1)return;
+    var parts=(c1.s||'').split(',');if(parts.length<2)return;
+    var Y=parseFloat(parts[0]),X=parseFloat(parts[1]);
+    var Z=(parts.length>=3)?parseFloat(parts[2]):null;
+    if(!isFinite(X)||!isFinite(Y))return;
+    var simE=near(a.x,a.y,byLay['SDSIM_T'],TOL);
+    var depth=simE?parseFloat(simE.s):null;
+    var snE=near(a.x,a.y,byLay['SD_\uc2e4\uce21\ubc88\ud638'],TOL);
+    var dateNum='';
+    if(snE){var m=/(\d{6})\s*-\s*(\d+)/.exec(snE.s||'');if(m)dateNum=m[1]+'-'+m[2];}
+    if(!dateNum){var dE=near(a.x,a.y,byLay['PO_DATE'],TOL);var dd=dE?((dE.s||'').match(/\d{6}/)||[''])[0]:'';var nn=(a.s||'').trim();if(dd&&nn)dateNum=dd+'-'+nn;}
+    if(!dateNum)return;
+    var cE=near(a.x,a.y,byLay['PO_code'],TOL);
+    out.push({no:dateNum,x:X,y:Y,z:(Z!=null&&isFinite(Z))?Z:null,code:cE?(cE.s||'').trim():'',depth:(depth!=null&&isFinite(depth))?depth:null});
+  });
+  out.sort(function(p,q){var da=p.no.split('-')[0],db=q.no.split('-')[0];if(da!==db)return da<db?-1:1;return (parseInt(p.no.split('-')[1],10)||0)-(parseInt(q.no.split('-')[1],10)||0);});
+  return out;
+}
 function rtParseSurveyDxf(txt){
   var ents=rtDxfText(txt);
   var byLay={};
@@ -9258,7 +9290,12 @@ function openJoseoPanel(){
   if(!joseoEnsureLibs()) return;
   if(!state.projectName){ toast('먼저 사업을 불러오세요'); return; }
   var groups=joseoGroups(), dates=Object.keys(groups).sort();
-  if(!dates.length){ toast('관로 측점이 없습니다 (맨홀·보강판 제외)'); return; }
+  if(!dates.length){
+    var fromRef=(typeof rtStakesFromRef==='function')?rtStakesFromRef():[];   /* [1085] 업로드된 결선에서 추출 */
+    if(fromRef.length){ rtImportPreview(fromRef); return; }
+    if(typeof rtImportSurveyDxf==='function'){ if(confirm('조서를 만들 관로 측점이 없습니다.\n결선 DXF 파일을 불러올까요?')) rtImportSurveyDxf(); return; }
+    toast('관로 측점이 없습니다 (맨홀·보강판 제외)'); return;
+  }
   joseoState={ groups:groups, dates:dates, cur:dates[0] };
   var panel=document.getElementById('joseoPanel'); panel.style.display='flex';
   joseoProgHide(); joseoRenderTabs(); joseoRenderPreview(joseoState.cur);
