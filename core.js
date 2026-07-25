@@ -9040,6 +9040,7 @@ function rtStakesFromRef(){
     if(ps&&ps.length)ps.forEach(function(pp){pipeVerts.push(pp);});
   });
   function nearestPipeDist(x,y){var bd=1e18;for(var v=0;v<pipeVerts.length;v++){var dx=pipeVerts[v][0]-x,dy=pipeVerts[v][1]-y;var dd=dx*dx+dy*dy;if(dd<bd)bd=dd;}return Math.sqrt(bd);}
+  function onPipeVertex(x,y){for(var v=0;v<pipeVerts.length;v++){var dx=pipeVerts[v][0]-x,dy=pipeVerts[v][1]-y;if(dx*dx+dy*dy<=PIPE_EPS*PIPE_EPS)return true;}return false;}   /* [1129b] 0.01m 이내 = 관로선에 붙음 */
   try{console.log('[gate] 관로선 레이어:',JSON.stringify(_pipeLays),'· 정점수',pipeVerts.length);}catch(e){}
   /* [1126b] 앵커·SD901 레이어 진단 — 추출 0 원인 추적 */
   try{
