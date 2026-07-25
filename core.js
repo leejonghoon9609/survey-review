@@ -9021,13 +9021,20 @@ function rtStakesFromRef(){
      → 최근접 SD901 위치 = 측점 좌표.
      ★ 그 SD901이 관로선(SD001/002/999/110) 정점과 0.01m 안일 때만 인정.
        삭제된 유령 SD901은 관로선 정점과 연결 없음 → 걸러짐 */
-  var PIPE_EPS=0.01, pipeVerts=[];
+  /* [1126] 관로선 정점 게이트 — 진단 모드.
+     1125에서 0.01m 게이트를 검증 없이 넣어 측점이 전부 걸러짐(규칙 7 위반).
+     -> 상수 추출해 관로선 레이어명·정점 거리를 콘솔에 찍고, 추출은 통과시킴.
+     실측값 보고 게이트를 다시 설계 */
+  var PIPE_EPS=0.01, pipeVerts=[], _pipeLays={};
   REF.ents.forEach(function(e){
-    if(typeof refIsPipeLay!=='function'||!refIsPipeLay(refStr(e,8,'')))return;
+    var _l=refStr(e,8,'');
+    if(typeof refIsPipeLay!=='function'||!refIsPipeLay(_l))return;
+    _pipeLays[_l]=(_pipeLays[_l]||0)+1;
     var ps=(typeof refPts==='function')?refPts(e):null;
     if(ps&&ps.length)ps.forEach(function(pp){pipeVerts.push(pp);});
   });
-  function onPipeVertex(x,y){for(var v=0;v<pipeVerts.length;v++){var dx=pipeVerts[v][0]-x,dy=pipeVerts[v][1]-y;if(dx*dx+dy*dy<=PIPE_EPS*PIPE_EPS)return true;}return false;}
+  function nearestPipeDist(x,y){var bd=1e18;for(var v=0;v<pipeVerts.length;v++){var dx=pipeVerts[v][0]-x,dy=pipeVerts[v][1]-y;var dd=dx*dx+dy*dy;if(dd<bd)bd=dd;}return Math.sqrt(bd);}
+  try{console.log('[gate] 관로선 레이어:',JSON.stringify(_pipeLays),'· 정점수',pipeVerts.length);}catch(e){}
   var anchors=byLay['SD_\uc2e4\uce21\ubc88\ud638']||[];
   function near(x,y,arr,tol){if(!arr)return null;var b=null,bd=tol*tol;for(var k=0;k<arr.length;k++){var dx=arr[k].x-x,dy=arr[k].y-y,dd=dx*dx+dy*dy;if(dd<bd){bd=dd;b=arr[k];}}return b;}
   var TOL=0.25, SDTOL=1.0, out=[], seen={}, _rej=0;
@@ -9038,7 +9045,8 @@ function rtStakesFromRef(){
     if(seen[dateNum])return;
     var sd=near(a.x,a.y,byLay['SD901'],SDTOL);
     if(!sd)return;
-    if(!onPipeVertex(sd.x,sd.y)){_rej++;return;}   /* [1125] 관로선 정점 미연결 = 유령 → 제외 */
+    var _pd=(pipeVerts.length?nearestPipeDist(sd.x,sd.y):-1);   /* [1126] 진단: 거리만 측정, 통과 */
+    if(_pd>PIPE_EPS)_rej++;
     seen[dateNum]=1;
     var X=sd.x, Y=sd.y, Z=null;
     var c1=near(sd.x,sd.y,byLay['PO_\uc88c\ud45c1'],TOL)||near(sd.x,sd.y,byLay['PO_\uc88c\ud45c'],TOL);
@@ -9048,7 +9056,7 @@ function rtStakesFromRef(){
     var cE=near(sd.x,sd.y,byLay['PO_code'],TOL);
     out.push({no:dateNum,x:X,y:Y,z:Z,code:cE?(cE.s||'').trim():'',depth:(depth!=null&&isFinite(depth))?depth:null});
   });
-  try{console.log('[rtstk] 인정 '+out.length+' · 관로선미연결 제외 '+_rej+' · 관로정점 '+pipeVerts.length);}catch(e){}
+  try{console.log('[rtstk] 추출 '+out.length+' · 관로정점 0.01m밖 '+_rej+'개(진단용,통과함) · 게이트 비활성');}catch(e){}
   out.sort(function(p,q){var da=p.no.split('-')[0],db=q.no.split('-')[0];if(da!==db)return da<db?-1:1;return (parseInt(p.no.split('-')[1],10)||0)-(parseInt(q.no.split('-')[1],10)||0);});
   return out;
 }
