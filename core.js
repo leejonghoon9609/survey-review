@@ -1446,7 +1446,7 @@ var vb={x:0,y:0,w:100,h:100}, vb0={x:0,y:0,w:100,h:100}, _vbwLast=null;
 var _bpPathEl=null,_bpPad=null,_bpImgURL=null,_bpImgBox=null,_bpSig=null;
 var _mhEditAnchor=null;
 function _updateMhEditPos(){if(!_mhEditAnchor||!_mhEditAnchor.wrap||!_mhEditAnchor.wrap.parentNode){_mhEditAnchor=null;return;}var _cv=document.getElementById('cv');if(!_cv)return;var _r=_cv.getBoundingClientRect();var _sx=_r.left+(_mhEditAnchor.tx-vb.x)*(_r.width/vb.w);var _sy=_r.top+(_mhEditAnchor.ty-vb.y)*(_r.height/vb.h);_mhEditAnchor.wrap.style.left=_sx+'px';_mhEditAnchor.wrap.style.top=(_sy+_mhEditAnchor.dy)+'px';}
-function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);repositionLabels();if(bgMapOn)syncMapBg();_updateMhEditPos();}
+function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);repositionLabels();if(bgMapOn)syncMapBg();_updateMhEditPos();try{if(typeof refMhSize==='function')refMhSize();}catch(e){}}   /* [1105] 줌/팬마다 맨홀 원 반경 갱신 */
 // ★ 백판(수치지도) 화면영역 컬링 렌더 (BUILD509) — 화면보다 넓은 여유영역에 걸치는 백판만 통합 path로
 function bpSignature(){var n=0,fx=0,fy=0;(state.lines||[]).forEach(function(L){if(LINECOL[L.layer]||L.crop||!L.pts||!L.pts.length)return;n++;fx+=L.pts[0][0];fy+=L.pts[0][1];});return n+':'+fx.toFixed(0)+':'+fy.toFixed(0)+':'+(bpOff?'off':'on');}
 function bakeBackdrop(){
@@ -11225,6 +11225,41 @@ function refMhMatch(){
 
 /* ---------- 도면 표시 ---------- */
 function refMhClear(){var g=document.getElementById('gRefMH');if(g&&g.parentNode)g.parentNode.removeChild(g);}
+/* [1105] 맨홀 원 크기는 항상 화면 픽셀 기준.
+   예전엔 그리는 순간의 pxToWorld() 로 월드 반경을 굳혔기 때문에,
+   그린 뒤 줌/팬을 하면 화면상 크기가 어긋났다.
+   (야장 목록을 처음 열면 원이 크게 뜨던 원인 - 함정 E)
+   이제 applyVB(모든 줌/팬)마다 refMhSize() 가 반경만 다시 계산한다. */
+function refMhR(Up,sel){var r=Math.max(10*Up, Math.min(1.2, 46*Up));return sel?r*1.4:r;}
+function refMhHitR(Up){return Math.max(refMhR(Up,0), 26*Up);}   /* [1105] 20px -> 26px */
+function refMhSize(){
+  var g=document.getElementById('gRefMH');if(!g)return;
+  var Up=pxToWorld();if(!(Up>0))return;
+  var cs=g.childNodes, hr=refMhHitR(Up), r0=refMhR(Up,0), r1=refMhR(Up,1);
+  for(var i=0;i<cs.length;i++){
+    var e=cs[i], ty=e.getAttribute?e.getAttribute('data-mh'):null;
+    if(!ty)continue;
+    e.setAttribute('r', ty==='h'?hr:(ty==='s'?r1:r0));
+  }
+}
+/* [1105] 같은 자리에 4사업자 맨홀이 겹치므로(2M 의 SKB/SKT/LG/DL),
+   어느 히트원이 클릭을 받든 클릭 지점에서 가장 가까운 맨홀을 다시 골라 열어준다.
+   -> 감도를 키워도 오선택이 없다 (조서 측점 nearestPt 와 같은 방식) */
+function refMhPick(ev,lab,rec){
+  try{
+    var w=toWorld(ev.clientX,ev.clientY), wx=w[0], wy=-w[1];
+    var mm=refMhMatch(), ok={};
+    mm.matched.forEach(function(x){ok[refNormLab(x.mh.label)]=x.rec;});
+    var best=null, bd=1e18;
+    (REF.mh||[]).forEach(function(m){
+      if(!m||!m.label)return;
+      var d=Math.hypot(m.x-wx,m.y-wy);
+      if(d<bd){bd=d;best=m;}
+    });
+    if(best){lab=best.label;rec=ok[refNormLab(best.label)];}
+  }catch(e){}
+  refMhClick(lab,rec);
+}
 function refDrawMh(){
   refMhClear();
   if(!REF.ents||!REF.on||!refMhShow||!REF.mh||!REF.mh.length)return;
@@ -11245,17 +11280,24 @@ function refDrawMh(){
     /* [1101] 보이는 원은 예전 크기(월드 1.0m) 유지 · 단 화면 7px 미만으로는 안 줄어듦.
        클릭은 별도 투명 원(항상 18px)이 받아 → 원은 작아도 잘 잡힌다 */
     var _Up=pxToWorld();
-    var _mr=Math.max(10*_Up, Math.min(1.2, 46*_Up));   /* [1102] 조금 크게 */
-    var _hr=Math.max(_mr, 20*_Up);
-    var c=el('circle',{cx:s[0],cy:s[1],r:sel?_mr*1.4:_mr,fill:col,'fill-opacity':sel?0.20:(rec?0.10:0.16),
+    var _mr=refMhR(_Up,sel), _hr=refMhHitR(_Up);
+    var c=el('circle',{cx:s[0],cy:s[1],r:_mr,fill:col,'fill-opacity':sel?0.20:(rec?0.10:0.16),
       stroke:col,'stroke-width':sel?3.4:2.2,'vector-effect':'non-scaling-stroke'});
     c.setAttribute('pointer-events','none');
+    c.setAttribute('data-mh',sel?'s':'n');       /* [1105] refMhSize 가 반경만 갱신 */
     var ch=el('circle',{cx:s[0],cy:s[1],r:_hr,fill:'transparent'});
     ch.style.cursor='pointer';
     ch.setAttribute('pointer-events','auto');
-    (function(lab,r0){ch.addEventListener('click',function(ev){ev.stopPropagation();refMhClick(lab,r0);});})(m.label,rec);
-    g.appendChild(c);g.appendChild(ch);   /* [1101] 보이는 원 + 투명 클릭원 */
+    ch.setAttribute('data-mh','h');
+    ch.addEventListener('click',function(ev){ev.stopPropagation();refMhPick(ev,m.label,rec);});
+    g.appendChild(c);g.appendChild(ch);   /* [1105] 보이는 원 + 투명 클릭원 */
   });
+  /* [1105] 야장 패널이 열리며 캠버스 폭이 바뀌는 도중에 그려졌을 수 있다
+     -> 레이아웃 확정 후 한 번 보정 (처음 열자마자 정확한 크기) */
+  try{requestAnimationFrame(function(){try{refMhSize();}catch(_e){}});}catch(e){}
+  try{console.log('[mh] draw n='+REF.mh.length+' Up='+pxToWorld().toFixed(4)
+    +' vb.w='+((typeof vb!=='undefined'&&vb)?vb.w.toFixed(1):'-')
+    +' cvw='+cv.getBoundingClientRect().width.toFixed(0));}catch(e){}
 }
 /* [BUILD 1045] pan 모드 pointerdown 이 cv.setPointerCapture 를 걸면
    자식(맨홀 원)의 click 이벤트가 cv 로 리타깃돼 사라진다.
@@ -11280,7 +11322,7 @@ function refNearMh(cx,cy){
   if(typeof toWorld!=='function')return false;
   var w;try{w=toWorld(cx,cy);}catch(e){return false;}
   var wx=w[0],wy=-w[1];
-  var tol=Math.max(1.6, 20*pxToWorld());   /* [1098] 항상 화면 20px */
+  var tol=Math.max(1.6, 26*pxToWorld());   /* [1105] 항상 화면 26px (감도 상향) */
   for(var i=0;i<REF.mh.length;i++){
     var m=REF.mh[i];
     if(!m||!m.label)continue;
