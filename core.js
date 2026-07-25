@@ -6416,14 +6416,17 @@ document.querySelectorAll('input[name="regCrs"]').forEach(function(r){r.addEvent
 
 /* ===== 지도 / 로드뷰 (카카오) ===== */
 var KAKAO_KEY='5b0b406bb81a843663c796bed1d59a9a'; // 도메인 잠금(leejonghoon9609.github.io) JS 키
-function loadKakao(cb){
-  if(window.kakao&&window.kakao.maps&&window.kakao.maps.Map){cb();return;}
-  if(window.__kakaoLoading){var t=setInterval(function(){if(window.kakao&&window.kakao.maps&&window.kakao.maps.Map){clearInterval(t);cb();}},150);return;}
+function loadKakao(cb,failCb){
+  /* [1082] SDK/services 준비까지 확인, 안 뜨면 failCb 로 OSM 으로 */
+  function ready(){return window.kakao&&window.kakao.maps&&window.kakao.maps.Map&&window.kakao.maps.services&&window.kakao.maps.services.Geocoder;}
+  if(ready()){cb();return;}
+  if(window.__kakaoFailed){if(failCb)failCb();return;}
+  if(window.__kakaoLoading){var n=0;var t=setInterval(function(){n++;if(ready()){clearInterval(t);cb();}else if(window.__kakaoFailed||n>40){clearInterval(t);if(failCb)failCb();}},150);return;}
   window.__kakaoLoading=true;
   var s=document.createElement('script');
   s.src='https://dapi.kakao.com/v2/maps/sdk.js?appkey='+KAKAO_KEY+'&autoload=false&libraries=services';
-  s.onload=function(){kakao.maps.load(function(){window.__kakaoLoading=false;cb();});};
-  s.onerror=function(){window.__kakaoLoading=false;toast('카카오 지도 로드 실패 — 네트워크 또는 도메인 등록을 확인하세요');};
+  s.onload=function(){try{kakao.maps.load(function(){window.__kakaoLoading=false;cb();});}catch(_e){window.__kakaoLoading=false;window.__kakaoFailed=true;if(failCb)failCb();}};
+  s.onerror=function(){window.__kakaoLoading=false;window.__kakaoFailed=true;if(failCb)failCb();};
   document.head.appendChild(s);
 }
 /* ===== 로드뷰 (위치 찍기 → 오른쪽 패널: 위=로드뷰 / 아래=측점사진) ===== */
@@ -7698,7 +7701,7 @@ function mnRevGeo(lat,lng,cb){
   }
   setTimeout(function(){osm('kakao-timeout');},8000);
   try{
-    kakaoReady(function(){
+    loadKakao(function(){
       try{
         if(!(window.kakao&&kakao.maps&&kakao.maps.services&&kakao.maps.services.Geocoder)){osm('no-services');return;}
         new kakao.maps.services.Geocoder().coord2Address(lng,lat,function(r,st){
@@ -7715,7 +7718,7 @@ function mnRevGeo(lat,lng,cb){
           osm('kakao-'+st);
         });
       }catch(e){osm('kakao-err');}
-    });
+    },function(){osm('kakao-sdk-fail');});
   }catch(e){osm('kakao-load');}
 }
 /* [1029] 주소 자동조회 — 타임아웃 4s→12s, 실패 사유 안내(이전엔 조용히 빈칸 처리돼 원인 불명) */
@@ -8163,7 +8166,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1081] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1082] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
