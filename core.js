@@ -9483,8 +9483,8 @@ function joseoRenderPreview(dk){
       +'<tr><td class="lbl">X(N)</td><td class="lbl">Y(E)</td></tr>'
       +'<tr><td class="val">'+joseoEsc(r.x)+'</td><td class="val">'+joseoEsc(r.y)+'</td><td class="val">'+joseoEsc(r.facility)+'</td><td class="val">'+joseoEsc(r.mat)+'</td><td class="val">'+joseoEsc(r.dia)+'</td><td class="val">'+joseoEsc(r.gap)+'</td><td class="val">'+joseoEsc(r.depth)+'</td></tr>'
       +'</table>'
-      +'<div class="jz-ph2"><div class="jz-pc">'+exp+'<div class="jz-cap">실시간 측량점 <button data-jzchg="exp" data-jzno="'+joseoEsc(r.fullNo||r.name)+'" style="margin-left:8px;padding:2px 9px;border:1px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer">실시간 사진변경</button></div></div>'
-      +'<div class="jz-pc">'+aft+'<div class="jz-cap">공사 후 관로 <button data-jzchg="aft" data-jzno="'+joseoEsc(r.fullNo||r.name)+'" style="margin-left:8px;padding:2px 9px;border:1px solid #1565c0;background:#fff;color:#1565c0;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer">후측량 사진변경</button></div></div></div>'
+      +'<div class="jz-ph2"><div class="jz-pc">'+exp+'<div class="jz-cap" style="position:relative">실시간 측량점<button data-jzchg="exp" data-jzno="'+joseoEsc(r.fullNo||r.name)+'" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:2px 9px;border:1px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer">사진변경</button></div></div>'
+      +'<div class="jz-pc">'+aft+'<div class="jz-cap" style="position:relative">공사 후 관로<button data-jzchg="aft" data-jzno="'+joseoEsc(r.fullNo||r.name)+'" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:2px 9px;border:1px solid #1565c0;background:#fff;color:#1565c0;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer">사진변경</button></div></div></div>'
       +'</div>';
   });
   box.innerHTML=html;
