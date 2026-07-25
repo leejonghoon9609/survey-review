@@ -6032,9 +6032,10 @@ function renderSub(){
   var bdg=function(k){return k?' <span class="hk-badge" style="margin-left:4px">'+k+'</span>':'';};
   var vhtml='<button data-g="delall2" style="border:1px solid #c0392b;color:#c0392b;font-weight:700">🧹 지우기(통합)'+bdg(kbC)+'</button><button data-g="measure" style="border:1px solid #d32f2f;color:#d32f2f;font-weight:700"><span style="color:#f2b400">📏</span> 거리산출'+bdg(kbM)+'</button><button data-g="undo">← 되돌리기'+bdg(kbU)+'</button><button data-g="redo">다시 실행 →'+bdg(kbR)+'</button>'
       +'<span class="subhint">보기</span><button data-g="fit">전체</button>';
-  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)html='<button id="rtNewProj" style="font-size:14px;padding:8px 13px;border:1px solid #6e757f;border-radius:6px;background:#fff;color:#333;font-weight:700;cursor:pointer;margin-right:6px">사업등록</button>'+html+((state.rtDone&&state.rtDone.done)?'<button id="rtDoneBtn" style="font-size:14px;padding:8px 13px;border:1px solid #1d9e75;border-radius:6px;background:#e1f5ee;color:#0f6e56;font-weight:700;margin-right:6px">완료됨 ✓</button>':'<button id="rtDoneBtn" style="font-size:14px;padding:8px 13px;border:1px solid #c0392b;border-radius:6px;background:#fff;color:#c0392b;font-weight:700;cursor:pointer;margin-right:6px">실측완료</button>')+((typeof isMobileDevice==='function'&&isMobileDevice())?'':'<button id="rtDoneListBtn" style="font-size:14px;padding:8px 13px;border:1px solid #1d9e75;border-radius:6px;background:#fff;color:#1d9e75;font-weight:700;cursor:pointer;margin-right:6px">완료목록</button>');
+  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)html='<button id="rtNewProj" style="font-size:14px;padding:8px 13px;border:1px solid #6e757f;border-radius:6px;background:#fff;color:#333;font-weight:700;cursor:pointer;margin-right:6px">사업등록</button>'
+        +'<button id="rtImpDxf" style="font-size:14px;padding:8px 13px;border:1px solid #2471a3;border-radius:6px;background:#eef6fc;color:#2471a3;font-weight:700;cursor:pointer;margin-right:6px">\uD83D\uDCD0 \uACB0\uC120 \uCE21\uC810</button>'+html+((state.rtDone&&state.rtDone.done)?'<button id="rtDoneBtn" style="font-size:14px;padding:8px 13px;border:1px solid #1d9e75;border-radius:6px;background:#e1f5ee;color:#0f6e56;font-weight:700;margin-right:6px">완료됨 ✓</button>':'<button id="rtDoneBtn" style="font-size:14px;padding:8px 13px;border:1px solid #c0392b;border-radius:6px;background:#fff;color:#c0392b;font-weight:700;cursor:pointer;margin-right:6px">실측완료</button>')+((typeof isMobileDevice==='function'&&isMobileDevice())?'':'<button id="rtDoneListBtn" style="font-size:14px;padding:8px 13px;border:1px solid #1d9e75;border-radius:6px;background:#fff;color:#1d9e75;font-weight:700;cursor:pointer;margin-right:6px">완료목록</button>');
   s.innerHTML=html;
-  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){var _np=document.getElementById('rtNewProj');if(_np)_np.onclick=function(){if(typeof openRegModal==='function')openRegModal();};var _dn=document.getElementById('rtDoneBtn');if(_dn)_dn.onclick=function(){if(typeof rtOpenDoneModal==='function')rtOpenDoneModal();};var _dl=document.getElementById('rtDoneListBtn');if(_dl)_dl.onclick=function(){if(typeof rtOpenDoneList==='function')rtOpenDoneList();};}
+  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){var _np=document.getElementById('rtNewProj');if(_np)_np.onclick=function(){if(typeof openRegModal==='function')openRegModal();};var _idx=document.getElementById('rtImpDxf');if(_idx)_idx.onclick=function(){if(typeof rtImportSurveyDxf==='function')rtImportSurveyDxf();};var _dn=document.getElementById('rtDoneBtn');if(_dn)_dn.onclick=function(){if(typeof rtOpenDoneModal==='function')rtOpenDoneModal();};var _dl=document.getElementById('rtDoneListBtn');if(_dl)_dl.onclick=function(){if(typeof rtOpenDoneList==='function')rtOpenDoneList();};}
   if(c.k==='inspmk')wireInspmk(s);
   var gb=document.getElementById('globalbtns'); if(gb)gb.innerHTML=vhtml;
   c.tools.forEach(function(tool,i){if(tool.soon)return;var b=s.querySelector('button[data-i="'+i+'"]');if(!b)return;
@@ -8166,7 +8167,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1082] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1083] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -8881,6 +8882,156 @@ function mnPipeEditor(rec,wall){
   wrap.querySelector('#mnPClose').onclick=function(){wrap.remove();mnOpenForm(rec);};
   wrap.querySelector('#mnPDone').onclick=function(){mnPersistRec(rec,'관배치 저장됨');wrap.remove();mnOpenForm(rec);};
 }
+/* ===== [BUILD 1083] 실시간측량 — 결선 DXF에서 측점 자동 로드 =====
+   기준(ezdxf 실측): PO_num 좌표를 앵커로, 반경 0.25m 안의 텍스트 조합.
+   PO_좌표1 = "Y,X,관상고" / SDSIM_T = 심도 / SD_실측번호 = "번호:250624-3" (날짜-번호) */
+function rtDxfText(txt){
+  /* 지오메트리 없이 TEXT/MTEXT 만 빠르게 파싱 (레이어·문자·좌표) */
+  var lines=txt.split(/\r\n|\r|\n/);
+  var ents=[],i=0,N=lines.length;
+  function val(){return (i+1<N)?lines[i+1]:'';}
+  while(i<N){
+    var code=lines[i].trim();
+    if(code==='0'){
+      var typ=val();
+      if(typ==='TEXT'||typ==='MTEXT'){
+        var e={lay:'',x:0,y:0,s:''};var j=i+2;
+        while(j+1<N){
+          var c=lines[j].trim();
+          if(c==='0')break;
+          var v=lines[j+1];
+          if(c==='8')e.lay=v.trim();
+          else if(c==='10')e.x=parseFloat(v)||0;
+          else if(c==='20')e.y=parseFloat(v)||0;
+          else if(c==='1')e.s=v;              /* MTEXT 본문 */
+          else if(c==='3')e.s=(v)+e.s;        /* MTEXT 긴 본문 조각 */
+          j+=2;
+        }
+        e.s=String(e.s||'').replace(/\\[A-Za-z][^;]*;/g,'').replace(/[{}]/g,'').trim();
+        if(e.lay)ents.push(e);
+        i=j;continue;
+      }
+    }
+    i+=2;
+  }
+  return ents;
+}
+function rtParseSurveyDxf(txt){
+  var ents=rtDxfText(txt);
+  var byLay={};
+  ents.forEach(function(e){(byLay[e.lay]=byLay[e.lay]||[]).push(e);});
+  var anchors=byLay['PO_num']||[];
+  function near(x,y,arr,tol){
+    if(!arr)return null;var best=null,bd=tol*tol;
+    for(var k=0;k<arr.length;k++){var dx=arr[k].x-x,dy=arr[k].y-y,dd=dx*dx+dy*dy;if(dd<bd){bd=dd;best=arr[k];}}
+    return best;
+  }
+  var TOL=0.25, out=[];
+  anchors.forEach(function(a){
+    var c1=near(a.x,a.y,byLay['PO_\uc88c\ud45c1'],TOL);   /* PO_좌표1 */
+    if(!c1)c1=near(a.x,a.y,byLay['PO_\uc88c\ud45c'],TOL);
+    if(!c1)return;
+    var parts=(c1.s||'').split(',');
+    if(parts.length<2)return;
+    var Y=parseFloat(parts[0]), X=parseFloat(parts[1]);      /* PO좌표1 = Y,X,Z */
+    var Z=(parts.length>=3)?parseFloat(parts[2]):null;
+    if(!isFinite(X)||!isFinite(Y))return;
+    /* 심도 : SDSIM_T (성과심사 — 소수점 한자리) */
+    var simE=near(a.x,a.y,byLay['SDSIM_T'],TOL);
+    var depth=simE?parseFloat(simE.s):null;
+    /* 날짜-번호 : SD_실측번호 에서 (번호:250624-3) → 없으면 PO_DATE + PO_num */
+    var snE=near(a.x,a.y,byLay['SD_\uc2e4\uce21\ubc88\ud638'],TOL);
+    var dateNum='';
+    if(snE){var m=/(\d{6})\s*-\s*(\d+)/.exec(snE.s||'');if(m)dateNum=m[1]+'-'+m[2];}
+    if(!dateNum){
+      var dE=near(a.x,a.y,byLay['PO_DATE'],TOL);
+      var dd=dE?((dE.s||'').match(/\d{6}/)||[''])[0]:'';
+      var nn=(a.s||'').trim();
+      if(dd&&nn)dateNum=dd+'-'+nn;
+    }
+    if(!dateNum)return;                                       /* 날짜·번호 없으면 조서 불가 */
+    /* 관정보 : PO_code */
+    var cE=near(a.x,a.y,byLay['PO_code'],TOL);
+    var code=cE?(cE.s||'').trim():'';
+    out.push({no:dateNum, x:X, y:Y, z:(Z!=null&&isFinite(Z))?Z:null,
+              code:code, depth:(depth!=null&&isFinite(depth))?depth:null});
+  });
+  /* 날짜→번호 오름차순 */
+  out.sort(function(p,q){
+    var da=p.no.split('-')[0], db=q.no.split('-')[0];
+    if(da!==db)return da<db?-1:1;
+    return (parseInt(p.no.split('-')[1],10)||0)-(parseInt(q.no.split('-')[1],10)||0);
+  });
+  return out;
+}
+/* 미리보기 → 날짜별로 state.points 추가 (기존 중복 번호는 건너뜀) */
+function rtImportSurveyDxf(){
+  var inp=document.createElement('input');inp.type='file';inp.accept='.dxf';
+  inp.onchange=function(){
+    var f=inp.files&&inp.files[0];if(!f)return;
+    var rd=new FileReader();
+    rd.onload=function(){
+      var pts;
+      try{pts=rtParseSurveyDxf(String(rd.result||''));}catch(e){toast('DXF 분석 오류: '+e.message);return;}
+      if(!pts.length){toast('측점을 찾지 못했습니다 (PO_num/PO_좌표1 레이어 확인)');return;}
+      rtImportPreview(pts);
+    };
+    rd.readAsText(f);
+  };
+  inp.click();
+}
+function rtImportPreview(pts){
+  /* 날짜별 집계 */
+  var byDate={};pts.forEach(function(p){var d=p.no.split('-')[0];(byDate[d]=byDate[d]||[]).push(p);});
+  var dates=Object.keys(byDate).sort();
+  var haveNos={};(state.points||[]).forEach(function(p){if(p&&p.no)haveNos[p.no]=1;});
+  var old=document.getElementById('rtImpModal');if(old)old.remove();
+  var w=document.createElement('div');w.id='rtImpModal';
+  w.style.cssText='position:fixed;inset:0;background:rgba(20,26,36,.45);z-index:13500;display:flex;align-items:center;justify-content:center';
+  w.onmousedown=function(e){if(e.target===w)w.remove();};
+  var rowsHtml=dates.map(function(d){
+    var arr=byDate[d], dup=arr.filter(function(p){return haveNos[p.no];}).length;
+    var nw=arr.length-dup;
+    var dk='20'+d.slice(0,2)+'\uB144 '+(+d.slice(2,4))+'\uC6D4 '+(+d.slice(4,6))+'\uC77C';
+    return '<label style="display:flex;align-items:center;gap:9px;padding:9px 4px;border-bottom:1px solid #f0f3f7;cursor:pointer">'
+      +'<input type="checkbox" class="rtImpCk" data-d="'+d+'"'+(nw>0?' checked':'')+' style="width:16px;height:16px">'
+      +'<div style="flex:1"><div style="font-weight:800;color:#33415a;font-size:13.5px">'+dk+'</div>'
+      +'<div style="font-size:11.5px;color:#8a94a6">\uCE21\uC810 '+arr.length+'\uAC1C'+(dup?(' \u00B7 \uC774\uBBF8\uC788\uC74C '+dup):'')+(nw>0?(' \u00B7 \uCD94\uAC00 '+nw):'')+'</div></div></label>';
+  }).join('');
+  w.innerHTML='<div style="background:#fff;border-radius:12px;box-shadow:0 14px 44px rgba(0,0,0,.24);width:min(460px,93vw);max-height:82vh;display:flex;flex-direction:column;overflow:hidden">'
+    +'<div style="padding:14px 17px;border-bottom:1px solid #e9edf3"><div style="font-size:15px;font-weight:800;color:#33415a">\uACB0\uC120\uC5D0\uC11C \uCE21\uC810 \uBD88\uB7EC\uC624\uAE30</div>'
+    +'<div style="font-size:12px;color:#8a94a6;margin-top:3px">\uB0A0\uC9DC\uBCC4\uB85C \uCC3E\uC740 \uCE21\uC810\uC785\uB2C8\uB2E4. \uCD94\uAC00\uD560 \uB0A0\uC9DC\uB97C \uACE0\uB974\uC138\uC694.</div></div>'
+    +'<div style="padding:4px 15px 8px;overflow:auto">'+rowsHtml+'</div>'
+    +'<div style="padding:12px 15px;border-top:1px solid #e9edf3;display:flex;gap:8px">'
+    +'<button id="rtImpGo" style="flex:1;background:#1d9e75;border:0;color:#fff;border-radius:9px;padding:11px;font-size:14px;font-weight:800;cursor:pointer">\uC870\uC11C\uC5D0 \uCD94\uAC00</button>'
+    +'<button id="rtImpCx" style="background:#fff;border:1.5px solid #ddd;color:#555;border-radius:9px;padding:11px 16px;font-size:13.5px;font-weight:700;cursor:pointer">\uCDE8\uC18C</button></div></div>';
+  document.body.appendChild(w);
+  document.getElementById('rtImpCx').onclick=function(){w.remove();};
+  document.getElementById('rtImpGo').onclick=function(){
+    var pick={};[].forEach.call(w.querySelectorAll('.rtImpCk'),function(c){if(c.checked)pick[c.getAttribute('data-d')]=1;});
+    var add=0;
+    if(!state.points)state.points=[];
+    dates.forEach(function(d){
+      if(!pick[d])return;
+      byDate[d].forEach(function(p){
+        if(haveNos[p.no])return;
+        state.points.push({no:p.no, x:p.x, y:p.y, z:p.z,
+          code:p.code, depth:(p.depth!=null)?(+p.depth).toFixed(1):'',
+          src:'refdxf'});
+        haveNos[p.no]=1;add++;
+      });
+    });
+    w.remove();
+    if(add){
+      try{if(typeof pushHist==='function')pushHist();}catch(e){}
+      try{redrawAll();}catch(e){}
+      try{updMeta();}catch(e){}
+      try{if(typeof saveProject==='function')saveProject();}catch(e){}
+      toast('✓ 측점 '+add+'개 추가됨 — 사진조서에서 날짜별로 확인하세요');
+    }else toast('추가된 측점이 없습니다 (이미 있거나 미선택)');
+  };
+}
+
 /* ===================== 실시간 사진조서 (관로) ===================== */
 var JOSEO_TPL_URL = encodeURI('실시간조서_템플릿.xlsx');
 var _joseoTplBuf = null, joseoState = null;
@@ -8917,7 +9068,7 @@ function joseoRec(p){
     date: joseoDate(p.no), name: ptNum(p), fullNo: p.no,
     x: (p.y!=null&&p.y!=='')?(+p.y).toFixed(3):'',                              // X(N)=북=p.y
     y: (p.x!=null&&p.x!=='')?(+p.x).toFixed(3):'',                              // Y(E)=동=p.x
-    facility: biz.facility||'', mat: pc.mat, dia: pc.dia, gap:'직접측량', depth:'',
+    facility: biz.facility||'', mat: pc.mat, dia: pc.dia, gap:'직접측량', depth:(p.depth!=null&&p.depth!=='')?String(p.depth):'',
     expUrl: photoMap[p.no]||photoMap[ptNum(p)]||null,
     aftUrl: afterMap[p.no]||afterMap[ptNum(p)]||null,
     expBuf:null, aftBuf:null
