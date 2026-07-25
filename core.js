@@ -8167,7 +8167,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1087] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1088] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -10488,8 +10488,8 @@ function refApplyDxf(txt,name){
     /* 레이어바 UI 갱신 — 다음 틱에 반영되도록 */
     setTimeout(function(){
       try{
-        var _lw=document.getElementById('fldLayerWrap');
-        if(_lw&&typeof fldLayerBox==='function')_lw.innerHTML=fldLayerBox();
+        if(typeof fieldLayerBar==='function')fieldLayerBar();   /* [1088] 정식 마운트 함수로 재렌더 */
+        else{var _lw=document.getElementById('fldLayerWrap');if(_lw&&typeof fldLayerBox==='function')_lw.innerHTML=fldLayerBox();}
         if(typeof drawGeo==='function')drawGeo();
       }catch(_e2){}
     },0);

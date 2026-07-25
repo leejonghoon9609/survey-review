@@ -362,7 +362,7 @@
   header #fldCsv{order:15!important;display:inline-flex!important;margin-left:auto!important;background:#2563eb!important;border-color:#2563eb!important;color:#fff!important;font-weight:800!important;padding:8px 9px!important}
   header #fldManhole{order:16!important;display:inline-flex!important;background:#d32f2f!important;border-color:#d32f2f!important;color:#fff!important;font-weight:800!important;padding:8px 9px!important}
   /* 나머지 숨김 */
-  header #fldTrash,header #modeToggle,header #sysSwitch,header #roBadge,header #vRv,header #fldJoseo,header #proj,header #save,header #delProj,header #bpToggle,header #doneListBtn,header #doneSummary,header #asbuiltBtn,header #photoBtn,header #bgBtn,header #rvBtn,header #buildno,header #conn,header #tamsaBadge,header #globalbtns{display:none!important}
+  header #fldCrop,header #fldTrash,header #modeToggle,header #sysSwitch,header #roBadge,header #vRv,header #fldJoseo,header #proj,header #save,header #delProj,header #bpToggle,header #doneListBtn,header #doneSummary,header #asbuiltBtn,header #photoBtn,header #bgBtn,header #rvBtn,header #buildno,header #conn,header #tamsaBadge,header #globalbtns{display:none!important}
 }
 </style>
 </head>
@@ -389,6 +389,7 @@
       <button class="fbtn" id="fldManhole">맨홀도 제작</button>
       <button class="fbtn" id="fldRefLoad">📂 완료결선 업로드</button>
       <button class="fbtn" id="fldTerr">🗺 백판 꺼짐</button>
+      <button class="fbtn" id="fldCrop" title="드래그한 영역을 PNG로 저장" style="background:#fff3e0;border-color:#f0a94e;color:#e8710a;font-weight:700">✂ 영역 크롭</button>
       <button class="fbtn" id="fldImport" style="margin-left:auto">📥 완료성과목록</button>
       <button class="fbtn fbtn-final" id="fldFinal">📋 후측량 최종성과 등록</button>
     </div>
@@ -399,12 +400,11 @@
     <button id="bpToggle" class="wk" title="백판(수치지도) 표시/숨김">🗺 백판 ON</button>
     <button id="doneListBtn" class="wk" style="background:#eafaf0;color:#16a34a;border:1px solid #16a34a;font-weight:700">✅ 결선 완료사업</button>
     <span id="doneSummary" class="wk" style="display:none;color:#d32f2f;border:1px solid #d32f2f;background:#fff5f5;border-radius:7px;padding:3px 10px;font-size:12.5px;font-weight:800"></span>
-    <button id="fldCrop" class="wk" title="영역 크롭 (PNG 저장)" style="background:#fff3e0;color:#e8710a;border:1px solid #f0a94e;font-weight:700">✂ 영역 크롭</button>
     <button id="asbuiltBtn" class="wk" style="background:#eef2ff;color:#4f46e5;border:1px solid #7c83e8;font-weight:700">📐 준공도면</button>
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 1087</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 1088</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -567,6 +567,6 @@
     </div>
   </div>
 
-<script src="login.js?v=1087"></script><script src="core.js?v=1087"></script>
+<script src="login.js?v=1088"></script><script src="core.js?v=1088"></script>
 </body>
 </html>
