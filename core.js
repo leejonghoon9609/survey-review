@@ -738,11 +738,19 @@ function tbLayout(dxf){
   (state.points||[]).forEach(function(p){if(p&&p.x!=null&&p.y!=null){pxs.push(+p.x);pys.push(+p.y);}});
   (state.lines||[]).forEach(function(L){(L.pts||[]).forEach(function(p){pxs.push(p[0]);pys.push(p[1]);});});
   (state.manholes||[]).forEach(function(m){if(m&&m.wx!=null){pxs.push(+m.wx);pys.push(+m.wy);}});
-  if(!pxs.length)return null;
-  var ptW=Math.max(Math.max.apply(null,pxs)-Math.min.apply(null,pxs),10);
-  var axs=pxs.slice(), ays=pys.slice();
-  (state.baseTexts||[]).forEach(function(t){if(t&&t.x!=null&&t.y!=null){axs.push(+t.x);ays.push(+t.y);}});
-  var minX=Math.min.apply(null,axs),maxX=Math.max.apply(null,axs),maxY=Math.max.apply(null,ays);
+  /* [1089] 영역 크롭을 했으면 그 범위가 계 사업 영역 — 사업정보 박스도 거기 맞춰 크기·위치가 바뀜다 */
+  var _cb=(typeof refCropBox==='function')?refCropBox():null;
+  if(!pxs.length&&!_cb)return null;
+  var minX,maxX,maxY,ptW;
+  if(_cb){
+    minX=_cb[0];maxX=_cb[2];maxY=_cb[3];
+    ptW=Math.max(maxX-minX,10);
+  }else{
+    ptW=Math.max(Math.max.apply(null,pxs)-Math.min.apply(null,pxs),10);
+    var axs=pxs.slice(), ays=pys.slice();
+    (state.baseTexts||[]).forEach(function(t){if(t&&t.x!=null&&t.y!=null){axs.push(+t.x);ays.push(+t.y);}});
+    minX=Math.min.apply(null,axs);maxX=Math.max.apply(null,axs);maxY=Math.max.apply(null,ays);
+  }
   var bw=Math.max(maxX-minX,10);
   var th=ptW*0.020, dy=th*1.55, pad=th*1.0, nameH=th*1.4*0.85;
   var gsc=dxf?0.78:1.0, gh=th*gsc;
@@ -8168,7 +8176,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1089] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1090] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -10602,7 +10610,9 @@ function refCropStart(){
     state.refCrop=[x1,y1,x2,y2];
     try{if(typeof saveProject==='function')saveProject();}catch(e){}
     refCalcBox();refDraw();refCropBtn();
-    toast('✓ 결선 크롭 완료 — 다시 누르면 해제');
+    try{if(typeof drawGeo==='function')drawGeo();}catch(e){}    /* 사업정보 박스 재배치 */
+    try{if(typeof refFit==='function')refFit();}catch(e){}
+    toast('✓ 사업 영역 설정 완료 ('+Math.round(x2-x1)+'×'+Math.round(y2-y1)+'m)');
   });
 }
 function refCropClear(){
@@ -10613,11 +10623,12 @@ function refCropClear(){
   refCropBtn();
   toast('크롭 해제 — 결선 전체 표시');
 }
-function refCropToggle(){ if(refCropBox())refCropClear(); else refCropStart(); }
+function refCropToggle(){ refCropStart(); }   /* [1089] 해제 버튼 없음 — 다시 드래그하면 영역 교체 */
 function refCropBtn(){
   var b=document.getElementById('fldCrop');if(!b)return;
-  if(refCropBox()){b.textContent='✖ 크롭 해제';b.style.background='#fdeaea';b.style.borderColor='#e6a49d';b.style.color='#c0392b';}
-  else{b.textContent='✂ 영역 크롭';b.style.background='#fff3e0';b.style.borderColor='#f0a94e';b.style.color='#e8710a';}
+  b.textContent='✂ 영역 크롭';
+  b.style.background=refCropBox()?'#ffe0b2':'#fff3e0';
+  b.style.borderColor='#f0a94e';b.style.color='#e8710a';
 }
 function refFit(){
   if(!REF.ents)return;
