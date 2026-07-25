@@ -8979,7 +8979,10 @@ function rtStakesFromRef(){
     var snE=near(a.x,a.y,byLay['SD_\uc2e4\uce21\ubc88\ud638'],TOL);
     var dateNum='';
     if(snE){var m=/(\d{6})\s*-\s*(\d+)/.exec(snE.s||'');if(m)dateNum=m[1]+'-'+m[2];}
-    if(!dateNum){var dE=near(a.x,a.y,byLay['PO_DATE'],TOL);var dd=dE?((dE.s||'').match(/\d{6}/)||[''])[0]:'';var nn=(a.s||'').trim();if(dd&&nn)dateNum=dd+'-'+nn;}
+    /* [1120] SD_실측번호 있는 점만 조서 대상.
+       (예전에는 PO_DATE+PO_num 으로 날짜-번호를 합성했는데,
+       삭제된 측점의 남은 텍스트가 유령 측점이 되어
+       살아있는 번호와 키 충돌 → 조서 오연동 사고) */
     if(!dateNum)return;
     var cE=near(a.x,a.y,byLay['PO_code'],TOL);
     out.push({no:dateNum,x:X,y:Y,z:(Z!=null&&isFinite(Z))?Z:null,code:cE?(cE.s||'').trim():'',depth:(depth!=null&&isFinite(depth))?depth:null});
@@ -9010,17 +9013,11 @@ function rtParseSurveyDxf(txt){
     /* 심도 : SDSIM_T (성과심사 — 소수점 한자리) */
     var simE=near(a.x,a.y,byLay['SDSIM_T'],TOL);
     var depth=simE?parseFloat(simE.s):null;
-    /* 날짜-번호 : SD_실측번호 에서 (번호:250624-3) → 없으면 PO_DATE + PO_num */
+    /* 날짜-번호 : SD_실측번호 에서만 (번호:250624-3) — [1120] 폴백 제거 */
     var snE=near(a.x,a.y,byLay['SD_\uc2e4\uce21\ubc88\ud638'],TOL);
     var dateNum='';
     if(snE){var m=/(\d{6})\s*-\s*(\d+)/.exec(snE.s||'');if(m)dateNum=m[1]+'-'+m[2];}
-    if(!dateNum){
-      var dE=near(a.x,a.y,byLay['PO_DATE'],TOL);
-      var dd=dE?((dE.s||'').match(/\d{6}/)||[''])[0]:'';
-      var nn=(a.s||'').trim();
-      if(dd&&nn)dateNum=dd+'-'+nn;
-    }
-    if(!dateNum)return;                                       /* 날짜·번호 없으면 조서 불가 */
+    if(!dateNum)return;                                       /* [1120] SD_실측번호 없으면 조서 제외 */
     /* 관정보 : PO_code */
     var cE=near(a.x,a.y,byLay['PO_code'],TOL);
     var code=cE?(cE.s||'').trim():'';
@@ -11224,11 +11221,13 @@ function refJoseoZip(f,kind){
     });
     if(!items.length){refJoseoStat(kind,'인식된 사진 없음 (날짜폴더/번호.jpg)','#d32f2f');return;}
     /* 측점 존재 여부 */
+    /* [1120] 매칭 안 된 사진도 사업에 보관(업로드) —
+       조서에는 측점 있는 것만 표시되고, 보관분은 나중에 측점이 생기면 자동 연결 */
     var have={};(state.points||[]).forEach(function(p){if(p&&p.no)have[p.no]=1;});
-    var hit=items.filter(function(it){return have[it.no];});
-    var miss=items.length-hit.length;
-    refJoseoStat(kind,'총 '+items.length+'장 · 매칭 '+hit.length+(miss?(' · 측점없음 '+miss):''),'#2471a3');
-    if(!hit.length){toast('일치하는 측점이 없습니다 — 결선 측점을 먼저 불러오세요');return;}
+    var mat=0;items.forEach(function(it){if(have[it.no])mat++;});
+    var keepN=items.length-mat;
+    refJoseoStat(kind,'총 '+items.length+'장 · 측점매칭 '+mat+(keepN?(' · 보관 '+keepN):''),'#2471a3');
+    var hit=items, miss=0;
     var done=0,ok=0,fail=0;
     function step(){
       done++;
