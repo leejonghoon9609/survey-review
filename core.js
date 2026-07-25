@@ -9906,6 +9906,8 @@ document.getElementById('photoSel').addEventListener('change',function(e){if(e.t
 /* 도면에서 점 클릭 → 선택 (이동 모드) */
 cv.addEventListener('click',function(e){
   if(mode!=='pan'||labelDragging)return;
+  /* [1109] 맨홀 반경 안 클릭 = 맨홀 우선 (측점 40px 판정보다 먼저) */
+  if(typeof refMhClickAt==='function'&&refMhClickAt(e.clientX,e.clientY))return;
   var w=toWorld(e.clientX,e.clientY),r=cv.getBoundingClientRect(),wpp=vb.w/r.width;
   var nr=nearestPointWorld(w[0],w[1]);
   if(nr.p&&nr.d<40*wpp){
@@ -11092,7 +11094,16 @@ function refJoseoZip(f,kind){
       var parts=path.split('/').filter(function(s){return s;});
       var folder=(parts.length>=2)?parts[parts.length-2]:'';
       var dm=(folder.match(/(\d{6})/)||[])[1]||'';          /* 날짜 폴더 250624 */
-      var num=(nm.replace(/\.[^.]+$/,'').match(/(\d+)/)||[])[1]||'';
+      /* [1109] 파일명 형식 확장:
+         3.jpg / 측점3.jpg          -> 첫 숫자 묶음 (기존)
+         250624_3.jpg / 250624-3.jpg -> _ (또는 -) 뒤가 번호. 폴더에 날짜 없으면 앞 6자리를 날짜로
+         사진_12.jpg               -> 마지막 _ 뒤 숫자 */
+      var base=nm.replace(/\.[^.]+$/,'');
+      var num='';
+      var fm=base.match(/^(\d{6})[-_](\d+)$/);
+      if(fm){if(!dm)dm=fm[1];num=fm[2];}
+      else if(base.indexOf('_')>=0){num=(base.split('_').pop().match(/(\d+)/)||[])[1]||'';}
+      if(!num)num=(base.match(/(\d+)/)||[])[1]||'';
       if(!dm||!num){skip++;return;}
       items.push({no:dm+'-'+num, ent:ent});
     });
@@ -11304,6 +11315,25 @@ function refMhPick(ev,lab,rec){
   }catch(e){}
   refMhClick(lab,rec);
 }
+/* [1109] 캨버스 레벨 폴백 — 히트원(자식 click)이 클릭을 못 받아도
+   손가락 커서 반경(refMhHitR) 안 클릭이면 캨버스가 잡아 선택한다.
+   히트원이 받으면 stopPropagation 으로 여기 안 옴 — 이중 실행 없음 */
+function refMhClickAt(cx,cy){
+  try{
+    if(typeof REF==='undefined'||!REF.ents||!REF.on||!refMhShow||!REF.mh||!REF.mh.length)return false;
+    if(typeof mnUiOpen==='function'&&!mnUiOpen())return false;
+    var w=toWorld(cx,cy),wx=w[0],wy=-w[1];
+    var tol=Math.max(1.6,(typeof refMhHitR==='function')?refMhHitR(pxToWorld()):26*pxToWorld());
+    var best=null,bd=1e18;
+    (REF.mh||[]).forEach(function(m){if(!m||!m.label)return;var d=Math.hypot(m.x-wx,m.y-wy);if(d<bd){bd=d;best=m;}});
+    if(!best||bd>tol)return false;
+    var mm=refMhMatch(),ok={};
+    mm.matched.forEach(function(x){ok[refNormLab(x.mh.label)]=x.rec;});
+    refMhClick(best.label,ok[refNormLab(best.label)]);
+    return true;
+  }catch(e){}
+  return false;
+}
 function refDrawMh(){
   refMhClear();
   if(!REF.ents||!REF.on||!refMhShow||!REF.mh||!REF.mh.length)return;
@@ -11366,7 +11396,10 @@ function refNearMh(cx,cy){
   if(typeof toWorld!=='function')return false;
   var w;try{w=toWorld(cx,cy);}catch(e){return false;}
   var wx=w[0],wy=-w[1];
-  var tol=Math.max(1.6, 26*pxToWorld());   /* [1105] 항상 화면 26px (감도 상향) */
+  /* [1109] 판정 반경 = 히트원 반경(refMhHitR) — 확대 시 히트원이 46px까지 커지는데
+     예전에는 26px 고정이라 26~46px 구간 클릭이 팬 캡처에 먹혔다(함정 B).
+     손가락 커서 = 클릭 가능, 완전 동기화 */
+  var tol=Math.max(1.6, (typeof refMhHitR==='function')?refMhHitR(pxToWorld()):26*pxToWorld());
   for(var i=0;i<REF.mh.length;i++){
     var m=REF.mh[i];
     if(!m||!m.label)continue;
