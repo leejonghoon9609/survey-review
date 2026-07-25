@@ -8181,7 +8181,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1092] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1093] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -10509,9 +10509,10 @@ function refApplyDxf(txt,name){
   REF.raw=null;REF.ents=r.ents;REF.layers=r.layers;REF.blocks=r.blocks;
   REF.lgbox=refLegendBox(r.ents);
   REF.name=name||'ref.dxf';REF.on=true;
-  /* [1087] 결선 로딩 직후 레이어 체크바 전부 켜기 (localStorage 먼저 갱신 후 UI 재렌더) */
+  /* [1093] 결선 로딩 직후 레이어 체크바 전부 ‘꺼짐’ 으로 시작
+     (도면이 깔끔하게 보이도록 — 필요한 레이어만 켜서 본다) */
   try{
-    ['no','stake','code','depth','date','mh','riser','bizbox','dogak','bp','bpbox','photoDir','hyun'].forEach(function(k){LV[k]=1;});
+    ['no','stake','code','depth','date','mh','riser','bizbox','dogak','bp','bpbox','photoDir','tgseg','hyun'].forEach(function(k){LV[k]=0;});
     try{if(typeof LV_KEY!=='undefined')localStorage.setItem(LV_KEY,JSON.stringify(LV));}catch(_se){}
     if(typeof applyLayerVis==='function')applyLayerVis();
     /* 레이어바 UI 갱신 — 다음 틱에 반영되도록 */
