@@ -8185,7 +8185,7 @@ function mnOpenForm(rec){
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
                +'<rect x="439" y="767" width="258" height="186" fill="none" stroke="#c0392b" stroke-width="1.6"/>'
-               /* [BUILD 1100] 제목=왼쪽 / 버튼=오른쪽 정렬 */
+               /* [BUILD 1101] 제목=왼쪽 / 버튼=오른쪽 정렬 */
                +'<text x="441" y="763" text-anchor="start" font-size="13" font-weight="800" fill="#c0392b">설비 위치</text>'
                +(function(){
                   var RX=697,btn='',bx;
@@ -10953,7 +10953,7 @@ function refPhotoUpload(){
 
 /* ---------- 드롭박스 모달 ---------- */
 function refBox(id,icon,title,sub,accept,onfile){
-  return '<div id="'+id+'" data-acc="'+accept+'" style="flex:1;border:2px dashed #cbd5e1;border-radius:12px;padding:18px 10px;text-align:center;cursor:pointer;background:#fbfcfe;transition:.12s">'+
+  return '<div id="'+id+'" data-acc="'+accept+'" style="flex:1;border:2px dashed #cbd5e1;border-radius:12px;padding:30px 10px 26px;min-height:132px;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;text-align:center;cursor:pointer;background:#fbfcfe;transition:.12s">'+   /* [1101] 세로 비율 */
     '<div style="font-size:26px;line-height:1.1">'+icon+'</div>'+
     '<div style="font-size:13px;font-weight:800;color:#334155;margin-top:7px">'+title+'</div>'+
     '<div style="font-size:10.5px;color:#94a3b8;margin-top:4px;line-height:1.5">'+sub+'</div></div>';
@@ -11153,7 +11153,7 @@ function refOpen(){
     /* [1100] 완료 · 닫기 한 줄 (닫기는 좁게) */
     '<div style="display:flex;gap:8px;margin-top:12px">'+
       '<button id="refBok" style="flex:1;padding:11px;border:none;background:#1d9e75;color:#fff;border-radius:9px;font-size:13.5px;font-weight:800;cursor:pointer">\u2713 \uc644\ub8cc</button>'+
-      '<button id="refBx" style="flex:none;width:96px;padding:11px 8px;border:1px solid #ddd;background:#fff;color:#666;border-radius:9px;font-size:12.5px;font-weight:700;cursor:pointer">\ub2eb\uae30</button>'+
+      '<button id="refBx" style="flex:1;padding:11px 8px;border:1px solid #ddd;background:#fff;color:#666;border-radius:9px;font-size:13.5px;font-weight:700;cursor:pointer">\ub2eb\uae30</button>'+   /* [1101] 가로 동일 */
     '</div>';
   w.appendChild(b);document.body.appendChild(w);
   w.addEventListener('click',function(ev){if(ev.target===w)w.remove();});
@@ -11242,14 +11242,19 @@ function refDrawMh(){
     var sel=(REF_SEL&&key===REF_SEL);
     var col=sel?'#d100d1':(rec?'#00a651':'#e60000');
     var s=refSR(m.x,m.y);
-    /* [1098] 월드고정 1.0m 이라 축소하면 1px 로 줄어 클릭이 안 됐다 → 항상 화면 기준 */
-    var _mr=Math.max(1.0, 15*pxToWorld());
-    var c=el('circle',{cx:s[0],cy:s[1],r:sel?_mr*1.5:_mr,fill:col,'fill-opacity':sel?0.20:(rec?0.10:0.16),
-      stroke:col,'stroke-width':sel?3.6:2.4,'vector-effect':'non-scaling-stroke'});
-    c.style.cursor='pointer';
-    c.setAttribute('pointer-events','auto');
-    (function(lab,r0){c.addEventListener('click',function(ev){ev.stopPropagation();refMhClick(lab,r0);});})(m.label,rec);
-    g.appendChild(c);
+    /* [1101] 보이는 원은 예전 크기(월드 1.0m) 유지 · 단 화면 7px 미만으로는 안 줄어듦.
+       클릭은 별도 투명 원(항상 18px)이 받아 → 원은 작아도 잘 잡힌다 */
+    var _Up=pxToWorld();
+    var _mr=Math.max(7*_Up, Math.min(1.0, 40*_Up));
+    var _hr=Math.max(_mr, 18*_Up);
+    var c=el('circle',{cx:s[0],cy:s[1],r:sel?_mr*1.4:_mr,fill:col,'fill-opacity':sel?0.20:(rec?0.10:0.16),
+      stroke:col,'stroke-width':sel?3.4:2.2,'vector-effect':'non-scaling-stroke'});
+    c.setAttribute('pointer-events','none');
+    var ch=el('circle',{cx:s[0],cy:s[1],r:_hr,fill:'transparent'});
+    ch.style.cursor='pointer';
+    ch.setAttribute('pointer-events','auto');
+    (function(lab,r0){ch.addEventListener('click',function(ev){ev.stopPropagation();refMhClick(lab,r0);});})(m.label,rec);
+    g.appendChild(c);g.appendChild(ch);   /* [1101] 보이는 원 + 투명 클릭원 */
   });
 }
 /* [BUILD 1045] pan 모드 pointerdown 이 cv.setPointerCapture 를 걸면
