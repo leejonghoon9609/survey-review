@@ -9936,7 +9936,7 @@ function highlightSel(){clearSvg(gSel);if(selNum==null)return;
   var p=pointByNo(selNum);if(!p&&state.gpsPts){for(var _gi=0;_gi<state.gpsPts.length;_gi++){if(state.gpsPts[_gi].no===selNum){
     var _gg=state.gpsPts[_gi],_ggs=S(_gg.x,_gg.y);
     /* [1132] 초록 원 + 중심 얇은 X — 확대 시 어느 점인지 보이게 (field 빨간원과 동일 방식, 로컬원점 그룹) */
-    var _gr=2.4,_gxr=_gr*0.7071;
+    var _gr=Math.max(0.4,14*((typeof pxToWorld==='function')?pxToWorld():0.05)),_gxr=_gr*0.7071;   /* [1133] 화면 14px 기준 (폰 화면에 맞게 축소) */
     var _gsg=document.createElementNS(SVGNS,'g');
     var _gsx=Math.round(_ggs[0]),_gsy=Math.round(_ggs[1]);
     _gsg.setAttribute('transform','translate('+_gsx+','+_gsy+')');
