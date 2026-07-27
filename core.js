@@ -10065,7 +10065,7 @@ function rtBoardNameEdit(done){
   var ov=document.createElement('div');ov.id='rtBnOv';
   var _mob=(typeof isMobileDevice==='function'&&isMobileDevice());
   /* [1148] 폰: 키보드가 올라와도 안 가려지게 상단 배치 */
-  ov.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(15,20,30,.5);z-index:100001;display:flex;justify-content:center;'+(_mob?'align-items:flex-start;padding-top:9dvh':'align-items:center');
+  ov.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(15,20,30,.5);z-index:100001;display:flex;justify-content:center;'+(_mob?'align-items:flex-start;padding-top:16dvh':'align-items:center');
   var card=document.createElement('div');
   card.style.cssText='background:#fff;border-radius:14px;width:min(320px,90vw);padding:18px 20px;box-shadow:0 20px 60px rgba(0,0,0,.35)';
   card.innerHTML='<div style="font-weight:800;font-size:15px;margin-bottom:4px">현황판 사업명</div>'
