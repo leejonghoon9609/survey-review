@@ -10423,13 +10423,13 @@ try{
 /* ===== [BUILD 815] 실시간측량 측점 촬영 (날짜 자동 + 번호 자동제안·수정가능) ===== */
 function rtToday(){var d=new Date();function p(n){return('0'+n).slice(-2);}return String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate());}function rtWorkDay(){var d=new Date();var real=rtToday();var tm=d.getHours()*60+d.getMinutes();var ns=state.nightShift;var work=(ns&&ns.on&&ns.cut!=null&&tm<ns.cut)?prevDayYMD(real):real;return {real:real,work:work,tm:tm};}
 function rtNextNo(day){var mx=0;var re=new RegExp('^'+day+'-(\\d+)$');try{Object.keys((typeof photoMap!=='undefined'&&photoMap)?photoMap:{}).forEach(function(k){var m=re.exec(k);if(m)mx=Math.max(mx,parseInt(m[1],10));});}catch(e){}(state.points||[]).forEach(function(p){var m=re.exec(p.no||'');if(m)mx=Math.max(mx,parseInt(m[1],10));});return mx+1;}
-var rtPendingNo=null;var rtPendingMeta=null;
+var rtPendingNo=null;var rtPendingMeta=null;var rtPendingReshoot=false;   /* [1145] 재촬영=사진만 교체, 위치 불변 */
 function rtCapture(){
   if(typeof online!=='undefined'&&!online){toast('로컬 모드 — 사진 저장 불가');return;}
   if(!state.projectId){toast('먼저 "저장"으로 사업을 저장한 뒤 촬영하세요');return;}
   var _wi=rtWorkDay();var day=_wi.work;var sug=rtNextNo(day);
   rtShowNumPopup(day,String(sug),function(num){
-    rtPendingNo=day+'-'+num;rtPendingMeta={_d0:_wi.real,_tm:_wi.tm,_nm:num};
+    rtPendingNo=day+'-'+num;rtPendingMeta={_d0:_wi.real,_tm:_wi.tm,_nm:num};rtPendingReshoot=false;
     var inp=document.getElementById('rtCamInput');if(inp){inp.value='';inp.click();}
   });
 }
@@ -10462,7 +10462,14 @@ function rtShowNumPopup(day,sug,onOk){
 function rtCamPicked(inp){
   var f=inp&&inp.files&&inp.files[0];if(!f||!rtPendingNo)return;
   var no=rtPendingNo;rtPendingNo=null;
-  if(navigator.geolocation){rtGetLoc(no);}else{toast('⚠ 이 브라우저는 위치 미지원');}
+  var _reshoot=rtPendingReshoot;rtPendingReshoot=false;
+  var _hasCsv=(typeof pointByNo==='function')&&!!pointByNo(no);
+  /* [1145] 재촬영 = 사진만 교체(위치 불변). CSV 좌표가 이미 있는 번호도 GPS 수집 안 함.
+     (예전에는 무조건 GPS를 받아 같은 번호 파란점을 폰 위치에 만들고
+      화면까지 끌고 가서, 재진입 전까지 측점이 사진 위치로 보이던 문제) */
+  if(_reshoot||_hasCsv){rtPendingMeta=null;}
+  else if(navigator.geolocation){rtGetLoc(no);}
+  else{toast('⚠ 이 브라우저는 위치 미지원');}
   toast('측점 '+no+' 사진 업로드 중…');
   compressImage(f,1600,0.8).then(function(blob){
     var path=state.projectId+'/'+safeName(no)+'.jpg';
@@ -10578,7 +10585,7 @@ function rtRecapture(){
   if(typeof online!=='undefined'&&!online){toast('로컬 모드 — 사진 저장 불가');return;}
   if(!state.projectId){toast('먼저 "저장"으로 사업을 저장한 뒤 촬영하세요');return;}
   if(!confirm('측점 '+selNum+' 사진을 다시 촬영할까요? (기존 사진 덮어씀)'))return;
-  rtPendingNo=String(selNum);
+  rtPendingNo=String(selNum);rtPendingReshoot=true;
   var inp=document.getElementById('rtCamInput');if(inp){inp.value='';inp.click();}
 }
 /* ===== 삭제/재촬영 끝 ===== */
