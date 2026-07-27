@@ -10032,10 +10032,64 @@ function rtBoardURL(no,url,cb,pos,nocache){
   img.onerror=function(){cb(null);};
   img.src=url;
 }
+/* [1147] 사업명 자동 간추림 — [태그]·연도·꼬리 상용구 제거,
+   공백제외 13자 초과 시 앞 대표지역 제거, 그래도 초과면 13자 절단 */
+function rtShortName(s){
+  s=String(s||'').replace(/_S$/,'');
+  s=s.replace(/\[[^\]]*\]/g,' ');
+  s=s.replace(/\d{2,4}\s*년/g,' ');
+  s=s.replace(/\([^)]*\)/g,' ');
+  var TAIL=['원인자 관로공사','원인자관로공사','원인자 공사','원인자공사','지중화 공사','지중화공사','관로공사','관로 공사','신축사업','신축공사','신축 공사','이설공사','이설 공사','공사'];
+  var chg=true;
+  while(chg){chg=false;s=s.replace(/\s+/g,' ').trim();
+    for(var i=0;i<TAIL.length;i++){var w=TAIL[i];
+      if(s.length>w.length&&s.slice(-w.length)===w){s=s.slice(0,-w.length).trim();chg=true;break;}}}
+  function nsp(x){return x.replace(/\s/g,'').length;}
+  if(nsp(s)>13){
+    var parts=s.split(' ');
+    if(parts.length>1&&(/^(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)/.test(parts[0])||nsp(parts[0])<=4)){
+      parts.shift();s=parts.join(' ');
+    }
+  }
+  if(nsp(s)>13){
+    var out='',c=0;
+    for(var k=0;k<s.length;k++){var ch=s.charAt(k);if(!/\s/.test(ch))c++;out+=ch;if(c>=13)break;}
+    s=out.trim();
+  }
+  return s;
+}
+/* [1147] 현황판 1초 길게 누르기 → 사업명 수정창. 비우면 자동 간추림 */
+function rtBoardNameEdit(done){
+  var old=document.getElementById('rtBnOv');if(old)old.remove();
+  var cur=(state.rtBoardName&&String(state.rtBoardName))||rtShortName(state.projectName||'');
+  var ov=document.createElement('div');ov.id='rtBnOv';
+  ov.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(15,20,30,.5);z-index:100001;display:flex;align-items:center;justify-content:center';
+  var card=document.createElement('div');
+  card.style.cssText='background:#fff;border-radius:14px;width:min(320px,90vw);padding:18px 20px;box-shadow:0 20px 60px rgba(0,0,0,.35)';
+  card.innerHTML='<div style="font-weight:800;font-size:15px;margin-bottom:4px">현황판 사업명</div>'
+    +'<div style="font-size:11.5px;color:#94a3b8;margin-bottom:10px">비우면 자동 간추림 사용 · 공백제외 13자 권장</div>'
+    +'<input id="rtBnInp" type="text" value="'+cur.replace(/"/g,'&quot;')+'" style="width:100%;box-sizing:border-box;font-size:15px;font-weight:700;padding:9px 10px;border:1.5px solid #cbd5e1;border-radius:9px;outline:none;margin-bottom:12px">'
+    +'<div style="display:flex;gap:8px"><button id="rtBnOk" style="flex:2;padding:10px;border:0;background:#12b312;color:#fff;border-radius:9px;font-weight:800;cursor:pointer">확인</button><button id="rtBnX" style="flex:1;padding:10px;border:1px solid #ddd;background:#f6f7f8;border-radius:9px;cursor:pointer">취소</button></div>';
+  ov.appendChild(card);document.body.appendChild(ov);
+  var inp=document.getElementById('rtBnInp');setTimeout(function(){try{inp.focus();inp.select();}catch(e){}},50);
+  function close(){ov.remove();}
+  document.getElementById('rtBnX').onclick=close;
+  ov.addEventListener('click',function(e){if(e.target===ov)close();});
+  document.getElementById('rtBnOk').onclick=function(){
+    var v=(inp.value||'').trim();
+    if(v)state.rtBoardName=v;else delete state.rtBoardName;
+    close();
+    _rtBoardCache={};
+    try{if(typeof saveProject==='function')saveProject();}catch(e){}
+    if(done)done();
+    toast('현황판 사업명 적용됨');
+  };
+  inp.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('rtBnOk').click();}else if(e.key==='Escape')close();};
+}
 /* [1142] 표 그리기 공용 — 표시(canvas 직접)와 다운로드(rtBoardURL)가 같이 쓴다 */
 function rtBoardTable(cx,W,H,pos,no){
   var pp=(typeof pointByNo==='function')?pointByNo(no):null;
-  var name=String(state.projectName||'').replace(/_S$/,'');
+  var name=(state.rtBoardName&&String(state.rtBoardName).trim())||rtShortName(state.projectName||'');   /* [1147] */
   var num=String(no).split('-').pop();
   var code=pp?String(pp.code||'').trim():'';
   var d6=String(no).slice(0,6);
@@ -10170,7 +10224,25 @@ function refreshPhotoPanel(){
           try{cvb.setPointerCapture(e.pointerId);}catch(_e){}
           cvb.style.cursor='grabbing';
           var ox=px-bxp, oy=py-byp, raf=0, live=cur;
+          /* [1147] 1초 길게 누르기(8px 이내 정지) = 사업명 수정창 / 움직이면 드래그 */
+          var _sx0=e.clientX,_sy0=e.clientY,_moved=false;
+          function _cleanup(){
+            cvb.removeEventListener('pointermove',mv);
+            cvb.removeEventListener('pointerup',up);
+            cvb.removeEventListener('pointercancel',up);
+            cvb.style.cursor='grab';
+          }
+          var _lp=setTimeout(function(){_lp=null;
+            if(_moved)return;
+            _cleanup();
+            rtBoardNameEdit(function(){draw(curPos());});
+          },1000);
           function mv(ev){
+            if(!_moved&&Math.hypot(ev.clientX-_sx0,ev.clientY-_sy0)>8){
+              _moved=true;
+              if(_lp){clearTimeout(_lp);_lp=null;}
+            }
+            if(!_moved)return;   /* 롭프레스 대기 중에는 표 안 끌림 */
             var M2=_imMap(cvb);
             var nx=(ev.clientX-M2.ox)/M2.sc-ox, ny=(ev.clientY-M2.oy)/M2.sc-oy;
             nx=Math.max(0,Math.min(W-g.bw,nx));ny=Math.max(0,Math.min(H-g.bh,ny));
@@ -10178,10 +10250,9 @@ function refreshPhotoPanel(){
             if(!raf){raf=requestAnimationFrame(function(){raf=0;draw(live);});}
           }
           function up(){
-            cvb.removeEventListener('pointermove',mv);
-            cvb.removeEventListener('pointerup',up);
-            cvb.removeEventListener('pointercancel',up);
-            cvb.style.cursor='grab';
+            if(_lp){clearTimeout(_lp);_lp=null;}
+            _cleanup();
+            if(!_moved)return;   /* 짧은 탭 = 아무것도 안 함 */
             state.rtBoardPos=state.rtBoardPos||{};state.rtBoardPos[_no]=live;
             draw(live);
             try{if(typeof saveProject==='function')saveProject();}catch(_e){}
