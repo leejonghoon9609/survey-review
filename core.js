@@ -9933,11 +9933,10 @@ function neighborsOf(sel){var selP=pointByNo(sel),up=null,down=null;if(!selP)ret
   return {up:up,down:down};}
 function highlightSel(){clearSvg(gSel);if(selNum==null)return;
   /* [1131] 파란 GPS점 초록 원은 조서와 무관 — 조서 가드보다 먼저 처리(실시간측량엔 조서 없음) */
-  var p=pointByNo(selNum);if(!p&&state.gpsPts){for(var _gi=0;_gi<state.gpsPts.length;_gi++){if(state.gpsPts[_gi].no===selNum){
-    var _gg=state.gpsPts[_gi],_ggs=S(_gg.x,_gg.y);
-    /* [1132] 초록 원 + 중심 얇은 X — 확대 시 어느 점인지 보이게 (field 빨간원과 동일 방식, 로컬원점 그룹) */
-    /* [1134] 최소 = 파란점(r0.5m)의 1.6배 — 파란점을 확실히 감싸고, 멀리서는 화면 14px 보장 */
-    var _gr=Math.max(0.95,16*((typeof pxToWorld==='function')?pxToWorld():0.05)),_gxr=_gr*0.7071;   /* [1135] 조금 더 크게 (1.6배→1.9배, 14→16px) */
+  /* [1146] 초록 원+중심X 공용 헬퍼 — GPS 파란점과 실시간 CSV 측점 양쪽에서 사용 */
+  function _greenSel(wx,wy){
+    var _ggs=S(wx,wy);
+    var _gr=Math.max(0.95,16*((typeof pxToWorld==='function')?pxToWorld():0.05)),_gxr=_gr*0.7071;
     var _gsg=document.createElementNS(SVGNS,'g');
     var _gsx=Math.round(_ggs[0]),_gsy=Math.round(_ggs[1]);
     _gsg.setAttribute('transform','translate('+_gsx+','+_gsy+')');
@@ -9945,7 +9944,12 @@ function highlightSel(){clearSvg(gSel);if(selNum==null)return;
     _gsg.appendChild(el('circle',{cx:_glx,cy:_gly,r:_gr,fill:'none',stroke:'#12b312','stroke-width':3.4,'stroke-dasharray':'5 3','vector-effect':'non-scaling-stroke'}));
     _gsg.appendChild(el('line',{x1:_glx-_gxr,y1:_gly-_gxr,x2:_glx+_gxr,y2:_gly+_gxr,stroke:'#12b312','stroke-width':0.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     _gsg.appendChild(el('line',{x1:_glx-_gxr,y1:_gly+_gxr,x2:_glx+_gxr,y2:_gly-_gxr,stroke:'#12b312','stroke-width':0.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-    gSel.appendChild(_gsg);return;}}}
+    gSel.appendChild(_gsg);
+  }
+  var p=pointByNo(selNum);
+  if(!p&&state.gpsPts){for(var _gi=0;_gi<state.gpsPts.length;_gi++){if(state.gpsPts[_gi].no===selNum){_greenSel(state.gpsPts[_gi].x,state.gpsPts[_gi].y);return;}}}
+  /* [1146] 실시간측량: CSV 측점도 초록 원+X (조서 가드 적용 안 받음 — 이 공정엔 조서 없음) */
+  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){if(p)_greenSel(p.x,p.y);return;}
   if(typeof joseoUiOpen==='function'&&!joseoUiOpen())return;   /* [1094] 조서 꺼지면 CSV측점 선택표시 꺼짐(field 전용) */
   if(!p)return;
   var nbs=neighborsOf(selNum);
