@@ -10073,9 +10073,19 @@ function rtViewZoom(img,opts){
   img.style.transformOrigin='center center';img.style.willChange='transform';img.style.touchAction='auto';   /* [1140] 초기 스크롤 허용 */
   img.addEventListener('wheel',function(e){e.preventDefault();var k=(e.deltaY<0)?1.2:1/1.2;z.s=Math.max(1,Math.min(6,z.s*k));if(z.s===1){z.tx=0;z.ty=0;}ap();},{passive:false});
   img.addEventListener('dblclick',function(e){e.preventDefault();z.s=1;z.tx=0;z.ty=0;ap();});
-  var pts={},pinch=null,pan=null;
+  var pts={},pinch=null,pan=null,gest={board:false};
+  /* [1143] 브라우저 스크롤 가로채기 차단 — 두손가락/확대상태/표드래그 중에만.
+     (가로채지면 pointercancel이 날아와 핑치·표드래그가 뚝 끊기던 원인)
+     배율1 한손가락 세로 스크롤은 그대로 살아있음 */
+  img.addEventListener('touchstart',function(e){if(e.touches.length>=2||gest.board)e.preventDefault();},{passive:false});
+  img.addEventListener('touchmove',function(e){if(e.touches.length>=2||z.s>1||gest.board)e.preventDefault();},{passive:false});
   img.addEventListener('pointerdown',function(e){
-    if(opts&&opts.tryBoard&&opts.tryBoard(e))return;   /* 현황판 표 안 = 표 이동 우선 */
+    if(opts&&opts.tryBoard&&opts.tryBoard(e)){
+      gest.board=true;
+      var _clr=function(){gest.board=false;img.removeEventListener('pointerup',_clr);img.removeEventListener('pointercancel',_clr);};
+      img.addEventListener('pointerup',_clr);img.addEventListener('pointercancel',_clr);
+      return;
+    }
     /* [1140] 배율1 + 첫 손가락 = 이미지가 안 잡음 → 부모 세로 스크롤 그대로.
        단, 둘째 손가락(핑치)는 배율 무관 잡아 확대 진입 */
     var _cnt=Object.keys(pts).length;
@@ -10085,7 +10095,8 @@ function rtViewZoom(img,opts){
     if(ids.length===2){
       var a=pts[ids[0]],b=pts[ids[1]];
       pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,s:z.s};pan=null;
-      e.preventDefault();try{img.setPointerCapture(e.pointerId);}catch(_e){}
+      e.preventDefault();
+      try{img.setPointerCapture(+ids[0]);img.setPointerCapture(+ids[1]);}catch(_e){}   /* [1143] 두 포인터 모두 캐처 */
     }else if(ids.length===1){
       if(z.s<=1){delete pts[e.pointerId];return;}   /* 혹시 모를 배율1 잔여 방어 */
       pan={x:e.clientX-z.tx,y:e.clientY-z.ty};
