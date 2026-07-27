@@ -395,6 +395,12 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   .php-body{padding:6px!important;gap:6px!important}
   .php-main .cap,.php-sub .cap{padding:3px 9px!important;font-size:11px!important}
   .php-main .cap{font-size:12px!important}
+  /* [1138] 원본+현황판 반갈림 방지 — flex 분할 대신 세로 흐름+스크롤,
+     각 사진은 예전 한 장 크기(패널 높이) 그대로 */
+  .php-body{display:block!important;overflow-y:auto!important}
+  .php-main{flex:none!important;min-height:0!important;margin-bottom:10px!important;display:block!important}
+  .php-main .zoomwrap,.php-main .ph{height:calc(40vh - 64px)!important;max-height:none!important;width:100%!important}
+  .php-main .zoomwrap .ph{height:100%!important}
 }
 
 /* ===== [BUILD 825] 실시간 사진패널 헤더 한 줄 ===== */
@@ -443,7 +449,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 1137</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 1138</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -696,6 +702,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=1137"></script><script src="core.js?v=1137"></script>
+<script src="login.js?v=1138"></script><script src="core.js?v=1138"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
