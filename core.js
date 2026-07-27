@@ -10013,44 +10013,13 @@ function rtBoardURL(no,url,cb,pos,nocache){
   if(!url){cb(null);return;}
   var key=String(no)+'|'+url+'|'+(pos?(pos.fx.toFixed(3)+','+pos.fy.toFixed(3)):'def');
   if(!nocache&&_rtBoardCache[key]){cb(_rtBoardCache[key]);return;}
-  var pp=(typeof pointByNo==='function')?pointByNo(no):null;
   var img=new Image();img.crossOrigin='anonymous';
   img.onload=function(){
     try{
       var W=img.naturalWidth,H=img.naturalHeight;
       var cv2=document.createElement('canvas');cv2.width=W;cv2.height=H;
       var cx=cv2.getContext('2d');cx.drawImage(img,0,0);
-      var name=String(state.projectName||'').replace(/_S$/,'');
-      var num=String(no).split('-').pop();
-      var code=pp?String(pp.code||'').trim():'';
-      var d6=String(no).slice(0,6);
-      var date=/^\d{6}$/.test(d6)?('20'+d6.slice(0,2)+'.'+d6.slice(2,4)+'.'+d6.slice(4,6)):'';
-      var rows=[['공사명',name],['번 호',num],['관 경',code],['날 짜',date]];
-      var g=rtBoardGeom(W,H);
-      var bw=g.bw, rh=g.rh, lw=g.lw;
-      var x0=pos?Math.round(pos.fx*W):0;
-      var y0=pos?Math.round(pos.fy*H):(H-rh*4);
-      x0=Math.max(0,Math.min(W-bw,x0));y0=Math.max(0,Math.min(H-rh*4,y0));
-      var pad=Math.round(rh*0.28);
-      cx.fillStyle='#fff';cx.fillRect(x0,y0,bw,rh*4);
-      cx.strokeStyle='#000';cx.lineWidth=Math.max(2,Math.round(H*0.0018));
-      cx.textBaseline='middle';
-      function fitText(s,maxW,baseF){
-        var f=baseF;
-        cx.font='700 '+f+'px sans-serif';
-        while(f>8&&cx.measureText(s).width>maxW){f--;cx.font='700 '+f+'px sans-serif';}
-      }
-      var baseF=Math.round(rh*0.52);
-      for(var i=0;i<4;i++){
-        var yy=y0+rh*i;
-        cx.strokeRect(x0,yy,lw,rh);
-        cx.strokeRect(x0+lw,yy,bw-lw,rh);
-        cx.fillStyle='#000';
-        fitText(rows[i][0],lw-pad*2,baseF);
-        cx.fillText(rows[i][0],x0+pad,yy+rh/2);
-        fitText(rows[i][1],bw-lw-pad*2,baseF);
-        cx.fillText(rows[i][1],x0+lw+pad,yy+rh/2);
-      }
+      rtBoardTable(cx,W,H,pos,no);
       var du=cv2.toDataURL('image/jpeg',0.9);
       if(!nocache)_rtBoardCache[key]=du;
       cb(du);
@@ -10059,8 +10028,43 @@ function rtBoardURL(no,url,cb,pos,nocache){
   img.onerror=function(){cb(null);};
   img.src=url;
 }
+/* [1142] 표 그리기 공용 — 표시(canvas 직접)와 다운로드(rtBoardURL)가 같이 쓴다 */
+function rtBoardTable(cx,W,H,pos,no){
+  var pp=(typeof pointByNo==='function')?pointByNo(no):null;
+  var name=String(state.projectName||'').replace(/_S$/,'');
+  var num=String(no).split('-').pop();
+  var code=pp?String(pp.code||'').trim():'';
+  var d6=String(no).slice(0,6);
+  var date=/^\d{6}$/.test(d6)?('20'+d6.slice(0,2)+'.'+d6.slice(2,4)+'.'+d6.slice(4,6)):'';
+  var rows=[['공사명',name],['번 호',num],['관 경',code],['날 짜',date]];
+  var g=rtBoardGeom(W,H);
+  var bw=g.bw, rh=g.rh, lw=g.lw;
+  var x0=pos?Math.round(pos.fx*W):0;
+  var y0=pos?Math.round(pos.fy*H):(H-rh*4);
+  x0=Math.max(0,Math.min(W-bw,x0));y0=Math.max(0,Math.min(H-rh*4,y0));
+  var pad=Math.round(rh*0.28);
+  cx.fillStyle='#fff';cx.fillRect(x0,y0,bw,rh*4);
+  cx.strokeStyle='#000';cx.lineWidth=Math.max(2,Math.round(H*0.0018));
+  cx.textBaseline='middle';
+  function fitText(s,maxW,baseF){
+    var f=baseF;
+    cx.font='700 '+f+'px sans-serif';
+    while(f>8&&cx.measureText(s).width>maxW){f--;cx.font='700 '+f+'px sans-serif';}
+  }
+  var baseF=Math.round(rh*0.52);
+  for(var i=0;i<4;i++){
+    var yy=y0+rh*i;
+    cx.strokeRect(x0,yy,lw,rh);
+    cx.strokeRect(x0+lw,yy,bw-lw,rh);
+    cx.fillStyle='#000';
+    fitText(rows[i][0],lw-pad*2,baseF);
+    cx.fillText(rows[i][0],x0+pad,yy+rh/2);
+    fitText(rows[i][1],bw-lw-pad*2,baseF);
+    cx.fillText(rows[i][1],x0+lw+pad,yy+rh/2);
+  }
+}
 /* [1139] object-fit:contain 레터박스 보정 — 화면좌표 ↔ 원본픽셀 매핑 */
-function _imMap(im){var r=im.getBoundingClientRect(),W=im.naturalWidth,H=im.naturalHeight;var sc=Math.min(r.width/W,r.height/H)||1;return {r:r,W:W,H:H,sc:sc,ox:r.left+(r.width-W*sc)/2,oy:r.top+(r.height-H*sc)/2};}
+function _imMap(im){var r=im.getBoundingClientRect(),W=im.naturalWidth||im.width,H=im.naturalHeight||im.height;var sc=Math.min(r.width/W,r.height/H)||1;return {r:r,W:W,H:H,sc:sc,ox:r.left+(r.width-W*sc)/2,oy:r.top+(r.height-H*sc)/2};}
 /* [1139] 실시간측량 사진 뷰어 — PC:휠확대+드래그이동 / 폰:두손가락핑치+한손가락이동(확대상태) / 더블클릭 리셋.
    배율 1에선 폰 세로 스크롤 유지(현황판으로 내려가야 하므로). tryBoard=현황판 표 이동 우선 */
 function rtViewZoom(img,opts){
@@ -10095,7 +10099,7 @@ function rtViewZoom(img,opts){
     if(pinch&&ids.length>=2){
       var a=pts[ids[0]],b=pts[ids[1]];
       var d=Math.hypot(a[0]-b[0],a[1]-b[1])||1;
-      z.s=Math.max(1,Math.min(6,pinch.s*Math.pow(d/pinch.d,1.6)));   /* [1141] 핑치 감도 상향(1.0->1.6승) */
+      z.s=Math.max(1,Math.min(6,pinch.s*Math.pow(d/pinch.d,2.0)));   /* [1142] 핑치 감도 2.0승 */
       if(z.s===1){z.tx=0;z.ty=0;}
       ap();
     }else if(pan){z.tx=e.clientX-pan.x;z.ty=e.clientY-pan.y;ap();}
@@ -10127,49 +10131,55 @@ function refreshPhotoPanel(){
     /* [1139] 원본에도 뷰어 제스처 (기존 setupZoom 대신) — id 변경으로 이중배선 방지 */
     (function(){var zi=document.getElementById('zoomImg');if(zi){zi.id='rtOrigImg';rtViewZoom(zi);}})();
     if(_bu){(function(_no,_u){
-      var _pos=(state.rtBoardPos&&state.rtBoardPos[_no])||null;
-      rtBoardURL(_no,_u,function(du){
-        var bx=document.getElementById('rtBoardBox');if(!bx)return;
-        if(!du){bx.textContent='현황판 생성 실패';return;}
-        var im=document.createElement('img');im.className='ph';im.alt='';im.src=du;
-        im.style.cursor='grab';im.title='현황판 표를 잡고 끌면 이동';
-        bx.parentNode.replaceChild(im,bx);
-        /* [1139] 표 이동 — contain 레터박스 보정(_imMap)으로 정확히 잡힘 */
+      /* [1142] canvas 직접 렌더 — 드래그 프레임당 draw만(수 ms).
+         예전 img+toDataURL 방식은 프레임마다 JPEG 재인코딩(100~300ms)이라 끩겼다 */
+      var ph=new Image();ph.crossOrigin='anonymous';
+      ph.onload=function(){
+        var bx0=document.getElementById('rtBoardBox');if(!bx0)return;
+        var W=ph.naturalWidth,H=ph.naturalHeight;
+        var cvb=document.createElement('canvas');cvb.width=W;cvb.height=H;
+        cvb.className='ph';cvb.style.cursor='grab';cvb.title='현황판 표를 잡고 끌면 이동';
+        var ctx=cvb.getContext('2d');
+        var g=rtBoardGeom(W,H);
+        function curPos(){return (state.rtBoardPos&&state.rtBoardPos[_no])||{fx:0,fy:(H-g.bh)/H};}
+        function draw(pos){try{ctx.drawImage(ph,0,0);rtBoardTable(ctx,W,H,pos,_no);}catch(e){}}
+        draw(curPos());
+        bx0.parentNode.replaceChild(cvb,bx0);
         function tryBoard(e){
-          var M=_imMap(im);if(!M.W||!M.H)return false;
-          var g=rtBoardGeom(M.W,M.H);
-          var cur=(state.rtBoardPos&&state.rtBoardPos[_no])||{fx:0,fy:(M.H-g.bh)/M.H};
+          var M=_imMap(cvb);if(!M.W||!M.H)return false;
+          var cur=curPos();
           var px=(e.clientX-M.ox)/M.sc, py=(e.clientY-M.oy)/M.sc;
-          var bxp=cur.fx*M.W, byp=cur.fy*M.H;
+          var bxp=cur.fx*W, byp=cur.fy*H;
           if(px<bxp||px>bxp+g.bw||py<byp||py>byp+g.bh)return false;
           e.preventDefault();
-          try{im.setPointerCapture(e.pointerId);}catch(_e){}
-          im.style.cursor='grabbing';
+          try{cvb.setPointerCapture(e.pointerId);}catch(_e){}
+          cvb.style.cursor='grabbing';
           var ox=px-bxp, oy=py-byp, raf=0, live=cur;
           function mv(ev){
-            var M2=_imMap(im);
+            var M2=_imMap(cvb);
             var nx=(ev.clientX-M2.ox)/M2.sc-ox, ny=(ev.clientY-M2.oy)/M2.sc-oy;
-            nx=Math.max(0,Math.min(M.W-g.bw,nx));ny=Math.max(0,Math.min(M.H-g.bh,ny));
-            live={fx:nx/M.W,fy:ny/M.H};
-            if(!raf){raf=requestAnimationFrame(function(){raf=0;
-              rtBoardURL(_no,_u,function(du2){if(du2)im.src=du2;},live,true);});}
+            nx=Math.max(0,Math.min(W-g.bw,nx));ny=Math.max(0,Math.min(H-g.bh,ny));
+            live={fx:nx/W,fy:ny/H};
+            if(!raf){raf=requestAnimationFrame(function(){raf=0;draw(live);});}
           }
           function up(){
-            im.removeEventListener('pointermove',mv);
-            im.removeEventListener('pointerup',up);
-            im.removeEventListener('pointercancel',up);
-            im.style.cursor='grab';
+            cvb.removeEventListener('pointermove',mv);
+            cvb.removeEventListener('pointerup',up);
+            cvb.removeEventListener('pointercancel',up);
+            cvb.style.cursor='grab';
             state.rtBoardPos=state.rtBoardPos||{};state.rtBoardPos[_no]=live;
-            rtBoardURL(_no,_u,function(du3){if(du3)im.src=du3;},live);
+            draw(live);
             try{if(typeof saveProject==='function')saveProject();}catch(_e){}
           }
-          im.addEventListener('pointermove',mv);
-          im.addEventListener('pointerup',up);
-          im.addEventListener('pointercancel',up);
+          cvb.addEventListener('pointermove',mv);
+          cvb.addEventListener('pointerup',up);
+          cvb.addEventListener('pointercancel',up);
           return true;
         }
-        rtViewZoom(im,{tryBoard:tryBoard});
-      },_pos);
+        rtViewZoom(cvb,{tryBoard:tryBoard});
+      };
+      ph.onerror=function(){var b=document.getElementById('rtBoardBox');if(b)b.textContent='현황판 생성 실패';};
+      ph.src=_u;
     })(selNum,_bu);}
   }else{
     // 결선 DB: 원래대로 — 선택측점 사진 + 위/아래 측점 썸네일
