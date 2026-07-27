@@ -10059,6 +10059,52 @@ function rtBoardURL(no,url,cb,pos,nocache){
   img.onerror=function(){cb(null);};
   img.src=url;
 }
+/* [1139] object-fit:contain 레터박스 보정 — 화면좌표 ↔ 원본픽셀 매핑 */
+function _imMap(im){var r=im.getBoundingClientRect(),W=im.naturalWidth,H=im.naturalHeight;var sc=Math.min(r.width/W,r.height/H)||1;return {r:r,W:W,H:H,sc:sc,ox:r.left+(r.width-W*sc)/2,oy:r.top+(r.height-H*sc)/2};}
+/* [1139] 실시간측량 사진 뷰어 — PC:휠확대+드래그이동 / 폰:두손가락핑치+한손가락이동(확대상태) / 더블클릭 리셋.
+   배율 1에선 폰 세로 스크롤 유지(현황판으로 내려가야 하므로). tryBoard=현황판 표 이동 우선 */
+function rtViewZoom(img,opts){
+  var z={s:1,tx:0,ty:0};
+  function ap(){img.style.transform='translate('+z.tx+'px,'+z.ty+'px) scale('+z.s+')';img.style.touchAction=(z.s>1?'none':'auto');}   /* [1140] 배율1=auto(부모 스크롤 위임) */
+  img.style.transformOrigin='center center';img.style.willChange='transform';img.style.touchAction='auto';   /* [1140] 초기 스크롤 허용 */
+  img.addEventListener('wheel',function(e){e.preventDefault();var k=(e.deltaY<0)?1.2:1/1.2;z.s=Math.max(1,Math.min(6,z.s*k));if(z.s===1){z.tx=0;z.ty=0;}ap();},{passive:false});
+  img.addEventListener('dblclick',function(e){e.preventDefault();z.s=1;z.tx=0;z.ty=0;ap();});
+  var pts={},pinch=null,pan=null;
+  img.addEventListener('pointerdown',function(e){
+    if(opts&&opts.tryBoard&&opts.tryBoard(e))return;   /* 현황판 표 안 = 표 이동 우선 */
+    /* [1140] 배율1 + 첫 손가락 = 이미지가 안 잡음 → 부모 세로 스크롤 그대로.
+       단, 둘째 손가락(핑치)는 배율 무관 잡아 확대 진입 */
+    var _cnt=Object.keys(pts).length;
+    if(z.s<=1&&_cnt===0){pts[e.pointerId]=[e.clientX,e.clientY];return;}   /* 첫 손가락은 대기만(핑치 대비), 기본동작 보존 */
+    pts[e.pointerId]=[e.clientX,e.clientY];
+    var ids=Object.keys(pts);
+    if(ids.length===2){
+      var a=pts[ids[0]],b=pts[ids[1]];
+      pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1])||1,s:z.s};pan=null;
+      e.preventDefault();try{img.setPointerCapture(e.pointerId);}catch(_e){}
+    }else if(ids.length===1){
+      if(z.s<=1){delete pts[e.pointerId];return;}   /* 혹시 모를 배율1 잔여 방어 */
+      pan={x:e.clientX-z.tx,y:e.clientY-z.ty};
+      e.preventDefault();try{img.setPointerCapture(e.pointerId);}catch(_e){}
+    }
+  });
+  img.addEventListener('pointermove',function(e){
+    if(!(e.pointerId in pts))return;
+    pts[e.pointerId]=[e.clientX,e.clientY];
+    var ids=Object.keys(pts);
+    if(pinch&&ids.length>=2){
+      var a=pts[ids[0]],b=pts[ids[1]];
+      var d=Math.hypot(a[0]-b[0],a[1]-b[1])||1;
+      z.s=Math.max(1,Math.min(6,pinch.s*d/pinch.d));
+      if(z.s===1){z.tx=0;z.ty=0;}
+      ap();
+    }else if(pan){z.tx=e.clientX-pan.x;z.ty=e.clientY-pan.y;ap();}
+  });
+  function _up(e){delete pts[e.pointerId];var n=Object.keys(pts).length;if(n<2)pinch=null;if(n<1)pan=null;}
+  img.addEventListener('pointerup',_up);
+  img.addEventListener('pointercancel',_up);
+  ap();
+}
 function refreshPhotoPanel(){
   var sel=document.getElementById('photoSel'),nos=sortedNos();
   sel.innerHTML='<option value="">측점 선택…</option>'+nos.map(function(n){return '<option value="'+n+'">'+n+'</option>';}).join('');
@@ -10078,32 +10124,33 @@ function refreshPhotoPanel(){
     var _bu=photoMap[selNum]||(_bn!=null?photoMap[_bn]:null);
     body.innerHTML=paneImg(selNum,'노출관로측량',true,_cap)
       +(_bu?'<div class="php-main" style="margin-top:8px"><div class="cap"><span>현황판</span></div><div class="ph php-none" id="rtBoardBox">현황판 생성 중…</div></div>':'');
+    /* [1139] 원본에도 뷰어 제스처 (기존 setupZoom 대신) — id 변경으로 이중배선 방지 */
+    (function(){var zi=document.getElementById('zoomImg');if(zi){zi.id='rtOrigImg';rtViewZoom(zi);}})();
     if(_bu){(function(_no,_u){
       var _pos=(state.rtBoardPos&&state.rtBoardPos[_no])||null;
       rtBoardURL(_no,_u,function(du){
         var bx=document.getElementById('rtBoardBox');if(!bx)return;
         if(!du){bx.textContent='현황판 생성 실패';return;}
         var im=document.createElement('img');im.className='ph';im.alt='';im.src=du;
-        im.style.touchAction='none';im.style.cursor='grab';im.title='현황판을 잡고 끌면 이동';
+        im.style.cursor='grab';im.title='현황판 표를 잡고 끌면 이동';
         bx.parentNode.replaceChild(im,bx);
-        /* [1137] 현황판 드래그 이동 — 표 안을 잡았을 때만. 놓으면 위치 저장 */
-        im.addEventListener('pointerdown',function(e){
-          var r=im.getBoundingClientRect();
-          var W=im.naturalWidth,H=im.naturalHeight;if(!W||!H)return;
-          var sc=r.width/W;
-          var g=rtBoardGeom(W,H);
-          var cur=(state.rtBoardPos&&state.rtBoardPos[_no])||{fx:0,fy:(H-g.bh)/H};
-          var px=(e.clientX-r.left)/sc, py=(e.clientY-r.top)/sc;
-          var bxp=cur.fx*W, byp=cur.fy*H;
-          if(px<bxp||px>bxp+g.bw||py<byp||py>byp+g.bh)return;   /* 표 밖 = 무시 */
+        /* [1139] 표 이동 — contain 레터박스 보정(_imMap)으로 정확히 잡힘 */
+        function tryBoard(e){
+          var M=_imMap(im);if(!M.W||!M.H)return false;
+          var g=rtBoardGeom(M.W,M.H);
+          var cur=(state.rtBoardPos&&state.rtBoardPos[_no])||{fx:0,fy:(M.H-g.bh)/M.H};
+          var px=(e.clientX-M.ox)/M.sc, py=(e.clientY-M.oy)/M.sc;
+          var bxp=cur.fx*M.W, byp=cur.fy*M.H;
+          if(px<bxp||px>bxp+g.bw||py<byp||py>byp+g.bh)return false;
           e.preventDefault();
           try{im.setPointerCapture(e.pointerId);}catch(_e){}
           im.style.cursor='grabbing';
           var ox=px-bxp, oy=py-byp, raf=0, live=cur;
           function mv(ev){
-            var nx=(ev.clientX-r.left)/sc-ox, ny=(ev.clientY-r.top)/sc-oy;
-            nx=Math.max(0,Math.min(W-g.bw,nx));ny=Math.max(0,Math.min(H-g.bh,ny));
-            live={fx:nx/W,fy:ny/H};
+            var M2=_imMap(im);
+            var nx=(ev.clientX-M2.ox)/M2.sc-ox, ny=(ev.clientY-M2.oy)/M2.sc-oy;
+            nx=Math.max(0,Math.min(M.W-g.bw,nx));ny=Math.max(0,Math.min(M.H-g.bh,ny));
+            live={fx:nx/M.W,fy:ny/M.H};
             if(!raf){raf=requestAnimationFrame(function(){raf=0;
               rtBoardURL(_no,_u,function(du2){if(du2)im.src=du2;},live,true);});}
           }
@@ -10113,13 +10160,15 @@ function refreshPhotoPanel(){
             im.removeEventListener('pointercancel',up);
             im.style.cursor='grab';
             state.rtBoardPos=state.rtBoardPos||{};state.rtBoardPos[_no]=live;
-            rtBoardURL(_no,_u,function(du3){if(du3)im.src=du3;},live);   /* 최종본 캐시 */
+            rtBoardURL(_no,_u,function(du3){if(du3)im.src=du3;},live);
             try{if(typeof saveProject==='function')saveProject();}catch(_e){}
           }
           im.addEventListener('pointermove',mv);
           im.addEventListener('pointerup',up);
           im.addEventListener('pointercancel',up);
-        });
+          return true;
+        }
+        rtViewZoom(im,{tryBoard:tryBoard});
       },_pos);
     })(selNum,_bu);}
   }else{
