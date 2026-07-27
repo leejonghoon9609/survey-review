@@ -9933,7 +9933,18 @@ function neighborsOf(sel){var selP=pointByNo(sel),up=null,down=null;if(!selP)ret
   return {up:up,down:down};}
 function highlightSel(){clearSvg(gSel);if(selNum==null)return;
   /* [1131] 파란 GPS점 초록 원은 조서와 무관 — 조서 가드보다 먼저 처리(실시간측량엔 조서 없음) */
-  var p=pointByNo(selNum);if(!p&&state.gpsPts){for(var _gi=0;_gi<state.gpsPts.length;_gi++){if(state.gpsPts[_gi].no===selNum){var _gg=state.gpsPts[_gi],_ggs=S(_gg.x,_gg.y);gSel.appendChild(el('circle',{cx:_ggs[0],cy:_ggs[1],r:2.4,fill:'none',stroke:'#12b312','stroke-width':3.4,'stroke-dasharray':'5 3','vector-effect':'non-scaling-stroke'}));return;}}}
+  var p=pointByNo(selNum);if(!p&&state.gpsPts){for(var _gi=0;_gi<state.gpsPts.length;_gi++){if(state.gpsPts[_gi].no===selNum){
+    var _gg=state.gpsPts[_gi],_ggs=S(_gg.x,_gg.y);
+    /* [1132] 초록 원 + 중심 얇은 X — 확대 시 어느 점인지 보이게 (field 빨간원과 동일 방식, 로컬원점 그룹) */
+    var _gr=2.4,_gxr=_gr*0.7071;
+    var _gsg=document.createElementNS(SVGNS,'g');
+    var _gsx=Math.round(_ggs[0]),_gsy=Math.round(_ggs[1]);
+    _gsg.setAttribute('transform','translate('+_gsx+','+_gsy+')');
+    var _glx=_ggs[0]-_gsx,_gly=_ggs[1]-_gsy;
+    _gsg.appendChild(el('circle',{cx:_glx,cy:_gly,r:_gr,fill:'none',stroke:'#12b312','stroke-width':3.4,'stroke-dasharray':'5 3','vector-effect':'non-scaling-stroke'}));
+    _gsg.appendChild(el('line',{x1:_glx-_gxr,y1:_gly-_gxr,x2:_glx+_gxr,y2:_gly+_gxr,stroke:'#12b312','stroke-width':0.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    _gsg.appendChild(el('line',{x1:_glx-_gxr,y1:_gly+_gxr,x2:_glx+_gxr,y2:_gly-_gxr,stroke:'#12b312','stroke-width':0.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+    gSel.appendChild(_gsg);return;}}}
   if(typeof joseoUiOpen==='function'&&!joseoUiOpen())return;   /* [1094] 조서 꺼지면 CSV측점 선택표시 꺼짐(field 전용) */
   if(!p)return;
   var nbs=neighborsOf(selNum);
