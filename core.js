@@ -10095,7 +10095,7 @@ function rtViewZoom(img,opts){
     if(pinch&&ids.length>=2){
       var a=pts[ids[0]],b=pts[ids[1]];
       var d=Math.hypot(a[0]-b[0],a[1]-b[1])||1;
-      z.s=Math.max(1,Math.min(6,pinch.s*d/pinch.d));
+      z.s=Math.max(1,Math.min(6,pinch.s*Math.pow(d/pinch.d,1.6)));   /* [1141] 핑치 감도 상향(1.0->1.6승) */
       if(z.s===1){z.tx=0;z.ty=0;}
       ap();
     }else if(pan){z.tx=e.clientX-pan.x;z.ty=e.clientY-pan.y;ap();}
