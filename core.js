@@ -10004,6 +10004,54 @@ function paneAfter(no,label){var p=no!=null?pointByNo(no):null;var bn=p?ptNum(p)
   }
   var ph=url?('<img class="ph" src="'+url+'" alt="">'):('<div class="ph php-none">'+((isMob&&viewerMode)?'📷 촬영 버튼으로 후측량 사진을 찍어주세요':(!isMob?'🔄 새로고침으로 최신 후측량 사진을 불러오세요':'촬영 예정'))+'</div>');
   return '<div class="php-main php-after"><div class="cap"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+cap+'</span>'+btn+'</div>'+ph+'</div>';}
+/* [1136] 현황판 합성 — 원본 사진 아래에 표(공사명/번호/관경/날짜)를 좌하단에 그린 복사본.
+   저장은 원본 그대로, 표시용으로만 즉석 생성(캐시). 실시간측량 전용 */
+var _rtBoardCache={};
+function rtBoardURL(no,url,cb){
+  if(!url){cb(null);return;}
+  var key=String(no)+'|'+url;
+  if(_rtBoardCache[key]){cb(_rtBoardCache[key]);return;}
+  var pp=(typeof pointByNo==='function')?pointByNo(no):null;
+  var img=new Image();img.crossOrigin='anonymous';
+  img.onload=function(){
+    try{
+      var W=img.naturalWidth,H=img.naturalHeight;
+      var cv2=document.createElement('canvas');cv2.width=W;cv2.height=H;
+      var cx=cv2.getContext('2d');cx.drawImage(img,0,0);
+      var name=String(state.projectName||'').replace(/_S$/,'');
+      var num=String(no).split('-').pop();
+      var code=pp?String(pp.code||'').trim():'';
+      var d6=String(no).slice(0,6);
+      var date=/^\d{6}$/.test(d6)?('20'+d6.slice(0,2)+'.'+d6.slice(2,4)+'.'+d6.slice(4,6)):'';
+      var rows=[['공사명',name],['번 호',num],['관 경',code],['날 짜',date]];
+      var bw=Math.round(W*0.30), rh=Math.round(H*0.052), lw=Math.round(bw*0.27);
+      var x0=0,y0=H-rh*4, pad=Math.round(rh*0.28);
+      cx.fillStyle='#fff';cx.fillRect(x0,y0,bw,rh*4);
+      cx.strokeStyle='#000';cx.lineWidth=Math.max(2,Math.round(H*0.0018));
+      cx.textBaseline='middle';
+      function fitText(s,maxW,baseF){
+        var f=baseF;
+        cx.font='700 '+f+'px sans-serif';
+        while(f>8&&cx.measureText(s).width>maxW){f--;cx.font='700 '+f+'px sans-serif';}
+      }
+      var baseF=Math.round(rh*0.52);
+      for(var i=0;i<4;i++){
+        var yy=y0+rh*i;
+        cx.strokeRect(x0,yy,lw,rh);
+        cx.strokeRect(x0+lw,yy,bw-lw,rh);
+        cx.fillStyle='#000';
+        fitText(rows[i][0],lw-pad*2,baseF);
+        cx.fillText(rows[i][0],x0+pad,yy+rh/2);
+        fitText(rows[i][1],bw-lw-pad*2,baseF);
+        cx.fillText(rows[i][1],x0+lw+pad,yy+rh/2);
+      }
+      var du=cv2.toDataURL('image/jpeg',0.9);
+      _rtBoardCache[key]=du;cb(du);
+    }catch(e){console.error('[board]',e);cb(null);}
+  };
+  img.onerror=function(){cb(null);};
+  img.src=url;
+}
 function refreshPhotoPanel(){
   var sel=document.getElementById('photoSel'),nos=sortedNos();
   sel.innerHTML='<option value="">측점 선택…</option>'+nos.map(function(n){return '<option value="'+n+'">'+n+'</option>';}).join('');
@@ -10019,7 +10067,15 @@ function refreshPhotoPanel(){
     var _rc=_rp?((_rp.code||'').trim()):'';
     var _cap='노출관로측량 / '+selNum;
     if(_rc){var _m=/^([A-Za-z가-힣]+)\s*(.*)$/.exec(_rc);var _gj=_m?_m[1]:_rc;var _gk=_m?(_m[2]||'').trim():'';_cap+=' · '+_gj+(_gk?' · '+_gk:'');}
-    body.innerHTML=paneImg(selNum,'노출관로측량',true,_cap);
+    var _bp=_rp, _bn=_bp?ptNum(_bp):null;
+    var _bu=photoMap[selNum]||(_bn!=null?photoMap[_bn]:null);
+    body.innerHTML=paneImg(selNum,'노출관로측량',true,_cap)
+      +(_bu?'<div class="php-main" style="margin-top:8px"><div class="cap"><span>현황판</span></div><div class="ph php-none" id="rtBoardBox">현황판 생성 중…</div></div>':'');
+    if(_bu){(function(_no,_u){rtBoardURL(_no,_u,function(du){
+      var bx=document.getElementById('rtBoardBox');if(!bx)return;
+      if(du){var im=document.createElement('img');im.className='ph';im.alt='';im.src=du;bx.parentNode.replaceChild(im,bx);}
+      else bx.textContent='현황판 생성 실패';
+    });})(selNum,_bu);}
   }else{
     // 결선 DB: 원래대로 — 선택측점 사진 + 위/아래 측점 썸네일
     var nbs=neighborsOf(selNum),up=nbs.up,down=nbs.down;
