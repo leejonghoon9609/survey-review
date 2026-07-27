@@ -8410,7 +8410,7 @@ function mnShootSlot(rec,slot,done){
     var f=e.target.files&&e.target.files[0];fi.remove();if(!f)return;
     if(!online){toast('로컬 모드 — 사진 저장 불가');return;}
     toast('사진 업로드 중…');
-    compressImage(f,1280,0.7).then(function(blob){
+    compressImage(f,1600,0.8).then(function(blob){
       /* [1008] 저장은 촬영 원본 그대로. 세로 사진이면 rotP 기록 → 내보낼 때만 회전 적용 */
       return new Promise(function(res){var img=new Image();img.onload=function(){var p=(img.naturalHeight>img.naturalWidth);URL.revokeObjectURL(img.src);res({blob:blob,portrait:p});};img.onerror=function(){res({blob:blob,portrait:false});};img.src=URL.createObjectURL(blob);});
     }).then(function(fx){
@@ -9571,7 +9571,7 @@ function joseoPhotoPick(no,kind){
 function joseoPhotoUpload(no,kind,f){
   var lab=(kind==='aft')?'후측량':'실시간';
   toast(lab+' 사진 업로드 중…');
-  compressImage(f,1280,0.7).then(function(blob){
+  compressImage(f,1600,0.8).then(function(blob){
       var pno=(kind==='aft')?(no+'_A'):no;
       var path=state.projectId+'/'+safeName(pno)+'.jpg';
       return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
@@ -10245,7 +10245,7 @@ function uploadPhotos(files){
     var r=resolvePhotoNo(f);
     if(!r){unmatched++;done++;finish();return;}
     if(!r.matched)unmatched++;var no=r.no;
-    compressImage(f,1280,0.7).then(function(blob){
+    compressImage(f,1600,0.8).then(function(blob){
       var path=state.projectId+'/'+safeName(no)+'.jpg';
       return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
         if(up.error)throw up.error;
@@ -10264,7 +10264,7 @@ function uploadAfterPhoto(file,num){
   if(!state.projectId){toast('먼저 "저장"으로 현장을 저장한 뒤 촬영하세요');return;}
   if(num==null){toast('측점을 먼저 선택하세요');return;}
   var pn=num+'_A';toast('후측량 사진 업로드 중…');
-  compressImage(file,1280,0.7).then(function(blob){
+  compressImage(file,1600,0.8).then(function(blob){
     var path=state.projectId+'/'+safeName(num)+'_A.jpg';
     return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
       if(up.error)throw up.error;
@@ -10464,7 +10464,7 @@ function rtCamPicked(inp){
   var no=rtPendingNo;rtPendingNo=null;
   if(navigator.geolocation){rtGetLoc(no);}else{toast('⚠ 이 브라우저는 위치 미지원');}
   toast('측점 '+no+' 사진 업로드 중…');
-  compressImage(f,1280,0.7).then(function(blob){
+  compressImage(f,1600,0.8).then(function(blob){
     var path=state.projectId+'/'+safeName(no)+'.jpg';
     return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
       if(up.error)throw up.error;
@@ -11318,7 +11318,7 @@ function refPhotoUpload(){
       if(pt)pt.textContent=j.folder+' \u00b7 '+j.slot;
       if(!over&&j.rec.photos&&j.rec.photos[j.slot]){skip++;setTimeout(next,0);return;}
       REF_PZ.zip.file(j.name).async('blob').then(function(raw){
-        return compressImage(raw,1280,0.7);
+        return compressImage(raw,1600,0.8);
       }).then(function(blob){
         return new Promise(function(res){
           var im=new Image();im.onload=function(){var p=(im.naturalHeight>im.naturalWidth);URL.revokeObjectURL(im.src);res({blob:blob,portrait:p});};
@@ -11528,7 +11528,7 @@ function refJoseoZip(f,kind){
       var it=hit[i++],_t0=Date.now(),_t1=0,_t2=0;
       it.ent.async('blob').then(function(bl){
         _t1=Date.now();
-        return compressImage(new File([bl],'p.jpg',{type:'image/jpeg'}),1280,0.7);
+        return compressImage(new File([bl],'p.jpg',{type:'image/jpeg'}),1600,0.8);
       }).then(function(blob){
         _t2=Date.now();
         var pno=(kind==='aft')?(it.no+'_A'):it.no;
