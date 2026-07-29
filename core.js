@@ -1344,7 +1344,7 @@ function buildRisersFromCsv(){
   arr.forEach(function(it){var rs;try{rs=parseInspCsv(it.text||'');}catch(e){rs=[];}rs.forEach(function(p){if(p.skip)return;var c=(p.code||'').trim();if(/^(TJ|EJ)/i.test(c))rows.push({x:p.ex,y:p.no,no:p.name||'',code:c.toUpperCase(),surface:p.surface||'',pave:p.pave||''});});});
   if(!rows.length)return 0;
   if(state.tamsa)state.points.forEach(function(p){if(/^(TJ|EJ)/i.test((p.code||'').trim()))p._hideMark=true;});
-  state.manholes=(state.manholes||[]).filter(function(m){return !m._fromCsv;});
+  state.manholes=(state.manholes||[]).filter(function(m){return !(m._fromCsv&&m.type==='riser');});   /* [1161] 입상주만 제거 — CSV 맨홀 보존(생성 순서 무관) */
   state.points=(state.points||[]).filter(function(p){return !p._riserPt;});
   state.lines=(state.lines||[]).filter(function(l){return !l._riserLine;});
   var byCode={};
