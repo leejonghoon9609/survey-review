@@ -1576,7 +1576,7 @@ function applyBpCrop(c){
   var xmin=x1,xmax=x2,ymin=-Y2,ymax=-Y1; // SVG y=-worldY 변환
   if(typeof pushHist==='function')pushHist();
   var nb=[];
-  (state.lines||[]).forEach(function(l){
+  (state.lines||[]).forEach(function(l){if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&l.layer==='CROP')return;
     if(!l.base){nb.push(l);return;}
     var subs=clipPolyRect(l.pts,xmin,ymin,xmax,ymax);
     subs.forEach(function(pp){if(pp.length>=2)nb.push({layer:l.layer,pts:pp,base:true});});
@@ -1638,7 +1638,7 @@ function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*
 /* ====== 결선 ====== */
 function nearestPointWorld(wx,wy){var best=null,bd=1e18;state.points.forEach(function(p){var s=S(p.x,p.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;best=p;}});return {p:best,d:Math.sqrt(bd)};}
 // 그리기 스냅: 측점 + 맨홀 중심 중 가장 가까운 것 (pt=[worldX,worldY])
-function nearestSnapWorld(wx,wy){var bd=1e18,pt=null;
+function nearestSnapWorld(wx,wy){var bd=1e18,pt=null;if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&state.gpsPts){state.gpsPts.forEach(function(p){if(p.x==null)return;var s=S(p.x,p.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;pt=[p.x,p.y];}});}
   state.points.forEach(function(p){var s=S(p.x,p.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;pt=[p.x,p.y];}});
   (state.manholes||[]).forEach(function(mh){var s=S(mh.wx,mh.wy);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;pt=[mh.wx,mh.wy];}});
   return {pt:pt,d:Math.sqrt(bd)};}
@@ -1660,8 +1660,8 @@ function autoConnectTamsa(){
   state.routingDone=true;drawGeo();
   toast('\uD0D0\uC0AC \uC790\uB3D9\uACB0\uC120: \uAD6C\uAC04 '+segs.length+'\uAC1C');
 }
-function autoConnect(){
-  if(state.tamsa){autoConnectTamsa();return;}
+/* [1171] realtime 전용 — 파란 GPS점 자동결선(번호순) */function rtAutoConnectGps(){pushHist();state.lines=(state.lines||[]).filter(function(l){return l.layer!=='통신관로';});var pts=state.gpsPts.slice().filter(function(g){return g.x!=null;});pts.sort(function(a,b){var na=parseFloat(String(a.no).replace(/^[^0-9]*/,''))||0,nb2=parseFloat(String(b.no).replace(/^[^0-9]*/,''))||0;return (na-nb2)||String(a.no).localeCompare(String(b.no));});var TH=20,nc=0;for(var i=1;i<pts.length;i++){var a=pts[i-1],b=pts[i];if(Math.hypot(a.x-b.x,a.y-b.y)<=TH){state.lines.push({layer:'통신관로',pts:[[a.x,a.y],[b.x,b.y]]});nc++;}}if(typeof drawGeo==='function')drawGeo();if(typeof saveProject==='function')saveProject();if(typeof toast==='function')toast('GPS 측점 '+pts.length+'개 번호순 결선 ('+nc+'구간, 20m 초과 제외)');}function autoConnect(){
+  if(state.tamsa){autoConnectTamsa();return;}if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&(!state.points||state.points.length<2)&&state.gpsPts&&state.gpsPts.length>=2){rtAutoConnectGps();return;}
   if(state.points.length<2){toast('측량점을 먼저 올려주세요');return;}
   pushHist();
   // ★ 맨홀/입상주 종단선 보존 + 앞타점(endPt)
