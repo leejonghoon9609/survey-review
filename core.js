@@ -1638,7 +1638,7 @@ function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*
 /* ====== 결선 ====== */
 function nearestPointWorld(wx,wy){var best=null,bd=1e18;state.points.forEach(function(p){var s=S(p.x,p.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;best=p;}});return {p:best,d:Math.sqrt(bd)};}
 // 그리기 스냅: 측점 + 맨홀 중심 중 가장 가까운 것 (pt=[worldX,worldY])
-function nearestSnapWorld(wx,wy){var bd=1e18,pt=null;if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&state.gpsPts){state.gpsPts.forEach(function(p){if(p.x==null)return;var s=S(p.x,p.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;pt=[p.x,p.y];}});}
+function nearestSnapWorld(wx,wy){var bd=1e18,pt=null;
   state.points.forEach(function(p){var s=S(p.x,p.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;pt=[p.x,p.y];}});
   (state.manholes||[]).forEach(function(mh){var s=S(mh.wx,mh.wy);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;pt=[mh.wx,mh.wy];}});
   return {pt:pt,d:Math.sqrt(bd)};}
@@ -1660,8 +1660,8 @@ function autoConnectTamsa(){
   state.routingDone=true;drawGeo();
   toast('\uD0D0\uC0AC \uC790\uB3D9\uACB0\uC120: \uAD6C\uAC04 '+segs.length+'\uAC1C');
 }
-/* [1171] realtime 전용 — 파란 GPS점 자동결선(번호순) */function rtAutoConnectGps(){pushHist();state.lines=(state.lines||[]).filter(function(l){return l.layer!=='통신관로';});var pts=state.gpsPts.slice().filter(function(g){return g.x!=null;});pts.sort(function(a,b){var na=parseFloat(String(a.no).replace(/^[^0-9]*/,''))||0,nb2=parseFloat(String(b.no).replace(/^[^0-9]*/,''))||0;return (na-nb2)||String(a.no).localeCompare(String(b.no));});var TH=20,nc=0;for(var i=1;i<pts.length;i++){var a=pts[i-1],b=pts[i];if(Math.hypot(a.x-b.x,a.y-b.y)<=TH){state.lines.push({layer:'통신관로',pts:[[a.x,a.y],[b.x,b.y]]});nc++;}}if(typeof drawGeo==='function')drawGeo();if(typeof saveProject==='function')saveProject();if(typeof toast==='function')toast('GPS 측점 '+pts.length+'개 번호순 결선 ('+nc+'구간, 20m 초과 제외)');}function autoConnect(){
-  if(state.tamsa){autoConnectTamsa();return;}if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&(!state.points||state.points.length<2)&&state.gpsPts&&state.gpsPts.length>=2){rtAutoConnectGps();return;}
+function autoConnect(){
+  if(state.tamsa){autoConnectTamsa();return;}
   if(state.points.length<2){toast('측량점을 먼저 올려주세요');return;}
   pushHist();
   // ★ 맨홀/입상주 종단선 보존 + 앞타점(endPt)
@@ -10492,7 +10492,7 @@ function fldLayerBox(){
   var ALL=['no','stake','code','depth','date','mh','riser','bizbox','dogak','bp','bpbox','hyun','roadzone','photoDir','depthchk','surfacedot','selbox','tagbox','tgseg'];
   ALL.forEach(function(k){ if(LV[k]==null) LV[k]=1; });
   try{ localStorage.setItem(LV_KEY,JSON.stringify(LV)); }catch(e){}
-  var defs=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)?[['no','점번호'],['code','관정보'],['date','날짜'],['mh','맨홀 정보'],['riser','입상주'],['bp','보강판 측점'],['bpbox','보강판 박스'],['photoDir','사진방향'],['tagbox','태그 이동']]:[['no','점번호'],['stake','측점'],['code','관정보'],['depth','심도'],['date','날짜'],['mh','맨홀 정보'],['riser','입상주'],['bizbox','사업정보'],['dogak','도곽'],['tagbox','인출선 이동'],['bp','보강판 측점'],['bpbox','보강판 박스'],['photoDir','사진방향'],['tgseg','구간 색칠']];if((typeof IS_FIELD!=='undefined'&&IS_FIELD))defs.push(['missExp','누락_실시간사진'],['missAft','누락_후측량사진']);
+  var defs=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)?[['no','점번호'],['code','관정보'],['date','날짜'],['mh','맨홀 정보'],['riser','입상주'],['bizbox','사업정보'],['bp','보강판 측점'],['bpbox','보강판 박스'],['photoDir','사진방향'],['tagbox','태그 이동']]:[['no','점번호'],['stake','측점'],['code','관정보'],['depth','심도'],['date','날짜'],['mh','맨홀 정보'],['riser','입상주'],['bizbox','사업정보'],['dogak','도곽'],['tagbox','인출선 이동'],['bp','보강판 측점'],['bpbox','보강판 박스'],['photoDir','사진방향'],['tgseg','구간 색칠']];if((typeof IS_FIELD!=='undefined'&&IS_FIELD))defs.push(['missExp','누락_실시간사진'],['missAft','누락_후측량사진']);
   var open=(function(){try{return localStorage.getItem('fldLayerOpen')!=='0';}catch(e){return true;}})();
   var h='<div style="border:1px solid #f1c40f;border-radius:8px;padding:6px 10px;background:#fffdf5;box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:92px">';
   h+='<div onclick="fldLayerToggleOpen()" style="font-weight:700;font-size:12px;color:#0a3ea0;cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none'+(open?';margin-bottom:5px':'')+'">레이어 <span style="font-size:9px">'+(open?'▼':'▶')+'</span></div>';
