@@ -10553,6 +10553,8 @@ function rtShowNumPopup(day,sug,onOk){
   inp.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('rtNumOk').click();}else if(e.key==='Escape'){close();}};
   ov.onclick=function(e){if(e.target===ov)close();};
 }
+/* [1164] 실시간측량 노출관로 전용 — 세로 사진은 90° 회전해 무조건 가로 저장. compressImage(공용)는 안 건드림 */
+function rtCompressLandscape(file,maxW,q){return new Promise(function(res,rej){var img=new Image(),u=URL.createObjectURL(file);img.onload=function(){URL.revokeObjectURL(u);var iw=img.width,ih=img.height;var rot=(ih>iw);/* 세로면 시계방향 90° 회전 */var w=rot?ih:iw,h=rot?iw:ih;if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}var c=document.createElement('canvas');c.width=w;c.height=h;var ctx=c.getContext('2d');if(rot){ctx.translate(w,0);ctx.rotate(Math.PI/2);/* 회전 후 원본을 그림: 대상은 (h_dst x w_dst)=(w x h) 공간에 원본(iw x ih) 스케일 */ctx.drawImage(img,0,0,h,w);}else{ctx.drawImage(img,0,0,w,h);}c.toBlob(function(b){b?res(b):rej(new Error('blob'));},'image/jpeg',q);};img.onerror=function(){rej(new Error('img'));};img.src=u;});}
 function rtCamPicked(inp){
   var f=inp&&inp.files&&inp.files[0];if(!f||!rtPendingNo)return;
   var no=rtPendingNo;rtPendingNo=null;
@@ -10565,7 +10567,7 @@ function rtCamPicked(inp){
   else if(navigator.geolocation){rtGetLoc(no);}
   else{toast('⚠ 이 브라우저는 위치 미지원');}
   toast('측점 '+no+' 사진 업로드 중…');
-  compressImage(f,1600,0.8).then(function(blob){
+  rtCompressLandscape(f,1600,0.8).then(function(blob){
     var path=state.projectId+'/'+safeName(no)+'.jpg';
     return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
       if(up.error)throw up.error;
