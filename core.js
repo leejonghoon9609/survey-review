@@ -10742,15 +10742,16 @@ function rtDailyTodayFill(){ /* [1211] 오늘 작업 — 전체 목록과 동일
   var r=null;(state.rtDaily||[]).forEach(function(x){if(x&&x.date===ymd)r=x;});
   var dist=+((dm.dist[ymd]||0).toFixed(1)),seg=dm.seg[ymd]||0;
   var h='<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#fdf0f0;color:#a12b2b">'
-   +'<th style="padding:7px 6px;border-bottom:1px solid #edd">날짜</th><th style="border-bottom:1px solid #edd">사업명</th><th style="border-bottom:1px solid #edd">작업자</th><th style="border-bottom:1px solid #edd;text-align:right">거리(m)</th><th style="border-bottom:1px solid #edd;text-align:right">측점</th><th style="border-bottom:1px solid #edd;text-align:right">결선</th><th style="border-bottom:1px solid #edd">CSV</th></tr></thead><tbody>'
+   +'<th style="padding:7px 6px;border-bottom:1px solid #edd">날짜</th><th style="border-bottom:1px solid #edd">사업명</th><th style="border-bottom:1px solid #edd">작업자</th><th style="border-bottom:1px solid #edd;text-align:right">거리(m)</th><th style="border-bottom:1px solid #edd;text-align:right">측점</th><th style="border-bottom:1px solid #edd;text-align:right">결선</th><th style="border-bottom:1px solid #edd">사진</th><th style="border-bottom:1px solid #edd">CSV</th></tr></thead><tbody>'
    +'<tr style="border-bottom:1px solid #f2f2ef">'
-   +'<td style="padding:8px 6px;font-weight:700;color:'+(r?'#c0392b':'#98a1ad')+';white-space:nowrap">20'+ymd.slice(0,2)+'-'+ymd.slice(2,4)+'-'+ymd.slice(4,6)
+   +'<td style="padding:8px 6px;font-weight:700;font-size:12px;color:'+(r?'#c0392b':'#98a1ad')+';white-space:nowrap">20'+ymd.slice(0,2)+'-'+ymd.slice(2,4)+'-'+ymd.slice(4,6)
    +(r?' <span style="font-size:10px;color:#0f6e56;font-weight:800">등록됨 ✓'+((r.at||'').slice(11,16)?(' '+(r.at||'').slice(11,16)):'')+'</span>':' <span style="font-size:10px;color:#b9b9b2">(미등록)</span>')+'</td>'
-   +'<td style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(state.projectName||'')+'">'+(state.projectName||'')+'</td>'
+   +'<td style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px" title="'+(state.projectName||'')+'">'+(state.projectName||'')+'</td>'
    +'<td style="text-align:center;'+(r?'':'color:#98a1ad')+'">'+((r&&r.worker)||((typeof ME!=='undefined'&&ME)||'-'))+'</td>'
    +'<td style="text-align:right;font-weight:800;color:#c0392b">'+dist+'</td>'
    +'<td style="text-align:right">'+pts.length+'</td>'
    +'<td style="text-align:right">'+seg+'</td>'
+   +'<td style="text-align:center"><button id="rtdTodayPh" style="background:'+(ph?'#7c3aed':'#e8e8e2')+';color:'+(ph?'#fff':'#999')+';border:0;border-radius:6px;padding:4px 9px;font-weight:700;font-size:12px;cursor:pointer">'+ph+'장</button></td>'
    +'<td style="text-align:center"><button id="rtdTodayCsv" style="background:#1565c0;color:#fff;border:0;border-radius:6px;padding:4px 10px;font-weight:700;font-size:12px;cursor:pointer">CSV</button></td>'
    +'</tr></tbody></table>'
    +'<div style="margin-top:9px;border:1px solid #f0c9c9;background:#fdf6f6;border-radius:9px;padding:9px 12px;font-size:12.5px;line-height:1.7">'
@@ -10759,6 +10760,7 @@ function rtDailyTodayFill(){ /* [1211] 오늘 작업 — 전체 목록과 동일
    +'</div>';
   el.innerHTML=h;
   var cb=document.getElementById('rtdTodayCsv');if(cb)cb.onclick=function(){rtDailyCsv(ymd);};
+  var pb=document.getElementById('rtdTodayPh');if(pb)pb.onclick=function(){var _it=[];try{var _pm2=(typeof photoMap!=='undefined'&&photoMap)?photoMap:{};for(var _k2 in _pm2)if(_k2.indexOf(ymd+'-')===0)_it.push({no:_k2,url:_pm2[_k2]});}catch(_e2){}if(typeof svPhotoDl==='function')svPhotoDl(_it);};/* [1235] */
 }
 /* [1215] realtime 전용 — 완료성과를 결선DB(survey) 사본으로 등록. 포털 결선DB 작업중 목록에 표시됨 */
 function rtRegToSurvey(){ /* [1216] 대상 테이블 = survey_projects/survey_photos (공정별 테이블 분리 — DB 상수 사용 금지) */
@@ -10813,7 +10815,7 @@ function rtDailyAllOpen(){ /* [1209] 완료성과(전체) — 일별 누적 목�
   var _fin=(state.rtDone&&state.rtDone.done);
   pop.innerHTML='<div id="rtDailyAllHead" style="display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:grab;user-select:none;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:'+(_fin?'#d81b60':'#c0392b')+';display:inline-block"></span><b style="font-size:15px">완료성과 (전체)</b>'+(_fin?'<span style="background:#d81b60;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:800">사업완료</span>':'')+'<span style="font-size:11px;color:#bbb;margin-left:auto">드래그로 이동</span></div>'
     +'<div id="rtDailyBody" style="overflow:auto;padding:10px 14px"></div>'
-    +'<div style="padding:9px 14px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px">'+((typeof isMobileDevice==='function'&&isMobileDevice())?'':'<button id="rtDailyToSurvey" style="background:#16a34a;color:#fff;border:0;border-radius:8px;padding:8px 16px;font-weight:800;cursor:pointer">결선DB로 등록</button>')+'<button id="rtDailyAllClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:8px 18px;cursor:pointer;font-weight:700">닫기</button></div>';
+    +'<div style="padding:9px 14px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px">'+((typeof isMobileDevice==='function'&&isMobileDevice())?'':'<button id="rtDailyToSurvey" style="background:#c0392b;color:#fff;border:0;border-radius:8px;padding:8px 16px;font-weight:800;cursor:pointer">결선DB로 등록</button>')+'<button id="rtDailyAllClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:8px 18px;cursor:pointer;font-weight:700">닫기</button></div>';
   document.body.appendChild(pop);
   document.getElementById('rtDailyAllClose').onclick=function(){pop.remove();};
   var _ts=document.getElementById('rtDailyToSurvey');if(_ts)_ts.onclick=function(){if(typeof rtRegToSurvey==='function')rtRegToSurvey();};
@@ -10828,9 +10830,10 @@ function rtDailyRender(){
   /* [1208] 등록 전이라도 업로드된 CSV(측점 날짜)·결선 날짜를 자동 표시 — 등록 시 작업자만 채워짐 */
   var recs={};(state.rtDaily||[]).forEach(function(r){if(r&&r.date)recs[r.date]=r;});
   var h='<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f5f8ff;color:#1f4e9e">'
-   +'<th style="padding:7px 6px;border-bottom:1px solid #dde">날짜</th><th style="border-bottom:1px solid #dde">사업명</th><th style="border-bottom:1px solid #dde">작업자</th><th style="border-bottom:1px solid #dde;text-align:right">거리(m)</th><th style="border-bottom:1px solid #dde;text-align:right">측점</th><th style="border-bottom:1px solid #dde;text-align:right">결선</th><th style="border-bottom:1px solid #dde">CSV</th></tr></thead><tbody>';
+   +'<th style="padding:7px 6px;border-bottom:1px solid #dde">날짜</th><th style="border-bottom:1px solid #dde">사업명</th><th style="border-bottom:1px solid #dde">작업자</th><th style="border-bottom:1px solid #dde;text-align:right">거리(m)</th><th style="border-bottom:1px solid #dde;text-align:right">측점</th><th style="border-bottom:1px solid #dde;text-align:right">결선</th><th style="border-bottom:1px solid #dde">사진</th><th style="border-bottom:1px solid #dde">CSV</th></tr></thead><tbody>';
   var dm=rtDailyDistMap();var tot=0;for(var _k in dm.dist)tot+=dm.dist[_k];
   var ptCnt={};(state.points||[]).forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0)ptCnt[d0]=(ptCnt[d0]||0)+1;});/* [1214] 날짜별 측점수 */
+  var phBy={};try{var _pm=(typeof photoMap!=='undefined'&&photoMap)?photoMap:{};for(var _pk in _pm){var _pd=String(_pk).split('-')[0];if(/^[0-9]{6}$/.test(_pd))(phBy[_pd]=phBy[_pd]||[]).push({no:_pk,url:_pm[_pk]});}var _am=(typeof afterMap!=='undefined'&&afterMap)?afterMap:{};for(var _ak in _am){var _ad=String(_ak).split('-')[0];if(/^[0-9]{6}$/.test(_ad))(phBy[_ad]=phBy[_ad]||[]).push({no:_ak+'_A',url:_am[_ak]});}}catch(_pe){}/* [1235] 날짜별 사진 */
   var dset={};for(var _k2 in dm.dist)dset[_k2]=1;for(var _k3 in recs)dset[_k3]=1;
   (state.points||[]).forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0&&/^[0-9]{6}$/.test(d0))dset[d0]=1;});
   var dates=Object.keys(dset).sort();
@@ -10838,16 +10841,18 @@ function rtDailyRender(){
   for(var i=dates.length-1;i>=0;i--){var _dk=dates[i],r=recs[_dk]||null;
     var dDist=+((dm.dist[_dk]||0).toFixed(1));var dLine=dm.seg[_dk]||0;
     h+='<tr class="rtd-row" data-d="'+_dk+'" style="cursor:pointer;border-bottom:1px solid #f2f2ef">'
-     +'<td style="padding:8px 6px;font-weight:700;color:'+(r?'#c0392b':'#98a1ad')+';white-space:nowrap">20'+_dk.slice(0,2)+'-'+_dk.slice(2,4)+'-'+_dk.slice(4,6)+(r?'':' <span style="font-size:10px;color:#b9b9b2">(미등록)</span>')+'</td>' 
-     +'<td style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(state.projectName||'')+'">'+(state.projectName||'')+'</td>'
+     +'<td style="padding:8px 6px;font-weight:700;font-size:12px;color:'+(r?'#c0392b':'#98a1ad')+';white-space:nowrap">20'+_dk.slice(0,2)+'-'+_dk.slice(2,4)+'-'+_dk.slice(4,6)+(r?'':' <span style="font-size:10px;color:#b9b9b2">(미등록)</span>')+'</td>' 
+     +'<td style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px" title="'+(state.projectName||'')+'">'+(state.projectName||'')+'</td>'
      +'<td style="text-align:center;'+(r?'':'color:#98a1ad')+'">'+((r&&r.worker)||((typeof ME!=='undefined'&&ME)||'-'))+'</td>'
      +'<td style="text-align:right;font-weight:800;color:#0f6e56">'+dDist+'</td>'
      +'<td style="text-align:right">'+(ptCnt[_dk]||0)+'</td>'
      +'<td style="text-align:right">'+dLine+'</td>'
+     +(function(){var _ph=(phBy[_dk]||[]).length;return '<td style="text-align:center"><button class="rtd-ph" data-d="'+_dk+'" style="background:'+(_ph?'#7c3aed':'#e8e8e2')+';color:'+(_ph?'#fff':'#999')+';border:0;border-radius:6px;padding:4px 9px;font-weight:700;font-size:12px;cursor:pointer">'+_ph+'장</button></td>';})()
      +'<td style="text-align:center"><button class="rtd-csv" data-d="'+_dk+'" style="background:#1565c0;color:#fff;border:0;border-radius:6px;padding:4px 10px;font-weight:700;font-size:12px;cursor:pointer">CSV</button></td></tr>';}
   h+='</tbody></table><div style="text-align:right;font-size:12.5px;color:#1f4e9e;font-weight:800;padding:7px 4px 0">관로거리 합계 '+(+tot.toFixed(1))+'m</div><div id="rtDailyInfo" style="margin-top:9px"></div>';
   el.innerHTML=h;
   el.querySelectorAll('.rtd-csv').forEach(function(b){b.onclick=function(e){e.stopPropagation();rtDailyCsv(b.getAttribute('data-d'));};});
+  el.querySelectorAll('.rtd-ph').forEach(function(b){b.onclick=function(e){e.stopPropagation();if(typeof svPhotoDl==='function')svPhotoDl(phBy[b.getAttribute('data-d')]||[]);};});/* [1235] 일별 사진 다운로드 */
   el.querySelectorAll('.rtd-row').forEach(function(tr){tr.onclick=function(){rtDailyInfo(tr.getAttribute('data-d'));};});
 }
 function rtDailyInfo(ymd){
