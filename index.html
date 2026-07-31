@@ -180,6 +180,8 @@
     .pxrow .n{font-size:12.5px;font-weight:600;color:#54430e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
     .pxsec.d .pxrow .n{color:#26543f;font-weight:500}
     .pxrow .t{font-size:10.5px;color:#7a92a8;flex:none;font-variant-numeric:tabular-nums}
+    .pxdel{display:none;flex:none;color:#c0392b;font-weight:800;cursor:pointer;padding:0 3px;font-size:13px;line-height:1}
+    .pxrow:hover .pxdel{display:inline}
     .pxempty{font-size:11px;color:#9fb1c2;padding:4px 2px}
     .pxrow .n.rt{color:#c0392b}
     .pxrow .n.tam{color:#1d4ed8}
@@ -200,7 +202,7 @@
       <span class="t" id="clk">--:--</span>
       <span class="d" id="cdt">&nbsp;</span>
     </div>
-    <span class="buildno" id="buildno">BUILD 1181</span>
+    <span class="buildno" id="buildno">BUILD 1182</span>
   </header>
 
   <main class="wrap">
@@ -356,6 +358,7 @@
       <div class="pxcol" id="pxc-fd"><div class="pxempty">불러오는 중…</div></div>
       <div class="pxcol" id="pxc-tg"><div class="pxempty">불러오는 중…</div></div>
       <div class="pxcol" id="pxc-po"><div class="pxempty">불러오는 중…</div></div>
+      <div id="pxHidBar" style="grid-column:1/-1;display:none;font-size:11.5px;color:#8aa0b4;text-align:right;padding:2px 6px"></div>
     </section>
   </main>
 
@@ -413,7 +416,8 @@
       var tc=(r.tm==='true')?' tam':' rt';
       return '<div class="pxrow" data-pg="'+cfg.page+'" data-id="'+esc(r.id)+'">'
         +'<span class="n'+tc+'" title="'+esc(r.name)+'">'+esc(r.name)+'</span>'
-        +'<span class="t">'+fmt(r.updated_at)+'</span></div>';
+        +'<span class="t">'+fmt(r.updated_at)+'</span>'
+        +'<span class="pxdel" data-id="'+esc(r.id)+'" title="리스트에서만 숨김 (성과 보존)">×</span></div>';
     }
     function render(cfg,rows,err){
       var el=document.getElementById(cfg.id); if(!el)return;
@@ -438,6 +442,9 @@
       [].forEach.call(el.querySelectorAll('.pxrow'),function(b){
         b.onclick=function(){ location.href=this.getAttribute('data-pg')+'?open='+encodeURIComponent(this.getAttribute('data-id')); };
       });
+      [].forEach.call(el.querySelectorAll('.pxdel'),function(b){
+        b.onclick=function(e){ e.stopPropagation(); HID[this.getAttribute('data-id')]=1; hidSave(); if(window.pxRenderAll)window.pxRenderAll(); };
+      });
     }
     board.style.display='grid';
     /* [1181] core.js baseName과 동일 규칙 */
@@ -453,22 +460,31 @@
         })};
       }).catch(function(){ RES[cfg.tbl]={err:true,rows:[]}; });
     });
-    Promise.all(jobs).then(function(){
-      /* [1181] 인계 완료 자동 숨김: 결선DB에 같은 사업명(base)이 완료등록되면 실시간 완료 목록에서 제거 */
-      var svDone={};
-      ((RES['survey_projects']||{}).rows||[]).forEach(function(r){ if(r.f1==='true') svDone[pxBase(r.name)]=1; });
+    /* [1182] 수동 숨김: 포털 리스트 표시에서만 제외 — Supabase 성과는 절대 삭제/변경 안 함 */
+    var HID={};
+    try{HID=JSON.parse(localStorage.getItem('pxHidden')||'{}')||{};}catch(_e){HID={};}
+    function hidSave(){try{localStorage.setItem('pxHidden',JSON.stringify(HID));}catch(_e){}}
+    function renderAll(){
       STG.forEach(function(cfg){
         var R=RES[cfg.tbl]||{err:true,rows:[]};
-        var rows=R.rows;
-        if(cfg.tbl==='realtime_projects'){
-          rows=rows.filter(function(r){ return !(cfg.done(r) && svDone[pxBase(r.name)]); });
-        }
-        render(cfg,rows,R.err);
+        render(cfg, R.rows.filter(function(r){return !HID[r.id];}), R.err);
       });
-    });
+      var n=Object.keys(HID).length;
+      var bar=document.getElementById('pxHidBar');
+      if(bar){
+        bar.style.display=n?'block':'none';
+        if(n){
+          bar.innerHTML='리스트에서 숨긴 사업 '+n+'건 (성과는 보존됨) &nbsp;<b id="pxHidRestore" style="color:#1d4ed8;cursor:pointer">모두 복원</b>';
+          var rb=document.getElementById('pxHidRestore');
+          if(rb)rb.onclick=function(){HID={};hidSave();renderAll();};
+        }
+      }
+    }
+    window.pxRenderAll=renderAll;
+    Promise.all(jobs).then(renderAll);
   }catch(e){ console.warn('[pxboard]',e); }
 })();
 </script>
-<script src="login.js?v=1181"></script>
+<script src="login.js?v=1182"></script>
 </body>
 </html>
