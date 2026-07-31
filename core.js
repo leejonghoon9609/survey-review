@@ -12988,7 +12988,7 @@ function svPopup(title,accent){
     +'<div id="svDailyFoot" style="padding:9px 14px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px"></div>';
   document.body.appendChild(pop);
   (function(){var hd=document.getElementById('svDailyHead'),dx=0,dy=0,drag=false;
-    hd.addEventListener('pointerdown',function(e){drag=true;var r=pop.getBoundingClientRect();pop.style.left=r.left+'px';pop.style.top=r.top+'px';pop.style.transform='none';dx=e.clientX-r.left;dy=e.clientY-r.top;try{hd.setPointerCapture(e.pointerId);}catch(_e){}});
+    hd.addEventListener('pointerdown',function(e){if(e.target&&e.target.closest&&e.target.closest('button,#svFieldBadge'))return;/* [1239] 배지 클릭 보호 */drag=true;var r=pop.getBoundingClientRect();pop.style.left=r.left+'px';pop.style.top=r.top+'px';pop.style.transform='none';dx=e.clientX-r.left;dy=e.clientY-r.top;try{hd.setPointerCapture(e.pointerId);}catch(_e){}});
     hd.addEventListener('pointermove',function(e){if(!drag)return;pop.style.left=(e.clientX-dx)+'px';pop.style.top=(e.clientY-dy)+'px';});
     hd.addEventListener('pointerup',function(){drag=false;});})();
   /* [1238] 사업명 길면 자동 폰트 축소 — 한 줄 유지 */
@@ -13075,7 +13075,12 @@ function svDoneRegOpen(){ /* 결선완료 등록 — 현재 결선 사업 일별
       sb.from('field_projects').select('payload').eq('id',tid).single().then(function(r){
         if(r.error||!r.data){_setBdg(false,'');return;}
         var pl=r.data.payload||{};pl.delAt=Date.now();
-        sb.from('field_projects').update({payload:pl}).eq('id',tid).then(function(){_setBdg(false,'');toast('미등록 처리 — 현장 사본 삭제목록 이동');});
+        sb.from('field_projects').update({payload:pl}).eq('id',tid).then(function(){
+          _setBdg(false,'');
+          state.routingDone=false; try{window._silentSave=true;saveProject();}catch(_se2){}
+          _svHideRtTwin(false);
+          toast('미등록 처리 — 현장 사본 삭제목록 · 결선완료 해제 · 실시간 목록 복원');
+        });
       });
     }else{ svRegToField(function(id){_setBdg(true,id);}); }
   };
@@ -13086,6 +13091,19 @@ function svDoneRegOpen(){ /* 결선완료 등록 — 현재 결선 사업 일별
     _cb.style.cssText='margin-left:10px;background:#fff;border:1px solid #0d7a52;color:#0d7a52;border-radius:7px;padding:5px 12px;font-weight:800;font-size:12px;cursor:pointer';
     _cb.onclick=function(){if(typeof exportSurveyCsv==='function')exportSurveyCsv();};
     _tot.appendChild(_cb);}
+}
+/* [1239] 성과등록 연동: 대응 실시간(_S) 포털 숨김(pxHide) 켜기/끄기 — 성과 불변 */
+function _svHideRtTwin(hide){
+  try{
+    var base=baseName(state.projectName||'');if(!base)return;
+    sb.from('realtime_projects').select('id,name,payload').then(function(res){
+      ((res&&res.data)||[]).forEach(function(r){var pl=r.payload||{};
+        if(pl.delAt)return;if((pl.stage||'survey')!=='realtime')return;if(baseName(r.name)!==base)return;
+        if(hide){if(pl.pxHide)return;pl.pxHide=Date.now();}else{if(!pl.pxHide)return;delete pl.pxHide;}
+        sb.from('realtime_projects').update({payload:pl}).eq('id',r.id).then(function(){});
+      });
+    });
+  }catch(_e){}
 }
 function svRegToField(cb){ /* 결선 성과 → 측량(현장) _B 사본. [1216] rtRegToSurvey와 동일 패턴(테이블 명시 — DB 상수 금지) */
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
@@ -13110,7 +13128,10 @@ function svRegToField(cb){ /* 결선 성과 → 측량(현장) _B 사본. [1216]
       if(row&&row.error){toast('등록 오류: '+row.error.message);return;}
       var saved=row&&row.data&&row.data[0];if(!saved)return;
       _photos(saved.id);
-      toast('측량(현장)으로 등록됨: '+saved.name+' — 포털 현장 목록에서 열 수 있습니다');
+      /* [1239] 결선완료 병행: 현재 결선 사업 완료 처리 → 포털 결선완료 구역으로 이동 */
+      state.routingDone=true; try{window._silentSave=true;saveProject();}catch(_se){}
+      _svHideRtTwin(true);
+      toast('측량(현장) 등록: '+saved.name+' · 결선완료 처리 · 실시간 목록 숨김');
       if(typeof cb==='function')cb(saved.id);
     };
     if(rows.length){
