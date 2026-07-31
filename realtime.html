@@ -288,6 +288,15 @@
   @media(min-width:761px){
     #hdrBrk{display:block;flex-basis:100%;height:0;order:8}
     #bpToggle,#doneListBtn,#doneSummary,#asbuiltBtn,#photoBtn,#bgBtn,#rvBtn{order:9}
+    /* [1195] 사업선택 가로 2배 */
+    #proj{min-width:432px}
+    /* [1195] 지우기(통합)·거리산출 → 아랫줄 (display:contents 로 헤더 직계 승격 — 나머지 globalbtns 버튼은 order 0 유지, 함정 I 참고) */
+    #globalbtns{display:contents}
+    #globalbtns button[data-g="delall2"],#globalbtns button[data-g="measure"]{order:9}
+    /* [1195] BUILD·Supabase 뱃지를 우측 사용자 옆으로 */
+    #buildno{margin-left:auto!important}
+    /* [1195] 홈 버튼 확대 */
+    #homeBtn{font-size:14.5px;padding:9px 15px;font-weight:800}
   }
   .viewer .vw{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
   .viewer #modeToggle{order:1}
@@ -423,7 +432,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
 </head>
 <body>
   <header>
-    <button id="homeBtn" class="photoBtn" style="background:#eef2f7;border:1px solid #c6d2e0;color:#33506e;font-weight:700;border-radius:8px;padding:5px 11px;margin-right:2px">🏠 홈</button>
+    <button id="homeBtn" class="photoBtn" style="background:#eef2f7;border:1px solid #c6d2e0;color:#33506e;font-weight:700;border-radius:8px;padding:5px 11px;margin-right:2px">🏠 홈으로</button>
     <button id="modeToggle" class="photoBtn">💻 결선</button>
     <h1>실시간측량</h1><button id="rtLine" class="rtm" onclick="rtToggleWire()" style="display:none">✏️ 관로선</button><button id="rtTool" class="rtm" onclick="document.body.classList.toggle('rtrailopen')" style="display:none">☰ 도구</button><button id="rtCrop" class="rtm" onclick="mode='bpcrop';if(typeof setModeUI==='function')setModeUI();if(typeof toast==='function')toast('영역 크롭: 드래그로 사각형을 그리세요');" style="display:none">✂️ 영역크롭</button><button id="rtAsb" class="rtm" onclick="rtOpenAsbuilt()" style="display:none">준공도면</button><div class="rt-break"></div>
     <button id="sysSwitch" class="wk" onclick="location.href='index.html'" style="background:#fff7e6;border:1px solid #f59e0b;color:#b45309;font-weight:700;border-radius:8px;padding:5px 11px;margin-left:2px">🏠 포털</button>
@@ -456,7 +465,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
     <div id="hdrBrk"></div>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 1194</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 1195</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -709,6 +718,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=1194"></script><script src="core.js?v=1194"></script>
+<script src="login.js?v=1195"></script><script src="core.js?v=1195"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
