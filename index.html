@@ -200,7 +200,7 @@
       <span class="t" id="clk">--:--</span>
       <span class="d" id="cdt">&nbsp;</span>
     </div>
-    <span class="buildno" id="buildno">BUILD 1180</span>
+    <span class="buildno" id="buildno">BUILD 1181</span>
   </header>
 
   <main class="wrap">
@@ -440,21 +440,35 @@
       });
     }
     board.style.display='grid';
-    STG.forEach(function(cfg){
-      sb.from(cfg.tbl).select(cfg.sel).order('updated_at',{ascending:false}).then(function(res){
-        var err=res.error||null;
-        var rows=(res.data||[]).filter(function(r){
+    /* [1181] core.js baseName과 동일 규칙 */
+    function pxBase(n){return (''+(n||'')).replace(/_(S|A|B|C|TT?)\d*$/,'');}
+    var RES={};
+    var jobs=STG.map(function(cfg){
+      return sb.from(cfg.tbl).select(cfg.sel).order('updated_at',{ascending:false}).then(function(res){
+        RES[cfg.tbl]={err:res.error||null,rows:(res.data||[]).filter(function(r){
           if(r.del)return false;
           if(r.st && r.st!==cfg.stg)return false;
           if(cfg.skip && cfg.skip(r))return false;
           return true;
-        });
-        render(cfg,rows,err);
-      }).catch(function(){ render(cfg,[],true); });
+        })};
+      }).catch(function(){ RES[cfg.tbl]={err:true,rows:[]}; });
+    });
+    Promise.all(jobs).then(function(){
+      /* [1181] 인계 완료 자동 숨김: 결선DB에 같은 사업명(base)이 완료등록되면 실시간 완료 목록에서 제거 */
+      var svDone={};
+      ((RES['survey_projects']||{}).rows||[]).forEach(function(r){ if(r.f1==='true') svDone[pxBase(r.name)]=1; });
+      STG.forEach(function(cfg){
+        var R=RES[cfg.tbl]||{err:true,rows:[]};
+        var rows=R.rows;
+        if(cfg.tbl==='realtime_projects'){
+          rows=rows.filter(function(r){ return !(cfg.done(r) && svDone[pxBase(r.name)]); });
+        }
+        render(cfg,rows,R.err);
+      });
     });
   }catch(e){ console.warn('[pxboard]',e); }
 })();
 </script>
-<script src="login.js?v=1180"></script>
+<script src="login.js?v=1181"></script>
 </body>
 </html>
