@@ -261,7 +261,11 @@
   .php-split>.php-main{flex:1;min-height:0}
   .php-after .ph.php-none{color:#bbb;font-size:13px;background:#f6f6f3;flex:1}
   /* 폰 현장모드: 노출/후측량 각각 풀사이즈로 세로 스택 + 패널 스크롤 */
-  @media(max-width:760px){.viewer .php-split{flex:none}.viewer .php-split>.php-main{flex:none;height:40vh;min-height:300px}}
+  @media(max-width:760px){.viewer .php-split{flex:none}.viewer .php-split>.php-main{flex:none;height:40vh;min-height:300px}  /* [1220] rtWireBar 선택 표시(.on은 기존 위임 리스너가 부여 — 색만 없었음) */
+  #rtWireBar button.on{box-shadow:inset 0 0 0 2.5px currentColor!important;font-weight:800!important;filter:saturate(1.5)}
+  /* [1220] 완료 버튼 확대 */
+  #rtWireDone{font-size:16px!important;padding:10px 24px!important;background:#16a34a!important;color:#fff!important;border:0!important;border-radius:10px!important;font-weight:800!important;box-shadow:0 2px 8px rgba(0,0,0,.22)!important}
+}
   /* 폰 현장모드 로드뷰: 위=로드뷰 / 아래=측점사진(후측량모드처럼 풀사이즈) + 세로 스크롤 */
   @media(max-width:760px){
     .viewer #rvPanel.open{height:86vh}
@@ -416,7 +420,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   header #rtAsb{order:10!important;background:#fff!important;color:#185fa5!important;border:1px solid #185fa5!important;font-weight:800!important}
   header #rtCrop{order:9!important;background:#fff!important;color:#b8860b!important;border:1px solid #b8860b!important;font-weight:800!important}
   header #rtDel{order:6!important;background:#fff!important;color:#d32f2f!important;border:1px solid #d32f2f!important;font-weight:800!important}
-  body.rtrailopen header #rtTool{background:#333!important;color:#fff!important}
+  body.rtrailopen header #rtTool{background:#e9f7ef!important;color:#1e7e34!important;border:1px solid #1e7e34!important}/* [1220] 연초록 활성 */
   header #photoBtn{order:11!important;display:inline-flex!important;margin-left:auto!important}
   header .spacer,header .sp{flex:0 1 6px!important;min-width:0!important}
   header #bgBtn{order:12!important;display:inline-flex!important}
@@ -474,7 +478,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   <header>
     <button id="homeBtn" class="photoBtn" style="background:#eef2f7;border:1px solid #c6d2e0;color:#33506e;font-weight:700;border-radius:8px;padding:5px 11px;margin-right:2px">🏠 홈으로</button>
     <button id="modeToggle" class="photoBtn">💻 결선</button>
-    <h1>실시간측량</h1><button id="rtLine" class="rtm" onclick="rtToggleWire()" style="display:none">✏️ 관로선</button><button id="rtTool" class="rtm" onclick="document.body.classList.toggle('rtrailopen')" style="display:none">☰ 도구</button><button id="rtCrop" class="rtm" onclick="mode='bpcrop';if(typeof setModeUI==='function')setModeUI();if(typeof toast==='function')toast('영역 크롭: 드래그로 사각형을 그리세요');" style="display:none">✂️ 영역크롭</button><button id="rtAsb" class="rtm" onclick="rtOpenAsbuilt()" style="display:none">준공도면</button><div class="rt-break"></div>
+    <h1>실시간측량</h1><button id="rtLine" class="rtm" onclick="rtToggleWire()" style="display:none">✏️ 관로선</button><button id="rtTool" class="rtm" onclick="document.body.classList.toggle('rtrailopen')" style="display:none">☰ 도구</button><button id="rtCrop" class="rtm" onclick="if(this.classList.contains('on')){this.classList.remove('on');mode='pan';if(typeof setModeUI==='function')setModeUI();}else{this.classList.add('on');mode='bpcrop';if(typeof setModeUI==='function')setModeUI();if(typeof toast==='function')toast('영역 크롭: 드래그로 사각형을 그리세요');}" style="display:none">✂️ 영역크롭</button><button id="rtAsb" class="rtm" onclick="rtOpenAsbuilt()" style="display:none">준공도면</button><div class="rt-break"></div>
     <button id="sysSwitch" class="wk" onclick="location.href='index.html'" style="background:#fff7e6;border:1px solid #f59e0b;color:#b45309;font-weight:700;border-radius:8px;padding:5px 11px;margin-left:2px">🏠 포털</button>
     <span id="roBadge" class="wk" style="display:none;cursor:pointer;color:#d98200;border:1px solid #e0b15a;background:#fff8ec;border-radius:7px;padding:2px 9px;font-size:12px;font-weight:700" title="클릭하면 수정 가능 모드로 전환">🔒 보기 전용 · 클릭=수정</span>
     <span id="viewerBar" class="vw">
@@ -544,7 +548,7 @@ function rtOpenAsbuilt(){
   try{if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof openPhotoPanel==='function')openPhotoPanel(false);}catch(_e){}
   var ab=(typeof state!=='undefined')&&state.asbuilt;
   if(!ab||!ab.url){if(typeof toast==='function')toast('준공도면이 없습니다 — 사업등록에서 올려주세요');return;}
-  var old=document.getElementById('rtAsbModal');if(old)old.remove();
+  var old=document.getElementById('rtAsbModal');if(old)old.remove();var _abB=document.getElementById('rtAsb');if(_abB)_abB.classList.add('on');
   var wrap=document.createElement('div');wrap.id='rtAsbModal';
   wrap.style.cssText='position:fixed;left:0;right:0;bottom:0;height:40dvh;background:#fff;z-index:9999;display:flex;flex-direction:column;box-shadow:0 -6px 18px rgba(0,0,0,.28);border-top:1px solid #ddd';
   var _isPdf=(String(ab.ext||'').toLowerCase()==='pdf')||/\.pdf(\?|$)/i.test(ab.url);
@@ -559,7 +563,7 @@ function rtOpenAsbuilt(){
   function setSc(ns,mx,my){ns=Math.max(1,Math.min(6,ns));var f=ns/sc;if(f===1)return;var sl=body.scrollLeft,st=body.scrollTop;sc=ns;apply();body.scrollLeft=(sl+mx)*f-mx;body.scrollTop=(st+my)*f-my;}
   document.getElementById('rtAsbPlus').onclick=function(){var r=body.getBoundingClientRect();setSc(sc*1.4,r.width/2,r.height/2);};
   document.getElementById('rtAsbMinus').onclick=function(){var r=body.getBoundingClientRect();setSc(sc/1.4,r.width/2,r.height/2);};
-  document.getElementById('rtAsbClose').onclick=function(){wrap.remove();};
+  document.getElementById('rtAsbClose').onclick=function(){wrap.remove();var _ab=document.getElementById('rtAsb');if(_ab)_ab.classList.remove('on');};
   var pts={},d0=0,s0=1;
   body.addEventListener('pointerdown',function(e){pts[e.pointerId]=[e.clientX,e.clientY];var k=Object.keys(pts);if(k.length===2){var a=pts[k[0]],b=pts[k[1]];d0=Math.hypot(a[0]-b[0],a[1]-b[1]);s0=sc;}});
   body.addEventListener('pointermove',function(e){if(!pts[e.pointerId])return;pts[e.pointerId]=[e.clientX,e.clientY];var k=Object.keys(pts);
@@ -758,6 +762,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=1219"></script><script src="core.js?v=1219"></script>
+<script src="login.js?v=1220"></script><script src="core.js?v=1220"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
