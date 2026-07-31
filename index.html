@@ -202,7 +202,7 @@
       <span class="t" id="clk">--:--</span>
       <span class="d" id="cdt">&nbsp;</span>
     </div>
-    <span class="buildno" id="buildno">BUILD 1190</span>
+    <span class="buildno" id="buildno">BUILD 1191</span>
   </header>
 
   <main class="wrap">
@@ -450,16 +450,23 @@
     /* [1181] core.js baseName과 동일 규칙 */
     function pxBase(n){return (''+(n||'')).replace(/_(S|A|B|C|TT?)\d*$/,'');}
     var RES={};
-    var jobs=STG.map(function(cfg){
+    /* [1191] Supabase 간헐 오류 대비: 실패 시 0.7·1.4초 후 재시도(최대 3회) */
+    function qTry(cfg,att){
       return sb.from(cfg.tbl).select(cfg.sel).order('updated_at',{ascending:false}).then(function(res){
+        if(res.error && att<3){
+          return new Promise(function(rs){setTimeout(rs,700*att);}).then(function(){return qTry(cfg,att+1);});
+        }
         RES[cfg.tbl]={err:res.error||null,rows:(res.data||[]).filter(function(r){
           if(r.del)return false;
           if(r.st && r.st!==cfg.stg)return false;
           if(cfg.skip && cfg.skip(r))return false;
           return true;
         })};
-      }).catch(function(){ RES[cfg.tbl]={err:true,rows:[]}; });
-    });
+      }).catch(function(){
+        if(att<3){return new Promise(function(rs){setTimeout(rs,700*att);}).then(function(){return qTry(cfg,att+1);});}
+        RES[cfg.tbl]={err:true,rows:[]};
+      });
+    }
     /* [1182] 수동 숨김: 포털 리스트 표시에서만 제외 — Supabase 성과는 절대 삭제/변경 안 함 */
     var HID={};
     try{HID=JSON.parse(localStorage.getItem('pxHidden')||'{}')||{};}catch(_e){HID={};}
@@ -481,10 +488,13 @@
       }
     }
     window.pxRenderAll=renderAll;
-    Promise.all(jobs).then(renderAll);
+    /* [1191] 최초 로드 + 60초 자동 갱신 (각 공정 사업등록·완료가 포털에 자동 반영) */
+    function pxLoad(){ Promise.all(STG.map(function(cfg){return qTry(cfg,1);})).then(renderAll); }
+    pxLoad();
+    setInterval(pxLoad,60000);
   }catch(e){ console.warn('[pxboard]',e); }
 })();
 </script>
-<script src="login.js?v=1190"></script>
+<script src="login.js?v=1191"></script>
 </body>
 </html>

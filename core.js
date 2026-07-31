@@ -9902,6 +9902,14 @@ function hoverPt(p){
   }catch(e){}
 }
 function hoverClear(){_hovPt=null;try{if(typeof clearSvg==='function')clearSvg(gHov);}catch(e){}}
+
+/* [1191] 측점 호버·근접클릭 가동 조건 — field:조서열림 / realtime:항상 / survey:사진보기 열림 / tango:없음(기존) */
+function _selUiOn(){
+  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)return true;
+  if(typeof IS_TANGO!=='undefined'&&IS_TANGO)return false;
+  if(typeof IS_FIELD!=='undefined'&&IS_FIELD)return (typeof joseoUiOpen==='function')?joseoUiOpen():false;
+  return (typeof photoPanelOpen!=='undefined')?!!photoPanelOpen:false;
+}
 /* 화면 기준 반경 안의 가장 가까운 측점 */
 function nearestPt(cx,cy){
   try{
@@ -9921,7 +9929,7 @@ function nearestPt(cx,cy){
   try{
     if(typeof cv==='undefined'||!cv)return;
     cv.addEventListener('pointermove',function(e){
-      if(typeof joseoUiOpen==='function'&&!joseoUiOpen()){if(_hovPt)hoverClear();return;}
+      if(!_selUiOn()){if(_hovPt)hoverClear();return;}   /* [1191] */
       if(typeof mode!=='undefined'&&mode!=='pan'){if(_hovPt)hoverClear();return;}
       var p=nearestPt(e.clientX,e.clientY);
       hoverPt(p);
@@ -9930,7 +9938,7 @@ function nearestPt(cx,cy){
     cv.addEventListener('pointerleave',function(){hoverClear();try{cv.style.cursor='';}catch(_c){}});
     /* 호버 중인 측점 클릭 → 선택 + 조서 이동 (축소 상태에서도 잡힘) */
     cv.addEventListener('click',function(e){
-      if(typeof joseoUiOpen!=='function'||!joseoUiOpen())return;
+      if(!_selUiOn())return;   /* [1191] */
       if(typeof mode!=='undefined'&&mode!=='pan')return;
       var p=_hovPt||nearestPt(e.clientX,e.clientY);
       if(!p||!p.no)return;
@@ -9996,7 +10004,8 @@ function highlightSel(){clearSvg(gSel);if(selNum==null)return;
   if(!p&&state.gpsPts){for(var _gi=0;_gi<state.gpsPts.length;_gi++){if(state.gpsPts[_gi].no===selNum){_greenSel(state.gpsPts[_gi].x,state.gpsPts[_gi].y);return;}}}
   /* [1146] 실시간측량: CSV 측점도 초록 원+X (조서 가드 적용 안 받음 — 이 공정엔 조서 없음) */
   if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){if(p)_greenSel(p.x,p.y);return;}
-  if(typeof joseoUiOpen==='function'&&!joseoUiOpen())return;   /* [1094] 조서 꺼지면 CSV측점 선택표시 꺼짐(field 전용) */
+  /* [1191] 1094 가드는 field·tango 전용 — survey(사진보기)는 항상 빨간 점선원+X 표시 */
+  if(((typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO))&&typeof joseoUiOpen==='function'&&!joseoUiOpen())return;
   if(!p)return;
   var nbs=neighborsOf(selNum);
   [nbs.up,nbs.down].forEach(function(q){if(q){var sy=S(q.x,q.y);gSel.appendChild(el('circle',{cx:sy[0],cy:sy[1],r:0.224,fill:'none',stroke:'#ffcc00','stroke-width':1.4,'vector-effect':'non-scaling-stroke'}));}});
@@ -12689,6 +12698,7 @@ function zoomWheelSmooth(e){
       _zw.run=false;
       if(typeof drawGeo==='function')drawGeo();
       if(typeof drawManholes==='function')drawManholes();
+      if(typeof highlightSel==='function')highlightSel();   /* [1191] */
       return;
     }
     var part=Math.exp(lg*0.45); /* [1190] 드리프트감 감소: 프레임당 45% 소화 */
@@ -12703,7 +12713,14 @@ function zoomWheelFlush(){
   if(!_zw.run && _zw.pend===1)return;
   if(_zw.pend!==1){zoomAtLight(_zw.pend,_zw.cx,_zw.cy);_zw.pend=1;}
   _zw.kill=true; _zw.run=false;
-  if(typeof drawGeo==='function')drawGeo();
-  if(typeof drawManholes==='function')drawManholes();
+  /* [1191] 재그리기를 pointerup 다음 태스크로 지연 — 클릭 대상 요소가 도중에 교체되어
+     첫 클릭 선택·드래그가 죽던 문제(함정 B 계열) 해결. 클릭·캡처가 원본 DOM에서 온전히 끝난 뒤 재그리기 */
+  var _once=function(){document.removeEventListener('pointerup',_once,true);
+    setTimeout(function(){
+      if(typeof drawGeo==='function')drawGeo();
+      if(typeof drawManholes==='function')drawManholes();
+      if(typeof highlightSel==='function')highlightSel();
+    },0);};
+  document.addEventListener('pointerup',_once,true);
 }
 document.addEventListener('pointerdown',function(){ if(_zw.run||_zw.pend!==1)zoomWheelFlush(); },true);
