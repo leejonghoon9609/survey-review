@@ -5485,9 +5485,16 @@ function renderDraft(){clearSvg(gDraft);previewLine=null;if(!lineDraft)return;
   for(var i=1;i<lineDraft.length;i++){var a=S(lineDraft[i-1][0],lineDraft[i-1][1]),b=S(lineDraft[i][0],lineDraft[i][1]);
     gDraft.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:col,'stroke-width':lw,'stroke-dasharray':'4 3','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}
   lineDraft.forEach(function(p){var s=S(p[0],p[1]);gDraft.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#1f6fd6','stroke-width':8,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));});
+  /* [1192] 마지막 확정점 초록 점선원+X — 다음 점 확정 시 재렌더로 자동 이동, 완료/시작 시 자동 제거 */
+  if(lineDraft.length){var _lgp=lineDraft[lineDraft.length-1];if(typeof _draftGreen==='function')_draftGreen(_lgp[0],_lgp[1]);}
   drawIndicators(null);}
 function drawIndicators(cw){clearSvg(gDraw);if(mode!=='line'||!lineDraft)return;
-  if(cw){var ns=nearestSnapWorld(cw[0],cw[1]);if(ns.pt&&ns.d<vb.w*0.04){var s2=S(ns.pt[0],ns.pt[1]);gDraw.appendChild(el('line',{x1:s2[0],y1:s2[1],x2:s2[0],y2:s2[1],stroke:'#1f6fd6','stroke-width':10,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}}}
+  if(cw){var ns=nearestSnapWorld(cw[0],cw[1]);
+    var _tol=(typeof drawLayer!=='undefined'&&drawLayer==='지거')?Math.max(pxToWorld()*14,0.25):vb.w*0.04;   /* [1192] 클릭 스냅과 동일 판정 */
+    if(ns.pt&&ns.d<_tol){var s2=S(ns.pt[0],ns.pt[1]);
+      var _hr=Math.max(0.35,13*pxToWorld());
+      gDraw.appendChild(el('circle',{cx:s2[0],cy:s2[1],r:_hr,fill:'none',stroke:'#d500f2','stroke-width':2.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));   /* [1192] 스냅 후보 마젠타 원 */
+    }}}
 function delHoverHighlight(cw){clearSvg(gDraw);var best=null,bd=1e18;
   state.lines.forEach(function(L){if(L.base||(mode!=='delall2'&&L.layer!==delLayer))return;for(var s=0;s<L.pts.length-1;s++){var a=S(L.pts[s][0],L.pts[s][1]),b=S(L.pts[s+1][0],L.pts[s+1][1]);var d=segDist(cw[0],cw[1],a[0],a[1],b[0],b[1]);if(d<bd){bd=d;best={a:a,b:b,layer:L.layer};}}});
   if(best&&bd<vb.w*0.03){var col=(LINECOL[best.layer]||{}).c||'#d92b2b';gDraw.appendChild(el('line',{x1:best.a[0],y1:best.a[1],x2:best.b[0],y2:best.b[1],stroke:col,'stroke-width':6,'stroke-opacity':0.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));}
@@ -12724,3 +12731,16 @@ function zoomWheelFlush(){
   document.addEventListener('pointerup',_once,true);
 }
 document.addEventListener('pointerdown',function(){ if(_zw.run||_zw.pend!==1)zoomWheelFlush(); },true);
+
+/* [1192] 선 그리기: 마지막 확정점 초록 점선원+X (선택 측점 _greenSel과 동일 스타일, gDraft에 그려 자동 청소) */
+function _draftGreen(wx,wy){
+  var s=S(wx,wy), r=Math.max(0.95,16*((typeof pxToWorld==='function')?pxToWorld():0.05)), xr=r*0.7071;
+  var g=document.createElementNS(SVGNS,'g');
+  var gx=Math.round(s[0]),gy=Math.round(s[1]);
+  g.setAttribute('transform','translate('+gx+','+gy+')');
+  var lx=s[0]-gx,ly=s[1]-gy;
+  g.appendChild(el('circle',{cx:lx,cy:ly,r:r,fill:'none',stroke:'#12b312','stroke-width':3.4,'stroke-dasharray':'5 3','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+  g.appendChild(el('line',{x1:lx-xr,y1:ly-xr,x2:lx+xr,y2:ly+xr,stroke:'#12b312','stroke-width':0.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+  g.appendChild(el('line',{x1:lx-xr,y1:ly+xr,x2:lx+xr,y2:ly-xr,stroke:'#12b312','stroke-width':0.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+  gDraft.appendChild(g);
+}
