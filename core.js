@@ -6170,8 +6170,33 @@ function actionList(){var arr=[];
   arr.push({id:'fixed:measure',name:'📏 거리산출',grp:'도구'});
   arr.push({id:'fixed:undo',name:'← 되돌리기',grp:'도구'});
   arr.push({id:'fixed:redo',name:'다시 실행 →',grp:'도구'});
+  /* [1198] 단축키 전면 확장 — 화면에 있는 버튼만 동작(없으면 안내) */
+  arr.push({id:'fixed:fit',name:'🔍 전체 보기',grp:'보기'});
+  arr.push({id:'btn:bpToggle',name:'🗺 백판 켬/끔',grp:'보기'});
+  arr.push({id:'btn:photoBtn',name:'📷 측점사진보기',grp:'보기'});
+  arr.push({id:'btn:bgBtn',name:'🗺 카카오맵',grp:'보기'});
+  arr.push({id:'btn:rvBtn',name:'📷 로드뷰',grp:'보기'});
+  arr.push({id:'btn:save',name:'💾 저장',grp:'사업'});
+  arr.push({id:'fixed:reg',name:'📋 사업등록',grp:'사업'});
+  arr.push({id:'btn:trashProj',name:'🗂 삭제목록',grp:'사업'});
+  arr.push({id:'btn:doneListBtn',name:'✅ 결선 완료사업',grp:'자료'});
+  arr.push({id:'btn:asbuiltBtn',name:'📐 준공도면',grp:'자료'});
+  arr.push({id:'btn:dxfExport',name:'📐 DXF로 내보내기',grp:'내보내기'});
+  arr.push({id:'btn:pdfExport',name:'📄 PDF로 내보내기',grp:'내보내기'});
+  arr.push({id:'btn:csvExport',name:'📄 측설용 CSV 내보내기',grp:'내보내기'});
+  arr.push({id:'btn:doneReg',name:'✅ 완료사업 등록',grp:'내보내기'});
+  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){
+    arr.push({id:'btn:rtCsvBtn',name:'📥 CSV 업로드',grp:'실시간측량'});
+    arr.push({id:'btn:rtShoot',name:'📷 측점 촬영',grp:'실시간측량'});
+    arr.push({id:'btn:rtDoneBtn',name:'✅ 실측완료/완료됨',grp:'실시간측량'});
+    arr.push({id:'btn:rtDoneListBtn',name:'📋 완료목록',grp:'실시간측량'});
+  }
   return arr;}
 function runAction(id){
+  /* [1198] */
+  if(id.indexOf('btn:')===0){var _be=document.getElementById(id.slice(4));if(_be&&_be.offsetParent!==null){_be.click();}else if(_be){_be.click();}else{if(typeof toast==='function')toast('이 화면에는 없는 기능입니다');}return;}
+  if(id==='fixed:fit'){var _fb=document.querySelector('#globalbtns button[data-g="fit"]');if(_fb)_fb.click();else if(typeof fitView==='function')fitView();return;}
+  if(id==='fixed:reg'){if(typeof openRegModal==='function')openRegModal();return;}
   if(id==='fixed:undo'){doUndo();return;}
   if(id==='fixed:redo'){doRedo();return;}
   if(id==='fixed:clearsym'){var cb=document.querySelector('#globalbtns button[data-g="delall2"]');if(cb)cb.click();return;}
