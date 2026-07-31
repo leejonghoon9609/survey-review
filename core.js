@@ -5686,7 +5686,7 @@ window.addEventListener('pointerup',function(e){try{if(activePtrs[e.pointerId]!=
 window.addEventListener('pointercancel',function(e){try{if(activePtrs[e.pointerId]!==undefined)delete activePtrs[e.pointerId];if(pinch&&Object.keys(activePtrs).length<2)pinch=null;}catch(_){}});
 cv.addEventListener('mousedown',function(e){if(e.button===1)e.preventDefault();});
 cv.addEventListener('auxclick',function(e){if(e.button===1)e.preventDefault();});
-cv.addEventListener('wheel',function(e){e.preventDefault();(function(){var _wf=wheelFactor();zoomAt(e.deltaY>0?_wf:1/_wf,e.clientX,e.clientY);})();},{passive:false});   /* [1123] 휠 감도 field만 1.16, 그 외 1.07 */
+cv.addEventListener('wheel',function(e){e.preventDefault();zoomWheelSmooth(e);},{passive:false});   /* [1189] 부드러운 휠 줌 */   /* [1123] 휠 감도 field만 1.16, 그 외 1.07 */
 cv.addEventListener('dblclick',function(e){if(viewerMode||readOnly)return;if((mode==='hyunroad'||mode==='hyunwalk')&&hyunDraw&&hyunDraw.pts&&hyunDraw.pts.length>=2){e.preventDefault();hyunFinish(true);return;}var ni=hitNote(e.clientX,e.clientY);if(ni>=0){e.preventDefault();openNoteEdit(ni);}}); // PC 편집모드: 특이사항 더블클릭=수정/삭제
 
 /* ====== CSV / DXF 파싱 ====== */
@@ -12664,3 +12664,35 @@ function wheelFactor(){
   if(bp)bp.onclick=function(){bump(1);};
   upd();
 }catch(_we){console.warn('[wheel]',_we);}})();
+
+/* [1189] 부드러운 휠 확대축소 (전 공정 공통 — 승인):
+   틱마다 즉시 점프+전체 재그리기 하던 것을, 목표 배율까지 rAF 보간으로 나눠 적용.
+   보간 중에는 viewBox 스케일만(가벼움), drawGeo/drawManholes 는 제스처 종료 시 1회.
+   최종 배율·마우스 앵커점·감도(wheelFactor)는 기존과 동일. */
+function zoomAtLight(f,cx,cy){
+  var w=toWorld(cx,cy),r=cv.getBoundingClientRect();
+  vb.w*=f;vb.h*=f;
+  vb.x=w[0]-(cx-r.left)/r.width*vb.w;
+  vb.y=w[1]-(cy-r.top)/r.height*vb.h;
+  applyVB();
+}
+var _zw={pend:1,cx:0,cy:0,run:false};
+function zoomWheelSmooth(e){
+  var f=wheelFactor(), k=(e.deltaY>0)?f:1/f;
+  _zw.pend*=k; _zw.cx=e.clientX; _zw.cy=e.clientY;
+  if(_zw.run)return; _zw.run=true;
+  (function _st(){
+    var lg=Math.log(_zw.pend);
+    if(Math.abs(lg)<0.0025){
+      if(_zw.pend!==1){zoomAtLight(_zw.pend,_zw.cx,_zw.cy);_zw.pend=1;}
+      _zw.run=false;
+      if(typeof drawGeo==='function')drawGeo();
+      if(typeof drawManholes==='function')drawManholes();
+      return;
+    }
+    var part=Math.exp(lg*0.30);
+    zoomAtLight(part,_zw.cx,_zw.cy);
+    _zw.pend/=part;
+    requestAnimationFrame(_st);
+  })();
+}
