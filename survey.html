@@ -340,6 +340,11 @@
   #globalbtns button[data-g="undo"]{order:12;margin-left:72px}
   #globalbtns button[data-g="redo"]{order:12}
   #photoBtn,#bgBtn,#rvBtn{order:13}
+  /* [1234] 전체=빨강 / 백판=마젠타 — 적용 시 연한 같은 계열 */
+  #globalbtns button[data-g="fit"]{background:#fff;border:1px solid #c0392b;color:#c0392b;font-weight:700}
+  #globalbtns button[data-g="fit"]:active{background:#fdecea}
+  #bpToggle{background:#fff;border:1px solid #d81b60;color:#d81b60;font-weight:700}
+  #bpToggle:not(.off){background:#fde7f1}
 }
 </style>
 </head>
@@ -540,6 +545,6 @@
     </div>
   </div>
 
-<script src="login.js?v=1233"></script><script src="core.js?v=1233"></script>
+<script src="login.js?v=1234"></script><script src="core.js?v=1234"></script>
 </body>
 </html>

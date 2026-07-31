@@ -6138,13 +6138,20 @@ function renderSub(){
   else if(c.hint&&!(typeof IS_REALTIME!=='undefined'&&IS_REALTIME))html+='<span class="subhint">'+c.hint+'</span>';
   if(mode==='line')html+='<button id="lineDone" class="on">완료</button>';
   var kbM=keyForAction('fixed:measure'),kbU=keyForAction('fixed:undo'),kbR=keyForAction('fixed:redo'),kbC=keyForAction('fixed:clearsym');
-  var _rtHdr=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME);/* [1201] realtime 전용 라벨·배경 — 다른 공정 기존 유지 */
-  var _urSt=_rtHdr?' style="background:#eef4ff;border:1px solid #90b4e8;color:#0a3ea0;font-weight:700"':'';
+  var _rtHdr=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME);/* [1201] realtime 전용 라벨·배경 */
+  var _svHdr=(typeof STAGE!=='undefined'&&STAGE==='survey');/* [1234] survey도 연파랑·앞으로 */
+  var _urSt=(_rtHdr||_svHdr)?' style="background:#eef4ff;border:1px solid #90b4e8;color:#0a3ea0;font-weight:700"':'';
   var bdg=function(k){return k?' <span class="hk-badge" style="margin-left:4px">'+k+'</span>':'';};
-  var vhtml='<button data-g="delall2" style="border:1px solid #c0392b;color:#c0392b;font-weight:700">🧹 지우기(통합)'+bdg(kbC)+'</button><button data-g="measure" style="border:1px solid #d32f2f;color:#d32f2f;font-weight:700"><span style="color:#f2b400">📏</span> 거리산출'+bdg(kbM)+'</button><button data-g="undo"'+_urSt+'>← 되돌리기'+bdg(kbU)+'</button><button data-g="redo"'+_urSt+'>'+(_rtHdr?'앞으로 →':'다시 실행 →')+bdg(kbR)+'</button>'
+  var vhtml='<button data-g="delall2" style="border:1px solid #c0392b;color:#c0392b;font-weight:700">🧹 지우기(통합)'+bdg(kbC)+'</button><button data-g="measure" style="border:1px solid #d32f2f;color:#d32f2f;font-weight:700"><span style="color:#f2b400">📏</span> 거리산출'+bdg(kbM)+'</button><button data-g="undo"'+_urSt+'>← 되돌리기'+bdg(kbU)+'</button><button data-g="redo"'+_urSt+'>'+((_rtHdr||_svHdr)?'앞으로 →':'다시 실행 →')+bdg(kbR)+'</button>'
       +'<span class="subhint">보기</span><button data-g="fit">'+(_rtHdr?'전체보기':'전체')+'</button>';
   if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)html=((typeof isMobileDevice==='function'&&isMobileDevice())?'<button id="rtNewProj" style="font-size:14px;padding:8px 13px;border:1px solid #6e757f;border-radius:6px;background:#fff;color:#333;font-weight:700;cursor:pointer;margin-right:6px">사업등록</button>':'')/* [1197] 폰만 사업등록 유지, PC는 제거(사이드바 중복) */+html+'<button id="rtDoneBtn" style="font-size:14px;padding:8px 13px;border:1px solid #c0392b;border-radius:6px;background:#fff;color:#c0392b;font-weight:700;cursor:pointer;margin-right:6px">일별완료성과 등록</button>'+('<button id="rtDoneListBtn" style="font-size:14px;padding:8px 13px;border-radius:6px;font-weight:700;cursor:pointer;margin-right:6px;'+((state.rtDone&&state.rtDone.done)?'border:1px solid #d81b60;background:#d81b60;color:#fff':'border:1px solid #1d9e75;background:#fff;color:#1d9e75')+'">완료성과(전체)</button>');/* [1218] 폰에서도 표시 */
+  /* [1234] survey PC 전용 — 힌트바에 실시간 최종완료성과 / 결선완료 등록 버튼 */
+  if(typeof STAGE!=='undefined'&&STAGE==='survey'&&!(typeof isMobileDevice==='function'&&isMobileDevice())){
+    html+='<button id="svRtDoneBtn" style="font-size:13px;padding:7px 12px;border:1px solid #c0392b;border-radius:6px;background:#fff;color:#c0392b;font-weight:700;cursor:pointer;margin-left:14px">실시간 최종완료성과</button>'
+        +'<button id="svDoneRegBtn" style="font-size:13px;padding:7px 12px;border:1px solid #16a34a;border-radius:6px;background:#fff;color:#15803d;font-weight:700;cursor:pointer;margin-left:8px">결선완료 등록</button>';
+  }
   s.innerHTML=html;
+  if(typeof STAGE!=='undefined'&&STAGE==='survey'){var _sv1=document.getElementById('svRtDoneBtn');if(_sv1)_sv1.onclick=function(){svRtDailyOpen();};var _sv2=document.getElementById('svDoneRegBtn');if(_sv2)_sv2.onclick=function(){svDoneRegOpen();};}
   if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){var _np=document.getElementById('rtNewProj');if(_np)_np.onclick=function(){if(typeof openRegModal==='function')openRegModal();};var _dn=document.getElementById('rtDoneBtn');if(_dn)_dn.onclick=function(){if(typeof rtDailyOpen==='function')rtDailyOpen();};/* [1206] 일별성과 모달 */var _dl=document.getElementById('rtDoneListBtn');if(_dl)_dl.onclick=function(){if(typeof rtDailyAllOpen==='function')rtDailyAllOpen();};/* [1209] 일별 누적 목록 */}
   if(c.k==='inspmk')wireInspmk(s);
   var gb=document.getElementById('globalbtns'); if(gb)gb.innerHTML=vhtml;
@@ -12930,6 +12937,148 @@ function _projFilterChip(){
   var _fix=function(){var b=document.getElementById('rtLine');if(b)b.textContent='\u270F\uFE0F \uD3B8\uC9D1\uB3C4\uAD6C';};
   _fix();setTimeout(_fix,600);
 }catch(_e){}})();
+/* ============================================================
+   [1234] survey(결선DB) 전용 — 실시간 최종완료성과 열람 + 결선완료 등록 팝업
+   ※ 실시간측량 함수는 건드리지 않음(강력 지시). 아래 svDistMap/svCsv는
+     rtDailyDistMap/rtDailyCsv 와 동일 산식·형식 — 한쪽 수정 시 상호 반영(규칙 10)
+   ============================================================ */
+function svDistMap(points,lines){
+  var tol=0.25, pts=points||[], dist={}, seg={};
+  function dateAt(x,y){var bd=tol,best=null;for(var i=0;i<pts.length;i++){var p=pts[i];if(!p||!isFinite(p.x))continue;var d=Math.hypot(p.x-x,p.y-y);if(d<bd){bd=d;best=p;}}return best?(best._d0||(''+best.no).split('-')[0]):null;}
+  (lines||[]).forEach(function(L){if(!L||!L.pts)return;if(L.layer&&L.layer!=='통신관로'&&L.layer!=='지거'&&L.layer!=='압입구간')return;for(var i=1;i<L.pts.length;i++){
+    var a=L.pts[i-1],b=L.pts[i];var da=dateAt(a[0],a[1]),db=dateAt(b[0],b[1]);
+    var d=(da&&db)?(da>db?da:db):(da||db); if(!d)continue;
+    dist[d]=(dist[d]||0)+Math.hypot(b[0]-a[0],b[1]-a[1]); seg[d]=(seg[d]||0)+1;
+  }});
+  return {dist:dist,seg:seg};
+}
+function svCsv(points,projName,ymd){
+  var pts=(points||[]).filter(function(p){return p&&((p._d0===ymd)||((''+p.no).indexOf(ymd+'-')===0));});
+  if(!pts.length){toast(ymd+' 날짜 측점이 없습니다');return;}
+  var rows=['이름,X,Y,Z(레벨),코드,현재날짜'];
+  pts.forEach(function(p){var nm=p._nm||(''+p.no).split('-').slice(1).join('-')||(''+p.no);
+    rows.push([nm,(p.y!=null&&isFinite(p.y))?(+p.y).toFixed(3):'',(p.x!=null&&isFinite(p.x))?(+p.x).toFixed(3):'',(p.z!=null&&p.z!==''&&isFinite(+p.z))?(+p.z).toFixed(2):'',(p._tcode||p.code||''),'20'+ymd].join(','));});
+  var blob=new Blob(['\uFEFF'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(projName||'사업')+'_'+ymd+'.csv';document.body.appendChild(a);a.click();a.remove();
+}
+function svPhotoDl(items){ /* 일별 사진 일괄 다운로드(순차 fetch→blob) */
+  if(!items||!items.length){toast('해당 날짜 사진이 없습니다');return;}
+  toast('사진 '+items.length+'장 다운로드 시작…');
+  var i=0;(function nx(){ if(i>=items.length){toast('사진 '+items.length+'장 다운로드 완료');return;}
+    var it=items[i++];
+    fetch(it.url).then(function(r){return r.blob();}).then(function(b){
+      var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=String(it.no).replace(/[\\/:*?"<>|]/g,'_')+'.jpg';document.body.appendChild(a);a.click();a.remove();setTimeout(nx,350);
+    }).catch(function(){setTimeout(nx,120);});
+  })();
+}
+function svPopup(title,accent){
+  var id='svDailyPop';var old=document.getElementById(id);if(old)old.remove();
+  var pop=document.createElement('div');pop.id=id;
+  pop.style.cssText='position:fixed;left:50%;top:90px;transform:translateX(-50%);z-index:9500;background:#fff;border:2px solid '+accent+';border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.25);width:min(94vw,760px);max-height:80vh;display:flex;flex-direction:column;overflow:hidden';
+  pop.innerHTML='<div id="svDailyHead" style="display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:grab;user-select:none;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:'+accent+';display:inline-block"></span><b style="font-size:15px">'+title+'</b><span style="font-size:11px;color:#bbb;margin-left:auto">드래그로 이동</span></div>'
+    +'<div id="svDailyBody" style="overflow:auto;padding:10px 14px"></div>'
+    +'<div id="svDailyFoot" style="padding:9px 14px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px"></div>';
+  document.body.appendChild(pop);
+  (function(){var hd=document.getElementById('svDailyHead'),dx=0,dy=0,drag=false;
+    hd.addEventListener('pointerdown',function(e){drag=true;var r=pop.getBoundingClientRect();pop.style.left=r.left+'px';pop.style.top=r.top+'px';pop.style.transform='none';dx=e.clientX-r.left;dy=e.clientY-r.top;try{hd.setPointerCapture(e.pointerId);}catch(_e){}});
+    hd.addEventListener('pointermove',function(e){if(!drag)return;pop.style.left=(e.clientX-dx)+'px';pop.style.top=(e.clientY-dy)+'px';});
+    hd.addEventListener('pointerup',function(){drag=false;});})();
+  return pop;
+}
+function svDailyTable(container,points,lines,rtDaily,projName,phByDate){
+  var recs={};(rtDaily||[]).forEach(function(r){if(r&&r.date)recs[r.date]=r;});
+  var dm=svDistMap(points,lines);var tot=0;for(var _k in dm.dist)tot+=dm.dist[_k];
+  var ptCnt={};(points||[]).forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0)ptCnt[d0]=(ptCnt[d0]||0)+1;});
+  var dset={};for(var k2 in dm.dist)dset[k2]=1;for(var k3 in recs)dset[k3]=1;for(var k4 in (phByDate||{}))dset[k4]=1;
+  (points||[]).forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0&&/^[0-9]{6}$/.test(d0))dset[d0]=1;});
+  var dates=Object.keys(dset).sort();
+  if(!dates.length){container.innerHTML='<div style="color:#999;padding:14px;text-align:center">일별 데이터가 없습니다.</div>';return;}
+  var h='<table style="width:100%;border-collapse:collapse;font-size:12.5px"><thead><tr style="background:#f5f8ff;color:#1f4e9e">'
+   +'<th style="padding:6px 5px;border-bottom:1px solid #dde">날짜</th><th style="border-bottom:1px solid #dde">사업명</th><th style="border-bottom:1px solid #dde">작업자</th><th style="border-bottom:1px solid #dde;text-align:right">거리(m)</th><th style="border-bottom:1px solid #dde;text-align:right">측점</th><th style="border-bottom:1px solid #dde;text-align:right">결선</th><th style="border-bottom:1px solid #dde">사진</th><th style="border-bottom:1px solid #dde">CSV</th></tr></thead><tbody>';
+  for(var i=dates.length-1;i>=0;i--){var d=dates[i],r=recs[d]||null;
+    var dDist=+((dm.dist[d]||0).toFixed(1));var ph=(phByDate&&phByDate[d])?phByDate[d].length:0;
+    h+='<tr style="border-bottom:1px solid #f2f2ef">'
+     +'<td style="padding:7px 5px;font-weight:700;font-size:12px;color:'+(r?'#c0392b':'#98a1ad')+';white-space:nowrap">20'+d.slice(0,2)+'-'+d.slice(2,4)+'-'+d.slice(4,6)+'</td>'
+     +'<td style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px" title="'+(projName||'')+'">'+(projName||'')+'</td>'
+     +'<td style="text-align:center">'+((r&&r.worker)||'-')+'</td>'
+     +'<td style="text-align:right;font-weight:800;color:#0f6e56">'+dDist+'</td>'
+     +'<td style="text-align:right">'+(ptCnt[d]||0)+'</td>'
+     +'<td style="text-align:right">'+(dm.seg[d]||0)+'</td>'
+     +'<td style="text-align:center"><button class="svd-ph" data-d="'+d+'" style="background:'+(ph?'#7c3aed':'#e8e8e2')+';color:'+(ph?'#fff':'#999')+';border:0;border-radius:6px;padding:4px 9px;font-weight:700;font-size:12px;cursor:pointer">'+ph+'장</button></td>'
+     +'<td style="text-align:center"><button class="svd-csv" data-d="'+d+'" style="background:#1565c0;color:#fff;border:0;border-radius:6px;padding:4px 9px;font-weight:700;font-size:12px;cursor:pointer">CSV</button></td></tr>';}
+  h+='</tbody></table><div style="text-align:right;font-size:12.5px;color:#1f4e9e;font-weight:800;padding:7px 4px 0">관로거리 합계 '+(+tot.toFixed(1))+'m</div>';
+  container.innerHTML=h;
+  [].forEach.call(container.querySelectorAll('.svd-csv'),function(b){b.onclick=function(){svCsv(points,projName,b.getAttribute('data-d'));};});
+  [].forEach.call(container.querySelectorAll('.svd-ph'),function(b){b.onclick=function(){svPhotoDl((phByDate&&phByDate[b.getAttribute('data-d')])||[]);};});
+}
+function svPhotosByDate(rows){ var m={}; (rows||[]).forEach(function(r){var no=String(r.point_no||'');var d=no.split('-')[0];if(!/^[0-9]{6}$/.test(d))return;(m[d]=m[d]||[]).push({no:no,url:r.url});}); return m; }
+function svRtDailyOpen(){ /* 같은 base의 실시간(_S) 성과 원격 열람 */
+  if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
+  if(!state.projectName){toast('먼저 사업을 선택하세요');return;}
+  var base=baseName(state.projectName);
+  var pop=svPopup('실시간 최종완료성과 — '+base,'#c0392b');
+  var body=pop.querySelector('#svDailyBody');body.innerHTML='<div style="color:#999;text-align:center;padding:24px 0">실시간측량 성과 불러오는 중…</div>';
+  pop.querySelector('#svDailyFoot').innerHTML='<button id="svDailyClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:8px 18px;cursor:pointer;font-weight:700">닫기</button>';
+  pop.querySelector('#svDailyClose').onclick=function(){pop.remove();};
+  sb.from('realtime_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
+    var tw=null;((res&&res.data)||[]).some(function(r){var pl=r.payload||{};
+      if(pl.delAt)return false; if((pl.stage||'survey')!=='realtime')return false;
+      if(baseName(r.name)!==base)return false; tw=r; return true;});
+    if(!tw){body.innerHTML='<div style="color:#c0392b;text-align:center;padding:22px 0">대응 실시간 사업(_S)을 찾지 못했습니다.</div>';return;}
+    sb.from('realtime_photos').select('point_no,url').eq('project_id',tw.id).then(function(pr){
+      var pl=tw.payload||{};
+      svDailyTable(body,pl.points||[],pl.lines||[],pl.rtDaily||[],tw.name,svPhotosByDate((pr&&pr.data)||[]));
+    });
+  });
+}
+function svDoneRegOpen(){ /* 결선완료 등록 — 현재 결선 사업 일별 목록 + 등록 액션 */
+  if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
+  var pop=svPopup('결선완료 등록 — '+(state.projectName||''),'#16a34a');
+  var body=pop.querySelector('#svDailyBody');
+  var ph=[];try{var pm=(typeof photoMap!=='undefined'&&photoMap)?photoMap:{};for(var k in pm)ph.push({point_no:k,url:pm[k]});var am=(typeof afterMap!=='undefined'&&afterMap)?afterMap:{};for(var k2 in am)ph.push({point_no:k2,url:am[k2]});}catch(_e){}
+  svDailyTable(body,state.points||[],state.lines||[],state.rtDaily||[],state.projectName,svPhotosByDate(ph));
+  pop.querySelector('#svDailyFoot').innerHTML=
+    '<button id="svRegDone" style="background:#16a34a;color:#fff;border:0;border-radius:9px;padding:9px 16px;font-weight:800;cursor:pointer">결선완료 등록</button>'
+    +'<button id="svRegField" style="background:#1565c0;color:#fff;border:0;border-radius:9px;padding:9px 16px;font-weight:800;cursor:pointer">측량(현장) 성과등록</button>'
+    +'<button id="svDailyClose2" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:9px 16px;cursor:pointer;font-weight:700">닫기</button>';
+  pop.querySelector('#svDailyClose2').onclick=function(){pop.remove();};
+  pop.querySelector('#svRegDone').onclick=function(){pop.remove();if(typeof registerDone==='function')registerDone();};
+  pop.querySelector('#svRegField').onclick=function(){if(typeof svRegToField==='function')svRegToField();};
+}
+function svRegToField(){ /* 결선 성과 → 측량(현장) _B 사본. [1216] rtRegToSurvey와 동일 패턴(테이블 명시 — DB 상수 금지) */
+  if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
+  if(!state.projectId||!state.projectName){toast('먼저 사업을 선택/저장하세요');return;}
+  var base=baseName(state.projectName);
+  sb.from("field_projects").select("id,name,payload").then(function(res){
+    var rows=((res&&res.data)||[]).filter(function(r){var pl0=r.payload||{};return !pl0.delAt&&(pl0.stage||'survey')==='field'&&baseName(r.name)===base;});
+    var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,rtDaily:state.rtDaily||[],trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:state.finalCsv||null,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,mnList:state.mnList||[]};
+    payload.stage='field';payload.fieldDone=null;
+    var _photos=function(toId){
+      sb.from("survey_photos").select("point_no,url").eq('project_id',state.projectId).then(function(pr){
+        var prows=(pr&&pr.data)||[];if(!prows.length)return;
+        sb.from("field_photos").select("point_no").eq('project_id',toId).then(function(ex){
+          var have={};((ex&&ex.data)||[]).forEach(function(r){have[String(r.point_no)]=1;});
+          var ins=prows.filter(function(r){return !have[String(r.point_no)];}).map(function(r){return {project_id:toId,point_no:r.point_no,url:r.url};});
+          if(!ins.length)return;
+          sb.from("field_photos").insert(ins).then(function(rr){if(rr&&rr.error){toast('사진 복사 오류: '+rr.error.message);}else{toast('사진 '+ins.length+'장 현장으로 복사됨');}});
+        });
+      });
+    };
+    var _fin=function(row){
+      if(row&&row.error){toast('등록 오류: '+row.error.message);return;}
+      var saved=row&&row.data&&row.data[0];if(!saved)return;
+      _photos(saved.id);
+      toast('측량(현장)으로 등록됨: '+saved.name+' — 포털 현장 목록에서 열 수 있습니다');
+    };
+    if(rows.length){
+      if(!confirm('현장에 이미 "'+rows[0].name+'" 사본이 있습니다. 현재 성과로 덮어쓸까요?'))return;
+      sb.from("field_projects").update({name:rows[0].name,payload:payload,updated_at:new Date().toISOString()}).eq('id',rows[0].id).select().then(_fin);
+    }else{
+      sb.from("field_projects").insert({name:base+'_B',payload:payload,updated_at:new Date().toISOString()}).select().then(_fin);
+    }
+  });
+}
+
 /* [1226] 포털 신규사업: ?reg=1 → 정식 사업등록 모달 자동 오픈 (realtime·field 전용) */
 (function(){try{
   if(!/[?&]reg=1/.test(location.search))return;
