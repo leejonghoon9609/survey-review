@@ -393,6 +393,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   header #homeBtn{order:1!important}
   header #proj{order:3!important;flex:1 1 auto!important;min-width:0!important;max-width:none!important;width:auto!important;display:inline-block!important}
   header #workerChip{order:3!important;flex:none!important;margin-left:4px!important}
+  #projFilterChip{display:none!important}/* [1241] 폰: 사업 전체보기 칩 숨김 — 1행 밀림 방지 */
   /* [1218] 폰 2행 그룹 간격: 빨강[저장·삭제] | 연두[도구~준공] | 파랑[사진·지도=우측 auto] */
   header #rtTool{margin-left:10px!important}
   /* [1218] 그룹별 선택 배경(토글 .on / 순간동작 :active) */
@@ -760,6 +761,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=1240"></script><script src="core.js?v=1240"></script>
+<script src="login.js?v=1241"></script><script src="core.js?v=1241"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
