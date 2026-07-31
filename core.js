@@ -5837,7 +5837,7 @@ function saveProject(cb){ if(readOnly){if(typeof cb==='function')cb();return;}
     if(res.error){toast('저장 오류: '+res.error.message);return;}
     var saved=res.data&&res.data[0];if(saved){state.projectId=saved.id;state.loadedStage=STAGE;}
     sb.from(DB+'_history').insert({project_id:state.projectId,payload:payload}); // 이력
-    refreshProjects();loadPhotos();toast('저장 완료');if(state._importSrc&&state._importSrc.length&&state.projectId){var _srcs=state._importSrc.slice();state._importSrc=[];(function _nx(){if(!_srcs.length)return;var _sid=_srcs.shift();copyPhotos(_sid,state.projectId,_nx);})();}if(typeof cb==='function')cb(state.projectId);
+    refreshProjects();loadPhotos();if(!window._silentSave)toast('저장 완료');window._silentSave=false;if(state._importSrc&&state._importSrc.length&&state.projectId){var _srcs=state._importSrc.slice();state._importSrc=[];(function _nx(){if(!_srcs.length)return;var _sid=_srcs.shift();copyPhotos(_sid,state.projectId,_nx);})();}if(typeof cb==='function')cb(state.projectId);
   });
 }
 function pickProject(id){ if(!id)return;
@@ -9995,7 +9995,7 @@ var gMeasure=document.createElementNS(SVGNS,'g'); cv.appendChild(gMeasure); // �
 var undoStack=[],redoStack=[];
 function snapHist(){return JSON.stringify({rc:state.refCrop,l:state.lines,bt:state.baseTexts,m:state.manholes,lo:state.labelOff,pt:state.points,gp:state.gpsPts,tr:state._trash,mk:state.markups.map(function(x){var o={};for(var k in x)if(k!=='el')o[k]=x[k];return o;})});}
 function restoreHist(s){var o=JSON.parse(s);state.refCrop=o.rc||null;try{if(typeof REF!=='undefined'&&REF.ents){refCalcBox();refDraw();}if(typeof refCropBtn==='function')refCropBtn();}catch(_re){}state.lines=o.l||[];if(o.bt)state.baseTexts=o.bt;state.manholes=o.m||[];state.labelOff=o.lo||{};if(o.pt)state.points=o.pt;if(o.gp)state.gpsPts=o.gp;if(o.tr)state._trash=o.tr;state.markups.forEach(function(x){if(x.el)x.el.remove();});state.markups=o.mk||[];drawGeo();drawManholes();drawMarks();updMeta();}
-function pushHist(){undoStack.push(snapHist());if(undoStack.length>60)undoStack.shift();redoStack=[];if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&typeof rtSaveSoon==='function'){try{rtSaveSoon();}catch(e){}}}
+function pushHist(){undoStack.push(snapHist());if(undoStack.length>60)undoStack.shift();redoStack=[];/* [1222] ★자동저장 훅 — 절대 제거 금지: 모든 편집은 여기서 자동저장 예약됨 (전 공정 공통) */if(typeof window!=='undefined'&&typeof window._autosaveDirty==='function'){try{window._autosaveDirty();}catch(e){}}else if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&typeof rtSaveSoon==='function'){try{rtSaveSoon();}catch(e){}}}
 function doUndo(){if(!undoStack.length){toast('되돌릴 작업이 없습니다');return;}redoStack.push(snapHist());restoreHist(undoStack.pop());toast('되돌렸습니다');}
 function doRedo(){if(!redoStack.length){toast('다시 실행할 작업이 없습니다');return;}undoStack.push(snapHist());restoreHist(redoStack.pop());toast('다시 실행했습니다');}
 /* ====== 거리산출 ====== */
@@ -10922,7 +10922,7 @@ function rtAutoTags(rec){try{
     state.labelOff[p.no]=[p.x+(-dy)*sd*LEN,p.y+dx*sd*LEN];
   }
 }catch(e){}}
-function rtSaveSoon(){if(_rtSaveTimer)clearTimeout(_rtSaveTimer);_rtSaveTimer=setTimeout(function(){_rtSaveTimer=null;if(typeof saveProject==='function'){try{saveProject();}catch(e){}}},2500);}
+function rtSaveSoon(){if(_rtSaveTimer)clearTimeout(_rtSaveTimer);_rtSaveTimer=setTimeout(function(){_rtSaveTimer=null;if(typeof saveProject==='function'){try{window._silentSave=true;saveProject();}catch(e){}}},2500);}
 
 /* ===== [BUILD 827] 측점 삭제(롱프레스) + 재촬영 ===== */
 function rtDeletePoint(no){
@@ -12878,6 +12878,38 @@ function _projFilterChip(){
   old.onclick=function(){ window._projFilterBase=null; window._projFilterId=null; refreshProjects(); toast('\uC804\uCCB4 \uC0AC\uC5C5 \uD45C\uC2DC'); };
   old.appendChild(t);
 }
+
+/* ============================================================
+   [1222] ★★★ 전 공정 자동저장 (절대 제거·우회 금지 — 종훈님 지시) ★★★
+   - 모든 편집(pushHist)마다 3초 디바운스 자동저장, 저장 간 최소 8초
+   - 20초 주기 보험 + 화면 이탈(홈으로/탭전환/닫기) 즉시 플러시
+   - 조건: 온라인 · 사업 선택됨(projectId) · 보기전용 아님 — 유령 사업 생성 방지
+   - 자동저장은 토스트 없음(수동 [저장]만 "저장 완료" 표시)
+   ============================================================ */
+(function(){
+  var AS={t:null,dirty:false,last:0};
+  function _ok(){
+    try{
+      if(typeof online==='undefined'||!online)return false;
+      if(typeof state==='undefined'||!state||!state.projectId||!state.projectName)return false;
+      if(typeof readOnly!=='undefined'&&readOnly)return false;
+      return true;
+    }catch(e){return false;}
+  }
+  function _go(){
+    AS.t=null;
+    if(!AS.dirty||!_ok())return;
+    var since=Date.now()-AS.last;
+    if(since<8000){AS.t=setTimeout(_go,8000-since);return;}
+    AS.dirty=false;AS.last=Date.now();
+    try{window._silentSave=true;saveProject();}catch(e){AS.dirty=true;}
+  }
+  window._autosaveDirty=function(){AS.dirty=true;if(AS.t)clearTimeout(AS.t);AS.t=setTimeout(_go,3000);};
+  setInterval(function(){if(AS.dirty)_go();},20000); /* 보험 */
+  var _flush=function(){if(AS.dirty&&_ok()){AS.dirty=false;AS.last=Date.now();try{window._silentSave=true;saveProject();}catch(e){}}};
+  try{document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')_flush();});}catch(e){}
+  try{window.addEventListener('pagehide',_flush);}catch(e){}
+})();
 
 /* [1218] realtime 폰 전용 — 관로선 버튼 라벨을 '편집도구'로 (PC·타 공정 무변경) */
 (function(){try{
