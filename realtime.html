@@ -404,6 +404,8 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   header #photoBtn:active,header #bgBtn:active{background:#e3f2fd!important}
   #rtNewProj:active,#rtDoneBtn:active,#rtDoneListBtn:active{background:#fff7dd!important}
   /* [1218] 그리기 완료 버튼 크게 — 작업 마무리 잘 보이게 */
+  /* [1219] 폰 3행 버튼 축소 — CSV·측점촬영과 겹침 방지 */
+  #rtNewProj,#rtDoneBtn,#rtDoneListBtn{font-size:10.5px!important;padding:5px 6px!important;margin-right:3px!important;letter-spacing:-0.3px!important}
   #lineDone{font-size:16px!important;padding:10px 22px!important;background:#16a34a!important;color:#fff!important;border:0!important;border-radius:10px!important;font-weight:800!important;box-shadow:0 2px 8px rgba(0,0,0,.2)}
   header #save{order:5!important;display:inline-flex!important}
   header .rt-break{display:block!important;flex-basis:100%!important;width:100%!important;height:8px!important;order:4!important}
@@ -756,6 +758,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=1218"></script><script src="core.js?v=1218"></script>
+<script src="login.js?v=1219"></script><script src="core.js?v=1219"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
