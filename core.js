@@ -608,24 +608,34 @@ function placeLabelDiv(d){
   d.style.left=(p[0]-r.left)+'px';
   d.style.top =(p[1]-r.top)+'px';
 }
+var LBL_CULL_PAD=0.35, LBL_LOD_MAX=1500; /* [1188] 화면 밖 여유율 · 화면 내 텍스트라벨 자동숨김 임계 */
 function repositionLabels(){
   if(!lblOverlay)return;
-  var ns=lblOverlay.children;
-  if(!ns.length)return;
-  /* [1187] 성능: 좌표계(CTM·rect)를 1회만 읽고 전 라벨은 쓰기만 — 라벨 N개당 강제 리플로우 N회 → 1회.
-     수식은 w2screen/placeLabelDiv와 동일(동일 출력), 실패 시 기존 경로 폴백 */
+  var ns=lblOverlay.children, n=ns.length;
+  if(!n)return;
+  /* [1187] 좌표계(CTM·rect) 1회 읽기. [1188] 전 공정 공통(승인): ① 화면 밖(+35%) 라벨은 숨기고 배치 생략
+     ② 화면 안 텍스트라벨이 LBL_LOD_MAX 초과 시 텍스트만 자동숨김(심벌·관로선 유지, 확대 시 자동 복귀).
+     보이는 라벨의 좌표 수식은 기존과 동일 — 표시/숨김만 제어, 데이터·성과 무관 */
   var m=null; try{m=cv.getScreenCTM();}catch(_e){}
-  var r=cv.getBoundingClientRect();
-  if(m&&m.a){
-    for(var i=0;i<ns.length;i++){var d=ns[i];if(d._sx==null)continue;
-      d.style.left=((m.a*d._sx+m.c*d._sy+m.e)-r.left)+'px';
-      d.style.top =((m.b*d._sx+m.d*d._sy+m.f)-r.top)+'px';
-    }
-  }else{
-    for(var j=0;j<ns.length;j++){var d2=ns[j];if(d2._sx==null)continue;
-      d2.style.left=((r.left+(d2._sx-vb.x)/vb.w*r.width)-r.left)+'px';
-      d2.style.top =((r.top +(d2._sy-vb.y)/vb.h*r.height)-r.top)+'px';
-    }
+  var r=cv.getBoundingClientRect(), W=r.width, H=r.height;
+  var px=W*LBL_CULL_PAD, py=H*LBL_CULL_PAD;
+  var xs=new Array(n), ys=new Array(n), inTxt=0;
+  for(var i=0;i<n;i++){var d=ns[i];
+    if(d._sx==null){xs[i]=null;continue;}
+    var sx,sy;
+    if(m&&m.a){ sx=(m.a*d._sx+m.c*d._sy+m.e)-r.left; sy=(m.b*d._sx+m.d*d._sy+m.f)-r.top; }
+    else{ sx=(d._sx-vb.x)/vb.w*W; sy=(d._sy-vb.y)/vb.h*H; }
+    xs[i]=sx; ys[i]=sy;
+    if(!d._sym && sx>=0&&sx<=W&&sy>=0&&sy<=H) inTxt++;
+  }
+  var lod=inTxt>LBL_LOD_MAX;
+  for(var k=0;k<n;k++){var e=ns[k];
+    if(xs[k]==null)continue;
+    var off=(xs[k]<-px||xs[k]>W+px||ys[k]<-py||ys[k]>H+py);
+    if(off||(lod&&!e._sym)){ if(e.style.visibility!=='hidden')e.style.visibility='hidden'; continue; }
+    if(e.style.visibility)e.style.visibility='';
+    e.style.left=xs[k]+'px';
+    e.style.top =ys[k]+'px';
   }
 }
 // ★ 심벌(측점 사각·맨홀 이중원)을 라벨과 동일한 화면픽셀 오버레이로 그림
@@ -633,7 +643,7 @@ function repositionLabels(){
 function mkSym(svgX,svgY,grp,css){
   var d=document.createElement('div');
   d.className='lbl-'+(grp||'pt');     // clearLabels/repositionLabels와 동일 그룹키 → 같이 청소·재배치
-  d._sx=svgX; d._sy=svgY;
+  d._sx=svgX; d._sy=svgY; d._sym=true; /* [1188] LOD에서 심벌은 항상 유지 */
   d.style.cssText='position:absolute;box-sizing:border-box;pointer-events:none;'
     +'transform:translate(-50%,-50%);'+css; // 중심 정렬
   placeLabelDiv(d);
