@@ -611,7 +611,22 @@ function placeLabelDiv(d){
 function repositionLabels(){
   if(!lblOverlay)return;
   var ns=lblOverlay.children;
-  for(var i=0;i<ns.length;i++){var d=ns[i];if(d._sx!=null)placeLabelDiv(d);}
+  if(!ns.length)return;
+  /* [1187] 성능: 좌표계(CTM·rect)를 1회만 읽고 전 라벨은 쓰기만 — 라벨 N개당 강제 리플로우 N회 → 1회.
+     수식은 w2screen/placeLabelDiv와 동일(동일 출력), 실패 시 기존 경로 폴백 */
+  var m=null; try{m=cv.getScreenCTM();}catch(_e){}
+  var r=cv.getBoundingClientRect();
+  if(m&&m.a){
+    for(var i=0;i<ns.length;i++){var d=ns[i];if(d._sx==null)continue;
+      d.style.left=((m.a*d._sx+m.c*d._sy+m.e)-r.left)+'px';
+      d.style.top =((m.b*d._sx+m.d*d._sy+m.f)-r.top)+'px';
+    }
+  }else{
+    for(var j=0;j<ns.length;j++){var d2=ns[j];if(d2._sx==null)continue;
+      d2.style.left=((r.left+(d2._sx-vb.x)/vb.w*r.width)-r.left)+'px';
+      d2.style.top =((r.top +(d2._sy-vb.y)/vb.h*r.height)-r.top)+'px';
+    }
+  }
 }
 // ★ 심벌(측점 사각·맨홀 이중원)을 라벨과 동일한 화면픽셀 오버레이로 그림
 //   크기가 CSS px로 고정 → 줌/팬/리사이즈에 계산 자체가 없어 절대 안 변함
@@ -2071,7 +2086,7 @@ function exportSurveyCsv(){
   document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},150);
   toast('측설용 CSV 내보내기 — '+state.points.length+'점');
 }
-function startAreaSelect(cb){var wrap=document.querySelector('.canvas-wrap');if(!wrap){cb(null);return;}var ov=document.createElement('div');ov.style.cssText='position:absolute;inset:0;z-index:9999;cursor:crosshair;background:rgba(0,0,0,0.06)';var box=document.createElement('div');box.style.cssText='position:absolute;border:2px dashed #1565c0;background:rgba(21,101,192,0.12);display:none;pointer-events:none';ov.appendChild(box);var hint=document.createElement('div');hint.textContent='\uCD9C\uB825\uD560 \uC601\uC5ED \uB4DC\uB798\uADF8 \u00B7 \uD720=\uD655\uB300/\uCD95\uC18C \u00B7 \uD720\uD074\uB9AD=\uC774\uB3D9 \u00B7 ESC=\uC804\uCCB4';hint.style.cssText='position:absolute;top:8px;left:50%;transform:translateX(-50%);background:#1565c0;color:#fff;padding:6px 12px;border-radius:6px;font-size:13px;pointer-events:none;white-space:nowrap';ov.appendChild(hint);wrap.appendChild(ov);var sx,sy,dg=false,midP=false,mpx,mpy,mvb;function clean(){ov.remove();document.removeEventListener('keydown',ek);}function ek(e){if(e.key==='Escape'){clean();cb('FULL');}}document.addEventListener('keydown',ek);ov.addEventListener('wheel',function(e){e.preventDefault();if(typeof zoomAt==='function'){var _wf=(typeof IS_TANGO!=='undefined'&&IS_TANGO)?1.36:((typeof IS_FIELD!=='undefined'&&IS_FIELD)?1.16:1.07);zoomAt(e.deltaY>0?_wf:1/_wf,e.clientX,e.clientY);}},{passive:false});ov.addEventListener('pointerdown',function(e){if(e.button===1){e.preventDefault();midP=true;mpx=e.clientX;mpy=e.clientY;mvb={x:vb.x,y:vb.y};try{ov.setPointerCapture(e.pointerId);}catch(_){}return;}if(e.button!==0)return;dg=true;var r=wrap.getBoundingClientRect();sx=e.clientX-r.left;sy=e.clientY-r.top;box.style.display='block';box.style.left=sx+'px';box.style.top=sy+'px';box.style.width='0';box.style.height='0';try{ov.setPointerCapture(e.pointerId);}catch(_){}});ov.addEventListener('pointermove',function(e){if(midP){var rc=cv.getBoundingClientRect();vb.x=mvb.x-(e.clientX-mpx)*(vb.w/rc.width);vb.y=mvb.y-(e.clientY-mpy)*(vb.h/rc.height);if(typeof applyVB==='function')applyVB();return;}if(!dg)return;var r=wrap.getBoundingClientRect();var cx=e.clientX-r.left,cy=e.clientY-r.top;var x=Math.min(sx,cx),y=Math.min(sy,cy),w=Math.abs(cx-sx),h=Math.abs(cy-sy);box.style.left=x+'px';box.style.top=y+'px';box.style.width=w+'px';box.style.height=h+'px';});ov.addEventListener('pointerup',function(e){if(midP){midP=false;try{ov.releasePointerCapture(e.pointerId);}catch(_){}return;}if(!dg)return;dg=false;var r=wrap.getBoundingClientRect();var cx=e.clientX-r.left,cy=e.clientY-r.top;var x=Math.min(sx,cx),y=Math.min(sy,cy),w=Math.abs(cx-sx),h=Math.abs(cy-sy);clean();if(w>20&&h>20)cb({x:x,y:y,w:w,h:h});else cb('FULL');});}
+function startAreaSelect(cb){var wrap=document.querySelector('.canvas-wrap');if(!wrap){cb(null);return;}var ov=document.createElement('div');ov.style.cssText='position:absolute;inset:0;z-index:9999;cursor:crosshair;background:rgba(0,0,0,0.06)';var box=document.createElement('div');box.style.cssText='position:absolute;border:2px dashed #1565c0;background:rgba(21,101,192,0.12);display:none;pointer-events:none';ov.appendChild(box);var hint=document.createElement('div');hint.textContent='\uCD9C\uB825\uD560 \uC601\uC5ED \uB4DC\uB798\uADF8 \u00B7 \uD720=\uD655\uB300/\uCD95\uC18C \u00B7 \uD720\uD074\uB9AD=\uC774\uB3D9 \u00B7 ESC=\uC804\uCCB4';hint.style.cssText='position:absolute;top:8px;left:50%;transform:translateX(-50%);background:#1565c0;color:#fff;padding:6px 12px;border-radius:6px;font-size:13px;pointer-events:none;white-space:nowrap';ov.appendChild(hint);wrap.appendChild(ov);var sx,sy,dg=false,midP=false,mpx,mpy,mvb;function clean(){ov.remove();document.removeEventListener('keydown',ek);}function ek(e){if(e.key==='Escape'){clean();cb('FULL');}}document.addEventListener('keydown',ek);ov.addEventListener('wheel',function(e){e.preventDefault();if(typeof zoomAt==='function'){var _wf=wheelFactor();zoomAt(e.deltaY>0?_wf:1/_wf,e.clientX,e.clientY);}},{passive:false});ov.addEventListener('pointerdown',function(e){if(e.button===1){e.preventDefault();midP=true;mpx=e.clientX;mpy=e.clientY;mvb={x:vb.x,y:vb.y};try{ov.setPointerCapture(e.pointerId);}catch(_){}return;}if(e.button!==0)return;dg=true;var r=wrap.getBoundingClientRect();sx=e.clientX-r.left;sy=e.clientY-r.top;box.style.display='block';box.style.left=sx+'px';box.style.top=sy+'px';box.style.width='0';box.style.height='0';try{ov.setPointerCapture(e.pointerId);}catch(_){}});ov.addEventListener('pointermove',function(e){if(midP){var rc=cv.getBoundingClientRect();vb.x=mvb.x-(e.clientX-mpx)*(vb.w/rc.width);vb.y=mvb.y-(e.clientY-mpy)*(vb.h/rc.height);if(typeof applyVB==='function')applyVB();return;}if(!dg)return;var r=wrap.getBoundingClientRect();var cx=e.clientX-r.left,cy=e.clientY-r.top;var x=Math.min(sx,cx),y=Math.min(sy,cy),w=Math.abs(cx-sx),h=Math.abs(cy-sy);box.style.left=x+'px';box.style.top=y+'px';box.style.width=w+'px';box.style.height=h+'px';});ov.addEventListener('pointerup',function(e){if(midP){midP=false;try{ov.releasePointerCapture(e.pointerId);}catch(_){}return;}if(!dg)return;dg=false;var r=wrap.getBoundingClientRect();var cx=e.clientX-r.left,cy=e.clientY-r.top;var x=Math.min(sx,cx),y=Math.min(sy,cy),w=Math.abs(cx-sx),h=Math.abs(cy-sy);clean();if(w>20&&h>20)cb({x:x,y:y,w:w,h:h});else cb('FULL');});}
 var _nanumB64=null,_PDFREQ=false;
   function ensureNanum(cb){
     if(_nanumB64!==null){cb(_nanumB64?null:'ERR');return;}
@@ -5661,7 +5676,7 @@ window.addEventListener('pointerup',function(e){try{if(activePtrs[e.pointerId]!=
 window.addEventListener('pointercancel',function(e){try{if(activePtrs[e.pointerId]!==undefined)delete activePtrs[e.pointerId];if(pinch&&Object.keys(activePtrs).length<2)pinch=null;}catch(_){}});
 cv.addEventListener('mousedown',function(e){if(e.button===1)e.preventDefault();});
 cv.addEventListener('auxclick',function(e){if(e.button===1)e.preventDefault();});
-cv.addEventListener('wheel',function(e){e.preventDefault();(function(){var _wf=(typeof IS_TANGO!=='undefined'&&IS_TANGO)?1.36:((typeof IS_FIELD!=='undefined'&&IS_FIELD)?1.16:1.07);zoomAt(e.deltaY>0?_wf:1/_wf,e.clientX,e.clientY);})();},{passive:false});   /* [1123] 휠 감도 field만 1.16, 그 외 1.07 */
+cv.addEventListener('wheel',function(e){e.preventDefault();(function(){var _wf=wheelFactor();zoomAt(e.deltaY>0?_wf:1/_wf,e.clientX,e.clientY);})();},{passive:false});   /* [1123] 휠 감도 field만 1.16, 그 외 1.07 */
 cv.addEventListener('dblclick',function(e){if(viewerMode||readOnly)return;if((mode==='hyunroad'||mode==='hyunwalk')&&hyunDraw&&hyunDraw.pts&&hyunDraw.pts.length>=2){e.preventDefault();hyunFinish(true);return;}var ni=hitNote(e.clientX,e.clientY);if(ni>=0){e.preventDefault();openNoteEdit(ni);}}); // PC 편집모드: 특이사항 더블클릭=수정/삭제
 
 /* ====== CSV / DXF 파싱 ====== */
@@ -5780,9 +5795,9 @@ function initSb(){
   }else{document.getElementById('conn').className='conn off';document.getElementById('conn').textContent='로컬 모드';}
 }
 function refreshProjects(){ if(!online)return;
-  sb.from(DB+'_projects').select('id,name,updated_at,stage:payload->>stage,del:payload->>delAt').order('updated_at',{ascending:false}).then(function(res){res=_projAlive(res);
+  sb.from(DB+'_projects').select('id,name,updated_at,stage:payload->>stage,del:payload->>delAt,rtd:payload->rtDone->>done').order('updated_at',{ascending:false}).then(function(res){res=_projAlive(res);
     var sel=document.getElementById('proj');sel.innerHTML='<option value="">사업 선택…</option>';
-    (res.data||[]).forEach(function(p){if((p.stage||'survey')!==STAGE)return;var o=document.createElement('option');o.value=p.id;o.textContent=p.name;o.title=p.name;sel.appendChild(o);});
+    (res.data||[]).forEach(function(p){if((p.stage||'survey')!==STAGE)return;/* [1183] realtime 전용 — 실측완료 사업은 드롭다운 제외(완료목록에서 열람), 다른 공정 적용 금지 */if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&p.rtd==='true')return;var o=document.createElement('option');o.value=p.id;o.textContent=p.name;o.title=p.name;sel.appendChild(o);});
     if(state.projectId)sel.value=state.projectId;
     /* [BUILD 913] 실시간측량 기존 사업명 _S 마이그레이션 */
     if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){(res.data||[]).forEach(function(p){if((p.stage||'survey')!==STAGE)return;if(/_S$/.test(p.name||''))return;var nn=(p.name||'')+'_S';sb.from(DB+'_projects').update({name:nn}).eq('id',p.id).then(function(){});var o=sel.querySelector('option[value="'+p.id+'"]');if(o){o.textContent=nn;o.title=nn;}if(state.projectId===p.id)state.projectName=nn;});}
@@ -12604,3 +12619,38 @@ function refSiteAreaClear(rec){
   if(typeof mnRerenderSheet==='function'){try{mnRerenderSheet();}catch(e){}}
   toast('\uc601\uc5ed \ucd08\uae30\ud654 \u2014 \uc790\ub3d9 \ubc94\uc704\ub85c \ub3cc\uc544\uac10');
 }
+
+/* [1183] 포털 사업 클릭 자동 로드: ?open=<사업id> — 파라미터 없으면 아무 동작 안 함 */
+(function(){try{
+  var m=location.search.match(/[?&]open=([^&]+)/); if(!m)return;
+  var _oid=decodeURIComponent(m[1]); var _try=0;
+  (function _w(){
+    if(typeof online!=='undefined'&&online&&typeof pickProject==='function'){
+      pickProject(_oid);
+      setTimeout(function(){var ps=document.getElementById('proj');if(ps)ps.value=_oid;},600);
+    }else if(_try++<50){ setTimeout(_w,200); }
+  })();
+}catch(_oe){console.warn('[open]',_oe);}})();
+
+/* [1184] 휠 감도: 공정별 기본값 + 사용자 보정(localStorage, 공정별 저장). 조절 UI는 탱고 헤더에만 (규칙 0) */
+function wheelFactor(){
+  var base=(typeof IS_TANGO!=='undefined'&&IS_TANGO)?1.36:((typeof IS_FIELD!=='undefined'&&IS_FIELD)?1.16:1.07);
+  var adj=0; try{adj=parseInt(localStorage.getItem('wheelAdj_'+STAGE)||'0',10)||0;}catch(_e){}
+  var f=base+adj*0.06; if(f<1.02)f=1.02; if(f>2.4)f=2.4; return f;
+}
+(function(){try{
+  if(typeof IS_TANGO==='undefined'||!IS_TANGO)return; /* [1184] 탱고 전용 UI — 다른 공정 적용 금지 */
+  var tb=document.getElementById('tamsaBadge'); if(!tb||!tb.parentNode)return;
+  var bs='border:1px solid #c9d4de;background:#fff;border-radius:6px;width:24px;height:24px;cursor:pointer;font-size:15px;font-weight:800;color:#1565c0;line-height:1;padding:0;display:inline-flex;align-items:center;justify-content:center';
+  var box=document.createElement('span');
+  box.id='wheelAdjBox';
+  box.style.cssText='margin-left:14px;font-size:12.5px;font-weight:700;color:#555;display:inline-flex;align-items:center;gap:6px;vertical-align:middle';
+  box.innerHTML='\uD720\uAC10\uB3C4 <button id="wfMinus" title="\uB290\uB9AC\uAC8C" style="'+bs+'">\u2212</button><b id="wfVal" style="min-width:36px;text-align:center;color:#16334a">1.36</b><button id="wfPlus" title="\uBE60\uB974\uAC8C" style="'+bs+'">+</button>';
+  tb.parentNode.insertBefore(box,tb.nextSibling);
+  function upd(){var e=document.getElementById('wfVal');if(e)e.textContent=wheelFactor().toFixed(2);}
+  function bump(d){var k='wheelAdj_'+STAGE,a=0;try{a=parseInt(localStorage.getItem(k)||'0',10)||0;}catch(_e){}a+=d;if(a<-5)a=-5;if(a>17)a=17;try{localStorage.setItem(k,String(a));}catch(_e){}upd();}
+  var bm=document.getElementById('wfMinus'),bp=document.getElementById('wfPlus');
+  if(bm)bm.onclick=function(){bump(-1);};
+  if(bp)bp.onclick=function(){bump(1);};
+  upd();
+}catch(_we){console.warn('[wheel]',_we);}})();
