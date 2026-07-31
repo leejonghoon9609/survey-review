@@ -6151,7 +6151,7 @@ function renderSub(){
   /* [1234] survey PC 전용 — 힌트바에 실시간 최종완료성과 / 결선완료 등록 버튼 */
   if(typeof STAGE!=='undefined'&&STAGE==='survey'){/* [1236] PC·폰 공통, 힌트 제거로 맨앞 자동배치 */
     html+='<button id="svRtDoneBtn" style="font-size:13px;padding:7px 12px;border:1px solid #c0392b;border-radius:6px;background:#fff;color:#c0392b;font-weight:700;cursor:pointer">실시간 최종완료성과</button>'
-        +'<button id="svDoneRegBtn" style="font-size:13px;padding:7px 12px;border:1px solid #16a34a;border-radius:6px;background:#fff;color:#15803d;font-weight:700;cursor:pointer;margin-left:4px">결선완료 등록</button>';
+        +'<button id="svDoneRegBtn" style="font-size:13px;padding:7px 12px;border:1px solid #16a34a;border-radius:6px;background:#fff;color:#15803d;font-weight:700;cursor:pointer;margin-left:4px">측량(현장)에 성과등록</button>';
   }
   s.innerHTML=html;
   if(typeof STAGE!=='undefined'&&STAGE==='survey'){var _sv1=document.getElementById('svRtDoneBtn');if(_sv1)_sv1.onclick=function(){svRtDailyOpen();};var _sv2=document.getElementById('svDoneRegBtn');if(_sv2)_sv2.onclick=function(){svDoneRegOpen();};}
@@ -12983,7 +12983,7 @@ function svPopup(title,accent){
   var id='svDailyPop';var old=document.getElementById(id);if(old)old.remove();
   var pop=document.createElement('div');pop.id=id;
   pop.style.cssText='position:fixed;left:50%;top:90px;transform:translateX(-50%);z-index:9500;background:#fff;border:2px solid '+accent+';border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.25);width:min(94vw,760px);max-height:80vh;display:flex;flex-direction:column;overflow:hidden';
-  pop.innerHTML='<div id="svDailyHead" style="display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:grab;user-select:none;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:'+accent+';display:inline-block"></span><b style="font-size:15px">'+title+'</b><span style="font-size:11px;color:#bbb;margin-left:auto">드래그로 이동</span></div>'
+  pop.innerHTML='<div id="svDailyHead" style="display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:grab;user-select:none;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:'+accent+';display:inline-block"></span><b id="svDailyTitle" style="font-size:15px;flex:1;min-width:0;white-space:nowrap;overflow:hidden">'+title+'</b><span style="font-size:11px;color:#bbb;margin-left:auto">드래그로 이동</span></div>'
     +'<div id="svDailyBody" style="overflow:auto;padding:10px 14px"></div>'
     +'<div id="svDailyFoot" style="padding:9px 14px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px"></div>';
   document.body.appendChild(pop);
@@ -12991,6 +12991,8 @@ function svPopup(title,accent){
     hd.addEventListener('pointerdown',function(e){drag=true;var r=pop.getBoundingClientRect();pop.style.left=r.left+'px';pop.style.top=r.top+'px';pop.style.transform='none';dx=e.clientX-r.left;dy=e.clientY-r.top;try{hd.setPointerCapture(e.pointerId);}catch(_e){}});
     hd.addEventListener('pointermove',function(e){if(!drag)return;pop.style.left=(e.clientX-dx)+'px';pop.style.top=(e.clientY-dy)+'px';});
     hd.addEventListener('pointerup',function(){drag=false;});})();
+  /* [1238] 사업명 길면 자동 폰트 축소 — 한 줄 유지 */
+  setTimeout(function(){var t=pop.querySelector('#svDailyTitle');if(!t)return;var fs=15;while(fs>10&&t.scrollWidth>t.clientWidth){fs-=0.5;t.style.fontSize=fs+'px';}},0);
   return pop;
 }
 function svDailyTable(container,points,lines,rtDaily,projName,phByDate){
@@ -13057,7 +13059,7 @@ function svDoneRegOpen(){ /* 결선완료 등록 — 현재 결선 사업 일별
   _hd.insertBefore(_bdg,_hd.lastElementChild);
   function _setBdg(on,twinId){
     _bdg.setAttribute('data-on',on?'1':'');_bdg.setAttribute('data-twin',twinId||'');
-    if(on){_bdg.textContent='등록완료 ✓';_bdg.style.background='#16a34a';_bdg.style.color='#fff';_bdg.style.border='0';}
+    if(on){_bdg.textContent='등록완료 ✓';_bdg.style.background='#e0a800';_bdg.style.color='#fff';_bdg.style.border='0';}/* [1238] 노랑 채움 */
     else{_bdg.textContent='미등록';_bdg.style.background='#fff';_bdg.style.color='#e0a800';_bdg.style.border='1.5px solid #e0a800';}
   }
   _setBdg(false,'');
