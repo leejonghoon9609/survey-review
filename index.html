@@ -392,19 +392,19 @@
     if(!board)return;
     var STG=[
       {id:'pxc-rt',tbl:'realtime_projects',page:'realtime.html',stg:'realtime',doneLb:'실측완료',
-       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,st:payload->>stage,f1:payload->rtDone->>done',
+       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,st:payload->>stage,f1:payload->rtDone->>done',
        done:function(r){return r.f1==='true';}},
       {id:'pxc-sv',tbl:'survey_projects',page:'survey.html',stg:'survey',doneLb:'결선완료',
-       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,st:payload->>stage,f1:payload->>routingDone',
+       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,st:payload->>stage,f1:payload->>routingDone',
        done:function(r){return r.f1==='true';}},
       {id:'pxc-fd',tbl:'field_projects',page:'field.html',stg:'field',doneLb:'성과등록',
-       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,st:payload->>stage,f1:payload->fieldDone->>csv',
+       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,st:payload->>stage,f1:payload->fieldDone->>csv',
        done:function(r){return r.f1==='true';}},
       {id:'pxc-tg',tbl:'tango_projects',page:'tango.html',stg:'tango',doneLb:'탱고완료',
-       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,st:payload->>stage,f1:payload->>routingDone,ar:payload->>tangoArchived',
+       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,st:payload->>stage,f1:payload->>routingDone,ar:payload->>tangoArchived',
        done:function(r){return r.f1==='true';},skip:function(r){return r.ar==='true';}},
       {id:'pxc-po',tbl:'position_projects',page:'position.html',stg:'position',doneLb:'완료',
-       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,st:payload->>stage',
+       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,st:payload->>stage',
        done:function(){return false;}}
     ];
     function fmt(ts){
@@ -443,7 +443,13 @@
         b.onclick=function(){ location.href=this.getAttribute('data-pg')+'?open='+encodeURIComponent(this.getAttribute('data-id')); };
       });
       [].forEach.call(el.querySelectorAll('.pxdel'),function(b){
-        b.onclick=function(e){ e.stopPropagation(); HID[this.getAttribute('data-id')]=1; hidSave(); if(window.pxRenderAll)window.pxRenderAll(); };
+        b.onclick=function(e){ e.stopPropagation(); var id=this.getAttribute('data-id'); HID[id]=1; hidSave();
+          /* [1230] 서버에도 숨김 표식(pxHide) — PC·폰 공통 반영, 성과는 불변 */
+          var _row=this.closest?this.closest('.pxrow'):null; var _pg=_row?_row.getAttribute('data-pg'):null;
+          if(_pg){ var _tb=_pg.replace('.html','_projects');
+            sb.from(_tb).select('payload').eq('id',id).single().then(function(r){ if(r.error||!r.data)return; var pl=r.data.payload||{}; pl.pxHide=Date.now(); sb.from(_tb).update({payload:pl}).eq('id',id).then(function(){}); });
+          }
+          if(window.pxRenderAll)window.pxRenderAll(); };
       });
     }
     board.style.display='grid';
@@ -474,16 +480,22 @@
     function renderAll(){
       STG.forEach(function(cfg){
         var R=RES[cfg.tbl]||{err:true,rows:[]};
-        render(cfg, R.rows.filter(function(r){return !HID[r.id];}), R.err);
+        render(cfg, R.rows.filter(function(r){return !HID[r.id]&&!r.hid;}), R.err);/* [1230] 서버 숨김 공통 적용 */
       });
-      var n=Object.keys(HID).length;
+      var _srv=0;STG.forEach(function(cfg){(((RES[cfg.tbl]||{}).rows)||[]).forEach(function(r){if(r.hid&&!HID[r.id])_srv++;});});var n=Object.keys(HID).length+_srv;/* [1230] */
       var bar=document.getElementById('pxHidBar');
       if(bar){
         bar.style.display=n?'block':'none';
         if(n){
           bar.innerHTML='리스트에서 숨긴 사업 '+n+'건 (성과는 보존됨) &nbsp;<b id="pxHidRestore" style="color:#1d4ed8;cursor:pointer">모두 복원</b>';
           var rb=document.getElementById('pxHidRestore');
-          if(rb)rb.onclick=function(){HID={};hidSave();renderAll();};
+          if(rb)rb.onclick=function(){ HID={};hidSave();
+            /* [1230] 서버 숨김도 일괄 해제 */
+            var jobs=[];
+            STG.forEach(function(cfg){ (((RES[cfg.tbl]||{}).rows)||[]).forEach(function(r){ if(!r.hid)return;
+              jobs.push(sb.from(cfg.tbl).select('payload').eq('id',r.id).single().then(function(x){ if(x.error||!x.data)return; var pl=x.data.payload||{}; delete pl.pxHide; return sb.from(cfg.tbl).update({payload:pl}).eq('id',r.id); })); }); });
+            Promise.all(jobs).then(function(){pxLoad();});
+            renderAll(); };
         }
       }
     }
@@ -506,11 +518,11 @@
   var SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZHN3b3N0ZHhhZWpqZWlreGhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NjM1MDAsImV4cCI6MjA5MzUzOTUwMH0.DIP9Yqr7v0Z5y4bdqU5UkoNn1OL0dh1WuYhaiOxtaq4";
   var sb=window.supabase.createClient(SB_URL,SB_KEY);
   var STG=[
-    {cls:'c-realtime',tbl:'realtime_projects',page:'realtime.html',doneLb:'실측완료',reg:true,suffix:'_S',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,f1:payload->rtDone->>done',done:function(r){return r.f1==='true';}},
-    {cls:'c-survey',tbl:'survey_projects',page:'survey.html',doneLb:'결선완료',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,f1:payload->>routingDone',done:function(r){return r.f1==='true';}},
-    {cls:'c-field',tbl:'field_projects',page:'field.html',doneLb:'성과등록',reg:true,suffix:'',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,f1:payload->fieldDone->>csv',done:function(r){return r.f1==='true';}},
-    {cls:'c-tango',tbl:'tango_projects',page:'tango.html',doneLb:'탱고완료',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,f1:payload->>routingDone,ar:payload->>tangoArchived',done:function(r){return r.f1==='true';},skip:function(r){return r.ar==='true';}},
-    {cls:'c-jungwichi',tbl:'position_projects',page:'position.html',doneLb:'완료',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa',done:function(){return false;}}
+    {cls:'c-realtime',tbl:'realtime_projects',page:'realtime.html',doneLb:'실측완료',reg:true,suffix:'_S',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,f1:payload->rtDone->>done',done:function(r){return r.f1==='true';}},
+    {cls:'c-survey',tbl:'survey_projects',page:'survey.html',doneLb:'결선완료',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,f1:payload->>routingDone',done:function(r){return r.f1==='true';}},
+    {cls:'c-field',tbl:'field_projects',page:'field.html',doneLb:'성과등록',reg:true,suffix:'',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,f1:payload->fieldDone->>csv',done:function(r){return r.f1==='true';}},
+    {cls:'c-tango',tbl:'tango_projects',page:'tango.html',doneLb:'탱고완료',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,f1:payload->>routingDone,ar:payload->>tangoArchived',done:function(r){return r.f1==='true';},skip:function(r){return r.ar==='true';}},
+    {cls:'c-jungwichi',tbl:'position_projects',page:'position.html',doneLb:'완료',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide',done:function(){return false;}}
   ];
   function esc(s){return (''+(s||'')).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
   function rowsHtml(arr){
@@ -541,7 +553,7 @@
       sb.from(cfg.tbl).select(cfg.sel).order('updated_at',{ascending:false}).then(function(res){
         var bd=box.querySelector('#pxmBody');if(!bd)return;
         if(res.error){ if(att<3){setTimeout(function(){fill(att+1);},700*att);return;} bd.innerHTML='<div style="color:#c0392b;text-align:center;padding:20px 0;font-size:13px">목록을 불러오지 못했습니다</div>'; return; }
-        var rows=(res.data||[]).filter(function(r){return !r.del&&!(cfg.skip&&cfg.skip(r));});
+        var rows=(res.data||[]).filter(function(r){return !r.del&&!r.hid&&!(cfg.skip&&cfg.skip(r));});/* [1230] 서버 숨김 공통 */
         var work=[],done=[];rows.forEach(function(r){(cfg.done(r)?done:work).push(r);});
         bd.innerHTML='<div style="background:#fdf4d3;border-radius:11px;padding:8px 10px;margin-bottom:9px"><div style="font-size:12.5px;font-weight:800;color:#7a5b00;margin-bottom:3px">🟢 작업중 '+work.length+'</div>'+rowsHtml(work)+'</div>'
           +'<div style="background:#e1f5ee;border-radius:11px;padding:8px 10px"><div style="font-size:12.5px;font-weight:800;color:#0f6e56;margin-bottom:3px">✅ '+cfg.doneLb+' '+done.length+'</div>'+rowsHtml(done)+'</div>';
@@ -559,6 +571,6 @@
   });
 })();
 </script>
-<script src="login.js?v=1228"></script>
+<script src="login.js?v=1230"></script>
 </body>
 </html>
