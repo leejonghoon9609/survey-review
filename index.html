@@ -477,6 +477,39 @@
     var HID={};
     try{HID=JSON.parse(localStorage.getItem('pxHidden')||'{}')||{};}catch(_e){HID={};}
     function hidSave(){try{localStorage.setItem('pxHidden',JSON.stringify(HID));}catch(_e){}}
+    /* [1231] 숨긴 사업 목록/선택 복원 모달 — 성과 불변, 표시 표식만 해제 */
+    function pxHidModal(){
+      var items=[];var LB={realtime:'실시간',survey:'결선',field:'현장',tango:'탱고',position:'정위치'};
+      STG.forEach(function(cfg){ (((RES[cfg.tbl]||{}).rows)||[]).forEach(function(r){
+        if(HID[r.id]||r.hid)items.push({tbl:cfg.tbl,id:r.id,name:r.name,stg:LB[cfg.stg]||cfg.stg,srv:!!r.hid});
+      });});
+      var old=document.getElementById('pxHidModal');if(old)old.remove();
+      var ov=document.createElement('div');ov.id='pxHidModal';
+      ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center';
+      var rows=items.length?items.map(function(it,i){
+        return '<label style="display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid #e3e3de;border-radius:9px;margin:5px 0;cursor:pointer;font-size:13.5px"><input type="checkbox" class="pxh-ck" data-i="'+i+'" checked style="width:16px;height:16px"><span style="flex:none;font-size:11px;font-weight:800;color:#888;border:1px solid #ddd;border-radius:5px;padding:1px 6px">'+it.stg+'</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:#c0392b">'+(''+it.name).replace(/</g,'&lt;')+'</span></label>';
+      }).join(''):'<div style="color:#999;padding:16px;text-align:center">숨긴 사업이 없습니다.</div>';
+      ov.innerHTML='<div style="background:#fff;border-radius:14px;width:min(92vw,480px);max-height:76vh;display:flex;flex-direction:column;padding:16px">'
+        +'<b style="font-size:16px;color:#EA002C">삭제리스트 목록/복원</b>'
+        +'<div style="font-size:12px;color:#888;margin:3px 0 8px">체크한 사업이 포털·폰 목록에 다시 표시됩니다 (성과는 보존됨)</div>'
+        +'<div style="overflow:auto;flex:1">'+rows+'</div>'
+        +'<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">'
+        +'<button id="pxhOk" style="background:#EA002C;color:#fff;border:0;border-radius:9px;padding:10px 24px;font-weight:800">복 원</button>'
+        +'<button id="pxhCancel" style="background:#f1f1ee;color:#333;border:0;border-radius:9px;padding:10px 20px;font-weight:700">취소</button></div></div>';
+      document.body.appendChild(ov);
+      ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+      ov.querySelector('#pxhCancel').onclick=function(){ov.remove();};
+      ov.querySelector('#pxhOk').onclick=function(){
+        var jobs=[];
+        [].forEach.call(ov.querySelectorAll('.pxh-ck'),function(ck){
+          if(!ck.checked)return; var it=items[+ck.getAttribute('data-i')]; if(!it)return;
+          delete HID[it.id];
+          if(it.srv){ jobs.push(sb.from(it.tbl).select('payload').eq('id',it.id).single().then(function(x){ if(x.error||!x.data)return; var pl=x.data.payload||{}; delete pl.pxHide; return sb.from(it.tbl).update({payload:pl}).eq('id',it.id); })); }
+        });
+        hidSave(); ov.remove();
+        Promise.all(jobs).then(function(){pxLoad();}); renderAll();
+      };
+    }
     function renderAll(){
       STG.forEach(function(cfg){
         var R=RES[cfg.tbl]||{err:true,rows:[]};
@@ -487,15 +520,9 @@
       if(bar){
         bar.style.display=n?'block':'none';
         if(n){
-          bar.innerHTML='리스트에서 숨긴 사업 '+n+'건 (성과는 보존됨) &nbsp;<b id="pxHidRestore" style="color:#1d4ed8;cursor:pointer">모두 복원</b>';
+          bar.innerHTML='리스트에서 숨긴 사업 '+n+'건 (성과는 보존됨) &nbsp;<b id="pxHidRestore" style="color:#EA002C;cursor:pointer;text-decoration:underline">삭제리스트 목록/복원</b>';/* [1231] */
           var rb=document.getElementById('pxHidRestore');
-          if(rb)rb.onclick=function(){ HID={};hidSave();
-            /* [1230] 서버 숨김도 일괄 해제 */
-            var jobs=[];
-            STG.forEach(function(cfg){ (((RES[cfg.tbl]||{}).rows)||[]).forEach(function(r){ if(!r.hid)return;
-              jobs.push(sb.from(cfg.tbl).select('payload').eq('id',r.id).single().then(function(x){ if(x.error||!x.data)return; var pl=x.data.payload||{}; delete pl.pxHide; return sb.from(cfg.tbl).update({payload:pl}).eq('id',r.id); })); }); });
-            Promise.all(jobs).then(function(){pxLoad();});
-            renderAll(); };
+          if(rb)rb.onclick=function(){ pxHidModal(); };/* [1231] 선택 복원 모달 */
         }
       }
     }
@@ -571,6 +598,6 @@
   });
 })();
 </script>
-<script src="login.js?v=1230"></script>
+<script src="login.js?v=1231"></script>
 </body>
 </html>
