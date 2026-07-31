@@ -10741,6 +10741,30 @@ function rtDailyTodayFill(){ /* [1211] 오늘 작업 — 전체 목록과 동일
   el.innerHTML=h;
   var cb=document.getElementById('rtdTodayCsv');if(cb)cb.onclick=function(){rtDailyCsv(ymd);};
 }
+/* [1215] realtime 전용 — 완료성과를 결선DB(survey) 사본으로 등록. 포털 결선DB 작업중 목록에 표시됨 */
+function rtRegToSurvey(){
+  if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
+  if(!state.projectId||!state.projectName){toast('먼저 사업을 선택/저장하세요');return;}
+  var base=baseName(state.projectName);
+  sb.from(DB+"_projects").select("id,name,stage:payload->>stage,del:payload->>delAt").then(function(res){
+    var rows=(res.data||[]).filter(function(r){return !r.del&&(r.stage||'survey')==='survey'&&baseName(r.name)===base;});
+    var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,rtDaily:state.rtDaily||[],trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:state.finalCsv||null,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,mnList:state.mnList||[]};
+    payload.stage='survey';payload.routingDone=false;
+    var _fin=function(row){
+      if(row.error){toast('등록 오류: '+row.error.message);return;}
+      var saved=row.data&&row.data[0];if(!saved)return;
+      copyPhotos(state.projectId,saved.id,function(){});
+      toast('결선DB로 등록됨: '+saved.name+' — 포털 결선DB 목록에서 열 수 있습니다');
+    };
+    if(rows.length){
+      if(!confirm('결선DB에 이미 "'+rows[0].name+'" 사본이 있습니다. 현재 성과로 덮어쓸까요?'))return;
+      sb.from(DB+"_projects").update({payload:payload,updated_at:new Date().toISOString()}).eq('id',rows[0].id).select().then(_fin);
+    }else{
+      var nn=base+'_A';
+      sb.from(DB+"_projects").insert({name:nn,payload:payload,updated_at:new Date().toISOString()}).select().then(_fin);
+    }
+  });
+}
 function rtDailyAllOpen(){ /* [1209] 완료성과(전체) — 일별 누적 목록 */
   if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
   var old=document.getElementById('rtDailyAllPop');if(old){old.remove();return;}
@@ -10749,9 +10773,10 @@ function rtDailyAllOpen(){ /* [1209] 완료성과(전체) — 일별 누적 목�
   var _fin=(state.rtDone&&state.rtDone.done);
   pop.innerHTML='<div id="rtDailyAllHead" style="display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:grab;user-select:none;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:'+(_fin?'#d81b60':'#c0392b')+';display:inline-block"></span><b style="font-size:15px">완료성과 (전체)</b>'+(_fin?'<span style="background:#d81b60;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:800">사업완료</span>':'')+'<span style="font-size:11px;color:#bbb;margin-left:auto">드래그로 이동</span></div>'
     +'<div id="rtDailyBody" style="overflow:auto;padding:10px 14px"></div>'
-    +'<div style="padding:9px 14px;border-top:1px solid #eee;text-align:right"><button id="rtDailyAllClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:8px 18px;cursor:pointer;font-weight:700">닫기</button></div>';
+    +'<div style="padding:9px 14px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px"><button id="rtDailyToSurvey" style="background:#16a34a;color:#fff;border:0;border-radius:8px;padding:8px 16px;font-weight:800;cursor:pointer">결선DB로 등록</button><button id="rtDailyAllClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:8px 18px;cursor:pointer;font-weight:700">닫기</button></div>';
   document.body.appendChild(pop);
   document.getElementById('rtDailyAllClose').onclick=function(){pop.remove();};
+  var _ts=document.getElementById('rtDailyToSurvey');if(_ts)_ts.onclick=function(){if(typeof rtRegToSurvey==='function')rtRegToSurvey();};
   (function(){var hd=document.getElementById('rtDailyAllHead'),dx=0,dy=0,drag=false;
     hd.addEventListener('pointerdown',function(e){drag=true;var r=pop.getBoundingClientRect();pop.style.left=r.left+'px';pop.style.top=r.top+'px';pop.style.transform='none';dx=e.clientX-r.left;dy=e.clientY-r.top;try{hd.setPointerCapture(e.pointerId);}catch(_e){}});
     hd.addEventListener('pointermove',function(e){if(!drag)return;pop.style.left=(e.clientX-dx)+'px';pop.style.top=(e.clientY-dy)+'px';});
