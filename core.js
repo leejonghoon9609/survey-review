@@ -10742,26 +10742,47 @@ function rtDailyTodayFill(){ /* [1211] 오늘 작업 — 전체 목록과 동일
   var cb=document.getElementById('rtdTodayCsv');if(cb)cb.onclick=function(){rtDailyCsv(ymd);};
 }
 /* [1215] realtime 전용 — 완료성과를 결선DB(survey) 사본으로 등록. 포털 결선DB 작업중 목록에 표시됨 */
-function rtRegToSurvey(){
+function rtRegToSurvey(){ /* [1216] 대상 테이블 = survey_projects/survey_photos (공정별 테이블 분리 — DB 상수 사용 금지) */
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
   if(!state.projectId||!state.projectName){toast('먼저 사업을 선택/저장하세요');return;}
   var base=baseName(state.projectName);
-  sb.from(DB+"_projects").select("id,name,stage:payload->>stage,del:payload->>delAt").then(function(res){
-    var rows=(res.data||[]).filter(function(r){return !r.del&&(r.stage||'survey')==='survey'&&baseName(r.name)===base;});
+  /* [1216] 1215 버그 정리: realtime_projects에 잘못 생성된 stage=survey 행 삭제표시(삭제목록에서 복구 가능) */
+  sb.from(DB+"_projects").select("id,name,payload").then(function(bad){
+    ((bad&&bad.data)||[]).forEach(function(r){
+      var pl0=r.payload||{};
+      if((pl0.stage||'')==='survey'&&baseName(r.name)===base&&!pl0.delAt){
+        pl0.delAt=new Date().toISOString();
+        sb.from(DB+"_projects").update({payload:pl0}).eq('id',r.id).then(function(){});
+        console.warn('[toSurvey] 잘못된 사본 정리:',r.name,r.id);
+      }
+    });
+  });
+  sb.from("survey_projects").select("id,name,payload").then(function(res){
+    var rows=((res&&res.data)||[]).filter(function(r){var pl0=r.payload||{};return !pl0.delAt&&(pl0.stage||'survey')==='survey'&&baseName(r.name)===base;});
     var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,rtDaily:state.rtDaily||[],trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:state.finalCsv||null,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,mnList:state.mnList||[]};
     payload.stage='survey';payload.routingDone=false;
+    var _photos=function(toId){
+      sb.from(STAGE+"_photos").select("point_no,url").eq('project_id',state.projectId).then(function(pr){
+        var prows=(pr&&pr.data)||[];if(!prows.length)return;
+        sb.from("survey_photos").select("point_no").eq('project_id',toId).then(function(ex){
+          var have={};((ex&&ex.data)||[]).forEach(function(r){have[String(r.point_no)]=1;});
+          var ins=prows.filter(function(r){return !have[String(r.point_no)];}).map(function(r){return {project_id:toId,point_no:r.point_no,url:r.url};});
+          if(!ins.length)return;
+          sb.from("survey_photos").insert(ins).then(function(rr){if(rr&&rr.error){toast('사진 복사 오류: '+rr.error.message);}else{toast('사진 '+ins.length+'장 결선DB로 복사됨');}});
+        });
+      });
+    };
     var _fin=function(row){
-      if(row.error){toast('등록 오류: '+row.error.message);return;}
-      var saved=row.data&&row.data[0];if(!saved)return;
-      copyPhotos(state.projectId,saved.id,function(){});
+      if(row&&row.error){toast('등록 오류: '+row.error.message);return;}
+      var saved=row&&row.data&&row.data[0];if(!saved)return;
+      _photos(saved.id);
       toast('결선DB로 등록됨: '+saved.name+' — 포털 결선DB 목록에서 열 수 있습니다');
     };
     if(rows.length){
       if(!confirm('결선DB에 이미 "'+rows[0].name+'" 사본이 있습니다. 현재 성과로 덮어쓸까요?'))return;
-      sb.from(DB+"_projects").update({payload:payload,updated_at:new Date().toISOString()}).eq('id',rows[0].id).select().then(_fin);
+      sb.from("survey_projects").update({name:rows[0].name,payload:payload,updated_at:new Date().toISOString()}).eq('id',rows[0].id).select().then(_fin);
     }else{
-      var nn=base+'_A';
-      sb.from(DB+"_projects").insert({name:nn,payload:payload,updated_at:new Date().toISOString()}).select().then(_fin);
+      sb.from("survey_projects").insert({name:base+'_A',payload:payload,updated_at:new Date().toISOString()}).select().then(_fin);
     }
   });
 }
