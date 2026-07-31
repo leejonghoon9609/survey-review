@@ -506,9 +506,9 @@
   var SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZHN3b3N0ZHhhZWpqZWlreGhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NjM1MDAsImV4cCI6MjA5MzUzOTUwMH0.DIP9Yqr7v0Z5y4bdqU5UkoNn1OL0dh1WuYhaiOxtaq4";
   var sb=window.supabase.createClient(SB_URL,SB_KEY);
   var STG=[
-    {cls:'c-realtime',tbl:'realtime_projects',page:'realtime.html',doneLb:'실측완료',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,f1:payload->rtDone->>done',done:function(r){return r.f1==='true';}},
+    {cls:'c-realtime',tbl:'realtime_projects',page:'realtime.html',doneLb:'실측완료',reg:true,suffix:'_S',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,f1:payload->rtDone->>done',done:function(r){return r.f1==='true';}},
     {cls:'c-survey',tbl:'survey_projects',page:'survey.html',doneLb:'결선완료',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,f1:payload->>routingDone',done:function(r){return r.f1==='true';}},
-    {cls:'c-field',tbl:'field_projects',page:'field.html',doneLb:'성과등록',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,f1:payload->fieldDone->>csv',done:function(r){return r.f1==='true';}},
+    {cls:'c-field',tbl:'field_projects',page:'field.html',doneLb:'성과등록',reg:true,suffix:'',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,f1:payload->fieldDone->>csv',done:function(r){return r.f1==='true';}},
     {cls:'c-tango',tbl:'tango_projects',page:'tango.html',doneLb:'탱고완료',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,f1:payload->>routingDone,ar:payload->>tangoArchived',done:function(r){return r.f1==='true';},skip:function(r){return r.ar==='true';}},
     {cls:'c-jungwichi',tbl:'position_projects',page:'position.html',doneLb:'완료',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa',done:function(){return false;}}
   ];
@@ -524,16 +524,50 @@
   function openSheet(cfg,title){
     var old=document.getElementById('pxMobSheet');if(old)old.remove();
     var ov=document.createElement('div');ov.id='pxMobSheet';
-    ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99998;display:flex;align-items:flex-end';
+    ov.style.cssText='position:fixed;inset:0;background:#fff;z-index:99998;display:flex;align-items:stretch';
     var box=document.createElement('div');
-    box.style.cssText='background:#fff;width:100%;max-height:78vh;border-radius:16px 16px 0 0;padding:14px 14px 18px;display:flex;flex-direction:column';
+    box.style.cssText='background:#fff;width:100%;height:100dvh;max-height:none;border-radius:0;padding:14px 14px 18px;display:flex;flex-direction:column';/* [1225] 전체 화면 */
     box.innerHTML='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><b style="font-size:16px">'+esc(title)+' — 사업 선택</b><button id="pxmClose" style="margin-left:auto;border:1px solid #ccc;background:#fff;border-radius:8px;padding:6px 12px;font-weight:700">닫기</button></div>'
       +'<div id="pxmBody" style="overflow:auto;flex:1"><div style="color:#999;text-align:center;padding:26px 0;font-size:13px">사업 목록 불러오는 중…</div></div>'
-      +'<button id="pxmOpenApp" style="margin-top:10px;border:1px solid #2f6fdd;background:#eef4ff;color:#1f4e9e;border-radius:10px;padding:11px;font-weight:800;font-size:14px">사업 선택 없이 그냥 열기</button>';
+      +(cfg.reg
+        ?('<div id="pxmRegWrap" style="margin-top:10px">'
+          +'<button id="pxmRegBtn" style="width:100%;border:1px solid #16a34a;background:#e7f7ec;color:#15803d;border-radius:10px;padding:12px;font-weight:800;font-size:15px">＋ 신규사업 등록</button>'
+          +'<div id="pxmRegForm" style="display:none;border:1px solid #d2d2cc;border-radius:12px;padding:12px;margin-top:8px;background:#fcfcfb">'
+          +'<input id="pxmRegName" type="text" placeholder="사업명 입력" style="width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid #ccc;border-radius:9px;font-size:15px;outline:none">'
+          +'<div style="display:flex;gap:8px;margin-top:9px">'
+          +'<button id="pxmModeReal" class="pxm-mode on" style="flex:1;border:1.5px solid #16a34a;background:#16a34a;color:#fff;border-radius:9px;padding:10px;font-weight:800">실시간측량</button>'
+          +'<button id="pxmModeTamsa" class="pxm-mode" style="flex:1;border:1.5px solid #d92b2b;background:#fff;color:#c0392b;border-radius:9px;padding:10px;font-weight:800">탐사측량</button></div>'
+          +'<div style="display:flex;gap:8px;margin-top:10px">'
+          +'<button id="pxmRegOk" style="flex:1;background:#16a34a;color:#fff;border:0;border-radius:9px;padding:12px;font-weight:800;font-size:15px">등 록</button>'
+          +'<button id="pxmRegCancel" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:9px;padding:12px;font-weight:700">취소</button></div>'
+          +'</div></div>')
+        :'<button id="pxmOpenApp" style="margin-top:10px;border:1px solid #2f6fdd;background:#eef4ff;color:#1f4e9e;border-radius:10px;padding:11px;font-weight:800;font-size:14px">사업 선택 없이 그냥 열기</button>');
     ov.appendChild(box);document.body.appendChild(ov);
     ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
     box.querySelector('#pxmClose').onclick=function(){ov.remove();};
-    box.querySelector('#pxmOpenApp').onclick=function(){location.href=cfg.page;};
+    var _oa=box.querySelector('#pxmOpenApp');if(_oa)_oa.onclick=function(){location.href=cfg.page;};
+    var _rb=box.querySelector('#pxmRegBtn');
+    if(_rb){
+      var _tamsa=false;
+      _rb.onclick=function(){box.querySelector('#pxmRegForm').style.display='';_rb.style.display='none';setTimeout(function(){box.querySelector('#pxmRegName').focus();},50);};
+      box.querySelector('#pxmRegCancel').onclick=function(){box.querySelector('#pxmRegForm').style.display='none';_rb.style.display='';};
+      function _mode(t){_tamsa=t;var r=box.querySelector('#pxmModeReal'),m=box.querySelector('#pxmModeTamsa');
+        r.style.background=t?'#fff':'#16a34a';r.style.color=t?'#15803d':'#fff';
+        m.style.background=t?'#d92b2b':'#fff';m.style.color=t?'#fff':'#c0392b';}
+      box.querySelector('#pxmModeReal').onclick=function(){_mode(false);};
+      box.querySelector('#pxmModeTamsa').onclick=function(){_mode(true);};
+      box.querySelector('#pxmRegOk').onclick=function(){
+        var nm=(box.querySelector('#pxmRegName').value||'').trim();
+        if(!nm){alert('사업명을 입력하세요');return;}
+        if(cfg.suffix&&nm.slice(-cfg.suffix.length)!==cfg.suffix)nm=nm+cfg.suffix;
+        var ok=box.querySelector('#pxmRegOk');ok.disabled=true;ok.textContent='등록 중…';
+        var payload={stage:cfg.page.replace('.html',''),tamsa:_tamsa,points:[],lines:[],markups:[],manholes:[],labelOff:{},crs:'5186'};
+        sb.from(cfg.tbl).insert({name:nm,payload:payload,updated_at:new Date().toISOString()}).select().then(function(r){
+          if(r.error||!r.data||!r.data[0]){alert('등록 실패: '+((r.error&&r.error.message)||''));ok.disabled=false;ok.textContent='등 록';return;}
+          location.href=cfg.page+'?open='+encodeURIComponent(r.data[0].id);
+        });
+      };
+    }
     function fill(att){
       sb.from(cfg.tbl).select(cfg.sel).order('updated_at',{ascending:false}).then(function(res){
         var bd=box.querySelector('#pxmBody');if(!bd)return;
@@ -556,6 +590,6 @@
   });
 })();
 </script>
-<script src="login.js?v=1224"></script>
+<script src="login.js?v=1225"></script>
 </body>
 </html>
