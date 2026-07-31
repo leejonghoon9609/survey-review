@@ -530,44 +530,13 @@
     box.innerHTML='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><b style="font-size:16px">'+esc(title)+' — 사업 선택</b><button id="pxmClose" style="margin-left:auto;border:1px solid #ccc;background:#fff;border-radius:8px;padding:6px 12px;font-weight:700">닫기</button></div>'
       +'<div id="pxmBody" style="overflow:auto;flex:1"><div style="color:#999;text-align:center;padding:26px 0;font-size:13px">사업 목록 불러오는 중…</div></div>'
       +(cfg.reg
-        ?('<div id="pxmRegWrap" style="margin-top:10px">'
-          +'<button id="pxmRegBtn" style="width:100%;border:1px solid #16a34a;background:#e7f7ec;color:#15803d;border-radius:10px;padding:12px;font-weight:800;font-size:15px">＋ 신규사업 등록</button>'
-          +'<div id="pxmRegForm" style="display:none;border:1px solid #d2d2cc;border-radius:12px;padding:12px;margin-top:8px;background:#fcfcfb">'
-          +'<input id="pxmRegName" type="text" placeholder="사업명 입력" style="width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid #ccc;border-radius:9px;font-size:15px;outline:none">'
-          +'<div style="display:flex;gap:8px;margin-top:9px">'
-          +'<button id="pxmModeReal" class="pxm-mode on" style="flex:1;border:1.5px solid #16a34a;background:#16a34a;color:#fff;border-radius:9px;padding:10px;font-weight:800">실시간측량</button>'
-          +'<button id="pxmModeTamsa" class="pxm-mode" style="flex:1;border:1.5px solid #d92b2b;background:#fff;color:#c0392b;border-radius:9px;padding:10px;font-weight:800">탐사측량</button></div>'
-          +'<div style="display:flex;gap:8px;margin-top:10px">'
-          +'<button id="pxmRegOk" style="flex:1;background:#16a34a;color:#fff;border:0;border-radius:9px;padding:12px;font-weight:800;font-size:15px">등 록</button>'
-          +'<button id="pxmRegCancel" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:9px;padding:12px;font-weight:700">취소</button></div>'
-          +'</div></div>')
+        ?'<button id="pxmRegBtn" style="margin-top:10px;border:1.5px solid #c0392b;background:#fdecea;color:#c0392b;border-radius:10px;padding:13px;font-weight:800;font-size:15px">＋ 신규사업 등록</button>'
         :'<button id="pxmOpenApp" style="margin-top:10px;border:1px solid #2f6fdd;background:#eef4ff;color:#1f4e9e;border-radius:10px;padding:11px;font-weight:800;font-size:14px">사업 선택 없이 그냥 열기</button>');
     ov.appendChild(box);document.body.appendChild(ov);
     ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
     box.querySelector('#pxmClose').onclick=function(){ov.remove();};
     var _oa=box.querySelector('#pxmOpenApp');if(_oa)_oa.onclick=function(){location.href=cfg.page;};
-    var _rb=box.querySelector('#pxmRegBtn');
-    if(_rb){
-      var _tamsa=false;
-      _rb.onclick=function(){box.querySelector('#pxmRegForm').style.display='';_rb.style.display='none';setTimeout(function(){box.querySelector('#pxmRegName').focus();},50);};
-      box.querySelector('#pxmRegCancel').onclick=function(){box.querySelector('#pxmRegForm').style.display='none';_rb.style.display='';};
-      function _mode(t){_tamsa=t;var r=box.querySelector('#pxmModeReal'),m=box.querySelector('#pxmModeTamsa');
-        r.style.background=t?'#fff':'#16a34a';r.style.color=t?'#15803d':'#fff';
-        m.style.background=t?'#d92b2b':'#fff';m.style.color=t?'#fff':'#c0392b';}
-      box.querySelector('#pxmModeReal').onclick=function(){_mode(false);};
-      box.querySelector('#pxmModeTamsa').onclick=function(){_mode(true);};
-      box.querySelector('#pxmRegOk').onclick=function(){
-        var nm=(box.querySelector('#pxmRegName').value||'').trim();
-        if(!nm){alert('사업명을 입력하세요');return;}
-        if(cfg.suffix&&nm.slice(-cfg.suffix.length)!==cfg.suffix)nm=nm+cfg.suffix;
-        var ok=box.querySelector('#pxmRegOk');ok.disabled=true;ok.textContent='등록 중…';
-        var payload={stage:cfg.page.replace('.html',''),tamsa:_tamsa,points:[],lines:[],markups:[],manholes:[],labelOff:{},crs:'5186'};
-        sb.from(cfg.tbl).insert({name:nm,payload:payload,updated_at:new Date().toISOString()}).select().then(function(r){
-          if(r.error||!r.data||!r.data[0]){alert('등록 실패: '+((r.error&&r.error.message)||''));ok.disabled=false;ok.textContent='등 록';return;}
-          location.href=cfg.page+'?open='+encodeURIComponent(r.data[0].id);
-        });
-      };
-    }
+    var _rb=box.querySelector('#pxmRegBtn');if(_rb)_rb.onclick=function(){location.href=cfg.page+'?reg=1';};/* [1226] 정식 사업등록 모달로 */
     function fill(att){
       sb.from(cfg.tbl).select(cfg.sel).order('updated_at',{ascending:false}).then(function(res){
         var bd=box.querySelector('#pxmBody');if(!bd)return;
@@ -590,6 +559,6 @@
   });
 })();
 </script>
-<script src="login.js?v=1225"></script>
+<script src="login.js?v=1226"></script>
 </body>
 </html>

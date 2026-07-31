@@ -12918,6 +12918,16 @@ function _projFilterChip(){
   var _fix=function(){var b=document.getElementById('rtLine');if(b)b.textContent='\u270F\uFE0F \uD3B8\uC9D1\uB3C4\uAD6C';};
   _fix();setTimeout(_fix,600);
 }catch(_e){}})();
+/* [1226] 포털 신규사업: ?reg=1 → 정식 사업등록 모달 자동 오픈 (realtime·field 전용) */
+(function(){try{
+  if(!/[?&]reg=1/.test(location.search))return;
+  var _t=0;(function _w(){
+    var okStage=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)||(typeof IS_FIELD!=='undefined'&&IS_FIELD);
+    if(okStage&&typeof openRegModal==='function'&&document.getElementById('regModal')){openRegModal();}
+    else if(_t++<50){setTimeout(_w,200);}
+  })();
+}catch(_re){console.warn('[reg]',_re);}})();
+
 /* [1183] 포털 사업 클릭 자동 로드: ?open=<사업id> — 파라미터 없으면 아무 동작 안 함 */
 (function(){try{
   var m=location.search.match(/[?&]open=([^&]+)/); if(!m)return;
