@@ -489,65 +489,73 @@
     }
     window.pxRenderAll=renderAll;
     /* [1191] 최초 로드 + 60초 자동 갱신 (각 공정 사업등록·완료가 포털에 자동 반영) */
-    window._pxSTG=STG;window._pxRES=RES;/* [1223] 모바일 사업선택 시트용 노출 */
     function pxLoad(){ Promise.all(STG.map(function(cfg){return qTry(cfg,1);})).then(renderAll); }
     pxLoad();
     setInterval(pxLoad,60000);
   }catch(e){ console.warn('[pxboard]',e); }
 })();
 </script>
+
 <script>
-/* [1223] 모바일 전용 — 공정 카드 탭 → 사업 선택 시트 → ?open= 진입 (PC 무영향: max-width 1023 게이트) */
+/* [1224] 모바일 전용 — 공정 카드 탭 → 사업 선택 시트(자체 Supabase 조회) → ?open= 진입
+   PC 현황판 IIFE는 min-width:1024 조기종료라 의존 불가 → 독립 구성 (설정은 PC STG와 동일하게 유지할 것) */
 (function(){
   if(!window.matchMedia||!matchMedia('(max-width:1023px)').matches)return;
-  var MAP={realtime:'c-realtime',survey:'c-survey',field:'c-field',tango:'c-tango',position:'c-jungwichi'};
+  if(!window.supabase||!window.supabase.createClient)return;
+  var SB_URL="https://yidswostdxaejjeikxhg.supabase.co";
+  var SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlpZHN3b3N0ZHhhZWpqZWlreGhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc5NjM1MDAsImV4cCI6MjA5MzUzOTUwMH0.DIP9Yqr7v0Z5y4bdqU5UkoNn1OL0dh1WuYhaiOxtaq4";
+  var sb=window.supabase.createClient(SB_URL,SB_KEY);
+  var STG=[
+    {cls:'c-realtime',tbl:'realtime_projects',page:'realtime.html',doneLb:'실측완료',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,f1:payload->rtDone->>done',done:function(r){return r.f1==='true';}},
+    {cls:'c-survey',tbl:'survey_projects',page:'survey.html',doneLb:'결선완료',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,f1:payload->>routingDone',done:function(r){return r.f1==='true';}},
+    {cls:'c-field',tbl:'field_projects',page:'field.html',doneLb:'성과등록',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,f1:payload->fieldDone->>csv',done:function(r){return r.f1==='true';}},
+    {cls:'c-tango',tbl:'tango_projects',page:'tango.html',doneLb:'탱고완료',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,f1:payload->>routingDone,ar:payload->>tangoArchived',done:function(r){return r.f1==='true';},skip:function(r){return r.ar==='true';}},
+    {cls:'c-jungwichi',tbl:'position_projects',page:'position.html',doneLb:'완료',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa',done:function(){return false;}}
+  ];
   function esc(s){return (''+(s||'')).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
-  function openSheet(cfg){
-    var R=(window._pxRES&&window._pxRES[cfg.tbl])||{rows:[]};
-    var rows=(R.rows||[]).filter(function(r){return !r.del&&!(cfg.skip&&cfg.skip(r));});
-    var work=[],done=[];rows.forEach(function(r){(cfg.done(r)?done:work).push(r);});
+  function rowsHtml(arr){
+    if(!arr.length)return '<div style="color:#aaa;font-size:12px;padding:8px 4px">없음</div>';
+    return arr.map(function(r){
+      var d=(r.updated_at||'').slice(5,10).replace('-','/');
+      var col=(r.tm==='true')?'#1d4ed8':'#c0392b';
+      return '<button data-id="'+r.id+'" class="pxm-row" style="display:flex;width:100%;align-items:center;gap:8px;text-align:left;padding:11px 12px;margin:4px 0;border:1px solid #e3e3de;border-radius:10px;background:#fff;font-size:14px;font-weight:700;color:'+col+'"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(r.name)+'</span><span style="font-size:11px;color:#999;font-weight:400">'+d+'</span></button>';
+    }).join('');
+  }
+  function openSheet(cfg,title){
     var old=document.getElementById('pxMobSheet');if(old)old.remove();
     var ov=document.createElement('div');ov.id='pxMobSheet';
     ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99998;display:flex;align-items:flex-end';
-    function rowsHtml(arr){
-      if(!arr.length)return '<div style="color:#aaa;font-size:12px;padding:8px 4px">없음</div>';
-      return arr.map(function(r){
-        var d=(r.updated_at||'').slice(5,10).replace('-','/');
-        var col=(r.tm==='true')?'#1d4ed8':'#c0392b';
-        return '<button data-id="'+r.id+'" class="pxm-row" style="display:flex;width:100%;align-items:center;gap:8px;text-align:left;padding:11px 12px;margin:4px 0;border:1px solid #e3e3de;border-radius:10px;background:#fff;font-size:14px;font-weight:700;color:'+col+'"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(r.name)+'</span><span style="font-size:11px;color:#999;font-weight:400">'+d+'</span></button>';
-      }).join('');
-    }
     var box=document.createElement('div');
     box.style.cssText='background:#fff;width:100%;max-height:78vh;border-radius:16px 16px 0 0;padding:14px 14px 18px;display:flex;flex-direction:column';
-    box.innerHTML='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><b style="font-size:16px">'+cfg.mobTitle+' — 사업 선택</b><button id="pxmClose" style="margin-left:auto;border:1px solid #ccc;background:#fff;border-radius:8px;padding:6px 12px;font-weight:700">닫기</button></div>'
-      +'<div style="overflow:auto;flex:1">'
-      +'<div style="background:#fdf4d3;border-radius:11px;padding:8px 10px;margin-bottom:9px"><div style="font-size:12.5px;font-weight:800;color:#7a5b00;margin-bottom:3px">🟢 작업중 '+work.length+'</div>'+rowsHtml(work)+'</div>'
-      +'<div style="background:#e1f5ee;border-radius:11px;padding:8px 10px"><div style="font-size:12.5px;font-weight:800;color:#0f6e56;margin-bottom:3px">✅ '+cfg.doneLb+' '+done.length+'</div>'+rowsHtml(done)+'</div>'
-      +'</div>'
+    box.innerHTML='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><b style="font-size:16px">'+esc(title)+' — 사업 선택</b><button id="pxmClose" style="margin-left:auto;border:1px solid #ccc;background:#fff;border-radius:8px;padding:6px 12px;font-weight:700">닫기</button></div>'
+      +'<div id="pxmBody" style="overflow:auto;flex:1"><div style="color:#999;text-align:center;padding:26px 0;font-size:13px">사업 목록 불러오는 중…</div></div>'
       +'<button id="pxmOpenApp" style="margin-top:10px;border:1px solid #2f6fdd;background:#eef4ff;color:#1f4e9e;border-radius:10px;padding:11px;font-weight:800;font-size:14px">사업 선택 없이 그냥 열기</button>';
     ov.appendChild(box);document.body.appendChild(ov);
     ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
     box.querySelector('#pxmClose').onclick=function(){ov.remove();};
     box.querySelector('#pxmOpenApp').onclick=function(){location.href=cfg.page;};
-    [].forEach.call(box.querySelectorAll('.pxm-row'),function(b){
-      b.onclick=function(){location.href=cfg.page+'?open='+encodeURIComponent(b.getAttribute('data-id'));};
-    });
-  }
-  function wire(){
-    if(!window._pxSTG)return setTimeout(wire,400);
-    window._pxSTG.forEach(function(cfg){
-      var cls=MAP[cfg.stg];if(!cls)return;
-      var card=document.querySelector('a.app.'+cls);if(!card)return;
-      cfg.mobTitle=(card.querySelector('.nm')||{}).textContent||cfg.stg;
-      card.addEventListener('click',function(e){
-        e.preventDefault();e.stopPropagation();
-        openSheet(cfg);
+    function fill(att){
+      sb.from(cfg.tbl).select(cfg.sel).order('updated_at',{ascending:false}).then(function(res){
+        var bd=box.querySelector('#pxmBody');if(!bd)return;
+        if(res.error){ if(att<3){setTimeout(function(){fill(att+1);},700*att);return;} bd.innerHTML='<div style="color:#c0392b;text-align:center;padding:20px 0;font-size:13px">목록을 불러오지 못했습니다</div>'; return; }
+        var rows=(res.data||[]).filter(function(r){return !r.del&&!(cfg.skip&&cfg.skip(r));});
+        var work=[],done=[];rows.forEach(function(r){(cfg.done(r)?done:work).push(r);});
+        bd.innerHTML='<div style="background:#fdf4d3;border-radius:11px;padding:8px 10px;margin-bottom:9px"><div style="font-size:12.5px;font-weight:800;color:#7a5b00;margin-bottom:3px">🟢 작업중 '+work.length+'</div>'+rowsHtml(work)+'</div>'
+          +'<div style="background:#e1f5ee;border-radius:11px;padding:8px 10px"><div style="font-size:12.5px;font-weight:800;color:#0f6e56;margin-bottom:3px">✅ '+cfg.doneLb+' '+done.length+'</div>'+rowsHtml(done)+'</div>';
+        [].forEach.call(bd.querySelectorAll('.pxm-row'),function(b){
+          b.onclick=function(){location.href=cfg.page+'?open='+encodeURIComponent(b.getAttribute('data-id'));};
+        });
       });
-    });
+    }
+    fill(1);
   }
-  wire();
+  STG.forEach(function(cfg){
+    var card=document.querySelector('a.app.'+cfg.cls);if(!card)return;
+    var title=(card.querySelector('.nm')||{}).textContent||cfg.tbl;
+    card.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();openSheet(cfg,title);});
+  });
 })();
 </script>
-<script src="login.js?v=1223"></script>
+<script src="login.js?v=1224"></script>
 </body>
 </html>
