@@ -387,9 +387,11 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   header button,header select{font-size:10px!important;padding:3px 4px!important;border-radius:6px!important;white-space:nowrap!important;letter-spacing:-0.3px}
   header .rtm{display:inline-flex!important}
   /* 윗줄: 실시간측량 · 홈 · 사업선택 · 저장 · 촬영 */
-  header h1{font-size:13px!important;margin:0 2px 0 0!important;order:1!important;flex:none!important;display:inline-block!important}
-  header #homeBtn{order:2!important}
-  header #proj{order:3!important;max-width:74px!important;display:inline-block!important}
+  /* [1217] 폰 헤더 1줄: [홈으로][실시간측량][사업선택(남은폭 꽉)][작업자] */
+  header h1{font-size:13px!important;margin:0 2px 0 0!important;order:2!important;flex:none!important;display:inline-block!important}
+  header #homeBtn{order:1!important}
+  header #proj{order:3!important;flex:1 1 auto!important;min-width:0!important;max-width:none!important;width:auto!important;display:inline-block!important}
+  header #workerChip{order:3!important;flex:none!important;margin-left:4px!important}
   header #save{order:5!important;display:inline-flex!important}
   header .rt-break{display:block!important;flex-basis:100%!important;width:100%!important;height:8px!important;order:4!important}
   /* 아랫줄: 관로선 · 도구 · 사진보기 · 지도 */
@@ -741,6 +743,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=1216"></script><script src="core.js?v=1216"></script>
+<script src="login.js?v=1217"></script><script src="core.js?v=1217"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
