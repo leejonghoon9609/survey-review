@@ -12626,7 +12626,7 @@ function wheelFactor(){
 (function(){try{
   if(typeof IS_TANGO==='undefined'||!IS_TANGO)return; /* [1184] 탱고 전용 UI — 다른 공정 적용 금지 */
   var tb=document.getElementById('tamsaBadge'); if(!tb||!tb.parentNode)return;
-  var bs='border:1px solid #c9d4de;background:#fff;border-radius:6px;width:24px;height:24px;cursor:pointer;font-size:15px;font-weight:800;color:#1565c0;line-height:1;padding:0';
+  var bs='border:1px solid #c9d4de;background:#fff;border-radius:6px;width:24px;height:24px;cursor:pointer;font-size:15px;font-weight:800;color:#1565c0;line-height:1;padding:0;display:inline-flex;align-items:center;justify-content:center';
   var box=document.createElement('span');
   box.id='wheelAdjBox';
   box.style.cssText='margin-left:14px;font-size:12.5px;font-weight:700;color:#555;display:inline-flex;align-items:center;gap:6px;vertical-align:middle';
