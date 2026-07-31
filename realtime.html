@@ -289,7 +289,7 @@
     #hdrBrk{display:block;flex-basis:100%;height:0;order:8}
     /* [1203] 아랫줄 그룹 순서: 파랑(결선완료사업·준공도면)→노랑(지우기·거리산출)→빨강(되돌리기~백판), 그룹 간격=거리산출 폭 */
     #doneListBtn,#doneSummary,#asbuiltBtn{order:9}
-    #photoBtn,#bgBtn,#rvBtn{order:12}
+    #photoBtn,#bgBtn,#rvBtn{order:13}
     /* [1195] 지우기(통합)·거리산출 → 아랫줄 (display:contents 로 헤더 직계 승격 — 나머지 globalbtns 버튼은 order 0 유지, 함정 I 참고) */
     #globalbtns{display:contents}
     #globalbtns button[data-g="delall2"]{order:10;margin-left:72px}
@@ -298,8 +298,10 @@
     /* [1201] 인라인 margin-left:8px 를 이겨야 실제 우측 정렬됨 (함정 R 인라인판) */
     #conn{order:6;margin-left:auto!important}
     /* [1201] 되돌리기·앞으로·보기·전체보기 → 아랫줄 */
-    #globalbtns button[data-g="undo"]{order:11;margin-left:72px}
-    #globalbtns button[data-g="redo"],#globalbtns .subhint,#globalbtns button[data-g="fit"],#bpToggle{order:11}
+    /* [1204] 파랑(보기·전체보기·백판) ↔ 빨강(되돌리기·앞으로) 순서 교체 */
+    #globalbtns .subhint{order:11;margin-left:72px}
+    #globalbtns button[data-g="fit"],#bpToggle{order:11}
+    #globalbtns button[data-g="undo"],#globalbtns button[data-g="redo"]{order:12}
     /* [1201] ?open= 사업 필터 칩: 우측(Supabase 그룹 왼쪽)으로 */
     /* [1202] 칩 인라인 margin-left:6px 를 이겨야 우측으로 밀림 (conn과 동일 함정) */
     #projFilterChip{order:5;margin-left:auto!important}
@@ -730,6 +732,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=1203"></script><script src="core.js?v=1203"></script>
+<script src="login.js?v=1204"></script><script src="core.js?v=1204"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
