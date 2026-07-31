@@ -159,7 +159,7 @@
     .eyebrow,.h-desc{display:none}
     .h-lead{font-size:15px;margin-bottom:10px}
     .stack{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
-    .app{min-height:108px;padding:16px 15px;gap:10px;border-radius:12px;align-content:center}
+    .app{min-height:152px;padding:22px 16px;gap:10px;border-radius:12px;align-content:center}
     .app .ds{display:none}
     .app .ic svg{width:20px;height:20px}
     .app .nm{font-size:14px}
@@ -181,6 +181,8 @@
     .pxsec.d .pxrow .n{color:#26543f;font-weight:500}
     .pxrow .t{font-size:10.5px;color:#7a92a8;flex:none;font-variant-numeric:tabular-nums}
     .pxempty{font-size:11px;color:#9fb1c2;padding:4px 2px}
+    .pxrow .n.rt{color:#c0392b}
+    .pxrow .n.tam{color:#1d4ed8}
   }
 </style>
 </head>
@@ -195,7 +197,7 @@
       <span class="t" id="clk">--:--</span>
       <span class="d" id="cdt">&nbsp;</span>
     </div>
-    <span class="buildno" id="buildno">BUILD 1175</span>
+    <span class="buildno" id="buildno">BUILD 1176</span>
   </header>
 
   <main class="wrap">
@@ -384,19 +386,19 @@
     if(!board)return;
     var STG=[
       {id:'pxc-rt',tbl:'realtime_projects',page:'realtime.html',stg:'realtime',doneLb:'실측완료',
-       sel:'id,name,updated_at,del:payload->>delAt,st:payload->>stage,f1:payload->rtDone->>done',
+       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,st:payload->>stage,f1:payload->rtDone->>done',
        done:function(r){return r.f1==='true';}},
       {id:'pxc-sv',tbl:'survey_projects',page:'survey.html',stg:'survey',doneLb:'결선완료',
-       sel:'id,name,updated_at,del:payload->>delAt,st:payload->>stage,f1:payload->>routingDone',
+       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,st:payload->>stage,f1:payload->>routingDone',
        done:function(r){return r.f1==='true';}},
       {id:'pxc-fd',tbl:'field_projects',page:'field.html',stg:'field',doneLb:'성과등록',
-       sel:'id,name,updated_at,del:payload->>delAt,st:payload->>stage,f1:payload->fieldDone->>csv',
+       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,st:payload->>stage,f1:payload->fieldDone->>csv',
        done:function(r){return r.f1==='true';}},
       {id:'pxc-tg',tbl:'tango_projects',page:'tango.html',stg:'tango',doneLb:'탱고완료',
-       sel:'id,name,updated_at,del:payload->>delAt,st:payload->>stage,f1:payload->>routingDone,ar:payload->>tangoArchived',
+       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,st:payload->>stage,f1:payload->>routingDone,ar:payload->>tangoArchived',
        done:function(r){return r.f1==='true';},skip:function(r){return r.ar==='true';}},
       {id:'pxc-po',tbl:'position_projects',page:'position.html',stg:'position',doneLb:'완료',
-       sel:'id,name,updated_at,del:payload->>delAt,st:payload->>stage',
+       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,st:payload->>stage',
        done:function(){return false;}}
     ];
     function fmt(ts){
@@ -405,8 +407,9 @@
     }
     function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
     function rowHtml(cfg,r){
+      var tc=(r.tm==='true')?' tam':' rt';
       return '<div class="pxrow" data-pg="'+cfg.page+'" data-id="'+esc(r.id)+'">'
-        +'<span class="n" title="'+esc(r.name)+'">'+esc(r.name)+'</span>'
+        +'<span class="n'+tc+'" title="'+esc(r.name)+'">'+esc(r.name)+'</span>'
         +'<span class="t">'+fmt(r.updated_at)+'</span></div>';
     }
     function render(cfg,rows,err){
@@ -418,6 +421,8 @@
       }
       var work=[],done=[];
       rows.forEach(function(r){ (cfg.done(r)?done:work).push(r); });
+      function tOrd(a,b){return ((a.tm==='true')?1:0)-((b.tm==='true')?1:0);}
+      work.sort(tOrd); done.sort(tOrd);
       var h='<div class="pxsec w"><h4>🟢 작업중 '+work.length+'</h4><div class="pxrows">'
         +(work.length?work.map(function(r){return rowHtml(cfg,r);}).join(''):'<div class="pxempty">작업중 사업이 없습니다</div>')
         +'</div></div>'
@@ -445,6 +450,6 @@
   }catch(e){ console.warn('[pxboard]',e); }
 })();
 </script>
-<script src="login.js?v=1175"></script>
+<script src="login.js?v=1176"></script>
 </body>
 </html>
