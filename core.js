@@ -12686,10 +12686,12 @@ function _projFilterChip(){
     sel.insertAdjacentElement('afterend',old);
   }
   while(old.firstChild)old.removeChild(old.firstChild);
-  var t=document.createElement('span'); t.textContent='\uD83D\uDCCC '+window._projFilterBase; t.style.cssText='overflow:hidden;text-overflow:ellipsis'; t.title='\uD3EC\uD138\uC5D0\uC11C \uC5F0 \uC0AC\uC5C5\uB9CC \uD45C\uC2DC \uC911';
-  var x=document.createElement('a'); x.textContent='\uC804\uCCB4\uBCF4\uAE30'; x.style.cssText='cursor:pointer;text-decoration:underline;color:#c0392b;flex:none';
-  x.onclick=function(){ window._projFilterBase=null; window._projFilterId=null; refreshProjects(); toast('\uC804\uCCB4 \uC0AC\uC5C5 \uD45C\uC2DC'); };
-  old.appendChild(t); old.appendChild(x);
+  /* [1203] 단일 클릭 라벨 '사업 전체보기' — 필터된 사업명은 툴팁으로 */
+  old.style.cursor='pointer';
+  old.title=window._projFilterBase+' \uC0AC\uC5C5\uB9CC \uD45C\uC2DC \uC911 \u2014 \uD074\uB9AD\uD558\uBA74 \uC804\uCCB4 \uC0AC\uC5C5 \uD45C\uC2DC';
+  var t=document.createElement('span'); t.textContent='\uD83D\uDCCC \uC0AC\uC5C5 \uC804\uCCB4\uBCF4\uAE30'; t.style.cssText='white-space:nowrap';
+  old.onclick=function(){ window._projFilterBase=null; window._projFilterId=null; refreshProjects(); toast('\uC804\uCCB4 \uC0AC\uC5C5 \uD45C\uC2DC'); };
+  old.appendChild(t);
 }
 
 /* [1183] 포털 사업 클릭 자동 로드: ?open=<사업id> — 파라미터 없으면 아무 동작 안 함 */
