@@ -10723,13 +10723,14 @@ function rtDailyTodayFill(){ /* [1211] 오늘 작업 — 전체 목록과 동일
   var r=null;(state.rtDaily||[]).forEach(function(x){if(x&&x.date===ymd)r=x;});
   var dist=+((dm.dist[ymd]||0).toFixed(1)),seg=dm.seg[ymd]||0;
   var h='<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#fdf0f0;color:#a12b2b">'
-   +'<th style="padding:7px 6px;border-bottom:1px solid #edd">날짜</th><th style="border-bottom:1px solid #edd">사업명</th><th style="border-bottom:1px solid #edd">작업자</th><th style="border-bottom:1px solid #edd;text-align:right">거리(m)</th><th style="border-bottom:1px solid #edd;text-align:right">결선</th><th style="border-bottom:1px solid #edd">CSV</th></tr></thead><tbody>'
+   +'<th style="padding:7px 6px;border-bottom:1px solid #edd">날짜</th><th style="border-bottom:1px solid #edd">사업명</th><th style="border-bottom:1px solid #edd">작업자</th><th style="border-bottom:1px solid #edd;text-align:right">거리(m)</th><th style="border-bottom:1px solid #edd;text-align:right">측점</th><th style="border-bottom:1px solid #edd;text-align:right">결선</th><th style="border-bottom:1px solid #edd">CSV</th></tr></thead><tbody>'
    +'<tr style="border-bottom:1px solid #f2f2ef">'
    +'<td style="padding:8px 6px;font-weight:700;color:'+(r?'#c0392b':'#98a1ad')+';white-space:nowrap">20'+ymd.slice(0,2)+'-'+ymd.slice(2,4)+'-'+ymd.slice(4,6)
    +(r?' <span style="font-size:10px;color:#0f6e56;font-weight:800">등록됨 ✓'+((r.at||'').slice(11,16)?(' '+(r.at||'').slice(11,16)):'')+'</span>':' <span style="font-size:10px;color:#b9b9b2">(미등록)</span>')+'</td>'
-   +'<td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(state.projectName||'')+'">'+(state.projectName||'')+'</td>'
+   +'<td style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(state.projectName||'')+'">'+(state.projectName||'')+'</td>'
    +'<td style="text-align:center;'+(r?'':'color:#98a1ad')+'">'+((r&&r.worker)||((typeof ME!=='undefined'&&ME)||'-'))+'</td>'
    +'<td style="text-align:right;font-weight:800;color:#c0392b">'+dist+'</td>'
+   +'<td style="text-align:right">'+pts.length+'</td>'
    +'<td style="text-align:right">'+seg+'</td>'
    +'<td style="text-align:center"><button id="rtdTodayCsv" style="background:#1565c0;color:#fff;border:0;border-radius:6px;padding:4px 10px;font-weight:700;font-size:12px;cursor:pointer">CSV</button></td>'
    +'</tr></tbody></table>'
@@ -10762,8 +10763,9 @@ function rtDailyRender(){
   /* [1208] 등록 전이라도 업로드된 CSV(측점 날짜)·결선 날짜를 자동 표시 — 등록 시 작업자만 채워짐 */
   var recs={};(state.rtDaily||[]).forEach(function(r){if(r&&r.date)recs[r.date]=r;});
   var h='<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f5f8ff;color:#1f4e9e">'
-   +'<th style="padding:7px 6px;border-bottom:1px solid #dde">날짜</th><th style="border-bottom:1px solid #dde">사업명</th><th style="border-bottom:1px solid #dde">작업자</th><th style="border-bottom:1px solid #dde;text-align:right">거리(m)</th><th style="border-bottom:1px solid #dde;text-align:right">결선</th><th style="border-bottom:1px solid #dde">CSV</th></tr></thead><tbody>';
+   +'<th style="padding:7px 6px;border-bottom:1px solid #dde">날짜</th><th style="border-bottom:1px solid #dde">사업명</th><th style="border-bottom:1px solid #dde">작업자</th><th style="border-bottom:1px solid #dde;text-align:right">거리(m)</th><th style="border-bottom:1px solid #dde;text-align:right">측점</th><th style="border-bottom:1px solid #dde;text-align:right">결선</th><th style="border-bottom:1px solid #dde">CSV</th></tr></thead><tbody>';
   var dm=rtDailyDistMap();var tot=0;for(var _k in dm.dist)tot+=dm.dist[_k];
+  var ptCnt={};(state.points||[]).forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0)ptCnt[d0]=(ptCnt[d0]||0)+1;});/* [1214] 날짜별 측점수 */
   var dset={};for(var _k2 in dm.dist)dset[_k2]=1;for(var _k3 in recs)dset[_k3]=1;
   (state.points||[]).forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0&&/^[0-9]{6}$/.test(d0))dset[d0]=1;});
   var dates=Object.keys(dset).sort();
@@ -10772,9 +10774,10 @@ function rtDailyRender(){
     var dDist=+((dm.dist[_dk]||0).toFixed(1));var dLine=dm.seg[_dk]||0;
     h+='<tr class="rtd-row" data-d="'+_dk+'" style="cursor:pointer;border-bottom:1px solid #f2f2ef">'
      +'<td style="padding:8px 6px;font-weight:700;color:'+(r?'#c0392b':'#98a1ad')+';white-space:nowrap">20'+_dk.slice(0,2)+'-'+_dk.slice(2,4)+'-'+_dk.slice(4,6)+(r?'':' <span style="font-size:10px;color:#b9b9b2">(미등록)</span>')+'</td>' 
-     +'<td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(state.projectName||'')+'">'+(state.projectName||'')+'</td>'
+     +'<td style="max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(state.projectName||'')+'">'+(state.projectName||'')+'</td>'
      +'<td style="text-align:center;'+(r?'':'color:#98a1ad')+'">'+((r&&r.worker)||((typeof ME!=='undefined'&&ME)||'-'))+'</td>'
      +'<td style="text-align:right;font-weight:800;color:#0f6e56">'+dDist+'</td>'
+     +'<td style="text-align:right">'+(ptCnt[_dk]||0)+'</td>'
      +'<td style="text-align:right">'+dLine+'</td>'
      +'<td style="text-align:center"><button class="rtd-csv" data-d="'+_dk+'" style="background:#1565c0;color:#fff;border:0;border-radius:6px;padding:4px 10px;font-weight:700;font-size:12px;cursor:pointer">CSV</button></td></tr>';}
   h+='</tbody></table><div style="text-align:right;font-size:12.5px;color:#1f4e9e;font-weight:800;padding:7px 4px 0">관로거리 합계 '+(+tot.toFixed(1))+'m</div><div id="rtDailyInfo" style="margin-top:9px"></div>';
