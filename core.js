@@ -5833,12 +5833,24 @@ function saveProject(cb){ if(readOnly){if(typeof cb==='function')cb();return;}
   if(state.loadedStage&&state.loadedStage!==STAGE){state.projectId=null;} // 다운스트림 분리: 다른 단계 사업은 처음 저장 시 새 사본 생성(원본 보호)
   var row={name:state.projectName,payload:payload,updated_at:new Date().toISOString()};
   if(state.projectId)row.id=state.projectId;
-  sb.from(DB+'_projects').upsert(row).select().then(function(res){
+  /* [1227] ★삭제 부활 방지 — 절대 제거 금지: 다른 기기에서 삭제(delAt)된 사업은 저장으로 되살리지 않음 */
+  var _doUpsert=function(){ sb.from(DB+'_projects').upsert(row).select().then(function(res){
     if(res.error){toast('저장 오류: '+res.error.message);return;}
     var saved=res.data&&res.data[0];if(saved){state.projectId=saved.id;state.loadedStage=STAGE;}
     sb.from(DB+'_history').insert({project_id:state.projectId,payload:payload}); // 이력
     refreshProjects();loadPhotos();if(!window._silentSave)toast('저장 완료');window._silentSave=false;if(state._importSrc&&state._importSrc.length&&state.projectId){var _srcs=state._importSrc.slice();state._importSrc=[];(function _nx(){if(!_srcs.length)return;var _sid=_srcs.shift();copyPhotos(_sid,state.projectId,_nx);})();}if(typeof cb==='function')cb(state.projectId);
-  });
+  }); };
+  if(state.projectId){
+    sb.from(DB+"_projects").select("del:payload->>delAt").eq('id',state.projectId).single().then(function(chk){
+      if(chk&&chk.data&&chk.data.del){
+        window._silentSave=false;
+        toast('이 사업은 다른 기기에서 삭제되었습니다 — 저장 안 함 (삭제목록에서 복원 가능)');
+        if(typeof cb==='function')cb();
+        return;
+      }
+      _doUpsert();
+    });
+  }else{ _doUpsert(); }
 }
 function pickProject(id){ if(!id)return;
   if(STAGE==='survey'||STAGE==='realtime'||!online){ loadProject(id); return; }
