@@ -6135,7 +6135,7 @@ var inspmkSub='bp',inspmkOpen=true;function inspmkBar(){var riserBtn='<button id
 function renderSub(){
   var c=curCat(),s=document.getElementById('subbar'),html='';
   if(c.k==='inspmk')html+=inspmkBar();else if(c.tools.length)html+=c.tools.map(mkBtn).join('');
-  else if(c.hint&&!(typeof IS_REALTIME!=='undefined'&&IS_REALTIME))html+='<span class="subhint">'+c.hint+'</span>';
+  else if(c.hint&&!(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)&&!(typeof STAGE!=='undefined'&&STAGE==='survey'))html+='<span class="subhint">'+c.hint+'</span>';/* [1236] survey 힌트 제거 — 버튼 자동배치 */
   if(mode==='line')html+='<button id="lineDone" class="on">완료</button>';
   var kbM=keyForAction('fixed:measure'),kbU=keyForAction('fixed:undo'),kbR=keyForAction('fixed:redo'),kbC=keyForAction('fixed:clearsym');
   var _rtHdr=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME);/* [1201] realtime 전용 라벨·배경 */
@@ -6146,9 +6146,9 @@ function renderSub(){
       +'<span class="subhint">보기</span><button data-g="fit">'+(_rtHdr?'전체보기':'전체')+'</button>';
   if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)html=((typeof isMobileDevice==='function'&&isMobileDevice())?'<button id="rtNewProj" style="font-size:14px;padding:8px 13px;border:1px solid #6e757f;border-radius:6px;background:#fff;color:#333;font-weight:700;cursor:pointer;margin-right:6px">사업등록</button>':'')/* [1197] 폰만 사업등록 유지, PC는 제거(사이드바 중복) */+html+'<button id="rtDoneBtn" style="font-size:14px;padding:8px 13px;border:1px solid #c0392b;border-radius:6px;background:#fff;color:#c0392b;font-weight:700;cursor:pointer;margin-right:6px">일별완료성과 등록</button>'+('<button id="rtDoneListBtn" style="font-size:14px;padding:8px 13px;border-radius:6px;font-weight:700;cursor:pointer;margin-right:6px;'+((state.rtDone&&state.rtDone.done)?'border:1px solid #d81b60;background:#d81b60;color:#fff':'border:1px solid #1d9e75;background:#fff;color:#1d9e75')+'">완료성과(전체)</button>');/* [1218] 폰에서도 표시 */
   /* [1234] survey PC 전용 — 힌트바에 실시간 최종완료성과 / 결선완료 등록 버튼 */
-  if(typeof STAGE!=='undefined'&&STAGE==='survey'&&!(typeof isMobileDevice==='function'&&isMobileDevice())){
-    html+='<button id="svRtDoneBtn" style="font-size:13px;padding:7px 12px;border:1px solid #c0392b;border-radius:6px;background:#fff;color:#c0392b;font-weight:700;cursor:pointer;margin-left:14px">실시간 최종완료성과</button>'
-        +'<button id="svDoneRegBtn" style="font-size:13px;padding:7px 12px;border:1px solid #16a34a;border-radius:6px;background:#fff;color:#15803d;font-weight:700;cursor:pointer;margin-left:8px">결선완료 등록</button>';
+  if(typeof STAGE!=='undefined'&&STAGE==='survey'){/* [1236] PC·폰 공통, 힌트 제거로 맨앞 자동배치 */
+    html+='<button id="svRtDoneBtn" style="font-size:13px;padding:7px 12px;border:1px solid #c0392b;border-radius:6px;background:#fff;color:#c0392b;font-weight:700;cursor:pointer">실시간 최종완료성과</button>'
+        +'<button id="svDoneRegBtn" style="font-size:13px;padding:7px 12px;border:1px solid #16a34a;border-radius:6px;background:#fff;color:#15803d;font-weight:700;cursor:pointer;margin-left:12px">결선완료 등록</button>';
   }
   s.innerHTML=html;
   if(typeof STAGE!=='undefined'&&STAGE==='survey'){var _sv1=document.getElementById('svRtDoneBtn');if(_sv1)_sv1.onclick=function(){svRtDailyOpen();};var _sv2=document.getElementById('svDoneRegBtn');if(_sv2)_sv2.onclick=function(){svDoneRegOpen();};}
@@ -13011,7 +13011,7 @@ function svDailyTable(container,points,lines,rtDaily,projName,phByDate){
      +'<td style="text-align:right">'+(dm.seg[d]||0)+'</td>'
      +'<td style="text-align:center"><button class="svd-ph" data-d="'+d+'" style="background:'+(ph?'#7c3aed':'#e8e8e2')+';color:'+(ph?'#fff':'#999')+';border:0;border-radius:6px;padding:4px 9px;font-weight:700;font-size:12px;cursor:pointer">'+ph+'장</button></td>'
      +'<td style="text-align:center"><button class="svd-csv" data-d="'+d+'" style="background:#1565c0;color:#fff;border:0;border-radius:6px;padding:4px 9px;font-weight:700;font-size:12px;cursor:pointer">CSV</button></td></tr>';}
-  h+='</tbody></table><div style="text-align:right;font-size:12.5px;color:#1f4e9e;font-weight:800;padding:7px 4px 0">관로거리 합계 '+(+tot.toFixed(1))+'m</div>';
+  h+='</tbody></table><div id="svDailyTot" style="text-align:right;font-size:12.5px;color:#c0392b;font-weight:800;padding:7px 4px 0">관로거리 합계 '+(+tot.toFixed(1))+'m</div>';/* [1236] 빨강 */
   container.innerHTML=h;
   [].forEach.call(container.querySelectorAll('.svd-csv'),function(b){b.onclick=function(){svCsv(points,projName,b.getAttribute('data-d'));};});
   [].forEach.call(container.querySelectorAll('.svd-ph'),function(b){b.onclick=function(){svPhotoDl((phByDate&&phByDate[b.getAttribute('data-d')])||[]);};});
@@ -13039,16 +13039,21 @@ function svRtDailyOpen(){ /* 같은 base의 실시간(_S) 성과 원격 열람 *
 function svDoneRegOpen(){ /* 결선완료 등록 — 현재 결선 사업 일별 목록 + 등록 액션 */
   if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
   var pop=svPopup('결선완료 등록 — '+(state.projectName||''),'#16a34a');
+  pop.querySelector('#svDailyHead').style.background='#e7f7ec';/* [1236] 초록 계열 */
   var body=pop.querySelector('#svDailyBody');
   var ph=[];try{var pm=(typeof photoMap!=='undefined'&&photoMap)?photoMap:{};for(var k in pm)ph.push({point_no:k,url:pm[k]});var am=(typeof afterMap!=='undefined'&&afterMap)?afterMap:{};for(var k2 in am)ph.push({point_no:k2,url:am[k2]});}catch(_e){}
   svDailyTable(body,state.points||[],state.lines||[],state.rtDaily||[],state.projectName,svPhotosByDate(ph));
   pop.querySelector('#svDailyFoot').innerHTML=
-    '<button id="svRegDone" style="background:#16a34a;color:#fff;border:0;border-radius:9px;padding:9px 16px;font-weight:800;cursor:pointer">결선완료 등록</button>'
-    +'<button id="svRegField" style="background:#1565c0;color:#fff;border:0;border-radius:9px;padding:9px 16px;font-weight:800;cursor:pointer">측량(현장) 성과등록</button>'
+    '<button id="svRegField" style="background:#1565c0;color:#fff;border:0;border-radius:9px;padding:9px 16px;font-weight:800;cursor:pointer">측량(현장) 성과등록</button>'
     +'<button id="svDailyClose2" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:9px 16px;cursor:pointer;font-weight:700">닫기</button>';
   pop.querySelector('#svDailyClose2').onclick=function(){pop.remove();};
-  pop.querySelector('#svRegDone').onclick=function(){pop.remove();if(typeof registerDone==='function')registerDone();};
   pop.querySelector('#svRegField').onclick=function(){if(typeof svRegToField==='function')svRegToField();};
+  /* [1236] 통합 측설용 CSV — 사이드바 '측설용 CSV 내보내기'와 동일 기능 */
+  var _tot=body.querySelector('#svDailyTot');
+  if(_tot){var _cb=document.createElement('button');_cb.textContent='통합 측설용 CSV';
+    _cb.style.cssText='margin-left:10px;background:#fff;border:1px solid #0d7a52;color:#0d7a52;border-radius:7px;padding:5px 12px;font-weight:800;font-size:12px;cursor:pointer';
+    _cb.onclick=function(){if(typeof exportSurveyCsv==='function')exportSurveyCsv();};
+    _tot.appendChild(_cb);}
 }
 function svRegToField(){ /* 결선 성과 → 측량(현장) _B 사본. [1216] rtRegToSurvey와 동일 패턴(테이블 명시 — DB 상수 금지) */
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
