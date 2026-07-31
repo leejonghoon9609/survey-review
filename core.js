@@ -10715,20 +10715,30 @@ function rtDailyOpen(){ /* [1209] 일일(오늘) 등록 전용 — 빨간 테마
     hd.addEventListener('pointerup',function(){drag=false;});})();
   rtDailyTodayFill();
 }
-function rtDailyTodayFill(){ /* [1209] 오늘 작업 요약 */
+function rtDailyTodayFill(){ /* [1211] 오늘 작업 — 전체 목록과 동일한 표 형식 */
   var el=document.getElementById('rtDailyToday');if(!el)return;
   var ymd=_rtTodayYMD();var dm=rtDailyDistMap();
   var pts=(state.points||[]).filter(function(p){return p&&((p._d0===ymd)||((''+p.no).indexOf(ymd+'-')===0));});
   var ph=0;try{var pm=(typeof photoMap!=='undefined'&&photoMap)?photoMap:{};for(var k in pm)if(k.indexOf(ymd+'-')===0)ph++;}catch(_e){}
   var r=null;(state.rtDaily||[]).forEach(function(x){if(x&&x.date===ymd)r=x;});
   var dist=+((dm.dist[ymd]||0).toFixed(1)),seg=dm.seg[ymd]||0;
-  el.innerHTML='<div style="border:1px solid #f0c9c9;background:#fdf6f6;border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:2">'
-   +'<b style="color:#c0392b;font-size:15px">20'+ymd.slice(0,2)+'-'+ymd.slice(2,4)+'-'+ymd.slice(4,6)+' (오늘)</b>'
-   +(r?(' <span style="color:#0f6e56;font-weight:800;font-size:12px">등록됨 ✓ '+((r.at||'').slice(11,16))+'</span>'):' <span style="color:#b9b9b2;font-size:12px">미등록</span>')
-   +'<br>사업명 <b>'+(state.projectName||'')+'</b> · 작업자 <b>'+((typeof ME!=='undefined'&&ME)||'-')+'</b>'
-   +'<br>관로거리 <b style="color:#c0392b;font-size:15px">'+dist+'m</b> · 결선 <b>'+seg+'</b>구간 · 측점 <b>'+pts.length+'</b>개 · 사진 <b>'+ph+'</b>장'
+  var h='<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#fdf0f0;color:#a12b2b">'
+   +'<th style="padding:7px 6px;border-bottom:1px solid #edd">날짜</th><th style="border-bottom:1px solid #edd">사업명</th><th style="border-bottom:1px solid #edd">작업자</th><th style="border-bottom:1px solid #edd;text-align:right">거리(m)</th><th style="border-bottom:1px solid #edd;text-align:right">결선</th><th style="border-bottom:1px solid #edd">CSV</th></tr></thead><tbody>'
+   +'<tr style="border-bottom:1px solid #f2f2ef">'
+   +'<td style="padding:8px 6px;font-weight:700;color:'+(r?'#c0392b':'#98a1ad')+';white-space:nowrap">20'+ymd.slice(0,2)+'-'+ymd.slice(2,4)+'-'+ymd.slice(4,6)
+   +(r?' <span style="font-size:10px;color:#0f6e56;font-weight:800">등록됨 ✓'+((r.at||'').slice(11,16)?(' '+(r.at||'').slice(11,16)):'')+'</span>':' <span style="font-size:10px;color:#b9b9b2">(미등록)</span>')+'</td>'
+   +'<td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(state.projectName||'')+'">'+(state.projectName||'')+'</td>'
+   +'<td style="text-align:center;'+(r?'':'color:#98a1ad')+'">'+((r&&r.worker)||((typeof ME!=='undefined'&&ME)||'-'))+'</td>'
+   +'<td style="text-align:right;font-weight:800;color:#c0392b">'+dist+'</td>'
+   +'<td style="text-align:right">'+seg+'</td>'
+   +'<td style="text-align:center"><button id="rtdTodayCsv" style="background:#1565c0;color:#fff;border:0;border-radius:6px;padding:4px 10px;font-weight:700;font-size:12px;cursor:pointer">CSV</button></td>'
+   +'</tr></tbody></table>'
+   +'<div style="margin-top:9px;border:1px solid #f0c9c9;background:#fdf6f6;border-radius:9px;padding:9px 12px;font-size:12.5px;line-height:1.7">'
+   +'측점 <b>'+pts.length+'</b>개 · 사진 <b>'+ph+'</b>장 · 결선 <b>'+seg+'</b>구간 · 관로거리 <b style="color:#c0392b">'+dist+'m</b>'
    +((!pts.length&&!dist)?'<br><span style="color:#999;font-size:12px">오늘 날짜 데이터가 없습니다 — CSV 업로드·측점 촬영 후 등록하세요.</span>':'')
    +'</div>';
+  el.innerHTML=h;
+  var cb=document.getElementById('rtdTodayCsv');if(cb)cb.onclick=function(){rtDailyCsv(ymd);};
 }
 function rtDailyAllOpen(){ /* [1209] 완료성과(전체) — 일별 누적 목록 */
   if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
