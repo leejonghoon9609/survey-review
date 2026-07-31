@@ -744,7 +744,8 @@ function tbFmtCode(code){
 function tbPipeLength(){
   var total=0;
   (state.lines||[]).forEach(function(L){
-    if(!L||L.layer!=='\uD1B5\uC2E0\uAD00\uB85C'||!L.pts||L.pts.length<2)return;
+    var _ok=L&&(L.layer==='\uD1B5\uC2E0\uAD00\uB85C'||((typeof IS_REALTIME!=='undefined'&&IS_REALTIME)&&(L.layer==='\uC9C0\uAC70'||L.layer==='\uC555\uC785\uAD6C\uAC04')));/* [1209] realtime 물량: 지거·압입 합산 */
+    if(!_ok||!L.pts||L.pts.length<2)return;
     for(var i=1;i<L.pts.length;i++){
       var dx=L.pts[i][0]-L.pts[i-1][0], dy=L.pts[i][1]-L.pts[i-1][1];
       total+=Math.sqrt(dx*dx+dy*dy);
@@ -6130,9 +6131,9 @@ function renderSub(){
   var bdg=function(k){return k?' <span class="hk-badge" style="margin-left:4px">'+k+'</span>':'';};
   var vhtml='<button data-g="delall2" style="border:1px solid #c0392b;color:#c0392b;font-weight:700">🧹 지우기(통합)'+bdg(kbC)+'</button><button data-g="measure" style="border:1px solid #d32f2f;color:#d32f2f;font-weight:700"><span style="color:#f2b400">📏</span> 거리산출'+bdg(kbM)+'</button><button data-g="undo"'+_urSt+'>← 되돌리기'+bdg(kbU)+'</button><button data-g="redo"'+_urSt+'>'+(_rtHdr?'앞으로 →':'다시 실행 →')+bdg(kbR)+'</button>'
       +'<span class="subhint">보기</span><button data-g="fit">'+(_rtHdr?'전체보기':'전체')+'</button>';
-  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)html=((typeof isMobileDevice==='function'&&isMobileDevice())?'<button id="rtNewProj" style="font-size:14px;padding:8px 13px;border:1px solid #6e757f;border-radius:6px;background:#fff;color:#333;font-weight:700;cursor:pointer;margin-right:6px">사업등록</button>':'')/* [1197] 폰만 사업등록 유지, PC는 제거(사이드바 중복) */+html+((state.rtDone&&state.rtDone.done)?'<button id="rtDoneBtn" style="font-size:14px;padding:8px 13px;border:1px solid #1d9e75;border-radius:6px;background:#e1f5ee;color:#0f6e56;font-weight:700;margin-right:6px">완료됨 ✓</button>':'<button id="rtDoneBtn" style="font-size:14px;padding:8px 13px;border:1px solid #c0392b;border-radius:6px;background:#fff;color:#c0392b;font-weight:700;cursor:pointer;margin-right:6px">일별완료성과 등록</button>')+((typeof isMobileDevice==='function'&&isMobileDevice())?'':'<button id="rtDoneListBtn" style="font-size:14px;padding:8px 13px;border:1px solid #1d9e75;border-radius:6px;background:#fff;color:#1d9e75;font-weight:700;cursor:pointer;margin-right:6px">완료목록</button>');
+  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)html=((typeof isMobileDevice==='function'&&isMobileDevice())?'<button id="rtNewProj" style="font-size:14px;padding:8px 13px;border:1px solid #6e757f;border-radius:6px;background:#fff;color:#333;font-weight:700;cursor:pointer;margin-right:6px">사업등록</button>':'')/* [1197] 폰만 사업등록 유지, PC는 제거(사이드바 중복) */+html+'<button id="rtDoneBtn" style="font-size:14px;padding:8px 13px;border:1px solid #c0392b;border-radius:6px;background:#fff;color:#c0392b;font-weight:700;cursor:pointer;margin-right:6px">일별완료성과 등록</button>'+((typeof isMobileDevice==='function'&&isMobileDevice())?'':'<button id="rtDoneListBtn" style="font-size:14px;padding:8px 13px;border-radius:6px;font-weight:700;cursor:pointer;margin-right:6px;'+((state.rtDone&&state.rtDone.done)?'border:1px solid #d81b60;background:#d81b60;color:#fff':'border:1px solid #1d9e75;background:#fff;color:#1d9e75')+'">완료성과(전체)</button>');
   s.innerHTML=html;
-  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){var _np=document.getElementById('rtNewProj');if(_np)_np.onclick=function(){if(typeof openRegModal==='function')openRegModal();};var _dn=document.getElementById('rtDoneBtn');if(_dn)_dn.onclick=function(){if(typeof rtDailyOpen==='function')rtDailyOpen();};/* [1206] 일별성과 모달 */var _dl=document.getElementById('rtDoneListBtn');if(_dl)_dl.onclick=function(){if(typeof rtOpenDoneList==='function')rtOpenDoneList();};}
+  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){var _np=document.getElementById('rtNewProj');if(_np)_np.onclick=function(){if(typeof openRegModal==='function')openRegModal();};var _dn=document.getElementById('rtDoneBtn');if(_dn)_dn.onclick=function(){if(typeof rtDailyOpen==='function')rtDailyOpen();};/* [1206] 일별성과 모달 */var _dl=document.getElementById('rtDoneListBtn');if(_dl)_dl.onclick=function(){if(typeof rtDailyAllOpen==='function')rtDailyAllOpen();};/* [1209] 일별 누적 목록 */}
   if(c.k==='inspmk')wireInspmk(s);
   var gb=document.getElementById('globalbtns'); if(gb)gb.innerHTML=vhtml;
   c.tools.forEach(function(tool,i){if(tool.soon)return;var b=s.querySelector('button[data-i="'+i+'"]');if(!b)return;
@@ -6194,7 +6195,7 @@ function actionList(){var arr=[];
     arr.push({id:'btn:rtCsvBtn',name:'📥 CSV 업로드',grp:'실시간측량'});
     arr.push({id:'btn:rtShoot',name:'📷 측점 촬영',grp:'실시간측량'});
     arr.push({id:'btn:rtDoneBtn',name:'✅ 일별완료성과 등록',grp:'실시간측량'});
-    arr.push({id:'btn:rtDoneListBtn',name:'📋 완료목록',grp:'실시간측량'});
+    arr.push({id:'btn:rtDoneListBtn',name:'📋 완료성과(전체)',grp:'실시간측량'});
   }
   return arr;}
 function runAction(id){
@@ -10667,7 +10668,7 @@ function _rtLineLen(){var t=0;(state.lines||[]).forEach(function(L){if(!L||!L.pt
 function rtDailyDistMap(){
   var tol=0.25, pts=state.points||[], dist={}, seg={};
   function dateAt(x,y){var bd=tol,best=null;for(var i=0;i<pts.length;i++){var p=pts[i];if(!p||!isFinite(p.x))continue;var d=Math.hypot(p.x-x,p.y-y);if(d<bd){bd=d;best=p;}}return best?(best._d0||(''+best.no).split('-')[0]):null;}
-  (state.lines||[]).forEach(function(L){if(!L||!L.pts)return;for(var i=1;i<L.pts.length;i++){
+  (state.lines||[]).forEach(function(L){if(!L||!L.pts)return;if(L.layer&&L.layer!=='통신관로'&&L.layer!=='지거'&&L.layer!=='압입구간')return;/* [1209] 관로·지거·압입만 */for(var i=1;i<L.pts.length;i++){
     var a=L.pts[i-1],b=L.pts[i];var da=dateAt(a[0],a[1]),db=dateAt(b[0],b[1]);
     var d=(da&&db)?(da>db?da:db):(da||db); if(!d)continue;
     dist[d]=(dist[d]||0)+Math.hypot(b[0]-a[0],b[1]-a[1]); seg[d]=(seg[d]||0)+1;
@@ -10681,7 +10682,7 @@ function rtDailyReg(){
   var ex=null,i;for(i=0;i<state.rtDaily.length;i++)if(state.rtDaily[i].date===ymd){ex=state.rtDaily[i];break;}
   if(ex){for(var k in rec)ex[k]=rec[k];}else state.rtDaily.push(rec);
   state.rtDaily.sort(function(a,b){return a.date<b.date?-1:1;});
-  saveProject();var _dm=rtDailyDistMap();var _td=+((_dm.dist[ymd]||0).toFixed(1));toast((ex?'갱신':'등록')+' — 오늘('+ymd+') 관로거리 '+_td+'m');rtDailyRender();
+  saveProject();var _dm=rtDailyDistMap();var _td=+((_dm.dist[ymd]||0).toFixed(1));toast((ex?'갱신':'등록')+' — 오늘('+ymd+') 관로거리 '+_td+'m');rtDailyRender();if(typeof rtDailyTodayFill==='function')rtDailyTodayFill();if(typeof renderSub==='function')renderSub();
 }
 function rtDailyCsv(ymd){
   var pts=(state.points||[]).filter(function(p){return p&&((p._d0===ymd)||((''+p.no).indexOf(ymd+'-')===0));});
@@ -10692,23 +10693,55 @@ function rtDailyCsv(ymd){
   var blob=new Blob(['\uFEFF'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(state.projectName||'사업')+'_'+ymd+'.csv';document.body.appendChild(a);a.click();a.remove();
 }
-function rtDailyOpen(){
+function rtDailyOpen(){ /* [1209] 일일(오늘) 등록 전용 — 빨간 테마 */
   if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
   var old=document.getElementById('rtDailyPop');if(old){old.remove();return;}
+  var _fin=(state.rtDone&&state.rtDone.done);
   var pop=document.createElement('div');pop.id='rtDailyPop';
-  pop.style.cssText='position:fixed;left:50%;top:110px;transform:translateX(-50%);z-index:9500;background:#fff;border:2px solid #1565c0;border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.25);width:min(94vw,640px);max-height:76vh;display:flex;flex-direction:column;overflow:hidden';
-  pop.innerHTML='<div id="rtDailyHead" style="display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:grab;user-select:none;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:#16a34a;display:inline-block"></span><b style="font-size:15px">일별 완료성과</b><span style="font-size:11px;color:#bbb;margin-left:auto">드래그로 이동</span></div>'
-    +'<div style="display:flex;gap:8px;align-items:center;padding:10px 14px;border-bottom:1px solid #f1f1ee;flex-wrap:wrap">'
-    +'<button id="rtDailyRegBtn" style="background:#16a34a;color:#fff;border:0;border-radius:9px;padding:9px 16px;font-weight:800;font-size:14px;cursor:pointer">오늘 성과 등록</button>'
-    +'<span style="font-size:12px;color:#888">오늘 작업분(측점·결선·거리)을 날짜별로 기록합니다</span>'
-    +'<button id="rtDailyFinBtn" style="margin-left:auto;background:#fff;border:1px solid #c0392b;color:#c0392b;border-radius:8px;padding:7px 11px;font-weight:700;font-size:12px;cursor:pointer">'+((state.rtDone&&state.rtDone.done)?'사업완료 취소':'사업 최종완료')+'</button></div>'
-    +'<div id="rtDailyBody" style="overflow:auto;padding:10px 14px"></div>'
-    +'<div style="padding:9px 14px;border-top:1px solid #eee;text-align:right"><button id="rtDailyClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:7px 18px;cursor:pointer;font-weight:700">닫기</button></div>';
+  pop.style.cssText='position:fixed;left:50%;top:110px;transform:translateX(-50%);z-index:9500;background:#fff;border:2px solid #c0392b;border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.25);width:min(94vw,560px);max-height:76vh;display:flex;flex-direction:column;overflow:hidden';
+  pop.innerHTML='<div id="rtDailyHead" style="display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:grab;user-select:none;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:#c0392b;display:inline-block"></span><b style="font-size:15px">일별 완료성과 등록</b><span style="font-size:11px;color:#bbb;margin-left:auto">드래그로 이동</span></div>'
+    +'<div style="display:flex;gap:8px;align-items:center;padding:10px 14px;border-bottom:1px solid #f6eaea;flex-wrap:wrap">'
+    +'<span style="font-size:12px;color:#888">오늘 작업분을 등록합니다 — 등록 성과는 [완료성과(전체)]에 일별로 쌓입니다</span>'
+    +'<button id="rtDailyFinBtn" style="margin-left:auto;border:1px solid #c0392b;border-radius:8px;padding:7px 11px;font-weight:700;font-size:12px;cursor:pointer;'+(_fin?'background:#c0392b;color:#fff':'background:#fff;color:#c0392b')+'">사업 최종완료'+(_fin?' ✓':'')+'</button></div>'
+    +'<div id="rtDailyToday" style="overflow:auto;padding:12px 14px"></div>'
+    +'<div style="padding:9px 14px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px"><button id="rtDailyRegBtn" style="background:#c0392b;color:#fff;border:0;border-radius:9px;padding:9px 24px;font-weight:800;font-size:14px;cursor:pointer">등 록</button><button id="rtDailyClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:9px 18px;cursor:pointer;font-weight:700">닫기</button></div>';
   document.body.appendChild(pop);
   document.getElementById('rtDailyClose').onclick=function(){pop.remove();};
   document.getElementById('rtDailyRegBtn').onclick=rtDailyReg;
   document.getElementById('rtDailyFinBtn').onclick=function(){pop.remove();if(typeof rtOpenDoneModal==='function')rtOpenDoneModal();};
   (function(){var hd=document.getElementById('rtDailyHead'),dx=0,dy=0,drag=false;
+    hd.addEventListener('pointerdown',function(e){drag=true;var r=pop.getBoundingClientRect();pop.style.left=r.left+'px';pop.style.top=r.top+'px';pop.style.transform='none';dx=e.clientX-r.left;dy=e.clientY-r.top;try{hd.setPointerCapture(e.pointerId);}catch(_e){}});
+    hd.addEventListener('pointermove',function(e){if(!drag)return;pop.style.left=(e.clientX-dx)+'px';pop.style.top=(e.clientY-dy)+'px';});
+    hd.addEventListener('pointerup',function(){drag=false;});})();
+  rtDailyTodayFill();
+}
+function rtDailyTodayFill(){ /* [1209] 오늘 작업 요약 */
+  var el=document.getElementById('rtDailyToday');if(!el)return;
+  var ymd=_rtTodayYMD();var dm=rtDailyDistMap();
+  var pts=(state.points||[]).filter(function(p){return p&&((p._d0===ymd)||((''+p.no).indexOf(ymd+'-')===0));});
+  var ph=0;try{var pm=(typeof photoMap!=='undefined'&&photoMap)?photoMap:{};for(var k in pm)if(k.indexOf(ymd+'-')===0)ph++;}catch(_e){}
+  var r=null;(state.rtDaily||[]).forEach(function(x){if(x&&x.date===ymd)r=x;});
+  var dist=+((dm.dist[ymd]||0).toFixed(1)),seg=dm.seg[ymd]||0;
+  el.innerHTML='<div style="border:1px solid #f0c9c9;background:#fdf6f6;border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:2">'
+   +'<b style="color:#c0392b;font-size:15px">20'+ymd.slice(0,2)+'-'+ymd.slice(2,4)+'-'+ymd.slice(4,6)+' (오늘)</b>'
+   +(r?(' <span style="color:#0f6e56;font-weight:800;font-size:12px">등록됨 ✓ '+((r.at||'').slice(11,16))+'</span>'):' <span style="color:#b9b9b2;font-size:12px">미등록</span>')
+   +'<br>사업명 <b>'+(state.projectName||'')+'</b> · 작업자 <b>'+((typeof ME!=='undefined'&&ME)||'-')+'</b>'
+   +'<br>관로거리 <b style="color:#c0392b;font-size:15px">'+dist+'m</b> · 결선 <b>'+seg+'</b>구간 · 측점 <b>'+pts.length+'</b>개 · 사진 <b>'+ph+'</b>장'
+   +((!pts.length&&!dist)?'<br><span style="color:#999;font-size:12px">오늘 날짜 데이터가 없습니다 — CSV 업로드·측점 촬영 후 등록하세요.</span>':'')
+   +'</div>';
+}
+function rtDailyAllOpen(){ /* [1209] 완료성과(전체) — 일별 누적 목록 */
+  if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
+  var old=document.getElementById('rtDailyAllPop');if(old){old.remove();return;}
+  var pop=document.createElement('div');pop.id='rtDailyAllPop';
+  pop.style.cssText='position:fixed;left:50%;top:100px;transform:translateX(-50%);z-index:9500;background:#fff;border:2px solid #c0392b;border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.25);width:min(94vw,680px);max-height:78vh;display:flex;flex-direction:column;overflow:hidden';
+  var _fin=(state.rtDone&&state.rtDone.done);
+  pop.innerHTML='<div id="rtDailyAllHead" style="display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:grab;user-select:none;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:'+(_fin?'#d81b60':'#c0392b')+';display:inline-block"></span><b style="font-size:15px">완료성과 (전체)</b>'+(_fin?'<span style="background:#d81b60;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:800">사업완료</span>':'')+'<span style="font-size:11px;color:#bbb;margin-left:auto">드래그로 이동</span></div>'
+    +'<div id="rtDailyBody" style="overflow:auto;padding:10px 14px"></div>'
+    +'<div style="padding:9px 14px;border-top:1px solid #eee;text-align:right"><button id="rtDailyAllClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:8px 18px;cursor:pointer;font-weight:700">닫기</button></div>';
+  document.body.appendChild(pop);
+  document.getElementById('rtDailyAllClose').onclick=function(){pop.remove();};
+  (function(){var hd=document.getElementById('rtDailyAllHead'),dx=0,dy=0,drag=false;
     hd.addEventListener('pointerdown',function(e){drag=true;var r=pop.getBoundingClientRect();pop.style.left=r.left+'px';pop.style.top=r.top+'px';pop.style.transform='none';dx=e.clientX-r.left;dy=e.clientY-r.top;try{hd.setPointerCapture(e.pointerId);}catch(_e){}});
     hd.addEventListener('pointermove',function(e){if(!drag)return;pop.style.left=(e.clientX-dx)+'px';pop.style.top=(e.clientY-dy)+'px';});
     hd.addEventListener('pointerup',function(){drag=false;});})();
@@ -10730,7 +10763,7 @@ function rtDailyRender(){
     h+='<tr class="rtd-row" data-d="'+_dk+'" style="cursor:pointer;border-bottom:1px solid #f2f2ef">'
      +'<td style="padding:8px 6px;font-weight:700;color:'+(r?'#c0392b':'#98a1ad')+';white-space:nowrap">20'+_dk.slice(0,2)+'-'+_dk.slice(2,4)+'-'+_dk.slice(4,6)+(r?'':' <span style="font-size:10px;color:#b9b9b2">(미등록)</span>')+'</td>' 
      +'<td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(state.projectName||'')+'">'+(state.projectName||'')+'</td>'
-     +'<td style="text-align:center">'+((r&&r.worker)||'-')+'</td>'
+     +'<td style="text-align:center;'+(r?'':'color:#98a1ad')+'">'+((r&&r.worker)||((typeof ME!=='undefined'&&ME)||'-'))+'</td>'
      +'<td style="text-align:right;font-weight:800;color:#0f6e56">'+dDist+'</td>'
      +'<td style="text-align:right">'+dLine+'</td>'
      +'<td style="text-align:center"><button class="rtd-csv" data-d="'+_dk+'" style="background:#1565c0;color:#fff;border:0;border-radius:6px;padding:4px 10px;font-weight:700;font-size:12px;cursor:pointer">CSV</button></td></tr>';}
