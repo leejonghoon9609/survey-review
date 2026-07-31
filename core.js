@@ -5813,9 +5813,12 @@ function initSb(){
 }
 function refreshProjects(){ if(!online)return;
   sb.from(DB+'_projects').select('id,name,updated_at,stage:payload->>stage,del:payload->>delAt,rtd:payload->rtDone->>done').order('updated_at',{ascending:false}).then(function(res){res=_projAlive(res);
+    /* [1199] ?open= 사업 필터: id→baseName 1회 확정. 파라미터 없으면 무동작 */
+    if(window._projFilterId&&!window._projFilterBase){var _fd=res.data||[];for(var _fi=0;_fi<_fd.length;_fi++){if(_fd[_fi].id===window._projFilterId){window._projFilterBase=baseName(_fd[_fi].name);break;}}if(!window._projFilterBase){console.warn('[projfilter] open 대상 미발견 — 필터 해제');window._projFilterId=null;}}
     var sel=document.getElementById('proj');sel.innerHTML='<option value="">사업 선택…</option>';
-    (res.data||[]).forEach(function(p){if((p.stage||'survey')!==STAGE)return;/* [1183] realtime 전용 — 실측완료 사업은 드롭다운 제외(완료목록에서 열람), 다른 공정 적용 금지 */if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&p.rtd==='true')return;var o=document.createElement('option');o.value=p.id;o.textContent=p.name;o.title=p.name;sel.appendChild(o);});
+    (res.data||[]).forEach(function(p){if((p.stage||'survey')!==STAGE)return;if(window._projFilterBase&&baseName(p.name)!==window._projFilterBase)return;/* [1199] 사업 필터 *//* [1183] realtime 전용 — 실측완료 사업은 드롭다운 제외(완료목록에서 열람), 다른 공정 적용 금지 */if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&p.rtd==='true')return;var o=document.createElement('option');o.value=p.id;o.textContent=p.name;o.title=p.name;sel.appendChild(o);});
     if(state.projectId)sel.value=state.projectId;
+    if(typeof _projFilterChip==='function')_projFilterChip();
     /* [BUILD 913] 실시간측량 기존 사업명 _S 마이그레이션 */
     if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){(res.data||[]).forEach(function(p){if((p.stage||'survey')!==STAGE)return;if(/_S$/.test(p.name||''))return;var nn=(p.name||'')+'_S';sb.from(DB+'_projects').update({name:nn}).eq('id',p.id).then(function(){});var o=sel.querySelector('option[value="'+p.id+'"]');if(o){o.textContent=nn;o.title=nn;}if(state.projectId===p.id)state.projectName=nn;});}
     if(typeof refreshDoneProjects==='function')refreshDoneProjects();
@@ -12670,10 +12673,28 @@ function refSiteAreaClear(rec){
   toast('\uc601\uc5ed \ucd08\uae30\ud654 \u2014 \uc790\ub3d9 \ubc94\uc704\ub85c \ub3cc\uc544\uac10');
 }
 
+/* [1199] ?open= 사업 필터 칩 — 드롭다운 옆 표시, [전체보기]로 해제. 필터 없으면 제거 */
+function _projFilterChip(){
+  var old=document.getElementById('projFilterChip');
+  if(!window._projFilterBase){ if(old)old.remove(); return; }
+  if(!old){
+    var sel=document.getElementById('proj'); if(!sel)return;
+    old=document.createElement('span'); old.id='projFilterChip';
+    old.style.cssText='display:inline-flex;align-items:center;gap:6px;margin-left:6px;padding:2px 9px;border:1px solid #1d4ed8;border-radius:12px;background:#eef4ff;color:#1d4ed8;font-size:11px;font-weight:700;white-space:nowrap;vertical-align:middle;max-width:220px;overflow:hidden';
+    sel.insertAdjacentElement('afterend',old);
+  }
+  while(old.firstChild)old.removeChild(old.firstChild);
+  var t=document.createElement('span'); t.textContent='\uD83D\uDCCC '+window._projFilterBase; t.style.cssText='overflow:hidden;text-overflow:ellipsis'; t.title='\uD3EC\uD138\uC5D0\uC11C \uC5F0 \uC0AC\uC5C5\uB9CC \uD45C\uC2DC \uC911';
+  var x=document.createElement('a'); x.textContent='\uC804\uCCB4\uBCF4\uAE30'; x.style.cssText='cursor:pointer;text-decoration:underline;color:#c0392b;flex:none';
+  x.onclick=function(){ window._projFilterBase=null; window._projFilterId=null; refreshProjects(); toast('\uC804\uCCB4 \uC0AC\uC5C5 \uD45C\uC2DC'); };
+  old.appendChild(t); old.appendChild(x);
+}
+
 /* [1183] 포털 사업 클릭 자동 로드: ?open=<사업id> — 파라미터 없으면 아무 동작 안 함 */
 (function(){try{
   var m=location.search.match(/[?&]open=([^&]+)/); if(!m)return;
   var _oid=decodeURIComponent(m[1]); var _try=0;
+  window._projFilterId=_oid; /* [1199] ?open= 진입 시 이 사업 계열만 드롭다운 표시 */
   (function _w(){
     if(typeof online!=='undefined'&&online&&typeof pickProject==='function'){
       pickProject(_oid);
