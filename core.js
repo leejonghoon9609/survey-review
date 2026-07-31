@@ -12682,17 +12682,28 @@ function zoomWheelSmooth(e){
   _zw.pend*=k; _zw.cx=e.clientX; _zw.cy=e.clientY;
   if(_zw.run)return; _zw.run=true;
   (function _st(){
+    if(_zw.kill){_zw.kill=false;return;} /* [1190] 드래그 시작 등으로 즉시 종료됨 */
     var lg=Math.log(_zw.pend);
-    if(Math.abs(lg)<0.0025){
+    if(Math.abs(lg)<0.004){
       if(_zw.pend!==1){zoomAtLight(_zw.pend,_zw.cx,_zw.cy);_zw.pend=1;}
       _zw.run=false;
       if(typeof drawGeo==='function')drawGeo();
       if(typeof drawManholes==='function')drawManholes();
       return;
     }
-    var part=Math.exp(lg*0.30);
+    var part=Math.exp(lg*0.45); /* [1190] 드리프트감 감소: 프레임당 45% 소화 */
     zoomAtLight(part,_zw.cx,_zw.cy);
     _zw.pend/=part;
     requestAnimationFrame(_st);
   })();
 }
+/* [1190] 줌 애니메이션 중 드래그 시작 시: 남은 줌을 즉시 적용·재그리기 완료 후 드래그 진행
+   (애니 종료 재그리기가 드래그 중 요소를 교체해 첫 잡기가 풀리던 문제 해결) */
+function zoomWheelFlush(){
+  if(!_zw.run && _zw.pend===1)return;
+  if(_zw.pend!==1){zoomAtLight(_zw.pend,_zw.cx,_zw.cy);_zw.pend=1;}
+  _zw.kill=true; _zw.run=false;
+  if(typeof drawGeo==='function')drawGeo();
+  if(typeof drawManholes==='function')drawManholes();
+}
+document.addEventListener('pointerdown',function(){ if(_zw.run||_zw.pend!==1)zoomWheelFlush(); },true);
