@@ -301,6 +301,10 @@
     /* [1204] 파랑(보기·전체보기·백판) ↔ 빨강(되돌리기·앞으로) 순서 교체 */
     #globalbtns .subhint{order:11;margin-left:72px}
     #globalbtns button[data-g="fit"],#bpToggle{order:11}
+    /* [1210] 보기 그룹(전체보기·백판) 연노랑 배경 — PC 전용 */
+    #globalbtns button[data-g="fit"],#bpToggle{background:#fff7dd}
+    /* [1210] 편집도구 서브바 ↔ 일별성과 버튼 간격(도구 버튼 있을 때만) */
+    #rtDoneBtn:not(:first-child){margin-left:84px}
     #globalbtns button[data-g="undo"]{order:12;margin-left:72px}/* [1205] 그룹 간격 */
     #globalbtns button[data-g="redo"]{order:12}
     /* [1201] ?open= 사업 필터 칩: 우측(Supabase 그룹 왼쪽)으로 */
@@ -733,6 +737,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=1209"></script><script src="core.js?v=1209"></script>
+<script src="login.js?v=1210"></script><script src="core.js?v=1210"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
