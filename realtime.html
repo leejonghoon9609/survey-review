@@ -288,15 +288,16 @@
   @media(min-width:761px){
     #hdrBrk{display:block;flex-basis:100%;height:0;order:8}
     #bpToggle,#doneListBtn,#doneSummary,#asbuiltBtn,#photoBtn,#bgBtn,#rvBtn{order:9}
-    /* [1195] 사업선택 가로 2배 */
-    #proj{min-width:432px}
     /* [1195] 지우기(통합)·거리산출 → 아랫줄 (display:contents 로 헤더 직계 승격 — 나머지 globalbtns 버튼은 order 0 유지, 함정 I 참고) */
     #globalbtns{display:contents}
     #globalbtns button[data-g="delall2"],#globalbtns button[data-g="measure"]{order:9}
-    /* [1195] BUILD·Supabase 뱃지를 우측 사용자 옆으로 */
-    #buildno{margin-left:auto!important}
-    /* [1195] 홈 버튼 확대 */
-    #homeBtn{font-size:14.5px;padding:9px 15px;font-weight:800}
+    /* [1196] 우측 정렬: [Supabase 연결][이종훈][BUILD] — BUILD 가 맨 오른쪽 */
+    #conn{order:6;margin-left:auto}
+    #workerChip{order:6;margin-left:8px!important}
+    #buildno{order:7;margin-left:8px!important}
+    /* [1196] 홈으로 버튼·제목 확대 + 홈/제목/사업명 간격 */
+    #homeBtn{font-size:16px;padding:10px 18px;font-weight:800;margin-right:8px}
+    header h1{font-size:19px;margin:0 16px 0 8px}
   }
   .viewer .vw{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
   .viewer #modeToggle{order:1}
@@ -314,7 +315,7 @@
   .viewer h1{flex-basis:100%;font-size:17px;margin:0;order:0}
   .viewer #viewerBar{flex:1;min-width:0;flex-wrap:nowrap;overflow-x:auto;gap:5px;order:2}
   .viewer #viewerBar button{font-size:12.5px;padding:5px 9px;white-space:nowrap;flex:none}
-  .viewer #viewerBar select{font-size:12.5px;padding:4px 6px;flex:none;max-width:130px}#proj{max-width:46vw;min-width:220px}
+  .viewer #viewerBar select{font-size:12.5px;padding:4px 6px;flex:none;max-width:130px}#proj{max-width:50vw;min-width:520px}   /* [1196] 사업명 창 확대 */
   .viewer #modeToggle{font-size:12.5px;padding:5px 9px;white-space:nowrap;flex:none}
   /* 사진 헤더 한 줄 + 업로드/닫기 숨김 */
   .viewer .php-head{flex-wrap:nowrap;overflow-x:auto;gap:5px;padding:6px 9px}
@@ -465,7 +466,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
     <div id="hdrBrk"></div>
-    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 1195</span>
+    <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 1197</span>
     <span id="conn" class="conn off" style="margin-left:8px">로컬 모드</span><span id="tamsaBadge" style="display:none;margin-left:8px;font-size:13px;font-weight:800;color:#fff;background:#d92b2b;padding:3px 11px;border-radius:7px">탐사 모드</span>
   </header>
 
@@ -718,6 +719,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=1195"></script><script src="core.js?v=1195"></script>
+<script src="login.js?v=1197"></script><script src="core.js?v=1197"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
