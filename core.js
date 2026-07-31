@@ -13070,7 +13070,7 @@ function svDoneRegOpen(){ /* 결선완료 등록 — 현재 결선 사업 일별
     });})();
   _bdg.onclick=function(){
     if(_bdg.getAttribute('data-on')){
-      if(!confirm('현장(_B) 사본을 삭제목록으로 보내고 미등록으로 되돌릴까요? (7일 내 복원 가능)'))return;
+      /* [1240] 확인창 없이 즉시 전환 */
       var tid=_bdg.getAttribute('data-twin');if(!tid){_setBdg(false,'');return;}
       sb.from('field_projects').select('payload').eq('id',tid).single().then(function(r){
         if(r.error||!r.data){_setBdg(false,'');return;}
