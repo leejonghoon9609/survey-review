@@ -200,7 +200,7 @@
       <span class="t" id="clk">--:--</span>
       <span class="d" id="cdt">&nbsp;</span>
     </div>
-    <span class="buildno" id="buildno">BUILD 1179</span>
+    <span class="buildno" id="buildno">BUILD 1180</span>
   </header>
 
   <main class="wrap">
@@ -427,10 +427,11 @@
       function tOrd(a,b){return ((a.tm==='true')?1:0)-((b.tm==='true')?1:0);}
       work.sort(tOrd); done.sort(tOrd);
       var wr=work.filter(function(r){return r.tm!=='true';}).length, wt=work.length-wr;
+      var dr=done.filter(function(r){return r.tm!=='true';}).length, dt=done.length-dr;
       var h='<div class="pxsec w"><h4>🟢 작업중 '+work.length+' <span class="pxct">(<i class="pr">실시간 '+wr+'</i> / <i class="pb">탐사 '+wt+'</i>)</span></h4><div class="pxrows">'
         +(work.length?work.map(function(r){return rowHtml(cfg,r);}).join(''):'<div class="pxempty">작업중 사업이 없습니다</div>')
         +'</div></div>'
-        +'<div class="pxsec d"><h4>✅ '+cfg.doneLb+' '+done.length+'</h4><div class="pxrows">'
+        +'<div class="pxsec d"><h4>✅ '+cfg.doneLb+' '+done.length+' <span class="pxct">(<i class="pr">실시간 '+dr+'</i> / <i class="pb">탐사 '+dt+'</i>)</span></h4><div class="pxrows">'
         +(done.length?done.map(function(r){return rowHtml(cfg,r);}).join(''):'<div class="pxempty">완료 사업이 없습니다</div>')
         +'</div></div>';
       el.innerHTML=h;
@@ -454,6 +455,6 @@
   }catch(e){ console.warn('[pxboard]',e); }
 })();
 </script>
-<script src="login.js?v=1179"></script>
+<script src="login.js?v=1180"></script>
 </body>
 </html>
