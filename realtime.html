@@ -392,6 +392,19 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   header #homeBtn{order:1!important}
   header #proj{order:3!important;flex:1 1 auto!important;min-width:0!important;max-width:none!important;width:auto!important;display:inline-block!important}
   header #workerChip{order:3!important;flex:none!important;margin-left:4px!important}
+  /* [1218] 폰 2행 그룹 간격: 빨강[저장·삭제] | 연두[도구~준공] | 파랑[사진·지도=우측 auto] */
+  header #rtTool{margin-left:10px!important}
+  /* [1218] 그룹별 선택 배경(토글 .on / 순간동작 :active) */
+  header #save:active,header #rtDel:active{background:#fdecea!important}
+  body.rtrailopen header #rtTool{background:#e9f7ef!important;color:#1e7e34!important;border:1px solid #1e7e34!important}
+  header #rtLine.on{background:#e9f7ef!important;color:#1e7e34!important;border:1px solid #1e7e34!important}
+  header #rtCrop.on,header #rtAsb.on{background:#e9f7ef!important;color:#1e7e34!important;border-color:#1e7e34!important}
+  header #rtCrop:active,header #rtAsb:active{background:#e9f7ef!important}
+  header #photoBtn.on,header #bgBtn.on{background:#e3f2fd!important;color:#0b62c4!important;border-color:#0b62c4!important}
+  header #photoBtn:active,header #bgBtn:active{background:#e3f2fd!important}
+  #rtNewProj:active,#rtDoneBtn:active,#rtDoneListBtn:active{background:#fff7dd!important}
+  /* [1218] 그리기 완료 버튼 크게 — 작업 마무리 잘 보이게 */
+  #lineDone{font-size:16px!important;padding:10px 22px!important;background:#16a34a!important;color:#fff!important;border:0!important;border-radius:10px!important;font-weight:800!important;box-shadow:0 2px 8px rgba(0,0,0,.2)}
   header #save{order:5!important;display:inline-flex!important}
   header .rt-break{display:block!important;flex-basis:100%!important;width:100%!important;height:8px!important;order:4!important}
   /* 아랫줄: 관로선 · 도구 · 사진보기 · 지도 */
@@ -743,6 +756,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=1217"></script><script src="core.js?v=1217"></script>
+<script src="login.js?v=1218"></script><script src="core.js?v=1218"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>

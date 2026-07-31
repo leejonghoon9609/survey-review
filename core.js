@@ -6131,7 +6131,7 @@ function renderSub(){
   var bdg=function(k){return k?' <span class="hk-badge" style="margin-left:4px">'+k+'</span>':'';};
   var vhtml='<button data-g="delall2" style="border:1px solid #c0392b;color:#c0392b;font-weight:700">🧹 지우기(통합)'+bdg(kbC)+'</button><button data-g="measure" style="border:1px solid #d32f2f;color:#d32f2f;font-weight:700"><span style="color:#f2b400">📏</span> 거리산출'+bdg(kbM)+'</button><button data-g="undo"'+_urSt+'>← 되돌리기'+bdg(kbU)+'</button><button data-g="redo"'+_urSt+'>'+(_rtHdr?'앞으로 →':'다시 실행 →')+bdg(kbR)+'</button>'
       +'<span class="subhint">보기</span><button data-g="fit">'+(_rtHdr?'전체보기':'전체')+'</button>';
-  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)html=((typeof isMobileDevice==='function'&&isMobileDevice())?'<button id="rtNewProj" style="font-size:14px;padding:8px 13px;border:1px solid #6e757f;border-radius:6px;background:#fff;color:#333;font-weight:700;cursor:pointer;margin-right:6px">사업등록</button>':'')/* [1197] 폰만 사업등록 유지, PC는 제거(사이드바 중복) */+html+'<button id="rtDoneBtn" style="font-size:14px;padding:8px 13px;border:1px solid #c0392b;border-radius:6px;background:#fff;color:#c0392b;font-weight:700;cursor:pointer;margin-right:6px">일별완료성과 등록</button>'+((typeof isMobileDevice==='function'&&isMobileDevice())?'':'<button id="rtDoneListBtn" style="font-size:14px;padding:8px 13px;border-radius:6px;font-weight:700;cursor:pointer;margin-right:6px;'+((state.rtDone&&state.rtDone.done)?'border:1px solid #d81b60;background:#d81b60;color:#fff':'border:1px solid #1d9e75;background:#fff;color:#1d9e75')+'">완료성과(전체)</button>');
+  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)html=((typeof isMobileDevice==='function'&&isMobileDevice())?'<button id="rtNewProj" style="font-size:14px;padding:8px 13px;border:1px solid #6e757f;border-radius:6px;background:#fff;color:#333;font-weight:700;cursor:pointer;margin-right:6px">사업등록</button>':'')/* [1197] 폰만 사업등록 유지, PC는 제거(사이드바 중복) */+html+'<button id="rtDoneBtn" style="font-size:14px;padding:8px 13px;border:1px solid #c0392b;border-radius:6px;background:#fff;color:#c0392b;font-weight:700;cursor:pointer;margin-right:6px">일별완료성과 등록</button>'+('<button id="rtDoneListBtn" style="font-size:14px;padding:8px 13px;border-radius:6px;font-weight:700;cursor:pointer;margin-right:6px;'+((state.rtDone&&state.rtDone.done)?'border:1px solid #d81b60;background:#d81b60;color:#fff':'border:1px solid #1d9e75;background:#fff;color:#1d9e75')+'">완료성과(전체)</button>');/* [1218] 폰에서도 표시 */
   s.innerHTML=html;
   if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){var _np=document.getElementById('rtNewProj');if(_np)_np.onclick=function(){if(typeof openRegModal==='function')openRegModal();};var _dn=document.getElementById('rtDoneBtn');if(_dn)_dn.onclick=function(){if(typeof rtDailyOpen==='function')rtDailyOpen();};/* [1206] 일별성과 모달 */var _dl=document.getElementById('rtDoneListBtn');if(_dl)_dl.onclick=function(){if(typeof rtDailyAllOpen==='function')rtDailyAllOpen();};/* [1209] 일별 누적 목록 */}
   if(c.k==='inspmk')wireInspmk(s);
@@ -10794,7 +10794,7 @@ function rtDailyAllOpen(){ /* [1209] 완료성과(전체) — 일별 누적 목�
   var _fin=(state.rtDone&&state.rtDone.done);
   pop.innerHTML='<div id="rtDailyAllHead" style="display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:grab;user-select:none;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:'+(_fin?'#d81b60':'#c0392b')+';display:inline-block"></span><b style="font-size:15px">완료성과 (전체)</b>'+(_fin?'<span style="background:#d81b60;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:800">사업완료</span>':'')+'<span style="font-size:11px;color:#bbb;margin-left:auto">드래그로 이동</span></div>'
     +'<div id="rtDailyBody" style="overflow:auto;padding:10px 14px"></div>'
-    +'<div style="padding:9px 14px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px"><button id="rtDailyToSurvey" style="background:#16a34a;color:#fff;border:0;border-radius:8px;padding:8px 16px;font-weight:800;cursor:pointer">결선DB로 등록</button><button id="rtDailyAllClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:8px 18px;cursor:pointer;font-weight:700">닫기</button></div>';
+    +'<div style="padding:9px 14px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px">'+((typeof isMobileDevice==='function'&&isMobileDevice())?'':'<button id="rtDailyToSurvey" style="background:#16a34a;color:#fff;border:0;border-radius:8px;padding:8px 16px;font-weight:800;cursor:pointer">결선DB로 등록</button>')+'<button id="rtDailyAllClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:8px 18px;cursor:pointer;font-weight:700">닫기</button></div>';
   document.body.appendChild(pop);
   document.getElementById('rtDailyAllClose').onclick=function(){pop.remove();};
   var _ts=document.getElementById('rtDailyToSurvey');if(_ts)_ts.onclick=function(){if(typeof rtRegToSurvey==='function')rtRegToSurvey();};
@@ -12879,6 +12879,13 @@ function _projFilterChip(){
   old.appendChild(t);
 }
 
+/* [1218] realtime 폰 전용 — 관로선 버튼 라벨을 '편집도구'로 (PC·타 공정 무변경) */
+(function(){try{
+  if(typeof IS_REALTIME==='undefined'||!IS_REALTIME)return;
+  if(typeof isMobileDevice!=='function'||!isMobileDevice())return;
+  var _fix=function(){var b=document.getElementById('rtLine');if(b)b.textContent='\u270F\uFE0F \uD3B8\uC9D1\uB3C4\uAD6C';};
+  _fix();setTimeout(_fix,600);
+}catch(_e){}})();
 /* [1183] 포털 사업 클릭 자동 로드: ?open=<사업id> — 파라미터 없으면 아무 동작 안 함 */
 (function(){try{
   var m=location.search.match(/[?&]open=([^&]+)/); if(!m)return;
