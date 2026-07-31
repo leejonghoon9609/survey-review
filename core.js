@@ -5780,9 +5780,9 @@ function initSb(){
   }else{document.getElementById('conn').className='conn off';document.getElementById('conn').textContent='로컬 모드';}
 }
 function refreshProjects(){ if(!online)return;
-  sb.from(DB+'_projects').select('id,name,updated_at,stage:payload->>stage,del:payload->>delAt').order('updated_at',{ascending:false}).then(function(res){res=_projAlive(res);
+  sb.from(DB+'_projects').select('id,name,updated_at,stage:payload->>stage,del:payload->>delAt,rtd:payload->rtDone->>done').order('updated_at',{ascending:false}).then(function(res){res=_projAlive(res);
     var sel=document.getElementById('proj');sel.innerHTML='<option value="">사업 선택…</option>';
-    (res.data||[]).forEach(function(p){if((p.stage||'survey')!==STAGE)return;var o=document.createElement('option');o.value=p.id;o.textContent=p.name;o.title=p.name;sel.appendChild(o);});
+    (res.data||[]).forEach(function(p){if((p.stage||'survey')!==STAGE)return;/* [1183] realtime 전용 — 실측완료 사업은 드롭다운 제외(완료목록에서 열람), 다른 공정 적용 금지 */if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&p.rtd==='true')return;var o=document.createElement('option');o.value=p.id;o.textContent=p.name;o.title=p.name;sel.appendChild(o);});
     if(state.projectId)sel.value=state.projectId;
     /* [BUILD 913] 실시간측량 기존 사업명 _S 마이그레이션 */
     if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){(res.data||[]).forEach(function(p){if((p.stage||'survey')!==STAGE)return;if(/_S$/.test(p.name||''))return;var nn=(p.name||'')+'_S';sb.from(DB+'_projects').update({name:nn}).eq('id',p.id).then(function(){});var o=sel.querySelector('option[value="'+p.id+'"]');if(o){o.textContent=nn;o.title=nn;}if(state.projectId===p.id)state.projectName=nn;});}
@@ -12604,3 +12604,15 @@ function refSiteAreaClear(rec){
   if(typeof mnRerenderSheet==='function'){try{mnRerenderSheet();}catch(e){}}
   toast('\uc601\uc5ed \ucd08\uae30\ud654 \u2014 \uc790\ub3d9 \ubc94\uc704\ub85c \ub3cc\uc544\uac10');
 }
+
+/* [1183] 포털 사업 클릭 자동 로드: ?open=<사업id> — 파라미터 없으면 아무 동작 안 함 */
+(function(){try{
+  var m=location.search.match(/[?&]open=([^&]+)/); if(!m)return;
+  var _oid=decodeURIComponent(m[1]); var _try=0;
+  (function _w(){
+    if(typeof online!=='undefined'&&online&&typeof pickProject==='function'){
+      pickProject(_oid);
+      setTimeout(function(){var ps=document.getElementById('proj');if(ps)ps.value=_oid;},600);
+    }else if(_try++<50){ setTimeout(_w,200); }
+  })();
+}catch(_oe){console.warn('[open]',_oe);}})();
