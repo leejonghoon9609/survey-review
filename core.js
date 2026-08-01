@@ -6495,7 +6495,7 @@ function openAsbuilt(){
     }
   }).catch(function(){try{win.document.body.innerHTML='<div style="padding:24px;font:15px sans-serif;color:#eee;line-height:1.7">도면을 창 안에서 열지 못했습니다(접근 제한).<br><br><a href="'+a.url+'" target="_blank" style="color:#9cf">여기를 눌러 새 탭에서 열기</a></div>';}catch(e){window.open(a.url,'_blank');}});
 }
-document.getElementById('rcCsvBtn').onclick=function(){document.getElementById('fCsv').click();};document.getElementById('rcAftBtn').onclick=function(){if(typeof openFinalCsvUpload==='function')openFinalCsvUpload();else document.getElementById('fAft').click();};var _clrAft=document.getElementById('clrAft');if(_clrAft)_clrAft.onclick=function(){state.finalCsv=[];if(state.fieldDone)state.fieldDone.csv=false;state.depthGround=null;state._depthAlign=null;if(online&&state.projectId)saveProject();if(typeof refreshFieldBar==='function')refreshFieldBar();var st=document.getElementById('rcAft');if(st)st.textContent='복구후 후측량 (.csv)';var o=document.getElementById('rcAftOut');if(o)o.textContent='';this.style.display='none';toast('심도 데이터 삭제');};(function(){if(!IS_TANGO){var c=document.getElementById('regAftCard');if(c)c.style.display='none';}})();
+document.getElementById('rcCsvBtn').onclick=function(){document.getElementById('fCsv').click();};document.getElementById('rcAftBtn').onclick=function(){if(typeof openFinalCsvUpload==='function')openFinalCsvUpload();else document.getElementById('fAft').click();};var _clrAft=document.getElementById('clrAft');if(_clrAft)_clrAft.onclick=function(){state.finalCsv=[];if(state.fieldDone)state.fieldDone.csv=false;state.depthGround=null;state._depthAlign=null;if(online&&state.projectId)saveProject();if(typeof refreshFieldBar==='function')refreshFieldBar();var st=document.getElementById('rcAft');if(st)st.textContent='복구후 후측량 (.csv)';var o=document.getElementById('rcAftOut');if(o)o.textContent='';this.style.display='none';toast('심도 데이터 삭제');};(function(){if(!IS_TANGO&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD)){var c=document.getElementById('regAftCard');if(c)c.style.display='none';}})(); /* [1246] field도 표시(탱고 동일) — realtime은 계속 숨김 */
 document.getElementById('rcDxfBtn').onclick=function(){document.getElementById('fDxf').click();};
 document.getElementById('rcPhoBtn').onclick=function(){document.getElementById('fRegPhotos').click();};
 (function(){
@@ -6846,7 +6846,10 @@ function finalCsvDepthSync(){
 function openFinalCsvUpload(){
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;z-index:1250;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;padding:16px';
-  ov.innerHTML='<div style="background:#fff;border-radius:14px;width:92%;max-width:460px;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden"><div style="padding:15px 18px;border-bottom:1px solid #eee;display:flex;align-items:center"><b style="flex:1;font-size:16px;color:#2563eb">📄 후측량 CSV 등록</b><button id="fcX" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div><div style="padding:18px"><div id="fcDrop" style="border:1.5px dashed #cdd6e6;border-radius:10px;padding:24px;text-align:center;cursor:pointer;color:#5b6b86"><div style="font-size:24px">⬇</div><div style="margin-top:6px">후측량 CSV (.csv) 끌어다 놓기 / 클릭 (여러 개 가능)</div></div><button id="fcBtn" style="margin-top:12px;width:100%;background:#2563eb;color:#fff;border:none;border-radius:9px;padding:11px;font-weight:700;cursor:pointer">파일 선택</button><div id="fcList" style="margin-top:12px"></div><button id="fcDone" style="margin-top:14px;width:100%;background:#16a34a;color:#fff;border:none;border-radius:9px;padding:11px;font-weight:700;cursor:pointer">✅ 등록 완료</button></div></div>';
+  var _fld=(typeof IS_FIELD!=='undefined'&&IS_FIELD); /* [1246] field 전용: 노출관로+후측량 가로 2열 — 탱고 등 타 공정은 기존 단일 창 유지 */
+  var _aftB='<div id="fcDrop" style="border:1.5px dashed #cdd6e6;border-radius:10px;padding:24px;text-align:center;cursor:pointer;color:#5b6b86"><div style="font-size:24px">⬇</div><div style="margin-top:6px">후측량 CSV (.csv) 끌어다 놓기 / 클릭 (여러 개 가능)</div></div><button id="fcBtn" style="margin-top:12px;width:100%;background:#2563eb;color:#fff;border:none;border-radius:9px;padding:11px;font-weight:700;cursor:pointer">파일 선택</button><div id="fcList" style="margin-top:12px"></div><button id="fcDone" style="margin-top:14px;width:100%;background:#16a34a;color:#fff;border:none;border-radius:9px;padding:11px;font-weight:700;cursor:pointer">✅ 등록 완료</button>';
+  if(_fld){ ov.innerHTML='<div style="background:#fff;border-radius:14px;width:94%;max-width:920px;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden"><div style="padding:15px 18px;border-bottom:1px solid #eee;display:flex;align-items:center"><b style="flex:1;font-size:16px;color:#2563eb">📄 노출관로·후측량 CSV 등록</b><button id="fcX" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div><div style="padding:18px;display:flex;gap:14px;flex-wrap:wrap;align-items:stretch">'+'<div style="flex:1 1 300px;min-width:270px;border:1px solid #e5e9f0;border-top:3px solid #1f6fd6;border-radius:11px;padding:13px;background:#fcfcfb"><b style="font-size:14px;color:#1f6fd6">노출관로 CSV</b><div id="fcDropExp" style="border:1.5px dashed #cdd6e6;border-radius:10px;padding:24px;text-align:center;cursor:pointer;color:#5b6b86;margin-top:10px"><div style="font-size:24px">⬇</div><div style="margin-top:6px">노출관로 CSV (.csv) 끌어다 놓기 / 클릭 (여러 개 가능)</div></div><button id="fcBtnExp" style="margin-top:12px;width:100%;background:#1f6fd6;color:#fff;border:none;border-radius:9px;padding:11px;font-weight:700;cursor:pointer">파일 선택</button><div id="fcExpStat" style="margin-top:12px;font-size:12.5px;color:#1f6fd6;font-weight:700;text-align:center"></div></div>'+'<div style="flex:1 1 300px;min-width:270px;border:1px solid #e5e9f0;border-top:3px solid #7a52e0;border-radius:11px;padding:13px;background:#fcfcfb"><b style="font-size:14px;color:#7a52e0">후측량 CSV (심도)</b><div style="margin-top:10px">'+_aftB+'</div></div></div></div>'; }
+  else{ ov.innerHTML='<div style="background:#fff;border-radius:14px;width:92%;max-width:460px;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden"><div style="padding:15px 18px;border-bottom:1px solid #eee;display:flex;align-items:center"><b style="flex:1;font-size:16px;color:#2563eb">📄 후측량 CSV 등록</b><button id="fcX" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div><div style="padding:18px">'+_aftB+'</div></div>'; }
   document.body.appendChild(ov);
   var inp=document.createElement('input');inp.type='file';inp.accept='.csv';inp.multiple=true;inp.style.display='none';ov.appendChild(inp);
   function renderList(){
@@ -6861,6 +6864,22 @@ function openFinalCsvUpload(){
   ov.querySelector('#fcBtn').onclick=function(){inp.click();};
   ov.querySelector('#fcDrop').onclick=function(){inp.click();};
   inp.addEventListener('change',function(e){[].forEach.call(e.target.files,function(f){handle(f);});e.target.value='';});
+  if(_fld){ /* [1246] 노출관로 존 — regAddCsv 병합(기존 사업 유지). ⚠ loadCsvFile 사용 금지(사업 초기화됨) */
+    var einp=document.createElement('input');einp.type='file';einp.accept='.csv';einp.multiple=true;einp.style.display='none';ov.appendChild(einp);
+    var eStat=ov.querySelector('#fcExpStat');
+    var updExp=function(){if(eStat)eStat.textContent='현재 측점 '+((state.points||[]).length)+'개';};
+    updExp();
+    var expFiles=function(fs){var arr=[].filter.call(fs,function(f){return /\.csv$/i.test(f.name);});if(!arr.length)return;
+      (function nx(i){if(i>=arr.length){if(online&&state.projectId&&typeof saveProject==='function')saveProject();updExp();toast('노출관로 CSV '+arr.length+'개 반영 — 측점 '+((state.points||[]).length)+'개');return;}
+        regAddCsv(arr[i],function(){nx(i+1);});})(0);};
+    ov.querySelector('#fcBtnExp').onclick=function(){einp.click();};
+    var ez=ov.querySelector('#fcDropExp');
+    ez.onclick=function(){einp.click();};
+    ez.addEventListener('dragover',function(e){e.preventDefault();ez.style.background='#eef4ff';});
+    ez.addEventListener('dragleave',function(){ez.style.background='';});
+    ez.addEventListener('drop',function(e){e.preventDefault();ez.style.background='';expFiles(e.dataTransfer.files);});
+    einp.addEventListener('change',function(e){expFiles(e.target.files);e.target.value='';});
+  }
   var dz=ov.querySelector('#fcDrop');
   dz.addEventListener('dragover',function(e){e.preventDefault();dz.style.background='#eef4ff';});
   dz.addEventListener('dragleave',function(){dz.style.background='';});

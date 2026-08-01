@@ -375,7 +375,7 @@
   /* 1줄: 홈·제목·현장 사업목록·저장·사업등록·사업 삭제·삭제목록·완료결선 업로드 … 우측 [Supabase][작업자][BUILD] */
   .viewer #homeBtn{order:-2}
   .viewer h1{order:-1}
-  .viewer #vproj{order:1;min-width:220px;max-width:40vw;flex:0 1 auto}
+  .viewer #vproj{order:1;min-width:440px;max-width:44vw;flex:0 1 auto}/* [1246] 2배 확대 */
   .viewer #fldSave,.viewer #fldReg,.viewer #fldDel,.viewer #fldTrash,.viewer #fldRefLoad{order:2}
   .viewer #projFilterChip{order:5;margin-left:auto!important;max-width:170px}/* [1244] 칩=1줄 우측 */
   .viewer #projFilterChip~#conn{margin-left:8px!important}
@@ -404,7 +404,7 @@
 </head>
 <body>
   <header>
-    <button id="homeBtn" class="photoBtn" style="background:#eef2f7;border:1px solid #c6d2e0;color:#33506e;font-weight:700;border-radius:8px;padding:5px 11px;margin-right:2px">🏠 홈</button>
+    <button id="homeBtn" class="photoBtn" style="background:#eef2f7;border:1px solid #c6d2e0;color:#33506e;font-weight:700;border-radius:8px;padding:5px 11px;margin-right:2px">🏠 홈으로</button>
     <button id="modeToggle" class="photoBtn">💻 결선</button>
     <h1>측량(현장)</h1><div class="hdr-break" id="hdrBreak1"></div><div class="hdr-break" id="hdrBreak2"></div>
     <button id="sysSwitch" class="wk" onclick="if(confirm('탱고 DB로 이동할까요? 저장 안 한 변경은 사라집니다.'))location.href='tango.html'" style="background:#fdeef6;border:1px solid #e06ba8;color:#c2185b;font-weight:700;border-radius:8px;padding:5px 11px;margin-left:2px">🎵 탱고 DB 이동</button>
@@ -542,7 +542,7 @@
           <button class="rc-clr" id="clrTamsa" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">✕ 삭제</button>
         </div>
         <div class="regcard csv">
-          <div class="rc-t">CSV 로딩</div>
+          <div class="rc-t">노출관로 CSV</div>
           <div class="rc-drop" id="dropCsv">
             <span class="rc-dico">⬇</span>
             <span class="rc-st" id="rcCsv">측점 데이터 (.csv)</span>
@@ -603,6 +603,6 @@
     </div>
   </div>
 
-<script src="login.js?v=1245"></script><script src="core.js?v=1245"></script>
+<script src="login.js?v=1246"></script><script src="core.js?v=1246"></script>
 </body>
 </html>
