@@ -6886,6 +6886,69 @@ function _fldAutoMnRecs(){ /* [1258] field — 후측량 확정 맨홈(_aft·신
   if(n){try{console.log('[autoMn] 야장 '+n+'개 자동 생성');}catch(e){}}
   return n;
 }
+function _fldCsvFromPoints(pts,name){ /* [1286] 통합 측설용 CSV — exportSurveyCsv(survey 규칙) 미러, payload 점 기반 */
+  pts=(pts||[]).filter(function(p){return !/보강판/.test(''+((typeof ptNum==='function')?ptNum(p):p.no));});
+  if(!pts.length){toast('내보낼 측점이 없습니다');return;}
+  var head='이름,X,Y,Z(레벨),코드';
+  var rows=pts.map(function(p){
+    var nm=(typeof ptNum==='function')?ptNum(p):String(p.no||'');
+    var _dd=(p&&(p._d0||(''+p.no).split('-')[0]))||'';if(/^[0-9]{6}$/.test(_dd))nm=_dd+'_'+nm;
+    var X=(p.y!=null&&!isNaN(p.y))?(+p.y).toFixed(3):'';
+    var Y=(p.x!=null&&!isNaN(p.x))?(+p.x).toFixed(3):'';
+    var Z=(p.z!=null&&!isNaN(p.z))?(+p.z).toFixed(3):'';
+    var cd=(p.code||'').trim();if(/[\",]/.test(cd))cd='"'+cd.replace(/"/g,'""')+'"';
+    if(/[\",]/.test(nm))nm='"'+nm.replace(/"/g,'""')+'"';
+    return nm+','+X+','+Y+','+Z+','+cd;
+  });
+  var csv='\uFEFF'+head+'\r\n'+rows.join('\r\n')+'\r\n';
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  var nm2=(name||'측설용').replace(/[\\/:*?"<>|]/g,'_');
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='측설용_'+nm2+'.csv';
+  document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},150);
+  toast('통합 측설용 CSV — '+pts.length+'점');
+}
+function fldDoneRegView(pid,name){ /* [1286] 완료성과 등록 창(읽기·다운로드 전용) — svDoneRegOpen 미러 */
+  sb.from('survey_projects').select('payload').eq('id',pid).single().then(function(r){
+    var p=(r&&r.data&&r.data.payload)||{};
+    sb.from('survey_photos').select('point_no,url').eq('project_id',pid).then(function(phr){
+      var ph=(phr&&phr.data)||[];
+      var pop=svPopup('완료성과 등록 — '+(name||''),'#16a34a');
+      pop.querySelector('#svDailyHead').style.background='#e7f7ec';
+      var body=pop.querySelector('#svDailyBody');
+      svDailyTable(body,p.points||[],p.lines||[],p.rtDaily||[],name,svPhotosByDate(ph));
+      pop.querySelector('#svDailyFoot').innerHTML='<button id="fldDrClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:9px 16px;cursor:pointer;font-weight:700">닫기</button>';
+      pop.querySelector('#fldDrClose').onclick=function(){pop.remove();};
+      var _tot=body.querySelector('#svDailyTot');
+      if(_tot){var _cb=document.createElement('button');_cb.textContent='통합 측설용 CSV';
+        _cb.style.cssText='margin-left:10px;background:#fff;border:1px solid #0d7a52;color:#0d7a52;border-radius:7px;padding:5px 12px;font-weight:800;font-size:12px;cursor:pointer';
+        _cb.onclick=function(){_fldCsvFromPoints(p.points||[],name);};
+        _tot.appendChild(_cb);}
+    });
+  });
+}
+function fldDoneRegList(){ /* [1286] 결선DB 최종성과 — 사업 목록 모달 */
+  if(!online){toast('Supabase 연결 필요');return;}
+  sb.from('survey_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
+    res=_projAlive(res);
+    var rows=(res.data||[]).filter(function(rr){var pl=rr.payload||{};if(pl.delAt)return false;return (pl.stage||'survey')==='survey';});
+    var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:1300;background:rgba(0,0,0,.38);display:flex;align-items:center;justify-content:center';
+    ov.innerHTML='<div style="background:#fff;border-radius:14px;width:92%;max-width:460px;max-height:78vh;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden;border-top:5px solid #16a34a">'
+      +'<div style="display:flex;align-items:center;padding:13px 16px;border-bottom:1px solid #eee"><b style="font-size:15px;color:#15803d">📑 결선DB 최종성과 — 완료성과 등록 목록</b><button id="fdrX" style="margin-left:auto;border:1px solid #ddd;background:#fff;border-radius:7px;padding:4px 12px;cursor:pointer">닫기</button></div>'
+      +'<div id="fdrList" style="overflow:auto;padding:10px 14px;display:flex;flex-direction:column;gap:7px"></div></div>';
+    document.body.appendChild(ov);
+    ov.querySelector('#fdrX').onclick=function(){ov.remove();};
+    ov.onclick=function(e){if(e.target===ov)ov.remove();};
+    var box=ov.querySelector('#fdrList');
+    if(!rows.length){box.innerHTML='<div style="color:#999;padding:16px;text-align:center">결선DB 사업이 없습니다</div>';return;}
+    rows.forEach(function(rr){
+      var b=document.createElement('button');
+      b.style.cssText='display:flex;align-items:center;gap:9px;border:1px solid #cde9d6;background:#f6fdf8;border-radius:9px;padding:10px 12px;cursor:pointer;text-align:left';
+      b.innerHTML='<span style="background:#16a34a;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:800;flex:none">결선</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:#233">'+rr.name+'</span><span style="color:#8aa;font-size:11.5px;flex:none">'+String(rr.updated_at||'').slice(5,10)+'</span>';
+      b.onclick=function(){fldDoneRegView(rr.id,rr.name);};
+      box.appendChild(b);
+    });
+  });
+}
 function _fldMnZipModal(){ /* [1285] 맨홀사진 ZIP 드롭 모달 — CSV 등록 창 스타일, refPhotoZip 재사용 */
   var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:1350;background:rgba(0,0,0,.38);display:flex;align-items:center;justify-content:center';
   ov.innerHTML='<div style="background:#fff;border-radius:14px;width:92%;max-width:430px;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden;border-top:5px solid #1565c0">'
@@ -7124,7 +7187,7 @@ function openFinalStatus(){
   var sv=document.getElementById('fldSave');if(sv)sv.onclick=function(){saveProject();};
   var c=document.getElementById('fldCsv');if(c)c.onclick=openFinalCsvUpload;
   var j=document.getElementById('fldJoseo');if(j)j.onclick=openJoseoPanel;
-  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){if(typeof mnOpenList==='function')mnOpenList();};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){openImportList('survey');};var _frl=document.getElementById('fldRefLoad');if(_frl)_frl.onclick=function(){if(typeof refOpen==='function')refOpen();};try{var _ftr=document.getElementById('fldTerr');if(_ftr){_ftr.onclick=function(){if(typeof refTerrToggle==='function')refTerrToggle();};if(typeof refTerrBtn==='function')refTerrBtn();}}catch(_te){console.error('fldTerr wire',_te);}try{var _fcr2=document.getElementById('fldCrop');if(_fcr2){_fcr2.onclick=function(){console.log('[fldCrop] click');if(typeof refCropStart==='function')refCropStart();else toast('결선을 먼저 불러오세요');};if(typeof refCropBtn==='function')refCropBtn();}}catch(_ce){console.error('fldCrop wire',_ce);} /* [1253] 백판·크롭 배선 보강 */var _fdd=document.getElementById('fldDel');if(_fdd)_fdd.onclick=fieldDelProject;var _ftz=document.getElementById('fldTrash');if(_ftz)_ftz.onclick=function(){if(typeof projTrashOpen==='function')projTrashOpen();};
+  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){if(typeof mnOpenList==='function')mnOpenList();};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){fldDoneRegList();}; /* [1286] 결선DB 최종성과 목록 */var _frl=document.getElementById('fldRefLoad');if(_frl)_frl.onclick=function(){if(typeof refOpen==='function')refOpen();};try{var _ftr=document.getElementById('fldTerr');if(_ftr){_ftr.onclick=function(){if(typeof refTerrToggle==='function')refTerrToggle();};if(typeof refTerrBtn==='function')refTerrBtn();}}catch(_te){console.error('fldTerr wire',_te);}try{var _fcr2=document.getElementById('fldCrop');if(_fcr2){_fcr2.onclick=function(){console.log('[fldCrop] click');if(typeof refCropStart==='function')refCropStart();else toast('결선을 먼저 불러오세요');};if(typeof refCropBtn==='function')refCropBtn();}}catch(_ce){console.error('fldCrop wire',_ce);} /* [1253] 백판·크롭 배선 보강 */var _fdd=document.getElementById('fldDel');if(_fdd)_fdd.onclick=fieldDelProject;var _ftz=document.getElementById('fldTrash');if(_ftz)_ftz.onclick=function(){if(typeof projTrashOpen==='function')projTrashOpen();};
   var _ffit=document.getElementById('fldFit');if(_ffit)_ffit.onclick=function(){fitView();drawGeo();drawManholes();}; /* [1243] field 전용 전체보기 — survey fit 동일 동작 */
   var f=document.getElementById('fldFinal');if(f)f.onclick=openFinalStatus;
   var _rg=document.getElementById('fldReg');if(_rg)_rg.onclick=function(){if(typeof openRegModal==='function')openRegModal();};
