@@ -10083,7 +10083,7 @@ function hoverClear(){_hovPt=null;try{if(typeof clearSvg==='function')clearSvg(g
 function _selUiOn(){
   if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)return true;
   if(typeof IS_TANGO!=='undefined'&&IS_TANGO)return false;
-  if(typeof IS_FIELD!=='undefined'&&IS_FIELD)return (typeof joseoUiOpen==='function')?joseoUiOpen():false;
+  if(typeof IS_FIELD!=='undefined'&&IS_FIELD)return ((typeof joseoUiOpen==='function')?joseoUiOpen():false)||((typeof photoPanelOpen!=='undefined')?!!photoPanelOpen:false); /* [1260] 후측량 사진 패널에서도 선택·호버 */
   return (typeof photoPanelOpen!=='undefined')?!!photoPanelOpen:false;
 }
 /* 화면 기준 반경 안의 가장 가까운 측점 */
@@ -10181,7 +10181,8 @@ function highlightSel(){clearSvg(gSel);if(selNum==null)return;
   /* [1146] 실시간측량: CSV 측점도 초록 원+X (조서 가드 적용 안 받음 — 이 공정엔 조서 없음) */
   if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){if(p)_greenSel(p.x,p.y);return;}
   /* [1191] 1094 가드는 field·tango 전용 — survey(사진보기)는 항상 빨간 점선원+X 표시 */
-  if(((typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO))&&typeof joseoUiOpen==='function'&&!joseoUiOpen())return;
+  if((typeof IS_FIELD!=='undefined'&&IS_FIELD)&&(typeof photoPanelOpen!=='undefined')&&photoPanelOpen){/* [1260] field 사진보기 열림=표시 허용 */}
+  else if(((typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO))&&typeof joseoUiOpen==='function'&&!joseoUiOpen())return;
   if(!p)return;
   var nbs=neighborsOf(selNum);
   [nbs.up,nbs.down].forEach(function(q){if(q){var sy=S(q.x,q.y);gSel.appendChild(el('circle',{cx:sy[0],cy:sy[1],r:0.224,fill:'none',stroke:'#ffcc00','stroke-width':1.4,'vector-effect':'non-scaling-stroke'}));}});
