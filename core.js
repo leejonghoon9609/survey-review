@@ -7243,7 +7243,18 @@ function openFinalStatus(){
   var sv=document.getElementById('fldSave');if(sv)sv.onclick=function(){saveProject();};
   var c=document.getElementById('fldCsv');if(c)c.onclick=openFinalCsvUpload;
   var j=document.getElementById('fldJoseo');if(j)j.onclick=openJoseoPanel;
-  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){if(typeof mnOpenList==='function')mnOpenList();};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){fldDoneRegList();}; /* [1286] 결선DB 최종성과 목록 */var _frl=document.getElementById('fldRefLoad');if(_frl)_frl.onclick=function(){if(typeof refOpen==='function')refOpen();};try{var _ftr=document.getElementById('fldTerr');if(_ftr){_ftr.onclick=function(){if(typeof refTerrToggle==='function')refTerrToggle();};if(typeof refTerrBtn==='function')refTerrBtn();}}catch(_te){console.error('fldTerr wire',_te);}try{var _fcr2=document.getElementById('fldCrop');if(_fcr2){_fcr2.onclick=function(){console.log('[fldCrop] click');if(typeof refCropStart==='function')refCropStart();else toast('결선을 먼저 불러오세요');};if(typeof refCropBtn==='function')refCropBtn();}}catch(_ce){console.error('fldCrop wire',_ce);} /* [1253] 백판·크롭 배선 보강 */var _fdd=document.getElementById('fldDel');if(_fdd)_fdd.onclick=fieldDelProject;var _ftz=document.getElementById('fldTrash');if(_ftz)_ftz.onclick=function(){if(typeof projTrashOpen==='function')projTrashOpen();};
+  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){if(typeof mnOpenList==='function')mnOpenList();};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){fldDoneRegList();}; /* [1286] 결선DB 최종성과 목록 */var _frl=document.getElementById('fldRefLoad');if(_frl)_frl.onclick=function(){if(typeof refOpen==='function')refOpen();};try{var _ftr=document.getElementById('fldTerr');if(_ftr){_ftr.onclick=function(){
+    if(typeof REF!=='undefined'&&REF&&REF.ents&&typeof refTerrCount==='function'&&refTerrCount()){refTerrToggle();return;}
+    /* [1290] 완료결선 없으면 사업등록 수치지도(BP) 토글 */
+    if(typeof bpOff==='undefined')window.bpOff=false;
+    bpOff=!bpOff;this.textContent=bpOff?'\uD83D\uDDFA 백판 켜기':'\uD83D\uDDFA 백판 꺼짐';
+    if(typeof drawGeo==='function')drawGeo();
+    toast(bpOff?'수치지도 백판 꺼짐':'수치지도 백판 켜짐');
+  };if(typeof refTerrBtn==='function')refTerrBtn();}}catch(_te){console.error('fldTerr wire',_te);}try{var _fcr2=document.getElementById('fldCrop');if(_fcr2){_fcr2.onclick=function(){console.log('[fldCrop] click');
+    if(typeof REF!=='undefined'&&REF&&REF.ents&&REF.on){refCropStart();return;}
+    /* [1290] 완료결선 없으면 수치지도 크롭 바로 시작 */
+    mode='bpcrop';if(typeof setModeUI==='function')setModeUI();toast('자를 영역을 드래그하세요');
+  };if(typeof refCropBtn==='function')refCropBtn();}}catch(_ce){console.error('fldCrop wire',_ce);} /* [1253] 백판·크롭 배선 보강 */var _fdd=document.getElementById('fldDel');if(_fdd)_fdd.onclick=fieldDelProject;var _ftz=document.getElementById('fldTrash');if(_ftz)_ftz.onclick=function(){if(typeof projTrashOpen==='function')projTrashOpen();};
   var _ffit=document.getElementById('fldFit');if(_ffit)_ffit.onclick=function(){fitView();drawGeo();drawManholes();}; /* [1243] field 전용 전체보기 — survey fit 동일 동작 */
   var f=document.getElementById('fldFinal');if(f)f.onclick=openFinalStatus;
   var _rg=document.getElementById('fldReg');if(_rg)_rg.onclick=function(){if(typeof openRegModal==='function')openRegModal();};
