@@ -366,6 +366,16 @@
   /* 나머지 숨김 */
   header #fldRefHint,header #fldFit,header #fldViewLbl,header #fldCrop,header #fldTrash,header #modeToggle,header #sysSwitch,header #roBadge,header #vRv,header #fldJoseo,header #proj,header #save,header #delProj,header #bpToggle,header #doneListBtn,header #doneSummary,header #asbuiltBtn,header #photoBtn,header #bgBtn,header #rvBtn,header #buildno,header #conn,header #tamsaBadge,header #globalbtns{display:none!important}
 }
+/* ===== [1261] field PC 사진 패널 — 헤더 줄바꽈(닫기 보임)·사진 폭 꽉 채움 ===== */
+@media(min-width:761px){
+  .viewer .php-head{flex-wrap:wrap;row-gap:4px}
+  .viewer .php-head #photoSel{flex:0 1 auto;min-width:110px;max-width:170px}
+  .viewer .php-head #photoClose{order:99;margin-left:auto;flex:none;font-weight:800;border:1px solid #c0392b;color:#c0392b;background:#fff;border-radius:7px}
+  .viewer .php-main .zoomwrap{overflow:auto;align-items:flex-start}
+  .viewer .php-main .zoomwrap .ph{width:100%;height:auto;max-width:100%;max-height:none}
+  .viewer .php-sub .ph{width:100%;height:auto;max-height:none}
+  .viewer .php-sub{overflow:auto}
+}
 /* ===== [1243] 현장 PC 헤더 3줄 — survey(1233) 배치 미러 (field 전용, 모바일 무영향) ===== */
 @media(min-width:761px){
   .viewer header{flex-wrap:wrap;row-gap:6px}
@@ -606,6 +616,6 @@
     </div>
   </div>
 
-<script src="login.js?v=1260"></script><script src="core.js?v=1260"></script>
+<script src="login.js?v=1261"></script><script src="core.js?v=1261"></script>
 </body>
 </html>
