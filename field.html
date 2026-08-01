@@ -364,7 +364,7 @@
   header #fldCsv{order:15!important;display:inline-flex!important;margin-left:auto!important;background:#2563eb!important;border-color:#2563eb!important;color:#fff!important;font-weight:800!important;padding:8px 9px!important}
   header #fldManhole{order:16!important;display:inline-flex!important;background:#d32f2f!important;border-color:#d32f2f!important;color:#fff!important;font-weight:800!important;padding:8px 9px!important}
   /* 나머지 숨김 */
-  header #fldFit,header #fldViewLbl,header #fldCrop,header #fldTrash,header #modeToggle,header #sysSwitch,header #roBadge,header #vRv,header #fldJoseo,header #proj,header #save,header #delProj,header #bpToggle,header #doneListBtn,header #doneSummary,header #asbuiltBtn,header #photoBtn,header #bgBtn,header #rvBtn,header #buildno,header #conn,header #tamsaBadge,header #globalbtns{display:none!important}
+  header #fldRefHint,header #fldFit,header #fldViewLbl,header #fldCrop,header #fldTrash,header #modeToggle,header #sysSwitch,header #roBadge,header #vRv,header #fldJoseo,header #proj,header #save,header #delProj,header #bpToggle,header #doneListBtn,header #doneSummary,header #asbuiltBtn,header #photoBtn,header #bgBtn,header #rvBtn,header #buildno,header #conn,header #tamsaBadge,header #globalbtns{display:none!important}
 }
 /* ===== [1243] 현장 PC 헤더 3줄 — survey(1233) 배치 미러 (field 전용, 모바일 무영향) ===== */
 @media(min-width:761px){
@@ -376,7 +376,7 @@
   .viewer #homeBtn{order:-2}
   .viewer h1{order:-1}
   .viewer #vproj{order:1;min-width:440px;max-width:44vw;flex:0 1 auto}/* [1246] 2배 확대 */
-  .viewer #fldSave,.viewer #fldReg,.viewer #fldDel,.viewer #fldTrash,.viewer #fldRefLoad{order:2}
+  .viewer #fldSave,.viewer #fldReg,.viewer #fldDel,.viewer #fldTrash{order:2}
   .viewer #projFilterChip{order:5;margin-left:auto!important;max-width:170px}/* [1244] 칩=1줄 우측 */
   .viewer #projFilterChip~#conn{margin-left:8px!important}
   .viewer #conn{display:inline-flex!important;order:6;margin-left:auto!important}
@@ -384,6 +384,8 @@
   .viewer.fpage #buildno{display:inline-block!important;position:static;order:7;margin:0 0 0 8px}
   .viewer #hdrBreak1{order:8}
   /* 2줄: 보기[전체·백판·영역크롭] | 실시간 사진조서·맨홀도 제작 … 우측 [후측량 csv][후측량 사진][지도][로드뷰] */
+  .viewer #fldRefLoad{order:9;border-radius:0;border:1.5px solid #c0392b;color:#c0392b;background:#fff;font-weight:700}/* [1251] 2줄 맨 왼쪽·각진 빨강 */
+  .viewer #fldRefHint{order:9;font-size:12px;color:#c0392b;font-weight:700;margin-right:14px;align-self:center}
   .viewer #fldViewLbl{order:9}
   .viewer #fldFit{order:9;border:1px solid #c0392b;color:#c0392b;font-weight:700}
   .viewer #fldFit:active{background:#fdeaea}
@@ -423,7 +425,7 @@
       <button class="fbtn" id="fldCsv">후측량 csv</button>
       <button class="fbtn" id="fldJoseo">실시간 사진조서</button>
       <button class="fbtn" id="fldManhole">맨홀도 제작</button>
-      <button class="fbtn" id="fldRefLoad">📂 완료결선 업로드</button>
+      <button class="fbtn" id="fldRefLoad">📂 완료결선 업로드</button><span id="fldRefHint">시스템 완료전 결선완료사업 업로드(사업등록후 업로드)</span>
       <span id="fldViewLbl" style="color:#889;font-size:12px;font-weight:700;align-self:center">보기</span><button class="fbtn" id="fldFit" title="도면 전체 보기">전체</button><button class="fbtn" id="fldTerr">🗺 백판 꺼짐</button>
       <button class="fbtn" id="fldCrop" title="드래그한 영역을 PNG로 저장" style="background:#fff3e0;border-color:#f0a94e;color:#e8710a;font-weight:700">✂ 영역 크롭</button>
       <button class="fbtn" id="fldImport" style="margin-left:auto">📥 완료성과목록</button>
@@ -603,6 +605,6 @@
     </div>
   </div>
 
-<script src="login.js?v=1250"></script><script src="core.js?v=1250"></script>
+<script src="login.js?v=1251"></script><script src="core.js?v=1251"></script>
 </body>
 </html>
