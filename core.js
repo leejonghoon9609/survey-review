@@ -6886,6 +6886,17 @@ function _fldAutoMnRecs(){ /* [1258] field — 후측량 확정 맨홈(_aft·신
   if(n){try{console.log('[autoMn] 야장 '+n+'개 자동 생성');}catch(e){}}
   return n;
 }
+function _fldMhHover(cx,cy){ /* [1284] field — 맨홀 근접 호버 판정(커서용, 클릭 판정과 동일 tol) */
+  try{
+    if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return false;
+    if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen)return false;
+    var w=toWorld(cx,cy),wx=w[0],wy=-w[1];
+    var tol=Math.max(1.6,26*pxToWorld());
+    var ms=state.manholes||[];
+    for(var i=0;i<ms.length;i++){var m=ms[i];if(m.type==='riser'||m.wx==null)continue;if(Math.hypot(m.wx-wx,m.wy-wy)<=tol)return true;}
+  }catch(e){}
+  return false;
+}
 function _fldMhClickAt(cx,cy){ /* [1258] field 전용 — 도면 맨홈 클릭→해당 야장 자동 열기 */
   try{
     if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return false;
@@ -10178,7 +10189,8 @@ function nearestPt(cx,cy){
   try{
     if(typeof cv==='undefined'||!cv)return;
     cv.addEventListener('pointermove',function(e){
-      if(!_selUiOn()){if(_hovPt)hoverClear();return;}   /* [1191] */
+      if((typeof mode==='undefined'||mode==='pan')&&typeof _fldMhHover==='function'&&_fldMhHover(e.clientX,e.clientY)){try{cv.style.cursor='pointer';}catch(_c9){}if(_hovPt)hoverClear();return;} /* [1284] 맨홀 위=손가락 */
+      if(!_selUiOn()){if(_hovPt)hoverClear();try{if(mode==='pan')cv.style.cursor='';}catch(_c8){}return;}   /* [1191] */
       if(typeof mode!=='undefined'&&mode!=='pan'){if(_hovPt)hoverClear();return;}
       var p=nearestPt(e.clientX,e.clientY);
       hoverPt(p);
