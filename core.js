@@ -7018,12 +7018,12 @@ function downloadFinalCsvDxf(){
 }
 function openFinalStatus(){
   var fd=state.fieldDone||{csv:false,joseo:false,manhole:false};state.fieldDone=fd;
-  var items=[['csv','후측량CSV+결선'],['joseo','실시간 사진조서'],['manhole','맨홀도 제작']];
+  var items=[['csv','후측량CSV+결선'],['joseo','실시간 사진조서'],['manhole','맨홀도 제작'],['mnDxf','맨홀도DXF'],['mnXls','설비사진조서(엑셀)'],['mnEfb','현장전자야장'],['mnPhoto','맨홀사진다운']]; /* [1268] */
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center';
   var box=document.createElement('div');
   box.style.cssText='background:#fff;border-radius:14px;width:92%;max-width:440px;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden';
-  function row(k,label){var done=!!fd[k];var btn;if(((k==='joseo')||(k==='csv'&&state.finalCsv&&state.finalCsv.length))&&done){btn='<button class="fs-dl" data-k="'+k+'" style="border:1px solid #0d9488;background:#e7faf5;color:#0d9488;border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer;font-weight:700">📥 다운로드</button>';}else if(k==='csv'){btn='<span style="font-size:12px;color:#888">상단 \'후측량 csv\'로 업로드</span>';}else{btn='<button class="fs-tgl" data-k="'+k+'" style="border:1px solid #ccc;background:#fff;border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer">'+(done?'미완료로':'등록완료')+'</button>';}return '<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #f1f1f1"><span style="flex:1;font-size:15px;font-weight:600">'+label+'</span><span style="font-size:13px;font-weight:800;padding:4px 11px;border-radius:20px;'+(done?'background:#eafaf0;color:#16a34a;border:1px solid #16a34a':'background:#fff5f5;color:#d32f2f;border:1px solid #d32f2f')+'">'+(done?'등록완료':'미완료')+'</span>'+btn+'</div>';}
+  function row(k,label){var done=!!fd[k];var btn;if(((k==='joseo')||(k==='csv'&&state.finalCsv&&state.finalCsv.length)||k==='mnDxf'||k==='mnXls'||k==='mnEfb'||k==='mnPhoto')&&done){ /* [1268] 맨홀 4종도 다운로드 */btn='<button class="fs-dl" data-k="'+k+'" style="border:1px solid #0d9488;background:#e7faf5;color:#0d9488;border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer;font-weight:700">📥 다운로드</button>';}else if(k==='csv'){btn='<span style="font-size:12px;color:#888">상단 \'후측량 csv\'로 업로드</span>';}else{btn='<button class="fs-tgl" data-k="'+k+'" style="border:1px solid #ccc;background:#fff;border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer">'+(done?'미완료로':'등록완료')+'</button>';}return '<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #f1f1f1"><span style="flex:1;font-size:15px;font-weight:600">'+label+'</span><span style="font-size:13px;font-weight:800;padding:4px 11px;border-radius:20px;'+(done?'background:#eafaf0;color:#16a34a;border:1px solid #16a34a':'background:#fff5f5;color:#d32f2f;border:1px solid #d32f2f')+'">'+(done?'등록완료':'미완료')+'</span>'+btn+'</div>';}
   function render(){
     var allDone=items.every(function(it){return !!fd[it[0]];});
     box.innerHTML='<div style="padding:15px 18px;border-bottom:1px solid #eee;display:flex;align-items:center"><b style="flex:1;font-size:16px;color:#4f46e5">📋 후측량 최종성과 등록</b><button id="fsClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div>'
@@ -7031,7 +7031,7 @@ function openFinalStatus(){
       +'<div style="padding:13px 18px;font-size:13px;'+(allDone?'color:#16a34a;font-weight:700':'color:#888')+'">'+(allDone?'✅ 모든 성과 등록완료':'각 항목을 등록완료로 표시하세요 (성과 제작 연결은 다음 단계)')+'</div>';
     box.querySelector('#fsClose').onclick=function(){ov.remove();};
     [].forEach.call(box.querySelectorAll('.fs-tgl'),function(b){b.onclick=function(){var k=this.getAttribute('data-k');fd[k]=!fd[k];state.fieldDone=fd;if(online&&state.projectId)saveProject();refreshFieldBar();render();};});
-    [].forEach.call(box.querySelectorAll('.fs-dl'),function(b){b.onclick=function(){var dk=this.getAttribute('data-k');if(dk==='csv'){downloadFinalCsvDxf();}else{joseoDownloadFinal();}};});
+    [].forEach.call(box.querySelectorAll('.fs-dl'),function(b){b.onclick=function(){var dk=this.getAttribute('data-k');if(dk==='csv'){downloadFinalCsvDxf();}else if(dk==='joseo'){joseoDownloadFinal();}else if(dk==='mnDxf'){mnExpAll('dxf');}else if(dk==='mnXls'){mnExpAll('xls');}else if(dk==='mnEfb'){mnExpAll('efb');}else if(dk==='mnPhoto'){mnExpAll('zip');}};}); /* [1268] */
   }
   render();ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};document.body.appendChild(ov);
 }
@@ -7056,14 +7056,32 @@ function openFinalStatus(){
 })();
 
 /* ===================== [BUILD 918] 맨홀조사 야장 (측량현장) ===================== */
-function mnRegisterDone(){ /* [1265] 맨홀 야장 등록완료 — joseoRegisterDone 미러 */
+function mnRegisterDone(){ /* [1268] 체크 모달 — 기본 전체 선택, 등록 시 최종성과 창 반영 */
   if(!state.projectId){toast('먼저 사업을 불러오세요');return;}
-  var fd=state.fieldDone||{csv:false,joseo:false,manhole:false};fd.manhole=true;state.fieldDone=fd;
-  if(online&&state.projectId)saveProject();
-  if(typeof refreshFieldBar==='function')refreshFieldBar();
-  var db=document.getElementById('mnDoneBtn');if(db){db.classList.add('on');db.textContent='✅ 등록완료';}
-  toast('맨홀조사 야장 등록완료 ✓');
+  var fd=state.fieldDone||{csv:false,joseo:false,manhole:false};state.fieldDone=fd;
+  var defs=[['mnDxf','맨홀도DXF'],['mnXls','설비사진조서(엑셀)'],['mnEfb','현장전자야장'],['mnPhoto','맨홀사진']];
+  var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:1400;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center';
+  ov.innerHTML='<div style="background:#fff;border-radius:13px;width:90%;max-width:360px;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden">'
+    +'<div style="padding:14px 17px;border-bottom:1px solid #eee"><b style="font-size:15.5px;color:#16a34a">✅ 맨홀조사 야장 완료등록</b></div>'
+    +'<div style="padding:14px 17px;display:flex;flex-direction:column;gap:11px">'
+    +defs.map(function(d){return '<label style="display:flex;gap:9px;align-items:center;font-size:14px;cursor:pointer"><input type="checkbox" class="mnrd-ck" data-k="'+d[0]+'" checked style="width:17px;height:17px">'+d[1]+'</label>';}).join('')
+    +'</div><div style="padding:12px 17px;border-top:1px solid #eee;display:flex;gap:9px;justify-content:flex-end">'
+    +'<button id="mnrdCancel" style="border:1px solid #ccc;background:#fff;border-radius:8px;padding:8px 16px;cursor:pointer">취소</button>'
+    +'<button id="mnrdOk" style="border:none;background:#16a34a;color:#fff;border-radius:8px;padding:8px 20px;font-weight:800;cursor:pointer">등록</button></div></div>';
+  document.body.appendChild(ov);
+  ov.querySelector('#mnrdCancel').onclick=function(){ov.remove();};
+  ov.onclick=function(e){if(e.target===ov)ov.remove();};
+  ov.querySelector('#mnrdOk').onclick=function(){
+    var n=0;[].forEach.call(ov.querySelectorAll('.mnrd-ck'),function(c){if(c.checked){fd[c.getAttribute('data-k')]=true;n++;}});
+    if(n)fd.manhole=true;
+    state.fieldDone=fd;
+    if(online&&state.projectId)saveProject();
+    if(typeof refreshFieldBar==='function')refreshFieldBar();
+    var db=document.getElementById('mnDoneBtn');if(db&&fd.manhole){db.classList.add('on');db.textContent='✅ 등록완료';}
+    ov.remove();toast('완료등록 '+n+'건 — 후측량 최종성과 등록 창에 반영됨');
+  };
 }
+
 var MH_SPECS=[
   {name:'수공1호',w:450,h:950,dep:700},
   {name:'수공2-1호',w:700,h:1300,dep:700},
@@ -7228,8 +7246,8 @@ function mnOpenList(){
   var inner='<div style="background:#f5f8f6;'+(host?'width:100%;height:100%;border-radius:0':'border-radius:16px;width:min(94vw,420px);max-height:84dvh;box-shadow:0 16px 48px rgba(0,0,0,.25)')+';display:flex;flex-direction:column;overflow:hidden">'
     +'<div style="padding:15px 17px;background:#fff;border-bottom:1px solid #e7eeea;display:flex;align-items:center;gap:9px">'
       +'<span style="width:10px;height:10px;border-radius:50%;background:#1d9e75;flex:none"></span>'
-      +'<b style="flex:1;font-size:16px;color:#22332b">맨홀조사 야장</b>'
-      +'<button id="mnDoneBtn" class="jz-done'+((state.fieldDone&&state.fieldDone.manhole)?' on':'')+'">'+((state.fieldDone&&state.fieldDone.manhole)?'✅ 등록완료':'✅ 완료등록')+'</button>' /* [1265] 조서 동일 스타일 */
+      +'<b style="font-size:16px;color:#22332b">맨홀조사 야장</b>'
+      +'<button id="mnDoneBtn" class="jz-done'+((state.fieldDone&&state.fieldDone.manhole)?' on':'')+'">'+((state.fieldDone&&state.fieldDone.manhole)?'✅ 등록완료':'✅ 완료등록')+'</button><span style="flex:1"></span>' /* [1265~1268] 제목 바로 옆 + 스페이서 */
       +(rows.length?'<span style="background:#e1f5ee;color:#0f6e56;border-radius:20px;padding:3px 11px;font-size:12px;font-weight:800">'+rows.length+'개</span>':'')
       +'<button id="mnTrashBtn" style="border:1px solid #b58900;background:#fdf6e3;color:#8a6d00;border-radius:9px;padding:7px 11px;cursor:pointer;font-weight:800;font-size:12.5px">🗑 삭제목록</button>'
       +'<button id="mnLClose" style="border:1.5px solid #d32f2f;background:#fff;border-radius:9px;padding:7px 15px;cursor:pointer;color:#d32f2f;font-weight:800;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">닫기</span></button></div>'
