@@ -11877,7 +11877,7 @@ function refPhotoPreview(){
      '<div style="font-size:11px;color:#aaa">'+P.skip.slice(0,6).join(', ')+(P.skip.length>6?' \u2026':'')+'</div>'):'')+
    '<div style="display:flex;gap:8px;margin-top:15px">'+
      '<button id="refPzGo" style="flex:2;padding:11px;border:1px solid #1d9e75;background:#eafaf3;color:#0f7a57;border-radius:9px;font-size:13px;font-weight:800;cursor:'+(nf?'pointer':'not-allowed')+';opacity:'+(nf?1:.45)+'">\uc5c5\ub85c\ub4dc \uc2dc\uc791 ('+nf+'\uc7a5)</button>'+
-     '<button id="refPzX" style="flex:1;padding:11px;border:none;background:#f2f2f2;color:#555;border-radius:9px;font-size:13px;cursor:pointer">\ub2eb\uae30</button>'+
+     '<button id="refPzX" style="flex:1;padding:11px;border:none;background:#f2f2f2;color:#555;border-radius:9px;font-size:13px;cursor:pointer;text-align:center">\ub2eb\uae30</button>'+
    '</div>';
   w.appendChild(b);document.body.appendChild(w);
   w.addEventListener('click',function(ev){if(ev.target===w)w.remove();});
@@ -12295,8 +12295,8 @@ function refOpen(){
       '<button id="refB5" style="flex:1;padding:9px;border:1px solid #bbb;background:#fff;color:#444;border-radius:8px;font-size:12.5px;cursor:pointer">\uc804\uccb4\ubcf4\uae30</button>'+'</div>'):'')+
     /* [1100] 완료 · 닫기 한 줄 (닫기는 좁게) */
     '<div style="display:flex;gap:8px;margin-top:12px">'+
-      '<button id="refBok" style="flex:1;padding:11px;border:none;background:#1d9e75;color:#fff;border-radius:9px;font-size:13.5px;font-weight:800;cursor:pointer">\u2713 \uc644\ub8cc</button>'+
-      '<button id="refBx" style="flex:1;padding:11px 8px;border:1px solid #ddd;background:#fff;color:#666;border-radius:9px;font-size:13.5px;font-weight:700;cursor:pointer">\ub2eb\uae30</button>'+   /* [1101] 가로 동일 */
+      '<button id="refBok" style="flex:1;padding:11px;border:none;background:#1d9e75;color:#fff;border-radius:9px;font-size:13.5px;font-weight:800;cursor:pointer;text-align:center">\u2713 \uc644&nbsp;&nbsp;\ub8cc</button>'+
+      '<button id="refBx" style="flex:1;padding:11px 8px;border:1px solid #ddd;background:#fff;color:#666;border-radius:9px;font-size:13.5px;font-weight:700;cursor:pointer;text-align:center">\ub2eb\uae30</button>'+   /* [1101] 가로 동일 */
     '</div>';
   w.appendChild(b);document.body.appendChild(w);
   /* [1115] 제목 줄을 잡고 모달 이동 */
@@ -12610,7 +12610,7 @@ function refMhPanel(){
    chips(mm.noMh,function(r){return '<span style="border:1px solid #e3a008;background:#fffaf0;color:#b45309;border-radius:7px;padding:3px 8px;font-size:11.5px">'+mnLabel(r)+'</span>';})+
    '<div style="display:flex;gap:8px;margin-top:15px">'+
      '<button id="refMhTog" style="flex:1;padding:10px;border:1px solid #bbb;background:#fff;color:#444;border-radius:9px;font-size:12.5px;cursor:pointer">'+(refMhShow?'\ub3c4\uba74 \ud45c\uc2dc \ub044\uae30':'\ub3c4\uba74 \ud45c\uc2dc \ucf1c\uae30')+'</button>'+
-     '<button id="refMhX" style="flex:1;padding:10px;border:none;background:#f2f2f2;color:#555;border-radius:9px;font-size:12.5px;cursor:pointer">\ub2eb\uae30</button>'+
+     '<button id="refMhX" style="flex:1;padding:10px;border:none;background:#f2f2f2;color:#555;border-radius:9px;font-size:12.5px;cursor:pointer;text-align:center">\ub2eb\uae30</button>'+
    '</div>';
   w.appendChild(b);document.body.appendChild(w);
   w.addEventListener('click',function(ev){if(ev.target===w)w.remove();});
