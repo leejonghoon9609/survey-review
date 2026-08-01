@@ -1300,6 +1300,7 @@ function drawManholes(){
       if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace'||viewerMode||readOnly)return;
       ev.stopPropagation();ev.preventDefault();
       if(typeof _tgMode==='function'&&_tgMode()){var _nowMh=Date.now();if(_nowMh-(mh._lastMhClick||0)<350){mh._lastMhClick=0;openLabelEdit();return;}mh._lastMhClick=_nowMh;if(typeof tgSelectMh==='function')tgSelectMh(mh.wx,mh.wy);if(typeof drawGeo==='function')drawGeo();return;}
+      if((typeof IS_FIELD!=='undefined'&&IS_FIELD)&&mh._fromCsv&&mh.type==='riser'){toast('후측량 CSV 전주입상 — 좌표 고정(라벨만 이동 가능)');return;} /* [1255] */
       if(mh._aft||state.tamsa){toast(state.tamsa?'탐사 측량 — CSV 점 고정(이동 불가)':'후측량 맨홀 — 위치 고정(라벨만 이동 가능)');return;}
       pushHist();
       if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
@@ -6846,11 +6847,23 @@ function refreshFieldBar(){
   });
 }
 function finalCsvArr(){var f=state.finalCsv;if(!f)return [];return Array.isArray(f)?f:[f];}
+function _fldAutoRisers(){ /* [1255] field 전용 — 후측량 CSV 전주입상 자동 생성/정리 (탱고는 mkRiser 수동 유지) */
+  if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return 0;
+  var n=0;try{n=(typeof buildRisersFromCsv==='function')?buildRisersFromCsv():0;}catch(e){try{console.warn('[autoRiser]',e);}catch(_c){}}
+  if(!n){state.manholes=(state.manholes||[]).filter(function(m){return !(m._fromCsv&&m.type==='riser');});
+    state.points=(state.points||[]).filter(function(p){return !p._riserPt;});
+    state.lines=(state.lines||[]).filter(function(l){return !l._riserLine;});}
+  try{drawManholes();}catch(e){}
+  return n;
+}
 function finalCsvDepthSync(){
-  var arr=finalCsvArr(); if(!arr.length){return;}
+  var arr=finalCsvArr();
+  if(typeof IS_FIELD!=='undefined'&&IS_FIELD){try{_fldAutoRisers();}catch(_ar){}} /* [1255] 입상주 자동 */
+  if(!arr.length){return;}
   var L=[];
   arr.forEach(function(it){try{L=L.concat(parseDepthL(it.text||''));}catch(e){}});
   if(L.length){state.depthGround=L;state._depthAlign=null;try{computeDepth();}catch(e){}}
+  if(typeof IS_FIELD!=='undefined'&&IS_FIELD){try{drawGeo();}catch(_dg){}} /* [1255] 심도 라벨 즉시 갱신 */
 }
 function _aftCsvCounts(){ /* [1248] 후측량 CSV 집계: 심도(l)·현황(B/D/BD)·맨홈(SKTM)·전주(TJ/EJ) */
   var l=0,h=0,m=0,j=0,fs=(typeof finalCsvArr==='function')?finalCsvArr():[];
@@ -9377,7 +9390,7 @@ function joseoRec(p){
     date: joseoDate(p.no), name: ptNum(p), fullNo: p.no,
     x: (p.y!=null&&p.y!=='')?(+p.y).toFixed(3):'',                              // X(N)=북=p.y
     y: (p.x!=null&&p.x!=='')?(+p.x).toFixed(3):'',                              // Y(E)=동=p.x
-    facility: biz.facility||'', mat: pc.mat, dia: pc.dia, gap:'직접측량', depth:(p.depth!=null&&p.depth!=='')?String(p.depth):'',
+    facility: biz.facility||'', mat: pc.mat, dia: pc.dia, gap:'직접측량', depth:(p.depth!=null&&p.depth!=='')?String(p.depth):((state._depthByNo&&state._depthByNo[p.no]!=null&&isFinite(+state._depthByNo[p.no]))?(Math.round(state._depthByNo[p.no]*100)/100).toFixed(2):''), /* [1255] 자동심도 폴백 */
     expUrl: photoMap[p.no]||photoMap[ptNum(p)]||null,
     aftUrl: afterMap[p.no]||afterMap[ptNum(p)]||null,
     expBuf:null, aftBuf:null
