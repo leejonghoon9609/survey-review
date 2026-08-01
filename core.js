@@ -6847,6 +6847,17 @@ function refreshFieldBar(){
   });
 }
 function finalCsvArr(){var f=state.finalCsv;if(!f)return [];return Array.isArray(f)?f:[f];}
+function _fldAutoAftMh(){ /* [1256] field 전용 — 후측량 CSV 맨홈 자동(탱고 검수데이터 로직 참고): SKTM→insp 생성 → mergeAftMh로 가상(파랑)을 후측량 좌표로 교체·검정·고정 */
+  if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return 0;
+  state.manholes=(state.manholes||[]).filter(function(m){return !(m.insp&&m._fromCsv);});
+  var arr=(typeof finalCsvArr==='function')?finalCsvArr():[],n=0;
+  arr.forEach(function(it){var rs;try{rs=(typeof parseInspCsv==='function')?parseInspCsv(it.text||''):[];}catch(e){rs=[];}
+    rs.forEach(function(p){if(p.skip)return;if(typeof isMhCode==='function'&&isMhCode(p.code)){var _k=(typeof mhKindOf==='function')?mhKindOf(p.code):'SK';
+      state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+state.manholes.length)),wx:p.ex,wy:p.no,label:'M ('+_k+' )',kind:'신',lx:null,ly:null,type:'mh',insp:true,_fromCsv:true,surface:p.surface||'',pave:p.pave||''});n++;}});});
+  if(n){try{mergeAftMh();}catch(e){try{console.warn('[autoAftMh]',e);}catch(_c){}}}
+  try{drawManholes();}catch(e){}
+  return n;
+}
 function _fldAutoRisers(){ /* [1255] field 전용 — 후측량 CSV 전주입상 자동 생성/정리 (탱고는 mkRiser 수동 유지) */
   if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return 0;
   var n=0;try{n=(typeof buildRisersFromCsv==='function')?buildRisersFromCsv():0;}catch(e){try{console.warn('[autoRiser]',e);}catch(_c){}}
@@ -6858,7 +6869,7 @@ function _fldAutoRisers(){ /* [1255] field 전용 — 후측량 CSV 전주입상
 }
 function finalCsvDepthSync(){
   var arr=finalCsvArr();
-  if(typeof IS_FIELD!=='undefined'&&IS_FIELD){try{_fldAutoRisers();}catch(_ar){}} /* [1255] 입상주 자동 */
+  if(typeof IS_FIELD!=='undefined'&&IS_FIELD){try{_fldAutoRisers();}catch(_ar){}try{_fldAutoAftMh();}catch(_am){}} /* [1255~1256] 입상주·맨홈 자동 */
   if(!arr.length){return;}
   var L=[];
   arr.forEach(function(it){try{L=L.concat(parseDepthL(it.text||''));}catch(e){}});
