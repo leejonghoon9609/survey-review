@@ -6609,7 +6609,7 @@ function ensureRv(cb){
 }
 function openRvPanel(){
   if(photoPanelOpen){photoPanelOpen=false;document.getElementById('photoPanel').classList.remove('open');}
-  document.getElementById('rvPanel').classList.add('open');
+  var _rv9=document.getElementById('rvPanel');_rv9.classList.add('open');_rv9.style.display=''; /* [1279] */
 }
 function closeRvPanel(){document.getElementById('rvPanel').classList.remove('open');}
 function setRvPhoto(pt){
@@ -10588,7 +10588,7 @@ function refreshPhotoPanel(){
 }
 function centerOnNo(no){var p=null;(state.points||[]).forEach(function(q){if(q&&String(q.no)===String(no))p=q;});if(!p||!isFinite(p.x)||!isFinite(p.y))return;try{var sp=S(p.x,p.y);vb.x=sp[0]-vb.w/2;vb.y=sp[1]-vb.h/2;if(typeof applyVB==='function')applyVB();}catch(e){}}
 function selectPoint(num){selNum=String(num);drawGeo();highlightSel();if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&!photoPanelOpen&&_rtPhotoAuto&&typeof openPhotoPanel==='function')openPhotoPanel();/* [1150] */var sel=document.getElementById('photoSel');if(sel)sel.value=String(num);if(photoPanelOpen)refreshPhotoPanel();if(typeof joseoSyncTo==='function')joseoSyncTo(num);}
-function openPhotoPanel(o){photoPanelOpen=(o==null)?!photoPanelOpen:!!o;document.getElementById('photoPanel').classList.toggle('open',photoPanelOpen);var _pbOn=document.getElementById('photoBtn');if(_pbOn)_pbOn.classList.toggle('on',photoPanelOpen);/* [1220] 버튼 활성 표시(스타일은 realtime 폰 CSS만) */if(photoPanelOpen&&typeof closeRvPanel==='function')closeRvPanel();if(photoPanelOpen)refreshPhotoPanel();setTimeout(function(){if(typeof fixAspect==='function')fixAspect();if(typeof applyVB==='function')applyVB();if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();if(typeof highlightSel==='function')highlightSel();if(typeof placeCoord==='function')placeCoord();},30);}
+function openPhotoPanel(o){photoPanelOpen=(o==null)?!photoPanelOpen:!!o;var _pp9=document.getElementById('photoPanel');_pp9.classList.toggle('open',photoPanelOpen);if(photoPanelOpen)_pp9.style.display=''; /* [1279] 야장이 심은 인라인 none 해제(함정 X) */var _pbOn=document.getElementById('photoBtn');if(_pbOn)_pbOn.classList.toggle('on',photoPanelOpen);/* [1220] 버튼 활성 표시(스타일은 realtime 폰 CSS만) */if(photoPanelOpen&&typeof closeRvPanel==='function')closeRvPanel();if(photoPanelOpen)refreshPhotoPanel();setTimeout(function(){if(typeof fixAspect==='function')fixAspect();if(typeof applyVB==='function')applyVB();if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();if(typeof highlightSel==='function')highlightSel();if(typeof placeCoord==='function')placeCoord();},30);}
 function loadPhotos(){photoMap={};afterMap={};if(!online||!state.projectId){if(photoPanelOpen)refreshPhotoPanel();return;}
   sb.from(DB+'_photos').select('point_no,url').eq('project_id',state.projectId).then(function(res){(res.data||[]).forEach(function(r){var pn=String(r.point_no);if(/_A$/.test(pn))afterMap[pn.replace(/_A$/,'')]=r.url;else photoMap[pn]=r.url;});if(photoPanelOpen)refreshPhotoPanel();if(typeof drawGeo==='function')drawGeo();});}
 function _normTxt(s){return (s||'').toString().replace(/[\s_\-]+/g,'').toLowerCase();}
