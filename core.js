@@ -9476,7 +9476,7 @@ function joseoFetchBuf(url){
 var JOSEO_BM=['B3:C3','E3:G3','A4:B4','C4:C5','D4:D5','E4:E5','F4:F5','G4:G5','A7:C7','D7:G7','A8:C18','D8:G18','A19:C19','D19:G19']; // 블록(17행, 라벨=사진아래) 병합, row3 기준
 function joseoShift(rng,dr){ return rng.replace(/([A-G])(\d+)/g,function(_,c,n){ return c+(parseInt(n,10)+dr); }); }
 function joseoSetv(ws,a,v){ if(v!==undefined&&v!==null&&v!=='') ws.getCell(a).value=v; }
-function joseoFillBlk(ws,S,p){ joseoSetv(ws,'B'+S,joseoDateK(p.date));joseoSetv(ws,'E'+S,p.name);joseoSetv(ws,'A'+(S+3),p.x);joseoSetv(ws,'B'+(S+3),p.y);joseoSetv(ws,'C'+(S+3),p.facility);joseoSetv(ws,'D'+(S+3),p.mat);joseoSetv(ws,'E'+(S+3),p.dia);joseoSetv(ws,'F'+(S+3),p.gap);joseoSetv(ws,'G'+(S+3),p.depth); /* [1266] 심도 — 화면 표와 동일 소스(자동심도 폴백 포함) */ }
+function joseoFillBlk(ws,S,p){ joseoSetv(ws,'B'+S,joseoDateK(p.date));joseoSetv(ws,'E'+S,p.name);joseoSetv(ws,'A'+(S+3),p.x);joseoSetv(ws,'B'+(S+3),p.y);joseoSetv(ws,'C'+(S+3),p.facility);joseoSetv(ws,'D'+(S+3),p.mat);joseoSetv(ws,'E'+(S+3),p.dia);joseoSetv(ws,'F'+(S+3),p.gap);joseoSetv(ws,'G'+(S+3),(p.depth!=null&&p.depth!==''&&isFinite(+p.depth))?(Math.round(+p.depth*10)/10).toFixed(1):p.depth); /* [1267] 엑셀만 소수 1자리 반올림 · [1266] 심도 — 화면 표와 동일 소스(자동심도 폴백 포함) */ }
 function joseoStampBlk(ws,S,BLK){
   for(var k=0;k<BLK.length;k++){ var tr=S+k; ws.getRow(tr).height=BLK[k].h; for(var c=1;c<=7;c++){ var t=ws.getCell(tr,c); t.style=BLK[k].row[c-1].style; t.value=BLK[k].row[c-1].value; } }
   JOSEO_BM.forEach(function(mm){ try{ ws.mergeCells(joseoShift(mm,S-3)); }catch(e){} });
