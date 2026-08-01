@@ -1146,6 +1146,19 @@ function drawManholes(){
     if(!isRiser && !mh._edited && /^\s*\d+\s*M\s*\(\s*SK\s*\)\s*$/.test(mh.label||''))mh.label='M (SK )';
     var s=S(mh.wx,mh.wy);
     var mx=s[0], my=s[1];
+    /* [1262] field 전용 — 야장 UI 열림 시: 야장 연결 맨홀=초록 배경 원, 선택(열린 야장)=마젠타 (REF refDrawMh 미러) */
+    if((typeof IS_FIELD!=='undefined'&&IS_FIELD)&&!isRiser&&typeof mnUiOpen==='function'&&mnUiOpen()){
+      var _hasRec=false;try{_hasRec=mnList().some(function(r){return r&&!r.delAt&&r.mhId===mh.id;});}catch(_hr){}
+      if(_hasRec){
+        var _selMh9=(typeof window!=='undefined'&&window._fldSelMhId===mh.id);
+        var _u9m=(typeof pxToWorld==='function')?pxToWorld():0.05;
+        var _r9=Math.max(10*_u9m,Math.min(1.2,46*_u9m));if(_selMh9)_r9*=1.4;
+        var _c9=_selMh9?'#d500f2':'#16a34a';
+        var _bg9=el('circle',{cx:mx,cy:my,r:_r9,fill:_c9,'fill-opacity':0.22,stroke:_c9,'stroke-width':2.4,'vector-effect':'non-scaling-stroke'});
+        _bg9.setAttribute('pointer-events','none');
+        gMH.appendChild(_bg9);
+      }
+    }
     if(typeof _tgMode==='function'&&_tgMode()){var _mhitR=pxToWorld()*18;var _mhit=el('circle',{cx:mx,cy:my,r:_mhitR,fill:'transparent','pointer-events':'all'});_mhit.style.cursor='pointer';_mhit.addEventListener('mouseenter',function(){_mhit.setAttribute('fill','rgba(211,47,47,0.28)');_mhit.setAttribute('stroke','#d32f2f');_mhit.setAttribute('stroke-width','2');_mhit.setAttribute('vector-effect','non-scaling-stroke');});_mhit.addEventListener('mouseleave',function(){_mhit.setAttribute('fill','transparent');_mhit.removeAttribute('stroke');});gMH.appendChild(_mhit);}
 
     // 가장 가까운 M코드 측점 찾기 (맨홀만 — 입상주는 M측점 연결 안 함)
@@ -6881,7 +6894,7 @@ function _fldMhClickAt(cx,cy){ /* [1258] field 전용 — 도면 맨홈 클릭�
     if(!best||bd>tol)return false;
     var rec=mnList().filter(function(r){return r&&!r.delAt&&r.mhId===best.id;})[0];
     if(!rec){rec=_fldMnRecFor(best);if(rec&&online&&state.projectId&&typeof saveProject==='function')saveProject();}
-    if(rec){mnOpenForm(rec);return true;}
+    if(rec){try{window._fldSelMhId=best.id;}catch(_w){}mnOpenForm(rec);try{drawManholes();}catch(_d){}return true;}
   }catch(e){try{console.warn('[mhClick]',e);}catch(_c){}}
   return false;
 }
@@ -12364,6 +12377,7 @@ function refMhClickAt(cx,cy){
   return false;
 }
 function refDrawMh(){
+  if(typeof IS_FIELD!=='undefined'&&IS_FIELD){try{drawManholes();}catch(_fm){}} /* [1262] 야장 열림/닫힘 시 field 맨홈 원 갱신 */
   refMhClear();
   if(!REF.ents||!REF.on||!refMhShow||!REF.mh||!REF.mh.length)return;
   if(typeof mnUiOpen==='function'&&!mnUiOpen())return;   /* [1094] 맨홀도 꺼지면 초록원도 꺼짐 */
