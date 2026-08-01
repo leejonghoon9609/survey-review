@@ -6931,6 +6931,10 @@ function fldDoneRegList(){ /* [1286] 결선DB 최종성과 — 사업 목록 모
   sb.from('survey_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
     res=_projAlive(res);
     var rows=(res.data||[]).filter(function(rr){var pl=rr.payload||{};if(pl.delAt)return false;return (pl.stage||'survey')==='survey';});
+    /* [1288] 현재 사업 계열(_A 등) 결선 사업이 있으면 바로 등록 창 오픈, 없을 때만 목록 */
+    var _base=(state.projectName&&typeof baseName==='function')?baseName(state.projectName):null;
+    if(_base){var _hit=rows.filter(function(rr){return baseName(rr.name)===_base;})[0];
+      if(_hit){fldDoneRegView(_hit.id,_hit.name);return;}}
     var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:1300;background:rgba(0,0,0,.38);display:flex;align-items:center;justify-content:center';
     ov.innerHTML='<div style="background:#fff;border-radius:14px;width:92%;max-width:460px;max-height:78vh;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden;border-top:5px solid #16a34a">'
       +'<div style="display:flex;align-items:center;padding:13px 16px;border-bottom:1px solid #eee"><b style="font-size:15px;color:#15803d">📑 결선DB 최종성과 — 완료성과 등록 목록</b><button id="fdrX" style="margin-left:auto;border:1px solid #ddd;background:#fff;border-radius:7px;padding:4px 12px;cursor:pointer">닫기</button></div>'
