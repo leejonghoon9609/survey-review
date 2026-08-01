@@ -364,7 +364,39 @@
   header #fldCsv{order:15!important;display:inline-flex!important;margin-left:auto!important;background:#2563eb!important;border-color:#2563eb!important;color:#fff!important;font-weight:800!important;padding:8px 9px!important}
   header #fldManhole{order:16!important;display:inline-flex!important;background:#d32f2f!important;border-color:#d32f2f!important;color:#fff!important;font-weight:800!important;padding:8px 9px!important}
   /* 나머지 숨김 */
-  header #fldCrop,header #fldTrash,header #modeToggle,header #sysSwitch,header #roBadge,header #vRv,header #fldJoseo,header #proj,header #save,header #delProj,header #bpToggle,header #doneListBtn,header #doneSummary,header #asbuiltBtn,header #photoBtn,header #bgBtn,header #rvBtn,header #buildno,header #conn,header #tamsaBadge,header #globalbtns{display:none!important}
+  header #fldFit,header #fldViewLbl,header #fldCrop,header #fldTrash,header #modeToggle,header #sysSwitch,header #roBadge,header #vRv,header #fldJoseo,header #proj,header #save,header #delProj,header #bpToggle,header #doneListBtn,header #doneSummary,header #asbuiltBtn,header #photoBtn,header #bgBtn,header #rvBtn,header #buildno,header #conn,header #tamsaBadge,header #globalbtns{display:none!important}
+}
+/* ===== [1243] 현장 PC 헤더 3줄 — survey(1233) 배치 미러 (field 전용, 모바일 무영향) ===== */
+@media(min-width:761px){
+  .viewer header{flex-wrap:wrap;row-gap:6px}
+  .viewer #viewerBar{display:contents!important}
+  .viewer #fieldBar{display:contents!important}
+  .viewer .hdr-break{display:block!important;flex-basis:100%!important;width:100%!important;height:0!important;margin:0!important;padding:0!important;border:0!important}
+  /* 1줄: 홈·제목·현장 사업목록·저장·사업등록·사업 삭제·삭제목록·완료결선 업로드 … 우측 [Supabase][작업자][BUILD] */
+  .viewer #homeBtn{order:-2}
+  .viewer h1{order:-1}
+  .viewer #vproj{order:1;min-width:220px;max-width:40vw;flex:0 1 auto}
+  .viewer #fldSave,.viewer #fldReg,.viewer #fldDel,.viewer #fldTrash,.viewer #fldRefLoad{order:2}
+  .viewer #conn{display:inline-flex!important;order:5;margin-left:auto!important}
+  .viewer #workerChip{display:inline-flex!important;order:6;margin-left:8px!important}
+  .viewer.fpage #buildno{display:inline-block!important;position:static;order:7;margin:0 0 0 8px}
+  .viewer #hdrBreak1{order:8}
+  /* 2줄: 보기[전체·백판·영역크롭] | 실시간 사진조서·맨홀도 제작 … 우측 [후측량 csv][후측량 사진][지도][로드뷰] */
+  .viewer #fldViewLbl{order:9}
+  .viewer #fldFit{order:9;border:1px solid #c0392b;color:#c0392b;font-weight:700}
+  .viewer #fldFit:active{background:#fdeaea}
+  .viewer #fldTerr{order:9}
+  .viewer #fldCrop{order:9}
+  .viewer #fldJoseo{order:10;margin-left:72px}
+  .viewer #fldManhole{order:10}
+  .viewer #fldCsv{order:11;margin-left:auto}
+  .viewer #vPhoto{order:12;margin-left:0!important}
+  .viewer #vMap{order:12}
+  .viewer #vRv{order:12}
+  .viewer #hdrBreak2{order:13}
+  /* 3줄: 완료성과목록 · 후측량 최종성과 등록 */
+  .viewer #fldImport{order:14;margin-left:0!important}
+  .viewer #fldFinal{order:14}
 }
 </style>
 </head>
@@ -390,7 +422,7 @@
       <button class="fbtn" id="fldJoseo">실시간 사진조서</button>
       <button class="fbtn" id="fldManhole">맨홀도 제작</button>
       <button class="fbtn" id="fldRefLoad">📂 완료결선 업로드</button>
-      <button class="fbtn" id="fldTerr">🗺 백판 꺼짐</button>
+      <span id="fldViewLbl" style="color:#889;font-size:12px;font-weight:700;align-self:center">보기</span><button class="fbtn" id="fldFit" title="도면 전체 보기">전체</button><button class="fbtn" id="fldTerr">🗺 백판 꺼짐</button>
       <button class="fbtn" id="fldCrop" title="드래그한 영역을 PNG로 저장" style="background:#fff3e0;border-color:#f0a94e;color:#e8710a;font-weight:700">✂ 영역 크롭</button>
       <button class="fbtn" id="fldImport" style="margin-left:auto">📥 완료성과목록</button>
       <button class="fbtn fbtn-final" id="fldFinal">📋 후측량 최종성과 등록</button>
@@ -569,6 +601,6 @@
     </div>
   </div>
 
-<script src="login.js?v=1242"></script><script src="core.js?v=1242"></script>
+<script src="login.js?v=1243"></script><script src="core.js?v=1243"></script>
 </body>
 </html>

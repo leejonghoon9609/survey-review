@@ -6920,6 +6920,7 @@ function openFinalStatus(){
   var c=document.getElementById('fldCsv');if(c)c.onclick=openFinalCsvUpload;
   var j=document.getElementById('fldJoseo');if(j)j.onclick=openJoseoPanel;
   var m=document.getElementById('fldManhole');if(m)m.onclick=function(){if(typeof mnOpenList==='function')mnOpenList();};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){openImportList('survey');};var _frl=document.getElementById('fldRefLoad');if(_frl)_frl.onclick=function(){if(typeof refOpen==='function')refOpen();};try{var _ftr=document.getElementById('fldTerr');if(_ftr){_ftr.onclick=function(){if(typeof refTerrToggle==='function')refTerrToggle();};if(typeof refTerrBtn==='function')refTerrBtn();}}catch(_te){console.error('fldTerr wire',_te);}var _fdd=document.getElementById('fldDel');if(_fdd)_fdd.onclick=fieldDelProject;var _ftz=document.getElementById('fldTrash');if(_ftz)_ftz.onclick=function(){if(typeof projTrashOpen==='function')projTrashOpen();};
+  var _ffit=document.getElementById('fldFit');if(_ffit)_ffit.onclick=function(){fitView();drawGeo();drawManholes();}; /* [1243] field 전용 전체보기 — survey fit 동일 동작 */
   var f=document.getElementById('fldFinal');if(f)f.onclick=openFinalStatus;
   var _rg=document.getElementById('fldReg');if(_rg)_rg.onclick=function(){if(typeof openRegModal==='function')openRegModal();};
   if(typeof isMobileDevice==='function'&&isMobileDevice()){var _vp=document.getElementById('vPhoto');if(_vp)_vp.textContent='📷 사진';if(f)f.textContent='후측량 최종성과등록';}
