@@ -6886,6 +6886,45 @@ function _fldAutoMnRecs(){ /* [1258] field — 후측량 확정 맨홈(_aft·신
   if(n){try{console.log('[autoMn] 야장 '+n+'개 자동 생성');}catch(e){}}
   return n;
 }
+function _fldMnZipModal(){ /* [1285] 맨홀사진 ZIP 드롭 모달 — CSV 등록 창 스타일, refPhotoZip 재사용 */
+  var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:1350;background:rgba(0,0,0,.38);display:flex;align-items:center;justify-content:center';
+  ov.innerHTML='<div style="background:#fff;border-radius:14px;width:92%;max-width:430px;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden;border-top:5px solid #1565c0">'
+    +'<div style="display:flex;align-items:center;padding:13px 16px;border-bottom:1px solid #eee"><b style="font-size:15px;color:#1565c0">\uD83D\uDCF7 \uB9E8\uD640\uC0AC\uC9C4 ZIP \uB4F1\uB85D</b><button id="mnzX" style="margin-left:auto;border:1px solid #ddd;background:#fff;border-radius:7px;padding:4px 12px;cursor:pointer">\uB2EB\uAE30</button></div>'
+    +'<div style="padding:15px 16px">'
+    +'<div id="mnzDrop" style="border:2px dashed #1565c0;border-radius:11px;padding:26px 12px;text-align:center;color:#1565c0;font-weight:700;cursor:pointer;background:#f4f8ff">\uB9E8\uD640\uC0AC\uC9C4 ZIP (.zip) \uB04C\uC5B4\uB2E4 \uB193\uAE30 / \uD074\uB9AD<br><span style="font-size:11.5px;font-weight:400;color:#5c7fb3">\uD3F4\uB354 \uADDC\uCE59: \uB9E8\uD640\uBC88\uD638(\uC18C\uC720\uC790)/1.jpg \u00B7 2-1~2-4 \u00B7 \uD45C\uCC30</span></div>'
+    +'<div id="mnzInfo" style="margin-top:12px;font-size:13px;color:#555;min-height:20px"></div>'
+    +'</div></div>';
+  document.body.appendChild(ov);
+  ov.querySelector('#mnzX').onclick=function(){ov.remove();};
+  ov.onclick=function(e){if(e.target===ov)ov.remove();};
+  var dz=ov.querySelector('#mnzDrop'),inf=ov.querySelector('#mnzInfo');
+  function _stat(t,c){inf.style.color=c||'#555';inf.innerHTML=t;}
+  function _take(f){
+    if(!f)return;
+    if(!/\.zip$/i.test(f.name||'')){_stat('ZIP \uD30C\uC77C\uB9CC \uAC00\uB2A5\uD569\uB2C8\uB2E4','#c0392b');return;}
+    _stat('\u23F3 '+f.name+' \uBD84\uC11D \uC911\u2026','#1565c0');
+    var _tk=Date.now();try{window._mnzTk=_tk;}catch(_w){}
+    try{refPhotoZip(f);}catch(e){_stat('ZIP \uCC98\uB9AC \uC2E4\uD328: '+(e&&e.message||e),'#c0392b');return;}
+    var _n=0;var _iv=setInterval(function(){
+      _n++;
+      if(typeof REF_PZ!=='undefined'&&REF_PZ&&REF_PZ.name===f.name){
+        clearInterval(_iv);
+        try{
+          var folds=Object.keys(REF_PZ.map||{});
+          var recs=(typeof mnList==='function')?mnList().filter(function(r){return r&&!r.delAt;}):[];
+          var byKey={};recs.forEach(function(r){var k=refNormLab(mnLabel(r));if(k)byKey[k]=1;});
+          var mat=0;folds.forEach(function(fd){if(byKey[refNormLab(fd)])mat++;});
+          var ph=0;folds.forEach(function(fd){ph+=(REF_PZ.map[fd]||[]).length;});
+          _stat('\u2705 <b>'+f.name+'</b><br>\uB9E8\uD640 \uD3F4\uB354 '+folds.length+'\uAC1C \u00B7 \uC0AC\uC9C4 '+ph+'\uC7A5 \u00B7 \uC57C\uC7A5 \uB9E4\uCE6D '+mat+'\uAC1C'+((folds.length-mat)?(' \u00B7 <span style=\"color:#c0392b\">\uBBF8\uB9E4\uCE6D '+(folds.length-mat)+'\uAC1C</span>'):'')+((REF_PZ.skip&&REF_PZ.skip.length)?(' \u00B7 \uC81C\uC678 '+REF_PZ.skip.length):''),'#1d9e75');
+        }catch(_s){_stat('\u2705 \uB85C\uB529 \uC644\uB8CC — \uB9E4\uCE6D \uD328\uB110 \uD655\uC778','#1d9e75');}
+      }else if(_n>40){clearInterval(_iv);_stat('\uCC98\uB9AC \uC9C0\uC5F0 — \uD1A0\uC2A4\uD2B8/\uB9E4\uCE6D \uD328\uB110 \uD655\uC778','#b58900');}
+    },350);
+  }
+  dz.onclick=function(){var ip=document.createElement('input');ip.type='file';ip.accept='.zip';ip.onchange=function(e){_take(e.target.files&&e.target.files[0]);};ip.click();};
+  dz.addEventListener('dragover',function(e){e.preventDefault();dz.style.background='#e3edff';});
+  dz.addEventListener('dragleave',function(){dz.style.background='#f4f8ff';});
+  dz.addEventListener('drop',function(e){e.preventDefault();dz.style.background='#f4f8ff';var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];_take(f);});
+}
 function _fldMhHover(cx,cy){ /* [1284] field — 맨홀 근접 호버 판정(커서용, 클릭 판정과 동일 tol) */
   try{
     if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return false;
@@ -7291,9 +7330,9 @@ function mnOpenList(){
   var newBtn='<div style="padding:'+(host?'12px 15px 4px':'11px 15px 15px')+'"><button id="mnNew" style="width:100%;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:12px;padding:13px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(211,47,47,.15)"><span style="letter-spacing:2px;margin-right:-2px">+ 새 맨홀조사</span></button></div>';
   var inner='<div style="background:#f5f8f6;'+(host?'width:100%;height:100%;border-radius:0':'border-radius:16px;width:min(94vw,420px);max-height:84dvh;box-shadow:0 16px 48px rgba(0,0,0,.25)')+';display:flex;flex-direction:column;overflow:hidden">'
     +'<div style="padding:12px 17px;background:#fff;border-bottom:1px solid #e7eeea;display:flex;align-items:center;gap:7px;flex-wrap:wrap">' /* [1275] 2줄 헤더 */
-      +'<span style="flex:1;display:flex;align-items:center;gap:8px;white-space:nowrap;min-width:0"><span style="width:10px;height:10px;border-radius:50%;background:#1d9e75;flex:none"></span><b style="font-size:16px;color:#22332b">맨홀조사 야장</b></span>' /* [1283] 한 줄 */
+      +'<span style="flex:none;display:flex;align-items:center;gap:8px;white-space:nowrap"><span style="width:10px;height:10px;border-radius:50%;background:#1d9e75;flex:none"></span><b style="font-size:16px;color:#22332b">맨홀조사 야장</b></span>' /* [1283] 한 줄 */
       +'<button id="mnDoneBtn" class="jz-done'+((state.fieldDone&&state.fieldDone.manhole)?' on':'')+'" style="padding:3px 8px;font-size:12px;white-space:nowrap">'+((state.fieldDone&&state.fieldDone.manhole)?'✅ 등록완료':'미등록')+'</button><button id="mnPhUpBtn" title="ZIP 폴더 규칙: 맨홀번호(소유자)/1.jpg·2-1~2-4·표찰 — 완료결선 업로드와 동일" style="border:1px solid #1565c0;background:#fff;color:#1565c0;border-radius:7px;padding:3px 8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">📷 맨홀사진 업로드</button>' /* [1265~1283] 제목 바로 옆 + 스페이서 */
-      +'<button id="mnTrashBtn" style="margin-left:14px;border:1px solid #b58900;background:#fdf6e3;color:#8a6d00;border-radius:9px;padding:4px 8px;cursor:pointer;font-weight:800;font-size:12px;white-space:nowrap">🗑 삭제목록</button>'
+      +'<button id="mnTrashBtn" style="margin-left:auto;border:1px solid #b58900;background:#fdf6e3;color:#8a6d00;border-radius:9px;padding:4px 8px;cursor:pointer;font-weight:800;font-size:12px;white-space:nowrap">🗑 삭제목록</button>'
       +'<button id="mnLClose" style="border:1.5px solid #d32f2f;background:#fff;border-radius:9px;padding:4px 10px;cursor:pointer;color:#d32f2f;font-weight:800;font-size:12px;white-space:nowrap">닫기</button></div>'
     +(host?newBtn:'')
     +'<div style="padding:13px 15px 4px;overflow:auto;flex:1">'+listHtml+'</div>'
@@ -7312,7 +7351,7 @@ function mnOpenList(){
   root.querySelector('#mnNew').onclick=function(){uClose();mnOpenForm(null);};
   [].forEach.call(root.querySelectorAll('.mn-card'),function(b){b.onclick=function(e){if(e.target.classList.contains('mn-del'))return;var i=+b.getAttribute('data-i');var _r=mnList()[i];try{if(typeof refMhFocus==='function')refMhFocus(_r);}catch(_e){}uClose();mnOpenForm(_r);};});
   [].forEach.call(root.querySelectorAll('.mn-del'),function(b){b.onclick=function(){var i=+b.getAttribute('data-i');var r=mnList()[i];if(!confirm('맨홀 '+mnLabel(r)+' 조사를 삭제할까요?\n(7일 보관 후 완전삭제 — 삭제목록에서 복원 가능)'))return;r.delAt=Date.now();saveProject();uClose();mnOpenList();toast('🗑 삭제됨 (7일 보관)');};});
-  var _tb=root.querySelector('#mnTrashBtn');if(_tb)_tb.onclick=function(){mnTrashList(uClose);};var _mdb=root.querySelector('#mnDoneBtn');if(_mdb)_mdb.onclick=mnRegisterDone; /* [1265] */var _mpu=root.querySelector('#mnPhUpBtn');if(_mpu)_mpu.onclick=function(){var ip=document.createElement('input');ip.type='file';ip.accept='.zip';ip.style.display='none';ip.onchange=function(e){var f=e.target.files&&e.target.files[0];if(f){if(typeof refPhotoZip==='function')refPhotoZip(f);else toast('ZIP 모듈 없음');}};document.body.appendChild(ip);ip.click();setTimeout(function(){try{ip.remove();}catch(_r){}},60000);}; /* [1273] 완료결선 맨홈사진 ZIP과 동일 경로 */
+  var _tb=root.querySelector('#mnTrashBtn');if(_tb)_tb.onclick=function(){mnTrashList(uClose);};var _mdb=root.querySelector('#mnDoneBtn');if(_mdb)_mdb.onclick=mnRegisterDone; /* [1265] */var _mpu=root.querySelector('#mnPhUpBtn');if(_mpu)_mpu.onclick=function(){if(typeof _fldMnZipModal==='function')_fldMnZipModal();}; /* [1285] 드롭 모달 */ /* [1273] 완료결선 맨홈사진 ZIP과 동일 경로 */
 }
 function mnAsk(opt){
   var old=document.getElementById('mnAskModal');if(old)old.remove();
