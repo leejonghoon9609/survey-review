@@ -1062,8 +1062,9 @@ function drawGeo(){
      색: 둘다없음=빨강 / 노출관로없음=주황 / 후측량없음=파랑.
      크기: 화면 6~12px (zoomAt이 drawGeo 재호출 -> 줌마다 재계산, 함정 E 해소) */
   try{if(typeof photoMap!=='undefined'&&photoMap&&typeof afterMap!=='undefined'&&afterMap){
-    if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD)){
-      /* [1123] field 외 공정 = 예전 표시 그대로 (둘 다 있으면 빨강/노랑 원) */
+    var _refPrj=!!(typeof REF!=='undefined'&&REF&&REF.ents); /* [1278] 완료결선 업로드 사업 판별(REF 결선 존재) */
+    if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD)||!_refPrj){
+      /* [1123·1278] field 외 공정 + field 파이프라인 사업(REF 없음) = 후측량 등록 측점에 빨강/노랑 원. 완료결선 사업만 누락 원 모드 */
       var _pd0={};state.points.forEach(function(p){if(p._hyun)return;if(typeof isRiserPt==='function'&&isRiserPt(p))return;var _k0=(typeof ptNum==='function')?ptNum(p):String(p.no||'');if(!_k0||_pd0[_k0])return;var _hB0=photoMap[_k0]||photoMap[p.no];var _hA0=afterMap[_k0]||afterMap[p.no];if(_hB0&&_hA0){_pd0[_k0]=1;var _ps0=S(p.x,p.y);gPts.appendChild(el('circle',{cx:_ps0[0],cy:_ps0[1],r:2.1,fill:'#d32f2f','fill-opacity':0.28,stroke:'#ffcc00','stroke-width':2.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}});
     }else{
     var _anyB=Object.keys(photoMap).length>0,_anyA=Object.keys(afterMap).length>0;
