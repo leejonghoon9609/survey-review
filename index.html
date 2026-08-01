@@ -398,7 +398,7 @@
        sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,st:payload->>stage,f1:payload->>routingDone',
        done:function(r){return r.f1==='true';}},
       {id:'pxc-fd',tbl:'field_projects',page:'field.html',stg:'field',doneLb:'성과등록',
-       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,st:payload->>stage,f1:payload->fieldDone->>csv',
+       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,st:payload->>stage,f1:payload->fieldDone->>final',
        done:function(r){return r.f1==='true';}},
       {id:'pxc-tg',tbl:'tango_projects',page:'tango.html',stg:'tango',doneLb:'탱고완료',
        sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,st:payload->>stage,f1:payload->>routingDone,ar:payload->>tangoArchived',
@@ -547,7 +547,7 @@
   var STG=[
     {cls:'c-realtime',tbl:'realtime_projects',page:'realtime.html',doneLb:'실측완료',reg:true,suffix:'_S',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,f1:payload->rtDone->>done',done:function(r){return r.f1==='true';}},
     {cls:'c-survey',tbl:'survey_projects',page:'survey.html',doneLb:'결선완료',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,f1:payload->>routingDone',done:function(r){return r.f1==='true';}},
-    {cls:'c-field',tbl:'field_projects',page:'field.html',doneLb:'성과등록',reg:true,suffix:'',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,f1:payload->fieldDone->>csv',done:function(r){return r.f1==='true';}},
+    {cls:'c-field',tbl:'field_projects',page:'field.html',doneLb:'성과등록',reg:true,suffix:'',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,f1:payload->fieldDone->>final',done:function(r){return r.f1==='true';}},
     {cls:'c-tango',tbl:'tango_projects',page:'tango.html',doneLb:'탱고완료',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,f1:payload->>routingDone,ar:payload->>tangoArchived',done:function(r){return r.f1==='true';},skip:function(r){return r.ar==='true';}},
     {cls:'c-jungwichi',tbl:'position_projects',page:'position.html',doneLb:'완료',sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide',done:function(){return false;}}
   ];
@@ -598,6 +598,6 @@
   });
 })();
 </script>
-<script src="login.js?v=1290"></script>
+<script src="login.js?v=1291"></script>
 </body>
 </html>

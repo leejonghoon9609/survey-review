@@ -7191,6 +7191,11 @@ function fldRegToNext(cb){ /* [1289] field 성과 → 탱고(_T)·정위치(_P) 
       var fd=state.fieldDone||{csv:false,joseo:false,manhole:false};fd.final=true;state.fieldDone=fd;
       try{window._silentSave=true;saveProject();}catch(_se){}
       if(typeof refreshFieldBar==='function')refreshFieldBar();
+      /* [1291] 대응 결선(_A) 포털 숨김 */
+      sb.from('survey_projects').select('id,name,payload').then(function(sres){
+        ((sres&&sres.data)||[]).forEach(function(r){var pl=r.payload||{};if(pl.delAt)return;if((pl.stage||'survey')!=='survey')return;if(baseName(r.name)!==base)return;
+          pl.pxHide=Date.now();sb.from('survey_projects').update({payload:pl}).eq('id',r.id).then(function(){});});
+      });
       toast('탱고·정위치 등록 완료'+(a?(' — '+a.name):''));
       if(typeof cb==='function')cb(true);
     });
@@ -7202,7 +7207,14 @@ function fldRegOff(cb){ /* [1289] 해제 — 탱고·정위치 사본 삭제목�
     sb.from(tp[0]).select('id,name,payload').then(function(res){
       ((res&&res.data)||[]).forEach(function(r){var pl=r.payload||{};if(pl.delAt)return;if((pl.stage||'survey')!==tp[1])return;if(baseName(r.name)!==base)return;
         pl.delAt=Date.now();sb.from(tp[0]).update({payload:pl}).eq('id',r.id).then(function(){});});
-      if(++done===2){var fd=state.fieldDone||{};fd.final=false;state.fieldDone=fd;try{window._silentSave=true;saveProject();}catch(_se){}if(typeof refreshFieldBar==='function')refreshFieldBar();toast('탱고·정위치 등록 해제');if(typeof cb==='function')cb(false);}
+      if(++done===2){
+        /* [1291] 결선(_A) 숨김 해제 */
+        var _b2=baseName(state.projectName||'');
+        sb.from('survey_projects').select('id,name,payload').then(function(sres){
+          ((sres&&sres.data)||[]).forEach(function(r){var pl=r.payload||{};if(!pl.pxHide)return;if((pl.stage||'survey')!=='survey')return;if(baseName(r.name)!==_b2)return;
+            delete pl.pxHide;sb.from('survey_projects').update({payload:pl}).eq('id',r.id).then(function(){});});
+        });
+        var fd=state.fieldDone||{};fd.final=false;state.fieldDone=fd;try{window._silentSave=true;saveProject();}catch(_se){}if(typeof refreshFieldBar==='function')refreshFieldBar();toast('탱고·정위치 등록 해제');if(typeof cb==='function')cb(false);}
     });
   });
 }
