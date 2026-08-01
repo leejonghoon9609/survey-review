@@ -7019,7 +7019,7 @@ function downloadFinalCsvDxf(){
 }
 function openFinalStatus(){
   var fd=state.fieldDone||{csv:false,joseo:false,manhole:false};state.fieldDone=fd;
-  var items=[['csv','후측량CSV+결선'],['joseo','실시간 사진조서'],['manhole','맨홀도 제작'],['mnDxf','맨홀도DXF'],['mnXls','설비사진조서(엑셀)'],['mnEfb','현장전자야장'],['mnPhoto','맨홀사진다운']]; /* [1268] */
+  var items=[['csv','후측량CSV+결선'],['joseo','실시간 사진조서'],/* [1270] 맨홀도 제작 항목 제거(fd.manhole 키는 유지) */['mnDxf','맨홀도DXF'],['mnXls','설비사진조서(엑셀)'],['mnEfb','현장전자야장'],['mnPhoto','맨홀사진다운']]; /* [1268] */
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center';
   var box=document.createElement('div');
