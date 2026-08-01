@@ -1029,7 +1029,7 @@ function drawGeo(){
       gPts.appendChild(el('line',{x1:ax1,y1:ay1,x2:ax1-dv[0]*hl-pr[0]*hl,y2:ay1-dv[1]*hl-pr[1]*hl,stroke:AC,'stroke-width':2.6,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));})();
     var hit=el('circle',{cx:s[0],cy:s[1],r:hitR,fill:'transparent','pointer-events':'all'});hit.style.cursor='pointer';
 
-    hit.addEventListener('click',function(ev){if(this._lpFired){this._lpFired=false;ev.stopPropagation();return;}/* [1121] 히트원이 겹치면 위에 있는 점만 선택되던 문제 — 클릭 지점 최근접 측점으로 재판정 */var _np=p;if((typeof IS_FIELD!=='undefined'&&IS_FIELD)){try{var _w=toWorld(ev.clientX,ev.clientY);var _nr=nearestPointWorld(_w[0],_w[1]);if(_nr&&_nr.p)_np=_nr.p;}catch(_ne){}}/* [1123] 최근접 재판정은 field만 */if(mode==='ptdel'||mode==='delall2'){ev.stopPropagation();ev.preventDefault();deletePoint(_np);return;}if(mode!=='pan'||labelDragging||noteMode)return;ev.stopPropagation();if(typeof refMhClickAt==='function'&&refMhClickAt(ev.clientX,ev.clientY))return;/* [1110] 맨홀 위 측점이 클릭을 먹던 문제 — 야장 열림 시 맨홀 우선 */if(photoLink)selectPoint(_np.no);else{selNum=_np.no;drawGeo();highlightSel();if(typeof joseoSyncTo==='function')joseoSyncTo(_np.no);}toast('측점 '+_np.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
+    hit.addEventListener('click',function(ev){if(this._lpFired){this._lpFired=false;ev.stopPropagation();return;}/* [1121] 히트원이 겹치면 위에 있는 점만 선택되던 문제 — 클릭 지점 최근접 측점으로 재판정 */var _np=p;if((typeof IS_FIELD!=='undefined'&&IS_FIELD)){try{var _w=toWorld(ev.clientX,ev.clientY);var _nr=nearestPointWorld(_w[0],_w[1]);if(_nr&&_nr.p)_np=_nr.p;}catch(_ne){}}/* [1123] 최근접 재판정은 field만 */if(mode==='ptdel'||mode==='delall2'){ev.stopPropagation();ev.preventDefault();deletePoint(_np);return;}if(mode!=='pan'||labelDragging||noteMode)return;ev.stopPropagation();if(typeof refMhClickAt==='function'&&refMhClickAt(ev.clientX,ev.clientY))return;if(typeof _fldMhClickAt==='function'&&_fldMhClickAt(ev.clientX,ev.clientY))return; /* [1258] *//* [1110] 맨홀 위 측점이 클릭을 먹던 문제 — 야장 열림 시 맨홀 우선 */if(photoLink)selectPoint(_np.no);else{selNum=_np.no;drawGeo();highlightSel();if(typeof joseoSyncTo==='function')joseoSyncTo(_np.no);}toast('측점 '+_np.no+' 선택'+(photoLink?'':' (미연동·사진고정)'));});
     hit.addEventListener('mouseenter',function(){if(mode==='ptdel'||mode==='delall2'){hit.setAttribute('fill','rgba(211,47,47,0.28)');hit.setAttribute('stroke','#d32f2f');hit.setAttribute('stroke-width',1.6);hit.setAttribute('vector-effect','non-scaling-stroke');}});
     hit.addEventListener('mouseleave',function(){hit.setAttribute('fill','transparent');hit.removeAttribute('stroke');});
     gHit.appendChild(hit);
@@ -6847,6 +6847,44 @@ function refreshFieldBar(){
   });
 }
 function finalCsvArr(){var f=state.finalCsv;if(!f)return [];return Array.isArray(f)?f:[f];}
+function _fldMnRecFor(m){ /* [1258] field — 맨홈 1개→야장 rec 생성/연결(mhId) · 멱등 */
+  if(!m||m.type==='riser'||m.wx==null)return null;
+  var L=mnList();
+  var ex=L.filter(function(r){return r&&!r.delAt&&r.mhId===m.id;})[0];
+  if(ex){if(!ex.refXY||ex.refXY[0]!==m.wx||ex.refXY[1]!==m.wy){ex.refXY=[m.wx,m.wy];try{refGeoFill(ex,m.wx,m.wy);}catch(e){}}return ex;}
+  var no=0;L.forEach(function(r){var v=parseInt(r&&r.no,10);if(isFinite(v)&&v>no)no=v;});
+  var ow=/\(([^)]+)\)/.exec(m.label||'');ow=ow?ow[1].trim():'SK';
+  var rec={id:'mn'+Date.now()+'_'+m.id,no:String(no+1),owner:'_c',ownerC:ow,mhId:m.id,
+    dep:'',w12:'',w34:'',topi:'',lid:766,lidRect:'',spec:null,photos:{},pipes:{},refXY:[m.wx,m.wy],at:new Date().toISOString()};
+  try{refGeoFill(rec,m.wx,m.wy);}catch(e){}
+  L.push(rec);return rec;
+}
+function _fldAutoMnRecs(){ /* [1258] field — 후측량 확정 맨홈(_aft·신규 insp) 야장 자동 생성 */
+  if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return 0;
+  var n=0;
+  (state.manholes||[]).forEach(function(m){
+    if(m.type==='riser')return;
+    if(!(m._aft||(m.insp&&m._fromCsv)))return;
+    var had=mnList().some(function(r){return r&&!r.delAt&&r.mhId===m.id;});
+    if(_fldMnRecFor(m)&&!had)n++;
+  });
+  if(n){try{console.log('[autoMn] 야장 '+n+'개 자동 생성');}catch(e){}}
+  return n;
+}
+function _fldMhClickAt(cx,cy){ /* [1258] field 전용 — 도면 맨홈 클릭→해당 야장 자동 열기 */
+  try{
+    if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return false;
+    var w=toWorld(cx,cy),wx=w[0],wy=-w[1];
+    var tol=Math.max(1.6,26*pxToWorld());
+    var best=null,bd=1e18;
+    (state.manholes||[]).forEach(function(m){if(m.type==='riser'||m.wx==null)return;var d=Math.hypot(m.wx-wx,m.wy-wy);if(d<bd){bd=d;best=m;}});
+    if(!best||bd>tol)return false;
+    var rec=mnList().filter(function(r){return r&&!r.delAt&&r.mhId===best.id;})[0];
+    if(!rec){rec=_fldMnRecFor(best);if(rec&&online&&state.projectId&&typeof saveProject==='function')saveProject();}
+    if(rec){mnOpenForm(rec);return true;}
+  }catch(e){try{console.warn('[mhClick]',e);}catch(_c){}}
+  return false;
+}
 function _fldAutoAftMh(){ /* [1256] field 전용 — 후측량 CSV 맨홈 자동(탱고 검수데이터 로직 참고): SKTM→insp 생성 → mergeAftMh로 가상(파랑)을 후측량 좌표로 교체·검정·고정 */
   if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return 0;
   state.manholes=(state.manholes||[]).filter(function(m){return !(m.insp&&m._fromCsv);});
@@ -6869,7 +6907,7 @@ function _fldAutoRisers(){ /* [1255] field 전용 — 후측량 CSV 전주입상
 }
 function finalCsvDepthSync(){
   var arr=finalCsvArr();
-  if(typeof IS_FIELD!=='undefined'&&IS_FIELD){try{_fldAutoRisers();}catch(_ar){}try{_fldAutoAftMh();}catch(_am){}} /* [1255~1256] 입상주·맨홈 자동 */
+  if(typeof IS_FIELD!=='undefined'&&IS_FIELD){try{_fldAutoRisers();}catch(_ar){}try{_fldAutoAftMh();}catch(_am){}try{_fldAutoMnRecs();}catch(_mr){}} /* [1255~1258] 입상주·맨홈·야장 자동 */
   if(!arr.length){return;}
   var L=[];
   arr.forEach(function(it){try{L=L.concat(parseDepthL(it.text||''));}catch(e){}});
@@ -10557,6 +10595,7 @@ cv.addEventListener('click',function(e){
   if(mode!=='pan'||labelDragging)return;
   /* [1109] 맨홀 반경 안 클릭 = 맨홀 우선 (측점 40px 판정보다 먼저) */
   if(typeof refMhClickAt==='function'&&refMhClickAt(e.clientX,e.clientY))return;
+  if(typeof _fldMhClickAt==='function'&&_fldMhClickAt(e.clientX,e.clientY))return; /* [1258] field 맨홈→야장 */
   var w=toWorld(e.clientX,e.clientY),r=cv.getBoundingClientRect(),wpp=vb.w/r.width;
   var nr=nearestPointWorld(w[0],w[1]);
   if(nr.p&&nr.d<40*wpp){
