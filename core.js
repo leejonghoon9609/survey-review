@@ -1063,7 +1063,8 @@ function drawGeo(){
      크기: 화면 6~12px (zoomAt이 drawGeo 재호출 -> 줌마다 재계산, 함정 E 해소) */
   try{if(typeof photoMap!=='undefined'&&photoMap&&typeof afterMap!=='undefined'&&afterMap){
     var _refPrj=!!(typeof REF!=='undefined'&&REF&&REF.ents); /* [1278] 완료결선 업로드 사업 판별(REF 결선 존재) */
-    if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD)||!_refPrj){
+    var _yOn=!(typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof photoPanelOpen!=='undefined'&&photoPanelOpen); /* [1280] field=사진 모드에서만 표시 */
+    if((!(typeof IS_FIELD!=='undefined'&&IS_FIELD)||!_refPrj)&&_yOn){
       /* [1123·1278] field 외 공정 + field 파이프라인 사업(REF 없음) = 후측량 등록 측점에 빨강/노랑 원. 완료결선 사업만 누락 원 모드 */
       var _pd0={};state.points.forEach(function(p){if(p._hyun)return;if(typeof isRiserPt==='function'&&isRiserPt(p))return;var _k0=(typeof ptNum==='function')?ptNum(p):String(p.no||'');if(!_k0||_pd0[_k0])return;var _hB0=photoMap[_k0]||photoMap[p.no];var _hA0=afterMap[_k0]||afterMap[p.no];if(_hB0&&_hA0){_pd0[_k0]=1;var _ps0=S(p.x,p.y);gPts.appendChild(el('circle',{cx:_ps0[0],cy:_ps0[1],r:2.1,fill:'#d32f2f','fill-opacity':0.28,stroke:'#ffcc00','stroke-width':2.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}});
     }else{
@@ -1152,8 +1153,7 @@ function drawManholes(){
       var _hasRec=false;try{_hasRec=mnList().some(function(r){return r&&!r.delAt&&r.mhId===mh.id;});}catch(_hr){}
       if(_hasRec){
         var _selMh9=(typeof window!=='undefined'&&window._fldSelMhId===mh.id);
-        var _u9m=(typeof pxToWorld==='function')?pxToWorld():0.05;
-        var _r9=Math.max(10*_u9m,Math.min(1.2,46*_u9m));if(_selMh9)_r9*=1.4;
+        var _r9=2.1;if(_selMh9)_r9*=1.4; /* [1280] 월드 고정 — 확대/축소 시 도면과 함께(후측량 원과 동일 체감) */
         var _c9=_selMh9?'#d500f2':'#16a34a';
         var _bg9=el('circle',{cx:mx,cy:my,r:_r9,fill:_c9,'fill-opacity':0.22,stroke:_c9,'stroke-width':2.4,'vector-effect':'non-scaling-stroke'});
         _bg9.setAttribute('pointer-events','none');
@@ -6889,6 +6889,7 @@ function _fldAutoMnRecs(){ /* [1258] field — 후측량 확정 맨홈(_aft·신
 function _fldMhClickAt(cx,cy){ /* [1258] field 전용 — 도면 맨홈 클릭→해당 야장 자동 열기 */
   try{
     if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return false;
+    if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen)return false; /* [1280] 후측량 사진 모드에선 맨홀 안 잡힘(측점만) */
     var w=toWorld(cx,cy),wx=w[0],wy=-w[1];
     var tol=Math.max(1.6,26*pxToWorld());
     var best=null,bd=1e18;
@@ -7198,7 +7199,7 @@ function mnHostOpen(){
     pn=document.createElement('div');pn.id='mnPanel';pn.className='photo-panel';
     if(jp&&jp.parentNode)jp.parentNode.insertBefore(pn,jp.nextSibling);else document.body.appendChild(pn);
   }
-  [].forEach.call(document.querySelectorAll('.photo-panel.open'),function(p){if(p.id!=='mnPanel'){p.classList.remove('open');p.style.display='none';}});
+  [].forEach.call(document.querySelectorAll('.photo-panel.open'),function(p){if(p.id!=='mnPanel'){p.classList.remove('open');p.style.display='none';if(p.id==='photoPanel'&&typeof photoPanelOpen!=='undefined'&&photoPanelOpen){photoPanelOpen=false;try{if(typeof drawGeo==='function')setTimeout(drawGeo,0);}catch(_d9){}}}}); /* [1280] 상태 동기·노란원 숨김 */
   pn.classList.add('open');pn.style.display='flex';pn.innerHTML='';
   return pn;
 }
