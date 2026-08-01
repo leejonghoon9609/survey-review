@@ -12293,8 +12293,8 @@ function refOpen(){
       '<button id="refB5" style="flex:1;padding:9px;border:1px solid #bbb;background:#fff;color:#444;border-radius:8px;font-size:12.5px;cursor:pointer">\uc804\uccb4\ubcf4\uae30</button>'+'</div>'):'')+
     /* [1100] 완료 · 닫기 한 줄 (닫기는 좁게) */
     '<div style="display:flex;gap:8px;margin-top:12px">'+
-      '<button id="refBok" style="flex:1;padding:11px;border:none;background:#1d9e75;color:#fff;border-radius:9px;font-size:13.5px;font-weight:800;cursor:pointer;text-align:center">\u2713 \uc644&nbsp;&nbsp;\ub8cc</button>'+
-      '<button id="refBx" style="flex:1;padding:11px 8px;border:1px solid #ddd;background:#fff;color:#666;border-radius:9px;font-size:13.5px;font-weight:700;cursor:pointer;text-align:center">\ub2eb\uae30</button>'+   /* [1101] 가로 동일 */
+      '<button id="refBok" style="flex:1;padding:11px;border:none;background:#1d9e75;color:#fff;border-radius:9px;font-size:13.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\u2713&nbsp;\uc644&nbsp;&nbsp;\ub8cc</button>'+
+      '<button id="refBx" style="flex:1;padding:11px 8px;border:1px solid #ddd;background:#fff;color:#666;border-radius:9px;font-size:13.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center">\ub2eb&nbsp;&nbsp;\uae30</button>'+   /* [1101] 가로 동일 */
     '</div>';
   w.appendChild(b);document.body.appendChild(w);
   /* [1115] 제목 줄을 잡고 모달 이동 */
