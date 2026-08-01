@@ -7056,6 +7056,14 @@ function openFinalStatus(){
 })();
 
 /* ===================== [BUILD 918] 맨홀조사 야장 (측량현장) ===================== */
+function mnRegisterDone(){ /* [1265] 맨홀 야장 등록완료 — joseoRegisterDone 미러 */
+  if(!state.projectId){toast('먼저 사업을 불러오세요');return;}
+  var fd=state.fieldDone||{csv:false,joseo:false,manhole:false};fd.manhole=true;state.fieldDone=fd;
+  if(online&&state.projectId)saveProject();
+  if(typeof refreshFieldBar==='function')refreshFieldBar();
+  var db=document.getElementById('mnDoneBtn');if(db){db.classList.add('on');db.textContent='✅ 등록완료';}
+  toast('맨홀조사 야장 등록완료 ✓');
+}
 var MH_SPECS=[
   {name:'수공1호',w:450,h:950,dep:700},
   {name:'수공2-1호',w:700,h:1300,dep:700},
@@ -7221,6 +7229,7 @@ function mnOpenList(){
     +'<div style="padding:15px 17px;background:#fff;border-bottom:1px solid #e7eeea;display:flex;align-items:center;gap:9px">'
       +'<span style="width:10px;height:10px;border-radius:50%;background:#1d9e75;flex:none"></span>'
       +'<b style="flex:1;font-size:16px;color:#22332b">맨홀조사 야장</b>'
+      +'<button id="mnDoneBtn" class="jz-done'+((state.fieldDone&&state.fieldDone.manhole)?' on':'')+'">'+((state.fieldDone&&state.fieldDone.manhole)?'✅ 등록완료':'✅ 완료등록')+'</button>' /* [1265] 조서 동일 스타일 */
       +(rows.length?'<span style="background:#e1f5ee;color:#0f6e56;border-radius:20px;padding:3px 11px;font-size:12px;font-weight:800">'+rows.length+'개</span>':'')
       +'<button id="mnTrashBtn" style="border:1px solid #b58900;background:#fdf6e3;color:#8a6d00;border-radius:9px;padding:7px 11px;cursor:pointer;font-weight:800;font-size:12.5px">🗑 삭제목록</button>'
       +'<button id="mnLClose" style="border:1.5px solid #d32f2f;background:#fff;border-radius:9px;padding:7px 15px;cursor:pointer;color:#d32f2f;font-weight:800;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">닫기</span></button></div>'
@@ -7241,7 +7250,7 @@ function mnOpenList(){
   root.querySelector('#mnNew').onclick=function(){uClose();mnOpenForm(null);};
   [].forEach.call(root.querySelectorAll('.mn-card'),function(b){b.onclick=function(e){if(e.target.classList.contains('mn-del'))return;var i=+b.getAttribute('data-i');var _r=mnList()[i];try{if(typeof refMhFocus==='function')refMhFocus(_r);}catch(_e){}uClose();mnOpenForm(_r);};});
   [].forEach.call(root.querySelectorAll('.mn-del'),function(b){b.onclick=function(){var i=+b.getAttribute('data-i');var r=mnList()[i];if(!confirm('맨홀 '+mnLabel(r)+' 조사를 삭제할까요?\n(7일 보관 후 완전삭제 — 삭제목록에서 복원 가능)'))return;r.delAt=Date.now();saveProject();uClose();mnOpenList();toast('🗑 삭제됨 (7일 보관)');};});
-  var _tb=root.querySelector('#mnTrashBtn');if(_tb)_tb.onclick=function(){mnTrashList(uClose);};
+  var _tb=root.querySelector('#mnTrashBtn');if(_tb)_tb.onclick=function(){mnTrashList(uClose);};var _mdb=root.querySelector('#mnDoneBtn');if(_mdb)_mdb.onclick=mnRegisterDone; /* [1265] */
 }
 function mnAsk(opt){
   var old=document.getElementById('mnAskModal');if(old)old.remove();
