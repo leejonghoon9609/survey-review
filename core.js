@@ -7160,6 +7160,52 @@ async function aftPhotoZip(){ /* [1272] 측설(후측량) 사진 ZIP — 날짜 
     toast('측설사진 '+n+'장 ZIP 완료');
   }catch(e){toast('ZIP 실패: '+(e&&e.message||e));}
 }
+function fldRegToNext(cb){ /* [1289] field 성과 → 탱고(_T)·정위치(_P) 사본 등록 — svRegToField 미러 */
+  if(!online){toast('Supabase 연결 필요');return;}
+  if(!state.projectId||!state.projectName){toast('먼저 사업을 선택/저장하세요');return;}
+  var base=baseName(state.projectName);
+  var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,rtDaily:state.rtDaily||[],trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:state.finalCsv||null,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,mnList:state.mnList||[]};
+  function one(tbl,ptbl,suffix,stage,next){
+    sb.from(tbl).select('id,name,payload').then(function(res){
+      var rows=((res&&res.data)||[]).filter(function(r){var pl0=r.payload||{};return !pl0.delAt&&(pl0.stage||'survey')===stage&&baseName(r.name)===base;});
+      var pl=JSON.parse(JSON.stringify(payload));pl.stage=stage;
+      var fin=function(row){
+        if(row&&row.error){toast('등록 오류('+stage+'): '+row.error.message);next(null);return;}
+        var saved=row&&row.data&&row.data[0];if(!saved){next(null);return;}
+        sb.from('field_photos').select('point_no,url').eq('project_id',state.projectId).then(function(pr){
+          var prows=(pr&&pr.data)||[];if(!prows.length){next(saved);return;}
+          sb.from(ptbl).select('point_no').eq('project_id',saved.id).then(function(ex){
+            var have={};((ex&&ex.data)||[]).forEach(function(r2){have[String(r2.point_no)]=1;});
+            var ins=prows.filter(function(r2){return !have[String(r2.point_no)];}).map(function(r2){return {project_id:saved.id,point_no:r2.point_no,url:r2.url};});
+            if(!ins.length){next(saved);return;}
+            sb.from(ptbl).insert(ins).then(function(){next(saved);});
+          });
+        });
+      };
+      if(rows.length){sb.from(tbl).update({name:rows[0].name,payload:pl,updated_at:new Date().toISOString()}).eq('id',rows[0].id).select().then(fin);}
+      else{sb.from(tbl).insert({name:base+suffix,payload:pl,updated_at:new Date().toISOString()}).select().then(fin);}
+    });
+  }
+  one('tango_projects','tango_photos','_T','tango',function(a){
+    one('position_projects','position_photos','_P','position',function(b){
+      var fd=state.fieldDone||{csv:false,joseo:false,manhole:false};fd.final=true;state.fieldDone=fd;
+      try{window._silentSave=true;saveProject();}catch(_se){}
+      if(typeof refreshFieldBar==='function')refreshFieldBar();
+      toast('탱고·정위치 등록 완료'+(a?(' — '+a.name):''));
+      if(typeof cb==='function')cb(true);
+    });
+  });
+}
+function fldRegOff(cb){ /* [1289] 해제 — 탱고·정위치 사본 삭제목록 처리(1240 미러) */
+  var base=baseName(state.projectName||'');var done=0;
+  [['tango_projects','tango'],['position_projects','position']].forEach(function(tp){
+    sb.from(tp[0]).select('id,name,payload').then(function(res){
+      ((res&&res.data)||[]).forEach(function(r){var pl=r.payload||{};if(pl.delAt)return;if((pl.stage||'survey')!==tp[1])return;if(baseName(r.name)!==base)return;
+        pl.delAt=Date.now();sb.from(tp[0]).update({payload:pl}).eq('id',r.id).then(function(){});});
+      if(++done===2){var fd=state.fieldDone||{};fd.final=false;state.fieldDone=fd;try{window._silentSave=true;saveProject();}catch(_se){}if(typeof refreshFieldBar==='function')refreshFieldBar();toast('탱고·정위치 등록 해제');if(typeof cb==='function')cb(false);}
+    });
+  });
+}
 function openFinalStatus(){
   var fd=state.fieldDone||{csv:false,joseo:false,manhole:false};state.fieldDone=fd;
   var items=[['csv','후측량CSV+결선'],['joseo','실시간 사진조서'],['aftPhoto','측설사진'],/* [1270·1272] 맨홀도 제작 항목 제거(fd.manhole 키는 유지) */['mnDxf','맨홀도DXF'],['mnXls','설비사진조서(엑셀)'],['mnEfb','현장전자야장'],['mnPhoto','맨홀사진다운']]; /* [1268] */
@@ -7170,12 +7216,18 @@ function openFinalStatus(){
   function row(k,label){var done=!!fd[k];var btn;if(((k==='joseo')||(k==='csv'&&state.finalCsv&&state.finalCsv.length)||k==='aftPhoto'||k==='mnDxf'||k==='mnXls'||k==='mnEfb'||k==='mnPhoto')&&done){ /* [1268] 맨홀 4종도 다운로드 */btn='<button class="fs-dl" data-k="'+k+'" style="border:1px solid #0d9488;background:#e7faf5;color:#0d9488;border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer;font-weight:700">📥 다운로드</button>';}else if(k==='csv'){btn='<span style="font-size:12px;color:#888">상단 \'후측량 csv\'로 업로드</span>';}else{btn='<button class="fs-tgl" data-k="'+k+'" style="border:1px solid #ccc;background:#fff;border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer">'+(done?'미완료로':'등록완료')+'</button>';}return '<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #f1f1f1"><span style="flex:1;font-size:15px;font-weight:600">'+label+'</span><span style="font-size:13px;font-weight:800;padding:4px 11px;border-radius:20px;'+(done?'background:#eafaf0;color:#16a34a;border:1px solid #16a34a':'background:#fff5f5;color:#d32f2f;border:1px solid #d32f2f')+'">'+(done?'등록완료':'미완료')+'</span>'+btn+'</div>';}
   function render(){
     var allDone=items.every(function(it){return !!fd[it[0]];});
-    box.innerHTML='<div style="padding:15px 18px;border-bottom:1px solid #eee;display:flex;align-items:center"><b style="flex:1;font-size:16px;color:#4f46e5">📋 후측량 최종성과 등록</b><button id="fsClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div>'
+    box.innerHTML='<div style="padding:15px 18px;border-bottom:1px solid #eee;display:flex;align-items:center"><b style="font-size:16px;color:#4f46e5">📋 후측량 최종성과 등록</b><span id="fsFinalBadge" style="margin-left:10px;font-size:12px;font-weight:800;border-radius:7px;padding:4px 10px;cursor:pointer;flex:none"></span><span style="flex:1"></span><button id="fsClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div>'
       +items.map(function(it){return row(it[0],it[1]);}).join('')
-      +'<div style="padding:13px 18px;font-size:13px;'+(allDone?'color:#16a34a;font-weight:700':'color:#888')+'">'+(allDone?'✅ 모든 성과 등록완료':'각 항목을 등록완료로 표시하세요 (성과 제작 연결은 다음 단계)')+'</div>';
+      +'<div style="padding:13px 18px;font-size:13px;'+(allDone?'color:#16a34a;font-weight:700':'color:#888')+'">'+(allDone?'✅ 모든 성과 등록완료':'각 항목을 등록완료로 표시하세요')+'</div>'+'<div style="padding:12px 18px;border-top:1px solid #eee;display:flex;gap:9px;justify-content:flex-end"><button id="fsReg" style="border:none;background:#16a34a;color:#fff;border-radius:8px;padding:9px 20px;font-weight:800;cursor:pointer">등록</button><button id="fsCancel" style="border:1px solid #ccc;background:#fff;border-radius:8px;padding:9px 16px;cursor:pointer;font-weight:700">취소</button></div>'; /* [1289] */
     box.querySelector('#fsClose').onclick=function(){ov.remove();};
     [].forEach.call(box.querySelectorAll('.fs-tgl'),function(b){b.onclick=function(){var k=this.getAttribute('data-k');fd[k]=!fd[k];state.fieldDone=fd;if(online&&state.projectId)saveProject();refreshFieldBar();render();};});
     [].forEach.call(box.querySelectorAll('.fs-dl'),function(b){b.onclick=function(){var dk=this.getAttribute('data-k');if(dk==='csv'){downloadFinalCsvDxf();}else if(dk==='joseo'){joseoDownloadFinal();}else if(dk==='aftPhoto'){aftPhotoZip();}else if(dk==='mnDxf'){mnExpAll('dxf');}else if(dk==='mnXls'){mnExpAll('xls');}else if(dk==='mnEfb'){mnExpAll('efb');}else if(dk==='mnPhoto'){mnExpAll('zip');}};}); /* [1268] */
+    var _fb=box.querySelector('#fsFinalBadge');
+    function _setFB(on){if(!_fb)return;_fb.setAttribute('data-on',on?'1':'');if(on){_fb.textContent='등록완료 ✓';_fb.style.background='#e0a800';_fb.style.color='#fff';_fb.style.border='0';}else{_fb.textContent='미등록';_fb.style.background='#fff';_fb.style.color='#e0a800';_fb.style.border='1.5px solid #e0a800';}}
+    _setFB(!!fd.final);
+    if(_fb)_fb.onclick=function(){if(_fb.getAttribute('data-on')){fldRegOff(function(){_setFB(false);});}else{fldRegToNext(function(ok){if(ok)_setFB(true);});}};
+    var _fr=box.querySelector('#fsReg');if(_fr)_fr.onclick=function(){fldRegToNext(function(ok){if(ok)_setFB(true);});};
+    var _fc=box.querySelector('#fsCancel');if(_fc)_fc.onclick=function(){ov.remove();};
   }
   render();ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};document.body.appendChild(ov);
 }
