@@ -7088,7 +7088,7 @@ function mnRegisterDone(){ /* [1268] 체크 모달 — 기본 전체 선택, 등
     fd.manhole=false;fd.mnDxf=false;fd.mnXls=false;fd.mnEfb=false;fd.mnPhoto=false;state.fieldDone=fd;
     if(online&&state.projectId)saveProject();
     if(typeof refreshFieldBar==='function')refreshFieldBar();
-    var db0=document.getElementById('mnDoneBtn');if(db0){db0.classList.remove('on');db0.textContent='✅ 완료등록';}
+    var db0=document.getElementById('mnDoneBtn');if(db0){db0.classList.remove('on');db0.textContent='미등록';}
     toast('맨홀조사 야장 등록 해제됨 — 다시 누르면 재등록');
     return;
   }
@@ -7277,13 +7277,11 @@ function mnOpenList(){
   }
   var newBtn='<div style="padding:'+(host?'12px 15px 4px':'11px 15px 15px')+'"><button id="mnNew" style="width:100%;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:12px;padding:13px;font-weight:800;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(211,47,47,.15)"><span style="letter-spacing:2px;margin-right:-2px">+ 새 맨홀조사</span></button></div>';
   var inner='<div style="background:#f5f8f6;'+(host?'width:100%;height:100%;border-radius:0':'border-radius:16px;width:min(94vw,420px);max-height:84dvh;box-shadow:0 16px 48px rgba(0,0,0,.25)')+';display:flex;flex-direction:column;overflow:hidden">'
-    +'<div style="padding:15px 17px;background:#fff;border-bottom:1px solid #e7eeea;display:flex;align-items:center;gap:9px">'
-      +'<span style="width:10px;height:10px;border-radius:50%;background:#1d9e75;flex:none"></span>'
-      +'<b style="font-size:16px;color:#22332b">맨홀조사 야장</b>'
-      +'<button id="mnDoneBtn" class="jz-done'+((state.fieldDone&&state.fieldDone.manhole)?' on':'')+'">'+((state.fieldDone&&state.fieldDone.manhole)?'✅ 등록완료':'✅ 완료등록')+'</button><button id="mnPhUpBtn" title="ZIP 폴더 규칙: 맨홈번호(소유자)/1.jpg·2-1~2-4·표찰 — 완료결선 업로드와 동일" style="border:1px solid #1565c0;background:#fff;color:#1565c0;border-radius:7px;padding:4px 10px;font-weight:700;cursor:pointer">📷 맨홈사진 업로드</button><span style="flex:1"></span>' /* [1265~1273] 제목 바로 옆 + 스페이서 */
-      +(rows.length?'<span style="background:#e1f5ee;color:#0f6e56;border-radius:20px;padding:3px 11px;font-size:12px;font-weight:800">'+rows.length+'개</span>':'')
-      +'<button id="mnTrashBtn" style="border:1px solid #b58900;background:#fdf6e3;color:#8a6d00;border-radius:9px;padding:7px 11px;cursor:pointer;font-weight:800;font-size:12.5px">🗑 삭제목록</button>'
-      +'<button id="mnLClose" style="border:1.5px solid #d32f2f;background:#fff;border-radius:9px;padding:7px 15px;cursor:pointer;color:#d32f2f;font-weight:800;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">닫기</span></button></div>'
+    +'<div style="padding:12px 17px;background:#fff;border-bottom:1px solid #e7eeea;display:flex;align-items:center;gap:7px;flex-wrap:wrap">' /* [1275] 2줄 헤더 */
+      +'<span style="width:100%;display:flex;align-items:center;gap:8px;white-space:nowrap"><span style="width:10px;height:10px;border-radius:50%;background:#1d9e75;flex:none"></span><b style="font-size:16px;color:#22332b">맨홀조사 야장</b></span>' /* [1275] 제목 윗줄 */
+      +'<button id="mnDoneBtn" class="jz-done'+((state.fieldDone&&state.fieldDone.manhole)?' on':'')+'" style="padding:3px 8px;font-size:12px;white-space:nowrap">'+((state.fieldDone&&state.fieldDone.manhole)?'✅ 등록완료':'미등록')+'</button><button id="mnPhUpBtn" title="ZIP 폴더 규칙: 맨홀번호(소유자)/1.jpg·2-1~2-4·표찰 — 완료결선 업로드와 동일" style="border:1px solid #1565c0;background:#fff;color:#1565c0;border-radius:7px;padding:3px 8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">📷 맨홀사진 업로드</button><span style="flex:1"></span>' /* [1265~1273] 제목 바로 옆 + 스페이서 */
+      +'<button id="mnTrashBtn" style="border:1px solid #b58900;background:#fdf6e3;color:#8a6d00;border-radius:9px;padding:4px 8px;cursor:pointer;font-weight:800;font-size:12px;white-space:nowrap">🗑 삭제목록</button>'
+      +'<button id="mnLClose" style="border:1.5px solid #d32f2f;background:#fff;border-radius:9px;padding:4px 10px;cursor:pointer;color:#d32f2f;font-weight:800;font-size:12px;white-space:nowrap">닫기</button></div>'
     +(host?newBtn:'')
     +'<div style="padding:13px 15px 4px;overflow:auto;flex:1">'+listHtml+'</div>'
     +(host?'':newBtn)
@@ -9743,7 +9741,7 @@ var joseoLink=true;
 function joseoSyncDoneBtn(){
   var db=document.getElementById('joseoDoneBtn'); if(!db)return;
   var done=!!(state.fieldDone&&state.fieldDone.joseo);
-  db.classList.toggle('on',done); db.textContent=done?'✅ 등록완료':'✅ 완료등록';
+  db.classList.toggle('on',done); db.textContent=done?'✅ 등록완료':'미등록'; /* [1275] */
 }
 function joseoSyncTo(no){
   if(!joseoState||!joseoLink||!no) return;
@@ -9756,13 +9754,13 @@ function joseoSyncTo(no){
   [].forEach.call(cards,function(c){ c.classList.remove('sel'); c.style.outline=''; c.style.outlineOffset=''; if(c.getAttribute('data-no')===String(p.no)) hit=c; });   /* [1108] 인라인 표시도 청소 — 이중 강조 방지 */
   if(hit){ hit.classList.add('sel'); hit.scrollIntoView({behavior:'smooth',block:'center'}); }
 }
-function joseoRegisterDone(){
+function joseoRegisterDone(){ /* [1275] 토글 */
   if(!state.projectId){ toast('먼저 사업을 불러오세요'); return; }
-  var fd=state.fieldDone||{csv:false,joseo:false,manhole:false}; fd.joseo=true; state.fieldDone=fd;
+  var fd=state.fieldDone||{csv:false,joseo:false,manhole:false}; fd.joseo=!fd.joseo; state.fieldDone=fd;
   if(online&&state.projectId) saveProject();
   if(typeof refreshFieldBar==='function') refreshFieldBar();
   joseoSyncDoneBtn();
-  toast('실시간 사진조서 등록완료 ✓ — 최종본은 [전체 ZIP]/[날짜별 다운로드]로 받으세요');
+  toast(fd.joseo?'실시간 사진조서 등록완료 ✓ — 최종본은 [전체 ZIP]/[날짜별 다운로드]로 받으세요':'실시간 사진조서 미등록으로 변경 — 최종성과 창에 반영됨');
 }
 (function(){
   var lb=document.getElementById('joseoLinkBtn');
