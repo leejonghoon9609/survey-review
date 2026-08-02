@@ -7260,7 +7260,7 @@ function fldRegOff(cb){ /* [1289] 해제 — 탱고·정위치 사본 삭제목�
 }
 function openFinalStatus(){
   var fd=state.fieldDone||{csv:false,joseo:false,manhole:false};state.fieldDone=fd;
-  try{if(!fd.aftPhoto){var _an=Object.keys(afterMap||{}).filter(function(k){return !!afterMap[k];}).length;if(_an>0){fd.aftPhoto=true;if(online&&state.projectId){window._silentSave=true;saveProject();}if(typeof _fldStakePhSync==='function')_fldStakePhSync();}}}catch(_ae){}/* [1304] 측설(_A) 사진 있으면 자동 등록 */
+  try{if(fd.aftPhoto==null){/* [1306] 수동 해제(false)는 절대 덮지 않음 — 미설정 최초 1회만 자동 */var _an=Object.keys(afterMap||{}).filter(function(k){return !!afterMap[k];}).length;if(_an>0){fd.aftPhoto=true;if(online&&state.projectId){window._silentSave=true;saveProject();}if(typeof _fldStakePhSync==='function')_fldStakePhSync();}}}catch(_ae){}/* [1304] 측설(_A) 사진 있으면 자동 등록 */
   var items=[['csv','후측량CSV+결선'],['joseo','실시간 사진조서'],['exPhoto','노출관로사진']/* [1301] */,['aftPhoto','측설사진'],/* [1270·1272] 맨홀도 제작 항목 제거(fd.manhole 키는 유지) */['mnDxf','맨홀도DXF'],['mnXls','설비사진조서(엑셀)'],['mnEfb','현장전자야장'],['mnPhoto','맨홀사진다운']]; /* [1268] */
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center';
@@ -7302,7 +7302,7 @@ function _fldExPhotoAuto(cb){ /* [1302] field 전용 — 결선DB 완료성과(_
     sb.from('survey_photos').select('point_no').eq('project_id',tw.id).then(function(pr){
       var n=(((pr&&pr.data)||[])).filter(function(r){return !/_A$/.test(String(r.point_no));}).length;
       window._fldExPhSrc={id:tw.id,name:tw.name,count:n};
-      if(n>0&&!(state.fieldDone&&state.fieldDone.exPhoto)){
+      if(n>0&&(!state.fieldDone||state.fieldDone.exPhoto==null)){/* [1306] 수동 해제 존중 */
         if(!state.fieldDone)state.fieldDone={csv:false,joseo:false,manhole:false};
         state.fieldDone.exPhoto=true;
         if(online&&state.projectId){window._silentSave=true;try{saveProject();}catch(_e){}}
