@@ -7260,6 +7260,7 @@ function fldRegOff(cb){ /* [1289] 해제 — 탱고·정위치 사본 삭제목�
 }
 function openFinalStatus(){
   var fd=state.fieldDone||{csv:false,joseo:false,manhole:false};state.fieldDone=fd;
+  try{if(!fd.aftPhoto){var _an=Object.keys(afterMap||{}).filter(function(k){return !!afterMap[k];}).length;if(_an>0){fd.aftPhoto=true;if(online&&state.projectId){window._silentSave=true;saveProject();}if(typeof _fldStakePhSync==='function')_fldStakePhSync();}}}catch(_ae){}/* [1304] 측설(_A) 사진 있으면 자동 등록 */
   var items=[['csv','후측량CSV+결선'],['joseo','실시간 사진조서'],['exPhoto','노출관로사진']/* [1301] */,['aftPhoto','측설사진'],/* [1270·1272] 맨홀도 제작 항목 제거(fd.manhole 키는 유지) */['mnDxf','맨홀도DXF'],['mnXls','설비사진조서(엑셀)'],['mnEfb','현장전자야장'],['mnPhoto','맨홀사진다운']]; /* [1268] */
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center';
@@ -13418,13 +13419,11 @@ function _tgTakeRender(pop,body,base,R){
   var exPh=[],exLbl='',exGate='';
   if(R.sv&&svEx.length){exPh=svEx;exLbl='결선 '+R.sv.name;}/* [1302] 결선DB 완료성과 사진 = 등록으로 간주 */
   else exGate='결선DB 완료성과 노출관로사진 없음';
-  var afPh=[],afLbl='',afGate='';
-  if(R.fld){
-    if(ffd.aftPhoto){afPh=fldAf;afLbl='현장 '+R.fld.name;}
-    else afGate='현장 측설사진 미등록 — 최종성과 창에서 등록 필요';
-  }else if(R.sv&&svAf.length){afPh=svAf;afLbl='결선 '+R.sv.name;}
-  else afGate='대응 현장 사업 없음';
-  var csvGate=(R.fld&&fcs.length&&!ffd.csv)?'현장 미등록 — 최종성과 창에서 등록 필요':'';
+  var afPh=[],afLbl='',afGate='';/* [1304] 플래그 게이트 제거 — 현장 _A 사진 있으면 등록으로 간주(자동) */
+  if(R.fld&&fldAf.length){afPh=fldAf;afLbl='현장 '+R.fld.name;}
+  else if(R.sv&&svAf.length){afPh=svAf;afLbl='결선 '+R.sv.name;}
+  else afGate='후측량(_A) 사진 없음';
+  var csvGate='';/* [1304] 파일 존재=등록(자동) */
   function row(lab,ok,txt,dl,ap,apLab){
     return '<div style="display:flex;align-items:center;gap:10px;padding:11px 6px;border-bottom:1px solid #f2f2ef">'
       +'<b style="width:126px;font-size:13.5px;flex:none">'+lab+'</b>'
@@ -13440,7 +13439,7 @@ function _tgTakeRender(pop,body,base,R){
     +row('후측량 CSV',csvOk,R.fld?(csvGate?csvGate:('현장 '+R.fld.name+' · CSV '+fcs.length+'개 파일')):'대응 현장 사업 없음',csvOk?'aftcsv':null,csvOk?'aftapply':null,'심도 적용')
     +row('노출관로 사진',exPh.length,exGate?exGate:(exLbl+' · '+exPh.length+'장'),exPh.length?'exph':null,exPh.length?'exphcopy':null,'탱고로 복사')
     +row('후측량 사진',afPh.length,afGate?afGate:(afLbl+' · '+afPh.length+'장'),afPh.length?'afph':null,afPh.length?'afphcopy':null,'탱고로 복사')
-    +'<div style="font-size:11.5px;color:#98a1ad;padding:8px 4px 0">※ 등록 기준: 노출관로 사진=결선DB 완료성과 사진(자동 등록) · 후측량(측설) 사진=현장 측설사진 등록 · 후측량 CSV=현장 후측량CSV 등록 · 적용: 심도=CSV 재계산 · 사진=탱고 사진목록 복사(중복 제외)</div>';
+    +'<div style="font-size:11.5px;color:#98a1ad;padding:8px 4px 0">※ 인수 소스(전부 자동): 노출관로 사진=결선DB 완료성과 · 후측량 사진(_A)·CSV=현장 성과 · 후측량 CSV=현장 후측량CSV 등록 · 적용: 심도=CSV 재계산 · 사진=탱고 사진목록 복사(중복 제외)</div>';
   [].forEach.call(body.querySelectorAll('button[data-a]'),function(b){b.onclick=function(){
     var a=b.getAttribute('data-a');
     if(a==='excsv')_tgIntCsv(pts,base);
