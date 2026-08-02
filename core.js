@@ -13422,9 +13422,11 @@ function _tgTakeRender(pop,body,base,R){
   /* [1300] 등록 기준 분리:
      - 노출관로 사진 = 결선(_A) 완료성과의 일별 사진(survey_photos) — 결선 완료성과 사업이 있으면 등록으로 간주
      - 후측량 사진 = 현장(field_photos _A), 현장 「측설사진 등록완료(aftPhoto)」일 때만 인수 */
+  var fldEx=R.fldPh.filter(function(r){return !_isA(r);});
   var exPh=[],exLbl='',exGate='';
-  if(R.sv&&svEx.length){exPh=svEx;exLbl='결선 '+R.sv.name;}/* [1302] 결선DB 완료성과 사진 = 등록으로 간주 */
-  else exGate='결선DB 완료성과 노출관로사진 없음';
+  if(R.sv&&svEx.length){exPh=svEx;exLbl='결선 '+R.sv.name;}/* 결선DB 완료성과 우선 */
+  else if(R.fld&&fldEx.length){exPh=fldEx;exLbl='현장 '+R.fld.name;}/* [1307] 결선 미탐지 시 현장 전(前) 사진 폴백 — 데이터 있으면 무조건 표시 */
+  else exGate='노출관로 사진 없음';
   var afPh=[],afLbl='',afGate='';/* [1304] 플래그 게이트 제거 — 현장 _A 사진 있으면 등록으로 간주(자동) */
   if(R.fld&&fldAf.length){afPh=fldAf;afLbl='현장 '+R.fld.name;}
   else if(R.sv&&svAf.length){afPh=svAf;afLbl='결선 '+R.sv.name;}
