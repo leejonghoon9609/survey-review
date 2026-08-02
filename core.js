@@ -7147,21 +7147,26 @@ function downloadFinalCsvDxf(){
   if(dxf){zip.file(safe+'_결선.dxf',dxf);}
   zip.generateAsync({type:'blob'}).then(function(blob){var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='후측량성과_'+base+'.zip';document.body.appendChild(a);a.click();a.remove();toast('📦 후측량CSV+결선DXF → ZIP 다운로드');});
 }
-async function exPhotoZip(){ /* [1301] 노출관로(전) 사진 ZIP — aftPhotoZip 미러(photoMap) */
+async function exPhotoZip(){ /* [1302] 노출관로 사진 ZIP — 결선(_A) 완료성과(survey_photos) 우선, 없으면 현재 photoMap */
   try{
     if(typeof JSZip==='undefined'){toast('압축 모듈 없음');return;}
-    var keys=Object.keys(photoMap||{}).filter(function(k){return !!photoMap[k];});
-    if(!keys.length){toast('노출관로 사진이 없습니다');return;}
-    toast('노출관로사진 ZIP 생성 중… ('+keys.length+'장)');
+    var items=[];
+    var src=window._fldExPhSrc;
+    if(src&&src.id&&online){
+      try{var pr=await sb.from('survey_photos').select('point_no,url').eq('project_id',src.id);
+      (((pr&&pr.data)||[])).forEach(function(r){var pn=String(r.point_no);if(!/_A$/.test(pn))items.push({no:pn,url:r.url});});}catch(_qe){}
+    }
+    if(!items.length){Object.keys(photoMap||{}).forEach(function(k){if(photoMap[k])items.push({no:k,url:photoMap[k]});});}
+    if(!items.length){toast('노출관로 사진이 없습니다');return;}
+    toast('노출관로사진 ZIP 생성 중… ('+items.length+'장)');
     var zip=new JSZip(),n=0;
-    for(var i=0;i<keys.length;i++){
-      var k=keys[i];var base=String(k);
-      var dk=(typeof joseoDate==='function')?joseoDate(base):'';
-      var folder=dk||'기타';
+    for(var i=0;i<items.length;i++){
+      var it=items[i];var m=/^([0-9]{6})-/.exec(it.no);
+      var folder=m?m[1]:(((typeof joseoDate==='function')&&joseoDate(it.no))||'기타');
       try{
-        var r=await fetch(photoMap[k]);if(!r.ok)continue;
+        var r=await fetch(it.url);if(!r.ok)continue;
         var buf=await r.arrayBuffer();
-        var num=(base.indexOf('-')>=0)?base.split('-').pop():base;
+        var num=(it.no.indexOf('-')>=0)?it.no.split('-').pop():it.no;
         zip.file(folder+'/'+num+'.jpg',buf);n++;
       }catch(_fe){}
     }
@@ -7277,6 +7282,26 @@ function openFinalStatus(){
     var _fc=box.querySelector('#fsCancel');if(_fc)_fc.onclick=function(){ov.remove();};
   }
   render();ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};document.body.appendChild(ov);
+  if(typeof _fldExPhotoAuto==='function')_fldExPhotoAuto(function(n){fd=state.fieldDone||fd;if(ov.parentNode)render();});/* [1302] 결선 완료성과 사진 자동 등록 */
+}
+function _fldExPhotoAuto(cb){ /* [1302] field 전용 — 결선DB 완료성과(_A)에 노출관로 사진 있으면 exPhoto 자동 등록 */
+  if(typeof IS_FIELD==='undefined'||!IS_FIELD||!online||!state.projectName){if(cb)cb(0);return;}
+  var base=baseName(state.projectName);
+  sb.from('survey_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
+    var tw=null;((res&&res.data)||[]).some(function(r){var pl=r.payload||{};if(pl.delAt)return false;if((pl.stage||'survey')!=='survey')return false;if(baseName(r.name)!==base)return false;tw=r;return true;});
+    if(!tw){window._fldExPhSrc=null;if(cb)cb(0);return;}
+    sb.from('survey_photos').select('point_no').eq('project_id',tw.id).then(function(pr){
+      var n=(((pr&&pr.data)||[])).filter(function(r){return !/_A$/.test(String(r.point_no));}).length;
+      window._fldExPhSrc={id:tw.id,name:tw.name,count:n};
+      if(n>0&&!(state.fieldDone&&state.fieldDone.exPhoto)){
+        if(!state.fieldDone)state.fieldDone={csv:false,joseo:false,manhole:false};
+        state.fieldDone.exPhoto=true;
+        if(online&&state.projectId){window._silentSave=true;try{saveProject();}catch(_e){}}
+        toast('결선DB 완료성과 노출관로사진 '+n+'장 — 자동 등록됨');
+      }
+      if(cb)cb(n);
+    });
+  });
 }
 (function(){
   var fb=document.getElementById('fieldBar');if(!fb)return;
@@ -13388,13 +13413,9 @@ function _tgTakeRender(pop,body,base,R){
   /* [1300] 등록 기준 분리:
      - 노출관로 사진 = 결선(_A) 완료성과의 일별 사진(survey_photos) — 결선 완료성과 사업이 있으면 등록으로 간주
      - 후측량 사진 = 현장(field_photos _A), 현장 「측설사진 등록완료(aftPhoto)」일 때만 인수 */
-  var fldEx=R.fldPh.filter(function(r){return !_isA(r);});
   var exPh=[],exLbl='',exGate='';
-  if(R.fld){
-    if(ffd.exPhoto){exPh=fldEx;exLbl='현장 '+R.fld.name;}
-    else exGate='현장 노출관로사진 미등록 — 최종성과 창에서 등록 필요';
-  }else if(R.sv){exPh=svEx;exLbl='결선 '+R.sv.name;}
-  else exGate='대응 결선/현장 사업 없음';/* [1301] */
+  if(R.sv&&svEx.length){exPh=svEx;exLbl='결선 '+R.sv.name;}/* [1302] 결선DB 완료성과 사진 = 등록으로 간주 */
+  else exGate='결선DB 완료성과 노출관로사진 없음';
   var afPh=[],afLbl='',afGate='';
   if(R.fld){
     if(ffd.aftPhoto){afPh=fldAf;afLbl='현장 '+R.fld.name;}
@@ -13417,7 +13438,7 @@ function _tgTakeRender(pop,body,base,R){
     +row('후측량 CSV',csvOk,R.fld?(csvGate?csvGate:('현장 '+R.fld.name+' · CSV '+fcs.length+'개 파일')):'대응 현장 사업 없음',csvOk?'aftcsv':null,csvOk?'aftapply':null,'심도 적용')
     +row('노출관로 사진',exPh.length,exGate?exGate:(exLbl+' · '+exPh.length+'장'),exPh.length?'exph':null,exPh.length?'exphcopy':null,'탱고로 복사')
     +row('후측량 사진',afPh.length,afGate?afGate:(afLbl+' · '+afPh.length+'장'),afPh.length?'afph':null,afPh.length?'afphcopy':null,'탱고로 복사')
-    +'<div style="font-size:11.5px;color:#98a1ad;padding:8px 4px 0">※ 등록 기준: 노출관로 사진=현장 노출관로사진 등록 · 후측량(측설) 사진=현장 측설사진 등록 · 후측량 CSV=현장 후측량CSV 등록 · 적용: 심도=CSV 재계산 · 사진=탱고 사진목록 복사(중복 제외)</div>';
+    +'<div style="font-size:11.5px;color:#98a1ad;padding:8px 4px 0">※ 등록 기준: 노출관로 사진=결선DB 완료성과 사진(자동 등록) · 후측량(측설) 사진=현장 측설사진 등록 · 후측량 CSV=현장 후측량CSV 등록 · 적용: 심도=CSV 재계산 · 사진=탱고 사진목록 복사(중복 제외)</div>';
   [].forEach.call(body.querySelectorAll('button[data-a]'),function(b){b.onclick=function(){
     var a=b.getAttribute('data-a');
     if(a==='excsv')_tgIntCsv(pts,base);
