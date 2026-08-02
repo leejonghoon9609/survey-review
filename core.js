@@ -13314,7 +13314,7 @@ function _tgIntCsv(points,projName){ /* 노출관로(실시간) 통합 CSV — s
   var blob=new Blob(['\uFEFF'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(projName||'사업')+'_노출관로.csv';document.body.appendChild(a);a.click();a.remove();
 }
-function tgFinalTakeOpen(){ /* 최종성과 인수 — 실시간(노출관로)·후측량 성과 다운로드/적용 */
+function tgFinalTakeOpen(){ /* 최종성과 인수 — 결선(_A) 우선, 없으면 현장(_B)에서 노출관로/후측량 성과 인수 [1295] */
   if(typeof IS_TANGO==='undefined'||!IS_TANGO)return;
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
   if(!state.projectName){toast('먼저 사업을 선택하세요');return;}
@@ -13323,23 +13323,35 @@ function tgFinalTakeOpen(){ /* 최종성과 인수 — 실시간(노출관로)·
   var body=pop.querySelector('#svDailyBody');body.innerHTML='<div style="color:#999;text-align:center;padding:24px 0">계열 성과 조회 중…</div>';
   pop.querySelector('#svDailyFoot').innerHTML='<button id="tgTakeClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:8px 18px;cursor:pointer;font-weight:700">닫기</button>';
   pop.querySelector('#tgTakeClose').onclick=function(){pop.remove();};
-  var R={rt:null,fld:null,sv:null,rtPh:[],svPh:[]};
+  var R={sv:null,fld:null,ph:[],phStage:''};
   function _pick(res,stg){var tw=null;((res&&res.data)||[]).some(function(r){var pl=r.payload||{};if(pl.delAt)return false;if((pl.stage||'survey')!==stg)return false;if(baseName(r.name)!==base)return false;tw=r;return true;});return tw;}
   Promise.all([
-    sb.from('realtime_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}),
-    sb.from('field_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}),
-    sb.from('survey_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false})
+    sb.from('survey_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}),
+    sb.from('field_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false})
   ]).then(function(rs){
-    R.rt=_pick(rs[0],'realtime');R.fld=_pick(rs[1],'field');R.sv=_pick(rs[2],'survey');
-    Promise.all([
-      R.rt?sb.from('realtime_photos').select('point_no,url').eq('project_id',R.rt.id):Promise.resolve({data:[]}),
-      R.sv?sb.from('survey_photos').select('point_no,url').eq('project_id',R.sv.id):Promise.resolve({data:[]})
-    ]).then(function(ps){R.rtPh=(ps[0]&&ps[0].data)||[];R.svPh=(ps[1]&&ps[1].data)||[];_tgTakeRender(pop,body,base,R);});
+    R.sv=_pick(rs[0],'survey');R.fld=_pick(rs[1],'field');
+    var phSrc=R.sv||R.fld;R.phStage=R.sv?'survey':(R.fld?'field':'');
+    (phSrc?sb.from(R.phStage+'_photos').select('point_no,url').eq('project_id',phSrc.id):Promise.resolve({data:[]}))
+      .then(function(ps){R.ph=(ps&&ps.data)||[];_tgTakeRender(pop,body,base,R);});
+  });
+}
+function _tgCopyPh(rows,srcLbl){ /* 선택 사진만 tango_photos 로 복사(중복 제외) — copyPhotos 미러(필터판) [1295] */
+  if(!online||!state.projectId){toast('현재 사업이 저장되지 않았습니다');return;}
+  if(!rows||!rows.length){toast('복사할 사진이 없습니다');return;}
+  sb.from(DB+'_photos').select('point_no').eq('project_id',state.projectId).then(function(ex){
+    var have={};((ex&&ex.data)||[]).forEach(function(r){have[String(r.point_no)]=1;});
+    var ins=rows.filter(function(r){return !have[String(r.point_no)];}).map(function(r){return {project_id:state.projectId,point_no:r.point_no,url:r.url};});
+    if(!ins.length){loadPhotos();toast('이미 전부 복사되어 있습니다');return;}
+    sb.from(DB+'_photos').insert(ins).then(function(rr){if(rr&&rr.error){toast('사진 복사 오류: '+rr.error.message);return;}loadPhotos();if(photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();toast('📷 '+srcLbl+' '+ins.length+'장 복사됨');});
   });
 }
 function _tgTakeRender(pop,body,base,R){
+  var src=R.sv||R.fld;
+  var srcLbl=R.sv?('결선 '+R.sv.name):(R.fld?('현장 '+R.fld.name):'');
+  var pts=(src&&src.payload&&src.payload.points)?src.payload.points:[];
   var fcs=(R.fld&&R.fld.payload&&R.fld.payload.finalCsv)?(Array.isArray(R.fld.payload.finalCsv)?R.fld.payload.finalCsv:[R.fld.payload.finalCsv]):[];
-  var rtPts=(R.rt&&R.rt.payload&&R.rt.payload.points)?R.rt.payload.points:[];
+  var exPh=R.ph.filter(function(r){return !/_A$/.test(String(r.point_no));});      /* 노출관로(전) */
+  var afPh=R.ph.filter(function(r){return /_A$/.test(String(r.point_no));});       /* 후측량(후, _A) */
   function row(lab,ok,txt,dl,ap,apLab){
     return '<div style="display:flex;align-items:center;gap:10px;padding:11px 6px;border-bottom:1px solid #f2f2ef">'
       +'<b style="width:126px;font-size:13.5px;flex:none">'+lab+'</b>'
@@ -13348,21 +13360,22 @@ function _tgTakeRender(pop,body,base,R){
       +(ap?'<button data-a="'+ap+'" style="background:#fff;color:#16a34a;border:1.5px solid #16a34a;border-radius:7px;padding:6px 13px;font-weight:800;font-size:12.5px;cursor:pointer">'+apLab+'</button>':'')
       +'</div>';
   }
+  var noSrc='대응 결선/현장 사업 없음';
   body.innerHTML=
-    row('노출관로 CSV',rtPts.length,R.rt?('실시간 '+R.rt.name+' · 측점 '+rtPts.length+'점'):'대응 실시간 사업 없음',rtPts.length?'rtcsv':null,null,null)
+    row('노출관로 CSV',pts.length,src?(srcLbl+' · 측점 '+pts.length+'점'):noSrc,pts.length?'excsv':null,null,null)
     +row('후측량 CSV',fcs.length,R.fld?('현장 '+R.fld.name+' · CSV '+fcs.length+'개 파일'):'대응 현장 사업 없음',fcs.length?'aftcsv':null,fcs.length?'aftapply':null,'심도 적용')
-    +row('노출관로 사진',R.rtPh.length,R.rt?(R.rtPh.length+'장'):'대응 실시간 사업 없음',R.rtPh.length?'rtph':null,R.rtPh.length?'rtphcopy':null,'탱고로 복사')
-    +row('후측량 사진',R.svPh.length,R.sv?('결선 '+R.sv.name+' · '+R.svPh.length+'장'):'대응 결선 사업 없음',R.svPh.length?'svph':null,R.svPh.length?'svphcopy':null,'탱고로 복사')
-    +'<div style="font-size:11.5px;color:#98a1ad;padding:8px 4px 0">※ 적용: 심도=후측량 CSV로 심도 재계산 · 사진=탱고 사진목록으로 복사(중복 제외)</div>';
+    +row('노출관로 사진',exPh.length,src?(srcLbl+' · '+exPh.length+'장'):noSrc,exPh.length?'exph':null,exPh.length?'exphcopy':null,'탱고로 복사')
+    +row('후측량 사진',afPh.length,src?(srcLbl+' · '+afPh.length+'장'):noSrc,afPh.length?'afph':null,afPh.length?'afphcopy':null,'탱고로 복사')
+    +'<div style="font-size:11.5px;color:#98a1ad;padding:8px 4px 0">※ 인수 소스: 결선(_A) 우선, 없으면 현장(_B) · 적용: 심도=후측량 CSV로 심도 재계산 · 사진=탱고 사진목록으로 복사(중복 제외)</div>';
   [].forEach.call(body.querySelectorAll('button[data-a]'),function(b){b.onclick=function(){
     var a=b.getAttribute('data-a');
-    if(a==='rtcsv')_tgIntCsv(rtPts,base);
+    if(a==='excsv')_tgIntCsv(pts,base);
     else if(a==='aftcsv'){toast('후측량 CSV '+fcs.length+'개 다운로드');fcs.forEach(function(it,i){setTimeout(function(){var blob=new Blob(['\uFEFF'+(it.text||'')],{type:'text/csv;charset=utf-8'});var el=document.createElement('a');el.href=URL.createObjectURL(blob);el.download=(it.name||('후측량_'+(i+1)+'.csv'));document.body.appendChild(el);el.click();el.remove();},i*350);});}
     else if(a==='aftapply'){if(!confirm('후측량 CSV '+fcs.length+'개를 현재 탱고 사업에 불러와 심도를 재계산할까요?'))return;state.finalCsv=JSON.parse(JSON.stringify(fcs));if(typeof finalCsvDepthSync==='function')finalCsvDepthSync();if(typeof drawGeo==='function')drawGeo();if(typeof tangoFill==='function')tangoFill();if(online&&state.projectId){window._silentSave=true;saveProject();}var _n=state.depthGround?state.depthGround.length:0;toast('후측량 CSV 적용 — 심도점 '+_n+'점 재계산');}
-    else if(a==='rtph')svPhotoDl(R.rtPh.map(function(r){return {no:r.point_no,url:r.url};}));
-    else if(a==='svph')svPhotoDl(R.svPh.map(function(r){return {no:r.point_no,url:r.url};}));
-    else if(a==='rtphcopy'){if(!state.projectId){toast('현재 사업이 저장되지 않았습니다');return;}copyPhotos(R.rt.id,state.projectId,null,'realtime');}
-    else if(a==='svphcopy'){if(!state.projectId){toast('현재 사업이 저장되지 않았습니다');return;}copyPhotos(R.sv.id,state.projectId,null,'survey');}
+    else if(a==='exph')svPhotoDl(exPh.map(function(r){return {no:r.point_no,url:r.url};}));
+    else if(a==='afph')svPhotoDl(afPh.map(function(r){return {no:String(r.point_no).replace(/_A$/,''),url:r.url};}));
+    else if(a==='exphcopy')_tgCopyPh(exPh,'노출관로 사진');
+    else if(a==='afphcopy')_tgCopyPh(afPh,'후측량 사진');
   };});
 }
 function tgFinalRegOpen(){ /* 탱고완료성과 등록 — 검수/탱고 최종 다운로드 + 완료 토글 + 등록(registerDone 동일 동작) */
@@ -13372,10 +13385,10 @@ function tgFinalRegOpen(){ /* 탱고완료성과 등록 — 검수/탱고 최종
   pop.querySelector('#svDailyHead').style.background='#e7f7ec';
   if(!state.tangoDone)state.tangoDone={inspDxf:false,inspPdf:false,tgDxf:false,tgXls:false};
   var body=pop.querySelector('#svDailyBody');
-  var DEFS=[['inspDxf','검수데이터 최종 DXF'],['inspPdf','검수데이터 최종 PDF'],['tgDxf','탱고데이터 최종 DXF'],['tgXls','탱고데이터 최종 엑셀']];
+  var DEFS=[['inspDxf','검수데이터 최종 DXF','insp'],['inspPdf','검수데이터 최종 PDF','insp'],['tgDxf','탱고데이터 최종 DXF','tg'],['tgXls','탱고데이터 최종 엑셀','tg']];/* [1295] insp=파랑 배경 · tg=빨강 배경 */
   function render(){
-    body.innerHTML=DEFS.map(function(d){var on=!!state.tangoDone[d[0]];
-      return '<div style="display:flex;align-items:center;gap:10px;padding:11px 6px;border-bottom:1px solid #f2f2ef">'
+    body.innerHTML=DEFS.map(function(d){var on=!!state.tangoDone[d[0]];var _bg=(d[2]==='insp')?'#eef4ff':'#fdeeee';var _bd=(d[2]==='insp')?'#1565c0':'#c0392b';
+      return '<div style="display:flex;align-items:center;gap:10px;padding:11px 10px;border-bottom:1px solid #f2f2ef;background:'+_bg+';border-left:4px solid '+_bd+';border-radius:6px;margin-bottom:4px">'
         +'<b style="flex:1;font-size:13.5px">'+d[1]+'</b>'
         +'<button data-t="'+d[0]+'" style="border-radius:7px;padding:6px 13px;font-weight:800;font-size:12.5px;cursor:pointer;'+(on?'background:#16a34a;color:#fff;border:0':'background:#fff;color:#e0a800;border:1.5px solid #e0a800')+'">'+(on?'완료 ✓':'미완료')+'</button>'
         +'<button data-d="'+d[0]+'" style="background:#1565c0;color:#fff;border:0;border-radius:7px;padding:6px 13px;font-weight:700;font-size:12.5px;cursor:pointer">📥 다운로드</button>'
