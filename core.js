@@ -7147,6 +7147,30 @@ function downloadFinalCsvDxf(){
   if(dxf){zip.file(safe+'_결선.dxf',dxf);}
   zip.generateAsync({type:'blob'}).then(function(blob){var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='후측량성과_'+base+'.zip';document.body.appendChild(a);a.click();a.remove();toast('📦 후측량CSV+결선DXF → ZIP 다운로드');});
 }
+async function exPhotoZip(){ /* [1301] 노출관로(전) 사진 ZIP — aftPhotoZip 미러(photoMap) */
+  try{
+    if(typeof JSZip==='undefined'){toast('압축 모듈 없음');return;}
+    var keys=Object.keys(photoMap||{}).filter(function(k){return !!photoMap[k];});
+    if(!keys.length){toast('노출관로 사진이 없습니다');return;}
+    toast('노출관로사진 ZIP 생성 중… ('+keys.length+'장)');
+    var zip=new JSZip(),n=0;
+    for(var i=0;i<keys.length;i++){
+      var k=keys[i];var base=String(k);
+      var dk=(typeof joseoDate==='function')?joseoDate(base):'';
+      var folder=dk||'기타';
+      try{
+        var r=await fetch(photoMap[k]);if(!r.ok)continue;
+        var buf=await r.arrayBuffer();
+        var num=(base.indexOf('-')>=0)?base.split('-').pop():base;
+        zip.file(folder+'/'+num+'.jpg',buf);n++;
+      }catch(_fe){}
+    }
+    if(!n){toast('다운로드 가능한 사진 없음');return;}
+    var blob=await zip.generateAsync({type:'blob'});
+    joseoSaveBlob(blob,(state.projectName||'사업')+'_노출관로사진.zip');
+    toast('노출관로사진 '+n+'장 ZIP 완료');
+  }catch(e){toast('ZIP 실패: '+(e&&e.message||e));}
+}
 async function aftPhotoZip(){ /* [1272] 측설(후측량) 사진 ZIP — 날짜 폴더/파일명=번호 */
   try{
     if(typeof JSZip==='undefined'){toast('압축 모듈 없음');return;}
@@ -7231,12 +7255,12 @@ function fldRegOff(cb){ /* [1289] 해제 — 탱고·정위치 사본 삭제목�
 }
 function openFinalStatus(){
   var fd=state.fieldDone||{csv:false,joseo:false,manhole:false};state.fieldDone=fd;
-  var items=[['csv','후측량CSV+결선'],['joseo','실시간 사진조서'],['aftPhoto','측설사진'],/* [1270·1272] 맨홀도 제작 항목 제거(fd.manhole 키는 유지) */['mnDxf','맨홀도DXF'],['mnXls','설비사진조서(엑셀)'],['mnEfb','현장전자야장'],['mnPhoto','맨홀사진다운']]; /* [1268] */
+  var items=[['csv','후측량CSV+결선'],['joseo','실시간 사진조서'],['exPhoto','노출관로사진']/* [1301] */,['aftPhoto','측설사진'],/* [1270·1272] 맨홀도 제작 항목 제거(fd.manhole 키는 유지) */['mnDxf','맨홀도DXF'],['mnXls','설비사진조서(엑셀)'],['mnEfb','현장전자야장'],['mnPhoto','맨홀사진다운']]; /* [1268] */
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center';
   var box=document.createElement('div');
   box.style.cssText='background:#fff;border-radius:14px;width:92%;max-width:440px;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden';
-  function row(k,label){var done=!!fd[k];var btn;if(((k==='joseo')||(k==='csv'&&state.finalCsv&&state.finalCsv.length)||k==='aftPhoto'||k==='mnDxf'||k==='mnXls'||k==='mnEfb'||k==='mnPhoto')&&done){ /* [1268] 맨홀 4종도 다운로드 */btn='<button class="fs-dl" data-k="'+k+'" style="border:1px solid #0d9488;background:#e7faf5;color:#0d9488;border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer;font-weight:700">📥 다운로드</button>';}else if(k==='csv'){btn='<span style="font-size:12px;color:#888">상단 \'후측량 csv\'로 업로드</span>';}else{btn='<button class="fs-tgl" data-k="'+k+'" style="border:1px solid #ccc;background:#fff;border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer">'+(done?'미완료로':'등록완료')+'</button>';}return '<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #f1f1f1"><span style="flex:1;font-size:15px;font-weight:600">'+label+'</span><span style="font-size:13px;font-weight:800;padding:4px 11px;border-radius:20px;'+(done?'background:#eafaf0;color:#16a34a;border:1px solid #16a34a':'background:#fff5f5;color:#d32f2f;border:1px solid #d32f2f')+'">'+(done?'등록완료':'미완료')+'</span>'+btn+'</div>';}
+  function row(k,label){var done=!!fd[k];var btn;if(((k==='joseo')||(k==='csv'&&state.finalCsv&&state.finalCsv.length)||k==='aftPhoto'||k==='exPhoto'||k==='mnDxf'||k==='mnXls'||k==='mnEfb'||k==='mnPhoto')&&done){ /* [1268] 맨홀 4종도 다운로드 */btn='<button class="fs-dl" data-k="'+k+'" style="border:1px solid #0d9488;background:#e7faf5;color:#0d9488;border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer;font-weight:700">📥 다운로드</button>';}else if(k==='csv'){btn='<span style="font-size:12px;color:#888">상단 \'후측량 csv\'로 업로드</span>';}else{btn='<button class="fs-tgl" data-k="'+k+'" style="border:1px solid #ccc;background:#fff;border-radius:8px;padding:5px 11px;font-size:12.5px;cursor:pointer">'+(done?'미완료로':'등록완료')+'</button>';}return '<div style="display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid #f1f1f1"><span style="flex:1;font-size:15px;font-weight:600">'+label+'</span><span style="font-size:13px;font-weight:800;padding:4px 11px;border-radius:20px;'+(done?'background:#eafaf0;color:#16a34a;border:1px solid #16a34a':'background:#fff5f5;color:#d32f2f;border:1px solid #d32f2f')+'">'+(done?'등록완료':'미완료')+'</span>'+btn+'</div>';}
   function render(){
     var allDone=items.every(function(it){return !!fd[it[0]];});
     box.innerHTML='<div style="padding:15px 18px;border-bottom:1px solid #eee;display:flex;align-items:center"><b style="font-size:16px;color:#4f46e5">📋 후측량 최종성과 등록</b><span id="fsFinalBadge" style="margin-left:10px;font-size:12px;font-weight:800;border-radius:7px;padding:4px 10px;cursor:pointer;flex:none"></span><span style="flex:1"></span><button id="fsClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div>'
@@ -7244,7 +7268,7 @@ function openFinalStatus(){
       +'<div style="padding:13px 18px;font-size:13px;'+(allDone?'color:#16a34a;font-weight:700':'color:#888')+'">'+(allDone?'✅ 모든 성과 등록완료':'각 항목을 등록완료로 표시하세요')+'</div>'+'<div style="padding:12px 18px;border-top:1px solid #eee;display:flex;gap:9px;justify-content:flex-end"><button id="fsReg" style="border:none;background:#16a34a;color:#fff;border-radius:8px;padding:9px 20px;font-weight:800;cursor:pointer">등록</button><button id="fsCancel" style="border:1px solid #ccc;background:#fff;border-radius:8px;padding:9px 16px;cursor:pointer;font-weight:700">취소</button></div>'; /* [1289] */
     box.querySelector('#fsClose').onclick=function(){ov.remove();};
     [].forEach.call(box.querySelectorAll('.fs-tgl'),function(b){b.onclick=function(){var k=this.getAttribute('data-k');fd[k]=!fd[k];state.fieldDone=fd;if(online&&state.projectId)saveProject();refreshFieldBar();render();};});
-    [].forEach.call(box.querySelectorAll('.fs-dl'),function(b){b.onclick=function(){var dk=this.getAttribute('data-k');if(dk==='csv'){downloadFinalCsvDxf();}else if(dk==='joseo'){joseoDownloadFinal();}else if(dk==='aftPhoto'){aftPhotoZip();}else if(dk==='mnDxf'){mnExpAll('dxf');}else if(dk==='mnXls'){mnExpAll('xls');}else if(dk==='mnEfb'){mnExpAll('efb');}else if(dk==='mnPhoto'){mnExpAll('zip');}};}); /* [1268] */
+    [].forEach.call(box.querySelectorAll('.fs-dl'),function(b){b.onclick=function(){var dk=this.getAttribute('data-k');if(dk==='csv'){downloadFinalCsvDxf();}else if(dk==='joseo'){joseoDownloadFinal();}else if(dk==='aftPhoto'){aftPhotoZip();}else if(dk==='exPhoto'){exPhotoZip();}else if(dk==='mnDxf'){mnExpAll('dxf');}else if(dk==='mnXls'){mnExpAll('xls');}else if(dk==='mnEfb'){mnExpAll('efb');}else if(dk==='mnPhoto'){mnExpAll('zip');}};}); /* [1268] */
     var _fb=box.querySelector('#fsFinalBadge');
     function _setFB(on){if(!_fb)return;_fb.setAttribute('data-on',on?'1':'');if(on){_fb.textContent='등록완료 ✓';_fb.style.background='#e0a800';_fb.style.color='#fff';_fb.style.border='0';}else{_fb.textContent='미등록';_fb.style.background='#fff';_fb.style.color='#e0a800';_fb.style.border='1.5px solid #e0a800';}}
     _setFB(!!fd.final);
@@ -13364,9 +13388,13 @@ function _tgTakeRender(pop,body,base,R){
   /* [1300] 등록 기준 분리:
      - 노출관로 사진 = 결선(_A) 완료성과의 일별 사진(survey_photos) — 결선 완료성과 사업이 있으면 등록으로 간주
      - 후측량 사진 = 현장(field_photos _A), 현장 「측설사진 등록완료(aftPhoto)」일 때만 인수 */
+  var fldEx=R.fldPh.filter(function(r){return !_isA(r);});
   var exPh=[],exLbl='',exGate='';
-  if(R.sv){exPh=svEx;exLbl='결선 '+R.sv.name;}
-  else exGate='결선 완료성과 미등록';
+  if(R.fld){
+    if(ffd.exPhoto){exPh=fldEx;exLbl='현장 '+R.fld.name;}
+    else exGate='현장 노출관로사진 미등록 — 최종성과 창에서 등록 필요';
+  }else if(R.sv){exPh=svEx;exLbl='결선 '+R.sv.name;}
+  else exGate='대응 결선/현장 사업 없음';/* [1301] */
   var afPh=[],afLbl='',afGate='';
   if(R.fld){
     if(ffd.aftPhoto){afPh=fldAf;afLbl='현장 '+R.fld.name;}
@@ -13389,7 +13417,7 @@ function _tgTakeRender(pop,body,base,R){
     +row('후측량 CSV',csvOk,R.fld?(csvGate?csvGate:('현장 '+R.fld.name+' · CSV '+fcs.length+'개 파일')):'대응 현장 사업 없음',csvOk?'aftcsv':null,csvOk?'aftapply':null,'심도 적용')
     +row('노출관로 사진',exPh.length,exGate?exGate:(exLbl+' · '+exPh.length+'장'),exPh.length?'exph':null,exPh.length?'exphcopy':null,'탱고로 복사')
     +row('후측량 사진',afPh.length,afGate?afGate:(afLbl+' · '+afPh.length+'장'),afPh.length?'afph':null,afPh.length?'afphcopy':null,'탱고로 복사')
-    +'<div style="font-size:11.5px;color:#98a1ad;padding:8px 4px 0">※ 등록 기준: 노출관로 사진=결선DB 완료성과 · 후측량 사진=현장 측설사진 등록 · 후측량 CSV=현장 후측량CSV 등록 · 적용: 심도=CSV 재계산 · 사진=탱고 사진목록 복사(중복 제외)</div>';
+    +'<div style="font-size:11.5px;color:#98a1ad;padding:8px 4px 0">※ 등록 기준: 노출관로 사진=현장 노출관로사진 등록 · 후측량(측설) 사진=현장 측설사진 등록 · 후측량 CSV=현장 후측량CSV 등록 · 적용: 심도=CSV 재계산 · 사진=탱고 사진목록 복사(중복 제외)</div>';
   [].forEach.call(body.querySelectorAll('button[data-a]'),function(b){b.onclick=function(){
     var a=b.getAttribute('data-a');
     if(a==='excsv')_tgIntCsv(pts,base);
