@@ -13356,18 +13356,23 @@ function _tgTakeRender(pop,body,base,R){
   var src=R.sv||R.fld;
   var srcLbl=R.sv?('결선 '+R.sv.name):(R.fld?('현장 '+R.fld.name):'');
   var pts=(src&&src.payload&&src.payload.points)?src.payload.points:[];
-  var ffd=(R.fld&&R.fld.payload&&R.fld.payload.fieldDone)||{}; /* [1299] 현장 최종성과 등록 플래그 — 등록된 파일만 인수 */
+  var ffd=(R.fld&&R.fld.payload&&R.fld.payload.fieldDone)||{}; /* 현장 최종성과 등록 플래그 */
   var fcs=(R.fld&&R.fld.payload&&R.fld.payload.finalCsv)?(Array.isArray(R.fld.payload.finalCsv)?R.fld.payload.finalCsv:[R.fld.payload.finalCsv]):[];
   function _isA(r){return /_A$/.test(String(r.point_no));}
   var svEx=R.svPh.filter(function(r){return !_isA(r);}),svAf=R.svPh.filter(_isA);
-  var fldEx=R.fldPh.filter(function(r){return !_isA(r);}),fldAf=R.fldPh.filter(_isA);
-  /* [1299] 사진 소스=현장(측설사진 등록분). 현장 사업이 있으면 등록 플래그(aftPhoto) 필수 — 미등록이면 인수 불가 표시.
-     현장 사업이 아예 없을 때만 결선 폴백 */
-  var exPh=[],afPh=[],exLbl='',afLbl='',phGate='';
+  var fldAf=R.fldPh.filter(_isA);
+  /* [1300] 등록 기준 분리:
+     - 노출관로 사진 = 결선(_A) 완료성과의 일별 사진(survey_photos) — 결선 완료성과 사업이 있으면 등록으로 간주
+     - 후측량 사진 = 현장(field_photos _A), 현장 「측설사진 등록완료(aftPhoto)」일 때만 인수 */
+  var exPh=[],exLbl='',exGate='';
+  if(R.sv){exPh=svEx;exLbl='결선 '+R.sv.name;}
+  else exGate='결선 완료성과 미등록';
+  var afPh=[],afLbl='',afGate='';
   if(R.fld){
-    if(ffd.aftPhoto){exPh=fldEx;afPh=fldAf;exLbl=afLbl='현장 '+R.fld.name;}
-    else phGate='현장 측설사진 미등록 — 최종성과 창에서 등록 필요';
-  }else if(R.sv){exPh=svEx;afPh=svAf;exLbl=afLbl='결선 '+R.sv.name;}
+    if(ffd.aftPhoto){afPh=fldAf;afLbl='현장 '+R.fld.name;}
+    else afGate='현장 측설사진 미등록 — 최종성과 창에서 등록 필요';
+  }else if(R.sv&&svAf.length){afPh=svAf;afLbl='결선 '+R.sv.name;}
+  else afGate='대응 현장 사업 없음';
   var csvGate=(R.fld&&fcs.length&&!ffd.csv)?'현장 미등록 — 최종성과 창에서 등록 필요':'';
   function row(lab,ok,txt,dl,ap,apLab){
     return '<div style="display:flex;align-items:center;gap:10px;padding:11px 6px;border-bottom:1px solid #f2f2ef">'
@@ -13382,9 +13387,9 @@ function _tgTakeRender(pop,body,base,R){
   body.innerHTML=
     row('노출관로 CSV',pts.length,src?(srcLbl+' · 측점 '+pts.length+'점'):noSrc,pts.length?'excsv':null,null,null)
     +row('후측량 CSV',csvOk,R.fld?(csvGate?csvGate:('현장 '+R.fld.name+' · CSV '+fcs.length+'개 파일')):'대응 현장 사업 없음',csvOk?'aftcsv':null,csvOk?'aftapply':null,'심도 적용')
-    +row('노출관로 사진',exPh.length,phGate?phGate:(exPh.length?(exLbl+' · '+exPh.length+'장'):(src?(srcLbl+' · 0장'):noSrc)),exPh.length?'exph':null,exPh.length?'exphcopy':null,'탱고로 복사')
-    +row('후측량 사진',afPh.length,phGate?phGate:(afPh.length?(afLbl+' · '+afPh.length+'장'):(src?'결선/현장 사진 없음':noSrc)),afPh.length?'afph':null,afPh.length?'afphcopy':null,'탱고로 복사')
-    +'<div style="font-size:11.5px;color:#98a1ad;padding:8px 4px 0">※ 현장 「후측량 최종성과 등록」 창에서 등록완료된 성과만 인수됩니다 (사진=측설사진 등록, CSV=후측량CSV 등록) · 적용: 심도=CSV 재계산 · 사진=탱고 사진목록 복사(중복 제외)</div>';
+    +row('노출관로 사진',exPh.length,exGate?exGate:(exLbl+' · '+exPh.length+'장'),exPh.length?'exph':null,exPh.length?'exphcopy':null,'탱고로 복사')
+    +row('후측량 사진',afPh.length,afGate?afGate:(afLbl+' · '+afPh.length+'장'),afPh.length?'afph':null,afPh.length?'afphcopy':null,'탱고로 복사')
+    +'<div style="font-size:11.5px;color:#98a1ad;padding:8px 4px 0">※ 등록 기준: 노출관로 사진=결선DB 완료성과 · 후측량 사진=현장 측설사진 등록 · 후측량 CSV=현장 후측량CSV 등록 · 적용: 심도=CSV 재계산 · 사진=탱고 사진목록 복사(중복 제외)</div>';
   [].forEach.call(body.querySelectorAll('button[data-a]'),function(b){b.onclick=function(){
     var a=b.getAttribute('data-a');
     if(a==='excsv')_tgIntCsv(pts,base);

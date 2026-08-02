@@ -372,9 +372,15 @@
   .viewer .php-head{flex-wrap:wrap;row-gap:4px}
   .viewer .php-head #photoSel{flex:0 1 auto;min-width:110px;max-width:170px}
   .viewer .php-head #photoClose{flex:none;font-weight:800;border:1px solid #c0392b;color:#c0392b;background:#fff;border-radius:7px;padding:3px 8px}
-  /* [1299] 헤더 버튼 축소 — 한 줄 유지 */
+  /* [1300] 헤더 한 줄 고정 + 명시 순서: 방향ON → 측설사진 → 셀렉트 → 연동 → 특이사항 → ✕ */
+  .viewer .php-head{flex-wrap:nowrap}
   .viewer .php-head button,.viewer .php-head select{font-size:11px;padding:3px 6px}
-  .viewer .php-head #photoSel{max-width:140px}
+  .viewer .php-head #photoSel{max-width:140px;order:3}
+  .viewer .php-head #dirToggle{order:1}
+  .viewer .php-head #fldStakePhTgl{order:2;margin-left:2px}
+  .viewer .php-head #photoLinkBtn{order:4}
+  .viewer .php-head #vNote2{order:5}
+  .viewer .php-head #photoClose{order:6;margin-left:auto}
 }
 /* ===== [1243] 현장 PC 헤더 3줄 — survey(1233) 배치 미러 (field 전용, 모바일 무영향) ===== */
 @media(min-width:761px){
@@ -621,6 +627,6 @@
     </div>
   </div>
 
-<script src="login.js?v=1299"></script><script src="core.js?v=1299"></script>
+<script src="login.js?v=1300"></script><script src="core.js?v=1300"></script>
 </body>
 </html>
