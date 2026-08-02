@@ -7281,7 +7281,13 @@ function openFinalStatus(){
     function _setFB(on){if(!_fb)return;_fb.setAttribute('data-on',on?'1':'');if(on){_fb.textContent='등록완료 ✓';_fb.style.background='#e0a800';_fb.style.color='#fff';_fb.style.border='0';}else{_fb.textContent='미등록';_fb.style.background='#fff';_fb.style.color='#e0a800';_fb.style.border='1.5px solid #e0a800';}}
     _setFB(!!fd.final);
     if(_fb)_fb.onclick=function(){if(_fb.getAttribute('data-on')){fldRegOff(function(){_setFB(false);});}else{fldRegToNext(function(ok){if(ok)_setFB(true);});}};
-    var _fr=box.querySelector('#fsReg');if(_fr)_fr.onclick=function(){fldRegToNext(function(ok){if(ok)_setFB(true);});};
+    var _fr=box.querySelector('#fsReg');if(_fr)_fr.onclick=function(){/* [1305] 체크된 항목만 등록완료 확정 → 최종 등록 → 창 닫기 */
+      [].forEach.call(box.querySelectorAll('.fs-chk'),function(c){fd[c.getAttribute('data-k')]=!!c.checked;});
+      state.fieldDone=fd;if(online&&state.projectId){window._silentSave=true;try{saveProject();}catch(_e){}}
+      if(typeof refreshFieldBar==='function')refreshFieldBar();
+      fldRegToNext(function(ok){if(ok)toast('최종성과 등록 완료');});
+      ov.remove();
+    };
     var _fc=box.querySelector('#fsCancel');if(_fc)_fc.onclick=function(){ov.remove();};
   }
   render();ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};document.body.appendChild(ov);
