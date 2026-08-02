@@ -371,7 +371,10 @@
 @media(min-width:761px){
   .viewer .php-head{flex-wrap:wrap;row-gap:4px}
   .viewer .php-head #photoSel{flex:0 1 auto;min-width:110px;max-width:170px}
-  .viewer .php-head #photoClose{flex:none;font-weight:800;border:1px solid #c0392b;color:#c0392b;background:#fff;border-radius:7px;padding:4px 10px}
+  .viewer .php-head #photoClose{flex:none;font-weight:800;border:1px solid #c0392b;color:#c0392b;background:#fff;border-radius:7px;padding:3px 8px}
+  /* [1299] 헤더 버튼 축소 — 한 줄 유지 */
+  .viewer .php-head button,.viewer .php-head select{font-size:11px;padding:3px 6px}
+  .viewer .php-head #photoSel{max-width:140px}
 }
 /* ===== [1243] 현장 PC 헤더 3줄 — survey(1233) 배치 미러 (field 전용, 모바일 무영향) ===== */
 @media(min-width:761px){
@@ -474,7 +477,7 @@
       <div class="php-head">
         <h3>측점 사진</h3>
         <button id="dirToggle" class="dirtgl on">🧭 방향 ON</button>
-        <button id="fldStakePhTgl" style="border-radius:8px;padding:5px 10px;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap;background:#fff8e1;color:#b7791f;border:1.5px solid #e0a800">측설사진 미등록</button>
+        <button id="fldStakePhTgl" style="border-radius:8px;padding:3px 7px;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap;flex:none;background:#fff8e1;color:#b7791f;border:1.5px solid #e0a800">측설사진 미등록</button>
         <select id="photoSel"><option value="">측점 선택…</option></select>
         <button id="photoLinkBtn" class="linkon">🔗 연동</button>
         <button id="vNote2" class="vw">⚠ 특이사항</button>
@@ -618,6 +621,6 @@
     </div>
   </div>
 
-<script src="login.js?v=1298"></script><script src="core.js?v=1298"></script>
+<script src="login.js?v=1299"></script><script src="core.js?v=1299"></script>
 </body>
 </html>
