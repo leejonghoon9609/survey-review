@@ -13389,16 +13389,22 @@ function tgFinalTakeOpen(){ /* 최종성과 인수 — CSV/전사진=결선(_A) 
   pop.querySelector('#tgTakeClose').onclick=function(){pop.remove();};
   var R={sv:null,fld:null,svPh:[],fldPh:[]};
   function _pick(res,stg){var tw=null;((res&&res.data)||[]).some(function(r){var pl=r.payload||{};if(pl.delAt)return false;if((pl.stage||'survey')!==stg)return false;if(baseName(r.name)!==base)return false;tw=r;return true;});return tw;}
-  Promise.all([
-    sb.from('survey_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}),
-    sb.from('field_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false})
-  ]).then(function(rs){
-    R.sv=_pick(rs[0],'survey');R.fld=_pick(rs[1],'field');
+  var _try=0;
+  function _load(){ /* [1309] 첫 조회가 빈 응답이면 0.6초 후 최대 2회 자동 재시도 */
     Promise.all([
-      R.sv?sb.from('survey_photos').select('point_no,url').eq('project_id',R.sv.id):Promise.resolve({data:[]}),
-      R.fld?sb.from('field_photos').select('point_no,url').eq('project_id',R.fld.id):Promise.resolve({data:[]})
-    ]).then(function(ps){R.svPh=(ps[0]&&ps[0].data)||[];R.fldPh=(ps[1]&&ps[1].data)||[];_tgTakeRender(pop,body,base,R);});
-  });
+      sb.from('survey_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}),
+      sb.from('field_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false})
+    ]).then(function(rs){
+      if(!pop.parentNode)return;
+      R.sv=_pick(rs[0],'survey');R.fld=_pick(rs[1],'field');
+      if(!R.sv&&!R.fld&&_try<2){_try++;body.innerHTML='<div style="color:#999;text-align:center;padding:24px 0">계열 성과 조회 중… (재시도 '+_try+')</div>';setTimeout(_load,600);return;}
+      Promise.all([
+        R.sv?sb.from('survey_photos').select('point_no,url').eq('project_id',R.sv.id):Promise.resolve({data:[]}),
+        R.fld?sb.from('field_photos').select('point_no,url').eq('project_id',R.fld.id):Promise.resolve({data:[]})
+      ]).then(function(ps){if(!pop.parentNode)return;R.svPh=(ps[0]&&ps[0].data)||[];R.fldPh=(ps[1]&&ps[1].data)||[];_tgTakeRender(pop,body,base,R);});
+    });
+  }
+  _load();
 }
 function _tgCopyPh(rows,srcLbl){ /* 선택 사진만 tango_photos 로 복사(중복 제외) — copyPhotos 미러(필터판) [1295] */
   if(!online||!state.projectId){toast('현재 사업이 저장되지 않았습니다');return;}
