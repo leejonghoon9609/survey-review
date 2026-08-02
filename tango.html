@@ -318,6 +318,37 @@
   .hide-hyun .insp-line{display:none}
   .lvchk{display:inline-flex;align-items:center;gap:3px;font-size:12px;color:#444;font-weight:600;white-space:nowrap;cursor:pointer;margin:0 2px}
   .lvchk input{cursor:pointer;margin:0}
+
+/* [1294] 탱고 서브바: 도구 버튼들 ↔ 성과 버튼 그룹 간격 */
+#tgTakeBtn:not(:first-child){margin-left:90px}
+
+/* ===== [1294] 탱고 PC 헤더 2줄 — 결선DB 배치 미러 (tango 전용, 모바일 무영향) ===== */
+#hdrBrk{display:none}
+@media(min-width:761px){
+  #hdrBrk{display:block;flex-basis:100%;height:0;order:8}
+  /* 1줄 우측: [칩][Supabase][작업자][BUILD] */
+  #conn{order:6;margin-left:auto!important}
+  #workerChip{order:6;margin-left:8px!important}
+  #buildno{order:7;margin-left:8px!important}
+  #projFilterChip{order:5;margin-left:auto!important;max-width:170px}
+  #projFilterChip~#conn{margin-left:8px!important}
+  /* 2줄: [완료목록·준공도면] | [지우기·거리산출] | [보기·전체·백판] | [되돌리기·다시실행·휠감도] … 우측 [측점사진보기·카카오맵·로드뷰] */
+  #doneListBtn,#doneSummary,#asbuiltBtn{order:9}
+  #globalbtns{display:contents}
+  #globalbtns button[data-g="delall2"]{order:10;margin-left:72px}
+  #globalbtns button[data-g="measure"]{order:10}
+  #globalbtns .subhint{order:11;margin-left:72px}
+  #globalbtns button[data-g="fit"],#bpToggle{order:11}
+  #globalbtns button[data-g="undo"]{order:12;margin-left:72px}
+  #globalbtns button[data-g="redo"]{order:12}
+  #wheelAdjBox{order:12}
+  #photoBtn,#bgBtn,#rvBtn{order:13}
+  /* 전체=빨강 / 백판=마젠타 (결선DB 동일) */
+  #globalbtns button[data-g="fit"]{background:#fff;border:1px solid #c0392b;color:#c0392b;font-weight:700}
+  #globalbtns button[data-g="fit"]:active{background:#fdecea}
+  #bpToggle{background:#fff;border:1px solid #d81b60;color:#d81b60;font-weight:700}
+  #bpToggle:not(.off){background:#fde7f1}
+}
 </style>
 </head>
 <body>
@@ -351,7 +382,7 @@
     <button id="doneListBtn" class="wk" style="background:#eafaf0;color:#16a34a;border:1px solid #16a34a;font-weight:700">✅ 결선 완료사업</button>
     <span id="doneSummary" class="wk" style="display:none;color:#d32f2f;border:1px solid #d32f2f;background:#fff5f5;border-radius:7px;padding:3px 10px;font-size:12.5px;font-weight:800"></span>
     <button id="asbuiltBtn" class="wk" style="background:#eef2ff;color:#4f46e5;border:1px solid #7c83e8;font-weight:700">📐 준공도면</button>
-    <button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
+    <div id="hdrBrk"></div><button id="photoBtn" class="photoBtn wk" style="margin-left:auto">측점사진보기</button>
     <button id="bgBtn" class="photoBtn wk">🗺 카카오맵</button>
     <button id="rvBtn" class="photoBtn wk">📷 로드뷰</button>
     <span id="buildno" style="font-size:14px;font-weight:800;color:#fff;background:#c0392b;padding:3px 11px;border-radius:7px;letter-spacing:0.5px;margin-left:10px">BUILD 1198</span>
@@ -517,6 +548,6 @@
     </div>
   </div>
 
-<script src="login.js?v=1293"></script><script src="core.js?v=1293"></script>
+<script src="login.js?v=1294"></script><script src="core.js?v=1294"></script>
 </body>
 </html>
