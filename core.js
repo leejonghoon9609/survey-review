@@ -13312,7 +13312,7 @@ function _tgIntCsv(points,projName){ /* 노출관로(실시간) 통합 CSV — s
   var blob=new Blob(['\uFEFF'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(projName||'사업')+'_노출관로.csv';document.body.appendChild(a);a.click();a.remove();
 }
-function tgFinalTakeOpen(){ /* 최종성과 인수 — 결선(_A) 우선, 없으면 현장(_B)에서 노출관로/후측량 성과 인수 [1295] */
+function tgFinalTakeOpen(){ /* 최종성과 인수 — CSV/전사진=결선(_A) 우선, 후측량(_A)사진=결선에 없으면 현장(field_photos) 폴백 [1297] */
   if(typeof IS_TANGO==='undefined'||!IS_TANGO)return;
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
   if(!state.projectName){toast('먼저 사업을 선택하세요');return;}
@@ -13321,16 +13321,17 @@ function tgFinalTakeOpen(){ /* 최종성과 인수 — 결선(_A) 우선, 없으
   var body=pop.querySelector('#svDailyBody');body.innerHTML='<div style="color:#999;text-align:center;padding:24px 0">계열 성과 조회 중…</div>';
   pop.querySelector('#svDailyFoot').innerHTML='<button id="tgTakeClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:8px 18px;cursor:pointer;font-weight:700">닫기</button>';
   pop.querySelector('#tgTakeClose').onclick=function(){pop.remove();};
-  var R={sv:null,fld:null,ph:[],phStage:''};
+  var R={sv:null,fld:null,svPh:[],fldPh:[]};
   function _pick(res,stg){var tw=null;((res&&res.data)||[]).some(function(r){var pl=r.payload||{};if(pl.delAt)return false;if((pl.stage||'survey')!==stg)return false;if(baseName(r.name)!==base)return false;tw=r;return true;});return tw;}
   Promise.all([
     sb.from('survey_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}),
     sb.from('field_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false})
   ]).then(function(rs){
     R.sv=_pick(rs[0],'survey');R.fld=_pick(rs[1],'field');
-    var phSrc=R.sv||R.fld;R.phStage=R.sv?'survey':(R.fld?'field':'');
-    (phSrc?sb.from(R.phStage+'_photos').select('point_no,url').eq('project_id',phSrc.id):Promise.resolve({data:[]}))
-      .then(function(ps){R.ph=(ps&&ps.data)||[];_tgTakeRender(pop,body,base,R);});
+    Promise.all([
+      R.sv?sb.from('survey_photos').select('point_no,url').eq('project_id',R.sv.id):Promise.resolve({data:[]}),
+      R.fld?sb.from('field_photos').select('point_no,url').eq('project_id',R.fld.id):Promise.resolve({data:[]})
+    ]).then(function(ps){R.svPh=(ps[0]&&ps[0].data)||[];R.fldPh=(ps[1]&&ps[1].data)||[];_tgTakeRender(pop,body,base,R);});
   });
 }
 function _tgCopyPh(rows,srcLbl){ /* 선택 사진만 tango_photos 로 복사(중복 제외) — copyPhotos 미러(필터판) [1295] */
@@ -13348,8 +13349,12 @@ function _tgTakeRender(pop,body,base,R){
   var srcLbl=R.sv?('결선 '+R.sv.name):(R.fld?('현장 '+R.fld.name):'');
   var pts=(src&&src.payload&&src.payload.points)?src.payload.points:[];
   var fcs=(R.fld&&R.fld.payload&&R.fld.payload.finalCsv)?(Array.isArray(R.fld.payload.finalCsv)?R.fld.payload.finalCsv:[R.fld.payload.finalCsv]):[];
-  var exPh=R.ph.filter(function(r){return !/_A$/.test(String(r.point_no));});      /* 노출관로(전) */
-  var afPh=R.ph.filter(function(r){return /_A$/.test(String(r.point_no));});       /* 후측량(후, _A) */
+  function _isA(r){return /_A$/.test(String(r.point_no));}
+  var svEx=R.svPh.filter(function(r){return !_isA(r);}),svAf=R.svPh.filter(_isA);
+  var fldEx=R.fldPh.filter(function(r){return !_isA(r);}),fldAf=R.fldPh.filter(_isA);
+  /* [1297] 그룹별 소스: 노출관로=결선 우선 · 후측량(_A)=결선에 없으면 현장 폴백 (후측량 사진은 field에 업로드되는 체계) */
+  var exPh=(R.sv&&svEx.length)?svEx:fldEx, exLbl=(R.sv&&svEx.length)?('결선 '+R.sv.name):(R.fld?('현장 '+R.fld.name):'');
+  var afPh=(R.sv&&svAf.length)?svAf:fldAf, afLbl=(R.sv&&svAf.length)?('결선 '+R.sv.name):(R.fld?('현장 '+R.fld.name):'');
   function row(lab,ok,txt,dl,ap,apLab){
     return '<div style="display:flex;align-items:center;gap:10px;padding:11px 6px;border-bottom:1px solid #f2f2ef">'
       +'<b style="width:126px;font-size:13.5px;flex:none">'+lab+'</b>'
@@ -13362,9 +13367,9 @@ function _tgTakeRender(pop,body,base,R){
   body.innerHTML=
     row('노출관로 CSV',pts.length,src?(srcLbl+' · 측점 '+pts.length+'점'):noSrc,pts.length?'excsv':null,null,null)
     +row('후측량 CSV',fcs.length,R.fld?('현장 '+R.fld.name+' · CSV '+fcs.length+'개 파일'):'대응 현장 사업 없음',fcs.length?'aftcsv':null,fcs.length?'aftapply':null,'심도 적용')
-    +row('노출관로 사진',exPh.length,src?(srcLbl+' · '+exPh.length+'장'):noSrc,exPh.length?'exph':null,exPh.length?'exphcopy':null,'탱고로 복사')
-    +row('후측량 사진',afPh.length,src?(srcLbl+' · '+afPh.length+'장'):noSrc,afPh.length?'afph':null,afPh.length?'afphcopy':null,'탱고로 복사')
-    +'<div style="font-size:11.5px;color:#98a1ad;padding:8px 4px 0">※ 인수 소스: 결선(_A) 우선, 없으면 현장(_B) · 적용: 심도=후측량 CSV로 심도 재계산 · 사진=탱고 사진목록으로 복사(중복 제외)</div>';
+    +row('노출관로 사진',exPh.length,exPh.length?(exLbl+' · '+exPh.length+'장'):(src?(srcLbl+' · 0장'):noSrc),exPh.length?'exph':null,exPh.length?'exphcopy':null,'탱고로 복사')
+    +row('후측량 사진',afPh.length,afPh.length?(afLbl+' · '+afPh.length+'장'):(src?('결선/현장 사진 없음'):noSrc),afPh.length?'afph':null,afPh.length?'afphcopy':null,'탱고로 복사')
+    +'<div style="font-size:11.5px;color:#98a1ad;padding:8px 4px 0">※ 인수 소스: 결선(_A) 우선 → 없으면 현장(_B) · 후측량 사진은 현장 업로드분(_A) 자동 폴백 · 적용: 심도=후측량 CSV로 심도 재계산 · 사진=탱고 사진목록으로 복사(중복 제외)</div>';
   [].forEach.call(body.querySelectorAll('button[data-a]'),function(b){b.onclick=function(){
     var a=b.getAttribute('data-a');
     if(a==='excsv')_tgIntCsv(pts,base);
