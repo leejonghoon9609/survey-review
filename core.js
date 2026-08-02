@@ -6649,7 +6649,7 @@ function toggleRvPick(){
   rvPick=true;btn.classList.add('on');var _vr2=document.getElementById('vRv');if(_vr2)_vr2.classList.add('on');cv.style.cursor='pointer';
   toast('지도에서 로드뷰 볼 위치를 클릭하세요 (측점을 찍으면 아래에 사진)');
 }
-bind('rvBtn',toggleRvPick);
+bind('rvBtn',toggleRvPick);bind('fldStakePhTgl',function(){if(typeof IS_FIELD==='undefined'||!IS_FIELD)return;if(!state.fieldDone)state.fieldDone={csv:false,joseo:false,manhole:false};state.fieldDone.aftPhoto=!state.fieldDone.aftPhoto;if(online&&state.projectId){window._silentSave=true;try{saveProject();}catch(_e){}}_fldStakePhSync();toast(state.fieldDone.aftPhoto?'측설사진 등록완료 — 최종성과 창에 반영됨':'측설사진 미등록');});/* [1298] */
 bind('dirToggle',function(){showDirArrows=!showDirArrows;var b=document.getElementById('dirToggle');b.classList.toggle('on',showDirArrows);b.textContent='🧭 방향 '+(showDirArrows?'ON':'OFF');drawGeo();});
 
 /* ===== 작업/뷰어 모드 + 특이사항 ===== */
@@ -6863,6 +6863,14 @@ function refreshFieldBar(){
   [['fldCsv','csv',_mob?'CSV':'후측량 csv'],['fldJoseo','joseo','실시간 사진조서'],['fldManhole','manhole','맨홀도 제작']].forEach(function(m){
     var b=document.getElementById(m[0]);if(!b)return;var done=!!fd[m[1]];b.classList.toggle('done',done);b.textContent=(done?'✓ ':'')+m[2];
   });
+  if(typeof _fldStakePhSync==='function')_fldStakePhSync();/* [1298] */
+}
+function _fldStakePhSync(){ /* [1298] field 전용 — 측설사진 등록 토글 상태 표시(미등록=노랑/등록=초록) */
+  if(typeof IS_FIELD==='undefined'||!IS_FIELD)return;
+  var b=document.getElementById('fldStakePhTgl');if(!b)return;
+  var on=!!(state.fieldDone&&state.fieldDone.aftPhoto);
+  b.textContent=on?'측설사진 등록완료 ✓':'측설사진 미등록';
+  b.style.cssText='border-radius:8px;padding:5px 10px;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap;'+(on?'background:#16a34a;color:#fff;border:1px solid #16a34a':'background:#fff8e1;color:#b7791f;border:1.5px solid #e0a800');
 }
 function finalCsvArr(){var f=state.finalCsv;if(!f)return [];return Array.isArray(f)?f:[f];}
 function _fldMnRecFor(m){ /* [1258] field — 맨홈 1개→야장 rec 생성/연결(mhId) · 멱등 */
@@ -13353,7 +13361,7 @@ function _tgTakeRender(pop,body,base,R){
   var svEx=R.svPh.filter(function(r){return !_isA(r);}),svAf=R.svPh.filter(_isA);
   var fldEx=R.fldPh.filter(function(r){return !_isA(r);}),fldAf=R.fldPh.filter(_isA);
   /* [1297] 그룹별 소스: 노출관로=결선 우선 · 후측량(_A)=결선에 없으면 현장 폴백 (후측량 사진은 field에 업로드되는 체계) */
-  var exPh=(R.sv&&svEx.length)?svEx:fldEx, exLbl=(R.sv&&svEx.length)?('결선 '+R.sv.name):(R.fld?('현장 '+R.fld.name):'');
+  var exPh=(R.fld&&fldEx.length)?fldEx:svEx, exLbl=(R.fld&&fldEx.length)?('현장 '+R.fld.name):(R.sv?('결선 '+R.sv.name):'');/* [1298] 노출관로=현장(측설사진 등록분) 우선 */
   var afPh=(R.sv&&svAf.length)?svAf:fldAf, afLbl=(R.sv&&svAf.length)?('결선 '+R.sv.name):(R.fld?('현장 '+R.fld.name):'');
   function row(lab,ok,txt,dl,ap,apLab){
     return '<div style="display:flex;align-items:center;gap:10px;padding:11px 6px;border-bottom:1px solid #f2f2ef">'
@@ -13369,7 +13377,7 @@ function _tgTakeRender(pop,body,base,R){
     +row('후측량 CSV',fcs.length,R.fld?('현장 '+R.fld.name+' · CSV '+fcs.length+'개 파일'):'대응 현장 사업 없음',fcs.length?'aftcsv':null,fcs.length?'aftapply':null,'심도 적용')
     +row('노출관로 사진',exPh.length,exPh.length?(exLbl+' · '+exPh.length+'장'):(src?(srcLbl+' · 0장'):noSrc),exPh.length?'exph':null,exPh.length?'exphcopy':null,'탱고로 복사')
     +row('후측량 사진',afPh.length,afPh.length?(afLbl+' · '+afPh.length+'장'):(src?('결선/현장 사진 없음'):noSrc),afPh.length?'afph':null,afPh.length?'afphcopy':null,'탱고로 복사')
-    +'<div style="font-size:11.5px;color:#98a1ad;padding:8px 4px 0">※ 인수 소스: 결선(_A) 우선 → 없으면 현장(_B) · 후측량 사진은 현장 업로드분(_A) 자동 폴백 · 적용: 심도=후측량 CSV로 심도 재계산 · 사진=탱고 사진목록으로 복사(중복 제외)</div>';
+    +'<div style="font-size:11.5px;color:#98a1ad;padding:8px 4px 0">※ 인수 소스: 사진=현장(측설사진 등록분) 우선 → 결선 폴백 · CSV=결선 우선 · 적용: 심도=후측량 CSV로 심도 재계산 · 사진=탱고 사진목록으로 복사(중복 제외)</div>';
   [].forEach.call(body.querySelectorAll('button[data-a]'),function(b){b.onclick=function(){
     var a=b.getAttribute('data-a');
     if(a==='excsv')_tgIntCsv(pts,base);
