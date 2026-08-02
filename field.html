@@ -346,7 +346,7 @@
      — fldRefLoad·fldTerr 가 order 지정이 없어 기본값 0 으로 맨 앞에 밀려 있었다 */
   header #homeBtn{order:1!important;display:inline-flex!important;flex:none!important;font-size:9.5px!important;padding:3px 5px!important}
   header h1{font-size:11.5px!important;margin:0!important;order:2!important;flex:none!important;display:inline-block!important;white-space:nowrap!important}
-  header #fldRefLoad{order:3!important;display:inline-flex!important;flex:none!important;font-size:9.5px!important;padding:3px 5px!important;white-space:nowrap!important}
+  header #fldRefLoad{display:none!important} /* [1292] 모바일 완료결선 업로드 숨김 */
   header #fldTerr{order:4!important;display:inline-flex!important;flex:none!important;font-size:9.5px!important;padding:3px 5px!important;white-space:nowrap!important}
   header #vproj{order:5!important;flex:1 1 60px!important;min-width:60px!important;max-width:none!important;display:inline-block!important;font-size:9.5px!important;padding:3px 2px!important}
   header .hdr-break{display:block!important;flex-basis:100%!important;width:100%!important;height:0!important;margin:0!important;padding:0!important;border:0!important}
@@ -365,6 +365,7 @@
   header #fldManhole{order:16!important;display:inline-flex!important;background:#d32f2f!important;border-color:#d32f2f!important;color:#fff!important;font-weight:800!important;padding:8px 9px!important}
   /* 나머지 숨김 */
   header #fldRefHint,header #fldFit,header #fldViewLbl,header #fldCrop,header #fldTrash,header #modeToggle,header #sysSwitch,header #roBadge,header #vRv,header #fldJoseo,header #proj,header #save,header #delProj,header #bpToggle,header #doneListBtn,header #doneSummary,header #asbuiltBtn,header #photoBtn,header #bgBtn,header #rvBtn,header #buildno,header #conn,header #tamsaBadge,header #globalbtns{display:none!important}
+  #projFilterChip{display:none!important} /* [1292] 모바일 사업 전체보기 칩 숨김 */
 }
 /* ===== [1261] field PC 사진 패널 — 헤더 줄바꽈(닫기 보임)·사진 폭 꽉 채움 ===== */
 @media(min-width:761px){
@@ -616,6 +617,6 @@
     </div>
   </div>
 
-<script src="login.js?v=1291"></script><script src="core.js?v=1291"></script>
+<script src="login.js?v=1292"></script><script src="core.js?v=1292"></script>
 </body>
 </html>
