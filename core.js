@@ -1168,7 +1168,7 @@ function drawManholes(){
 
     var U=pxToWorld(); // 1px당 월드
     var EM=15*U;
-    var _mhPx=11;if(typeof IS_TANGO!=='undefined'&&IS_TANGO){_mhPx=Math.max(5,Math.min(11,0.4/U));EM=_mhPx*1.364*U;}/* [1314] 라벨 텍스트 월드 연동 */
+    var _mhPx=11;if(typeof IS_TANGO!=='undefined'&&IS_TANGO){_mhPx=Math.max(2,Math.min(120,0.85/U));EM=_mhPx*1.364*U;/* [1319] DXF 동일 월드 0.85m 고정 — 배율 비례 */}/* [1314] 라벨 텍스트 월드 연동 */
 
     if(isRiser){
       // 입상주 = 테이퍼 목주(전봇대): 밑동이 넓고 위로 갈수록 좁아짐. 중심점=밑동(mx,my). 색=파랑
@@ -1191,7 +1191,7 @@ function drawManholes(){
 
     // 라벨 기본 위치(관로 방향 피해서) — 공통 함수
     var _lp=mhLabelBase(mh, txtW); var lx=_lp.lx, ly=_lp.ly;
-    if(typeof IS_TANGO!=='undefined'&&IS_TANGO){var _cu=pxToWorld(),_cdx=lx-mh.wx,_cdy=ly-mh.wy,_cdw=Math.hypot(_cdx,_cdy)||1e-9,_cmin=0,_cmax=_cu*110,_ccl=Math.max(_cmin,Math.min(_cmax,_cdw));if(Math.abs(_ccl-_cdw)>1e-9){lx=mh.wx+_cdx/_cdw*_ccl;ly=mh.wy+_cdy/_cdw*_ccl;}}/* [1312] 탱고 인출선 화면거리 고정(줌 무관) */
+    
     var ls=S(lx,ly);
     var lbx=ls[0], lby=ls[1]; // 밑줄 시작점(라벨 기준점)
 
