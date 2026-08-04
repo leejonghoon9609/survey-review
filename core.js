@@ -5880,7 +5880,7 @@ function saveProject(cb){ if(readOnly){if(typeof cb==='function')cb();return;}
     });
   }else{ _doUpsert(); }
 }
-function pickProject(id){ if(!id)return;
+function pickProject(id){ if(!id)return;try{if(typeof IS_TANGO!=='undefined'&&IS_TANGO)localStorage.setItem('lastProj_tango',id);}catch(_lp){}/* [1321] */
   if(STAGE==='survey'||STAGE==='realtime'||!online){ loadProject(id); return; }
   /* 다운스트림(현장/탱고): 사업 선택 즉시 내 단계 사본으로 전환 */
   sb.from(DB+'_projects').select('id,name,stage:payload->>stage').eq('id',id).single().then(function(r){
@@ -13832,6 +13832,28 @@ function svRegToField(cb){ /* 결선 성과 → 측량(현장) _B 사본. [1216]
     }else if(_try++<50){ setTimeout(_w,200); }
   })();
 }catch(_oe){console.warn('[open]',_oe);}})();
+
+/* [1321] 탱고 자동저장 — 편집(pushHist)마다 2.5초 디바운스 무음 저장 + 이탈 시 즉시 저장 */
+(function(){if(typeof IS_TANGO==='undefined'||!IS_TANGO)return;var _t=null,_dirty=false;
+function _can(){return typeof online!=='undefined'&&online&&!readOnly&&state&&state.projectName&&state.projectId;}
+function _flush(){if(_t){clearTimeout(_t);_t=null;}if(!_dirty)return;_dirty=false;if(!_can())return;try{window._silentSave=true;saveProject();}catch(_e){}}
+window._autosaveDirty=function(){_dirty=true;if(_t)clearTimeout(_t);_t=setTimeout(_flush,2500);};
+window.addEventListener('pagehide',_flush);document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')_flush();});
+})();
+
+/* [1321] 탱고 재진입 시 마지막 사업 자동 열기 (?open= 없을 때만) */
+(function(){try{
+  if(typeof IS_TANGO==='undefined'||!IS_TANGO)return;
+  if(location.search.match(/[?&]open=([^&]+)/))return;
+  var _lid=null;try{_lid=localStorage.getItem('lastProj_tango');}catch(_e){}
+  if(!_lid)return;var _try=0;
+  (function _w(){
+    if(typeof online!=='undefined'&&online&&typeof pickProject==='function'){
+      pickProject(_lid);
+      setTimeout(function(){var ps=document.getElementById('proj');if(ps)ps.value=_lid;},600);
+    }else if(_try++<50){setTimeout(_w,200);}
+  })();
+}catch(_le){console.warn('[lastproj]',_le);}})();
 
 /* [1184] 휠 감도: 공정별 기본값 + 사용자 보정(localStorage, 공정별 저장). 조절 UI는 탱고 헤더에만 (규칙 0) */
 function wheelFactor(){
