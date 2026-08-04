@@ -5367,6 +5367,11 @@ EOF
   function box(cx,cy,sz,layer,col){var h=sz/2;pline([[cx-h,cy-h],[cx+h,cy-h],[cx+h,cy+h],[cx-h,cy+h]],layer,col,true);}
   function insert(name,x,y,sc,layer,col){if(_PDF){_pdfInsert(name,x,y,sc,col);return;}push(['0','INSERT','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbBlockReference','2',name,'10',N(x),'20',N(y),'30','0','41',N(sc),'42',N(sc),'43',N(sc),'50','0']);}
   function text(x,y,h,s,layer,col,align,rot,valign,x11,y11){if(_PDF){_pdfText(x,y,h,s,layer,col,align,rot,valign);return;}var hangul=/[^\x00-\x7F]/.test(s);var es=uesc(s);var a=['0','TEXT','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbText','10',N(x),'20',N(y),'30','0','40',N(h),'1',es];if(rot){a.push('50',N(rot));}if(hangul)a.push('7','HANGUL');a.push('72',String(align||0),'11',N(x11!=null?x11:x),'21',N(y11!=null?y11:y),'31','0','100','AcDbText');if(valign){a.push('73',String(valign));}push(a);}
+  var _depBlkUsed=false;/* [1320] 탐사 심도 블록+속성 */
+  function depthBlk(x,y,h,str,rot,valign,ax,ay){if(_PDF){_pdfText(ax,ay,h,str,'PT_DEPTH',5,1,rot,valign);return;}_depBlkUsed=true;var IH=H();
+    push(['0','INSERT','5',IH,'330','17','100','AcDbEntity','8','PT_DEPTH','62','5','100','AcDbBlockReference','66','1','2','PT_DEPTH_BLK','10',N(x),'20',N(y),'30','0','41','1','42','1','43','1','50','0']);
+    push(['0','ATTRIB','5',H(),'330',IH,'100','AcDbEntity','8','PT_DEPTH','62','5','100','AcDbText','10',N(ax),'20',N(ay),'30','0','40',N(h),'1',str,'50',N(rot||0),'72','1','11',N(ax),'21',N(ay),'31','0','100','AcDbAttribute','2','DEP','70','0','74',String(valign||1)]);
+    push(['0','SEQEND','5',H(),'330',IH,'100','AcDbEntity','8','PT_DEPTH']);}
   function tw(label,unit){function gw(ch){var c=ch.charCodeAt(0);if(c>127)return 1.1;if(ch===' ')return 0.392;if(ch==='M')return 1.065;if(ch==='W')return 1.22;if(ch>='0'&&ch<='9')return 0.785;if('()[]{}'.indexOf(ch)>=0)return 0.482;if('Iilj|!.,:;'.indexOf(ch)>=0)return 0.36;if('TY'.indexOf(ch)>=0)return 0.755;if(ch>='A'&&ch<='Z')return 0.8;if(ch>='a'&&ch<='z')return 0.6;return 0.5;}var w=0;for(var i=0;i<label.length;i++)w+=gw(label.charAt(i))*unit;return w+unit*0.05;}
   // 측점: 박스 + 인출선(검정 점선) + 번호/코드
   var lay=computeLabels();
@@ -5391,7 +5396,7 @@ EOF
     if(noOut||cdOut)line(p.x,p.y,lo.lx,lo.ly,'PT_LEADER',7,'DASHED');
     if(noOut)text(lo.lx,lo.ly+TH*0.1,TH,noOut,'PT_LABEL',_bp?2:3,al);
     if(cdOut)text(lo.lx,lo.ly-TH*1.1,TH,cdOut,'PT_CODE',_bp?2:4,al);
-    if(_hasDep){var _w3=(typeof pipeDirAt==='function')?pipeDirAt(p):null,_drot3=0,_vA3=1,_dpx=p.x,_dpy=p.y;if(_w3){_drot3=Math.atan2(_w3[1],_w3[0])*180/Math.PI;if(_drot3>90)_drot3-=180;if(_drot3<-90)_drot3+=180;var _th3=_drot3*Math.PI/180,_lux3=-Math.sin(_th3),_luy3=Math.cos(_th3),_tnx=(lo.lx-p.x),_tny=(lo.ly-p.y),_s3=((_lux3*_tnx+_luy3*_tny)<0)?1:-1;_vA3=(_s3>0)?1:3;var _DH=(state.tamsa?TH*0.55:TH*1.1),_gap=_DH*0;_dpx=p.x+_lux3*_s3*_gap;_dpy=p.y+_luy3*_s3*_gap;}text(state.tamsa?p.x:_dpx,state.tamsa?p.y:_dpy,_DH,(Math.round(_dep*100)/100).toFixed(2),'PT_DEPTH',5,1,_drot3,_vA3,state.tamsa?_dpx:null,state.tamsa?_dpy:null);}
+    if(_hasDep){var _w3=(typeof pipeDirAt==='function')?pipeDirAt(p):null,_drot3=0,_vA3=1,_dpx=p.x,_dpy=p.y;if(_w3){_drot3=Math.atan2(_w3[1],_w3[0])*180/Math.PI;if(_drot3>90)_drot3-=180;if(_drot3<-90)_drot3+=180;var _th3=_drot3*Math.PI/180,_lux3=-Math.sin(_th3),_luy3=Math.cos(_th3),_tnx=(lo.lx-p.x),_tny=(lo.ly-p.y),_s3=((_lux3*_tnx+_luy3*_tny)<0)?1:-1;_vA3=(_s3>0)?1:3;var _DH=(state.tamsa?TH*0.55:TH*1.1),_gap=state.tamsa?0.165:0;/* [1320] */_dpx=p.x+_lux3*_s3*_gap;_dpy=p.y+_luy3*_s3*_gap;}var _dstr=(Math.round(_dep*100)/100).toFixed(2)+(state.tamsa?((p.surface==='도로')?'/AS':((p.surface==='보도')?'/B':'')):'');/* [1320] 도로=/AS 보도=/B */if(state.tamsa){depthBlk(p.x,p.y,_DH,_dstr,_drot3,_vA3,_dpx,_dpy);}else text(_dpx,_dpy,_DH,_dstr,'PT_DEPTH',5,1,_drot3,_vA3,null,null);}
   });
   // 결선: LWPOLYLINE (압입=점선) + 지거/압입 멘트(인출선 점선 + 밑줄 + 중앙 글자)
   var LM={'통신관로':['PIPE',1],'지거':['JIGER',2],'압입구간':['PUSH',5]};
@@ -5480,6 +5485,9 @@ EOF
     var DEF2='  0\nBLOCK\n  5\nD7\n330\nD6\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockBegin\n  2\nSD100\n 70\n0\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  3\nSD100\n  1\n\n'+'  0\nCIRCLE\n  5\nD9\n330\nD6\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbCircle\n 10\n0\n 20\n0\n 30\n0\n 40\n0.504\n'+'  0\nCIRCLE\n  5\nDA\n330\nD6\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbCircle\n 10\n0\n 20\n0\n 30\n0\n 40\n0.75\n'+'  0\nPOINT\n  5\nDB\n330\nD6\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbPoint\n 10\n0\n 20\n0\n 30\n0\n'+'  0\nENDBLK\n  5\nD8\n330\nD6\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockEnd\n';
     PREx=PREx.replace('  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES',DEF1+DEF2+'  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES');
   })();
+  if(_depBlkUsed){var _dBR=H(),_dBK=H(),_dAD=H(),_dEB=H();/* [1320] PT_DEPTH_BLK 정의 */
+    PREx=PREx.replace('  0\nENDTAB\n  0\nENDSEC\n  0\nSECTION\n  2\nBLOCKS','  0\nBLOCK_RECORD\n  5\n'+_dBR+'\n330\n9\n100\nAcDbSymbolTableRecord\n100\nAcDbBlockTableRecord\n  2\nPT_DEPTH_BLK\n  0\nENDTAB\n  0\nENDSEC\n  0\nSECTION\n  2\nBLOCKS');
+    PREx=PREx.replace('  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES','  0\nBLOCK\n  5\n'+_dBK+'\n330\n'+_dBR+'\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockBegin\n  2\nPT_DEPTH_BLK\n 70\n2\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  3\nPT_DEPTH_BLK\n  1\n\n0\nATTDEF\n5\n'+_dAD+'\n330\n'+_dBR+'\n100\nAcDbEntity\n8\nPT_DEPTH\n62\n5\n100\nAcDbText\n10\n0\n20\n0.165\n30\n0\n40\n0.275\n1\n0.00\n72\n1\n11\n0\n21\n0.165\n31\n0\n100\nAcDbAttributeDefinition\n3\nD\n2\nDEP\n70\n0\n74\n1\n  0\nENDBLK\n  5\n'+_dEB+'\n330\n'+_dBR+'\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockEnd\n  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES');}
     // ===== 타이틀블록 DXF (BUILD 291) =====
   (function(){
     if(typeof tbLayout!=='function')return;
