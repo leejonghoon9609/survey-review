@@ -13508,7 +13508,7 @@ function tgFinalRegOpen(){ /* 검수/완료 DB 최종 성과 [1311 개명] — �
   if(!state.tangoDone)state.tangoDone={inspDxf:false,inspPdf:false,tgDxf:false,tgXls:false};
   _tgFinRows(pop.querySelector('#svDailyBody'),_TG_FIN_DEFS);
   var _hd=pop.querySelector('#svDailyHead');
-  var _bdg=document.createElement('span');
+  var _bdg=document.createElement('span');_bdg.id='tgFinBadge';/* [1315] 드래그 클릭보호 예외 */
   _bdg.style.cssText='margin-left:10px;font-size:12px;font-weight:800;border-radius:7px;padding:4px 10px;flex:none;cursor:pointer';
   function _all4(){var t=state.tangoDone||{};return !!(t.inspDxf&&t.inspPdf&&t.tgDxf&&t.tgXls);}/* [1313] 4종 100% 여부 */
   function _sync(){if(!pop.isConnected){if(window._tgFinSync===_sync)window._tgFinSync=null;return;}
@@ -13647,7 +13647,7 @@ function svPopup(title,accent){
     +'<div id="svDailyFoot" style="padding:9px 14px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px"></div>';
   document.body.appendChild(pop);
   (function(){var hd=document.getElementById('svDailyHead'),dx=0,dy=0,drag=false;
-    hd.addEventListener('pointerdown',function(e){if(e.target&&e.target.closest&&e.target.closest('button,#svFieldBadge'))return;/* [1239] 배지 클릭 보호 */drag=true;var r=pop.getBoundingClientRect();pop.style.left=r.left+'px';pop.style.top=r.top+'px';pop.style.transform='none';dx=e.clientX-r.left;dy=e.clientY-r.top;try{hd.setPointerCapture(e.pointerId);}catch(_e){}});
+    hd.addEventListener('pointerdown',function(e){if(e.target&&e.target.closest&&e.target.closest('button,#svFieldBadge,#tgFinBadge'))return;/* [1239] 배지 클릭 보호 */drag=true;var r=pop.getBoundingClientRect();pop.style.left=r.left+'px';pop.style.top=r.top+'px';pop.style.transform='none';dx=e.clientX-r.left;dy=e.clientY-r.top;try{hd.setPointerCapture(e.pointerId);}catch(_e){}});
     hd.addEventListener('pointermove',function(e){if(!drag)return;pop.style.left=(e.clientX-dx)+'px';pop.style.top=(e.clientY-dy)+'px';});
     hd.addEventListener('pointerup',function(){drag=false;});})();
   /* [1238] 사업명 길면 자동 폰트 축소 — 한 줄 유지 */
