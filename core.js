@@ -13514,7 +13514,7 @@ function tgFinalRegOpen(){ /* 검수/완료 DB 최종 성과 [1311 개명] — �
   function _sync(){if(!pop.isConnected){if(window._tgFinSync===_sync)window._tgFinSync=null;return;}
     if(state.routingDone){_bdg.textContent='등록완료 ✓';_bdg.style.border='0';_bdg.style.color='#fff';_bdg.style.background=_all4()?'#16a34a':'#d500f2';_bdg.title='클릭하면 등록 해제';}/* [1313] 100%=초록 · 미만=마젠타 */
     else{_bdg.textContent='미등록';_bdg.style.background='#fff';_bdg.style.color='#e0a800';_bdg.style.border='1.5px solid #e0a800';_bdg.title='';}
-    var _fb=pop.querySelector('#tgFinReg');if(_fb)_fb.textContent=state.routingDone?'등록 해제/변경':'탱고완료 등록';}
+    var _fb=pop.querySelector('#tgFinReg');if(_fb)_fb.textContent=state.routingDone?'등록 해제/변경':'검수/탱고 완료등록';/* [1317] */}
   _bdg.onclick=function(){if(!state.routingDone)return;state.routingDone=false;state.projectName=baseName(state.projectName);if(typeof saveProject==='function')try{saveProject();}catch(_e){}toast('탱고완료 등록 해제됨');_sync();};/* [1313] 등록완료 배지 재클릭=해제 */
   window._tgFinSync=_sync;
   _hd.insertBefore(_bdg,_hd.lastElementChild);
