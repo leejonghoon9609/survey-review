@@ -6704,8 +6704,8 @@ function registerDone(){
   var seg=(_tg&&typeof _tgSegs!=='undefined'&&_tgSegs)?('<br>구간 <b>'+_tgSegs.length+'개</b> · 측점 <b>'+state.points.filter(function(p){return !isManhole(p);}).length+'개</b>'):'';
   showModal({title:lbl+'완료 사업 등록',tone:'warn',
     body:'<b>'+state.projectName+'</b>'+seg+'<br>이 사업을 <b style="color:#16a34a">'+lbl+' 완료</b> 상태로 등록할까요?<br><span style="color:#888;font-size:13px">완료 시 이름이 <b>'+_aName+'</b> 로 바뀝니다. (해제하려면 다시 눌러 취소)</span>',
-    buttons:[{label:(state.routingDone?'완료 해제':'취소')+'',onClick:function(){if(state.routingDone){state.routingDone=false;state.projectName=baseName(state.projectName);saveProject();toast(lbl+'완료 해제됨');}}},
-             {label:'등록',primary:true,onClick:function(){state.routingDone=true;state.projectName=_aName;saveProject();toast(lbl+'완료 사업으로 등록됨 ('+_aName+')');}}]});};if(_isTT){_mkModal(state.projectName);}else{_uniqName(baseName(state.projectName),suf,_mkModal);}
+    buttons:[{label:(state.routingDone?'완료 해제':'취소')+'',onClick:function(){if(state.routingDone){state.routingDone=false;state.projectName=baseName(state.projectName);saveProject();toast(lbl+'완료 해제됨');}if(typeof window._tgFinSync==='function')try{window._tgFinSync();}catch(_s){}}},
+             {label:'등록',primary:true,onClick:function(){state.routingDone=true;state.projectName=_aName;saveProject();toast(lbl+'완료 사업으로 등록됨 ('+_aName+')');if(typeof window._tgFinSync==='function')try{window._tgFinSync();}catch(_s){}}}]});};if(_isTT){_mkModal(state.projectName);}else{_uniqName(baseName(state.projectName),suf,_mkModal);}
 }
 
 function countNotes(pl){return ((pl&&pl.markups)||[]).filter(function(m){return m.near==='특이사항';}).length;}
@@ -13490,7 +13490,7 @@ function _tgFinRows(body,defs){ /* [1311] 공용 행 렌더 — 등록 날짜 �
         +'<button data-t="'+d[0]+'" style="border-radius:7px;padding:6px 13px;font-weight:800;font-size:12.5px;cursor:pointer;'+(on?'background:#16a34a;color:#fff;border:0':'background:#fff;color:#e0a800;border:1.5px solid #e0a800')+'">'+(on?'완료 ✓':'미완료')+'</button>'
         +'<button data-d="'+d[0]+'" style="border-radius:7px;padding:6px 13px;font-weight:700;font-size:12.5px;cursor:pointer;'+(on?'background:#d9f2e0;color:#15803d;border:1.5px solid #16a34a':'background:#fff;color:#1565c0;border:1.5px solid #1565c0')+'">📥 다운로드</button>'
         +'</div>';}).join('');
-    [].forEach.call(body.querySelectorAll('button[data-t]'),function(b){b.onclick=function(){var k=b.getAttribute('data-t');state.tangoDone[k]=state.tangoDone[k]?false:new Date().toISOString();/* [1311] 완료 시각 저장 */if(online&&state.projectId){window._silentSave=true;try{saveProject();}catch(_e){}}render();};});
+    [].forEach.call(body.querySelectorAll('button[data-t]'),function(b){b.onclick=function(){var k=b.getAttribute('data-t');state.tangoDone[k]=state.tangoDone[k]?false:new Date().toISOString();/* [1311] 완료 시각 저장 */if(online&&state.projectId){window._silentSave=true;try{saveProject();}catch(_e){}}render();if(typeof window._tgFinSync==='function')try{window._tgFinSync();}catch(_s2){}};});
     [].forEach.call(body.querySelectorAll('button[data-d]'),function(b){b.onclick=function(){var k=b.getAttribute('data-d');
       if(k==='inspDxf'||k==='tgDxf'){if(typeof exportDXF==='function')exportDXF();}
       else if(k==='inspPdf'){if(typeof exportPDFVector==='function')exportPDFVector();}
@@ -13508,15 +13508,21 @@ function tgFinalRegOpen(){ /* 검수/완료 DB 최종 성과 [1311 개명] — �
   _tgFinRows(pop.querySelector('#svDailyBody'),_TG_FIN_DEFS);
   var _hd=pop.querySelector('#svDailyHead');
   var _bdg=document.createElement('span');
-  _bdg.style.cssText='margin-left:10px;font-size:12px;font-weight:800;border-radius:7px;padding:4px 10px;flex:none';
-  if(state.routingDone){_bdg.textContent='등록완료 ✓';_bdg.style.background='#e0a800';_bdg.style.color='#fff';}
-  else{_bdg.textContent='미등록';_bdg.style.background='#fff';_bdg.style.color='#e0a800';_bdg.style.border='1.5px solid #e0a800';}
+  _bdg.style.cssText='margin-left:10px;font-size:12px;font-weight:800;border-radius:7px;padding:4px 10px;flex:none;cursor:pointer';
+  function _all4(){var t=state.tangoDone||{};return !!(t.inspDxf&&t.inspPdf&&t.tgDxf&&t.tgXls);}/* [1313] 4종 100% 여부 */
+  function _sync(){if(!pop.isConnected){if(window._tgFinSync===_sync)window._tgFinSync=null;return;}
+    if(state.routingDone){_bdg.textContent='등록완료 ✓';_bdg.style.border='0';_bdg.style.color='#fff';_bdg.style.background=_all4()?'#16a34a':'#d500f2';_bdg.title='클릭하면 등록 해제';}/* [1313] 100%=초록 · 미만=마젠타 */
+    else{_bdg.textContent='미등록';_bdg.style.background='#fff';_bdg.style.color='#e0a800';_bdg.style.border='1.5px solid #e0a800';_bdg.title='';}
+    var _fb=pop.querySelector('#tgFinReg');if(_fb)_fb.textContent=state.routingDone?'등록 해제/변경':'탱고완료 등록';}
+  _bdg.onclick=function(){if(!state.routingDone)return;state.routingDone=false;state.projectName=baseName(state.projectName);if(typeof saveProject==='function')try{saveProject();}catch(_e){}toast('탱고완료 등록 해제됨');_sync();};/* [1313] 등록완료 배지 재클릭=해제 */
+  window._tgFinSync=_sync;
   _hd.insertBefore(_bdg,_hd.lastElementChild);
   pop.querySelector('#svDailyFoot').innerHTML=
-    '<button id="tgFinReg" style="background:#16a34a;color:#fff;border:0;border-radius:9px;padding:9px 16px;font-weight:800;cursor:pointer">'+(state.routingDone?'등록 해제/변경':'탱고완료 등록')+'</button>'
+    '<button id="tgFinReg" style="background:#16a34a;color:#fff;border:0;border-radius:9px;padding:9px 16px;font-weight:800;cursor:pointer"></button>'
     +'<button id="tgFinClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:9px 16px;cursor:pointer;font-weight:700">닫기</button>';
-  pop.querySelector('#tgFinClose').onclick=function(){pop.remove();};
-  pop.querySelector('#tgFinReg').onclick=function(){pop.remove();if(typeof registerDone==='function')registerDone();};
+  _sync();
+  pop.querySelector('#tgFinClose').onclick=function(){if(window._tgFinSync===_sync)window._tgFinSync=null;pop.remove();};
+  pop.querySelector('#tgFinReg').onclick=function(){if(typeof registerDone==='function')registerDone();};/* [1313] 창 유지 — 배지로 상태 확인 */
 }
 function tgInspRegOpen(){ /* [1311] 최종(검수데이터) 등록 — 검수 항목만 · [등록]=검수 2종 완료 확정(검수/완료 DB 최종 성과에 반영) */
   if(typeof IS_TANGO==='undefined'||!IS_TANGO)return;
