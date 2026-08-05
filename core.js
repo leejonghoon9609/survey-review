@@ -10385,7 +10385,7 @@ document.getElementById('fCsv').addEventListener('change',function(e){var fs=e.t
 function loadDxfFile(f){loadDxfFiles(f?[f]:[]);}
 function loadDxfFiles(fs){fs=Array.prototype.slice.call(fs||[]).filter(Boolean);if(!fs.length)return;/* [1350] 다중 병합 */
  var done=0,addLn=0,err=0;
- fs.forEach(function(f){var rd=new FileReader();rd.onload=function(){try{var _tt=decodeBuf(rd.result);var _HIDE={'H0037335':1,'H0017334':1,'A0023210':1};/* [1351] 숨김 레이어 */var ln=parseDxfLines(_tt).filter(function(l){return !_HIDE[l.layer];});ln.forEach(function(l){l.base=true;});state.lines=state.lines.concat(ln);state.baseTexts=(state.baseTexts||[]).concat(parseDxfTexts(_tt).filter(function(t){return !_HIDE[t.layer];}));addLn+=ln.length;}catch(e2){err++;}
+ fs.forEach(function(f){var rd=new FileReader();rd.onload=function(){try{var _tt=decodeBuf(rd.result);var _HIDE={'H0037335':1,'H0017334':1,'A0023210':1};/* [1351] 숨김 레이어 */var ln=parseDxfLines(_tt).filter(function(l){return !_HIDE[l.layer];});ln.forEach(function(l){l.base=true;});state.lines=state.lines.concat(ln);state.baseTexts=(state.baseTexts||[]).concat(parseDxfTexts(_tt).filter(function(t){return !_HIDE[t.layer];}).map(function(t){if(t&&t.h)t.h=t.h/2;return t;}));/* [1357] 백판 텍스트 50% 축소 */addLn+=ln.length;}catch(e2){err++;}
   done++;if(done===fs.length){drawGeo();fitView();updMeta();if(regOpen())updRegStatus();toast('수치지도 '+fs.length+'개 파일 병합 — 라인 +'+addLn+' · 텍스트 '+(state.baseTexts||[]).length+'개'+(err?(' · 오류 '+err+'개'):''));}
  };rd.readAsArrayBuffer(f);});}
 (function(){var _fi=document.getElementById('fDxf');if(_fi){_fi.setAttribute('multiple','');_fi.addEventListener('change',function(e){loadDxfFiles(e.target.files);e.target.value='';});}})();/* [1350] */
