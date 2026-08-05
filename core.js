@@ -985,7 +985,7 @@ function drawGeo(){if(typeof _tgCarGeomBuild==='function')try{_tgCarGeomBuild();
   // ★ 백판은 화면영역 컬링으로 그림(drawBackdrop) — 화면 밖 백판은 안 그려 줌/팬 가벼움(BUILD509)
   drawBackdrop();
   // 앱 레이어·crop 라인만 개별(색·굵기·dash 다양, 클릭 필요)
-  state.lines.forEach(function(L){if(typeof tgCarLineShow==='function'&&!tgCarLineShow(L))return;/* [1327] */if(bpOff&&L.base)return;
+  ((typeof _tgCarLines==='function')?_tgCarLines(state.lines):state.lines).forEach(function(L){if(bpOff&&L.base)return;/* [1329] 엣지 분할 필터 */
     if(!(LINECOL[L.layer]||L.crop))return;      // 백판은 위 통합 path로 처리됨
     if(L.crop&&(typeof LV!=='undefined')&&LV.bizbox===0)return;   /* [1092] 사업정보 끔 → 크롭 테두리도 같이 */
     var def=LINECOL[L.layer]||{c:"#bbb",w:1.2};if(L.color)def={c:L.color,w:def.w,dash:def.dash};if(L.crop)def={c:"#000",w:1.4};
@@ -13939,14 +13939,14 @@ function tgCarKeyOf(si){return (typeof _tgSegs!=='undefined'&&_tgSegs&&_tgSegs[s
 function tgCarMatchKey(key){if(typeof IS_TANGO==='undefined'||!IS_TANGO)return true;var c=state.tgCarrier;if(!c||!c.view||c.view==='ALL')return true;var s=(c.view==='SKT')?c.skt:c.skb;return !!(s&&s[key]);}
 function tgCarShow(si){var k=tgCarKeyOf(si);if(k==null)return true;return tgCarMatchKey(k);}
 function _tgCarBold(si){if(!_tgCarMode)return false;var k=tgCarKeyOf(si);if(!k)return false;var set=_tgCarObj()[_tgCarMode.car]||{};return !!set[k];}/* [1325] 현재 통신사 지정분만 표시 */
-function _tgCarRefresh(){if(typeof tgInfoRender==='function')try{tgInfoRender(typeof tgSeg!=='undefined'?tgSeg:-1);}catch(_e){}if(typeof tangoFill==='function')try{tangoFill();}catch(_e2){}if(typeof drawGeo==='function')try{drawGeo();}catch(_e4){}if(typeof tgDrawSegHL==='function')try{tgDrawSegHL(typeof tgSeg!=='undefined'?tgSeg:-1);}catch(_e3){}if(_tgCarMode)setTimeout(function(){try{_tgCarMiniInit();}catch(_m){}},0);}
+function _tgCarRefresh(){if(typeof tgInfoRender==='function')try{tgInfoRender(typeof tgSeg!=='undefined'?tgSeg:-1);}catch(_e){}if(typeof tangoFill==='function')try{tangoFill();}catch(_e2){}if(typeof drawGeo==='function')try{drawGeo();}catch(_e4){}if(typeof tgDrawSegHL==='function')try{tgDrawSegHL(typeof tgSeg!=='undefined'?tgSeg:-1);}catch(_e3){}if(typeof _tgCarHeadSync==='function')try{_tgCarHeadSync();}catch(_h){}if(_tgCarMode)setTimeout(function(){try{_tgCarMiniInit();}catch(_m){}},0);}
 function tgCarStart(){if(typeof _tgSegs==='undefined'||!_tgSegs||!_tgSegs.length){toast('구간이 없습니다. 구간을 먼저 생성하세요');return;}_tgCarObj();_tgCarMode={car:'skt',bak:JSON.stringify(state.tgCarrier)};tgSeg=-1;window._tgMiniVB=null;if(typeof LV!=='undefined'&&LV){LV.tgseg=1;try{localStorage.setItem(LV_KEY,JSON.stringify(LV));}catch(_l){}if(typeof applyLayerVis==='function')applyLayerVis();}_tgCarRefresh();toast('SKT/SKB 선택 후 구간 버튼으로 지정하세요 (공통구간은 양쪽 모두 지정)');}
 function tgCarPick(car){if(!_tgCarMode)return;_tgCarMode.car=car;_tgCarRefresh();}
 function tgCarToggleCur(si){if(!_tgCarMode)return;var k=tgCarKeyOf(si);if(!k)return;var set=_tgCarObj()[_tgCarMode.car];if(set[k])delete set[k];else set[k]=1;_tgCarRefresh();}
 function tgCarDone(){if(!_tgCarMode)return;_tgCarMode=null;_tgCarObj();if(typeof saveProject==='function'){window._silentSave=true;try{saveProject();}catch(_e){}}_tgCarRefresh();toast('구간분리 등록 — 상단 SKT/SKB/전체 버튼으로 보기·내보내기 전환');}
 function tgCarCancel(){if(!_tgCarMode)return;try{state.tgCarrier=JSON.parse(_tgCarMode.bak);}catch(_e){}_tgCarMode=null;_tgCarRefresh();}
 function tgCarView(v){_tgCarObj().view=v;tgSeg=-1;if(typeof saveProject==='function'){window._silentSave=true;try{saveProject();}catch(_e){}}_tgCarRefresh();toast(v==='ALL'?'전체 성과 표시':(v+' 구간만 표시·내보내기'));}
-function _tgCarRow1(bs){if(typeof IS_TANGO==='undefined'||!IS_TANGO)return '';var vv=(state.tgCarrier&&state.tgCarrier.view)||'ALL';
+function _tgCarRow1(bs){return '';/* [1329] 헤더로 이동 */var vv=(state.tgCarrier&&state.tgCarrier.view)||'ALL';
  return '<button onclick="tgCarView(\'SKT\')" style="'+bs+';margin-left:48px;border-color:#e4002b;'+(vv==='SKT'?'background:#e4002b;color:#fff':'color:#e4002b')+';font-weight:800">SKT</button>'
   +'<button onclick="tgCarView(\'SKB\')" style="'+bs+';border-color:#e0a800;'+(vv==='SKB'?'background:#e0a800;color:#fff':'color:#e0a800')+';font-weight:800">SKB</button>'
   +'<button onclick="tgCarView(\'ALL\')" style="'+bs+';'+(vv==='ALL'?'background:#333;color:#fff;border-color:#333':'')+';font-weight:800">전체</button>';}
@@ -14014,3 +14014,21 @@ function tgCarLineShow(L){if(!_tgCarGeom||!L||!L.pts)return true;
  return true;}
 function tgCarMhShow(mh){if(!_tgCarGeom||!mh||mh.wx==null)return true;if(_tgCarGeom.xy[_tgCarGeom.qk(mh.wx,mh.wy)])return true;
  for(var k in _tgCarGeom.xy){var q=k.split('_');if(Math.hypot(q[0]/100-mh.wx,q[1]/100-mh.wy)<0.3)return true;}return false;}
+
+/* ===== [1329] 관로선 엣지 분할 + 보기 버튼 헤더 배치 (탱고 전용) ===== */
+function _tgCarLines(arr){if(!_tgCarGeom)return arr;var out=[];(arr||[]).forEach(function(L){
+ if(!L||!L.pts){out.push(L);return;}
+ if(L.layer!=='통신관로'){if(tgCarLineShow(L))out.push(L);return;}
+ var run=[];function flush(){if(run.length>=2){var nl={};for(var k in L){if(k!=='pts')nl[k]=L[k];}nl.pts=run;out.push(nl);}run=[];}
+ for(var i=1;i<L.pts.length;i++){var a=_tgCarGeom.qk(L.pts[i-1][0],L.pts[i-1][1]),b=_tgCarGeom.qk(L.pts[i][0],L.pts[i][1]);
+  if(_tgCarGeom.edges[a<b?a+'|'+b:b+'|'+a]){if(!run.length)run.push(L.pts[i-1]);run.push(L.pts[i]);}else flush();}
+ flush();});return out;}
+function _tgCarHeadSync(){if(typeof IS_TANGO==='undefined'||!IS_TANGO)return;var wb=document.getElementById('wheelAdjBox');if(!wb||!wb.parentNode)return;
+ var box=document.getElementById('tgCarViewBox');
+ if(!box){box=document.createElement('span');box.id='tgCarViewBox';box.style.cssText='display:inline-flex;gap:5px;margin-left:26px;align-items:center;vertical-align:middle';wb.parentNode.insertBefore(box,wb.nextSibling);}
+ var bs='display:inline-flex;justify-content:center;align-items:center;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12.5px;font-weight:800;border:1.5px solid';
+ var vv=(state.tgCarrier&&state.tgCarrier.view)||'ALL';
+ box.innerHTML='<button onclick="tgCarView(\'SKT\')" style="'+bs+' #e4002b;'+(vv==='SKT'?'background:#e4002b;color:#fff':'background:#fff;color:#e4002b')+'">SKT</button>'
+  +'<button onclick="tgCarView(\'SKB\')" style="'+bs+' #e0a800;'+(vv==='SKB'?'background:#e0a800;color:#fff':'background:#fff;color:#e0a800')+'">SKB</button>'
+  +'<button onclick="tgCarView(\'ALL\')" style="'+bs+' #333;'+(vv==='ALL'?'background:#333;color:#fff':'background:#fff;color:#333')+'">전체</button>';}
+if(typeof IS_TANGO!=='undefined'&&IS_TANGO){setTimeout(function(){try{_tgCarHeadSync();}catch(_e){}},900);}
