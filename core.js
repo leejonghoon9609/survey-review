@@ -6353,7 +6353,7 @@ function _openRegNow(){
   updRegStatus();
   setTimeout(function(){document.getElementById('regName').focus();},30);
 }
-function clearForNew(){state.tamsa=false;state.projectId=null;state.projectName='';state.points=[];state.routingDone=false;state.asbuilt=null;state.nightShift=null;state.fieldDone=null;state.bizInfo=null;if(typeof fillBizInfo==='function')fillBizInfo({});if(typeof refreshFieldBar==='function')refreshFieldBar();if(typeof setReadOnly==='function')setReadOnly(false);(state.markups||[]).forEach(function(m){if(m.el)m.el.remove();});state.markups=[];state.lines=[];state.manholes=[];state.photoDir={};photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);redrawAll();updMeta();}
+function clearForNew(){state.tamsa=false;state.projectId=null;state.projectName='';state.points=[];state.routingDone=false;state.asbuilt=null;state.nightShift=null;state.fieldDone=null;state.bizInfo=null;if(typeof fillBizInfo==='function')fillBizInfo({});if(typeof refreshFieldBar==='function')refreshFieldBar();if(typeof setReadOnly==='function')setReadOnly(false);(state.markups||[]).forEach(function(m){if(m.el)m.el.remove();});state.markups=[];state.lines=[];state.manholes=[];state.photoDir={};photoMap={};afterMap={};selNum=null;state.labelOff={};if(typeof IS_TANGO!=='undefined'&&IS_TANGO){state.tangoEdit=null;state._tgCmpRemote=null;state._tgCmpRemoteOrig=null;state._pointsOrig=null;state._linesOrig=null;state._depthOrig=null;state._depthByNo={};state.tangoDone=null;state.tgCarrier=null;state.tangoManual=null;state.tgFixSegs=[];state.tgAddSegs=[];state.tgSegDel={};state.tgSegLabelOff={};state.tgStore=null;state.titleBlock=null;try{if(typeof _tgSegs!=='undefined')_tgSegs=[];if(typeof tgSeg!=='undefined')tgSeg=-1;if(window._tgSegRaw)window._tgSegRaw=[];if(typeof _tgUndo!=='undefined')_tgUndo=[];if(typeof _tgRedo!=='undefined')_tgRedo=[];if(typeof _tgCarMode!=='undefined')_tgCarMode=null;}catch(_tc){}}/* [1326] 새 사업 시 탱고 잔재 초기화 */clearSvg(gSel);clearSvg(gMH);redrawAll();updMeta();}
 function regStartWarn(){
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;z-index:1001;background:rgba(0,0,0,.42);display:flex;align-items:center;justify-content:center';
@@ -13841,19 +13841,7 @@ window._autosaveDirty=function(){_dirty=true;if(_t)clearTimeout(_t);_t=setTimeou
 window.addEventListener('pagehide',_flush);document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')_flush();});
 })();
 
-/* [1321] 탱고 재진입 시 마지막 사업 자동 열기 (?open= 없을 때만) */
-(function(){try{
-  if(typeof IS_TANGO==='undefined'||!IS_TANGO)return;
-  if(location.search.match(/[?&]open=([^&]+)/))return;
-  var _lid=null;try{_lid=localStorage.getItem('lastProj_tango');}catch(_e){}
-  if(!_lid)return;var _try=0;
-  (function _w(){
-    if(typeof online!=='undefined'&&online&&typeof pickProject==='function'){
-      pickProject(_lid);
-      setTimeout(function(){var ps=document.getElementById('proj');if(ps)ps.value=_lid;},600);
-    }else if(_try++<50){setTimeout(_w,200);}
-  })();
-}catch(_le){console.warn('[lastproj]',_le);}})();
+
 
 /* [1184] 휠 감도: 공정별 기본값 + 사용자 보정(localStorage, 공정별 저장). 조절 UI는 탱고 헤더에만 (규칙 0) */
 function wheelFactor(){
