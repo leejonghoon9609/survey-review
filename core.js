@@ -6569,7 +6569,7 @@ function setupDrop(zid,onfiles){var z=document.getElementById(zid);if(!z)return;
   z.addEventListener('dragleave',function(e){e.preventDefault();e.stopPropagation();z.classList.remove('over');});
   z.addEventListener('drop',function(e){e.preventDefault();e.stopPropagation();z.classList.remove('over');var fs=e.dataTransfer&&e.dataTransfer.files;if(fs&&fs.length)onfiles(fs);});
 }
-setupDrop('dropCsv',function(fs){if(regOpen())regAddCsvFiles(fs);else loadCsvFile(fs[0]);});
+setupDrop('dropCsv',function(fs){if(regOpen()){if(state.tamsa&&typeof regAddCsvFilesTamsa==='function')regAddCsvFilesTamsa(fs);else regAddCsvFiles(fs);}else loadCsvFile(fs[0]);});/* [1355] 탐사 탭 분기 */
 setupDrop('dropDxf',function(fs){loadDxfFiles(fs);});/* [1350] */
 setupDrop('dropPho',function(fs){regAddPhotos(fs);});setupDrop('dropAft',function(fs){loadAfterCsv(fs[0]);});
 document.getElementById('dropCsv').addEventListener('click',function(){document.getElementById('fCsv').click();});document.getElementById('dropAft').addEventListener('click',function(){document.getElementById('fAft').click();});
@@ -10381,7 +10381,7 @@ function openCsvList(){
   ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};
   document.body.appendChild(ov);
 }
-document.getElementById('fCsv').addEventListener('change',function(e){var fs=e.target.files;if(regOpen()||IS_REALTIME)regAddCsvFiles(fs);else loadCsvFile(fs[0]);e.target.value='';});document.getElementById('fAft').addEventListener('change',function(e){[].forEach.call(e.target.files,function(f){loadAfterCsv(f);});e.target.value='';});
+document.getElementById('fCsv').addEventListener('change',function(e){var fs=e.target.files;if(regOpen()||IS_REALTIME){if(state.tamsa&&!(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)&&typeof regAddCsvFilesTamsa==='function')regAddCsvFilesTamsa(fs);else regAddCsvFiles(fs);}else loadCsvFile(fs[0]);e.target.value='';});/* [1355] */document.getElementById('fAft').addEventListener('change',function(e){[].forEach.call(e.target.files,function(f){loadAfterCsv(f);});e.target.value='';});
 function loadDxfFile(f){loadDxfFiles(f?[f]:[]);}
 function loadDxfFiles(fs){fs=Array.prototype.slice.call(fs||[]).filter(Boolean);if(!fs.length)return;/* [1350] 다중 병합 */
  var done=0,addLn=0,err=0;
