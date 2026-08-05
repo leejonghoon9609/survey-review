@@ -13978,7 +13978,7 @@ function _tgCarPanel(){var n=(typeof _tgSegs!=='undefined'&&_tgSegs)?_tgSegs.len
   +'<div style="position:absolute;left:8px;top:6px;font-size:11px;font-weight:700;color:#1e7e34;background:rgba(255,255,255,0.85);border-radius:5px;padding:2px 8px;pointer-events:none">미니 도면 — 휠 확대 · 드래그 이동</div></div>';
  return h+'</div>';}
 function _tgCarMiniInit(){var mv=document.getElementById('tgCarMini');var cvEl=document.getElementById('cv');if(!mv||!cvEl)return;
- mv.innerHTML='<g style="pointer-events:none">'+cvEl.innerHTML+'</g>';
+ mv.innerHTML='<g style="pointer-events:none">'+cvEl.innerHTML+'</g>';if(typeof _tgCarMiniLabels==='function')try{_tgCarMiniLabels(mv);}catch(_ml){}/* [1333] */
  var vb=cvEl.viewBox&&cvEl.viewBox.baseVal;if(!vb)return;
  if(!window._tgMiniVB)window._tgMiniVB={x:vb.x+vb.width*0.25,y:vb.y+vb.height*0.25,w:vb.width*0.5,h:vb.height*0.5};
  _tgCarMiniApply();
@@ -14032,3 +14032,29 @@ function _tgCarHeadSync(){if(typeof IS_TANGO==='undefined'||!IS_TANGO)return;var
   +'<button onclick="tgCarView(\'SKB\')" style="'+bs+' #e0a800;'+(vv==='SKB'?'background:#e0a800;color:#fff':'background:#fff;color:#e0a800')+'">SKB</button>'
   +'<button onclick="tgCarView(\'ALL\')" style="'+bs+' #333;'+(vv==='ALL'?'background:#333;color:#fff':'background:#fff;color:#333')+'">전체</button>';}
 if(typeof IS_TANGO!=='undefined'&&IS_TANGO){setTimeout(function(){try{_tgCarHeadSync();}catch(_e){}},900);}
+
+/* ===== [1333] 미니 도면 맨홀/입상 라벨 (SVG 텍스트 — 월드 0.85m) ===== */
+function _tgCarMiniLabels(mv){if(typeof IS_TANGO==='undefined'||!IS_TANGO)return;
+ var NS='http://www.w3.org/2000/svg';var g=document.createElementNS(NS,'g');g.setAttribute('style','pointer-events:none');
+ var H=0.85,EM=H*1.364;
+ (state.manholes||[]).forEach(function(mh){
+  if(mh.wx==null)return;
+  if(typeof tgCarMhShow==='function'&&!tgCarMhShow(mh))return;
+  var disp=(typeof mhDisp==='function')?mhDisp(mh):null;
+  var txt=((disp&&disp.label)||mh.label||'').trim();if(!txt)return;
+  var txtW=0;for(var ci=0;ci<txt.length;ci++){txtW+=(txt.charCodeAt(ci)>255?EM*0.95:EM*0.52);}
+  var lp=null;try{if(typeof mhLabelBase==='function')lp=mhLabelBase(mh,txtW);}catch(_e){}
+  var lx=(lp&&lp.lx!=null)?lp.lx:((mh.lx!=null)?mh.lx:mh.wx+3.9);
+  var ly=(lp&&lp.ly!=null)?lp.ly:((mh.ly!=null)?mh.ly:mh.wy+2);
+  var right=(lx>=mh.wx);
+  var t=document.createElementNS(NS,'text');
+  t.setAttribute('x',lx);t.setAttribute('y',-(ly)-H*0.35);
+  t.setAttribute('font-size',H);t.setAttribute('font-weight','700');
+  t.setAttribute('fill',mh.type==='riser'?'#d500f2':'#111');
+  t.setAttribute('text-anchor',right?'start':'end');
+  t.setAttribute('paint-order','stroke');t.setAttribute('stroke','#fff');t.setAttribute('stroke-width',H*0.12);
+  t.textContent=txt;
+  g.appendChild(t);
+ });
+ mv.appendChild(g);
+}
