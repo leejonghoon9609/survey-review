@@ -1169,7 +1169,7 @@ function drawManholes(){
 
     var U=pxToWorld(); // 1px당 월드
     var EM=15*U;
-    var _mhPx=11;if(typeof IS_TANGO!=='undefined'&&IS_TANGO){_mhPx=Math.max(2,Math.min(120,0.85/U));EM=_mhPx*1.364*U;/* [1319] DXF 동일 월드 0.85m 고정 — 배율 비례 */}/* [1314] 라벨 텍스트 월드 연동 */
+    var _mhPx=11;if(typeof IS_TANGO!=='undefined'&&IS_TANGO){_mhPx=13;EM=_mhPx*1.364*U;/* [1356] 화면 고정 13px — 줌 무관 */}/* [1314] 라벨 텍스트 월드 연동 */
 
     if(isRiser){
       // 입상주 = 테이퍼 목주(전봇대): 밑동이 넓고 위로 갈수록 좁아짐. 중심점=밑동(mx,my). 색=파랑
@@ -14088,9 +14088,13 @@ function _tgCarMiniLabels(mv){if(typeof IS_TANGO==='undefined'||!IS_TANGO)return
 /* ===== [1343] 심도 소속 명확화 — 자기 관로선에 더 가깝게 배치 ===== */
 function _depOwnPick(px,py,ue,un,pe,pn,tw,H,g1,s0){
  var _segD=function(x,y,a,b){var vx=b[0]-a[0],vy=b[1]-a[1],wx=x-a[0],wy=y-a[1],L2=vx*vx+vy*vy;var t=L2?Math.max(0,Math.min(1,(wx*vx+wy*vy)/L2)):0;return Math.hypot(x-(a[0]+vx*t),y-(a[1]+vy*t));};
+ var _sc=window._dsC;
+ if(!_sc||_sc.ref!==state.lines||_sc.ln!==state.lines.length){_sc={ref:state.lines,segs:[]};(state.lines||[]).forEach(function(L){if(!L||L.layer!=='통신관로'||!L.pts)return;for(var q=1;q<L.pts.length;q++)_sc.segs.push([L.pts[q-1],L.pts[q]]);});_sc.ln=state.lines.length;window._dsC=_sc;}/* [1356] 세그 캐시 */
+ if(!window._dpR||window._dpR.sc!==_sc)window._dpR={sc:_sc,m:{}};
+ var _ck=px.toFixed(2)+'_'+py.toFixed(2)+'_'+(s0||1)+'_'+g1;
+ if(window._dpR.m[_ck])return window._dpR.m[_ck];/* [1356] 결과 캐시 */
  var own=[],oth=[];
- (state.lines||[]).forEach(function(L){if(!L||L.layer!=='통신관로'||!L.pts)return;
-  for(var q=1;q<L.pts.length;q++){var a=L.pts[q-1],b=L.pts[q];(_segD(px,py,a,b)<0.08?own:oth).push([a,b]);/* [1345] 자기선=올라탄 세그만 */}});
+ for(var q2=0;q2<_sc.segs.length;q2++){var sg9=_sc.segs[q2];(_segD(px,py,sg9[0],sg9[1])<0.08?own:oth).push(sg9);/* [1345] */}
  function sc(sn,g){var cx=px+pe*sn*(g+H*0.55),cy=py+pn*sn*(g+H*0.55);
   var sp=[[cx-ue*tw/2,cy-un*tw/2],[cx,cy],[cx+ue*tw/2,cy+un*tw/2]];
   function md(list){var m=1e9;for(var i2=0;i2<list.length;i2++){for(var s2=0;s2<3;s2++){var d=_segD(sp[s2][0],sp[s2][1],list[i2][0],list[i2][1]);if(d<m)m=d;}}return m;}
@@ -14098,9 +14102,9 @@ function _depOwnPick(px,py,ue,un,pe,pn,tw,H,g1,s0){
   return {od:od,xd:xd,mg:xd-od};}
  var cands=[[s0||1,g1],[-(s0||1),g1],[s0||1,g1*1.7],[-(s0||1),g1*1.7]],best=null;
  for(var c=0;c<cands.length;c++){var r=sc(cands[c][0],cands[c][1]);
-  if(r.xd>=0.35)return {s:cands[c][0],g:cands[c][1]};/* [1346] 겹침 기준 */
+  if(r.xd>=0.35)return (window._dpR.m[_ck]={s:cands[c][0],g:cands[c][1]});/* [1346] 겹침 기준 */
   if(!best||r.xd>best.m)best={m:r.xd,i:c};}
- return {s:cands[best.i][0],g:cands[best.i][1]};
+ return (window._dpR.m[_ck]={s:cands[best.i][0],g:cands[best.i][1]});
 }
 
 /* ===== [1344] _TT에서 검수데이터 복귀/복원 — _T 보존 체계 ===== */
