@@ -5858,7 +5858,7 @@ function refreshProjects(){ if(!online)return;
     try{if(typeof projPurgeTrash==='function')projPurgeTrash();}catch(_pe){}
   });
 }
-function saveProject(cb){ if(readOnly){if(typeof cb==='function')cb();return;}
+function saveProject(cb){ if(readOnly){if(typeof cb==='function')cb();return;} var _sil=!!window._silentSave;window._silentSave=false;/* [1358] 자동저장 플래그 진입 시 캐처 */
   var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,rtDaily:state.rtDaily||[],trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:state.finalCsv||null,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,mnList:state.mnList||[],tangoDone:state.tangoDone||null,tgCarrier:state.tgCarrier||null,mhDel:state.mhDel||null};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
   if(!state.projectName){toast('사업명을 먼저 정하세요(새 사업)');return;}
   payload.stage=STAGE;
@@ -5869,8 +5869,8 @@ function saveProject(cb){ if(readOnly){if(typeof cb==='function')cb();return;}
   var _doUpsert=function(){ sb.from(DB+'_projects').upsert(row).select().then(function(res){
     if(res.error){toast('저장 오류: '+res.error.message);return;}
     var saved=res.data&&res.data[0];if(saved){state.projectId=saved.id;state.loadedStage=STAGE;}
-    sb.from(DB+'_history').insert({project_id:state.projectId,payload:payload}); // 이력
-    refreshProjects();loadPhotos();if(!window._silentSave)toast('저장 완료');window._silentSave=false;if(state._importSrc&&state._importSrc.length&&state.projectId){var _srcs=state._importSrc.slice();state._importSrc=[];(function _nx(){if(!_srcs.length)return;var _sid=_srcs.shift();copyPhotos(_sid,state.projectId,_nx);})();}if(typeof cb==='function')cb(state.projectId);
+    if(!_sil)sb.from(DB+'_history').insert({project_id:state.projectId,payload:payload}); // 이력(수동만 [1358])
+    if(!_sil){refreshProjects();loadPhotos();toast('저장 완료');}/* [1358] 자동저장은 목록·사진 재조회 생략 — Disk IO 절감 */if(state._importSrc&&state._importSrc.length&&state.projectId){var _srcs=state._importSrc.slice();state._importSrc=[];(function _nx(){if(!_srcs.length)return;var _sid=_srcs.shift();copyPhotos(_sid,state.projectId,_nx);})();}if(typeof cb==='function')cb(state.projectId);
   }); };
   if(state.projectId){
     sb.from(DB+"_projects").select("del:payload->>delAt").eq('id',state.projectId).single().then(function(chk){
