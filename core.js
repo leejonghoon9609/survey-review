@@ -5764,6 +5764,7 @@ function applyNightShift(){
   return n;
 }
 function parseDxfLines(text){
+  var _es=text.indexOf('ENTITIES');if(_es>0){var _nl=text.indexOf('\n',_es);if(_nl>0)text=text.slice(_nl+1);}/* [1350] BLOCKS 심볼 제외(짝 정렬 유지) */
   var L=text.replace(/\r/g,'').split('\n'),pairs=[];
   for(var i=0;i+1<L.length;i+=2)pairs.push([L[i].trim(),L[i+1]]);
   var lines=[],i2=0;
@@ -5806,6 +5807,7 @@ function parseDxfLines(text){
   return lines;
 }
 function parseDxfTexts(text){
+  var _es=text.indexOf('ENTITIES');if(_es>0){var _nl=text.indexOf('\n',_es);if(_nl>0)text=text.slice(_nl+1);}/* [1350] */
   var L=text.replace(/\r/g,'').split('\n'),pairs=[];
   for(var i=0;i+1<L.length;i+=2)pairs.push([L[i].trim(),L[i+1]]);
   var out=[],i2=0;
@@ -6567,7 +6569,7 @@ function setupDrop(zid,onfiles){var z=document.getElementById(zid);if(!z)return;
   z.addEventListener('drop',function(e){e.preventDefault();e.stopPropagation();z.classList.remove('over');var fs=e.dataTransfer&&e.dataTransfer.files;if(fs&&fs.length)onfiles(fs);});
 }
 setupDrop('dropCsv',function(fs){if(regOpen())regAddCsvFiles(fs);else loadCsvFile(fs[0]);});
-setupDrop('dropDxf',function(fs){loadDxfFile(fs[0]);});
+setupDrop('dropDxf',function(fs){loadDxfFiles(fs);});/* [1350] */
 setupDrop('dropPho',function(fs){regAddPhotos(fs);});setupDrop('dropAft',function(fs){loadAfterCsv(fs[0]);});
 document.getElementById('dropCsv').addEventListener('click',function(){document.getElementById('fCsv').click();});document.getElementById('dropAft').addEventListener('click',function(){document.getElementById('fAft').click();});
 document.getElementById('dropDxf').addEventListener('click',function(){document.getElementById('fDxf').click();});
@@ -10379,8 +10381,13 @@ function openCsvList(){
   document.body.appendChild(ov);
 }
 document.getElementById('fCsv').addEventListener('change',function(e){var fs=e.target.files;if(regOpen()||IS_REALTIME)regAddCsvFiles(fs);else loadCsvFile(fs[0]);e.target.value='';});document.getElementById('fAft').addEventListener('change',function(e){[].forEach.call(e.target.files,function(f){loadAfterCsv(f);});e.target.value='';});
-function loadDxfFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){try{var _tt=decodeBuf(rd.result);var ln=parseDxfLines(_tt);ln.forEach(function(l){l.base=true;});state.lines=state.lines.filter(function(l){return !l.base;}).concat(ln);state.baseTexts=parseDxfTexts(_tt);drawGeo();fitView();updMeta();if(regOpen())updRegStatus();toast('수치지도 백판 '+ln.length+'개 라인 · '+state.baseTexts.length+'개 텍스트 로드');}catch(err){toast('DXF 파싱 오류');}};rd.readAsArrayBuffer(f);}
-document.getElementById('fDxf').addEventListener('change',function(e){loadDxfFile(e.target.files[0]);e.target.value='';});
+function loadDxfFile(f){loadDxfFiles(f?[f]:[]);}
+function loadDxfFiles(fs){fs=Array.prototype.slice.call(fs||[]).filter(Boolean);if(!fs.length)return;/* [1350] 다중 병합 */
+ var done=0,addLn=0,err=0;
+ fs.forEach(function(f){var rd=new FileReader();rd.onload=function(){try{var _tt=decodeBuf(rd.result);var ln=parseDxfLines(_tt);ln.forEach(function(l){l.base=true;});state.lines=state.lines.concat(ln);state.baseTexts=(state.baseTexts||[]).concat(parseDxfTexts(_tt));addLn+=ln.length;}catch(e2){err++;}
+  done++;if(done===fs.length){drawGeo();fitView();updMeta();if(regOpen())updRegStatus();toast('수치지도 '+fs.length+'개 파일 병합 — 라인 +'+addLn+' · 텍스트 '+(state.baseTexts||[]).length+'개'+(err?(' · 오류 '+err+'개'):''));}
+ };rd.readAsArrayBuffer(f);});}
+(function(){var _fi=document.getElementById('fDxf');if(_fi){_fi.setAttribute('multiple','');_fi.addEventListener('change',function(e){loadDxfFiles(e.target.files);e.target.value='';});}})();/* [1350] */
 
 /* ====== 샘플 데이터 (수원 권선동 1041-6) ====== */
 function loadSample(){
