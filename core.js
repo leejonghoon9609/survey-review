@@ -14033,28 +14033,46 @@ function _tgCarHeadSync(){if(typeof IS_TANGO==='undefined'||!IS_TANGO)return;var
   +'<button onclick="tgCarView(\'ALL\')" style="'+bs+' #333;'+(vv==='ALL'?'background:#333;color:#fff':'background:#fff;color:#333')+'">전체</button>';}
 if(typeof IS_TANGO!=='undefined'&&IS_TANGO){setTimeout(function(){try{_tgCarHeadSync();}catch(_e){}},900);}
 
-/* ===== [1333] 미니 도면 맨홀/입상 라벨 (SVG 텍스트 — 월드 0.85m) ===== */
+/* ===== [1336] 미니 도면 라벨 v2 — 본 도면과 동일 기하 (맨홀/입상 + 기준심도미달) ===== */
 function _tgCarMiniLabels(mv){if(typeof IS_TANGO==='undefined'||!IS_TANGO)return;
  var NS='http://www.w3.org/2000/svg';var g=document.createElementNS(NS,'g');g.setAttribute('style','pointer-events:none');
  var H=0.85,EM=H*1.364;
  (state.manholes||[]).forEach(function(mh){
   if(mh.wx==null)return;
   if(typeof tgCarMhShow==='function'&&!tgCarMhShow(mh))return;
-  var disp=(typeof mhDisp==='function')?mhDisp(mh):null;
-  var txt=((disp&&disp.label)||mh.label||'').trim();if(!txt)return;
-  var txtW=0;for(var ci=0;ci<txt.length;ci++){txtW+=(txt.charCodeAt(ci)>255?EM*0.95:EM*0.52);}
-  var lp=null;try{if(typeof mhLabelBase==='function')lp=mhLabelBase(mh,txtW);}catch(_e){}
+  var _lb='';try{_lb=(typeof mhDisp==='function')?String(mhDisp(mh)||''):String(mh.label||'');}catch(_e){_lb=String(mh.label||'');}
+  _lb=_lb.trim();if(!_lb)return;
+  var txtW=0;for(var ci=0;ci<_lb.length;ci++){txtW+=(_lb.charCodeAt(ci)>127?EM*1.0:EM*0.55);}txtW+=EM*0.5;txtW*=0.73;
+  var lp=null;try{if(typeof mhLabelBase==='function')lp=mhLabelBase(mh,txtW);}catch(_e2){}
   var lx=(lp&&lp.lx!=null)?lp.lx:((mh.lx!=null)?mh.lx:mh.wx+3.9);
   var ly=(lp&&lp.ly!=null)?lp.ly:((mh.ly!=null)?mh.ly:mh.wy+2);
-  var right=(lx>=mh.wx);
+  var ms=S(mh.wx,mh.wy),ls=S(lx,ly);
+  var isRight=(ls[0]>=ms[0]);
+  var x1=isRight?ls[0]:(ls[0]-txtW);
   var t=document.createElementNS(NS,'text');
-  t.setAttribute('x',lx);t.setAttribute('y',-(ly)-H*0.35);
+  t.setAttribute('x',x1);t.setAttribute('y',ls[1]-H*0.32);
   t.setAttribute('font-size',H);t.setAttribute('font-weight','700');
-  t.setAttribute('fill',mh.type==='riser'?'#d500f2':'#111');
-  t.setAttribute('text-anchor',right?'start':'end');
-  t.setAttribute('paint-order','stroke');t.setAttribute('stroke','#fff');t.setAttribute('stroke-width',H*0.12);
-  t.textContent=txt;
+  t.setAttribute('textLength',txtW);t.setAttribute('lengthAdjust','spacingAndGlyphs');
+  t.setAttribute('text-anchor','start');
+  t.setAttribute('fill',(mh.type==='riser')?'#d500f2':'#111');
+  t.setAttribute('paint-order','stroke');t.setAttribute('stroke','#fff');t.setAttribute('stroke-width',H*0.1);
+  t.textContent=_lb;
   g.appendChild(t);
  });
+ if(typeof LV==='undefined'||!LV||LV.depthchk!==0){
+  var DH=0.6;
+  (state.depthCheck||[]).forEach(function(b){
+   if(b._dx==null||b._dy==null)return;
+   if(typeof tgCarPtShow==='function'&&typeof _tgCarGeom!=='undefined'&&_tgCarGeom&&!tgCarPtShow({no:b.no,x:b.x,y:b.y}))return;
+   var es=S(b._dx,b._dy);var right=(b._dx>=b.x);
+   var t=document.createElementNS(NS,'text');
+   t.setAttribute('x',es[0]+(right?0.5:-0.5));t.setAttribute('y',es[1]+DH*0.35);
+   t.setAttribute('font-size',DH);t.setAttribute('font-weight','700');
+   t.setAttribute('fill','#d500f2');t.setAttribute('text-anchor',right?'start':'end');
+   t.setAttribute('paint-order','stroke');t.setAttribute('stroke','#fff');t.setAttribute('stroke-width',DH*0.1);
+   t.textContent='기준심도미달';
+   g.appendChild(t);
+  });
+ }
  mv.appendChild(g);
 }
