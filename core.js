@@ -151,8 +151,8 @@ function buildInspData(){
   state.mhDel=null;/* [1353] 재생성=삭제묘비 해제 */
   var arr=(typeof finalCsvArr==='function')?finalCsvArr():[];
   var csvs=arr.map(function(it){return parseInspCsv(it.text||'');})
-              .filter(function(p){return p.some(function(x){return x.code==='l'||x.code==='SKTM'||x.code==='B'||x.code==='D'||x.code==='BD';});});
-  if(!csvs.length){toast('후측량/현황 CSV(코드 l/SKTM/B/D)를 먼저 등록하세요');return;}
+              .filter(function(p){return p.some(function(x){return x.code==='l'||x.code==='SKTM'||x.code==='B'||x.code==='D'||x.code==='BD'||(typeof isMhCode==='function'&&isMhCode(x.code));});});/* [1354] SKBM 등 맨홀 코드 인정 */
+  if(!csvs.length){toast('후측량/현황 CSV(코드 l·맨홀(M/SKTM/SKBM)·B/D)를 먼저 등록하세요');return;}
   if(typeof pushHist==='function')pushHist();
   state.hyunPts=null;
   if(!state.markups)state.markups=[];
@@ -6340,7 +6340,7 @@ function updRegStatus(){
     var _bl=document.getElementById('clrAftList');if(_bl)_bl.style.display=_c.files?'inline-block':'none';
     return;
   }
-if(_cnt){var _nL=0,_nH=0,_nM=0;(typeof finalCsvArr==='function'?finalCsvArr():[]).forEach(function(it){var _pp=(typeof parseInspCsv==='function')?parseInspCsv(it.text||''):[];_pp.forEach(function(p){if(p.skip)return;if(p.code==='l')_nL++;else if(p.code==='SKTM')_nM++;else if(p.code==='B'||p.code==='D'||p.code==='BD')_nH++;});});_cnt.textContent=(_nL||_nH||_nM)?('측점 '+_nL+'점 · 현황 '+_nH+'점 · 맨홀 '+_nM+'개'):'';}if(state.depthGround&&state.depthGround.length){var _r=(typeof computeDepth==='function')?computeDepth():{avg:0,ok:0,total:state.depthGround.length};if(_st)_st.textContent='복구후 '+state.depthGround.length+'점 등록됨'+((typeof finalCsvArr==='function'&&finalCsvArr().length)?(' ('+finalCsvArr().length+'CSV)'):'');if(_o&&_r)_o.textContent='✅ 평균심도 '+(_r.avg||0).toFixed(2)+'m · '+_r.ok+'/'+_r.total+'점 매칭';}})();
+if(_cnt){var _nL=0,_nH=0,_nM=0;(typeof finalCsvArr==='function'?finalCsvArr():[]).forEach(function(it){var _pp=(typeof parseInspCsv==='function')?parseInspCsv(it.text||''):[];_pp.forEach(function(p){if(p.skip)return;if(p.code==='l')_nL++;else if(p.code==='SKTM'||(typeof isMhCode==='function'&&isMhCode(p.code)))_nM++;else if(p.code==='B'||p.code==='D'||p.code==='BD')_nH++;});});/* [1354] */_cnt.textContent=(_nL||_nH||_nM)?('측점 '+_nL+'점 · 현황 '+_nH+'점 · 맨홀 '+_nM+'개'):'';}if(state.depthGround&&state.depthGround.length){var _r=(typeof computeDepth==='function')?computeDepth():{avg:0,ok:0,total:state.depthGround.length};if(_st)_st.textContent='복구후 '+state.depthGround.length+'점 등록됨'+((typeof finalCsvArr==='function'&&finalCsvArr().length)?(' ('+finalCsvArr().length+'CSV)'):'');if(_o&&_r)_o.textContent='✅ 평균심도 '+(_r.avg||0).toFixed(2)+'m · '+_r.ok+'/'+_r.total+'점 매칭';}})();
   _tg('clrDxf', (state.lines||[]).filter(function(l){return l.base;}).length>0);
   _tg('clrPho', !!(pendingPhotos&&pendingPhotos.length));
   if(typeof updRegStatusTamsa==='function')updRegStatusTamsa(); /* [1310] 탐사 카드 로딩상태 항상 동기화 */
