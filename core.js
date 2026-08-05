@@ -1169,7 +1169,7 @@ function drawManholes(){
 
     var U=pxToWorld(); // 1px당 월드
     var EM=15*U;
-    var _mhPx=11;if(typeof IS_TANGO!=='undefined'&&IS_TANGO){_mhPx=13;EM=_mhPx*1.364*U;/* [1356] 화면 고정 13px — 줌 무관 */}/* [1314] 라벨 텍스트 월드 연동 */
+    var _mhPx=11;if(typeof IS_TANGO!=='undefined'&&IS_TANGO){var _WH=0.85;_mhPx=Math.max(2,_WH/U);EM=_WH*1.364;/* [1359] 월드 고정 0.85m — 확대·축소 시 도면과 동일 비율(DXF·미니와 일치), 인출선도 동일 EM 기반 */}/* [1314] 라벨 텍스트 월드 연동 */
 
     if(isRiser){
       // 입상주 = 테이퍼 목주(전봇대): 밑동이 넓고 위로 갈수록 좁아짐. 중심점=밑동(mx,my). 색=파랑
