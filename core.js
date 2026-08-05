@@ -14082,7 +14082,7 @@ function _depOwnPick(px,py,ue,un,pe,pn,tw,H,g1,s0){
  var _segD=function(x,y,a,b){var vx=b[0]-a[0],vy=b[1]-a[1],wx=x-a[0],wy=y-a[1],L2=vx*vx+vy*vy;var t=L2?Math.max(0,Math.min(1,(wx*vx+wy*vy)/L2)):0;return Math.hypot(x-(a[0]+vx*t),y-(a[1]+vy*t));};
  var own=[],oth=[];
  (state.lines||[]).forEach(function(L){if(!L||L.layer!=='통신관로'||!L.pts)return;
-  for(var q=1;q<L.pts.length;q++){var a=L.pts[q-1],b=L.pts[q];(_segD(px,py,a,b)<0.45?own:oth).push([a,b]);}});
+  for(var q=1;q<L.pts.length;q++){var a=L.pts[q-1],b=L.pts[q];(_segD(px,py,a,b)<0.08?own:oth).push([a,b]);/* [1345] 자기선=올라탄 세그만 */}});
  function sc(sn,g){var cx=px+pe*sn*(g+H*0.55),cy=py+pn*sn*(g+H*0.55);
   var sp=[[cx-ue*tw/2,cy-un*tw/2],[cx,cy],[cx+ue*tw/2,cy+un*tw/2]];
   function md(list){var m=1e9;for(var i2=0;i2<list.length;i2++){for(var s2=0;s2<3;s2++){var d=_segD(sp[s2][0],sp[s2][1],list[i2][0],list[i2][1]);if(d<m)m=d;}}return m;}
