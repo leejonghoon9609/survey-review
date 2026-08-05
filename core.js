@@ -13965,10 +13965,10 @@ function _tgCarPanel(){var n=(typeof _tgSegs!=='undefined'&&_tgSegs)?_tgSegs.len
   +'<button onclick="tgCarPick(\'skb\')" style="flex:1;padding:8px 0;display:inline-flex;justify-content:center;align-items:center;border-radius:7px;font-weight:800;font-size:13px;cursor:pointer;border:2px solid #e0a800;'+(car==='skb'?'background:#e0a800;color:#fff':'background:#fff;color:#e0a800')+'">SKB</button></div>';
  h+='<div style="display:flex;flex-direction:column;gap:6px;overflow:auto;flex:1;padding-right:2px">';
  for(var i=0;i<n;i++){var k=tgCarKeyOf(i);var _bc=TG_COLS[i%TG_COLS.length];
-  var iS=!!(k&&C.skt[k]),iB=!!(k&&C.skb[k]);var sel=(car==='skt')?iS:iB;var tag=(iS&&iB)?' · SB':(iS?' · S':(iB?' · B':''));
-  h+='<button onclick="tgCarToggleCur('+i+')" style="padding:8px 10px;border-radius:7px;font-size:13px;text-align:left;cursor:pointer;border:1.5px solid #999;'
+  var iS=!!(k&&C.skt[k]),iB=!!(k&&C.skb[k]);var sel=(car==='skt')?iS:iB;var tag=(iS&&iB)?'SKT·SKB':(iS?'SKT':(iB?'SKB':''));/* [1337] */
+  h+='<button onclick="tgCarToggleCur('+i+')" style="padding:8px 10px;border-radius:7px;font-size:13px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;border:1.5px solid #999;'
    +(sel?('background:'+_bc+';font-weight:800;outline:2px solid #333;outline-offset:1px'):('background:'+_bc+'55;font-weight:600'))
-   +'">'+(i+1)+'구간'+tag+'</button>';}
+   +'"><span>'+(i+1)+'구간</span><span style="font-weight:800">'+tag+'</span></button>';}
  h+='</div><div style="display:flex;gap:8px;justify-content:center;margin-top:9px">'
   +'<button onclick="tgCarDone()" style="background:#16a34a;color:#fff;border:0;border-radius:8px;padding:9px 24px;font-weight:800;cursor:pointer;font-size:13px">등록</button>'
   +'<button onclick="tgCarCancel()" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:9px 24px;font-weight:700;cursor:pointer;font-size:13px">취소</button></div></div>';
