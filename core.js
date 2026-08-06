@@ -756,6 +756,8 @@ function tbPipeLength(){
 }
 function tbCommonTop(f){var mm=(typeof state!=='undefined'&&state&&state.tangoManual)||{},cnt={},bk='',bv=0;for(var k in mm){var v=mm[k]&&mm[k][f];if(v!=null&&v!==''){v=''+v;cnt[v]=(cnt[v]||0)+1;if(cnt[v]>bv){bv=cnt[v];bk=v;}}}return bk;}
 function tbTangoLength(){/* [1372] 탱고 물량 = 구간별 준공거리 합 (구간삭제·SKT/SKB 보기 반영) */try{if(typeof IS_TANGO==='undefined'||!IS_TANGO)return 0;var key=((state.lines&&state.lines.length)||0)+'|'+JSON.stringify(state.tgSegDel||{})+'|'+((state.tgCarrier&&state.tgCarrier.view)||'ALL')+'|'+((state.tgFixSegs||[]).length)+'|'+((state.tgAddSegs||[]).length);var c=window._tbTgL;if(c&&c.k===key&&c.lref===state.lines)return c.v;var segs=(typeof _tgSegs!=='undefined'&&_tgSegs&&_tgSegs.length)?_tgSegs:((typeof tangoBuildSegs==='function')?tangoBuildSegs():[]);var tot=0;(segs||[]).forEach(function(sg){if(!sg||sg.length<2)return;if(typeof tgManualKey==='function'){var k2=tgManualKey(sg);if(state.tgSegDel&&state.tgSegDel[k2])return;if(typeof tgCarMatchKey==='function'&&!tgCarMatchKey(k2))return;}for(var k=1;k<sg.length;k++)tot+=Math.hypot(sg[k].x-sg[k-1].x,sg[k].y-sg[k-1].y);});window._tbTgL={k:key,lref:state.lines,v:tot};return tot;}catch(e){return 0;}}
+function _tbSheet5kOf(lat,lng){var _p=function(n,w){n=''+n;while(n.length<w)n='0'+n;return n;};var L=Math.floor(lat),N=Math.floor(lng);var r=Math.min(3,Math.max(0,Math.floor(((L+1)-lat)/0.25)));var c=Math.min(3,Math.max(0,Math.floor((lng-N)/0.25)));var n50=''+L+(N%10)+_p(r*4+c+1,2);var top=(L+1)-r*0.25,left=N+c*0.25;var r2=Math.min(9,Math.max(0,Math.floor((top-lat)/0.025)));var c2=Math.min(9,Math.max(0,Math.floor((lng-left)/0.025)));return n50+_p(r2*10+c2+1,3);}/* [1388] 1/5000 = 1/50000(5) + 100등분(3) */
+function _tbSheetNos(){/* [1388] 도엽번호 자동: 1/1000=백판 텍스트 9자리, 1/5000=텍스트 8자리→없으면 좌표 계산 */var bt=state.baseTexts||[],pts=state.points||[],mhs=state.manholes||[];var key=bt.length+'|'+pts.length+'|'+mhs.length+'|'+(state.crs||'5186');var cc=window._tbShC;if(cc&&cc.k===key)return cc.v;var k1={},k5={};bt.forEach(function(t){var q=(''+((t&&t.text)||'')).trim();if(/^\d{9}$/.test(q))k1[q]=1;else if(/^\d{8}$/.test(q))k5[q]=1;});if(!Object.keys(k5).length&&typeof toLatLng==='function'){var smp=[];pts.forEach(function(q,i){if(q&&q.x!=null&&(i%25===0||i===pts.length-1))smp.push([+q.x,+q.y]);});mhs.forEach(function(m,i){if(m&&m.wx!=null&&i%10===0)smp.push([+m.wx,+m.wy]);});smp.forEach(function(q){try{var ll=toLatLng(q[0],q[1]);if(ll&&ll.lat)k5[_tbSheet5kOf(ll.lat,ll.lng)]=1;}catch(_e){}});}var v={k1:Object.keys(k1).sort().join('·'),k5:Object.keys(k5).sort().join('·')};window._tbShC={k:key,v:v};return v;}
 function tbData(){
   var b=state.bizInfo||{}, t=state.titleBlock||{};
   var owner=(b.client||'').trim();
@@ -770,11 +772,11 @@ function tbData(){
   var inner=(t.inner!=null)?t.inner:tbCommonTop('inner');
   var gyeol=(t.gyeol!=null)?t.gyeol:tbCommonTop('gyeol');
   var gdan=(t.gdan!=null)?t.gdan:tbCommonTop('gdan');
-  var gwannum=(t.gwannum!=null)?t.gwannum:tbCommonTop('gwannum');
+  var gwannum=(t.gwannum!=null)?t.gwannum:tbCommonTop('gwannum');var _sh9=null;if(typeof IS_TANGO!=='undefined'&&IS_TANGO&&typeof _tbSheetNos==='function'){try{_sh9=_tbSheetNos();}catch(_e){}}/* [1388] */
   return { name:(state.projectName||''), bizNo:(b.bizNo||''), client:owner,
            outer:outer, inner:inner, mhOwner:mhOwner,
            gyeol:gyeol, gdan:gdan, gwannum:gwannum,
-           volT:volT, volG:((t.volG!=null&&t.volG!=='')?t.volG:autoVolG), outer2:(t.outer2||''), innerX:(t.innerX||'') };/* [1379] */
+           volT:volT, volG:((t.volG!=null&&t.volG!=='')?t.volG:autoVolG), outer2:(t.outer2||''), innerX:(t.innerX||''),sheet1k:((t.sheet1k!=null&&t.sheet1k!=='')?t.sheet1k:(_sh9?_sh9.k1:'')),sheet5k:((t.sheet5k!=null&&t.sheet5k!=='')?t.sheet5k:(_sh9?_sh9.k5:'')) };/* [1379][1388] */
 }
 function tbEsc(x){return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function tbLayout(dxf){
@@ -802,7 +804,7 @@ function tbLayout(dxf){
   var vxm=dxf?8.5:8.9, rlm=23.8, rvm=29.8;     // 물량 라벨=파란박스 라벨 x 일렬(BUILD662)
   var nameGap=th*2.5;
   var d=tbData();
-  var bh=pad+nameH+nameGap+4.6*dy+pad*0.15;
+  var _tg9r=(typeof IS_TANGO!=='undefined'&&IS_TANGO);var bh=pad+nameH+nameGap+(_tg9r?5.6:4.6)*dy+pad*0.15;/* [1388] 도엽번호 행 */
   var b0=minX, by0=maxY, by1=maxY+bh;
   var it=[];
   function add(x,y,h,s,c,a,key){if(s==null)s='';it.push({x:x,y:y,h:h,s:s,c:c,a:a||'start',key:key||null});}
@@ -812,7 +814,7 @@ function tbLayout(dxf){
   add(b0+bw/2, by1-pad-nameH, _nameH, _nm, 'name', 'middle', 'name');
   var lx=b0+pad, vx=b0+pad+th*vxm, firstY=by1-pad-nameH-nameGap-th*0.2;
   var L=[['탱고 번호',d.bizNo,'red','bizNo'],['관로(소유자)',d.client,'blue','client'],['관로(외관)',d.outer,'blue','outer'],['맨홀(소유자)',d.mhOwner,'blue','mhOwner']];
-  L.forEach(function(r,i){var y=firstY-dy*i; add(lx,y,gh,r[0]+' :','label'); add(vx,y,gh,r[1]||'확인요청',(r[1]?r[2]:'req'),'start',r[3]);});/* [1377] */add(vx+th*6.2,firstY-dy*2,gh,(d.outer2||(dxf?'':'(직접입력)')),(d.outer2?'blue':'ph'),'start','outer2');/* [1379] 둘째 외관 */
+  L.forEach(function(r,i){var y=firstY-dy*i; add(lx,y,gh,r[0]+' :','label'); add(vx,y,gh,r[1]||'확인요청',(r[1]?r[2]:'req'),'start',r[3]);});/* [1377] */add(vx+th*6.2,firstY-dy*2,gh,(d.outer2||(dxf?'':'(직접입력)')),(d.outer2?'blue':'ph'),'start','outer2');/* [1379] 둘째 외관 */if(_tg9r){var _y49=firstY-dy*4;add(lx,_y49,gh,'도엽번호 :','label');add(vx,_y49,gh,(d.sheet1k||'확인요청'),(d.sheet1k?'blue':'req'),'start','sheet1k');add(vx+th*6.2,_y49,gh,(d.sheet5k||'확인요청'),(d.sheet5k?'blue':'req'),'start','sheet5k');}/* [1388] 1/1000·1/5000 */
   var rlx=b0+pad+th*rlm, rvx=b0+pad+th*rvm;
   var R=[['물량(탱고)',(d.volT||''),'volT'],['물량(GIS)',(d.volG||''),'volG']];
   R.forEach(function(r,i){var y=firstY-dy*i; add(rlx,y,gh,r[0]+' :','label'); add(rvx,y,gh,r[1]||'확인요청',(r[1]?'blue':'req'),'start',r[2]);});
@@ -853,7 +855,7 @@ function tbApplyToSegs(key,v){var FMAP={gyeol:'gyeol',gdan:'gdan',gwannum:'gwann
 function editField(key){
   if(viewerMode||readOnly)return;
   var b=state.bizInfo||{}, t=state.titleBlock||{}, d=tbData();
-  var LAB={name:'사업명',bizNo:'탱고 번호',client:'관로(소유자)',outer:'관로(외관)',inner:'관로(내관)',mhOwner:'맨홀(소유자)',gyeol:'공열',gdan:'공단',gwannum:'관공번호',volT:'물량(탱고)',volG:'물량(GIS)',outer2:'관로(외관) 추가',innerX:'관로(내관) 추가정보'};/* [1379] */
+  var LAB={name:'사업명',bizNo:'탱고 번호',client:'관로(소유자)',outer:'관로(외관)',inner:'관로(내관)',mhOwner:'맨홀(소유자)',gyeol:'공열',gdan:'공단',gwannum:'관공번호',volT:'물량(탱고)',volG:'물량(GIS)',outer2:'관로(외관) 추가',innerX:'관로(내관) 추가정보',sheet1k:'도엽번호(1/1000)',sheet5k:'도엽번호(1/5000)'};/* [1379][1388] */
   var cur;
   if(key==='name')cur=state.projectName||'';
   else if(key==='bizNo')cur=b.bizNo||'';
@@ -864,9 +866,9 @@ function editField(key){
   else if(key==='gyeol')cur=d.gyeol||'';
   else if(key==='gdan')cur=d.gdan||'';
   else if(key==='gwannum')cur=d.gwannum||'';
-  else cur=t[key]||'';
+  else if(key==='sheet1k')cur=d.sheet1k||'';else if(key==='sheet5k')cur=d.sheet5k||'';/* [1388] */else cur=t[key]||'';
   var src=(key==='name'||key==='bizNo'||key==='client');
-  var autoKey=(key==='volT'||key==='outer'||key==='mhOwner'||key==='inner'||key==='gyeol'||key==='gdan'||key==='gwannum');   // 자동계산 되돌리기 가능 필드
+  var autoKey=(key==='volT'||key==='outer'||key==='mhOwner'||key==='inner'||key==='gyeol'||key==='gdan'||key==='gwannum'||key==='sheet1k'||key==='sheet5k');   // 자동계산 되돌리기 가능 필드
   var autoLabel=(key==='volT')?'🔄 관로거리 자동계산':'🔄 자동값으로';
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.25);z-index:9999;display:flex;align-items:center;justify-content:center';
