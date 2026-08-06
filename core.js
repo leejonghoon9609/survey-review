@@ -1320,7 +1320,7 @@ function drawManholes(){
         if(mh._fromCsv&&mh.wx!=null){if(!state.mhDel)state.mhDel={};state.mhDel[mh.wx+'_'+mh.wy]=1;}/* [1338] 삭제 영구화 */var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);if(!isRiser)removeManholePassLines(mh);redrawAll();toast(isRiser?'입상주 삭제':'맨홀 삭제(통과결선 포함)');return;}
       if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace'||viewerMode||readOnly)return;
       ev.stopPropagation();ev.preventDefault();
-      if(typeof _tgMode==='function'&&_tgMode()){var _nowMh=Date.now();if(_nowMh-(mh._lastMhClick||0)<350){mh._lastMhClick=0;openLabelEdit();return;}mh._lastMhClick=_nowMh;if(typeof tgSelectMh==='function')tgSelectMh(mh.wx,mh.wy);if(typeof drawGeo==='function')drawGeo();return;}
+      if(mode!=='tgnote'&&typeof _tgMode==='function'&&_tgMode()){var _nowMh=Date.now();if(_nowMh-(mh._lastMhClick||0)<350){mh._lastMhClick=0;openLabelEdit();return;}mh._lastMhClick=_nowMh;if(typeof tgSelectMh==='function')tgSelectMh(mh.wx,mh.wy);if(typeof drawGeo==='function')drawGeo();return;}/* [1373] 특이사항 모드엔 맨홀 클릭으로 속성정보창 안 띄움 */
       if((typeof IS_FIELD!=='undefined'&&IS_FIELD)&&mh._fromCsv&&mh.type==='riser'){toast('후측량 CSV 전주입상 — 좌표 고정(라벨만 이동 가능)');return;} /* [1255] */
       if(mh._aft||state.tamsa){toast(state.tamsa?'탐사 측량 — CSV 점 고정(이동 불가)':'후측량 맨홀 — 위치 고정(라벨만 이동 가능)');return;}
       pushHist();
