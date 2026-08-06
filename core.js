@@ -9912,9 +9912,10 @@ function _ptagNotePop(key,ev,li){/* [1403] 태그 부착 특이사항 */
  document.body.appendChild(w);ip.focus();
 }
 function drawTgPipeTags(){/* [1401] 구간별 관로 자동 태그 */
+ [].forEach.call(document.querySelectorAll('.ptagAnc'),function(x){x.remove();});/* [1407] */
  if(typeof IS_TANGO==='undefined'||!IS_TANGO)return;
  if(typeof _tgSegs==='undefined'||!_tgSegs||!_tgSegs.length)return;
- var U=pxToWorld();var _ph=0.85,EM=_ph*1.364;var CL='#1633ff';/* [1402] 파랑 */
+ var U=pxToWorld();var _ph=U*13,EM=_ph*1.364;var CL='#1633ff';/* [1407] 화면 고정 13px */
  _tgSegs.forEach(function(sg,si){
   if(typeof tgCarShow==='function'&&!tgCarShow(si))return;
   var key=tgManualKey(sg);var M=(state.tangoManual&&state.tangoManual[key])||{};
@@ -9930,9 +9931,9 @@ function drawTgPipeTags(){/* [1401] 구간별 관로 자동 태그 */
   gGeo.appendChild(el('line',{x1:_st[0],y1:_st[1],x2:ks[0],y2:ks[1],stroke:CL,'stroke-width':1.3,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
   var dir=(kx>=ax)?1:-1;var ux2=kx+dir*txtW;var us=S(ux2,ky);
   gGeo.appendChild(el('line',{x1:ks[0],y1:ks[1],x2:us[0],y2:us[1],stroke:CL,'stroke-width':1.3,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-  var _ac=el('circle',{cx:asv[0],cy:asv[1],r:Math.min(0.6,U*6),fill:'rgba(22,51,255,0.22)',stroke:CL,'stroke-width':1.6,'vector-effect':'non-scaling-stroke',cursor:'move','pointer-events':(viewerMode||readOnly)?'none':'all'});
+  var _ac=el('circle',{cx:asv[0],cy:asv[1],r:U*6,fill:'rgba(22,51,255,0.22)',stroke:CL,'stroke-width':1.6,'vector-effect':'non-scaling-stroke',cursor:'move','pointer-events':(viewerMode||readOnly)?'none':'all'});
   (function(k9,si9){_ac.addEventListener('pointerdown',function(ev){ev.stopPropagation();ev.preventDefault();if(!state.tangoManual)state.tangoManual={};if(!state.tangoManual[k9])state.tangoManual[k9]={};_ptagDragA={key:k9,si:si9};labelDragging=true;try{cv.setPointerCapture(ev.pointerId);}catch(e){}});})(key,si);/* [1402] */
-  gGeo.appendChild(_ac);
+  _ac.setAttribute('class','ptagAnc');((typeof gAnc!=='undefined'&&gAnc)?gAnc:gGeo).appendChild(_ac);/* [1407] */
   var midx=(kx+ux2)/2;var msv=S(midx,ky);var lblpx=Math.max(2,_ph/U);
   var lbl=(typeof mkLabel==='function')?mkLabel(msv[0],msv[1]-EM*0.55,_lb,{fill:CL,weight:'700',anchor:'middle',grp:'ptag',px:lblpx}):null;
   if(lbl&&!viewerMode&&!readOnly){lbl.style.pointerEvents='auto';lbl.style.cursor='move';
