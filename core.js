@@ -812,7 +812,7 @@ function tbLayout(dxf){
   add(b0+bw/2, by1-pad-nameH, _nameH, _nm, 'name', 'middle', 'name');
   var lx=b0+pad, vx=b0+pad+th*vxm, firstY=by1-pad-nameH-nameGap-th*0.2;
   var L=[['탱고 번호',d.bizNo,'red','bizNo'],['관로(소유자)',d.client,'blue','client'],['관로(외관)',d.outer,'blue','outer'],['맨홀(소유자)',d.mhOwner,'blue','mhOwner']];
-  L.forEach(function(r,i){var y=firstY-dy*i; add(lx,y,gh,r[0]+' :','label'); add(vx,y,gh,r[1]||'확인요청',(r[1]?r[2]:'req'),'start',r[3]);});/* [1377] */add(vx+th*10.5,firstY-dy*2,gh,(d.outer2||(dxf?'':'(직접입력)')),(d.outer2?'blue':'ph'),'start','outer2');/* [1379] 둘째 외관 */
+  L.forEach(function(r,i){var y=firstY-dy*i; add(lx,y,gh,r[0]+' :','label'); add(vx,y,gh,r[1]||'확인요청',(r[1]?r[2]:'req'),'start',r[3]);});/* [1377] */add(vx+th*6.2,firstY-dy*2,gh,(d.outer2||(dxf?'':'(직접입력)')),(d.outer2?'blue':'ph'),'start','outer2');/* [1379] 둘째 외관 */
   var rlx=b0+pad+th*rlm, rvx=b0+pad+th*rvm;
   var R=[['물량(탱고)',(d.volT||''),'volT'],['물량(GIS)',(d.volG||''),'volG']];
   R.forEach(function(r,i){var y=firstY-dy*i; add(rlx,y,gh,r[0]+' :','label'); add(rvx,y,gh,r[1]||'확인요청',(r[1]?'blue':'req'),'start',r[2]);});
