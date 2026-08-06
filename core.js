@@ -801,7 +801,7 @@ function tbLayout(dxf){
   }
   var bw=Math.max(maxX-minX,10);
   var th=ptW*0.020, dy=th*1.55, pad=th*1.0, nameH=th*1.4*0.85;
-  var gsc=dxf?0.78:1.0, gh=th*gsc;
+  var gsc=dxf?0.68:1.0, gh=th*gsc;/* [1398] DXF 글자 축소 */
   var vxm=dxf?8.5:8.9, rlm=23.8, rvm=29.8;     // 물량 라벨=파란박스 라벨 x 일렬(BUILD662)
   var nameGap=th*2.5;
   var d=tbData();
@@ -810,9 +810,9 @@ function tbLayout(dxf){
   var it=[];
   function add(x,y,h,s,c,a,key){if(s==null)s='';it.push({x:x,y:y,h:h,s:s,c:c,a:a||'start',key:key||null});}
   var _nm=d.name||'(사업명 미입력)';
-  var _availW=bw-pad*2,_estW=0;for(var _ci=0;_ci<_nm.length;_ci++){var _cc=_nm.charCodeAt(_ci);_estW+=(_cc>0x1100&&_cc<0xD7A4)?nameH*1.12:nameH*0.64;}
+  var _availW=bw-pad*2,_estW=0;var _kw9=dxf?1.3:1.12,_aw9=dxf?0.85:0.64;/* [1398] CAD 실측 계수 */for(var _ci=0;_ci<_nm.length;_ci++){var _cc=_nm.charCodeAt(_ci);_estW+=(_cc>0x1100&&_cc<0xD7A4)?nameH*_kw9:nameH*_aw9;}
   var _availW2=_availW*0.88;var _nameH=(_estW>_availW2&&_estW>0)?nameH*(_availW2/_estW):nameH;
-  add(b0+bw/2, by1-pad-nameH, _nameH, _nm, 'name', 'middle', 'name');
+  add(b0+bw/2, by1-pad-nameH, _nameH, _nm, 'name', 'middle', 'name');var _ulW9=_estW*(_nameH/nameH)+_nameH*0.6;var _ulY9=by1-pad-nameH-_nameH*0.28;var _nameUL9={x1:b0+bw/2-_ulW9/2,x2:b0+bw/2+_ulW9/2,y:_ulY9};/* [1398] 사업명 밑줄 */
   var lx=b0+pad, vx=b0+pad+th*vxm, firstY=by1-pad-nameH-nameGap-th*0.2;
   var L=[['탱고 번호',d.bizNo,'red','bizNo'],['관로(소유자)',d.client,'blue','client'],['관로(외관)',d.outer,'blue','outer'],['맨홀(소유자)',d.mhOwner,'blue','mhOwner']];
   L.forEach(function(r,i){var y=firstY-dy*i; add(lx,y,gh,r[0]+' :','label'); add(vx,y,gh,r[1]||'확인요청',(r[1]?r[2]:'req'),'start',r[3]);});/* [1377] */add(vx+th*6.2,firstY-dy*2,gh,(d.outer2||(dxf?'':'(직접입력)')),(d.outer2?'blue':'ph'),'start','outer2');/* [1379] 둘째 외관 */if(_tg9r&&!dxf){var _y49=firstY-dy*4;/* [1392] DXF 제외 — 웹 도면창 전용 */add(lx,_y49,gh,'도엽번호 :','label');add(vx,_y49,gh,(d.sheet1k||'확인요청'),(d.sheet1k?'red':'req'),'start','sheet1k');add(vx+th*6.2,_y49,gh,(d.sheet5k||'확인요청'),(d.sheet5k?'grn':'req'),'start','sheet5k');}/* [1388] 1/1000·1/5000 */
@@ -826,7 +826,7 @@ function tbLayout(dxf){
   add(fbx,y3,sh,'관로(내관) :','label'); add(fbx+th*5.2,y3,sh,d.inner||'확인요청',(d.inner?'blue':'req'),'start','inner');add(fbx+th*13.2,y3,sh,(d.innerX||(dxf?'':'(직접입력)')),(d.innerX?'blue':'ph'),'start','innerX');/* [1379] 내관 추가정보 */
   var _sbx=fbx-th*0.8, _sbx2=fbx+th*21.2, _sby=y3-dy*0.28, _sby2=y2+sh+dy*0.28;
   var subBox={x:_sbx, y:_sby, w:_sbx2-_sbx, h:_sby2-_sby};
-  return {box:{x:b0,y:by0,w:bw,h:bh}, items:it, th:th, subBox:subBox};
+  return {box:{x:b0,y:by0,w:bw,h:bh}, items:it, th:th, subBox:subBox, nameUL:_nameUL9};/* [1398] */
 }
 function drawTitleBlock(){
   if(typeof gGeo==='undefined'||!gGeo)return;
@@ -838,7 +838,7 @@ function drawTitleBlock(){
   var box=el('rect',{x:rx,y:ry,width:rw,height:rh,fill:'#fff','fill-opacity':'0.96',stroke:'#d00','stroke-width':'1.4','vector-effect':'non-scaling-stroke',style:'cursor:pointer'});
   if(!viewerMode&&!readOnly){box.addEventListener('pointerdown',function(ev){ev.stopPropagation();ev.preventDefault();openTbEdit();});}
   gGeo.appendChild(box);
-  if(L.subBox){var _s0=S(L.subBox.x,L.subBox.y),_s1=S(L.subBox.x+L.subBox.w,L.subBox.y+L.subBox.h);var _sbx=Math.min(_s0[0],_s1[0]),_sby=Math.min(_s0[1],_s1[1]),_sbw=Math.abs(_s1[0]-_s0[0]),_sbh=Math.abs(_s1[1]-_s0[1]);gGeo.appendChild(el('rect',{x:_sbx,y:_sby,width:_sbw,height:_sbh,fill:'none',stroke:'#1633ff','stroke-width':'1','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}
+  if(L.subBox){var _s0=S(L.subBox.x,L.subBox.y),_s1=S(L.subBox.x+L.subBox.w,L.subBox.y+L.subBox.h);var _sbx=Math.min(_s0[0],_s1[0]),_sby=Math.min(_s0[1],_s1[1]),_sbw=Math.abs(_s1[0]-_s0[0]),_sbh=Math.abs(_s1[1]-_s0[1]);gGeo.appendChild(el('rect',{x:_sbx,y:_sby,width:_sbw,height:_sbh,fill:'none',stroke:'#1633ff','stroke-width':'1','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}if(L.nameUL){var _u0=S(L.nameUL.x1,L.nameUL.y),_u1=S(L.nameUL.x2,L.nameUL.y);gGeo.appendChild(el('line',{x1:_u0[0],y1:_u0[1],x2:_u1[0],y2:_u1[1],stroke:'#111','stroke-width':'1.2','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}/* [1398] */
   L.items.forEach(function(t){
     if(t.s==='')return;
     var sp=S(t.x,t.y);
@@ -5505,7 +5505,7 @@ EOF
     var LY='TBLOCK', CN={name:7,label:7,red:1,blue:5,req:6,ph:8,grn:3}, bx=L.box;/* [1391] *//* [1377/1379] */
     line(bx.x,bx.y,bx.x+bx.w,bx.y,LY,1); line(bx.x,bx.y+bx.h,bx.x+bx.w,bx.y+bx.h,LY,1);
     line(bx.x,bx.y,bx.x,bx.y+bx.h,LY,1); line(bx.x+bx.w,bx.y,bx.x+bx.w,bx.y+bx.h,LY,1);
-    if(L.subBox){var _sb=L.subBox;line(_sb.x,_sb.y,_sb.x+_sb.w,_sb.y,LY,5);line(_sb.x,_sb.y+_sb.h,_sb.x+_sb.w,_sb.y+_sb.h,LY,5);line(_sb.x,_sb.y,_sb.x,_sb.y+_sb.h,LY,5);line(_sb.x+_sb.w,_sb.y,_sb.x+_sb.w,_sb.y+_sb.h,LY,5);}
+    if(L.subBox){var _sb=L.subBox;line(_sb.x,_sb.y,_sb.x+_sb.w,_sb.y,LY,5);line(_sb.x,_sb.y+_sb.h,_sb.x+_sb.w,_sb.y+_sb.h,LY,5);line(_sb.x,_sb.y,_sb.x,_sb.y+_sb.h,LY,5);line(_sb.x+_sb.w,_sb.y,_sb.x+_sb.w,_sb.y+_sb.h,LY,5);}if(L.nameUL)line(L.nameUL.x1,L.nameUL.y,L.nameUL.x2,L.nameUL.y,LY,7);/* [1398] */
     L.items.forEach(function(t){ if(t.s==='')return; var al=(t.a==='middle')?1:0; text(t.x,t.y,t.h,t.s,LY,CN[t.c]||7,al,0,0); });
   })();
 if(!((typeof LV!=='undefined')&&LV.depthchk===0))(state.depthCheck||[]).forEach(function(b){circle(b.x,b.y,1.2,'DEPTHCHK',6);var ex=(b._dx!=null)?b._dx:b.x+8,ey=(b._dy!=null)?b._dy:b.y-8;var _qx=ex-b.x,_qy=ey-b.y,_ql=Math.hypot(_qx,_qy)||1;line(b.x+_qx/_ql*1.2,b.y+_qy/_ql*1.2,ex,ey,'DEPTHCHK',6);var anc=(ex>=b.x?0:2);text(ex+(ex>=b.x?0.3:-0.3),ey,TH*1.08,'\uAE30\uC900\uC2EC\uB3C4\uBBF8\uB2EC','DEPTHCHK',6,anc);});/* [1378] */if(!((typeof LV!=='undefined')&&LV.tgnote===0))(state.tgNotes||[]).forEach(function(b){if(b.mh)return;circle(b.x,b.y,1.2,'NOTE',6);var DH=TH*1.08;var kx=(b._dx!=null)?b._dx:((b.lx!=null)?b.lx:b.x+8),ky=(b._dy!=null)?b._dy:((b.ly!=null)?b.ly:b.y-8);var _qx=kx-b.x,_qy=ky-b.y,_ql=Math.hypot(_qx,_qy)||1;line(b.x+_qx/_ql*1.2,b.y+_qy/_ql*1.2,kx,ky,'NOTE',6);var _tw9=(typeof tw==='function')?tw(b.text||'',DH*1.05):(((b.text||'').length||2)*DH);if(_tw9<DH*2)_tw9=DH*2;var dir=(kx>=b.x)?1:-1;var ux2=kx+dir*_tw9;line(kx,ky,ux2,ky,'NOTE',6);text((kx+ux2)/2,ky+DH*0.18,DH,b.text||'','NOTE',6,1);});/* [1365] ㄱ자 인출선 */if(((typeof LV!=='undefined')&&LV.tgcmp===1)&&state.tangoEdit&&state.tangoEdit.points){/* [1365] 명시 체크 시에만 DXF 출력 */var _co=state._pointsOrig||state.points||[],_cc=state.tangoEdit.points||[],_cod=state._depthOrig||state._depthByNo||{},_ccd=state.tangoEdit.depthByNo||{};if(typeof tgCarPtShow==='function'&&typeof _tgCarGeom!=='undefined'&&_tgCarGeom){_co=_co.filter(function(q){return tgCarPtShow(q);});_cc=_cc.filter(function(q){return tgCarPtShow(q);});}/* [1365] 선택 구간만 */var _cn={},_on={};_cc.forEach(function(p){_cn[p.no]=p;});_co.forEach(function(p){_on[p.no]=p;});_co.forEach(function(p){if(!_cn[p.no]){circle(p.x,p.y,1.2,'TGCMP',1);text(p.x,p.y+2,TH*1.8,'삭제','TGCMP',1,1);}});_cc.forEach(function(p){if(!_on[p.no]){circle(p.x,p.y,1.2,'TGCMP',5);text(p.x,p.y+2,TH*1.8,'추가','TGCMP',5,1);}});_cc.forEach(function(p){if(_on[p.no]){var _a=_cod[p.no],_b=_ccd[p.no];var _an=(_a==null||_a==='')?null:+_a,_bn=(_b==null||_b==='')?null:+_b;if(_an!==_bn&&(_an!=null||_bn!=null)){circle(p.x,p.y,1.2,'TGCMP',3);text(p.x,p.y+2,TH*1.8,(_an!=null?_an.toFixed(2):'-')+'→'+(_bn!=null?_bn.toFixed(2):'-'),'TGCMP',3,1);}}});}
