@@ -755,6 +755,7 @@ function tbPipeLength(){
   return total;
 }
 function tbCommonTop(f){var mm=(typeof state!=='undefined'&&state&&state.tangoManual)||{},cnt={},bk='',bv=0;for(var k in mm){var v=mm[k]&&mm[k][f];if(v!=null&&v!==''){v=''+v;cnt[v]=(cnt[v]||0)+1;if(cnt[v]>bv){bv=cnt[v];bk=v;}}}return bk;}
+function tbTangoLength(){/* [1372] 탱고 물량 = 구간별 준공거리 합 (구간삭제·SKT/SKB 보기 반영) */try{if(typeof IS_TANGO==='undefined'||!IS_TANGO)return 0;var key=((state.lines&&state.lines.length)||0)+'|'+JSON.stringify(state.tgSegDel||{})+'|'+((state.tgCarrier&&state.tgCarrier.view)||'ALL')+'|'+((state.tgFixSegs||[]).length)+'|'+((state.tgAddSegs||[]).length);var c=window._tbTgL;if(c&&c.k===key&&c.lref===state.lines)return c.v;var segs=(typeof _tgSegs!=='undefined'&&_tgSegs&&_tgSegs.length)?_tgSegs:((typeof tangoBuildSegs==='function')?tangoBuildSegs():[]);var tot=0;(segs||[]).forEach(function(sg){if(!sg||sg.length<2)return;if(typeof tgManualKey==='function'){var k2=tgManualKey(sg);if(state.tgSegDel&&state.tgSegDel[k2])return;if(typeof tgCarMatchKey==='function'&&!tgCarMatchKey(k2))return;}for(var k=1;k<sg.length;k++)tot+=Math.hypot(sg[k].x-sg[k-1].x,sg[k].y-sg[k-1].y);});window._tbTgL={k:key,lref:state.lines,v:tot};return tot;}catch(e){return 0;}}
 function tbData(){
   var b=state.bizInfo||{}, t=state.titleBlock||{};
   var owner=(b.client||'').trim();
@@ -762,7 +763,9 @@ function tbData(){
   var outer=(t.outer!=null&&t.outer!=='')?t.outer:autoOuter;
   var mhOwner=(t.mhOwner!=null&&t.mhOwner!=='')?t.mhOwner:(owner||tbMhOwner());
   var pl=tbPipeLength();
-  var autoVolT= pl>0 ? pl.toFixed(2)+'m' : '';
+  var _isTg9=(typeof IS_TANGO!=='undefined'&&IS_TANGO);var autoVolT,autoVolG='';
+  if(_isTg9){var _tl9=(typeof tbTangoLength==='function')?tbTangoLength():0;autoVolT=_tl9>0?(_tl9/1000).toFixed(3)+'km':'';autoVolG=pl>0?(pl/1000).toFixed(3)+'km':'';}/* [1372] 탱고=구간합·GIS=관로연장, km 3자리 */
+  else{autoVolT= pl>0 ? pl.toFixed(2)+'m' : '';}
   var volT=(t.volT!=null&&t.volT!=='')?t.volT:autoVolT;
   var inner=(t.inner!=null)?t.inner:tbCommonTop('inner');
   var gyeol=(t.gyeol!=null)?t.gyeol:tbCommonTop('gyeol');
@@ -771,7 +774,7 @@ function tbData(){
   return { name:(state.projectName||''), bizNo:(b.bizNo||''), client:owner,
            outer:outer, inner:inner, mhOwner:mhOwner,
            gyeol:gyeol, gdan:gdan, gwannum:gwannum,
-           volT:volT, volG:(t.volG||'') };
+           volT:volT, volG:((t.volG!=null&&t.volG!=='')?t.volG:autoVolG) };
 }
 function tbEsc(x){return String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function tbLayout(dxf){
