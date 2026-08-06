@@ -10409,11 +10409,11 @@ function loadDxfFiles(fs){fs=Array.prototype.slice.call(fs||[]).filter(Boolean);
  (state.lines||[]).forEach(function(L){if(L.base)return;(L.pts||[]).forEach(function(p){_ex9(p[0],p[1]);});});
  var PAD=300;if(bb){bb.x1-=PAD;bb.y1-=PAD;bb.x2+=PAD;bb.y2+=PAD;}
  function _inBB9(x,y){return !bb||(x>=bb.x1&&x<=bb.x2&&y>=bb.y1&&y<=bb.y2);}
- function _hide9(l){return l==='H0037335'||l==='H0017334'||l==='A0023210'||(l&&(''+l).indexOf('H0049')===0);}/* [1371] 5000 주기(H0049*) 숨김 */
+ function _hide9(l){return l==='H0037335'||l==='H0017334'||l==='A0023210'||l==='H0049140';}/* [1386] H0049 지명주기 살림(격자 주기 140만 숨김) *//* [1371] 5000 주기(H0049*) 숨김 */
  fs.forEach(function(f){var rd=new FileReader();rd.onload=function(){try{var _tt=decodeBuf(rd.result);
    var ln=parseDxfLines(_tt).filter(function(l){return !_hide9(l.layer);});
-   var tx=parseDxfTexts(_tt).filter(function(t){return !_hide9(t.layer);});
-   var hs=tx.map(function(t){return +t.h||0;}).filter(function(h){return h>0;}).sort(function(a,b){return a-b;});
+   var _tx0=parseDxfTexts(_tt);var tx=_tx0.filter(function(t){return !_hide9(t.layer);});
+   var hs=_tx0.map(function(t){return +t.h||0;}).filter(function(h){return h>0;}).sort(function(a,b){return a-b;});/* [1386] 숨김 전 원본으로 감지 */
    var med=hs.length?hs[Math.floor(hs.length/2)]:0;var is5k=(med>=4);if(is5k)is5kAny=true;/* [1371] 텍스트 높이 중앙값으로 1/5000 감지 */
    var tSc=is5k?0.25:0.5;tx.forEach(function(t){if(t&&t.h)t.h=t.h*tSc;});/* [1385] 1384 원복 — 과축소로 비가시 *//* [1357/1371] 1000=50%, 5000=25% */
    if(bb&&ln.length>4000){var b0=ln.length;
