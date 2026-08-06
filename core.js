@@ -1634,7 +1634,7 @@ function applyBpCrop(c){
   });
   nb.push({layer:'CROP',pts:[[xmin,ymin],[xmax,ymin],[xmax,ymax],[xmin,ymax],[xmin,ymin]],base:true,crop:true});
   state.lines=nb;
-  state.baseTexts=(state.baseTexts||[]).filter(function(t){return t.x>=xmin&&t.x<=xmax&&t.y>=ymin&&t.y<=ymax;});
+  state.baseTexts=(state.baseTexts||[]).filter(function(t){if(!(t.x>=xmin&&t.x<=xmax&&t.y>=ymin&&t.y<=ymax))return false;var h9=+t.h||0.5,w9=0,s9=''+(t.text||'');for(var i9=0;i9<s9.length;i9++)w9+=(s9.charCodeAt(i9)>127?h9:h9*0.6);if(t.rot){var r9=t.rot*Math.PI/180,dx9=Math.abs(Math.cos(r9))*w9+h9*1.2,dy9=Math.abs(Math.sin(r9))*w9+h9*1.2;return t.x-dx9>=xmin&&t.x+dx9<=xmax&&t.y-dy9>=ymin&&t.y+dy9<=ymax;}return t.x+w9<=xmax&&t.y-h9*1.2>=ymin&&t.y+h9*1.2<=ymax;});/* [1390] 경계 돌출 텍스트 제거 */
   /* [1091] 결선(REF)에도 같은 영역 적용 — 사업 영역 자체가 이 범위가 된다 */
   state.refCrop=[xmin,ymin,xmax,ymax];
   try{if(typeof REF!=='undefined'&&REF.ents){refCalcBox();refDraw();}}catch(_re){}
@@ -10418,7 +10418,7 @@ function loadDxfFiles(fs){fs=Array.prototype.slice.call(fs||[]).filter(Boolean);
    var _tx0=parseDxfTexts(_tt);var tx=_tx0.filter(function(t){return !_hide9(t.layer);});
    var hs=_tx0.map(function(t){return +t.h||0;}).filter(function(h){return h>0;}).sort(function(a,b){return a-b;});/* [1386] 숨김 전 원본으로 감지 */
    var med=hs.length?hs[Math.floor(hs.length/2)]:0;var is5k=(med>=4);if(is5k)is5kAny=true;/* [1371] 텍스트 높이 중앙값으로 1/5000 감지 */
-   var tSc=is5k?0.25:0.5;tx.forEach(function(t){if(t&&t.h)t.h=t.h*tSc;});/* [1385] 1384 원복 — 과축소로 비가시 *//* [1357/1371] 1000=50%, 5000=25% */
+   var tSc=is5k?0.125:0.25;/* [1390] 반으로 축소 */tx.forEach(function(t){if(t&&t.h)t.h=t.h*tSc;});/* [1385] 1384 원복 — 과축소로 비가시 *//* [1357/1371] 1000=50%, 5000=25% */
    if(bb&&ln.length>4000){var b0=ln.length;
      ln=ln.filter(function(l){var ps=l.pts||[];for(var i9=0;i9<ps.length;i9++){if(_inBB9(ps[i9][0],ps[i9][1]))return true;}return false;});
      tx=tx.filter(function(t){return _inBB9(t.x,t.y);});clip+=b0-ln.length;}/* [1371] 사업 bbox+300m 자동 클립 — payload 폭증 방지 */
