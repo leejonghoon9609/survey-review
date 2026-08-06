@@ -5769,7 +5769,7 @@ function applyNightShift(){
   return n;
 }
 function parseDxfLines(text){
-  var _es=text.indexOf('ENTITIES');if(_es>0){var _nl=text.indexOf('\n',_es);if(_nl>0)text=text.slice(_nl+1);}/* [1350] BLOCKS 심볼 제외(짝 정렬 유지) */
+  text=_dxfEntSlice(text);/* [1371] */
   var L=text.replace(/\r/g,'').split('\n'),pairs=[];
   for(var i=0;i+1<L.length;i+=2)pairs.push([L[i].trim(),L[i+1]]);
   var lines=[],i2=0;
@@ -5811,8 +5811,9 @@ function parseDxfLines(text){
   }
   return lines;
 }
+function _dxfEntSlice(text){/* [1371] SECTION-2-ENTITIES 짝 정확 탐색 — HEADER 내 'ENTITIES' 문자열 오탐 방지 */var t=(''+text).replace(/\r/g,'');var m=/\nSECTION\n\s*2\nENTITIES\n/.exec(t);if(m)return t.slice(m.index+m[0].length);var i=t.indexOf('ENTITIES');if(i>0){var nl=t.indexOf('\n',i);if(nl>0)return t.slice(nl+1);}return t;}
 function parseDxfTexts(text){
-  var _es=text.indexOf('ENTITIES');if(_es>0){var _nl=text.indexOf('\n',_es);if(_nl>0)text=text.slice(_nl+1);}/* [1350] */
+  text=_dxfEntSlice(text);/* [1371] */
   var L=text.replace(/\r/g,'').split('\n'),pairs=[];
   for(var i=0;i+1<L.length;i+=2)pairs.push([L[i].trim(),L[i+1]]);
   var out=[],i2=0;
@@ -10397,10 +10398,31 @@ function openCsvList(){
 }
 document.getElementById('fCsv').addEventListener('change',function(e){var fs=e.target.files;if(regOpen()||IS_REALTIME){if(state.tamsa&&!(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)&&typeof regAddCsvFilesTamsa==='function')regAddCsvFilesTamsa(fs);else regAddCsvFiles(fs);}else loadCsvFile(fs[0]);e.target.value='';});/* [1355] */document.getElementById('fAft').addEventListener('change',function(e){[].forEach.call(e.target.files,function(f){loadAfterCsv(f);});e.target.value='';});
 function loadDxfFile(f){loadDxfFiles(f?[f]:[]);}
-function loadDxfFiles(fs){fs=Array.prototype.slice.call(fs||[]).filter(Boolean);if(!fs.length)return;/* [1350] 다중 병합 */
- var done=0,addLn=0,err=0;
- fs.forEach(function(f){var rd=new FileReader();rd.onload=function(){try{var _tt=decodeBuf(rd.result);var _HIDE={'H0037335':1,'H0017334':1,'A0023210':1};/* [1351] 숨김 레이어 */var ln=parseDxfLines(_tt).filter(function(l){return !_HIDE[l.layer];});ln.forEach(function(l){l.base=true;});state.lines=state.lines.concat(ln);state.baseTexts=(state.baseTexts||[]).concat(parseDxfTexts(_tt).filter(function(t){return !_HIDE[t.layer];}).map(function(t){if(t&&t.h)t.h=t.h/2;return t;}));/* [1357] 백판 텍스트 50% 축소 */addLn+=ln.length;}catch(e2){err++;}
-  done++;if(done===fs.length){drawGeo();fitView();updMeta();if(regOpen())updRegStatus();toast('수치지도 '+fs.length+'개 파일 병합 — 라인 +'+addLn+' · 텍스트 '+(state.baseTexts||[]).length+'개'+(err?(' · 오류 '+err+'개'):''));}
+function loadDxfFiles(fs){fs=Array.prototype.slice.call(fs||[]).filter(Boolean);if(!fs.length)return;/* [1350] 다중 병합 + [1371] 1/5000 지원 */
+ var done=0,addLn=0,addTx=0,err=0,clip=0,is5kAny=false;
+ /* 사업 bbox(측점+비백판 라인) — 대용량 자동 클립 기준 */
+ var bb=null;function _ex9(x,y){if(x==null||isNaN(x))return;if(!bb)bb={x1:x,y1:y,x2:x,y2:y};else{if(x<bb.x1)bb.x1=x;if(y<bb.y1)bb.y1=y;if(x>bb.x2)bb.x2=x;if(y>bb.y2)bb.y2=y;}}
+ (state.points||[]).forEach(function(p){_ex9(p.x,p.y);});
+ (state.lines||[]).forEach(function(L){if(L.base)return;(L.pts||[]).forEach(function(p){_ex9(p[0],p[1]);});});
+ var PAD=300;if(bb){bb.x1-=PAD;bb.y1-=PAD;bb.x2+=PAD;bb.y2+=PAD;}
+ function _inBB9(x,y){return !bb||(x>=bb.x1&&x<=bb.x2&&y>=bb.y1&&y<=bb.y2);}
+ function _hide9(l){return l==='H0037335'||l==='H0017334'||l==='A0023210'||(l&&(''+l).indexOf('H0049')===0);}/* [1371] 5000 주기(H0049*) 숨김 */
+ fs.forEach(function(f){var rd=new FileReader();rd.onload=function(){try{var _tt=decodeBuf(rd.result);
+   var ln=parseDxfLines(_tt).filter(function(l){return !_hide9(l.layer);});
+   var tx=parseDxfTexts(_tt).filter(function(t){return !_hide9(t.layer);});
+   var hs=tx.map(function(t){return +t.h||0;}).filter(function(h){return h>0;}).sort(function(a,b){return a-b;});
+   var med=hs.length?hs[Math.floor(hs.length/2)]:0;var is5k=(med>=4);if(is5k)is5kAny=true;/* [1371] 텍스트 높이 중앙값으로 1/5000 감지 */
+   var tSc=is5k?0.25:0.5;tx.forEach(function(t){if(t&&t.h)t.h=t.h*tSc;});/* [1357/1371] 1000=50%, 5000=25% */
+   if(bb&&ln.length>4000){var b0=ln.length;
+     ln=ln.filter(function(l){var ps=l.pts||[];for(var i9=0;i9<ps.length;i9++){if(_inBB9(ps[i9][0],ps[i9][1]))return true;}return false;});
+     tx=tx.filter(function(t){return _inBB9(t.x,t.y);});clip+=b0-ln.length;}/* [1371] 사업 bbox+300m 자동 클립 — payload 폭증 방지 */
+   if(is5k)ln.forEach(function(l){(l.pts||[]).forEach(function(p){p[0]=Math.round(p[0]*100)/100;p[1]=Math.round(p[1]*100)/100;});});/* 좌표 cm 반올림 */
+   ln.forEach(function(l){l.base=true;});state.lines=state.lines.concat(ln);
+   state.baseTexts=(state.baseTexts||[]).concat(tx);addLn+=ln.length;addTx+=tx.length;}catch(e2){err++;}
+  done++;if(done===fs.length){drawGeo();fitView();updMeta();if(regOpen())updRegStatus();
+   var _m9='수치지도 '+fs.length+'개 병합'+(is5kAny?' (1/5000 감지 — 텍스트 25%·주기 숨김)':'')+' — 라인 +'+addLn+' · 텍스트 +'+addTx+(clip?(' · 사업영역 밖 '+clip+'선 제외'):'')+(err?(' · 오류 '+err):'');
+   if(!bb&&addLn>4000)_m9+=' · 사업 데이터 없음 — 영역크롭 권장';
+   toast(_m9);}
  };rd.readAsArrayBuffer(f);});}
 (function(){var _fi=document.getElementById('fDxf');if(_fi){_fi.setAttribute('multiple','');_fi.addEventListener('change',function(e){loadDxfFiles(e.target.files);e.target.value='';});}})();/* [1350] */
 
