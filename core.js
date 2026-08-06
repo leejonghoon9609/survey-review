@@ -10415,7 +10415,7 @@ function loadDxfFiles(fs){fs=Array.prototype.slice.call(fs||[]).filter(Boolean);
    var tx=parseDxfTexts(_tt).filter(function(t){return !_hide9(t.layer);});
    var hs=tx.map(function(t){return +t.h||0;}).filter(function(h){return h>0;}).sort(function(a,b){return a-b;});
    var med=hs.length?hs[Math.floor(hs.length/2)]:0;var is5k=(med>=4);if(is5k)is5kAny=true;/* [1371] 텍스트 높이 중앙값으로 1/5000 감지 */
-   var tSc=is5k?0.125:0.25;tx.forEach(function(t){if(t&&t.h)t.h=t.h*tSc;});/* [1384] 추가 50% 축소 — 1000=25%, 5000=12.5% *//* [1357/1371] 1000=50%, 5000=25% */
+   var tSc=is5k?0.25:0.5;tx.forEach(function(t){if(t&&t.h)t.h=t.h*tSc;});/* [1385] 1384 원복 — 과축소로 비가시 *//* [1357/1371] 1000=50%, 5000=25% */
    if(bb&&ln.length>4000){var b0=ln.length;
      ln=ln.filter(function(l){var ps=l.pts||[];for(var i9=0;i9<ps.length;i9++){if(_inBB9(ps[i9][0],ps[i9][1]))return true;}return false;});
      tx=tx.filter(function(t){return _inBB9(t.x,t.y);});clip+=b0-ln.length;}/* [1371] 사업 bbox+300m 자동 클립 — payload 폭증 방지 */
