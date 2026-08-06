@@ -819,7 +819,7 @@ function tbLayout(dxf){
   var sh=gh*0.74, fbx=b0+pad+th*23.8, y2=firstY-dy*2.35, y3=firstY-dy*3.2;
   add(fbx,y2,sh,'공열 :','label'); add(fbx+th*2.7,y2,sh,d.gyeol||'','blue','start','gyeol'); add(fbx+th*4.2,y2,sh,'열','blue','start','gyeol');
   add(fbx+th*6.4,y2,sh,'공단 :','label'); add(fbx+th*9.1,y2,sh,d.gdan||'','blue','start','gdan'); add(fbx+th*10.6,y2,sh,'단','blue','start','gdan');
-  add(fbx+th*13.2,y2,sh,'관공번호 :','label'); add(fbx+th*17.6,y2,sh,d.gwannum||'확인요청',(d.gwannum?'blue':'req'),'start','gwannum'); add(fbx+th*19.4,y2,sh,'번호','blue','start','gwannum');
+  add(fbx+th*13.2,y2,sh,'관공번호 :','label'); add(fbx+th*17.6,y2,sh,d.gwannum||'','blue','start','gwannum');/* [1380] 겹침 제거 */ add(fbx+th*19.4,y2,sh,'번호','blue','start','gwannum');
   add(fbx,y3,sh,'관로(내관) :','label'); add(fbx+th*5.2,y3,sh,d.inner||'확인요청',(d.inner?'blue':'req'),'start','inner');add(fbx+th*13.2,y3,sh,(d.innerX||(dxf?'':'(직접입력)')),(d.innerX?'blue':'ph'),'start','innerX');/* [1379] 내관 추가정보 */
   var _sbx=fbx-th*0.8, _sbx2=fbx+th*21.2, _sby=y3-dy*0.28, _sby2=y2+sh+dy*0.28;
   var subBox={x:_sbx, y:_sby, w:_sbx2-_sbx, h:_sby2-_sby};
@@ -1148,7 +1148,7 @@ function mergeAftMh(){var mhs=state.manholes||[];if(!mhs.length)return;mhs.forEa
 function drawManholes(){
   clearSvg(gMH); clearLabels('mh');clearLabels('riser');clearLabels('tgnotemh');
   (state.manholes||[]).forEach(function(mh){if(typeof tgCarMhShow==='function'&&!tgCarMhShow(mh))return;/* [1327] */
-    var isRiser=(mh.type==='riser');var MHC=(mh._aft||(state.tamsa&&!isRiser))?'#111':'#1f6fd6';
+    var isRiser=(mh.type==='riser');var MHC=(mh._fromCsv&&isRiser)?'#111':((mh._aft||(state.tamsa&&!isRiser))?'#111':'#1f6fd6');/* [1380] CSV 전주 검정 */
     // 손 안 댄 자동순번 기본라벨(예 '2M (SK )')만 'M (SK )'로 정리. 사용자가 직접 고친 건(_edited) 보존
     if(!isRiser && !mh._edited && /^\s*\d+\s*M\s*\(\s*SK\s*\)\s*$/.test(mh.label||''))mh.label='M (SK )';
     var s=S(mh.wx,mh.wy);
@@ -1624,7 +1624,7 @@ function applyBpCrop(c){
   var xmin=x1,xmax=x2,ymin=-Y2,ymax=-Y1; // SVG y=-worldY 변환
   if(typeof pushHist==='function')pushHist();
   var nb=[];
-  (state.lines||[]).forEach(function(l){if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&l.layer==='CROP')return;
+  (state.lines||[]).forEach(function(l){if(l.layer==='CROP')return;/* [1381] 재크롭 시 옛 CROP 제거 — 전 공정 */
     if(!l.base){nb.push(l);return;}
     var subs=clipPolyRect(l.pts,xmin,ymin,xmax,ymax);
     subs.forEach(function(pp){if(pp.length>=2)nb.push({layer:l.layer,pts:pp,base:true});});
@@ -2131,7 +2131,7 @@ var _nanumB64=null,_PDFREQ=false;
   function ensurePdfLib(cb){if(typeof html2canvas!=='undefined'&&(typeof window.jspdf!=='undefined'||typeof window.jsPDF!=='undefined')){cb();return;}var s1=document.createElement('script');s1.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';s1.onload=function(){var s2=document.createElement('script');s2.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';s2.onload=cb;s2.onerror=function(){toast('PDF \uB77C\uC774\uBE0C\uB7EC\uB9AC \uB85C\uB4DC \uC2E4\uD328');};document.head.appendChild(s2);};s1.onerror=function(){toast('PDF \uB77C\uC774\uBE0C\uB7EC\uB9AC \uB85C\uB4DC \uC2E4\uD328');};document.head.appendChild(s1);}
 function exportPDFVector(){if(!state.points.length&&!state.lines.length&&!(state.manholes||[]).length){toast('\\uB0B4\\uBCF4\\uB0BC \\uB370\\uC774\\uD130\\uAC00 \\uC5C6\\uC2B5\\uB2C8\\uB2E4');return;}toast('PDF \\uC0DD\\uC131 \\uC911...');ensurePdfLib(function(){ensureNanum(function(err){if(err)toast('\\uD55C\\uAE00 \\uD3F0\\uD2B8 \\uB85C\\uB4DC \\uC2E4\\uD328-\\uACC4\\uC18D');_PDFREQ=true;try{exportDXF(false);}catch(e){toast('PDF \\uC0DD\\uC131 \\uC624\\uB958');}_PDFREQ=false;});});}
   function exportPDF(){startAreaSelect(function(sel){var rect=(sel&&sel!=='FULL')?sel:null;toast('PDF \uC0DD\uC131 \uC911...');ensurePdfLib(function(){var wrap=document.querySelector('.canvas-wrap');if(!wrap){toast('\uB3C4\uBA74\uC744 \uCC3E\uC744 \uC218 \uC5C6\uC74C');return;}var sc=rect?Math.max(3,Math.min(8,4800/Math.max(rect.w,rect.h))):4;var opt={backgroundColor:'#ffffff',scale:sc,useCORS:true,logging:false};if(rect){opt.x=rect.x;opt.y=rect.y;opt.width=rect.w;opt.height=rect.h;}html2canvas(wrap,opt).then(function(canvas){var png=canvas.toDataURL('image/jpeg',0.92);var JP=(window.jspdf&&window.jspdf.jsPDF)?window.jspdf.jsPDF:window.jsPDF;var land=canvas.width>=canvas.height;var pdf=new JP({orientation:land?'l':'p',unit:'mm',format:'a4'});var pw=pdf.internal.pageSize.getWidth(),ph=pdf.internal.pageSize.getHeight();var r=Math.min(pw/canvas.width,ph/canvas.height)*0.97;var w=canvas.width*r,h=canvas.height*r;pdf.addImage(png,'JPEG',(pw-w)/2,(ph-h)/2,w,h);pdf.save(((state&&state.projectName)||'tango')+'.pdf');toast('PDF \uC800\uC7A5 \uC644\uB8CC ('+(land?'\uAC00\uB85C':'\uC138\uB85C')+')');}).catch(function(e){toast('PDF \uC0DD\uC131 \uC2E4\uD328');});});});}
-function exportDXF(returnStr){try{var _sw=null;if(typeof _tgCarGeomBuild==='function'){try{_tgCarGeomBuild();}catch(_g){}}if(typeof _tgCarGeom!=='undefined'&&_tgCarGeom){_sw={p:state.points,l:state.lines,m:state.manholes,d:state.depthCheck,tn:state.tgNotes};state.points=(state.points||[]).filter(function(q){return tgCarPtShow(q);});state.lines=_tgCarLines(state.lines||[]);state.manholes=(state.manholes||[]).filter(function(q){return tgCarMhShow(q);});state.depthCheck=(state.depthCheck||[]).filter(function(q){return tgCarPtShow(q);});state.tgNotes=(state.tgNotes||[]).filter(function(q){return tgCarPtShow(q);});/* [1362] 기준심도미달도 보기 구간만 */}if((state.lines||[]).some(function(q){return q&&q.layer==='CROP';})){if(!_sw)_sw={p:state.points,l:state.lines,m:state.manholes,d:state.depthCheck,tn:state.tgNotes};state.lines=(state.lines||[]).filter(function(q){return !(q&&q.layer==='CROP');});}/* [1363] 영역크롭 사각형 DXF·PDF 제외 — 이중 테두리 잠상 제거 */try{return _exportDXFInner(returnStr);}finally{if(_sw){state.points=_sw.p;state.lines=_sw.l;state.manholes=_sw.m;state.depthCheck=_sw.d;state.tgNotes=_sw.tn;}}/* [1330] 보기 필터 DXF 반영 */}catch(_xe){try{console.error('[DXF]',_xe);}catch(_c){}alert('DXF 내보내기 오류: '+((_xe&&_xe.message)||_xe));}}
+function exportDXF(returnStr){try{var _sw=null;if(typeof _tgCarGeomBuild==='function'){try{_tgCarGeomBuild();}catch(_g){}}if(typeof _tgCarGeom!=='undefined'&&_tgCarGeom){_sw={p:state.points,l:state.lines,m:state.manholes,d:state.depthCheck,tn:state.tgNotes};state.points=(state.points||[]).filter(function(q){return tgCarPtShow(q);});state.lines=_tgCarLines(state.lines||[]);state.manholes=(state.manholes||[]).filter(function(q){return tgCarMhShow(q);});state.depthCheck=(state.depthCheck||[]).filter(function(q){return tgCarPtShow(q);});state.tgNotes=(state.tgNotes||[]).filter(function(q){return tgCarPtShow(q);});/* [1362] 기준심도미달도 보기 구간만 */}if((state.lines||[]).some(function(q){return q&&q.layer==='CROP';})){if(!_sw)_sw={p:state.points,l:state.lines,m:state.manholes,d:state.depthCheck,tn:state.tgNotes};var _crops9=(state.lines||[]).filter(function(q){return q&&q.layer==='CROP';});var _ck9=_crops9[_crops9.length-1];state.lines=(state.lines||[]).filter(function(q){return !(q&&q.layer==='CROP')||q===_ck9;});}/* [1381] 테두리(최신 CROP) 1개 유지 — 사라짐·이중 둘 다 방지 *//* [1363] 영역크롭 사각형 DXF·PDF 제외 — 이중 테두리 잠상 제거 */try{return _exportDXFInner(returnStr);}finally{if(_sw){state.points=_sw.p;state.lines=_sw.l;state.manholes=_sw.m;state.depthCheck=_sw.d;state.tgNotes=_sw.tn;}}/* [1330] 보기 필터 DXF 반영 */}catch(_xe){try{console.error('[DXF]',_xe);}catch(_c){}alert('DXF 내보내기 오류: '+((_xe&&_xe.message)||_xe));}}
 function _exportDXFInner(returnStr){
   if(!state.points.length&&!state.lines.length&&!(state.manholes||[]).length){if(returnStr)return null;toast('내보낼 데이터가 없습니다');return;}
   var _mnx=1e20,_mny=1e20,_mxx=-1e20,_mxy=-1e20;function _ext(x,y){if(typeof x==='number'&&typeof y==='number'){if(x<_mnx)_mnx=x;if(y<_mny)_mny=y;if(x>_mxx)_mxx=x;if(y>_mxy)_mxy=y;}}state.points.forEach(function(p){_ext(p.x,p.y);});(state.lines||[]).forEach(function(L){(L.pts||[]).forEach(function(p){_ext(p[0],p[1]);});});(state.manholes||[]).forEach(function(m){_ext(m.wx,m.wy);});(state.bpzones||[]).forEach(function(z){(z.path||[]).forEach(function(p){_ext(p[0],p[1]);});});try{var _tbB=tbLayout(true);if(_tbB&&_tbB.box){_ext(_tbB.box.x,_tbB.box.y);_ext(_tbB.box.x+_tbB.box.w,_tbB.box.y+_tbB.box.h);}}catch(e){}if(_mnx>_mxx){_mnx=0;_mny=0;_mxx=100;_mxy=100;}var _pad=Math.max(_mxx-_mnx,_mxy-_mny)*0.06+5;_mnx-=_pad;_mny-=_pad;_mxx+=_pad;_mxy+=_pad;var _cx=(_mnx+_mxx)/2,_cy=(_mny+_mxy)/2,_vh=Math.max(_mxy-_mny,(_mxx-_mnx)/1.34,10);
@@ -5429,17 +5429,17 @@ EOF
   (state.manholes||[]).forEach(function(mh){if(typeof tgCarMhShow==='function'&&!tgCarMhShow(mh))return;/* [1327] */
     var isRiser=(mh.type==='riser');
     if((typeof LV!=='undefined')&&((isRiser&&LV.riser===0)||(!isRiser&&LV.mh===0)))return;
-    var lyr=isRiser?'RISER':'MANHOLE', col=isRiser?5:7;
+    var lyr=isRiser?'RISER':'MANHOLE', col=isRiser?((mh._fromCsv)?7:5):7;/* [1380] */
     if(isRiser){var wB=0.14,wT=0.04,armW=0.24,armY=mh.wy+RH*0.74;
-      line(mh.wx-wB,mh.wy,mh.wx-wT,mh.wy+RH,lyr,5);line(mh.wx+wB,mh.wy,mh.wx+wT,mh.wy+RH,lyr,5);
-      line(mh.wx-armW,armY,mh.wx+armW,armY,lyr,5);circle(mh.wx,mh.wy+RH,wT+0.05,lyr,5);
+      line(mh.wx-wB,mh.wy,mh.wx-wT,mh.wy+RH,lyr,col);line(mh.wx+wB,mh.wy,mh.wx+wT,mh.wy+RH,lyr,col);
+      line(mh.wx-armW,armY,mh.wx+armW,armY,lyr,col);circle(mh.wx,mh.wy+RH,wT+0.05,lyr,col);
     } else {insert('SD100',mh.wx,mh.wy,0.5,'SD100',7);}
     var MTH=TH*1.02; var w=tw(mhDisp(mh),MTH);/* [1378] 라벨 40% 축소 */
     var _p=mhLabelBase(mh,w); var lx=_p.lx, lyy=_p.ly;
     var isRight=(lx>=mh.wx);
     var uw=w+MTH*0.12+1.2; var ux2=isRight?lx+uw:lx-uw; // 밑줄=글자폭+여유 +1.2m 연장(종훈님 CAD 실측)
     pline([[mh.wx,mh.wy],[lx,lyy],[ux2,lyy]],lyr,col,false,null,null,0.10); // 대각선+밑줄=폴리선 1개(붙음)
-    if(mh.label)text((lx+ux2)/2,lyy+MTH*0.45,MTH,mhDisp(mh),lyr+'_LABEL',col,1);if(!((typeof LV!=='undefined')&&LV.tgnote===0)){var _mn9=null,_mns9=state.tgNotes||[];for(var _m9=0;_m9<_mns9.length;_m9++){if(_mns9[_m9].mh&&Math.abs(_mns9[_m9].x-mh.wx)<0.5&&Math.abs(_mns9[_m9].y-mh.wy)<0.5){_mn9=_mns9[_m9];break;}}if(_mn9){var _ml9=(_mn9.text||'').split('\n').filter(function(t){return (''+t).trim()!=='';});for(var _y9=0;_y9<_ml9.length;_y9++)text(Math.min(lx,ux2),lyy-MTH*(1.15+_y9*1.25),MTH,_ml9[_y9],'NOTE',6,0);/* [1374] 왼쪽 정렬 */}}/* [1370] 여러 줄 */ // 꺾임점 기준 정렬(R=좌0,L=우2)
+    if(mh.label)text((lx+ux2)/2,lyy+MTH*0.45,MTH,mhDisp(mh),lyr+'_LABEL',col,1);if(!((typeof LV!=='undefined')&&LV.tgnote===0)){var _mn9=null,_mns9=state.tgNotes||[];for(var _m9=0;_m9<_mns9.length;_m9++){if(_mns9[_m9].mh&&Math.abs(_mns9[_m9].x-mh.wx)<0.5&&Math.abs(_mns9[_m9].y-mh.wy)<0.5){_mn9=_mns9[_m9];break;}}if(_mn9){var _ml9=(_mn9.text||'').split('\n').filter(function(t){return (''+t).trim()!=='';});for(var _y9=0;_y9<_ml9.length;_y9++)text(Math.min(lx,ux2),lyy-MTH*(1.7+_y9*1.35),MTH,_ml9[_y9],'NOTE',6,0);/* [1380] 인출선 겹침 방지 *//* [1374] 왼쪽 정렬 */}}/* [1370] 여러 줄 */ // 꺾임점 기준 정렬(R=좌0,L=우2)
   });
   // 보강판 구역(관로결선 ±5M 밴드 + 연한 해치 + 태그/인출선) — true color 보강판색(#B8860B)
   if(!((typeof LV!=='undefined')&&LV.bpbox===0))(state.bpzones||[]).forEach(function(z,zi){var _br=(512+zi*3).toString(16).toUpperCase();bpentArr[zi]=bpentArr[zi]||[];
