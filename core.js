@@ -9939,8 +9939,8 @@ function drawTgPipeTags(){/* [1401] 구간별 관로 자동 태그 */
    (function(k9,ax9,ay9){lbl.addEventListener('pointerdown',function(ev){ev.stopPropagation();ev.preventDefault();if(mode==='tgnote'){var _nw9=Date.now();var _L9=window._ptagLT;if(_L9&&_L9.k===k9&&(_nw9-_L9.t)<400){window._ptagLT=null;_ptagNotePop(k9,ev,'new');return;}/* [1403] */window._ptagLT={k:k9,t:_nw9};return;}/* [1402] */var _n2=Date.now();var _L2=window._ptagLT2;if(_L2&&_L2.k===k9&&(_n2-_L2.t)<400){window._ptagLT2=null;_ptagDrag=null;setTimeout(function(){labelDragging=false;},10);_ptagEdit(k9,ev);return;}window._ptagLT2={k:k9,t:_n2};/* [1403] 더블클릭=수정창 */if(!state.tangoManual)state.tangoManual={};if(!state.tangoManual[k9])state.tangoManual[k9]={};_ptagDrag={key:k9};labelDragging=true;try{cv.setPointerCapture(ev.pointerId);}catch(e){}});})(key,ax,ay);
   }
   var _nt9=M.ptagNote;if(_nt9&&!Array.isArray(_nt9))_nt9=[''+_nt9];
-  if(_nt9&&_nt9.length){var _lx9=Math.min(kx,ux2);var _lsv=S(_lx9,ky);var _px9=Math.max(2,_ph/U);var _lh9=_px9*1.3;
-   _nt9.forEach(function(_tx9,_li9){var _nl=mkLabel(_lsv[0]+2,_lsv[1]+_lh9*(0.95+_li9),_tx9,{fill:'#ff00e6',weight:'700',anchor:'start',grp:'ptag',px:_px9*0.95});
+  if(_nt9&&_nt9.length){var _lx9=Math.min(kx,ux2);var _lsv=S(_lx9,ky);var _px9=Math.max(2,_ph/U);
+   _nt9.forEach(function(_tx9,_li9){var _nl=mkLabel(_lsv[0]+EM*0.15,_lsv[1]+EM*(0.95+_li9*1.1),_tx9,/* [1406] 맨홀 부착형과 동일 간격 */{fill:'#ff00e6',weight:'700',anchor:'start',grp:'ptag',px:_px9*0.95});
     if(_nl&&!viewerMode&&!readOnly){_nl.style.pointerEvents='auto';_nl.style.cursor='pointer';
      (function(k9,li9){_nl.addEventListener('pointerdown',function(ev){ev.stopPropagation();ev.preventDefault();if(mode!=='tgnote')return;var _n3=Date.now();var _K3='pn'+k9+'_'+li9;var _L3=window._ptagLT3;if(_L3&&_L3.k===_K3&&(_n3-_L3.t)<400){window._ptagLT3=null;_ptagNotePop(k9,ev,li9);return;}window._ptagLT3={k:_K3,t:_n3};});})(key,_li9);
     }});}/* [1403] 태그 부착 멘트 */
