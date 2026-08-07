@@ -1147,7 +1147,7 @@ function mhLabelBase(mh, txtW){
   // ★ 인출선 길이=줌 무관 고정 1.3m(world, txtW 보정 제거). 드래그한 라벨(mh.lx)은 어떤 보정·제한도 없이 그대로 — 끌고 간 자리 고정(BUILD514)
   return {lx:(mh.lx!=null?mh.lx:defLx), ly:(mh.ly!=null?mh.ly:defLy)};
 }
-function mergeAftMh(){var mhs=state.manholes||[];if(!mhs.length)return;mhs.forEach(function(m){m._used=false;m._del=false;});mhs.filter(function(m){return m.insp;}).forEach(function(a){var best=null,bd=4;mhs.forEach(function(b){if(b===a||b.insp||b._used)return;var d=Math.hypot((b.wx||0)-(a.wx||0),(b.wy||0)-(a.wy||0));if(d<=bd){bd=d;best=b;}});if(best){var _ox=best.wx,_oy=best.wy;best.wx=a.wx;best.wy=a.wy;best._aft=true;best._used=true;a._del=true;if(typeof moveMhLines==='function')moveMhLines(best,_ox,_oy);}});state.manholes=mhs.filter(function(m){return !m._del;});}
+function mergeAftMh(){var mhs=state.manholes||[];if(!mhs.length)return;mhs.forEach(function(m){m._used=false;m._del=false;});mhs.filter(function(m){return m.insp;}).forEach(function(a){var best=null,bd=4;mhs.forEach(function(b){if(b===a||b.insp||b._used||b.type==='riser')return;/* [1417] 입상주는 병합 제외 — 맨홀이 riser에 흘수되던 버그 */var d=Math.hypot((b.wx||0)-(a.wx||0),(b.wy||0)-(a.wy||0));if(d<=bd){bd=d;best=b;}});if(best){var _ox=best.wx,_oy=best.wy;best.wx=a.wx;best.wy=a.wy;best._aft=true;best._used=true;a._del=true;if(typeof moveMhLines==='function')moveMhLines(best,_ox,_oy);}});state.manholes=mhs.filter(function(m){return !m._del;});}
 function drawManholes(){
   clearSvg(gMH); clearLabels('mh');clearLabels('riser');clearLabels('tgnotemh');
   (state.manholes||[]).forEach(function(mh){if(typeof tgCarMhShow==='function'&&!tgCarMhShow(mh))return;/* [1327] */
@@ -1390,12 +1390,13 @@ function placeManholeAt(wx,wy,type){
   // 모드 유지 (계속 찍을 수 있게)
 }
 // ★ CSV의 전주(TJ/EJ) 측점 → 같은 코드 가장 가까운 2점 짝 → 중점에 입상주 자동생성(BUILD516). TJ=통신주입상/EJ=한전주입상. 원래 2점은 남김(자동결선만 제외)
+function _tjTokOf(c){var t=(''+(c||'')).trim().toUpperCase().split(/\s+/);for(var i=0;i<t.length;i++){if(t[i]==='TJ'||t[i]==='EJ')return t[i];}return null;}/* [1416] BS TJ·SS TJ·DA EJ 등 접두어 코드 지원 */
 function buildRisersFromCsv(){state.mhDel=null;/* [1353] */
   var arr=(typeof finalCsvArr==='function')?finalCsvArr():[];
   var rows=[];
-  arr.forEach(function(it){var rs;try{rs=parseInspCsv(it.text||'');}catch(e){rs=[];}rs.forEach(function(p){if(p.skip)return;var c=(p.code||'').trim();if(/^(TJ|EJ)/i.test(c))rows.push({x:p.ex,y:p.no,no:p.name||'',code:c.toUpperCase(),surface:p.surface||'',pave:p.pave||''});});});
+  arr.forEach(function(it){var rs;try{rs=parseInspCsv(it.text||'');}catch(e){rs=[];}rs.forEach(function(p){if(p.skip)return;var c=(p.code||'').trim();var _tk9=_tjTokOf(c);if(_tk9)rows.push({x:p.ex,y:p.no,no:p.name||'',code:_tk9,surface:p.surface||'',pave:p.pave||''});/* [1416] */});});
   if(!rows.length)return 0;
-  if(state.tamsa)state.points.forEach(function(p){if(/^(TJ|EJ)/i.test((p.code||'').trim()))p._hideMark=true;});
+  if(state.tamsa)state.points.forEach(function(p){if(_tjTokOf(p.code))p._hideMark=true;});/* [1416] */
   state.manholes=(state.manholes||[]).filter(function(m){return !(m._fromCsv&&m.type==='riser');});   /* [1161] 입상주만 제거 — CSV 맨홀 보존(생성 순서 무관) */
   state.points=(state.points||[]).filter(function(p){return !p._riserPt;});
   state.lines=(state.lines||[]).filter(function(l){return !l._riserLine;});
@@ -7090,7 +7091,7 @@ function _aftCsvCounts(){ /* [1248] 후측량 CSV 집계: 심도(l)·현황(B/D/
   var l=0,h=0,m=0,j=0,fs=(typeof finalCsvArr==='function')?finalCsvArr():[];
   fs.forEach(function(it){var pp;try{pp=(typeof parseInspCsv==='function')?parseInspCsv(it.text||''):[];}catch(e){pp=[];}
     pp.forEach(function(p){if(p.skip)return;var c=(p.code||'').trim();
-      if(/^(TJ|EJ)/i.test(c))j++;else if(c==='l')l++;else if(c==='SKTM')m++;else if(c==='B'||c==='D'||c==='BD')h++;});});
+      if(typeof _tjTokOf==='function'?_tjTokOf(c):/^(TJ|EJ)/i.test(c))j++;/* [1416] */else if(c==='l')l++;else if(c==='SKTM')m++;else if(c==='B'||c==='D'||c==='BD')h++;});});
   return {l:l,h:h,m:m,j:j,files:fs.length};}
 function openAftCsvList(){ /* [1248] field 후측량 CSV 파일별 삭제 — openCsvList 미러 */
   var arr=finalCsvArr(); if(!arr.length){toast('로딩된 후측량 CSV가 없습니다');return;}
