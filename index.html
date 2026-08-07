@@ -392,19 +392,19 @@
     if(!board)return;
     var STG=[
       {id:'pxc-rt',tbl:'realtime_projects',page:'realtime.html',stg:'realtime',doneLb:'실측완료',
-       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,st:payload->>stage,f1:payload->rtDone->>done',
+       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,st:payload->>stage,f1:payload->rtDone->>done',selN:'id,name,updated_at,del:g_del,tm:g_tamsa,hid:g_hide,st:g_stage,f1:g_rtdone',
        done:function(r){return r.f1==='true';}},
       {id:'pxc-sv',tbl:'survey_projects',page:'survey.html',stg:'survey',doneLb:'결선완료',
-       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,st:payload->>stage,f1:payload->>routingDone',
+       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,st:payload->>stage,f1:payload->>routingDone',selN:'id,name,updated_at,del:g_del,tm:g_tamsa,hid:g_hide,st:g_stage,f1:g_routing',
        done:function(r){return r.f1==='true';}},
       {id:'pxc-fd',tbl:'field_projects',page:'field.html',stg:'field',doneLb:'성과등록',
-       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,st:payload->>stage,f1:payload->fieldDone->>final',
+       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,st:payload->>stage,f1:payload->fieldDone->>final',selN:'id,name,updated_at,del:g_del,tm:g_tamsa,hid:g_hide,st:g_stage,f1:g_ffinal',
        done:function(r){return r.f1==='true';}},
       {id:'pxc-tg',tbl:'tango_projects',page:'tango.html',stg:'tango',doneLb:'탱고완료',
-       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,st:payload->>stage,f1:payload->>routingDone,ar:payload->>tangoArchived',
+       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,st:payload->>stage,f1:payload->>routingDone,ar:payload->>tangoArchived',selN:'id,name,updated_at,del:g_del,tm:g_tamsa,hid:g_hide,st:g_stage,f1:g_routing,ar:g_tgar',
        done:function(r){return r.f1==='true';},skip:function(r){return r.ar==='true';}},
       {id:'pxc-po',tbl:'position_projects',page:'position.html',stg:'position',doneLb:'완료',
-       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,st:payload->>stage',
+       sel:'id,name,updated_at,del:payload->>delAt,tm:payload->>tamsa,hid:payload->>pxHide,st:payload->>stage',selN:'id,name,updated_at,del:g_del,tm:g_tamsa,hid:g_hide,st:g_stage',
        done:function(){return false;}}
     ];
     function fmt(ts){
@@ -457,10 +457,13 @@
     function pxBase(n){return (''+(n||'')).replace(/_(S|A|B|C|TT?)\d*$/,'');}
     var RES={};
     /* [1191] Supabase 간헐 오류 대비: 실패 시 0.7·1.4초 후 재시도(최대 3회) */
-    function qTry(cfg,att){
-      return sb.from(cfg.tbl).select(cfg.sel).order('updated_at',{ascending:false}).then(function(res){
+    function _tmoQ(p,ms){return Promise.race([p,new Promise(function(rs){setTimeout(function(){rs({error:{message:'timeout'},data:null});},ms);})]);}/* [1422] */
+    function qTry(cfg,att,legacy){
+      var _sel=(!legacy&&cfg.selN)?cfg.selN:cfg.sel;
+      return _tmoQ(sb.from(cfg.tbl).select(_sel).order('updated_at',{ascending:false}),12000).then(function(res){
+        if(res.error && !legacy && cfg.selN){return qTry(cfg,att,true);}/* [1422] 생성컬럼 미존재 시 폴백 */
         if(res.error && att<3){
-          return new Promise(function(rs){setTimeout(rs,700*att);}).then(function(){return qTry(cfg,att+1);});
+          return new Promise(function(rs){setTimeout(rs,700*att);}).then(function(){return qTry(cfg,att+1,legacy);});
         }
         RES[cfg.tbl]={err:res.error||null,rows:(res.data||[]).filter(function(r){
           if(r.del)return false;
@@ -469,7 +472,7 @@
           return true;
         })};
       }).catch(function(){
-        if(att<3){return new Promise(function(rs){setTimeout(rs,700*att);}).then(function(){return qTry(cfg,att+1);});}
+        if(att<3){return new Promise(function(rs){setTimeout(rs,700*att);}).then(function(){return qTry(cfg,att+1,legacy);});}
         RES[cfg.tbl]={err:true,rows:[]};
       });
     }
@@ -598,6 +601,6 @@
   });
 })();
 </script>
-<script src="login.js?v=1421"></script>
+<script src="login.js?v=1422"></script>
 </body>
 </html>
