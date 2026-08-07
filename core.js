@@ -9894,14 +9894,15 @@ function _ptagNotePop(key,ev,li){/* [1403] 태그 부착 특이사항 */
  var arr=Array.isArray(M.ptagNote)?M.ptagNote.slice():(M.ptagNote?[''+M.ptagNote]:[]);
  var cur=(li==='new')?'':(arr[li]||'');
  var w=document.createElement('div');w.id='ptagPop';
- w.style.cssText='position:fixed;left:'+Math.min(ev.clientX+8,window.innerWidth-320)+'px;top:'+(ev.clientY+8)+'px;background:#fff;border:1.5px solid #d500f2;border-radius:8px;padding:7px 8px;z-index:99999;box-shadow:0 4px 14px rgba(0,0,0,0.25);font-size:12px';
- var r1=document.createElement('div');r1.style.cssText='display:flex;gap:4px;margin-bottom:5px;flex-wrap:nowrap';
- ['SKT','SKB','LG','KT','DL','SJ','시청'].forEach(function(cp){var b=document.createElement('button');b.textContent=cp;b.style.cssText='padding:2px 6px;border:1px solid #d0a0e0;border-radius:4px;background:#faf0ff;color:#8a00a8;font-size:11px;cursor:pointer';b.addEventListener('click',function(){ip.value=(ip.value?ip.value+' ':'')+cp;ip.focus();});r1.appendChild(b);});
- var r2=document.createElement('div');r2.style.cssText='display:flex;gap:5px;align-items:center';
- var ip=document.createElement('input');ip.value=cur;ip.placeholder='특이사항';ip.style.cssText='width:190px;padding:3px 6px;border:1px solid #bbb;border-radius:5px;font-size:12.5px';
- var ok=document.createElement('button');ok.textContent='✓';ok.style.cssText='padding:3px 9px;border:none;border-radius:5px;background:#d500f2;color:#fff;font-weight:800;cursor:pointer';
- r2.appendChild(ip);r2.appendChild(ok);
- if(li!=='new'){var del=document.createElement('button');del.textContent='삭제';del.style.cssText='padding:3px 8px;border:1px solid #d32f2f;border-radius:5px;background:#fff;color:#d32f2f;font-weight:700;cursor:pointer';del.addEventListener('click',function(){ip.value='';sv();});r2.appendChild(del);}
+ w.style.cssText='position:fixed;left:'+Math.min(ev.clientX+8,window.innerWidth-380)+'px;top:'+(ev.clientY+8)+'px;background:#fff0fb;border:1.5px solid #d500f2;border-radius:6px;padding:7px 9px;z-index:99999;box-shadow:0 2px 10px rgba(0,0,0,0.25);display:flex;flex-direction:column;gap:6px;font-size:12px';/* [1424] tgNoteEdit 스타일 통일 */
+ var r1=document.createElement('div');r1.style.cssText='display:flex;gap:5px;align-items:center;flex-wrap:nowrap';var so9=document.createElement('span');so9.textContent='소유주';so9.style.cssText='font-size:11px;font-weight:800;color:#8b39a8;white-space:nowrap;margin-right:2px';r1.appendChild(so9);
+ ['SKT','SKB','LG','KT','DL','SJ','시청'].forEach(function(cp){var b=document.createElement('button');b.textContent=cp;b.style.cssText='font-size:11px;font-weight:700;color:#8b39a8;background:#fff;border:1px solid #d9a6e8;border-radius:9px;padding:1px 6px;cursor:pointer;white-space:nowrap';b.addEventListener('click',function(){ip.value=(ip.value?ip.value+' ':'')+cp;ip.focus();});r1.appendChild(b);});
+ var r2=document.createElement('div');r2.style.cssText='display:flex;gap:6px;align-items:center';
+ var sp9=document.createElement('span');sp9.textContent='❗ 특이사항';sp9.style.cssText='font-size:12px;font-weight:800;color:#d500f2;white-space:nowrap';
+ var ip=document.createElement('input');ip.value=cur;ip.placeholder='내용 입력';ip.style.cssText='font-size:14px;font-weight:600;color:#333;border:1px solid #d9a6e8;border-radius:4px;background:#fff;outline:none;width:210px;padding:3px 6px';
+ var ok=document.createElement('button');ok.textContent='✓';ok.title='확인';ok.style.cssText='font-size:13px;font-weight:800;color:#fff;background:#16a34a;border:none;border-radius:4px;padding:3px 10px;cursor:pointer';
+ r2.appendChild(sp9);r2.appendChild(ip);r2.appendChild(ok);
+ var del=document.createElement('button');del.textContent='삭제';del.style.cssText='font-size:12px;font-weight:700;color:#fff;background:#e53935;border:none;border-radius:4px;padding:3px 8px;cursor:pointer';del.addEventListener('click',function(){ip.value='';sv();});r2.appendChild(del);/* [1424] 삭제 항상 표시 — tgNoteEdit 동일 */
  w.appendChild(r1);w.appendChild(r2);
  function sv(){var tx=(''+ip.value).trim();if(typeof pushHist==='function')pushHist();
   if(li==='new'){if(tx)arr.push(tx);}else{if(tx)arr[li]=tx;else arr.splice(li,1);}
