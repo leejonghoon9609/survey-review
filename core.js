@@ -6033,15 +6033,15 @@ function projTrashOpen(){
 }
 function projTrashFill(){
   var body=document.getElementById('ptBody');if(!body)return;
-  sb.from(DB+'_projects').select('id,name,payload,updated_at').then(function(res){
+  sb.from(DB+'_projects').select('id,name,updated_at,del:payload->>delAt,stage:payload->>stage').then(function(res){/* [1421] */
     if(!document.getElementById('ptBody'))return;
-    var rows=(res.data||[]).filter(function(r){return r.payload&&r.payload.delAt&&((r.payload.stage||'survey')===STAGE);});
-    rows.sort(function(a,b){return (+b.payload.delAt)-(+a.payload.delAt);});
+    var rows=(res.data||[]).filter(function(r){return r.del&&((r.stage||'survey')===STAGE);});
+    rows.sort(function(a,b){return (+b.del)-(+a.del);});
     if(!rows.length){body.innerHTML='<div style="padding:26px 6px;text-align:center;color:#98a2b3">\uC0AD\uC81C\uBAA9\uB85D\uC774 \uBE44\uC5B4\uC788\uC2B5\uB2C8\uB2E4</div>';return;}
     body.innerHTML=rows.map(function(r){
-      var d=new Date(+r.payload.delAt);
+      var d=new Date(+r.del);/* [1421] */
       var ds=d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2);
-      var left=_projLeftDays(r.payload.delAt);
+      var left=_projLeftDays(r.del);
       var col=left<=2?'#d32f2f':'#8a94a6';
       return '<div style="display:flex;align-items:center;gap:8px;padding:9px 4px;border-bottom:1px solid #f0f3f7">'
         +'<div style="flex:1;min-width:0"><div style="font-weight:800;color:#33415a;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(r.name||'(\uC774\uB984\uC5C6\uC74C)')+'</div>'
@@ -6057,8 +6057,8 @@ function projTrashFill(){
 /* ---- 사업명 중복 확인 ---- */
 function projDupCheck(name,cb){
   if(!online){cb(name);return;}
-  sb.from(DB+'_projects').select('id,name,payload').then(function(res){
-    var rows=(res.data||[]).filter(function(r){return r.id!==state.projectId&&r.payload&&((r.payload.stage||'survey')===STAGE);});
+  sb.from(DB+'_projects').select('id,name,stage:payload->>stage').then(function(res){/* [1421] */
+    var rows=(res.data||[]).filter(function(r){return r.id!==state.projectId&&((r.stage||'survey')===STAGE);});
     var names=rows.map(function(r){return r.name;});
     if(names.indexOf(name)<0){cb(name);return;}
     var dup=null;for(var k=0;k<rows.length;k++){if(rows[k].name===name){dup=rows[k];break;}}
@@ -6740,11 +6740,11 @@ function setReadOnly(v){readOnly=!!v;document.body.classList.toggle('readonly',r
 function refreshDoneProjects(){ if(!online)return;
   if(IS_FIELD){var _vf=document.getElementById('vproj');if(_vf){sb.from(DB+'_projects').select('id,name,updated_at,stage:payload->>stage,del:payload->>delAt').order('updated_at',{ascending:false}).then(function(rr){rr=_projAlive(rr);if(window._projFilterId&&!window._projFilterBase){var _fd2=rr.data||[];for(var _fj=0;_fj<_fd2.length;_fj++){if(_fd2[_fj].id===window._projFilterId){window._projFilterBase=baseName(_fd2[_fj].name);break;}}}
     var fr=(rr.data||[]).filter(function(p){if((p.stage||'survey')!=='field')return false;if(window._projFilterBase&&baseName(p.name)!==window._projFilterBase)return false;/* [1269] ?open 선택 사업만 표시 */return true;});_vf.innerHTML='<option value="">현장 사업목록</option>'+fr.map(function(p){return '<option value="'+p.id+'">'+p.name+'</option>';}).join('');if(state.projectId)_vf.value=state.projectId;if(typeof _projFilterChip==='function')try{_projFilterChip();}catch(_pc){}});}return;}
-  sb.from(DB+'_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){res=_projAlive(res);
-    var rows=(res.data||[]).filter(function(p){return p.payload&&p.payload.routingDone&&((p.payload.stage||'survey')===STAGE);});
+  sb.from(DB+'_projects').select('id,name,updated_at,del:payload->>delAt,stage:payload->>stage,rdone:payload->>routingDone,mk:payload->markups').order('updated_at',{ascending:false}).then(function(res){res=_projAlive(res);/* [1421] payload 전체 다운로드 제거 */
+    var rows=(res.data||[]).filter(function(p){return (p.rdone==='true'||p.rdone===true)&&((p.stage||'survey')===STAGE);});
     var vsel=document.getElementById('vproj');
     if(vsel){vsel.innerHTML='<option value="">결선완료사업목록</option>'+rows.map(function(p){return '<option value="'+p.id+'">'+p.name+'</option>';}).join('');if(state.projectId)vsel.value=state.projectId;}
-    var pw=0,tn=0;rows.forEach(function(p){var n=countNotes(p.payload);if(n>0){pw++;tn+=n;}});
+    var pw=0,tn=0;rows.forEach(function(p){var n=countNotes({markups:p.mk||[]});if(n>0){pw++;tn+=n;}});/* [1421] */
     var sm=document.getElementById('doneSummary');
     if(sm){if(tn>0){sm.style.display='';sm.textContent='⚠ 수정 '+pw+'사업 · '+tn+'건';}else{sm.style.display='none';}}
   });
