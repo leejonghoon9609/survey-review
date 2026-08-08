@@ -7051,6 +7051,7 @@ function _fldMhHover(cx,cy){ /* [1284] field — 맨홀 근접 호버 판정(커
 function _fldMhClickAt(cx,cy){ /* [1258] field 전용 — 도면 맨홈 클릭→해당 야장 자동 열기 */
   try{
     if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return false;
+    if(typeof mnUiOpen==='function'&&!mnUiOpen())return false;/* [1450] 맨홀도 제작 창이 열려 있을 때만 야장 연동 — 닫혔 상태에서는 일반 확인·수정 */
     if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen)return false; /* [1280] 후측량 사진 모드에선 맨홀 안 잡힘(측점만) */
     var w=toWorld(cx,cy),wx=w[0],wy=-w[1];
     var tol=Math.max(1.6,26*pxToWorld());
