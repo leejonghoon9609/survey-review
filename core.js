@@ -598,7 +598,7 @@ function mkLabel(svgX,svgY,text,opt){
   var anchor=opt.anchor||'start';
   d._anchor=anchor;
   d.style.cssText='position:absolute;'
-    +'font-size:'+((opt.px||13)*(viewerMode?0.7:1))+'px;color:'+(opt.fill||'#333')+';'
+    +'font-size:'+((opt.px||13)*((viewerMode&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD))?0.7:1))+'px;color:'/* [1451] field 텍스트 0.7 축소 해제 */+(opt.fill||'#333')+';'
     +'font-weight:'+(opt.weight||'400')+';white-space:nowrap;pointer-events:none;'+'text-shadow:-1.2px -1.2px 0 #fff,1.2px -1.2px 0 #fff,-1.2px 1.2px 0 #fff,1.2px 1.2px 0 #fff,0 0 2px #fff,0 0 3px #fff;'
     +'transform:translate('+(anchor==='end'?'-100%':(anchor==='middle'?'-50%':'0'))+',-50%)'+(opt.rot?(' rotate('+opt.rot+'deg)'):'')+';line-height:1;';
   placeLabelDiv(d);
@@ -6887,7 +6887,7 @@ function rtDonePairCard(main){
 function tgArchiveSet(id,arch,card){if(!online)return;sb.from(DB+'_projects').select('payload').eq('id',id).single().then(function(r){var pl=(r.data&&r.data.payload)||{};pl.tangoArchived=arch;sb.from(DB+'_projects').update({payload:pl}).eq('id',id).then(function(){if(card)card.remove();openDoneList();toast(arch?'완료목록에서 제거됨 (삭제목록으로 이동)':'완료목록으로 복원됨');});});}
 var _dlb=document.getElementById('doneListBtn');if(_dlb){if(IS_TANGO){_dlb.onclick=function(){openImportList('both');};_dlb.textContent='📥 결선/현장 완료목록';}else{_dlb.onclick=openDoneList;}}
 var _rob=document.getElementById('roBadge');if(_rob)_rob.onclick=function(){if(state._foreignLock){_lockTry(state.projectId,function(ok,holder){if(ok){state._foreignLock=null;setReadOnly(false);var _ps=document.getElementById('proj');if(_ps)_ps.value=state.projectId;toast('편집 모드로 전환');}else{toast('아직 '+holder+'님이 편집 중');}});return;}if(readOnly&&state.projectId){setReadOnly(false);var ps=document.getElementById('proj');if(ps)ps.value=state.projectId;toast('수정 가능 모드로 전환 (사업 선택)');}};
-(function(){if(IS_FIELD){setViewer((typeof isMobileDevice==='function')?isMobileDevice():true);return;}/* [1449] field PC 도구 표시 */if(typeof STAGE!=='undefined'&&STAGE==='survey'){setViewer(false);setTimeout(function(){if(typeof tgLayerMount==='function')tgLayerMount();},300);return;}/* [1438] 결선 레이어바 */if(IS_TANGO){var saved=null;try{saved=localStorage.getItem('viewMode');}catch(e){}setViewer(saved!=null?(saved==='1'):isMobileDevice());setTimeout(function(){if(typeof tgLayerMount==='function')tgLayerMount();},300);return;}setViewer(false);})();
+(function(){if(IS_FIELD){setViewer(true);return;}/* [1451] 1449 롤백 — field 레이아웃은 viewer 전제 */if(typeof STAGE!=='undefined'&&STAGE==='survey'){setViewer(false);setTimeout(function(){if(typeof tgLayerMount==='function')tgLayerMount();},300);return;}/* [1438] 결선 레이어바 */if(IS_TANGO){var saved=null;try{saved=localStorage.getItem('viewMode');}catch(e){}setViewer(saved!=null?(saved==='1'):isMobileDevice());setTimeout(function(){if(typeof tgLayerMount==='function')tgLayerMount();},300);return;}setViewer(false);})();
 /* 페이지 분리 — 이동은 랜딩에서. 결선/현장은 모드이동버튼 제거(탱고 in-page 토글만 유지), 시스템이동버튼은 전 페이지 제거 */
 (function(){var mt=document.getElementById('modeToggle');if(mt)mt.remove();var ss=document.getElementById('sysSwitch');if(ss)ss.remove();})();
 /* 측량(현장) 전용: 탱고작업용 성과제작 버튼 (기능은 다음 단계에서 연결) */
