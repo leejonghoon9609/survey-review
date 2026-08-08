@@ -14423,3 +14423,16 @@ function posExportDxf(){
   zip.generateAsync({type:'blob'}).then(function(b){var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=pj+'_\uc815\uc704\uce58_'+nsh+'\ub3c4\uc5fd.zip';a.click();toast('\uc815\uc704\uce58 DXF '+nsh+'\uac1c \ub3c4\uc5fd \uc644\ub8cc');});
  }catch(err){console.error('[posExport]',err);toast('\uc815\uc704\uce58 \uc0dd\uc131 \uc624\ub958: '+err.message);}
  });}
+
+/* ===== [1440] 결선 측점삭제 — 캡처 단계 최근접 탐색(겹침 무관) + 선택전 링 미리보기 ===== */
+(function(){if(typeof STAGE==='undefined'||STAGE!=='survey')return;if(!cv)return;
+function _pdNear(cx,cy){try{var w=toWorld(cx,cy);var U=(typeof pxToWorld==='function')?pxToWorld():0.06;var R=U*16;var best=null,bd=R;
+(state.points||[]).forEach(function(p){if(p._hyun)return;var d=Math.hypot(p.x-w[0],p.y-w[1]);if(d<bd){bd=d;best=p;}});return best;}catch(e){return null;}}
+function _pdRing(p){var old=document.getElementById('svPtDelRing');if(old)old.remove();if(!p)return;
+ var s9=S(p.x,p.y);var U=(typeof pxToWorld==='function')?pxToWorld():0.06;
+ var c=el('circle',{id:'svPtDelRing',cx:s9[0],cy:s9[1],r:U*10,fill:'rgba(211,47,47,0.22)',stroke:'#d32f2f','stroke-width':2.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'});
+ gSel.appendChild(c);}
+cv.addEventListener('pointermove',function(ev){if(mode!=='ptdel'){var o=document.getElementById('svPtDelRing');if(o)o.remove();return;}_pdRing(_pdNear(ev.clientX,ev.clientY));},true);
+cv.addEventListener('pointerdown',function(ev){if(mode!=='ptdel'||ev.button!==0)return;var p=_pdNear(ev.clientX,ev.clientY);if(!p)return;
+ ev.stopPropagation();ev.preventDefault();var no9=p.no;deletePoint(p);_pdRing(null);toast('측점 '+no9+' 삭제');},true);
+})();
