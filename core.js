@@ -125,7 +125,7 @@ function parseInspCsv(txt){
     var pdop=(iP>=0?(c[iP]||''):'').trim();
     if(code==='100x6'){out.push({code:'100x6',skip:true});continue;}   // 측설용 노출관로 성과 = 무시
     if(code===''&&pdop==='')continue;                                   // 품질 빈칸·코드 없음 = 무시
-    var _psf='',_ppv='';var _rawc=code;if(state.tamsa){var _tc=parseTamsaCode(code);if(_tc){_psf=_tc.surface||'';_ppv=_tc.pave||'';code=(_tc.code||(_tc.isT?'T':''));if(_tc.z!=null)Z=_tc.z;}}
+    var _psf='',_ppv='';var _rawc=code;if(state.tamsa){var _tc=parseTamsaCode(code);if(_tc){_psf=_tc.surface||'';_ppv=_tc.pave||'';code=(_tc.code||(_tc.isT?'T':''));if(_tc.z!=null)Z=_tc.z;}}else{var _dm=/^[tT]?\s*([0-9]+(?:\.[0-9]+)?)\s*(\(|$)/.exec(code);if(_dm){Z=parseFloat(_dm[1]);}}/* [1446] 비탐사도 코드 심도(0.54·t0.84·0.65(100*3)) → z 반영 — 탐사 보완 구간 */
     out.push({name:(c[iN]||'').trim(),ex:Y,no:X,z:Z,code:code,surface:_psf,pave:_ppv,_rawc:_rawc,_hyun:/^([BDS]|BD|DB)$/i.test((_rawc||'').trim())});        // ex=동(앱x)=CSV Y, no=북(앱y)=CSV X
   }
   return out;
