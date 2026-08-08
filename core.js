@@ -1346,7 +1346,7 @@ function drawManholes(){
     lbDrag.addEventListener('pointerdown',function(ev){if(mode==='pan'){_mhLpX=ev.clientX;_mhLpY=ev.clientY;if(_mhLp)clearTimeout(_mhLp);_mhLp=setTimeout(function(){_mhLp=null;openLabelEdit();},1000);}
       if((mode==='delmh'&&!isRiser)||(mode==='delriser'&&isRiser)||mode==='delall2'){ev.stopPropagation();ev.preventDefault();
         if(mh._fromCsv&&mh.wx!=null){if(!state.mhDel)state.mhDel={};state.mhDel[mh.wx+'_'+mh.wy]=1;}/* [1338] 삭제 영구화 */var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);if(!isRiser&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD))removeManholePassLines(mh);/* [1458] field: 맨홀/입상만 삭제 — 관로선 유지 */redrawAll();toast(isRiser?'입상주 삭제':'맨홀 삭제(통과결선 포함)');_da2Off();return;}
-      if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace'||viewerMode||readOnly)return;
+      if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace'||(viewerMode&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD))||readOnly)return;
       ev.stopPropagation();ev.preventDefault();
       if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
       var w=toWorld(ev.clientX,ev.clientY);
