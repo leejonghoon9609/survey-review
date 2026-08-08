@@ -1083,7 +1083,7 @@ function drawGeo(){if(typeof _tgCarGeomBuild==='function')try{_tgCarGeomBuild();
     /* [1114] 레이어 체크바 연동 — 누락_실시간사진 / 누락_후측량사진 (기본 ON) */
     if(typeof LV!=='undefined'){if(LV.missExp===0)_anyB=false;if(LV.missAft===0)_anyA=false;}
     if(_anyB||_anyA){var _pdrawn={};var _Up=(typeof pxToWorld==='function')?pxToWorld():0.05;
-    var _pr=Math.max(6*_Up, Math.min(1.3, 12*_Up));
+    var _pr=(typeof STAGE!=='undefined'&&STAGE==='survey')?10*_Up:Math.max(6*_Up, Math.min(1.3, 12*_Up));/* [1439] 결선: 누락 원 px 고정 */
     /* [1119] 함정 A: 절대좌표(50만대)를 그대로 쓰면 float32 오차로
        테두리(non-scaling-stroke)와 채움이 어긋나고 줌마다 원이 흔들린다.
        -> 로컬 원점 그룹 translate + 자식은 작은 좌표만 (refSR 방식과 동일) */
