@@ -14424,15 +14424,16 @@ function posExportDxf(){
  }catch(err){console.error('[posExport]',err);toast('\uc815\uc704\uce58 \uc0dd\uc131 \uc624\ub958: '+err.message);}
  });}
 
-/* ===== [1440] 결선 측점삭제 — 캡처 단계 최근접 탐색(겹침 무관) + 선택전 링 미리보기 ===== */
-(function(){if(typeof STAGE==='undefined'||STAGE!=='survey')return;if(!cv)return;
-function _pdNear(cx,cy){try{var w=toWorld(cx,cy);var U=(typeof pxToWorld==='function')?pxToWorld():0.06;var R=U*16;var best=null,bd=R;
-(state.points||[]).forEach(function(p){if(p._hyun)return;var d=Math.hypot(p.x-w[0],p.y-w[1]);if(d<bd){bd=d;best=p;}});return best;}catch(e){return null;}}
+/* ===== [1441] 결선 측점삭제 v2 — document 캡처 + 화면px 직접 판정 ===== */
+(function(){if(typeof STAGE==='undefined'||STAGE!=='survey')return;
+function _pdScr(p){try{var m=cv.getScreenCTM();if(!m)return null;var s9=S(p.x,p.y);return [m.a*s9[0]+m.c*s9[1]+m.e, m.b*s9[0]+m.d*s9[1]+m.f];}catch(e){return null;}}
+function _pdNear(cx,cy){var best=null,bd=20;(state.points||[]).forEach(function(p){if(p._hyun)return;var sc=_pdScr(p);if(!sc)return;var d=Math.hypot(sc[0]-cx,sc[1]-cy);if(d<bd){bd=d;best=p;}});return best;}
 function _pdRing(p){var old=document.getElementById('svPtDelRing');if(old)old.remove();if(!p)return;
- var s9=S(p.x,p.y);var U=(typeof pxToWorld==='function')?pxToWorld():0.06;
- var c=el('circle',{id:'svPtDelRing',cx:s9[0],cy:s9[1],r:U*10,fill:'rgba(211,47,47,0.22)',stroke:'#d32f2f','stroke-width':2.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'});
+ var s9=S(p.x,p.y);var U=1;try{U=(vb.w/cv.getBoundingClientRect().width);}catch(e){}
+ var c=el('circle',{id:'svPtDelRing',cx:s9[0],cy:s9[1],r:U*11,fill:'rgba(211,47,47,0.22)',stroke:'#d32f2f','stroke-width':2.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'});
  gSel.appendChild(c);}
-cv.addEventListener('pointermove',function(ev){if(mode!=='ptdel'){var o=document.getElementById('svPtDelRing');if(o)o.remove();return;}_pdRing(_pdNear(ev.clientX,ev.clientY));},true);
-cv.addEventListener('pointerdown',function(ev){if(mode!=='ptdel'||ev.button!==0)return;var p=_pdNear(ev.clientX,ev.clientY);if(!p)return;
- ev.stopPropagation();ev.preventDefault();var no9=p.no;deletePoint(p);_pdRing(null);toast('측점 '+no9+' 삭제');},true);
+function _inCv(ev){try{var r=cv.getBoundingClientRect();return ev.clientX>=r.left&&ev.clientX<=r.right&&ev.clientY>=r.top&&ev.clientY<=r.bottom;}catch(e){return false;}}
+document.addEventListener('pointermove',function(ev){if(mode!=='ptdel'){var o=document.getElementById('svPtDelRing');if(o)o.remove();return;}if(!_inCv(ev))return;_pdRing(_pdNear(ev.clientX,ev.clientY));},true);
+document.addEventListener('pointerdown',function(ev){if(mode!=='ptdel'||ev.button!==0)return;if(!_inCv(ev))return;var p=_pdNear(ev.clientX,ev.clientY);if(!p)return;
+ ev.stopImmediatePropagation();ev.stopPropagation();ev.preventDefault();var no9=p.no;deletePoint(p);_pdRing(null);toast('측점 '+no9+' 삭제');},true);
 })();
