@@ -1327,7 +1327,7 @@ function drawManholes(){
     var drag=el('circle',{cx:mx,cy:my,r:13*U,fill:'transparent','pointer-events':'all',cursor:'move'});
     drag.addEventListener('pointerdown',function(ev){if(mode==='pan'){_mhLpX=ev.clientX;_mhLpY=ev.clientY;if(_mhLp)clearTimeout(_mhLp);_mhLp=setTimeout(function(){_mhLp=null;openLabelEdit();},1000);}
       if((mode==='delmh'&&!isRiser)||(mode==='delriser'&&isRiser)||mode==='delall2'){ev.stopPropagation();ev.preventDefault();pushHist();
-        if(mh._fromCsv&&mh.wx!=null){if(!state.mhDel)state.mhDel={};state.mhDel[mh.wx+'_'+mh.wy]=1;}/* [1338] 삭제 영구화 */var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);if(!isRiser)removeManholePassLines(mh);redrawAll();toast(isRiser?'입상주 삭제':'맨홀 삭제(통과결선 포함)');_da2Off();return;}
+        if(mh._fromCsv&&mh.wx!=null){if(!state.mhDel)state.mhDel={};state.mhDel[mh.wx+'_'+mh.wy]=1;}/* [1338] 삭제 영구화 */var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);if(!isRiser&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD))removeManholePassLines(mh);/* [1458] field: 맨홀/입상만 삭제 — 관로선 유지 */redrawAll();toast(isRiser?'입상주 삭제':'맨홀 삭제(통과결선 포함)');_da2Off();return;}
       if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace'||viewerMode||readOnly)return;
       ev.stopPropagation();ev.preventDefault();
       if(mode!=='tgnote'&&typeof _tgMode==='function'&&_tgMode()){var _nowMh=Date.now();if(_nowMh-(mh._lastMhClick||0)<350){mh._lastMhClick=0;openLabelEdit();return;}mh._lastMhClick=_nowMh;if(typeof tgSelectMh==='function')tgSelectMh(mh.wx,mh.wy);if(typeof drawGeo==='function')drawGeo();return;}/* [1373] 특이사항 모드엔 맨홀 클릭으로 속성정보창 안 띄움 */
@@ -1344,7 +1344,7 @@ function drawManholes(){
     var lbDrag=el('rect',{x:txtLeft-EM*0.5,y:uly-EM*1.7,width:Math.max(underLen,labelW)+EM*1.0,height:EM*2.3,rx:EM*0.1,fill:'transparent','pointer-events':'all',cursor:'move'});
     lbDrag.addEventListener('pointerdown',function(ev){if(mode==='pan'){_mhLpX=ev.clientX;_mhLpY=ev.clientY;if(_mhLp)clearTimeout(_mhLp);_mhLp=setTimeout(function(){_mhLp=null;openLabelEdit();},1000);}
       if((mode==='delmh'&&!isRiser)||(mode==='delriser'&&isRiser)||mode==='delall2'){ev.stopPropagation();ev.preventDefault();
-        if(mh._fromCsv&&mh.wx!=null){if(!state.mhDel)state.mhDel={};state.mhDel[mh.wx+'_'+mh.wy]=1;}/* [1338] 삭제 영구화 */var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);if(!isRiser)removeManholePassLines(mh);redrawAll();toast(isRiser?'입상주 삭제':'맨홀 삭제(통과결선 포함)');_da2Off();return;}
+        if(mh._fromCsv&&mh.wx!=null){if(!state.mhDel)state.mhDel={};state.mhDel[mh.wx+'_'+mh.wy]=1;}/* [1338] 삭제 영구화 */var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);if(!isRiser&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD))removeManholePassLines(mh);/* [1458] field: 맨홀/입상만 삭제 — 관로선 유지 */redrawAll();toast(isRiser?'입상주 삭제':'맨홀 삭제(통과결선 포함)');_da2Off();return;}
       if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace'||viewerMode||readOnly)return;
       ev.stopPropagation();ev.preventDefault();
       if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
