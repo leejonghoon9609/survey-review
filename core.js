@@ -2,8 +2,8 @@
 /* BUILD 배지는 각 페이지(html)의 buildno span이 직접 표시 — core.js가 덮어쓰지 않음 */
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
-var IS_FIELD=(document.title==='측량(현장)'), IS_TANGO=(document.title==='탱고 DB'), IS_REALTIME=(document.title==='실시간측량');
-var STAGE=IS_TANGO?'tango':(IS_FIELD?'field':(IS_REALTIME?'realtime':'survey'));
+var IS_FIELD=(document.title==='측량(현장)'), IS_TANGO=(document.title==='탱고 DB'), IS_REALTIME=(document.title==='실시간측량'), IS_POSITION=(document.title==='정위치 DB');
+var STAGE=IS_TANGO?'tango':(IS_FIELD?'field':(IS_REALTIME?'realtime':(typeof IS_POSITION!=='undefined'&&IS_POSITION?'position':'survey')));/* [1436] */
 var DB=STAGE; // STAGE별 Supabase 테이블 완전 분리: survey_*/field_*/tango_*
 if(IS_FIELD)document.body.classList.add('fpage');
 /* ====== 설정: 본인 Supabase 정보 입력 (비우면 로컬 모드) ====== */
@@ -5902,7 +5902,7 @@ function saveProject(cb){ if(readOnly){if(typeof cb==='function')cb();return;} v
   }else{ _doUpsert(); }
 }
 function pickProject(id){ if(!id)return;try{if(typeof IS_TANGO!=='undefined'&&IS_TANGO)localStorage.setItem('lastProj_tango',id);}catch(_lp){}/* [1321] */
-  if(STAGE==='survey'||STAGE==='realtime'||!online){ loadProject(id); return; }
+  if(STAGE==='survey'||STAGE==='realtime'||STAGE==='position'||!online){ loadProject(id); return; }/* [1436] */
   /* 다운스트림(현장/탱고): 사업 선택 즉시 내 단계 사본으로 전환 */
   sb.from(DB+'_projects').select('id,name,stage:payload->>stage').eq('id',id).single().then(function(r){
     if(r.error||!r.data){ loadProject(id); return; }
@@ -6725,7 +6725,7 @@ bind('vNote2',toggleNoteMode);
 var _vproj=document.getElementById('vproj');if(_vproj)_vproj.addEventListener('change',function(){if(this.value)loadProject(this.value);});
 
 /* ===== 결선완료 사업 ===== */
-function baseName(n){return (''+(n||'')).replace(/_(S|A|B|C|TT?)\d*$/,'');}function _uniqName(base,suffix,cb){if(!online){cb(base+suffix);return;}sb.from(DB+'_projects').select('id,name,stage:payload->>stage').then(function(_ex){var _names=(_ex.data||[]).filter(function(r){return r.id!==state.projectId&&(r.stage||'survey')===STAGE;}).map(function(r){return r.name;});var want=base+suffix;if(_names.indexOf(want)<0){cb(want);return;}var i=1;while(_names.indexOf(want+i)>=0)i++;cb(want+i);});}
+function baseName(n){return (''+(n||'')).replace(/_(S|A|B|C|P|TT?)\d*$/,'');}/* [1436] _P */function _uniqName(base,suffix,cb){if(!online){cb(base+suffix);return;}sb.from(DB+'_projects').select('id,name,stage:payload->>stage').then(function(_ex){var _names=(_ex.data||[]).filter(function(r){return r.id!==state.projectId&&(r.stage||'survey')===STAGE;}).map(function(r){return r.name;});var want=base+suffix;if(_names.indexOf(want)<0){cb(want);return;}var i=1;while(_names.indexOf(want+i)>=0)i++;cb(want+i);});}
 function registerDone(){
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
   if(!state.projectName){toast('등록할 사업을 먼저 선택/저장하세요');return;}
