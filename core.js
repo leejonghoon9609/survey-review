@@ -1153,6 +1153,7 @@ function mhLabelBase(mh, txtW){
   return {lx:(mh.lx!=null?mh.lx:defLx), ly:(mh.ly!=null?mh.ly:defLy)};
 }
 function mergeAftMh(){/* [1445] 자동병합 중단 — 후측 CSV 맨홀/입상은 그대로 추가(검정), 실시간 맨홀(파랑) 유지, 결선은 작업자 수정 */}
+function _refTxtFix(){/* [1460] field: REF(완료결선 DXF) 텍스트 화면 px 고정 */try{if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return;var host=document.getElementById('gRefDxf');if(!host)return;var U=(typeof pxToWorld==='function')?pxToWorld():0.06;var ts=host.getElementsByTagName('text');for(var i=0;i<ts.length;i++){var t=ts[i];if(t._rht==null||!t._rU)continue;t.setAttribute('font-size',t._rht*(U/t._rU));}}catch(_e){}}
 function _mhLeadSync(){/* [1457] 줄 중 인출선·라벨 좌표만 경량 갱신 — DOM 재생성 없음 */try{if(!(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))))return;var U=(typeof pxToWorld==='function')?pxToWorld():0.06;var EM=15*U;var upd={};var proc=function(mh){var k=mh.id;if(upd[k])return upd[k];var s9=S(mh.wx,mh.wy);var mx=s9[0],my=s9[1];var txtW=0,_lb=(typeof mhDisp==='function')?(''+mhDisp(mh)):(mh.label||'');for(var i=0;i<_lb.length;i++)txtW+=(_lb.charCodeAt(i)>127?EM:EM*0.55);txtW+=EM*0.5;txtW*=0.73;var lp=mhLabelBase(mh,txtW);var ls=S(lp.lx,lp.ly);var isR=(ls[0]>=mx);var u1=ls[0],u2=isR?ls[0]+txtW:ls[0]-txtW,uy=ls[1];return upd[k]={mx:mx,my:my,kx:ls[0],ky:ls[1],u1:u1,u2:u2,uy:uy,tc:(u1+u2)/2,ty:uy-EM*0.95};};var ns=gMH.querySelectorAll('line');for(var i2=0;i2<ns.length;i2++){var e=ns[i2],m=e._mSync;if(!m)continue;var P=proc(m.mh);if(m.t==='d'){e.setAttribute('x1',P.mx);e.setAttribute('y1',P.my);e.setAttribute('x2',P.kx);e.setAttribute('y2',P.ky);}else{e.setAttribute('x1',P.u1);e.setAttribute('y1',P.uy);e.setAttribute('x2',P.u2);e.setAttribute('y2',P.uy);}}if(typeof lblOverlay!=='undefined'&&lblOverlay){var ds=lblOverlay.children;for(var j2=0;j2<ds.length;j2++){var d=ds[j2];if(!d._mSync)continue;var P2=proc(d._mSync.mh);d._sx=P2.tc;d._sy=P2.ty;if(typeof placeLabelDiv==='function')placeLabelDiv(d);}}}catch(_s){}}
 function drawManholes(){
   clearSvg(gMH); clearLabels('mh');clearLabels('riser');clearLabels('tgnotemh');
@@ -1548,7 +1549,7 @@ var _bpPathEl=null,_bpPad=null,_bpImgURL=null,_bpImgBox=null,_bpSig=null;
 var _mhEditAnchor=null;
 function _updateMhEditPos(){if(!_mhEditAnchor||!_mhEditAnchor.wrap||!_mhEditAnchor.wrap.parentNode){_mhEditAnchor=null;return;}var _cv=document.getElementById('cv');if(!_cv)return;var _r=_cv.getBoundingClientRect();var _sx=_r.left+(_mhEditAnchor.tx-vb.x)*(_r.width/vb.w);var _sy=_r.top+(_mhEditAnchor.ty-vb.y)*(_r.height/vb.h);_mhEditAnchor.wrap.style.left=_sx+'px';_mhEditAnchor.wrap.style.top=(_sy+_mhEditAnchor.dy)+'px';}
 var _mhZW=0,_mhZReq=0;/* [1455] 줄 배율 변경 시 맨홀 인출선 재계산(rAF 1회) — 결선/field */
-function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);repositionLabels();if(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))&&typeof _mhLeadSync==='function'&&Math.abs(vb.w-_mhZW)>1e-9){_mhZW=vb.w;_mhLeadSync();}/* [1457] 매 프레임 경량 동기화(재그리기 없음) */if(bgMapOn)syncMapBg();_updateMhEditPos();try{if(typeof refMhSize==='function')refMhSize();}catch(e){}}   /* [1105] 줌/팬마다 맨홀 원 반경 갱신 */
+function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);repositionLabels();if(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))&&typeof _mhLeadSync==='function'&&Math.abs(vb.w-_mhZW)>1e-9){_mhZW=vb.w;_mhLeadSync();if(typeof _refTxtFix==='function')_refTxtFix();}/* [1457] 매 프레임 경량 동기화(재그리기 없음) */if(bgMapOn)syncMapBg();_updateMhEditPos();try{if(typeof refMhSize==='function')refMhSize();}catch(e){}}   /* [1105] 줌/팬마다 맨홀 원 반경 갱신 */
 // ★ 백판(수치지도) 화면영역 컬링 렌더 (BUILD509) — 화면보다 넓은 여유영역에 걸치는 백판만 통합 path로
 function bpSignature(){var n=0,fx=0,fy=0;(state.lines||[]).forEach(function(L){if(LINECOL[L.layer]||L.crop||!L.pts||!L.pts.length)return;n++;fx+=L.pts[0][0];fy+=L.pts[0][1];});return n+':'+fx.toFixed(0)+':'+fy.toFixed(0)+':'+(bpOff?'off':'on');}
 function bakeBackdrop(){
@@ -11970,12 +11971,14 @@ function refDrawOne(g,e,depth,inhCol){
     var sp2=refXY(depth,ax,ay);
     var body=refTxt(refStr(e,1,''));
     if(!body)return 0;
-    o=el('text',{x:sp2[0],y:sp2[1],'font-size':ht*1.05,fill:col,
+    var _fs9=ht*1.05;
+    o=el('text',{x:sp2[0],y:sp2[1],'font-size':_fs9,fill:col,
         'text-anchor':(ha===1?'middle':(ha===2?'end':'start')),
         'dominant-baseline':(va===2?'middle':(va===3?'hanging':'auto'))});
     var rot=refNum(e,50,0);
     if(rot)o.setAttribute('transform','rotate('+(-rot)+' '+sp2[0]+' '+sp2[1]+')');
     o.textContent=body;
+    o._rht=_fs9;o._rU=(typeof pxToWorld==='function')?pxToWorld():0.06;/* [1460] 화면 px 고정용 기준 */
   }else if(t==='INSERT'){
     if(depth>2)return 0;
     var nm=refStr(e,2,'');
