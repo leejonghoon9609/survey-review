@@ -1426,7 +1426,7 @@ function buildRisersFromCsv(){state.mhDel=null;/* [1353] */
       [a2[i],a2[best]].forEach(function(rp){state.points.push({no:rp.no,x:rp.x,y:rp.y,z:null,code:rp.code,_riserPt:true,_hideMark:!!state.tamsa});});
       
       var mx=(a2[i].x+a2[best].x)/2,my=(a2[i].y+a2[best].y)/2;
-      state.manholes=(state.manholes||[]).filter(function(m){return !(m.type==='riser'&&Math.hypot((m.wx||0)-mx,(m.wy||0)-my)<2);});
+      state.manholes=(state.manholes||[]).filter(function(m){return !(m.type==='riser'&&!m._fromCsv&&Math.hypot((m.wx||0)-mx,(m.wy||0)-my)<2);});/* [1470] 이번 생성분(_fromCsv) 보호 — 근접 EJ/IP 상호 삭제 버그 */
       var isEJ=/^EJ/i.test(code);
       state.manholes.push({id:mhIdSeq++,wx:mx,wy:my,label:isEJ?'한전주입상':('통신주입상'+((code==='IPJU'&&(a2[i].spec||a2[best].spec))?(' ('+(a2[i].spec||a2[best].spec)+')'):'')),lx:null,ly:null,type:'riser',_fromCsv:true,_ipPair:(code==='IPJU'?[[a2[i].x,a2[i].y],[a2[best].x,a2[best].y]]:null),surface:(a2[i].surface||a2[best].surface||''),pave:(a2[i].pave||a2[best].pave||'')});
       made++;
