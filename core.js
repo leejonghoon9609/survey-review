@@ -1149,7 +1149,7 @@ function mhLabelBase(mh, txtW){
   else if(mp){var dx=mh.wx-mp.x,dy=mh.wy-mp.y;defLx=(dx>=0)?mh.wx+3.0:mh.wx-3.0;defLy=(dy>=0)?mh.wy+3.6:mh.wy-2.4;}
   else {defLx=mh.wx+1.0;defLy=mh.wy+1.2;}
   // ★ 인출선 길이=줌 무관 고정 1.3m(world, txtW 보정 제거). 드래그한 라벨(mh.lx)은 어떤 보정·제한도 없이 그대로 — 끌고 간 자리 고정(BUILD514)
-  if(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))&&mh._ldrag){var _U9=((typeof pxToWorld==='function'&&pxToWorld())||0.06);if(mh._lpx==null&&mh.lx!=null){mh._lpx=(mh.lx-mh.wx)/_U9;mh._lpy=(mh.ly-mh.wy)/_U9;}if(mh._lpx!=null){mh.lx=mh.wx+mh._lpx*_U9;mh.ly=mh.wy+mh._lpy*_U9;return {lx:mh.lx,ly:mh.ly};}}/* [1462] dragged label px-fixed on zoom */
+  if(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))&&mh._ldrag&&mh.lx!=null){var _U9=((typeof pxToWorld==='function'&&pxToWorld())||0.06);var _vx9=mh.lx-mh.wx,_vy9=mh.ly-mh.wy,_dw9=Math.hypot(_vx9,_vy9);if(_dw9>1e-9){if(mh._lpm==null)mh._lpm=Math.min(240,Math.max(8,_dw9/_U9));var _ef9=Math.min(_dw9,mh._lpm*_U9);return {lx:mh.wx+_vx9/_dw9*_ef9, ly:mh.wy+_vy9/_dw9*_ef9};}}/* [1466] 드래그 라벨: 확대=px상한(안늘어남)·축소=월드잠금(도면과 함께) — lx 무변이 *//* [1462] dragged label px-fixed on zoom */
   if(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))&&!mh._ldrag){var _bx9=(mh.lx!=null?mh.lx:defLx),_by9=(mh.ly!=null?mh.ly:defLy);var _vx9=_bx9-mh.wx,_vy9=_by9-mh.wy,_vl9=Math.hypot(_vx9,_vy9)||1;var _t9=Math.max(((typeof pxToWorld==='function'&&pxToWorld())||0.06)*34,0.6);return {lx:mh.wx+_vx9/_vl9*_t9, ly:mh.wy+_vy9/_vl9*_t9};}/* [1453] 인출선 거리 px 고정(방향 보존) */
   return {lx:(mh.lx!=null?mh.lx:defLx), ly:(mh.ly!=null?mh.ly:defLy)};
 }
@@ -1378,7 +1378,7 @@ window.addEventListener('pointermove',function(ev){
     mh.wx=newWx;mh.wy=newWy;
     drawManholes();drawGeo();
   } else {
-    mh.lx=wx-mhDragState.gx; mh.ly=wy-mhDragState.gy; mh._edited=true; mh._ldrag=true;var _Ud=((typeof pxToWorld==='function'&&pxToWorld())||0.06);mh._lpx=(mh.lx-mh.wx)/_Ud;mh._lpy=(mh.ly-mh.wy)/_Ud;/* [1462] drag offset stored in px (zoom-fixed) *//* [1459] 사용자 이동 — 거리 고정 해제 */
+    mh.lx=wx-mhDragState.gx; mh.ly=wy-mhDragState.gy; mh._edited=true; mh._ldrag=true;var _Ud=((typeof pxToWorld==='function'&&pxToWorld())||0.06);mh._lpm=Math.min(240,Math.max(8,Math.hypot(mh.lx-mh.wx,mh.ly-mh.wy)/_Ud));mh._lpx=null;mh._lpy=null;/* [1462] drag offset stored in px (zoom-fixed) *//* [1459] 사용자 이동 — 거리 고정 해제 */
     drawManholes();
   }
 });
