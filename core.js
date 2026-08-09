@@ -5888,19 +5888,22 @@ function refreshProjects(){ if(!online)return;
   });
 }
 function saveProject(cb){ if(readOnly){if(typeof cb==='function')cb();return;} var _sil=!!window._silentSave;window._silentSave=false;/* [1358] 자동저장 플래그 진입 시 캐처 */
-  var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,rtDaily:state.rtDaily||[],trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:state.finalCsv||null,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,mnList:state.mnList||[],tangoDone:state.tangoDone||null,tgCarrier:state.tgCarrier||null,mhDel:state.mhDel||null,tgNotes:state.tgNotes||null,refMhLbl:state.refMhLbl||null};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
+  var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,rtDaily:state.rtDaily||[],trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:null/* [1491] heavy 컬럼으로 이동 */,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,mnList:state.mnList||[],tangoDone:state.tangoDone||null,tgCarrier:state.tgCarrier||null,mhDel:state.mhDel||null,tgNotes:state.tgNotes||null,refMhLbl:state.refMhLbl||null};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
   if(!state.projectName){toast('사업명을 먼저 정하세요(새 사업)');return;}
   payload.stage=STAGE;
   if(state.loadedStage&&state.loadedStage!==STAGE){state.projectId=null;} // 다운스트림 분리: 다른 단계 사업은 처음 저장 시 새 사본 생성(원본 보호)
   var row={name:state.projectName,payload:payload,updated_at:new Date().toISOString()};
   if(state.projectId)row.id=state.projectId;
+  var _hvSig='';try{_hvSig=(state.finalCsv||[]).map(function(f){return (f.name||'')+':'+((f.text||'').length);}).join('|');}catch(_h1){}
+  if(window._hvSaved!==((state.projectId||'NEW')+'#'+_hvSig)){row.heavy={finalCsv:state.finalCsv||[]};}/* [1491] CSV 변경시에만 heavy 기록 */
   /* [1227] ★삭제 부활 방지 — 절대 제거 금지: 다른 기기에서 삭제(delAt)된 사업은 저장으로 되살리지 않음 */
-  var _doUpsert=function(){ sb.from(DB+'_projects').upsert(row).select().then(function(res){
-    if(res.error){toast('저장 오류: '+res.error.message);return;}
+  var _doUpsert=function(){ var _up=function(_rt){ sb.from(DB+'_projects').upsert(row).select().then(function(res){
+    if(res.error){if(!_rt&&row.heavy!==undefined){delete row.heavy;row.payload.finalCsv=state.finalCsv||null;_up(true);return;}/* [1491] heavy 미설치 폴백 — 구방식 통짜저장 */toast('저장 오류: '+res.error.message);return;}
     var saved=res.data&&res.data[0];if(saved){state.projectId=saved.id;state.loadedStage=STAGE;}
+    if(row.heavy!==undefined){try{window._hvSaved=(state.projectId||'NEW')+'#'+_hvSig;}catch(_h2){}}
     if(!_sil)sb.from(DB+'_history').insert({project_id:state.projectId,payload:payload}); // 이력(수동만 [1358])
     if(!_sil){refreshProjects();loadPhotos();toast('저장 완료');}/* [1358] 자동저장은 목록·사진 재조회 생략 — Disk IO 절감 */if(state._importSrc&&state._importSrc.length&&state.projectId){var _srcs=state._importSrc.slice();state._importSrc=[];(function _nx(){if(!_srcs.length)return;var _sid=_srcs.shift();copyPhotos(_sid,state.projectId,_nx);})();}if(typeof cb==='function')cb(state.projectId);
-  }); };
+  }); }; _up(false); };
   if(state.projectId){
     sb.from(DB+"_projects").select("del:payload->>delAt").eq('id',state.projectId).single().then(function(chk){
       if(chk&&chk.data&&chk.data.del){
@@ -5932,7 +5935,8 @@ function pickProject(id){ if(!id)return;try{if(typeof IS_TANGO!=='undefined'&&IS
 function _loadProjectRaw(id,ro,cb){ if(!online||!id)return; try{if(typeof mnCloseAll==='function')mnCloseAll();}catch(e){} try{if(typeof refReset==='function')refReset();}catch(e){} setReadOnly(!!ro);state._tgCmpRemote=null;state._tgCmpRemoteOrig=null;
   sb.from(DB+'_projects').select('*').eq('id',id).single().then(function(res){
     if(res.error||!res.data){toast('불러오기 실패');return;}if(typeof _tgStageBackup==='function'&&state.tgStore&&(state._pointsOrig||state._linesOrig||state._depthOrig))_tgStageBackup();if(typeof _tgStageOut==='function')_tgStageOut();var _xp=document.getElementById('tangoPanel');if(_xp)_xp.style.display='none';var _xi=document.getElementById('tgInfoPanel');if(_xi)_xi.style.display='none';if(typeof tgPanelLayout==='function')tgPanelLayout(false);if(typeof tgUpdateBtn==='function')tgUpdateBtn(false);if(typeof tgSeg!=='undefined')tgSeg=-1;if(typeof _segFix!=='undefined')_segFix=null;if(typeof _segAdd!=='undefined')_segAdd=null;if(typeof _tgSegs!=='undefined')_tgSegs=null;if(typeof mode!=='undefined'&&mode&&mode.indexOf('tg')===0){mode='pan';if(typeof setModeUI==='function')setModeUI();}state.tgSegLabelOff={};['tgSegHLG','tgSegHLF','tgSegHL'].forEach(function(_xid){var _xe=document.getElementById(_xid);if(_xe)_xe.remove();});
-    var p=res.data.payload||{};state.projectId=res.data.id;state.projectName=res.data.name;state.loadedStage=p.stage||'survey';state._importSrc=[];
+    var p=res.data.payload||{};state.projectId=res.data.id;
+    try{var _hv=res.data.heavy;if(_hv&&_hv.finalCsv!==undefined){p.finalCsv=_hv.finalCsv;window._hvSaved=res.data.id+'#'+((_hv.finalCsv||[]).map(function(f){return (f.name||'')+':'+((f.text||'').length);}).join('|'));}else{window._hvSaved=null;}}catch(_h3){window._hvSaved=null;}/* [1491] heavy 병합 — 구사업은 다음 저장때 자동 이사 */state.projectName=res.data.name;state.loadedStage=p.stage||'survey';state._importSrc=[];
     state.points=p.points||[];state.gpsPts=p.gpsPts||[];state.tangoEdit=p.tangoEdit||null;if(p.tangoManual)state.tangoManual=p.tangoManual;state.tgStore=p.tgStore||null;if(!state.tgStore&&(p.tangoEdit||p.tangoManual)){state.tgStore={tango:{edit:p.tangoEdit,manual:p.tangoManual||{},segDel:{}}};}_tgCtx='tango';state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];state.bpzones=p.bpzones||[];state.roadZones=p.roadZones||[];state.depthCheck=p.depthCheck||[];if(typeof classifyRoad==='function')classifyRoad();state.depthGround=p.depthGround||null;state._depthAlign=null;state.titleBlock=p.titleBlock||null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.tangoDone=p.tangoDone||null;state.tgCarrier=p.tgCarrier||null;state.mhDel=p.mhDel||null;state.tgNotes=p.tgNotes||[];state.refMhLbl=p.refMhLbl||{};/* [1461] */state.asbuilt=p.asbuilt||null;state.rtDone=p.rtDone||null;state.rtDaily=p.rtDaily||[];state.mnList=p.mnList||[];state._trash=p.trash||[];if(typeof rtPurgeTrash==='function')setTimeout(rtPurgeTrash,800);state.nightShift=p.nightShift||null;state.fieldDone=p.fieldDone||null;state.tamsa=!!p.tamsa;state.finalCsv=p.finalCsv?(Array.isArray(p.finalCsv)?p.finalCsv:[p.finalCsv]):[];state.bizInfo=p.bizInfo||null;
     selNum=null;clearSvg(gSel);try{if(typeof tamsaFixTDepth==='function')tamsaFixTDepth();}catch(_tf){}try{if(state.finalCsv&&state.finalCsv.length&&typeof finalCsvDepthSync==='function')finalCsvDepthSync();if(state.depthGround&&state.depthGround.length&&typeof computeDepth==='function')computeDepth();}catch(e){}try{mergeAftMh();}catch(_me){}if(state.tamsa&&typeof buildTamsaMh==='function')try{buildTamsaMh();}catch(_te){}if(typeof IS_TANGO!=='undefined'&&IS_TANGO&&state.tangoEdit){if(!state.tangoEdit.lines)state.tangoEdit.lines=JSON.parse(JSON.stringify(state.lines||[]));if(!state.tangoEdit.points)state.tangoEdit.points=JSON.parse(JSON.stringify(state.points||[]));if(!state.tangoEdit.depthByNo)state.tangoEdit.depthByNo={};}drawGeo();drawMarks();drawManholes();try{fitView();}catch(_e0){}updMeta();loadPhotos();fitSoon();if(typeof tgLayerMount==='function')tgLayerMount();if(typeof refreshFieldBar==='function')refreshFieldBar();toast('현장 불러옴: '+res.data.name);try{if(typeof refCloudLoad==='function')refCloudLoad();}catch(_re){}
     var vs=document.getElementById('vproj');if(vs)vs.value=res.data.id;
@@ -6796,6 +6800,7 @@ function importFromStage(id,srcStage){
   sb.from(srcTbl).select('*').eq('id',id).single().then(function(res){
     if(res.error||!res.data){toast('가져오기 실패 — '+(res.error?res.error.message:'없음'));return;}
     var p=res.data.payload||{};
+    try{var _hv2=res.data.heavy;if(_hv2&&_hv2.finalCsv!==undefined)p.finalCsv=_hv2.finalCsv;}catch(_h4){}window._hvSaved=null;/* [1491] 가져오기 heavy 병합, 새 사업이므로 재기록 */
     var suffix=(STAGE==='tango'?'_T':(STAGE==='field'?'_B':(STAGE==='survey'?'_A':'')));
     var _base=baseName(res.data.name),_want=_base+suffix;
     var _run=function(newName){
@@ -13570,7 +13575,9 @@ function tgFinalTakeOpen(){ /* 최종성과 인수 — CSV/전사진=결선(_A) 
       Promise.all([
         R.sv?sb.from('survey_photos').select('point_no,url').eq('project_id',R.sv.id):Promise.resolve({data:[]}),
         R.fld?sb.from('field_photos').select('point_no,url').eq('project_id',R.fld.id):Promise.resolve({data:[]})
-      ]).then(function(ps){if(!pop.parentNode)return;R.svPh=(ps[0]&&ps[0].data)||[];R.fldPh=(ps[1]&&ps[1].data)||[];_tgTakeRender(pop,body,base,R);});
+      ]).then(function(ps){if(!pop.parentNode)return;R.svPh=(ps[0]&&ps[0].data)||[];R.fldPh=(ps[1]&&ps[1].data)||[];
+        var _hvQ=R.fld?sb.from('field_projects').select('heavy').eq('id',R.fld.id).single():Promise.resolve(null);/* [1491] heavy CSV 병합(컬럼 없으면 무시) */
+        Promise.resolve(_hvQ).then(function(hr){try{var _h=hr&&hr.data&&hr.data.heavy;if(_h&&_h.finalCsv!==undefined&&R.fld)R.fld.payload.finalCsv=_h.finalCsv;}catch(_h5){}_tgTakeRender(pop,body,base,R);},function(){_tgTakeRender(pop,body,base,R);});});
     });
   }
   _load();
