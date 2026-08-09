@@ -598,7 +598,7 @@ function mkLabel(svgX,svgY,text,opt){
   var anchor=opt.anchor||'start';
   d._anchor=anchor;
   d.style.cssText='position:absolute;'
-    +'font-size:'+((function(){var _p9=(opt.px||13);if(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))&&_p9<12)_p9=12;var _sf9=1;if(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))){var _u9=((typeof pxToWorld==='function'&&pxToWorld())||0.06);if(_u9>0.12)_sf9=0.12/_u9;}/* [1476] */return _p9*_sf9*((viewerMode&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD))?0.7:1);})())+'px;color:'/* [1453] 폰트 하한 12px *//* [1451] field 텍스트 0.7 축소 해제 */+(opt.fill||'#333')+';'
+    +'font-size:'+(function(){var _p9=(opt.px||13);if((((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)))&&_p9<12)_p9=12;_p9=_p9*((viewerMode&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD))?0.7:1);d._bpx=_p9;var _sf9=1;if((((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)))){var _u9=((typeof pxToWorld==='function'&&pxToWorld())||0.06);if(_u9>0.12)_sf9=0.12/_u9;}/* [1477] */return _p9*_sf9;})()+'px;color:'/* [1453] 폰트 하한 12px *//* [1451] field 텍스트 0.7 축소 해제 */+(opt.fill||'#333')+';'
     +'font-weight:'+(opt.weight||'400')+';white-space:nowrap;pointer-events:none;'+'text-shadow:-1.2px -1.2px 0 #fff,1.2px -1.2px 0 #fff,-1.2px 1.2px 0 #fff,1.2px 1.2px 0 #fff,0 0 2px #fff,0 0 3px #fff;'
     +'transform:translate('+(anchor==='end'?'-100%':(anchor==='middle'?'-50%':'0'))+',-50%)'+(opt.rot?(' rotate('+opt.rot+'deg)'):'')+';line-height:1;';
   placeLabelDiv(d);
@@ -630,7 +630,7 @@ function repositionLabels(){
     xs[i]=sx; ys[i]=sy;
     if(!d._sym && sx>=0&&sx<=W&&sy>=0&&sy<=H) inTxt++;
   }
-  var lod=inTxt>LBL_LOD_MAX;
+  var lod=inTxt>LBL_LOD_MAX;var _sfL=1;if((((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)))){var _uL=vb.w/Math.max(W,1);if(_uL>0.12)_sfL=0.12/_uL;}/* [1477] 줌 중 글자 스무드 축소 */
   for(var k=0;k<n;k++){var e=ns[k];
     if(xs[k]==null)continue;
     var off=(xs[k]<-px||xs[k]>W+px||ys[k]<-py||ys[k]>H+py);
@@ -638,6 +638,7 @@ function repositionLabels(){
     if(e.style.visibility)e.style.visibility='';
     e.style.left=xs[k]+'px';
     e.style.top =ys[k]+'px';
+    if(e._bpx!=null){var _fs9=e._bpx*_sfL;if(e._lfs!==_fs9){e._lfs=_fs9;e.style.fontSize=_fs9+'px';}}
   }
 }
 // ★ 심벌(측점 사각·맨홀 이중원)을 라벨과 동일한 화면픽셀 오버레이로 그림
@@ -1149,7 +1150,7 @@ function mhLabelBase(mh, txtW){
   else if(mp){var dx=mh.wx-mp.x,dy=mh.wy-mp.y;defLx=(dx>=0)?mh.wx+3.0:mh.wx-3.0;defLy=(dy>=0)?mh.wy+3.6:mh.wy-2.4;}
   else {defLx=mh.wx+1.0;defLy=mh.wy+1.2;}
   // ★ 인출선 길이=줌 무관 고정 1.3m(world, txtW 보정 제거). 드래그한 라벨(mh.lx)은 어떤 보정·제한도 없이 그대로 — 끌고 간 자리 고정(BUILD514)
-  if(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))&&mh._ldrag&&mh.lx!=null){var _U9=((typeof pxToWorld==='function'&&pxToWorld())||0.06);var _vx9=mh.lx-mh.wx,_vy9=mh.ly-mh.wy,_dw9=Math.hypot(_vx9,_vy9);if(_dw9>1e-9){if(mh._lpm==null)mh._lpm=Math.min(400,Math.max(10,_dw9/_U9));var _t9d=mh._lpm*Math.min(_U9,0.12);return {lx:mh.wx+_vx9/_dw9*_t9d, ly:mh.wy+_vy9/_dw9*_t9d};}}/* [1475] 드래그 길이 자유 + 화면px 완전고정(줌무관) *//* [1462] dragged label px-fixed on zoom */
+  if(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))&&mh._ldrag&&mh.lx!=null){var _U9=((typeof pxToWorld==='function'&&pxToWorld())||0.06);var _vx9=mh.lx-mh.wx,_vy9=mh.ly-mh.wy,_dw9=Math.hypot(_vx9,_vy9);if(_dw9>1e-9){if(mh._lpm==null)mh._lpm=Math.min(400,Math.max(2,_dw9/_U9));var _t9d=Math.min(_dw9,mh._lpm*_U9);return {lx:mh.wx+_vx9/_dw9*_t9d, ly:mh.wy+_vy9/_dw9*_t9d};}}/* [1475] 드래그 길이 자유 + 화면px 완전고정(줌무관) *//* [1462] dragged label px-fixed on zoom */
   if(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))&&!mh._ldrag){var _bx9=(mh.lx!=null?mh.lx:defLx),_by9=(mh.ly!=null?mh.ly:defLy);var _vx9=_bx9-mh.wx,_vy9=_by9-mh.wy,_vl9=Math.hypot(_vx9,_vy9)||1;var _u0=((typeof pxToWorld==='function'&&pxToWorld())||0.06);var _t9=Math.max(Math.min(_u0,0.12)*34,0.6);return {lx:mh.wx+_vx9/_vl9*_t9, ly:mh.wy+_vy9/_vl9*_t9};}/* [1453] 인출선 거리 px 고정(방향 보존) */
   return {lx:(mh.lx!=null?mh.lx:defLx), ly:(mh.ly!=null?mh.ly:defLy)};
 }
@@ -1378,7 +1379,7 @@ window.addEventListener('pointermove',function(ev){
     mh.wx=newWx;mh.wy=newWy;
     drawManholes();drawGeo();
   } else {
-    mh.lx=wx-mhDragState.gx; mh.ly=wy-mhDragState.gy; mh._edited=true; mh._ldrag=true;var _Ud=((typeof pxToWorld==='function'&&pxToWorld())||0.06);mh._lpm=Math.min(400,Math.max(10,Math.hypot(mh.lx-mh.wx,mh.ly-mh.wy)/_Ud));mh._lpx=null;mh._lpy=null;/* [1462] drag offset stored in px (zoom-fixed) *//* [1459] 사용자 이동 — 거리 고정 해제 */
+    mh.lx=wx-mhDragState.gx; mh.ly=wy-mhDragState.gy; mh._edited=true; mh._ldrag=true;var _Ud=((typeof pxToWorld==='function'&&pxToWorld())||0.06);mh._lpm=Math.min(400,Math.max(2,Math.hypot(mh.lx-mh.wx,mh.ly-mh.wy)/_Ud));mh._lpx=null;mh._lpy=null;/* [1462] drag offset stored in px (zoom-fixed) *//* [1459] 사용자 이동 — 거리 고정 해제 */
     drawManholes();
   }
 });
