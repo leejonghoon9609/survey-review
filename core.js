@@ -1431,6 +1431,7 @@ function buildRisersFromCsv(){state.mhDel=null;/* [1353] */
       state.manholes.push({id:mhIdSeq++,wx:mx,wy:my,label:isEJ?'한전주입상':('통신주입상'+((code==='IPJU'&&(a2[i].spec||a2[best].spec))?(' ('+(a2[i].spec||a2[best].spec)+')'):'')),lx:null,ly:null,type:'riser',_fromCsv:true,_ipPair:(code==='IPJU'?[[a2[i].x,a2[i].y],[a2[best].x,a2[best].y]]:null),surface:(a2[i].surface||a2[best].surface||''),pave:(a2[i].pave||a2[best].pave||'')});
       made++;
     }
+    if(code==='IPJU')for(var q=0;q<a2.length;q++){if(used[q])continue;var rp2=a2[q];state.points.push({no:rp2.no,x:rp2.x,y:rp2.y,z:null,code:rp2.code,_riserPt:true,_hideMark:!!state.tamsa});state.manholes.push({id:mhIdSeq++,wx:rp2.x,wy:rp2.y,label:'통신주입상'+(rp2.spec?(' ('+rp2.spec+')'):''),lx:null,ly:null,type:'riser',_fromCsv:true,surface:rp2.surface||'',pave:rp2.pave||''});made++;}/* [1469] 짝 없는 입상 단독 유지 */
   }
   return made;
 }
