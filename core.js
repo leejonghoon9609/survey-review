@@ -471,7 +471,7 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
     if(ld){ld.setAttribute('x2',lx);ld.setAttribute('y2',ly);}
     handle.setAttribute('x',anchor==='start'?(lx-3*Uh):(lx-tw+3*Uh));handle.setAttribute('y',ly-hh*0.5);});
   function up(ev){if(!dragging)return;dragging=false;setTimeout(function(){labelDragging=false;},40);
-    if(moved)state.labelOff[p.no]=[lx,-ly];
+    if(moved){state.labelOff[p.no]=[lx,-ly];if(typeof _dirtySave==='function')_dirtySave();}
     else{var now=Date.now();if(now-(p._lastClick||0)<350){p._lastClick=0;openPtEdit(p,ls);}else{p._lastClick=now;}}
     try{handle.releasePointerCapture(ev.pointerId);}catch(e){}
     drawGeo();highlightSel();}
@@ -1366,6 +1366,7 @@ function drawManholes(){
   });
 }
 var mhDragState=null; // {type:'center'|'label', mh, gx, gy}
+var _dsvT=null,_dsvLast=0;function _dirtySave(){if(typeof online!=='undefined'&&!online)return;if(_dsvT)clearTimeout(_dsvT);var _gap=Date.now()-_dsvLast,_wait=Math.max(8000,60000-_gap);_dsvT=setTimeout(function(){_dsvT=null;_dsvLast=Date.now();try{window._silentSave=true;if(typeof saveProject==='function')saveProject();}catch(_e){}},_wait);}/* [1486] 자동저장 스로틀: 8초 디바운스 + 최소 60초 간격 — payload 통짜저장 IO 보호 *//* [1485] 드래그 후 자동저장(디바운스) */
 var _mhLp=null,_mhLpX=0,_mhLpY=0;
 window.addEventListener('pointermove',function(ev){
   if(_mhLp&&(Math.abs(ev.clientX-_mhLpX)+Math.abs(ev.clientY-_mhLpY)>8)){clearTimeout(_mhLp);_mhLp=null;}if(!mhDragState)return;ev.preventDefault();
@@ -1386,7 +1387,7 @@ window.addEventListener('pointermove',function(ev){
   }
 });
 window.addEventListener('pointerup',function(ev){
-  if(_mhLp){clearTimeout(_mhLp);_mhLp=null;}if(!mhDragState)return;mhDragState=null;drawManholes();drawGeo();
+  if(_mhLp){clearTimeout(_mhLp);_mhLp=null;}if(!mhDragState)return;mhDragState=null;drawManholes();drawGeo();_dirtySave();
 });
 var mhIdSeq=1;
 function placeManholeAt(wx,wy,type){
