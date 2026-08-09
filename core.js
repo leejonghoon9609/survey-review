@@ -459,7 +459,7 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
   handle.style.cursor='move';
   var lx=ls[0],ly=ls[1],dragging=false,moved=false,gx=0,gy=0;
   handle.addEventListener('pointerdown',function(ev){
-    if(mode!=='pan'||viewerMode||readOnly)return;ev.stopPropagation();ev.preventDefault();
+    if(mode!=='pan'||(viewerMode&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD))||readOnly)return;ev.stopPropagation();ev.preventDefault();/* [1479] field 라벨 이동 허용 */
     if(p.no!==selNum){selNum=p.no;highlightSel();if(photoPanelOpen)refreshPhotoPanel();try{if(typeof joseoSyncFromMap==='function')joseoSyncFromMap();}catch(_se){}}   /* [1094] */
     dragging=true;moved=false;labelDragging=true;var w=toWorld(ev.clientX,ev.clientY);gx=w[0]-lx;gy=w[1]-ly;
     try{handle.setPointerCapture(ev.pointerId);}catch(e){}});
