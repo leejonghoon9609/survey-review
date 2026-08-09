@@ -414,7 +414,7 @@ function computeLabels(){
     return sc;}
   for(var k=0;k<n;k++){var p=pts[k];
     var o=state.labelOff&&(state.labelOff[p.no]||state.labelOff[ptNum(p)]);
-    if(o){lay[k]={lx:o[0],ly:o[1],anchor:(o[0]<p.x?'end':'start'),leader:true};placed.push([o[0],o[1],p.x,p.y]);continue;}
+    if(o){var _olx=o[0],_oly=o[1];if(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))){var _ox=o[0]-p.x,_oy=o[1]-p.y,_od=Math.hypot(_ox,_oy);if(_od>1e-9){var _oc=Math.min(_od,((typeof pxToWorld==='function'&&pxToWorld())||0.06)*40);_olx=p.x+_ox/_od*_oc;_oly=p.y+_oy/_od*_oc;}}/* [1474] 드래그 측점라벨 40px 상한(방향보존) */lay[k]={lx:_olx,ly:_oly,anchor:(_olx<p.x?'end':'start'),leader:true};placed.push([_olx,_oly,p.x,p.y]);continue;}
     var pref=(k%2===0)?1:-1;var bestPos=null,bestSc=Infinity;var dists=[Math.min(L*0.225,0.5),Math.min(L*0.4,0.9),Math.min(L*0.65,1.4)];
     var pv=pipeDirAt(p);
     if(pv){var pl=Math.hypot(pv[0],pv[1])||1;var nx0=-pv[1]/pl,ny0=pv[0]/pl;if(ny0<0){nx0=-nx0;ny0=-ny0;}
