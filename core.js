@@ -639,6 +639,7 @@ function repositionLabels(){
     e.style.left=xs[k]+'px';
     e.style.top =ys[k]+'px';
     if(e._bpx!=null){var _fs9=e._bpx*_sfL;if(e._lfs!==_fs9){e._lfs=_fs9;e.style.fontSize=_fs9+'px';}}
+    else if(e._sym){var _tf9='translate(-50%,-50%) scale('+_sfL+')';if(e._ltf!==_tf9){e._ltf=_tf9;e.style.transform=_tf9;}}/* [1478] 측점 심벌도 기준축첩 연동 */
   }
 }
 // ★ 심벌(측점 사각·맨홀 이중원)을 라벨과 동일한 화면픽셀 오버레이로 그림
