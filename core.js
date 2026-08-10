@@ -6917,7 +6917,80 @@ function uploadAfterPhotos(files){/* [1509] 후측량(_A) 사진 일괄 업로�
     }).catch(function(err){console.error('aft upload',no,err);}).then(function(){done++;fin();});
   });
 }
-(function(){var b=document.getElementById('aftPhotoUp');if(!b)return;var inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=true;inp.style.display='none';document.body.appendChild(inp);var mod=null;function _close(){if(mod){mod.remove();mod=null;}}inp.onchange=function(){if(inp.files&&inp.files.length){uploadAfterPhotos(inp.files);_close();}};b.onclick=function(){if(mod){_close();return;}mod=document.createElement('div');mod.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:10050;display:flex;align-items:center;justify-content:center';var box=document.createElement('div');box.style.cssText='background:#fff;border-radius:12px;width:520px;max-width:92vw;padding:18px;box-shadow:0 8px 30px rgba(0,0,0,0.25)';box.innerHTML='<div style="display:flex;align-items:center;margin-bottom:12px"><b style="font-size:16px">📷 후측량 사진 업로드</b><button id="aftUpX" style="margin-left:auto;border:1px solid #ddd;background:#fff;border-radius:7px;padding:4px 12px;cursor:pointer;font-weight:700">닫기</button></div>'+'<div id="aftDrop" style="border:2.5px dashed #1565c0;border-radius:12px;background:#f4f8ff;height:190px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:#1565c0;font-weight:700;font-size:14px;text-align:center">여기에 사진을 끌어다 놓으세요<br><span style="font-weight:400;font-size:12px;color:#5b7bb0">파일명=점번호로 자동 배정 (예: 251103-14.jpg)</span></div>'+'<div style="display:flex;justify-content:center;margin-top:12px"><button id="aftUpPick" style="border:1.5px solid #1565c0;color:#1565c0;background:#fff;border-radius:8px;padding:8px 18px;font-weight:800;cursor:pointer">📁 직접 찾아서 업로드</button></div>';mod.appendChild(box);document.body.appendChild(mod);mod.addEventListener('pointerdown',function(e){if(e.target===mod)_close();});box.querySelector('#aftUpX').onclick=_close;box.querySelector('#aftUpPick').onclick=function(){inp.value='';inp.click();};var dz=box.querySelector('#aftDrop');['dragenter','dragover'].forEach(function(ev){dz.addEventListener(ev,function(e){e.preventDefault();e.stopPropagation();dz.style.background='#e3edff';});});['dragleave','drop'].forEach(function(ev){dz.addEventListener(ev,function(e){e.preventDefault();e.stopPropagation();dz.style.background='#f4f8ff';});});dz.addEventListener('drop',function(e){var fs=(e.dataTransfer&&e.dataTransfer.files)?e.dataTransfer.files:null;if(fs&&fs.length){uploadAfterPhotos(fs);_close();}});};})();/* [1510] 드래그앤드롭 창 + 직접 찾기 */
+(function(){var b=document.getElementById('aftPhotoUp');if(!b)return;/* [1525] \ud655\uc778\u00b7\ucde8\uc18c \ud750\ub984: \ud30c\uc77c \uc120\ud0dd\u2192\ubaa9\ub85d \ud45c\uc2dc\u2192\ud655\uc778 \uc2dc \uc5c5\ub85c\ub4dc, \uacb0\uacfc \ud589\ubcc4 \ud45c\uc2dc */
+var inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=true;inp.style.display='none';document.body.appendChild(inp);
+var mod=null,pend=[],busy=false,fin=false;
+function _close(){if(mod){mod.remove();mod=null;}pend=[];busy=false;fin=false;}
+function _assign(f){var base=(f.name||'').replace(/\.[^.]+$/,'').trim();var no=null;
+ if(base&&typeof pointByNo==='function'&&pointByNo(base))no=base;
+ else{var r=(typeof resolvePhotoNo==='function')?resolvePhotoNo(f):null;if(r&&r.no&&(r.matched||(typeof pointByNo==='function'&&pointByNo(r.no))))no=r.no;}
+ return no;}
+function _btns(){if(!mod)return;var ok=mod.querySelector('#aftOk'),ca=mod.querySelector('#aftCancel');if(!ok)return;
+ var mN=pend.filter(function(x){return x.no;}).length;
+ if(busy){ok.disabled=true;ok.style.opacity='0.55';ok.textContent='\uc5c5\ub85c\ub4dc \uc911\u2026';if(ca){ca.disabled=true;ca.style.opacity='0.55';}return;}
+ if(fin){ok.textContent='\ub2eb\uae30';ok.disabled=false;ok.style.opacity='1';if(ca)ca.style.display='none';return;}
+ if(ca){ca.disabled=false;ca.style.opacity='1';}
+ ok.textContent='\ud655\uc778 \u2014 '+mN+'\uc7a5 \uc5c5\ub85c\ub4dc';ok.disabled=!mN;ok.style.opacity=mN?'1':'0.5';}
+function _rows(){if(!mod)return;var host=mod.querySelector('#aftList');if(!host)return;
+ if(!pend.length){host.style.display='none';host.innerHTML='';_btns();return;}
+ var h='';pend.forEach(function(it){
+  var st;
+  if(it.st==='up')st='<span style="color:#1565c0;font-weight:700;white-space:nowrap">\u2191 \uc5c5\ub85c\ub4dc\u2026</span>';
+  else if(it.st==='ok')st='<span style="color:#1e7e34;font-weight:800;white-space:nowrap">\u2713 \uc644\ub8cc</span>';
+  else if(it.st==='err')st='<span style="color:#c0392b;font-weight:800;white-space:nowrap">\u2717 \uc2e4\ud328'+(it.msg?(' <span style="font-weight:400;font-size:11px">'+it.msg+'</span>'):'')+'</span>';
+  else st=it.no?('<span style="color:#1e7e34;font-weight:700;white-space:nowrap">\u2192 '+it.no+'_A</span>'):'<span style="color:#c0392b;font-weight:700;white-space:nowrap">\ubbf8\ub9e4\uce6d</span>';
+  h+='<div style="display:flex;gap:10px;align-items:center;padding:5px 8px;border-bottom:1px solid #eef1f6;font-size:12.5px"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+it.name+'</span>'+st+'</div>';});
+ var mN=pend.filter(function(x){return x.no;}).length,uN=pend.length-mN;
+ h+='<div style="padding:7px 8px;font-size:12px;color:#444;font-weight:700;background:#f7f9fc">\ucd1d '+pend.length+'\uc7a5 \u2014 \ub9e4\uce6d '+mN+' \u00b7 \ubbf8\ub9e4\uce6d '+uN+(uN?' (\ubbf8\ub9e4\uce6d\uc740 \uc81c\uc678\ub429\ub2c8\ub2e4)':'')+'</div>';
+ host.innerHTML=h;host.style.display='block';_btns();}
+function _add(fs){if(busy||fin)return;var have={};pend.forEach(function(x){have[x.name]=1;});
+ [].slice.call(fs||[]).forEach(function(f){if(!f||have[f.name])return;have[f.name]=1;pend.push({f:f,name:f.name,no:_assign(f),st:null,msg:''});});
+ _rows();}
+function _go(){
+ if(fin){_close();return;}
+ if(busy)return;
+ var tgt=pend.filter(function(x){return x.no;});if(!tgt.length)return;
+ if(!online){toast('\uc624\ud504\ub77c\uc778 \u2014 \uc5c5\ub85c\ub4dc \ubd88\uac00');return;}
+ if(!state.projectId){toast('\uc0ac\uc5c5\uc744 \uba3c\uc800 \uc120\ud0dd\ud558\uc138\uc694');return;}
+ busy=true;tgt.forEach(function(x){x.st='up';});_rows();
+ var done=0,ok=0;
+ tgt.forEach(function(x){
+  compressImage(x.f,1600,0.8).then(function(blob){
+   var path=state.projectId+'/'+safeName(x.no)+'_A.jpg';
+   return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
+    if(up.error)throw up.error;
+    var url=sb.storage.from('photos').getPublicUrl(path).data.publicUrl+'?t='+Date.now();
+    return sb.from(DB+'_photos')['delete']().eq('project_id',state.projectId).eq('point_no',x.no+'_A').then(function(){
+     return sb.from(DB+'_photos').insert({project_id:state.projectId,point_no:x.no+'_A',url:url}).then(function(ins){if(ins.error)throw ins.error;afterMap[x.no]=url;x.st='ok';ok++;});});});
+  }).catch(function(err){x.st='err';x.msg=(err&&(err.message||err.error_description))||'\uc624\ub958';try{console.error('aft upload',x.no,err);}catch(_c){}})
+  .then(function(){done++;_rows();
+   if(done>=tgt.length){busy=false;fin=true;_btns();
+    toast('\ud6c4\uce21\ub7c9 \uc0ac\uc9c4 '+ok+'/'+tgt.length+'\uc7a5 \uc644\ub8cc');
+    try{if(typeof loadPhotos==='function')loadPhotos();}catch(_l){}
+    if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();
+    if(typeof drawGeo==='function')drawGeo();}});});}
+inp.onchange=function(){if(inp.files&&inp.files.length)_add(inp.files);};
+b.onclick=function(){if(mod){_close();return;}
+ pend=[];busy=false;fin=false;
+ mod=document.createElement('div');mod.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:10050;display:flex;align-items:center;justify-content:center';
+ var box=document.createElement('div');box.style.cssText='background:#fff;border-radius:12px;width:580px;max-width:92vw;max-height:88vh;overflow:auto;padding:18px;box-shadow:0 8px 30px rgba(0,0,0,0.25);display:flex;flex-direction:column';
+ box.innerHTML='<div style="display:flex;align-items:center;margin-bottom:12px"><b style="font-size:16px">\ud83d\udcf7 \ud6c4\uce21\ub7c9 \uc0ac\uc9c4 \uc5c5\ub85c\ub4dc</b><button id="aftUpX" style="margin-left:auto;border:1px solid #ddd;background:#fff;border-radius:7px;padding:4px 12px;cursor:pointer;font-weight:700">\ub2eb\uae30</button></div>'
+ +'<div id="aftDrop" style="border:2.5px dashed #1565c0;border-radius:12px;background:#f4f8ff;min-height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#1565c0;font-weight:700;font-size:14px;text-align:center;padding:12px">\uc5ec\uae30\uc5d0 \uc0ac\uc9c4\uc744 \ub04c\uc5b4\ub2e4 \ub193\uc73c\uc138\uc694<br><span style="font-weight:400;font-size:12px;color:#5b7bb0">\ud30c\uc77c\uba85=\uc810\ubc88\ud638\ub85c \uc790\ub3d9 \ubc30\uc815 (\uc608: 251103-14.jpg) \u00b7 \uc5ec\ub7ec \ubc88 \ucd94\uac00 \uac00\ub2a5</span></div>'
+ +'<div style="display:flex;justify-content:center;margin-top:10px"><button id="aftUpPick" style="border:1.5px solid #1565c0;color:#1565c0;background:#fff;border-radius:8px;padding:7px 16px;font-weight:800;cursor:pointer">\ud83d\udcc1 \uc9c1\uc811 \ucc3e\uc544\uc11c \ucd94\uac00</button></div>'
+ +'<div id="aftList" style="display:none;margin-top:12px;border:1px solid #e3e8f0;border-radius:9px;max-height:230px;overflow:auto"></div>'
+ +'<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px"><button id="aftCancel" style="border:1px solid #c0392b;color:#c0392b;background:#fff;border-radius:8px;padding:9px 20px;font-weight:800;cursor:pointer">\ucde8\uc18c</button><button id="aftOk" disabled style="border:1px solid #1e7e34;color:#fff;background:#1e7e34;border-radius:8px;padding:9px 20px;font-weight:800;cursor:pointer;opacity:0.5">\ud655\uc778</button></div>';
+ mod.appendChild(box);document.body.appendChild(mod);
+ mod.addEventListener('pointerdown',function(e){if(e.target===mod&&!busy)_close();});
+ box.querySelector('#aftUpX').onclick=function(){if(!busy)_close();};
+ box.querySelector('#aftCancel').onclick=function(){if(!busy)_close();};
+ box.querySelector('#aftOk').onclick=_go;
+ box.querySelector('#aftUpPick').onclick=function(){if(busy||fin)return;inp.value='';inp.click();};
+ var dz=box.querySelector('#aftDrop');
+ ['dragenter','dragover'].forEach(function(ev){dz.addEventListener(ev,function(e){e.preventDefault();e.stopPropagation();dz.style.background='#e3edff';});});
+ ['dragleave','drop'].forEach(function(ev){dz.addEventListener(ev,function(e){e.preventDefault();e.stopPropagation();dz.style.background='#f4f8ff';});});
+ dz.addEventListener('drop',function(e){var fs=(e.dataTransfer&&e.dataTransfer.files)?e.dataTransfer.files:null;if(fs&&fs.length)_add(fs);});
+ _btns();};
+})();/* [1525] \ud6c4\uce21\ub7c9\uc0ac\uc9c4 \uc5c5\ub85c\ub4dc \ud655\uc778 \ud750\ub984 */
 bind('dirToggle',function(){showDirArrows=!showDirArrows;var b=document.getElementById('dirToggle');b.classList.toggle('on',showDirArrows);b.textContent='🧭 방향 '+(showDirArrows?'ON':'OFF');drawGeo();});
 
 /* ===== 작업/뷰어 모드 + 특이사항 ===== */
