@@ -12640,7 +12640,7 @@ function refOwKey(ow){
 }
 function refNormLab(s){
   s=String(s==null?'':s).replace(/\s+/g,'');
-  var m=s.match(/(\d+[A-Za-z]*)\(([^)]*)\)/);
+  var m=s.match(/(\d+(?:-\d+)*[A-Za-z]*)\(([^)]*)\)/);/* [1549] 1-1\u00b72-1 \ub300\uc2dc \ubc88\ud638 */
   if(m)return m[1].toUpperCase()+'|'+refOwKey(m[2]);
   return s.toUpperCase();
 }
@@ -13249,7 +13249,7 @@ var REF_TERR='_\uc9c0\ud615';   /* [BUILD 1048] \uacb0\uc120 DXF \uc548\uc758 \u
 /* 결선 시설물번호 → 야장 필드. 소유자는 DXF 원문 그대로 유지해야
    결선·야장·사진폴더 세 곳의 키가 어긋나지 않는다(DL 등은 직접입력으로) */
 function refMhParse(lab){
-  var m=String(lab||'').replace(/\s+/g,'').match(/^(\d+[A-Za-z]*)\(([^)]*)\)$/);
+  var m=String(lab||'').replace(/\s+/g,'').match(/^([^()]*\d[\d\-]*[A-Za-z]*)\(([^)]*)\)$/);/* [1549] \uc774\ub984\u00b7\ub300\uc2dc \ud5c8\uc6a9 */
   if(!m)return null;
   var ow=m[2];
   return (REF_OWNERS.indexOf(ow)>=0)?{no:m[1],owner:ow,ownerC:''}:{no:m[1],owner:'_c',ownerC:ow};
