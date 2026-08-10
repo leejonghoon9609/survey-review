@@ -6904,12 +6904,11 @@ function uploadAfterPhotos(files){/* [1509] 후측량(_A) 사진 일괄 업로�
   });
 }
 (function(){var b=document.getElementById('aftPhotoUp');if(!b)return;/* [1525] \ud655\uc778\u00b7\ucde8\uc18c \ud750\ub984: \ud30c\uc77c \uc120\ud0dd\u2192\ubaa9\ub85d \ud45c\uc2dc\u2192\ud655\uc778 \uc2dc \uc5c5\ub85c\ub4dc, \uacb0\uacfc \ud589\ubcc4 \ud45c\uc2dc */
-var inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=true;inp.style.display='none';document.body.appendChild(inp);
-var dinp=document.createElement('input');dinp.type='file';dinp.multiple=true;dinp.style.display='none';try{dinp.webkitdirectory=true;dinp.setAttribute('webkitdirectory','');}catch(_wd){}document.body.appendChild(dinp);/* [1528] \ud3f4\ub354 \uc120\ud0dd(\ub0a0\uc9dc\ud3f4\ub354/\ubc88\ud638) */
+var inp=document.createElement('input');inp.type='file';inp.accept='image/*,.zip';inp.multiple=true;inp.style.display='none';document.body.appendChild(inp);/* [1529] ZIP \ud5c8\uc6a9 */
 var _IMG_RE=/\.(jpe?g|png|webp|gif|bmp|heic|heif)$/i;
 function _walk(entry,path,out,done){/* [1528] \ub4dc\ub86d \ud3f4\ub354 \uc7ac\uadc0 \uc21c\ud68c \u2014 _relpath\ub85c \ub0a0\uc9dc\ud3f4\ub354 \uc804\ub2ec */
  try{
- if(entry.isFile){entry.file(function(f){try{if(_IMG_RE.test(f.name)){try{f._relpath=path+f.name;}catch(_r){}out.push(f);}}catch(_f){}done();},function(){done();});}
+ if(entry.isFile){entry.file(function(f){try{if(_IMG_RE.test(f.name)||/\.zip$/i.test(f.name||'')){try{f._relpath=path+f.name;}catch(_r){}out.push(f);}}catch(_f){}done();},function(){done();});}/* [1529] ZIP \ud3ec\ud568 */
  else if(entry.isDirectory){var rd=entry.createReader();var all=[];(function _rd(){rd.readEntries(function(es){
    if(!es||!es.length){var n=all.length;if(!n){done();return;}var c=0;all.forEach(function(en){_walk(en,path+entry.name+'/',out,function(){c++;if(c>=n)done();});});}
    else{all=all.concat([].slice.call(es));_rd();}
@@ -6940,9 +6939,11 @@ function _rows(){if(!mod)return;var host=mod.querySelector('#aftList');if(!host)
  var mN=pend.filter(function(x){return x.no;}).length,uN=pend.length-mN;
  h+='<div style="padding:7px 8px;font-size:12px;color:#444;font-weight:700;background:#f7f9fc">\ucd1d '+pend.length+'\uc7a5 \u2014 \ub9e4\uce6d '+mN+' \u00b7 \ubbf8\ub9e4\uce6d '+uN+(uN?' (\ubbf8\ub9e4\uce6d\uc740 \uc81c\uc678\ub429\ub2c8\ub2e4)':'')+'</div>';
  host.innerHTML=h;host.style.display='block';_btns();}
-function _add(fs){if(busy||fin)return;var have={};pend.forEach(function(x){have[x.name]=1;});
- [].slice.call(fs||[]).forEach(function(f){if(!f||have[f.name])return;have[f.name]=1;pend.push({f:f,name:f.name,no:_assign(f),st:null,msg:''});});
- _rows();}
+function _add(fs){if(busy||fin)return;var _lst=[].slice.call(fs||[]);if(!_lst.length)return;
+ var _pz=(typeof expandPhotoFiles==='function')?expandPhotoFiles(_lst):Promise.resolve(_lst);/* [1529] ZIP \uc790\ub3d9 \ud574\uc81c(\ub0a0\uc9dc\ud3f4\ub354 \uacbd\ub85c \uc720\uc9c0) */
+ _pz.then(function(files){if(busy||fin||!mod)return;var have={};pend.forEach(function(x){have[x.name]=1;});
+  (files||[]).forEach(function(f){if(!f||!_IMG_RE.test(f.name||'')||have[f.name])return;have[f.name]=1;pend.push({f:f,name:f.name,no:_assign(f),st:null,msg:''});});
+  _rows();});}
 function _go(){
  if(fin){_close();return;}
  if(busy)return;
@@ -6967,14 +6968,13 @@ function _go(){
     if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();
     if(typeof drawGeo==='function')drawGeo();}});});}
 inp.onchange=function(){if(inp.files&&inp.files.length)_add(inp.files);};
-dinp.onchange=function(){if(dinp.files&&dinp.files.length){var arr=[].slice.call(dinp.files).filter(function(f){return _IMG_RE.test(f.name||'');});if(arr.length)_add(arr);else toast('\ud3f4\ub354\uc5d0 \uc774\ubbf8\uc9c0 \uc5c6\uc74c');}};/* [1528] */
 b.onclick=function(){if(mod){_close();return;}
  pend=[];busy=false;fin=false;
  mod=document.createElement('div');mod.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:10050;display:flex;align-items:center;justify-content:center';
  var box=document.createElement('div');box.style.cssText='background:#fff;border-radius:12px;width:580px;max-width:92vw;max-height:88vh;overflow:auto;padding:18px;box-shadow:0 8px 30px rgba(0,0,0,0.25);display:flex;flex-direction:column';
  box.innerHTML='<div style="display:flex;align-items:center;margin-bottom:12px"><b style="font-size:16px">\ud83d\udcf7 \ud6c4\uce21\ub7c9 \uc0ac\uc9c4 \uc5c5\ub85c\ub4dc</b><button id="aftUpX" style="margin-left:auto;border:1px solid #ddd;background:#fff;border-radius:7px;padding:4px 12px;cursor:pointer;font-weight:700">\ub2eb\uae30</button></div>'
- +'<div id="aftDrop" style="border:2.5px dashed #1565c0;border-radius:12px;background:#f4f8ff;min-height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#1565c0;font-weight:700;font-size:14px;text-align:center;padding:12px">\uc5ec\uae30\uc5d0 \uc0ac\uc9c4\uc744 \ub04c\uc5b4\ub2e4 \ub193\uc73c\uc138\uc694<br><span style="font-weight:400;font-size:12px;color:#5b7bb0">\ud30c\uc77c\uba85=\uc810\ubc88\ud638 (\uc608: 251103-14.jpg) \u00b7 \ud3f4\ub354\uc9f8 \ub4dc\ub86d \uac00\ub2a5(\ub0a0\uc9dc\ud3f4\ub354/\ubc88\ud638.jpg) \u00b7 \uc5ec\ub7ec \ubc88 \ucd94\uac00 \uac00\ub2a5</span></div>'
- +'<div style="display:flex;justify-content:center;gap:10px;margin-top:10px"><button id="aftUpPick" style="border:1.5px solid #1565c0;color:#1565c0;background:#fff;border-radius:8px;padding:7px 16px;font-weight:800;cursor:pointer">\ud83d\udcc1 \uc9c1\uc811 \ucc3e\uc544\uc11c \ucd94\uac00</button><button id="aftUpDir" style="border:1.5px solid #7a52e0;color:#7a52e0;background:#fff;border-radius:8px;padding:7px 16px;font-weight:800;cursor:pointer">\ud83d\udcc2 \ud3f4\ub354\uc9f8 \ucd94\uac00 (\ub0a0\uc9dc\ud3f4\ub354/\ubc88\ud638)</button></div>'
+ +'<div id="aftDrop" style="border:2.5px dashed #1565c0;border-radius:12px;background:#f4f8ff;min-height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#1565c0;font-weight:700;font-size:14px;text-align:center;padding:12px">\uc5ec\uae30\uc5d0 \uc0ac\uc9c4\uc744 \ub04c\uc5b4\ub2e4 \ub193\uc73c\uc138\uc694<br><span style="font-weight:400;font-size:12px;color:#5b7bb0">\ud30c\uc77c\uba85=\uc810\ubc88\ud638 (\uc608: 251103-14.jpg)<br>\uc0ac\uc5c5 \uc804\uccb4 <b>ZIP</b>\u00b7\ud3f4\ub354\uc9f8 \ub4dc\ub86d \uac00\ub2a5 (\ub0a0\uc9dc\ud3f4\ub354/\ubc88\ud638.jpg) \u00b7 \uc5ec\ub7ec \ubc88 \ucd94\uac00 \uac00\ub2a5</span></div>'
+ +'<div style="display:flex;justify-content:center;margin-top:10px"><button id="aftUpPick" style="border:1.5px solid #1565c0;color:#1565c0;background:#fff;border-radius:8px;padding:7px 16px;font-weight:800;cursor:pointer">\ud83d\udcc1 \uc9c1\uc811 \ucc3e\uc544\uc11c \ucd94\uac00 (\uc0ac\uc9c4\u00b7ZIP)</button></div>'
  +'<div id="aftList" style="display:none;margin-top:12px;border:1px solid #e3e8f0;border-radius:9px;max-height:230px;overflow:auto"></div>'
  +'<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px"><button id="aftCancel" style="border:1px solid #c0392b;color:#c0392b;background:#fff;border-radius:8px;padding:9px 20px;font-weight:800;cursor:pointer">\ucde8\uc18c</button><button id="aftOk" disabled style="border:1px solid #1e7e34;color:#fff;background:#1e7e34;border-radius:8px;padding:9px 20px;font-weight:800;cursor:pointer;opacity:0.5">\ud655\uc778</button></div>';
  mod.appendChild(box);document.body.appendChild(mod);
@@ -6983,7 +6983,6 @@ b.onclick=function(){if(mod){_close();return;}
  box.querySelector('#aftCancel').onclick=function(){if(!busy)_close();};
  box.querySelector('#aftOk').onclick=_go;
  box.querySelector('#aftUpPick').onclick=function(){if(busy||fin)return;inp.value='';inp.click();};
- var _db9=box.querySelector('#aftUpDir');if(_db9)_db9.onclick=function(){if(busy||fin)return;dinp.value='';dinp.click();};/* [1528] */
  var dz=box.querySelector('#aftDrop');
  ['dragenter','dragover'].forEach(function(ev){dz.addEventListener(ev,function(e){e.preventDefault();e.stopPropagation();dz.style.background='#e3edff';});});
  ['dragleave','drop'].forEach(function(ev){dz.addEventListener(ev,function(e){e.preventDefault();e.stopPropagation();dz.style.background='#f4f8ff';});});
