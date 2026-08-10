@@ -6987,8 +6987,14 @@ function _rows(){if(!mod)return;var host=mod.querySelector('#aftList');if(!host)
  _btns();}
 function _add(fs){if(busy||fin)return;var _lst=[].slice.call(fs||[]);if(!_lst.length)return;
  var _pz=(typeof expandPhotoFiles==='function')?expandPhotoFiles(_lst):Promise.resolve(_lst);/* [1529] ZIP \uc790\ub3d9 \ud574\uc81c(\ub0a0\uc9dc\ud3f4\ub354 \uacbd\ub85c \uc720\uc9c0) */
- _pz.then(function(files){if(busy||fin||!mod)return;var have={};pend.forEach(function(x){have[x.name]=1;});
-  (files||[]).forEach(function(f){if(!f||!_IMG_RE.test(f.name||'')||have[f.name])return;have[f.name]=1;pend.push({f:f,name:f.name,no:_assign(f),st:null,msg:''});});
+ _pz.then(function(files){if(busy||fin||!mod)return;
+  var haveNo={},haveF={};pend.forEach(function(x){if(x.no)haveNo[x.no]=1;haveF[x.key||x.name]=1;});
+  (files||[]).forEach(function(f){if(!f||!_IMG_RE.test(f.name||''))return;
+   var no=_assign(f);var key=((f._relpath||f.webkitRelativePath||'')+'|'+(f.name||''));/* [1533] \ub0a0\uc9dc\ud3f4\ub354 \ub2e4\ub974\uba74 \uac19\uc740 \ud30c\uc77c\uba85\ub3c4 \ubcc4\uac74 */
+   if(no){if(haveNo[no])return;haveNo[no]=1;}
+   else if(haveF[key])return;
+   haveF[key]=1;
+   pend.push({f:f,key:key,name:(f._relpath||f.webkitRelativePath||f.name||''),no:no,st:null,msg:''});});
   _rows();});}
 function _go(){
  if(fin){_close();return;}
