@@ -1711,6 +1711,7 @@ function nearestPointWorld(wx,wy){var best=null,bd=1e18;state.points.forEach(fun
 function nearestSnapWorld(wx,wy){var bd=1e18,pt=null;
   state.points.forEach(function(p){var s=S(p.x,p.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;pt=[p.x,p.y];}});
   (state.manholes||[]).forEach(function(mh){var s=S(mh.wx,mh.wy);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;pt=[mh.wx,mh.wy];}});
+  try{if(window._drawBult&&mode==='line'&&typeof _fldTamsaPts==='function'){_fldTamsaPts().forEach(function(q){var s=S(q.x,q.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;pt=[q.x,q.y];}});}}catch(_t){}/* [1512] 불탐 그리기 중 노란측점 스냅 */
   return {pt:pt,d:Math.sqrt(bd)};}
 function autoConnectTamsa(){
   if(state.points.length<2){toast('\uCE21\uB7C9\uC810\uC744 \uBA3C\uC800 \uC62C\uB824\uC8FC\uC138\uC694');return;}
@@ -6139,7 +6140,7 @@ var TB=[
     {t:'결선지우기(전체)',tone:'delall',fn:clearLines}]},
   {k:'pipe',label:'관로선편집',icon:'✎',c:{bg:'#e6effb',fg:'#2f7fe0'},tools:[
     {t:'관로선 그리기',tone:'draw',fn:function(){startDraw('통신관로');},activeMode:'line'},
-    {t:'불탐관로선 그리기',tone:'draw',fn:function(){startDraw('통신관로',true);},activeMode:'line'},/* [1511] */
+    {t:'불탐관로선 그리기',tone:'bult',fn:function(){startDraw('통신관로',true);},activeMode:'line'},/* [1512] 노란 버튼 */
     {t:'관로선 지우기',tone:'del',mode:'delline',delLayer:'통신관로',hint:'지울 관로선 위에 마우스→두껍게 표시되면 클릭'},
     {t:'전체삭제',tone:'delall',fn:clearAllDraw}]},
   {k:'jiger',label:'지거편집',icon:'〰',c:{bg:'#fdf7e3',fg:'#c9920a'},tools:[
@@ -6164,7 +6165,7 @@ var TB=[
     {t:'끝점 검수',tone:'insp3',fn:inspectEndpoints,hint:'결선 끝점이 측점·맨홀에 붙어있는지 검수'}]},
   {k:'inspmk',label:'검수데이터 제작',icon:'\uD83E\uDDFE',c:{bg:'#fbe9e9',fg:'#df524b'},tools:[],custom:1}
 ];
-var TONE={data:{bg:'#eceef1',fg:'#6e757f'},draw:{bg:'#e7f3ea',fg:'#2a9e50'},del:{bg:'#fdf1dd',fg:'#d98200'},delall:{bg:'#fbe9e9',fg:'#df524b'},pick:{bg:'#e6effb',fg:'#2f7fe0'},shape:{bg:'#e6effb',fg:'#2f7fe0'},ok:{bg:'#e7f3ea',fg:'#2a9e50'},bad:{bg:'#fbe9e9',fg:'#df524b'},pt:{bg:'#efeafa',fg:'#7a52e0'},insp1:{bg:'#e6effb',fg:'#2f7fe0'},insp2:{bg:'#efeafa',fg:'#7a52e0'},insp3:{bg:'#e3f4ef',fg:'#109a82'}};
+var TONE={data:{bg:'#eceef1',fg:'#6e757f'},draw:{bg:'#e7f3ea',fg:'#2a9e50'},del:{bg:'#fdf1dd',fg:'#d98200'},delall:{bg:'#fbe9e9',fg:'#df524b'},pick:{bg:'#e6effb',fg:'#2f7fe0'},shape:{bg:'#e6effb',fg:'#2f7fe0'},ok:{bg:'#e7f3ea',fg:'#2a9e50'},bad:{bg:'#fbe9e9',fg:'#df524b'},pt:{bg:'#efeafa',fg:'#7a52e0'},insp1:{bg:'#e6effb',fg:'#2f7fe0'},insp2:{bg:'#efeafa',fg:'#7a52e0'},insp3:{bg:'#e3f4ef',fg:'#109a82'},bult:{bg:'#fff3c4',fg:'#d4a900'}};/* [1512] 불탐=노랑 */
 function toneStyle(tone,active){var c=TONE[tone]||{bg:'#f3f3f0',fg:'#333'};return active?('background:'+c.fg+';color:#fff;border:1px solid '+c.fg+';border-left:4px solid '+c.fg+';border-radius:0 8px 8px 0;font-weight:700;'):('background:#fff;color:'+c.fg+';border:1px solid #e3e3df;border-left:4px solid '+c.fg+';border-radius:0 8px 8px 0;font-weight:600;');}
 function railStyle(col,active){col=col||{bg:'#f3f3f0',fg:'#333'};return active?('background:'+col.bg+';color:'+col.fg+';border:1px solid '+col.fg+';border-left:4px solid '+col.fg+';border-radius:0 8px 8px 0;font-weight:700;'):('background:#fff;color:'+col.fg+';border:1px solid #e3e3df;border-left:4px solid '+col.fg+';border-radius:0 8px 8px 0;font-weight:600;');}
 var activeCat='pan';
