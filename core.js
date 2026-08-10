@@ -10648,7 +10648,7 @@ function joseoRenderPreview(dk){
       +'<tr><td class="lbl">측량날짜</td><td class="val" colspan="2">'+joseoEsc(joseoDateK(r.date))+'</td><td class="lbl">측점명</td><td class="val" colspan="3">'+joseoEsc(r.name)+'</td></tr>'
       +'<tr><td class="lbl" colspan="2">좌표(GRS80)</td><td class="lbl" rowspan="2">시설물종류</td><td class="lbl" rowspan="2">재질</td><td class="lbl" rowspan="2">관경</td><td class="lbl" rowspan="2">이격거리</td><td class="lbl" rowspan="2">심도</td></tr>'
       +'<tr><td class="lbl">X(N)</td><td class="lbl">Y(E)</td></tr>'
-      +'<tr><td class="val">'+joseoEsc(r.x)+'</td><td class="val">'+joseoEsc(r.y)+'</td><td class="val">'+joseoEsc(r.facility)+'</td><td class="val">'+joseoEsc(r.mat)+'</td><td class="val">'+((r.dia||'').split(/\s+/).filter(function(_t){return _t;}).map(function(_t){return '<span style="white-space:nowrap">'+joseoEsc(_t)+'</span>';}).join('<br>'))+'</td><td class="val">'+joseoEsc(r.gap)+'</td><td class="val">'+joseoEsc(r.depth)+'</td></tr>'
+      +'<tr><td class="val">'+joseoEsc(r.x)+'</td><td class="val">'+joseoEsc(r.y)+'</td><td class="val">'+joseoEsc(r.facility)+'</td><td class="val">'+joseoEsc(r.mat)+'</td><td class="val">'+((r.dia||'').split(/\s+/).filter(function(_t){return _t;}).map(function(_t){return '<span style="white-space:nowrap">'+joseoEsc(_t)+'</span>';}).join('<br>'))+'</td><td class="val">'+joseoEsc(r.gap)+'</td><td class="val" data-jzdep="'+joseoEsc(r.fullNo||r.name)+'" title="\ub354\ube14\ud074\ub9ad=\uc2ec\ub3c4 \uc785\ub825\u00b7\uc218\uc815" style="cursor:pointer">'+joseoEsc(r.depth)+'</td></tr>'
       +'</table>'
       +'<div class="jz-ph2"><div class="jz-pc">'+exp+'<div class="jz-cap" style="position:relative">실시간 측량점<button data-jzchg="exp" data-jzno="'+joseoEsc(r.fullNo||r.name)+'" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:2px 9px;border:1px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer">사진변경</button></div></div>'
       +'<div class="jz-pc">'+aft+'<div class="jz-cap" style="position:relative">공사 후 관로<button data-jzchg="aft" data-jzno="'+joseoEsc(r.fullNo||r.name)+'" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:2px 9px;border:1px solid #1565c0;background:#fff;color:#1565c0;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer">사진변경</button></div></div></div>'
@@ -10657,6 +10657,16 @@ function joseoRenderPreview(dk){
   box.innerHTML=html;
   /* [1094] 조서 카드 클릭 → 도면에서 그 측점 선택·이동 */
   try{
+    [].forEach.call(box.querySelectorAll('td[data-jzdep]'),function(td){td.addEventListener('dblclick',function(ev){ev.stopPropagation();ev.preventDefault();
+      var no=td.getAttribute('data-jzdep');var cur=(state._depthByNo&&state._depthByNo[no]!=null)?(+state._depthByNo[no]).toFixed(2):(td.textContent||'').trim();
+      var nv=prompt('\uc2ec\ub3c4 \uc785\ub825\u00b7\uc218\uc815 (m) \u2014 \uce21\uc810 '+no+' (\ube48\uac12=\uc0ad\uc81c)',cur);if(nv==null)return;nv=(''+nv).trim();
+      if(nv&&!isFinite(parseFloat(nv))){toast('\uc22b\uc790\ub9cc \uc785\ub825\ud558\uc138\uc694');return;}
+      if(typeof pushHist==='function')pushHist();
+      if(!state._depthByNo)state._depthByNo={};
+      if(!nv){delete state._depthByNo[no];td.textContent='';}
+      else{state._depthByNo[no]=parseFloat(nv);td.textContent=(Math.round(parseFloat(nv)*100)/100).toFixed(2);}
+      if(typeof saveProject==='function')saveProject();if(typeof drawGeo==='function')drawGeo();
+      toast(nv?('\uc2ec\ub3c4 '+no+' = '+td.textContent+'m \uc800\uc7a5'):('\uc2ec\ub3c4 '+no+' \uc0ad\uc81c'));});});/* [1537] \uc870\uc11c \uc2ec\ub3c4 \uc9c1\uc811 \ud3b8\uc9d1 */
     [].forEach.call(box.querySelectorAll('.jz-card'),function(cd){
       cd.style.cursor='pointer';
       cd.onclick=function(){
