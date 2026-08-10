@@ -642,7 +642,7 @@ function repositionLabels(){
     if(e._bpx!=null){var _fs9=e._bpx*(e._wlk?(e._wlk/_uL):_sfL);if(e._lfs!==_fs9){e._lfs=_fs9;e.style.fontSize=_fs9+'px';}}/* [1517] */
     else if(e._sym){var _tf9='translate(-50%,-50%) scale('+_sfL+')';if(e._ltf!==_tf9){e._ltf=_tf9;e.style.transform=_tf9;}}
   }
-  try{var _uL2=vb.w/Math.max(W,1);var _is2=cv.querySelectorAll('.inlt');for(var _q3=0;_q3<_is2.length;_q3++){var _e3=_is2[_q3];var _nr2=(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))?0.147:5.5*_uL2);/* [1494] \uc6d4\ub4dc\uace0\uc815 */if(_e3._lr!==_nr2){_e3._lr=_nr2;_e3.setAttribute('r',_nr2);}}var _pw2=cv.querySelectorAll('.plw');for(var _q5=0;_q5<_pw2.length;_q5++){var _e5=_pw2[_q5];var _w5=(+_e5.getAttribute('data-w')||1.6)*_uL2;if(_e5._lw5!==_w5){_e5._lw5=_w5;_e5.setAttribute('stroke-width',_w5);var _dh5=_e5.getAttribute('data-dash');if(_dh5)_e5.setAttribute('stroke-dasharray',_dh5.split(/\s+/).map(function(v){return v*_uL2;}).join(' '));}}/* [1519] 관로선 월드폭 줌 동기 */var _js2=cv.querySelectorAll('.jbfix');for(var _q4=0;_q4<_js2.length;_q4++){var _e4=_js2[_q4];var _uJ4=(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))?0.294/22:_uL2);/* [1494] */var _tf4='translate('+_e4.getAttribute('data-cx')+' '+_e4.getAttribute('data-cy')+') scale('+_uJ4+')';/* [1493] */if(_e4._ltf4!==_tf4){_e4._ltf4=_tf4;_e4.setAttribute('transform',_tf4);}}}catch(_z2){}/* [1488] 선폭·인입 반경 줌 동기화 *//* [1478] 측점 심벌도 기준축첩 연동 */
+  try{var _uL2=vb.w/Math.max(W,1);var _is2=cv.querySelectorAll('.inlt');for(var _q3=0;_q3<_is2.length;_q3++){var _e3=_is2[_q3];var _nr2=(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))?0.147:5.5*_uL2);/* [1494] \uc6d4\ub4dc\uace0\uc815 */if(_e3._lr!==_nr2){_e3._lr=_nr2;_e3.setAttribute('r',_nr2);}}var _js2=cv.querySelectorAll('.jbfix');for(var _q4=0;_q4<_js2.length;_q4++){var _e4=_js2[_q4];var _uJ4=(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))?0.294/22:_uL2);/* [1494] */var _tf4='translate('+_e4.getAttribute('data-cx')+' '+_e4.getAttribute('data-cy')+') scale('+_uJ4+')';/* [1493] */if(_e4._ltf4!==_tf4){_e4._ltf4=_tf4;_e4.setAttribute('transform',_tf4);}}}catch(_z2){}/* [1488] 선폭·인입 반경 줌 동기화 *//* [1478] 측점 심벌도 기준축첩 연동 */
 }
 // ★ 심벌(측점 사각·맨홀 이중원)을 라벨과 동일한 화면픽셀 오버레이로 그림
 //   크기가 CSS px로 고정 → 줌/팬/리사이즈에 계산 자체가 없어 절대 안 변함
@@ -1006,11 +1006,9 @@ function drawGeo(){if(typeof _tgCarGeomBuild==='function')try{_tgCarGeomBuild();
     if(L.crop&&(typeof LV!=='undefined')&&LV.bizbox===0)return;   /* [1092] 사업정보 끔 → 크롭 테두리도 같이 */
     var def=LINECOL[L.layer]||{c:"#bbb",w:1.2};if(L.color)def={c:L.color,w:def.w,dash:def.dash};if(L.crop)def={c:"#000",w:1.4};
     var pts=(function(){var _G9=(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)));var _o9=[],_P9=L.pts,_i9,_a9,_b9;for(_i9=0;_i9<_P9.length;_i9++){_a9=_P9[_i9];if(_G9&&_i9>0){_b9=_P9[_i9-1];var _dx9=_a9[0]-_b9[0],_dy9=_a9[1]-_b9[1],_dl9=Math.hypot(_dx9,_dy9);if(_dl9>5){var _n9=Math.ceil(_dl9/5);/* [1518] 50m→5m — 깊은 줌 컸링 커버 */for(var _k9=1;_k9<_n9;_k9++){var _t9=_k9/_n9,_sI9=S(_b9[0]+_dx9*_t9,_b9[1]+_dy9*_t9);_o9.push(_sI9[0]+','+_sI9[1]);}}}var _s9=S(_a9[0],_a9[1]);_o9.push(_s9[0]+','+_s9[1]);}return _o9.join(' ');})();/* [1494] 50m \ucd08\uacfc \uc138\uadf8 \ubcf4\uac04\uc810 \uc0bd\uc785 \u2014 Chromium vector-effect \ucef8\ub9c1 \ud68c\ud53c(\ud654\uba74 \ub3d9\uc77c) */
-    var _GW=(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)));var _uP=_GW?(((typeof pxToWorld==='function'&&pxToWorld())||0.06)):1;
-    var pl=el('polyline',{points:pts,fill:'none',stroke:def.c,'stroke-width':(_GW?(def.w*_uP):def.w),'stroke-linejoin':'round','stroke-linecap':def.dash?'butt':'round'});
-    if(!_GW){pl.setAttribute('vector-effect','non-scaling-stroke');}else{pl.setAttribute('data-w',def.w);if(def.dash)pl.setAttribute('data-dash',def.dash);}
-    if(def.dash)pl.setAttribute('stroke-dasharray',(_GW?def.dash.split(/\s+/).map(function(v){return v*_uP;}).join(' '):def.dash));
-    pl.setAttribute('class',((_GW?'plw':'')+(L.insp?((_GW?' ':'')+'insp-line'):'')));/* [1519] survey·field: vector-effect 제거+월드폭 동기 — Chromium 대좌표 컸링 근본 회피 */
+    var pl=el('polyline',{points:pts,fill:'none',stroke:def.c,'stroke-width':def.w,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':def.dash?'butt':'round'});
+    if(def.dash)pl.setAttribute('stroke-dasharray',def.dash);
+    if(L.insp)pl.setAttribute('class','insp-line');/* [1489][1520] 원복 — 검증된 방식(월드폭은 float32 정밀도 붕괴로 불가) */
     gGeo.appendChild(pl);
   });
   drawHyunSym();
