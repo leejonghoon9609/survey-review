@@ -7350,10 +7350,11 @@ function _fldStakePhSync(){ /* [1298] field 전용 — 측설사진 등록 토�
   b.style.cssText='border-radius:8px;padding:3px 7px;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap;flex:none;'+(on?'background:#16a34a;color:#fff;border:1px solid #16a34a':'background:#fff8e1;color:#b7791f;border:1.5px solid #e0a800');
 }
 function finalCsvArr(){var f=state.finalCsv;if(!f)return [];return Array.isArray(f)?f:[f];}
-function _fldMnRecFor(m){ /* [1258] field — 맨홈 1개→야장 rec 생성/연결(mhId) · 멱등 */
+function _fldMnRecFor(m,force){ /* [1258] field — 맨홈 1개→야장 rec 생성/연결(mhId) · 멱등 · [1556] 삭제 묘비 존중 */
   if(!m||m.type==='riser'||m.wx==null)return null;
   var L=mnList();
   var ex=L.filter(function(r){return r&&!r.delAt&&r.mhId===m.id;})[0];
+  if(!ex&&!force){var _dead=L.some(function(r){return r&&r.delAt&&r.mhId===m.id;});if(_dead)return null;}/* [1556] 삭제한 야장 자동 부활 금지 */
   if(ex){if(!ex.refXY||ex.refXY[0]!==m.wx||ex.refXY[1]!==m.wy){ex.refXY=[m.wx,m.wy];try{refGeoFill(ex,m.wx,m.wy);}catch(e){}}return ex;}
   var no=0;L.forEach(function(r){var v=parseInt(r&&r.no,10);if(isFinite(v)&&v>no)no=v;});
   var ow=/\(([^)]+)\)/.exec(m.label||'');ow=ow?ow[1].trim():'SK';
@@ -7529,7 +7530,7 @@ function _fldMhClickAt(cx,cy){ /* [1258] field 전용 — 도면 맨홈 클릭�
     (state.manholes||[]).forEach(function(m){if(m.type==='riser'||m.wx==null)return;var d=Math.hypot(m.wx-wx,m.wy-wy);if(d<bd){bd=d;best=m;}});
     if(!best||bd>tol)return false;
     var rec=mnList().filter(function(r){return r&&!r.delAt&&r.mhId===best.id;})[0];
-    if(!rec){rec=_fldMnRecFor(best);if(rec&&online&&state.projectId&&typeof saveProject==='function')saveProject();}
+    if(!rec){rec=_fldMnRecFor(best,true);/* [1556] 지도 클릭=명시 의도 */if(rec&&online&&state.projectId&&typeof saveProject==='function')saveProject();}
     if(rec){try{window._fldSelMhId=best.id;}catch(_w){}mnOpenForm(rec);try{drawManholes();}catch(_d){}return true;}
   }catch(e){try{console.warn('[mhClick]',e);}catch(_c){}}
   return false;
@@ -7981,33 +7982,59 @@ function mnCloseAll(){
   });
 }
 /* [1012] 삭제목록(7일 휴지통) — 남은 일수 표시 + 복원 */
-function mnTrashList(afterClose){
+function mnTrashList(afterClose){/* [1556] \uc0c1\ub2e8: \uc57c\uc7a5 \uccb4\ud06c \uc0ad\uc81c / \ud558\ub2e8: \uc0ad\uc81c\ubaa9\ub85d(7\uc77c \ubcf5\uc6d0) */
   var old=document.getElementById('mnTrashModal');if(old)old.remove();
   var all=mnList(),now=Date.now();
-  var items=[];all.forEach(function(r,i){if(r.delAt)items.push({r:r,i:i});});
-  items.sort(function(a,b){return b.r.delAt-a.r.delAt;});
-  var rows=items.length?items.map(function(o){
+  var alive=[],trash=[];
+  all.forEach(function(r,i){if(!r)return;if(r.delAt)trash.push({r:r,i:i});else alive.push({r:r,i:i});});
+  trash.sort(function(a,b){return b.r.delAt-a.r.delAt;});
+  function _phc(r){var n=0;try{for(var k in (r.photos||{}))if(r.photos[k])n++;}catch(_c){}return n;}
+  function _lb(r){return mnHasId(r)?joseoEsc(mnLabel(r)):'\ubc88\ud638 \ubbf8\uc785\ub825';}
+  var aliveRows=alive.length?alive.map(function(o){
+    return '<label style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-bottom:1px solid #f0ead6;cursor:pointer">'
+      +'<input type="checkbox" class="mnDelCk" data-i="'+o.i+'" style="width:17px;height:17px;flex:none">'
+      +'<span style="flex:1;min-width:0;font-size:14px;font-weight:800;color:#5a4a12;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_lb(o.r)+'</span>'
+      +'<span style="flex:none;font-size:11.5px;color:#a08a4a">\uc0ac\uc9c4 '+_phc(o.r)+'\uc7a5</span></label>';
+  }).join(''):'<div style="text-align:center;color:#b0a070;font-size:13px;padding:16px 0">\uc57c\uc7a5\uc774 \uc5c6\uc2b5\ub2c8\ub2e4</div>';
+  var trashRows=trash.length?trash.map(function(o){
     var left=Math.max(0,7-Math.floor((now-o.r.delAt)/86400000));
-    return '<div style="background:#fff;border:1px solid #eee2c8;border-radius:11px;padding:11px 13px;margin-bottom:8px;display:flex;align-items:center;gap:9px">'
-      +'<div style="flex:1;min-width:0"><div style="font-size:14.5px;font-weight:800;color:#5a4a12;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(mnHasId(o.r)?joseoEsc(mnLabel(o.r)):'번호 미입력')+'</div>'
-      +'<div style="font-size:11.5px;color:#a08a4a;margin-top:2px">'+left+'일 후 완전삭제</div></div>'
-      +'<button class="mnTrRe" data-i="'+o.i+'" style="flex:none;border:1.5px solid #1d9e75;background:#fff;color:#1d9e75;border-radius:9px;padding:8px 14px;font-weight:800;font-size:13px;cursor:pointer">복원</button></div>';
-  }).join('')
-  :'<div style="text-align:center;color:#b0a070;font-size:13.5px;padding:24px 0">삭제된 항목이 없습니다</div>';
+    return '<div style="background:#fff;border:1px solid #eee2c8;border-radius:11px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:9px">'
+      +'<div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:800;color:#5a4a12;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_lb(o.r)+'</div>'
+      +'<div style="font-size:11.5px;color:#a08a4a;margin-top:2px">'+left+'\uc77c \ud6c4 \uc644\uc804\uc0ad\uc81c</div></div>'
+      +'<button class="mnTrRe" data-i="'+o.i+'" style="flex:none;border:1.5px solid #1d9e75;background:#fff;color:#1d9e75;border-radius:9px;padding:7px 13px;font-weight:800;font-size:13px;cursor:pointer">\ubcf5\uc6d0</button></div>';
+  }).join(''):'<div style="text-align:center;color:#b0a070;font-size:13px;padding:14px 0">\uc0ad\uc81c\ub41c \ud56d\ubaa9\uc774 \uc5c6\uc2b5\ub2c8\ub2e4</div>';
   var w=document.createElement('div');w.id='mnTrashModal';
-  w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1335;display:flex;align-items:flex-start;justify-content:center;padding-top:10dvh';
-  w.innerHTML='<div style="background:#fdfbf4;border-radius:14px;width:min(92vw,400px);max-height:78dvh;display:flex;flex-direction:column;overflow:hidden">'
-    +'<div style="padding:13px 16px;background:#fff;border-bottom:1px solid #eee2c8;display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:15px;color:#5a4a12">🗑 삭제목록 (7일 보관)</b>'
-    +'<button id="mnTrClose" style="border:1.5px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:9px;padding:6px 14px;font-weight:800;cursor:pointer">닫기</button></div>'
-    +'<div style="padding:12px 14px;overflow:auto;flex:1">'+rows+'</div></div>';
+  w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1335;display:flex;align-items:flex-start;justify-content:center;padding-top:8dvh';
+  w.innerHTML='<div style="background:#fdfbf4;border-radius:14px;width:min(92vw,420px);max-height:82dvh;display:flex;flex-direction:column;overflow:hidden">'
+    +'<div style="padding:13px 16px;background:#fff;border-bottom:1px solid #eee2c8;display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:15px;color:#5a4a12">\ud83d\uddd1 \uc57c\uc7a5 \uc0ad\uc81c</b>'
+    +'<button id="mnTrClose" style="border:1.5px solid #999;background:#fff;color:#555;border-radius:9px;padding:6px 14px;font-weight:800;cursor:pointer">\ub2eb\uae30</button></div>'
+    +'<div style="padding:11px 14px;overflow:auto;flex:1">'
+    +'<div style="font-size:12.5px;font-weight:800;color:#8a6d00;margin-bottom:6px">\uc57c\uc7a5 \ubaa9\ub85d \u2014 \uccb4\ud06c \ud6c4 \uc0ad\uc81c</div>'
+    +'<div style="background:#fff;border:1px solid #eee2c8;border-radius:11px;max-height:34dvh;overflow:auto">'+aliveRows+'</div>'
+    +'<div style="display:flex;gap:9px;margin-top:10px"><button id="mnDelDo" style="flex:1;border:0;background:#d32f2f;color:#fff;border-radius:9px;padding:10px;font-weight:800;font-size:14px;cursor:pointer">\uc0ad\uc81c</button><button id="mnDelCa" style="flex:1;border:0;background:#f1f1ee;color:#333;border-radius:9px;padding:10px;font-weight:700;font-size:14px;cursor:pointer">\ucde8\uc18c</button></div>'
+    +'<div style="border-top:1px dashed #d8c890;margin:13px 0 9px"></div>'
+    +'<div style="font-size:12.5px;font-weight:800;color:#8a6d00;margin-bottom:6px">\ud83d\uddc2 \uc0ad\uc81c\ubaa9\ub85d (7\uc77c \ubcf4\uad00 \u00b7 \ubcf5\uc6d0 \uac00\ub2a5)</div>'
+    +trashRows
+    +'</div></div>';
   document.body.appendChild(w);
   w.onclick=function(e){if(e.target===w)w.remove();};
   w.querySelector('#mnTrClose').onclick=function(){w.remove();};
+  w.querySelector('#mnDelCa').onclick=function(){w.remove();};
+  w.querySelector('#mnDelDo').onclick=function(){
+    var cks=[].filter.call(w.querySelectorAll('.mnDelCk'),function(c){return c.checked;});
+    if(!cks.length){toast('\uc0ad\uc81c\ud560 \uc57c\uc7a5\uc744 \uccb4\ud06c\ud558\uc138\uc694');return;}
+    if(!confirm(cks.length+'\uac1c \uc57c\uc7a5\uc744 \uc0ad\uc81c\ud560\uae4c\uc694?\n\uc0ad\uc81c\ubaa9\ub85d\uc5d0 7\uc77c \ubcf4\uad00\ub418\uba70 \ubcf5\uc6d0\ud560 \uc218 \uc788\uc2b5\ub2c8\ub2e4.'))return;
+    var nw=Date.now();
+    cks.forEach(function(c){var r=mnList()[+c.getAttribute('data-i')];if(r)r.delAt=nw;});
+    if(typeof saveProject==='function')try{saveProject();}catch(_s){}
+    toast(cks.length+'\uac1c \uc0ad\uc81c \u2014 \uc0ad\uc81c\ubaa9\ub85d\uc5d0\uc11c \ubcf5\uc6d0 \uac00\ub2a5');
+    w.remove();if(afterClose){afterClose();mnOpenList();}else{mnTrashList(null);}
+  };
   [].forEach.call(w.querySelectorAll('.mnTrRe'),function(b){b.onclick=function(){
     var i=+b.getAttribute('data-i');var r=mnList()[i];if(!r)return;
     delete r.delAt;saveProject();w.remove();
-    toast('복원됨: '+(mnHasId(r)?mnLabel(r):'번호 미입력'));
-    if(afterClose){afterClose();mnOpenList();}
+    toast('\ubcf5\uc6d0\ub428: '+(mnHasId(r)?mnLabel(r):'\ubc88\ud638 \ubbf8\uc785\ub825'));
+    if(afterClose){afterClose();mnOpenList();}else{mnTrashList(null);}
   };});
 }
 function mnOpenList(){
@@ -8050,7 +8077,7 @@ function mnOpenList(){
     +'<div style="padding:12px 17px;background:#fff;border-bottom:1px solid #e7eeea;display:flex;align-items:center;gap:7px;flex-wrap:wrap">' /* [1275] 2줄 헤더 */
       +'<span style="flex:none;display:flex;align-items:center;gap:8px;white-space:nowrap"><span style="width:10px;height:10px;border-radius:50%;background:#1d9e75;flex:none"></span><b style="font-size:16px;color:#22332b">맨홀조사 야장</b></span>' /* [1283] 한 줄 */
       +'<button id="mnDoneBtn" class="jz-done'+((state.fieldDone&&state.fieldDone.manhole)?' on':'')+'" style="padding:3px 8px;font-size:12px;white-space:nowrap">'+((state.fieldDone&&state.fieldDone.manhole)?'✅ 등록완료':'미등록')+'</button><button id="mnPhUpBtn" title="ZIP 폴더 규칙: 맨홀번호(소유자)/1.jpg·2-1~2-4·표찰 — 완료결선 업로드와 동일" style="margin-left:auto;border:1px solid #1565c0;background:#fff;color:#1565c0;border-radius:7px;padding:3px 8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">📷 맨홀사진 업로드</button>' /* [1265~1283] 제목 바로 옆 + 스페이서 */
-      +'<button id="mnTrashBtn" style="border:1px solid #b58900;background:#fdf6e3;color:#8a6d00;border-radius:9px;padding:4px 8px;cursor:pointer;font-weight:800;font-size:12px;white-space:nowrap">🗑 삭제목록</button>'
+      +'<button id="mnTrashBtn" style="border:1px solid #b58900;background:#fdf6e3;color:#8a6d00;border-radius:9px;padding:4px 8px;cursor:pointer;font-weight:800;font-size:12px;white-space:nowrap">🗑 삭제(야장)</button>'
       +'<button id="mnLClose" style="border:1.5px solid #d32f2f;background:#fff;border-radius:9px;padding:4px 10px;cursor:pointer;color:#d32f2f;font-weight:800;font-size:12px;white-space:nowrap">닫기</button></div>'
     +(host?newBtn:'')
     +'<div style="padding:13px 15px 4px;overflow:auto;flex:1">'+listHtml+'</div>'
@@ -9026,7 +9053,7 @@ function mnOpenForm(rec){
   var old=document.getElementById('mnFormModal');if(old)old.remove();
   var wrap=null;
   var inner='<div style="background:#fff;'+(host?'width:100%;height:100%;border-radius:0':(mob?'width:100vw;height:100dvh;border-radius:0':'border-radius:14px;width:min(96vw,540px);max-height:95dvh'))+';display:flex;flex-direction:column;overflow:hidden">'
-    +'<div style="padding:9px 14px 7px;border-bottom:1px solid #f2f2f0;display:flex;align-items:center;flex:none"><b style="font-size:15.5px;white-space:nowrap">맨홀 조사야장</b><button id="mnFTrash" style="border:1px solid #b58900;background:#fdf6e3;color:#8a6d00;border-radius:9px;padding:7px 11px;margin-left:10px;cursor:pointer;font-weight:800;font-size:12px">🗑 삭제목록</button><span style="flex:1"></span><button id="mnFClose" style="border:1.5px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:9px;padding:8px 20px;cursor:pointer;font-size:14.5px;font-weight:800">닫기</button></div>'
+    +'<div style="padding:9px 14px 7px;border-bottom:1px solid #f2f2f0;display:flex;align-items:center;flex:none"><b style="font-size:15.5px;white-space:nowrap">맨홀 조사야장</b><button id="mnFTrash" style="border:1px solid #b58900;background:#fdf6e3;color:#8a6d00;border-radius:9px;padding:7px 11px;margin-left:10px;cursor:pointer;font-weight:800;font-size:12px">🗑 삭제(야장)</button><span style="flex:1"></span><button id="mnFClose" style="border:1.5px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:9px;padding:8px 20px;cursor:pointer;font-size:14.5px;font-weight:800">닫기</button></div>'
     +'<div style="padding:7px 12px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:4px;flex:none;flex-wrap:nowrap;overflow-x:auto"><button id="mnDxfBtn" style="flex:1;text-align:center;display:flex;align-items:center;justify-content:center;border:1px solid #c0392b;background:#fdeaea;color:#c0392b;border-radius:8px;padding:6px 2px;cursor:pointer;font-weight:700;font-size:11px;white-space:nowrap">📐 맨홀도DXF</button><button id="mnEqXls" style="flex:1;text-align:center;display:flex;align-items:center;justify-content:center;border:1px solid #1d9e75;background:#e1f5ee;color:#0f6e56;border-radius:8px;padding:6px 2px;cursor:pointer;font-weight:700;font-size:11px;white-space:nowrap">📄 설비사진엑셀</button><button id="mnPhotoDl" style="flex:1;text-align:center;display:flex;align-items:center;justify-content:center;border:1px solid #2471a3;background:#eef6fc;color:#2471a3;border-radius:8px;padding:6px 2px;cursor:pointer;font-weight:700;font-size:11px;white-space:nowrap">📥 맨홀사진다운</button><button id="mnEfb" style="flex:1;text-align:center;display:flex;align-items:center;justify-content:center;border:1px solid #8e44ad;background:#f4ecf9;color:#8e44ad;border-radius:8px;padding:6px 2px;cursor:pointer;font-weight:700;font-size:11px;white-space:nowrap">🖋 현장전자야장</button></div>'
     +'<div id="mnSheetBox" style="flex:1;overflow:auto;-webkit-overflow-scrolling:touch;background:#f4f4f2"></div>'
     +'<div style="display:flex;gap:8px;padding:10px 14px;border-top:1px solid #eee;flex:none">'
