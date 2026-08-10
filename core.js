@@ -7912,6 +7912,7 @@ function mnDetectSpec(dep,w12,w34){
   return {name:best.name,w:best.w,h:best.h,dep:best.dep,orient:(w12>=w34)?'가로':'세로'};
 }
 function mnList(){if(!state.mnList)state.mnList=[];return state.mnList;}
+function mnHasId(r){return !!(r&&((r.no||'').trim()||(r.owner&&r.owner!=='_c')||(r.owner==='_c'&&(r.ownerC||'').trim())||r.newFlag));}/* [1547] \ubc88\ud638 \uc5c6\uc5b4\ub3c4 \uc18c\uc720\uc790\u00b7\uc2e0\uae30 \uc788\uc73c\uba74 \ud45c\uc2dc */
 function mnLabel(r){var ow=(r.owner==='_c'?(r.ownerC||''):(r.owner||''));var nt=(r.note||'').trim();var pf=(r.newFlag==='신설'?'신설':(r.newFlag==='기설'?'기설':''));return pf+(r.no||'')+(ow?'('+ow+')':'')+(nt?nt:'');}
 var MN_SLOTS=[['bd','표찰'],['fr','전경'],['p1','① 서'],['p2','② 동'],['p3','③ 북'],['p4','④ 남']];
 /* [BUILD 935] PC: 맨홀조사를 우측 도킹 패널로 (실시간조서 방식) */
@@ -9123,8 +9124,8 @@ function mnOpenForm(rec){
       +'<rect x="12" y="12" width="696" height="956" fill="none" stroke="#777" stroke-width="1.5"/>'
       +'<rect x="440" y="26" width="256" height="34" fill="none" stroke="#555"/><text x="568" y="49" text-anchor="middle" font-size="16" font-weight="800" letter-spacing="8">맨 홀 표 찰</text>'
       +'<rect x="440" y="60" width="84" height="34" fill="none" stroke="#555"/><text x="482" y="82" text-anchor="middle" font-size="13" fill="#333">맨홀번호</text>'
-      +'<rect x="524" y="60" width="172" height="34" fill="'+(rec.no?'#fff':'#fffdf2')+'" stroke="#c0392b" stroke-width="1.6" data-act="no" style="cursor:pointer"/>'
-      +(function(){var lb=rec.no?mnLabel(rec):'탭하여 입력';var wpx=0;for(var ci=0;ci<lb.length;ci++){wpx+=(lb.charCodeAt(ci)>0x2500?13.5:8);}var tl=(rec.no&&wpx>164)?' textLength="164" lengthAdjust="spacingAndGlyphs"':'';return '<text x="610" y="82" text-anchor="middle" font-size="14" font-weight="800" fill="'+(rec.no?'#c0392b':'#c8b8a0')+'" pointer-events="none"'+tl+'>'+joseoEsc(lb)+'</text>';})()
+      +'<rect x="524" y="60" width="172" height="34" fill="'+(mnHasId(rec)?'#fff':'#fffdf2')+'" stroke="#c0392b" stroke-width="1.6" data-act="no" style="cursor:pointer"/>'
+      +(function(){var lb=mnHasId(rec)?mnLabel(rec):'탭하여 입력';var wpx=0;for(var ci=0;ci<lb.length;ci++){wpx+=(lb.charCodeAt(ci)>0x2500?13.5:8);}var tl=(mnHasId(rec)&&wpx>164)?' textLength="164" lengthAdjust="spacingAndGlyphs"':'';return '<text x="610" y="82" text-anchor="middle" font-size="14" font-weight="800" fill="'+(mnHasId(rec)?'#c0392b':'#c8b8a0')+'" pointer-events="none"'+tl+'>'+joseoEsc(lb)+'</text>';})()
       +'<rect x="440" y="94" width="84" height="34" fill="none" stroke="#555"/><text x="482" y="116" text-anchor="middle" font-size="13" fill="#333">맨홀규격</text>'
       +'<rect x="524" y="94" width="172" height="34" fill="none" stroke="#555"/><text x="610" y="116" text-anchor="middle" font-size="12.5" font-weight="800" fill="#1d9e75">'+(specTxt||'치수 입력 시 자동')+'</text>'
       +(function(){ /* [1007] 상단 사진 스트립: 1(전경)·2-1~2-4, 회전사진 표시 */
@@ -9365,7 +9366,7 @@ function mnOpenForm(rec){
   var _efb=root.querySelector('#mnEfb');if(_efb)_efb.onclick=function(){mnExpAsk('efb',rec);};
   root.querySelector('#mnBack').onclick=function(){uClose();mnOpenList();};
   root.querySelector('#mnSave').onclick=function(){
-    if(!rec.no){toast('맨홀번호를 입력하세요');mnAskNoOwner(rec,function(){mnPersistRec(rec);render();});return;}
+    if(!mnHasId(rec)){toast('\ub9e8\ud640\ubc88\ud638(\ub610\ub294 \uc18c\uc720\uc790\u00b7\uc2e0\uae30)\ub97c \uc785\ub825\ud558\uc138\uc694');mnAskNoOwner(rec,function(){mnPersistRec(rec);render();});return;}
     var miss=[];MN_SLOTS.forEach(function(sl){if(!(rec.chk&&rec.chk[sl[0]]===0)&&!(rec.photos&&rec.photos[sl[0]]))miss.push(sl[1].replace(/^[①-④] /,''));});
     if(miss.length){alert(miss.join(', ')+' 사진을 등록하세요');return;}
     var dup=null;mnList().forEach(function(r){if(r.id!==rec.id&&mnLabel(r)===mnLabel(rec))dup=r;});
