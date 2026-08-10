@@ -8072,43 +8072,51 @@ function mnAsk(opt){
   w.querySelector('#mnAskOk').onclick=ok;
   inp.addEventListener('keydown',function(e){if(e.key==='Enter')ok();});
 }
-function mnAskNoOwner(rec,cb){
+function mnAskNoOwner(rec,cb){/* [1551] \uc7ac\ubc30\uce58: \uc2e0/\uae30 \ubc84\ud2bc+\uc774\ub984\uce78, \ubc88\ud638(\ub300\uc2dc \ud5c8\uc6a9), \uc18c\uc720\uc790 \uc9c1\uc811\uc785\ub825 \uc778\ub77c\uc778 */
   var old=document.getElementById('mnAskModal');if(old)old.remove();
   var no=rec.no||'';var suf=rec.suf||'M';
   var m=/^(.+?)([MH])$/.exec(no);if(m){no=m[1];suf=m[2];}
-  var nf=rec.newFlag||'기설';
+  var _sp=/^(.*?)(\d+(?:-\d+)*)$/.exec(no);var nm0=_sp?_sp[1].trim():no.trim();var num0=_sp?_sp[2]:'';/* [1551] \uc774\ub984+\ubc88\ud638 \ubd84\ub9ac */
+  var nf=rec.newFlag||'\uae30\uc124';
   var w=document.createElement('div');w.id='mnAskModal';
   w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:12dvh';
-  var opts=['LG','SKT','SKB','시청','세종','드림'].map(function(o){return '<option value="'+o+'"'+(rec.owner===o?' selected':'')+'>'+o+'</option>';}).join('')+'<option value="_c"'+(rec.owner==='_c'?' selected':'')+'>직접입력</option>';
-  function nfBtn(v){var on=(nf===v);return '<button type="button" class="mnNfB" data-v="'+v+'" style="flex:1;border:1.5px solid '+(on?'#1d9e75':'#ccc')+';background:'+(on?'#e1f5ee':'#fff')+';color:'+(on?'#0f6e56':'#667')+';border-radius:8px;padding:8px;font-weight:800;font-size:14px;cursor:pointer">'+v+'</button>';}
-  w.innerHTML='<div style="background:#fff;border-radius:13px;width:min(90vw,340px);padding:16px;max-height:86dvh;overflow:auto">'
-    +'<div style="font-weight:800;font-size:15px;margin-bottom:10px">맨홀번호</div>'
-    +'<div style="display:flex;gap:7px;margin-bottom:8px" id="mnNfRow">'+nfBtn('신설')+nfBtn('기설')+'</div>'
-    +'<div style="display:flex;gap:7px;align-items:center"><div style="flex:1.2;min-width:0;display:flex;align-items:center;gap:4px"><select id="mnNoSel" style="flex:1;min-width:0;border:1.5px solid #1d9e75;border-radius:9px;padding:10px 4px;font-size:16px;background:#fff">'+(function(){var o='<option value=\'\'></option>';/* [1546] \ube48\uce78 */for(var i=1;i<=10;i++){o+='<option value=\''+i+'\''+(no===String(i)?' selected':'')+'>'+i+'</option>';}o+='<option value=\'_c\''+((no&&['1','2','3','4','5','6','7','8','9','10'].indexOf(no)<0)?' selected':'')+'>직접</option>';return o;})()+'</select><input id="mnNoIn" type="text" inputmode="text" value="'+joseoEsc(no)+'" placeholder="직접입력" style="flex:1;min-width:0;border:1.5px solid #1d9e75;border-radius:9px;padding:10px;font-size:16px;display:'+((no&&['1','2','3','4','5','6','7','8','9','10'].indexOf(no)<0)?'block':'none')+'"><select id="mnSufIn" style="flex:none;width:52px;border:1.5px solid #1d9e75;border-radius:9px;padding:10px 4px;font-size:15px;font-weight:800;color:#1d9e75;background:#fff"><option value="M"'+(suf==='M'?' selected':'')+'>M</option><option value="H"'+(suf==='H'?' selected':'')+'>H</option></select></div>'
-    +'<select id="mnOwIn" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:9px;padding:10px 6px;font-size:14px;background:#fff">'+opts+'</select></div>'
-    +'<input id="mnOwC" value="'+joseoEsc(rec.ownerC||'')+'" placeholder="소유자 직접입력" style="width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:9px;padding:10px;font-size:14px;margin-top:8px;display:'+(rec.owner==='_c'?'block':'none')+'">'
-    +'<input id="mnNoteIn" value="'+joseoEsc(rec.note||'')+'" placeholder="특이사항 (예: 폐, 이설 등 — 번호 뒤에 붙음)" style="width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:9px;padding:10px;font-size:14px;margin-top:8px">'
+  var opts=['LG','SKT','SKB','\uc2dc\uccad','\uc138\uc885','\ub4dc\ub9bc'].map(function(o){return '<option value="'+o+'"'+(rec.owner===o?' selected':'')+'>'+o+'</option>';}).join('')+'<option value="_c"'+(rec.owner==='_c'?' selected':'')+'>\uc9c1\uc811\uc785\ub825</option>';
+  function nfBtn(v){var on=(nf===v);return '<button type="button" class="mnNfB" data-v="'+v+'" style="flex:1;border:1.5px solid '+(on?'#1d9e75':'#ccc')+';background:'+(on?'#e1f5ee':'#fff')+';color:'+(on?'#0f6e56':'#667')+';border-radius:8px;padding:8px 4px;font-weight:800;font-size:14px;cursor:pointer">'+v+'</button>';}
+  w.innerHTML='<div style="background:#fff;border-radius:13px;width:min(90vw,360px);padding:16px;max-height:86dvh;overflow:auto">'
+    +'<div style="font-weight:800;font-size:15px;margin-bottom:10px">\ub9e8\ud640\ubc88\ud638</div>'
+    +'<div style="display:flex;gap:7px;margin-bottom:8px;align-items:center"><div id="mnNfRow" style="flex:1;display:flex;gap:6px">'+nfBtn('\uc2e0\uc124')+nfBtn('\uae30\uc124')+'</div>'
+    +'<input id="mnNmIn" value="'+joseoEsc(nm0)+'" placeholder="\uc774\ub984 (\uc608: \ub3d9\ucc9c)" maxlength="12" style="flex:1;min-width:0;border:1.5px solid #1d9e75;border-radius:9px;padding:9px;font-size:15px"></div>'
+    +'<div style="display:flex;gap:6px;align-items:center">'
+    +'<select id="mnNoSel" style="flex:none;width:64px;border:1.5px solid #1d9e75;border-radius:9px;padding:10px 2px;font-size:15px;background:#fff">'+(function(){var o='<option value=\'\'></option>';for(var i2=1;i2<=10;i2++){o+='<option value=\''+i2+'\''+(num0===String(i2)?' selected':'')+'>'+i2+'</option>';}o+='<option value=\'_c\''+((num0&&['1','2','3','4','5','6','7','8','9','10'].indexOf(num0)<0)?' selected':'')+'>\uc9c1\uc811</option>';return o;})()+'</select>'
+    +'<input id="mnNoIn" type="text" inputmode="text" value="'+joseoEsc(num0)+'" placeholder="\uc608: 1-1" style="flex:1;min-width:0;border:1.5px solid #1d9e75;border-radius:9px;padding:10px;font-size:15px;display:'+((num0&&['1','2','3','4','5','6','7','8','9','10'].indexOf(num0)<0)?'block':'none')+'">'
+    +'<select id="mnSufIn" style="flex:none;width:52px;border:1.5px solid #1d9e75;border-radius:9px;padding:10px 4px;font-size:15px;font-weight:800;color:#1d9e75;background:#fff"><option value="M"'+(suf==='M'?' selected':'')+'>M</option><option value="H"'+(suf==='H'?' selected':'')+'>H</option></select>'
+    +'<select id="mnOwIn" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:9px;padding:10px 4px;font-size:14px;background:#fff">'+opts+'</select>'
+    +'<input id="mnOwC" value="'+joseoEsc(rec.ownerC||'')+'" placeholder="\uc18c\uc720\uc790" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:9px;padding:10px 8px;font-size:14px;display:'+(rec.owner==='_c'?'block':'none')+'">'
+    +'</div>'
+    +'<input id="mnNoteIn" value="'+joseoEsc(rec.note||'')+'" placeholder="\ud2b9\uc774\uc0ac\ud56d (\uc608: \ud3d0, \uc774\uc124 \ub4f1 \u2014 \ubc88\ud638 \ub4a4\uc5d0 \ubd99\uc74c)" style="width:100%;box-sizing:border-box;border:1px solid #ddd;border-radius:9px;padding:10px;font-size:14px;margin-top:8px">'
     +'<div style="font-size:12px;color:#999;margin-top:6px" id="mnPrev"></div>'
-    +'<div style="display:flex;gap:8px;margin-top:12px"><button id="mnAskOk" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:9px;padding:11px;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">확인</span></button><button id="mnAskNo2" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:9px;padding:11px;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">취소</span></button></div></div>';
+    +'<div style="display:flex;gap:8px;margin-top:12px"><button id="mnAskOk" style="flex:1;background:#1d9e75;color:#fff;border:0;border-radius:9px;padding:11px;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">\ud655\uc778</span></button><button id="mnAskNo2" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:9px;padding:11px;font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">\ucde8\uc18c</span></button></div></div>';
   document.body.appendChild(w);
-  w.querySelectorAll('.mnNfB').forEach(function(b){b.onclick=function(){nf=this.getAttribute('data-v');w.querySelectorAll('.mnNfB').forEach(function(x){var on=(x.getAttribute('data-v')===nf);x.style.borderColor=on?'#1d9e75':'#ccc';x.style.background=on?'#e1f5ee':'#fff';x.style.color=on?'#0f6e56':'#667';});};});
-  function noVal(){var sel=w.querySelector('#mnNoSel').value;return sel==='_c'?w.querySelector('#mnNoIn').value.trim():sel;}
+  w.querySelectorAll('.mnNfB').forEach(function(b){b.onclick=function(){nf=this.getAttribute('data-v');w.querySelectorAll('.mnNfB').forEach(function(x){var on=(x.getAttribute('data-v')===nf);x.style.borderColor=on?'#1d9e75':'#ccc';x.style.background=on?'#e1f5ee':'#fff';x.style.color=on?'#0f6e56':'#667';});upPrev();};});
+  function nmVal(){return (w.querySelector('#mnNmIn').value||'').trim();}
+  function noVal(){var sel=w.querySelector('#mnNoSel').value;var v=(sel==='_c')?w.querySelector('#mnNoIn').value.trim():sel;return v;}
   w.querySelector('#mnNoSel').addEventListener('change',function(){var c=(this.value==='_c');w.querySelector('#mnNoIn').style.display=c?'block':'none';if(c)setTimeout(function(){w.querySelector('#mnNoIn').focus();},30);upPrev();});
-  function upPrev(){var n=noVal();var sf=w.querySelector('#mnSufIn').value;var ov=w.querySelector('#mnOwIn').value;var oc=w.querySelector('#mnOwC').value.trim();var ow=(ov==='_c'?oc:ov);var nt=w.querySelector('#mnNoteIn').value.trim();var pf=(nf==='신설'?'신설':(nf==='기설'?'기설':''));w.querySelector('#mnPrev').textContent='표시: '+pf+(n?(n+sf):'')+(ow?'('+ow+')':'')+(nt||'');}
-  w.querySelector('#mnOwIn').addEventListener('change',function(){w.querySelector('#mnOwC').style.display=(this.value==='_c')?'block':'none';upPrev();});
-  ['mnNoIn','mnSufIn','mnOwC','mnNoteIn'].forEach(function(id){w.querySelector('#'+id).addEventListener('input',upPrev);w.querySelector('#'+id).addEventListener('change',upPrev);});
+  w.querySelector('#mnNoIn').addEventListener('input',function(){this.value=this.value.replace(/[^0-9\-]/g,'');upPrev();});/* [1551] \ubc88\ud638\ub9cc(\ub300\uc2dc \ud5c8\uc6a9) \u2014 \uc774\ub984\uc740 \uc774\ub984\uce78 */
+  function upPrev(){var nmv=nmVal();var n=noVal();var sf=w.querySelector('#mnSufIn').value;var ov=w.querySelector('#mnOwIn').value;var oc=w.querySelector('#mnOwC').value.trim();var ow=(ov==='_c'?oc:ov);var nt=w.querySelector('#mnNoteIn').value.trim();var pf=(nf==='\uc2e0\uc124'?'\uc2e0\uc124':(nf==='\uae30\uc124'?'\uae30\uc124':''));w.querySelector('#mnPrev').textContent='\ud45c\uc2dc: '+pf+((nmv||n)?(nmv+n+sf):'')+(ow?'('+ow+')':'')+(nt||'');}
+  w.querySelector('#mnOwIn').addEventListener('change',function(){w.querySelector('#mnOwC').style.display=(this.value==='_c')?'block':'none';if(this.value==='_c')setTimeout(function(){w.querySelector('#mnOwC').focus();},30);upPrev();});
+  ['mnNmIn','mnSufIn','mnOwC','mnNoteIn'].forEach(function(id){w.querySelector('#'+id).addEventListener('input',upPrev);w.querySelector('#'+id).addEventListener('change',upPrev);});
   upPrev();
   w.querySelector('#mnAskNo2').onclick=function(){w.remove();};
   w.onclick=function(e){if(e.target===w)w.remove();};
   w.querySelector('#mnAskOk').onclick=function(){
-    var n=noVal();var sf=w.querySelector('#mnSufIn').value;
+    var nmv=nmVal();var n=noVal();var sf=w.querySelector('#mnSufIn').value;
     rec.suf=sf;rec.newFlag=nf;
-    rec.no=n?(n+sf):'';
+    rec.no=(nmv||n)?(nmv+n+sf):'';/* [1551] \uc774\ub984+\ubc88\ud638+\uc811\ubbf8 */
     rec.owner=w.querySelector('#mnOwIn').value;rec.ownerC=w.querySelector('#mnOwC').value.trim();
     rec.note=w.querySelector('#mnNoteIn').value.trim();
-    try{if(rec.mhId){var _mh9=(state.manholes||[]).filter(function(m){return m&&m.id===rec.mhId;})[0];/* [1545] \uc57c\uc7a5\u2192\ub3c4\uba74 \ub3d9\uae30\ud654 */
+    try{if(rec.mhId){var _mh9=(state.manholes||[]).filter(function(m2){return m2&&m2.id===rec.mhId;})[0];/* [1545] \uc57c\uc7a5\u2192\ub3c4\uba74 \ub3d9\uae30\ud654 */
      if(_mh9){var _ow8=(rec.owner==='_c'?(rec.ownerC||''):(rec.owner||''));
-      var _lb8=(n?(n+sf):'')+' ('+_ow8+(_ow8?' ':'')+')';
+      var _lb8=((nmv||n)?(nmv+n+sf):'')+' ('+_ow8+(_ow8?' ':'')+')';
       var _kd8=(nf==='\uae30\uc124'?'\uae30':'\uc2e0');
       if(_lb8!==(_mh9.label||'')||_kd8!==(_mh9.kind||'\uc2e0')){
        if(typeof pushHist==='function')try{pushHist();}catch(_ph8){}
@@ -8118,7 +8126,7 @@ function mnAskNoOwner(rec,cb){
       }}}}catch(_sy8){}
     w.remove();cb();
   };
-  setTimeout(function(){var c=w.querySelector('#mnNoSel').value==='_c';(c?w.querySelector('#mnNoIn'):w.querySelector('#mnNoSel')).focus();},60);
+  setTimeout(function(){var c=w.querySelector('#mnNoSel').value==='_c';(c?w.querySelector('#mnNoIn'):w.querySelector('#mnNmIn')).focus();},60);
 }
 function mnAskDest(cur,dn,cb,rec,dk){
   var old=document.getElementById('mnAskModal');if(old)old.remove();
