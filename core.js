@@ -1145,7 +1145,7 @@ function drawGeo(){_orgSync();/* [1524] */if(typeof _tgCarGeomBuild==='function'
     var _dbn9=state._depthByNo||{};
     state.points.forEach(function(p){if(p._hyun)return;if(typeof isRiserPt==='function'&&isRiserPt(p))return;if(typeof isManhole==='function'&&isManhole(p))return;if(!/[xX\u00D7]\s*\d+/.test(p.code||''))return;
       var _dv9=_dbn9[p.no];if(_dv9!=null&&_dv9!==''&&isFinite(+_dv9))return;
-      var _ps9=S(p.x,p.y);gPts.appendChild(el('circle',{cx:_ps9[0],cy:_ps9[1],r:1.2,/* [1542] 0.6\u21921.2 2\ubc30 */fill:'#4fc3f7','fill-opacity':0.3,stroke:'#03a9f4',/* [1542] \ud558\ub298\uc0c9 */'stroke-width':2.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));});
+      var _ps9=S(p.x,p.y);gPts.appendChild(el('circle',{cx:_ps9[0],cy:_ps9[1],r:2.4,/* [1543] 1.2\u21922.4 \uc7ac2\ubc30 */fill:'#4fc3f7','fill-opacity':0.3,stroke:'#03a9f4',/* [1542] \ud558\ub298\uc0c9 */'stroke-width':2.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));});
   }}catch(_dm9){}
   try{if(typeof photoMap!=='undefined'&&photoMap&&typeof afterMap!=='undefined'&&afterMap){
     var _refPrj=!!(typeof REF!=='undefined'&&REF&&REF.ents); /* [1278] 완료결선 업로드 사업 판별(REF 결선 존재) */
