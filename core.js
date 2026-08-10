@@ -7466,13 +7466,14 @@ function _fldMnZipModal(){ /* [1548] \ub9e8\ud640\uc0ac\uc9c4 ZIP \u2014 \ub4f1\
   /* ZIP \ubd84\uc11d \ud6c4 \ud3f4\ub354\ubcc4 \ubaa9\ub85d */
   function _list(){var host=ov.querySelector('#mnzList');if(!host)return;
    var P=(typeof REF_PZ!=='undefined')?REF_PZ:null;
-   if(!P||!P.map){host.style.display='none';host.innerHTML='';okB.disabled=true;okB.style.opacity='0.5';return;}
-   var recs=(typeof mnList==='function')?mnList().filter(function(r){return r&&!r.delAt;}):[];
-   var byKey={};recs.forEach(function(r){var k=refNormLab(mnLabel(r));if(k)byKey[k]=mnLabel(r);});
-   var folds=Object.keys(P.map).sort();var mat=0,tot=0;
-   var h='';folds.forEach(function(fd){var fl=(P.map[fd]||[]);tot+=fl.length;var mk=byKey[refNormLab(fd)];if(mk)mat++;
-    h+='<div style="display:flex;gap:9px;align-items:center;padding:5px 9px;border-bottom:1px solid #eef1f6;font-size:12.5px;background:'+(mk?'#f7fbf7':'#fdf1f1')+'"><span style="font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">\ud83d\udcc1 '+fd+'</span><span style="color:#555">'+fl.length+'\uc7a5</span>'+(mk?('<span style="color:#1e7e34;font-weight:700;white-space:nowrap">\u2192 '+mk+'</span>'):'<span style="color:#c0392b;font-weight:700">\uc57c\uc7a5 \uc5c6\uc74c</span>')+'</div>';});
-   h+='<div style="padding:7px 9px;font-size:12px;color:#444;font-weight:700;background:#f7f9fc">\ud3f4\ub354 '+folds.length+'\uac1c \u00b7 \uc0ac\uc9c4 '+tot+'\uc7a5 \u2014 \ub9e4\uce6d '+mat+' \u00b7 \ubbf8\ub9e4\uce6d '+(folds.length-mat)+((P.skip&&P.skip.length)?(' \u00b7 \uc81c\uc678\ud30c\uc77c '+P.skip.length):'')+'</div>';
+   if(!P||!P.groups){host.style.display='none';host.innerHTML='';okB.disabled=true;okB.style.opacity='0.5';return;}
+   var h='';var tot=0;
+   var rows=[];
+   (P.groups||[]).forEach(function(g){rows.push({fold:g.folder,n:g.files.length,mk:(typeof mnLabel==='function')?mnLabel(g.rec):''});tot+=g.files.length;});
+   (P.noRec||[]).forEach(function(g){rows.push({fold:g.folder,n:g.files.length,mk:null});tot+=g.files.length;});
+   rows.sort(function(a,b){return a.fold<b.fold?-1:1;});
+   rows.forEach(function(r){h+='<div style="display:flex;gap:9px;align-items:center;padding:5px 9px;border-bottom:1px solid #eef1f6;font-size:12.5px;background:'+(r.mk?'#f7fbf7':'#fdf1f1')+'"><span style="font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">\ud83d\udcc1 '+r.fold+'</span><span style="color:#555">'+r.n+'\uc7a5</span>'+(r.mk?('<span style="color:#1e7e34;font-weight:700;white-space:nowrap">\u2192 '+r.mk+'</span>'):'<span style="color:#c0392b;font-weight:700">\uc57c\uc7a5 \uc5c6\uc74c</span>')+'</div>';});
+   h+='<div style="padding:7px 9px;font-size:12px;color:#444;font-weight:700;background:#f7f9fc">\ud3f4\ub354 '+rows.length+'\uac1c \u00b7 \uc0ac\uc9c4 '+tot+'\uc7a5 \u2014 \ub9e4\uce6d '+(P.groups||[]).length+' \u00b7 \ubbf8\ub9e4\uce6d '+(P.noRec||[]).length+((P.skip&&P.skip.length)?(' \u00b7 \uc81c\uc678\ud30c\uc77c '+P.skip.length):'')+'</div>';
    host.innerHTML=h;host.style.display='block';
    okB.disabled=false;okB.style.opacity='1';
    _stat('\ud655\uc778\uc744 \ub204\ub974\uba74 \ub9e4\uce6d\u00b7\ub4f1\ub85d \ub2e8\uacc4\ub85c \uc9c4\ud589\ud569\ub2c8\ub2e4 (\uc57c\uc7a5 \uc5c6\uc74c \ud3f4\ub354\ub294 \uadf8 \ub2e8\uacc4\uc5d0\uc11c \uc57c\uc7a5 \uc77c\uad04\uc0dd\uc131 \uac00\ub2a5)','#1d9e75');}
@@ -12655,28 +12656,38 @@ function refSlotOf(fn){
 }
 /* ---------- ZIP 구조 분석 + 야장 매칭 ---------- */
 var REF_PZ=null;   /* {zip,map,groups,noRec,noPhoto,extra,skip,name} */
-function refPzMatch(){
+function _pzNum(s){s=String(s||'').replace(/\s+/g,'');var m=s.match(/(\d+(?:-\d+)*)([MH])(?=\()/i)||s.match(/(\d+(?:-\d+)*)([MH])/i)||s.match(/(\d+(?:-\d+)*)(?=\()/);return m?((m[1]||'')+((m[2]||'M').toUpperCase())):'';}/* [1550] \ubc88\ud638\ubd80(\ub300\uc2dc \ud5c8\uc6a9) \ucd94\ucd9c */
+function _pzOwnSet(s){var m=String(s||'').match(/\(([^)]*)\)/);var o={};if(m)String(m[1]).split(/[,+\/\u00b7;]/).forEach(function(t){t=refOwKey(t);if(t)o[t]=1;});return o;}/* [1550] \uc18c\uc720\uc790 \uc9d1\ud569 */
+function refPzMatch(){/* [1550] \ub2e4\ub2e8\uacc4 \ub9e4\uce6d: 1\uc815\ud655\ud0a4 \u2192 2\ubc88\ud638\uc720\uc77c \u2192 3\ubc88\ud638+\uc18c\uc720\uc790\uad50\uc9d1\ud569 \u2192 4\ubb34\ubc88\ud638 \uc18c\uc720\uc790\uc77c\uce58 */
   var P=REF_PZ;if(!P)return;
   var recs=(typeof mnList==='function')?mnList().filter(function(r){return r&&!r.delAt;}):[];
-  var byKey={};
-  recs.forEach(function(r){var k=refNormLab(mnLabel(r));if(k)byKey[k]=r;});
-  var groups=[],noRec=[],used={},extra=[];
-  Object.keys(P.map).sort().forEach(function(fold){
+  var rinfo=recs.map(function(r){var lb=(typeof mnLabel==='function')?mnLabel(r):(r.no||'');return {r:r,lb:lb,full:refNormLab(lb),num:_pzNum(lb),own:_pzOwnSet(lb)};});
+  var folds=Object.keys(P.map).sort();
+  var finfo=folds.map(function(fd){return {fold:fd,full:refNormLab(fd),num:_pzNum(fd),own:_pzOwnSet(fd)};});
+  var usedR={},match={};
+  /* 1\ucc28: \uc815\ud655 \ud0a4(\ubc88\ud638|\uc18c\uc720\uc790) */
+  var byFull={};rinfo.forEach(function(x,i){if(x.full&&byFull[x.full]==null)byFull[x.full]=i;});
+  finfo.forEach(function(f,fi){var ri=byFull[f.full];if(ri!=null&&!usedR[ri]){match[fi]=ri;usedR[ri]=1;}});
+  /* 2\ucc28: \ubc88\ud638 \uc720\uc77c / 3\ucc28: \ubc88\ud638 \uc911\ubcf5 \uc2dc \uc18c\uc720\uc790 \uad50\uc9d1\ud569 \uc720\uc77c */
+  finfo.forEach(function(f,fi){if(match[fi]!=null||!f.num)return;
+    var cands=[];rinfo.forEach(function(x,i){if(!usedR[i]&&x.num===f.num)cands.push(i);});
+    if(cands.length===1){match[fi]=cands[0];usedR[cands[0]]=1;return;}
+    if(cands.length>1){var best=cands.filter(function(i){var x=rinfo[i];for(var o in f.own)if(x.own[o])return true;return false;});
+      if(best.length===1){match[fi]=best[0];usedR[best[0]]=1;}}});
+  /* 4\ucc28: \ubc88\ud638 \uc5c6\ub294 \ud3f4\ub354 \u2014 \ubb34\ubc88\ud638 \uc57c\uc7a5 \uc911 \uc18c\uc720\uc790 \uc9d1\ud569 \uc644\uc804\uc77c\uce58 \uc720\uc77c */
+  finfo.forEach(function(f,fi){if(match[fi]!=null||f.num)return;
+    var ok=Object.keys(f.own);if(!ok.length)return;
+    var cands=[];rinfo.forEach(function(x,i){if(usedR[i]||x.num)return;var xs=Object.keys(x.own);var same=(xs.length===ok.length)&&ok.every(function(o){return x.own[o];});if(same)cands.push(i);});
+    if(cands.length===1){match[fi]=cands[0];usedR[cands[0]]=1;}});
+  var groups=[],noRec=[],extra=[];
+  folds.forEach(function(fold,fi){
     var arr=P.map[fold].slice().sort(function(a,b){return a.fn<b.fn?-1:(a.fn>b.fn?1:0);});
     var files=[],seen={};
-    arr.forEach(function(f){
-      if(seen[f.slot]){extra.push({folder:fold,fn:f.fn,slot:f.slot});return;}
-      seen[f.slot]=1;files.push(f);
-    });
-    var k=refNormLab(fold),r=byKey[k];
-    var g={folder:fold,key:k,files:files,rec:r||null};
-    if(r){used[k]=1;groups.push(g);}else noRec.push(g);
-  });
-  var noPhoto=[];
-  recs.forEach(function(r){
-    var k=refNormLab(mnLabel(r));
-    if(k&&!used[k])noPhoto.push({label:mnLabel(r),rec:r});
-  });
+    arr.forEach(function(f){if(seen[f.slot]){extra.push({folder:fold,fn:f.fn,slot:f.slot});return;}seen[f.slot]=1;files.push(f);});
+    var ri=match[fi];var r=(ri!=null)?rinfo[ri].r:null;
+    var g={folder:fold,key:finfo[fi].full,files:files,rec:r};
+    if(r)groups.push(g);else noRec.push(g);});
+  var noPhoto=[];rinfo.forEach(function(x,i){if(!usedR[i])noPhoto.push({label:x.lb,rec:x.r});});
   P.groups=groups;P.noRec=noRec;P.noPhoto=noPhoto;P.extra=extra;P.recCnt=recs.length;
 }
 function refPhotoZip(f){
