@@ -7989,7 +7989,7 @@ function mnTrashList(afterClose){
   var rows=items.length?items.map(function(o){
     var left=Math.max(0,7-Math.floor((now-o.r.delAt)/86400000));
     return '<div style="background:#fff;border:1px solid #eee2c8;border-radius:11px;padding:11px 13px;margin-bottom:8px;display:flex;align-items:center;gap:9px">'
-      +'<div style="flex:1;min-width:0"><div style="font-size:14.5px;font-weight:800;color:#5a4a12;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(o.r.no?joseoEsc(mnLabel(o.r)):'번호 미입력')+'</div>'
+      +'<div style="flex:1;min-width:0"><div style="font-size:14.5px;font-weight:800;color:#5a4a12;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(mnHasId(o.r)?joseoEsc(mnLabel(o.r)):'번호 미입력')+'</div>'
       +'<div style="font-size:11.5px;color:#a08a4a;margin-top:2px">'+left+'일 후 완전삭제</div></div>'
       +'<button class="mnTrRe" data-i="'+o.i+'" style="flex:none;border:1.5px solid #1d9e75;background:#fff;color:#1d9e75;border-radius:9px;padding:8px 14px;font-weight:800;font-size:13px;cursor:pointer">복원</button></div>';
   }).join('')
@@ -8006,7 +8006,7 @@ function mnTrashList(afterClose){
   [].forEach.call(w.querySelectorAll('.mnTrRe'),function(b){b.onclick=function(){
     var i=+b.getAttribute('data-i');var r=mnList()[i];if(!r)return;
     delete r.delAt;saveProject();w.remove();
-    toast('복원됨: '+(r.no?mnLabel(r):'번호 미입력'));
+    toast('복원됨: '+(mnHasId(r)?mnLabel(r):'번호 미입력'));
     if(afterClose){afterClose();mnOpenList();}
   };});
 }
@@ -8034,7 +8034,7 @@ function mnOpenList(){
       var dt=((r.up||r.at||'')).slice(0,10).replace(/-/g,'.');
       var recent=(k===0&&rows.length>1)?'<span style="background:#1d9e75;color:#fff;border-radius:20px;padding:2px 8px;font-size:10.5px;font-weight:800">최근 작업</span>':'';
       return '<div class="mn-card" data-i="'+i+'" style="background:#fff;border:1px solid '+(k===0?'#9fd4bd':'#e2eae5')+';border-radius:13px;padding:13px 14px;margin-bottom:9px;cursor:pointer;box-shadow:0 1px 4px rgba(20,60,45,.06)">'
-        +'<div style="display:flex;align-items:center;gap:8px"><span style="flex:1;font-size:16px;font-weight:800;color:#134e3a">'+(r.no?joseoEsc(mnLabel(r)):'<span style=\"color:#b8b8b0\">번호 미입력</span>')+'</span>'+recent+spBadge
+        +'<div style="display:flex;align-items:center;gap:8px"><span style="flex:1;font-size:16px;font-weight:800;color:#134e3a">'+(mnHasId(r)?joseoEsc(mnLabel(r)):'<span style=\"color:#b8b8b0\">번호 미입력</span>')+'</span>'+recent+spBadge
         +'<button class="mn-del" data-i="'+i+'" style="flex:none;border:none;background:#faf1f0;color:#c0392b;border-radius:6px;width:16px;height:16px;padding:0;cursor:pointer;font-size:10px;line-height:1">✕</button></div>'
         +'<div style="display:flex;align-items:center;gap:12px;margin-top:7px;font-size:12px;color:#8a948e"><span style="font-weight:700;color:'+(pc===6?'#1d9e75':'#8a948e')+'">사진 '+pc+'/6</span><span>'+dt+'</span></div>'
         +'</div>';
