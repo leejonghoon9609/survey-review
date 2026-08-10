@@ -2168,7 +2168,7 @@ function _exportDXFInner(returnStr){
   function _pdfCirc(cx,cy,r,col,layer){_pq(4,function(){var d=_PDF.doc,c=ACIrgb(col);d.setDrawColor(c[0],c[1],c[2]);d.setLineWidth(_PDF.lw);d.setLineDashPattern([],0);d.circle(PX(cx),PY(cy),Math.max(0.2,r*_PDF.sc),'S');});}
   function _pdfLine(x1,y1,x2,y2,col,lt,layer){_pq(2,function(){var d=_PDF.doc,c=ACIrgb(col);d.setDrawColor(c[0],c[1],c[2]);d.setLineWidth(_PDF.lw);d.setLineDashPattern(lt==='DASHED'?[1.0,0.7]:[],0);d.line(PX(x1),PY(y1),PX(x2),PY(y2));d.setLineDashPattern([],0);});}
   function _pdfText(x,y,h,s,layer,col,align,rot,valign){if(s==null||s==='')return;var z=(layer==='PT_DEPTH')?9:5;var tc=(layer==='PT_DEPTH')?[0,40,150]:ACIrgb(col);_pq(z,function(){var d=_PDF.doc;d.setTextColor(tc[0],tc[1],tc[2]);var fmm=h*_PDF.sc;if(layer==='DEPTHCHK')fmm*=1.25;var fpt=fmm*2.8346;if(fpt<1.2)fpt=1.2;d.setFontSize(fpt);if(layer==='PT_DEPTH'){var oo={align:'center',baseline:(valign===1)?'bottom':(valign===3)?'top':'alphabetic'};if(rot)oo.angle=-rot;try{d.text(String(s),PX(x),PY(y),oo);}catch(e){}return;}var o={align:(align===1)?'center':(align===2)?'right':'left',baseline:(valign===2)?'middle':(valign===3)?'top':'alphabetic'};if(rot)o.angle=-rot;try{d.text(String(s),PX(x),PY(y),o);}catch(e){}});}
-  function _pdfInsert(name,x,y,sc,col){_pq(4,function(){var d=_PDF.doc,c=ACIrgb(col);d.setDrawColor(c[0],c[1],c[2]);d.setLineWidth(_PDF.lw);d.setLineDashPattern([],0);var px=PX(x),py=PY(y);if(name==='SD100'){d.circle(px,py,Math.max(0.3,0.504*sc*_PDF.sc*0.65),'S');d.circle(px,py,Math.max(0.42,0.750*sc*_PDF.sc*0.65),'S');}else{d.setLineWidth(_PDF.lw*0.5);var r=Math.max(0.12,0.055*sc*_PDF.sc);d.line(px-r,py-r,px+r,py+r);d.line(px-r,py+r,px+r,py-r);}});}
+  function _pdfInsert(name,x,y,sc,col){_pq(4,function(){var d=_PDF.doc,c=ACIrgb(col);d.setDrawColor(c[0],c[1],c[2]);d.setLineWidth(_PDF.lw);d.setLineDashPattern([],0);var px=PX(x),py=PY(y);if(name==='SD100'){d.circle(px,py,Math.max(0.3,0.504*sc*_PDF.sc*0.65),'S');d.circle(px,py,Math.max(0.42,0.750*sc*_PDF.sc*0.65),'S');}else if(name==='SD213'){var _h5=Math.max(0.3,0.672*sc*_PDF.sc*0.65);d.line(px-_h5,py-_h5,px+_h5,py-_h5);d.line(px+_h5,py-_h5,px+_h5,py+_h5);d.line(px+_h5,py+_h5,px-_h5,py+_h5);d.line(px-_h5,py+_h5,px-_h5,py-_h5);}else if(name==='SD214'){var _r5=Math.max(0.2,0.6*sc*_PDF.sc*0.65);d.setFillColor(c[0],c[1],c[2]);d.circle(px,py,_r5,'F');}else{/* [1495] */d.setLineWidth(_PDF.lw*0.5);var r=Math.max(0.12,0.055*sc*_PDF.sc);d.line(px-r,py-r,px+r,py+r);d.line(px-r,py+r,px+r,py-r);}});}
   function _pdfFill(p1,p2,p3,p4,r,g,bl){_pq(0,function(){var d=_PDF.doc;d.setFillColor(r,g,bl);d.triangle(PX(p1[0]),PY(p1[1]),PX(p2[0]),PY(p2[1]),PX(p3[0]),PY(p3[1]),'F');d.triangle(PX(p1[0]),PY(p1[1]),PX(p3[0]),PY(p3[1]),PX(p4[0]),PY(p4[1]),'F');});}var PRE=`  0
 SECTION
   2
@@ -5450,6 +5450,7 @@ EOF
   (state.manholes||[]).forEach(function(mh){if(typeof tgCarMhShow==='function'&&!tgCarMhShow(mh))return;/* [1327] */
     var isRiser=(mh.type==='riser');
     if((typeof LV!=='undefined')&&((isRiser&&LV.riser===0)||(!isRiser&&LV.mh===0)))return;
+    if(mh.type==='jb'||mh.type==='inlet'){insert(mh.type==='jb'?'SD213':'SD214',mh.wx,mh.wy,(mh.type==='jb')?1:0.5,(mh.type==='jb')?'SD213':'SD214',7);return;}/* [1495] JB/인입=표준블럭 삽입, 인출선·라벨 없음 */
     var lyr=isRiser?'RISER':'MANHOLE', col=isRiser?((mh._fromCsv)?7:5):7;/* [1380] */
     if(isRiser){var wB=0.14,wT=0.04,armW=0.24,armY=mh.wy+RH*0.74;
       line(mh.wx-wB,mh.wy,mh.wx-wT,mh.wy+RH,lyr,col);line(mh.wx+wB,mh.wy,mh.wx+wT,mh.wy+RH,lyr,col);
@@ -5511,6 +5512,27 @@ EOF
     var DEF1='  0\nBLOCK\n  5\nD1\n330\nD0\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockBegin\n  2\nSD901\n 70\n0\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  3\nSD901\n  1\n\n'+'  0\nLINE\n  5\nD3\n330\nD0\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbLine\n 10\n-0.19\n 20\n0.19\n 30\n0\n 11\n0.19\n 21\n-0.19\n 31\n0\n'+'  0\nLINE\n  5\nD4\n330\nD0\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbLine\n 10\n-0.19\n 20\n-0.19\n 30\n0\n 11\n0.19\n 21\n0.19\n 31\n0\n'+'  0\nPOINT\n  5\nD5\n330\nD0\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbPoint\n 10\n0\n 20\n0\n 30\n0\n'+'  0\nENDBLK\n  5\nD2\n330\nD0\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockEnd\n';
     var DEF2='  0\nBLOCK\n  5\nD7\n330\nD6\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockBegin\n  2\nSD100\n 70\n0\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  3\nSD100\n  1\n\n'+'  0\nCIRCLE\n  5\nD9\n330\nD6\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbCircle\n 10\n0\n 20\n0\n 30\n0\n 40\n0.504\n'+'  0\nCIRCLE\n  5\nDA\n330\nD6\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbCircle\n 10\n0\n 20\n0\n 30\n0\n 40\n0.75\n'+'  0\nPOINT\n  5\nDB\n330\nD6\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbPoint\n 10\n0\n 20\n0\n 30\n0\n'+'  0\nENDBLK\n  5\nD8\n330\nD6\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockEnd\n';
     PREx=PREx.replace('  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES',DEF1+DEF2+'  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES');
+  })();
+  (function(){/* [1495] JB/\uc778\uc785 \ud45c\uc900\ube14\ub7ed SD213(\ubc15\uc2a4+B)/SD214(\ub3c4\ub11b \uc18d\ucc2c\uc6d0) */
+    var _hL1=H(),_hL2=H(),_hR1=H(),_hR2=H(),_hB1=H(),_hE1=H(),_hB2=H(),_hE2=H(),_e1=H(),_e2=H(),_e3=H(),_e4=H(),_e5=H(),_e6=H(),_e7=H(),_e8=H();
+    var L3='  0\nLAYER\n  5\n'+_hL1+'\n330\n1\n100\nAcDbSymbolTableRecord\n100\nAcDbLayerTableRecord\n  2\nSD213\n 70\n0\n 62\n7\n  6\nContinuous\n370\n-3\n390\n13\n';
+    var L4='  0\nLAYER\n  5\n'+_hL2+'\n330\n1\n100\nAcDbSymbolTableRecord\n100\nAcDbLayerTableRecord\n  2\nSD214\n 70\n0\n 62\n7\n  6\nContinuous\n370\n-3\n390\n13\n';
+    PREx=PREx.replace('390\n13\n  0\nENDTAB','390\n13\n'+L3+L4+'  0\nENDTAB');
+    var BR3='  0\nBLOCK_RECORD\n  5\n'+_hR1+'\n330\n9\n100\nAcDbSymbolTableRecord\n100\nAcDbBlockTableRecord\n  2\nSD213\n';
+    var BR4='  0\nBLOCK_RECORD\n  5\n'+_hR2+'\n330\n9\n100\nAcDbSymbolTableRecord\n100\nAcDbBlockTableRecord\n  2\nSD214\n';
+    PREx=PREx.replace('  0\nENDTAB\n  0\nENDSEC\n  0\nSECTION\n  2\nBLOCKS',BR3+BR4+'  0\nENDTAB\n  0\nENDSEC\n  0\nSECTION\n  2\nBLOCKS');
+    function _ln(h,x1,y1,x2,y2){return '  0\nLINE\n  5\n'+h+'\n330\n'+_hR1+'\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbLine\n 10\n'+x1+'\n 20\n'+y1+'\n 30\n0\n 11\n'+x2+'\n 21\n'+y2+'\n 31\n0\n';}
+    var DEF3='  0\nBLOCK\n  5\n'+_hB1+'\n330\n'+_hR1+'\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockBegin\n  2\nSD213\n 70\n0\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  3\nSD213\n  1\n\n'
+      +_ln(_e1,'-0.6875','-0.6686','-0.6875','0.6754')+_ln(_e2,'0.6565','-0.6686','0.6565','0.6754')
+      +_ln(_e3,'-0.6875','-0.6686','0.6565','-0.6686')+_ln(_e4,'-0.6875','0.6754','0.6565','0.6754')
+      +'  0\nTEXT\n  5\n'+_e5+'\n330\n'+_hR1+'\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbText\n 10\n-0.4614\n 20\n-0.5\n 30\n0\n 40\n1.0\n  1\nB\n 72\n1\n 11\n0\n 21\n0\n 31\n0\n100\nAcDbText\n 73\n2\n'
+      +'  0\nPOINT\n  5\n'+_e6+'\n330\n'+_hR1+'\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbPoint\n 10\n0\n 20\n0\n 30\n0\n'
+      +'  0\nENDBLK\n  5\n'+_hE1+'\n330\n'+_hR1+'\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockEnd\n';
+    var DEF4='  0\nBLOCK\n  5\n'+_hB2+'\n330\n'+_hR2+'\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockBegin\n  2\nSD214\n 70\n0\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  3\nSD214\n  1\n\n'
+      +'  0\nLWPOLYLINE\n  5\n'+_e7+'\n330\n'+_hR2+'\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbPolyline\n 90\n2\n 70\n1\n 43\n0.6\n 10\n0.0779\n 20\n-0.2897\n 42\n1\n 10\n-0.0779\n 20\n0.2897\n 42\n1\n'
+      +'  0\nPOINT\n  5\n'+_e8+'\n330\n'+_hR2+'\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbPoint\n 10\n0\n 20\n0\n 30\n0\n'
+      +'  0\nENDBLK\n  5\n'+_hE2+'\n330\n'+_hR2+'\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockEnd\n';
+    PREx=PREx.replace('  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES',DEF3+DEF4+'  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES');
   })();
   if(_depBlkUsed){var _dBR=H(),_dBK=H(),_dAD=H(),_dEB=H();/* [1320] PT_DEPTH_BLK 정의 */
     PREx=PREx.replace('  0\nENDTAB\n  0\nENDSEC\n  0\nSECTION\n  2\nBLOCKS','  0\nBLOCK_RECORD\n  5\n'+_dBR+'\n330\n9\n100\nAcDbSymbolTableRecord\n100\nAcDbBlockTableRecord\n  2\nPT_DEPTH_BLK\n  0\nENDTAB\n  0\nENDSEC\n  0\nSECTION\n  2\nBLOCKS');
