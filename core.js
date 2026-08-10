@@ -59,7 +59,24 @@ function projToPoly(pts,px,py){var ps=polySegs(pts);if(ps.total===0)return 0;var
 var MKCOL={ok:'#2a9e50',bad:'#d32f2f'};
 
 function el(t,a){var e=document.createElementNS(SVGNS,t);for(var k in a)e.setAttribute(k,a[k]);return e;}
-function S(x,y){return [x,-y];}                 // 화면좌표(북쪽 위)
+var ORG={x:0,y:0};/* [1524] \uc88c\ud45c \uc6d0\uc810(\uc0ac\uc5c5 \ub85c\uceec) \u2014 \ub300\uc88c\ud45c \ucef8\ub9c1\u00b7float32 \ubd95\uad34 \uadfc\ubcf8\ud574\uacb0(\u26052) */
+function SL(w){return [w[0]-ORG.x,w[1]+ORG.y];}/* [1524] WF\u2192LOCAL */
+function _orgSync(){try{var p=null;
+ if(typeof state==='undefined'||!state)return;
+ if(state.points&&state.points.length&&isFinite(state.points[0].x))p=[state.points[0].x,state.points[0].y];
+ if(!p&&state.lines&&state.lines.length){for(var i=0;i<state.lines.length&&!p;i++){var Lp=state.lines[i].pts;if(Lp&&Lp.length&&isFinite(Lp[0][0]))p=[Lp[0][0],Lp[0][1]];}}
+ if(!p&&state.manholes&&state.manholes.length&&state.manholes[0].wx!=null)p=[state.manholes[0].wx,state.manholes[0].wy];
+ if(!p&&state.gpsPts&&state.gpsPts.length&&isFinite(state.gpsPts[0].x))p=[state.gpsPts[0].x,state.gpsPts[0].y];
+ if(!p&&state.baseTexts&&state.baseTexts.length&&isFinite(state.baseTexts[0].x))p=[state.baseTexts[0].x,state.baseTexts[0].y];
+ if(!p)return;
+ var ox=Math.floor(p[0]/1000)*1000,oy=Math.floor(p[1]/1000)*1000;
+ if(ox===ORG.x&&oy===ORG.y)return;
+ if(typeof vb!=='undefined'&&vb){vb.x+=(ORG.x-ox);vb.y+=(oy-ORG.y);}
+ if(typeof vb0!=='undefined'&&vb0){vb0.x+=(ORG.x-ox);vb0.y+=(oy-ORG.y);}
+ ORG.x=ox;ORG.y=oy;
+ if(typeof cv!=='undefined'&&cv){try{cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);}catch(_v){}}
+}catch(_e){}}
+function S(x,y){return [x-ORG.x,ORG.y-y];}      // \ud654\uba74\uc88c\ud45c(\ubd81\ucabd \uc704) \u2014 [1524] \uc6d0\uc810 \ub85c\uceec
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1800);}
 // 커스텀 팝업: 드래그 이동 가능, 항상 앞, 도면(팝업 밖)은 그대로 조작 가능(non-blocking)
 function parseDepthL(txt){
@@ -471,7 +488,7 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
     if(ld){ld.setAttribute('x2',lx);ld.setAttribute('y2',ly);}
     handle.setAttribute('x',anchor==='start'?(lx-3*Uh):(lx-tw+3*Uh));handle.setAttribute('y',ly-hh*0.5);});
   function up(ev){if(!dragging)return;dragging=false;setTimeout(function(){labelDragging=false;},40);
-    if(moved){state.labelOff[p.no]=[lx,-ly];if(typeof _dirtySave==='function')_dirtySave();}
+    if(moved){state.labelOff[p.no]=[lx+ORG.x,ORG.y-ly];/* [1524] LOCAL\u2192\uc6d4\ub4dc */if(typeof _dirtySave==='function')_dirtySave();}
     else{var now=Date.now();if(now-(p._lastClick||0)<350){p._lastClick=0;openPtEdit(p,ls);}else{p._lastClick=now;}}
     try{handle.releasePointerCapture(ev.pointerId);}catch(e){}
     drawGeo();highlightSel();}
@@ -520,11 +537,11 @@ function addNoteHandle(L,t,ld,lx,ly,ax,tw){
   var h=el('rect',{x:bx-pad,y:by-pad,width:bw+2*pad,height:bh+2*pad,rx:0.3,fill:'transparent',stroke:((typeof LV!=='undefined'&&LV&&LV.tagbox===0)?'none':hc),'stroke-width':0.7,'stroke-dasharray':'1.6 1.6','vector-effect':'non-scaling-stroke','pointer-events':((typeof LV!=='undefined'&&LV&&LV.tagbox===0)?'none':'all')});h.style.cursor='move';
   var drag=false,moved=false,nx=lx,ny=ly,_lp=null,_lpX=0,_lpY=0;
   h.addEventListener('pointerdown',function(ev){if(mode==='delall2'||mode==='ptdel'){ev.stopPropagation();ev.preventDefault();var li=state.lines.indexOf(L);if(li>=0){pushHist();state.lines.splice(li,1);drawGeo();updMeta();toast('멘트·선 삭제');_da2Off();}return;}if(mode!=='pan'||viewerMode||readOnly)return;ev.stopPropagation();drag=true;moved=false;labelDragging=true;_lpX=ev.clientX;_lpY=ev.clientY;if(_lp)clearTimeout(_lp);_lp=setTimeout(function(){if(drag&&!moved){_lp=null;drag=false;labelDragging=false;try{h.releasePointerCapture(ev.pointerId);}catch(e){}if(typeof openLineNoteEdit==='function')openLineNoteEdit(L,lx,ly);}},1000);h.setAttribute('stroke',hc2);h.setAttribute('stroke-width',1.1);h.setAttribute('stroke-dasharray','2.2 1.4');try{h.setPointerCapture(ev.pointerId);}catch(e){}});
-  h.addEventListener('pointermove',function(ev){if(!drag)return;if(_lp&&(Math.abs(ev.clientX-_lpX)+Math.abs(ev.clientY-_lpY)<=8))return;ev.preventDefault();moved=true;if(_lp){clearTimeout(_lp);_lp=null;}var ww=toWorld(ev.clientX,ev.clientY);nx=ww[0];ny=ww[1];
+  h.addEventListener('pointermove',function(ev){if(!drag)return;if(_lp&&(Math.abs(ev.clientX-_lpX)+Math.abs(ev.clientY-_lpY)<=8))return;ev.preventDefault();moved=true;if(_lp){clearTimeout(_lp);_lp=null;}var ww=SL(toWorld(ev.clientX,ev.clientY));nx=ww[0];ny=ww[1];
     t.setAttribute('x',nx+0.25);t.setAttribute('y',ny+0.2);ld.setAttribute('x2', (ax!=null&&ax>nx)?nx+0.25+(tw||bw):nx);ld.setAttribute('y2',ny);
     h.setAttribute('x',nx+0.25-pad);h.setAttribute('y',ny-0.45-pad);});
   function up(ev){if(!drag)return;drag=false;if(_lp){clearTimeout(_lp);_lp=null;}setTimeout(function(){labelDragging=false;},40);
-    if(moved){L.noteOff=[nx,ny];}
+    if(moved){L.noteOff=[nx+ORG.x,ny-ORG.y];}/* [1524] LOCAL\u2192WF */
     else{var now=Date.now();if(now-(L._lastClick||0)<350){L._lastClick=0;openLineNoteEdit(L,lx,ly);}else{L._lastClick=now;}}
     try{h.releasePointerCapture(ev.pointerId);}catch(e){}drawGeo();}
   h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
@@ -535,7 +552,7 @@ function addAnchorHandle(L,ah,anc,ld){
   ah.style.cursor='move';
   var drag=false;
   ah.addEventListener('pointerdown',function(ev){if(mode==='delall2'||mode==='ptdel'){ev.stopPropagation();ev.preventDefault();var li=state.lines.indexOf(L);if(li>=0){pushHist();state.lines.splice(li,1);drawGeo();updMeta();toast('멘트·선 삭제');_da2Off();}return;}if(mode!=='pan'||viewerMode||readOnly)return;ev.stopPropagation();drag=true;labelDragging=true;anc.setAttribute('r',0.46);try{ah.setPointerCapture(ev.pointerId);}catch(e){}});
-  ah.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();var ww=toWorld(ev.clientX,ev.clientY);var t=projToPoly(L.pts.map(function(p){return S(p[0],p[1]);}),ww[0],ww[1]);L.anchorT=t;var aw=ptOnPoly(L.pts,t),sp=S(aw[0],aw[1]);anc.setAttribute('cx',sp[0]);anc.setAttribute('cy',sp[1]);ah.setAttribute('cx',sp[0]);ah.setAttribute('cy',sp[1]);ld.setAttribute('x1',sp[0]);ld.setAttribute('y1',sp[1]);});
+  ah.addEventListener('pointermove',function(ev){if(!drag)return;ev.preventDefault();var ww=toWorld(ev.clientX,ev.clientY);var t=projToPoly(L.pts.map(function(p){return S(p[0],p[1]);}),ww[0]-ORG.x,ww[1]+ORG.y);/* [1524] */L.anchorT=t;var aw=ptOnPoly(L.pts,t),sp=S(aw[0],aw[1]);anc.setAttribute('cx',sp[0]);anc.setAttribute('cy',sp[1]);ah.setAttribute('cx',sp[0]);ah.setAttribute('cy',sp[1]);ld.setAttribute('x1',sp[0]);ld.setAttribute('y1',sp[1]);});
   function up(ev){if(!drag)return;drag=false;setTimeout(function(){labelDragging=false;},40);try{ah.releasePointerCapture(ev.pointerId);}catch(e){}drawGeo();}
   ah.addEventListener('pointerup',up);ah.addEventListener('pointercancel',up);
 }
@@ -988,7 +1005,7 @@ function openBpEdit(z){
   inp.addEventListener('blur',function(){setTimeout(done,120);});
 }
 
-function drawGeo(){if(typeof _tgCarGeomBuild==='function')try{_tgCarGeomBuild();}catch(_cg){}/* [1327] */
+function drawGeo(){_orgSync();/* [1524] */if(typeof _tgCarGeomBuild==='function')try{_tgCarGeomBuild();}catch(_cg){}/* [1327] */
   (function(){var _tb=document.getElementById('tamsaBadge');if(_tb)_tb.style.display=state.tamsa?'':'none';})();
   clearSvg(gGeo); clearSvg(gPts); clearSvg(gHit); clearSvg(gAnc); clearLabels('pt');clearLabels('depth');clearLabels('depthchk');clearLabels('tgnote');clearLabels('ptag');
   try{if(typeof hoverClear==='function')hoverClear();}catch(e){}   /* [1095] 재렌더 시 호버 쟔상 제거 */
@@ -1017,7 +1034,7 @@ function drawGeo(){if(typeof _tgCarGeomBuild==='function')try{_tgCarGeomBuild();
     var nc=L.layer==='압입구간'?'#1f6fd6':'#a07e00';   // 인출선·앵커·박스 색
     var nf=L.layer==='압입구간'?'#15489e':'#7a5f00';   // 글자 색
     var aw=ptOnPoly(L.pts,polyAnchorT(L));      // 선 위 앵커(world)
-    var s=S(aw[0],aw[1]),lx=(L.noteOff?L.noteOff[0]:s[0]+1.8),ly=(L.noteOff?L.noteOff[1]:s[1]-1.3);
+    var s=S(aw[0],aw[1]),lx=(L.noteOff?(L.noteOff[0]-ORG.x):s[0]+1.8),ly=(L.noteOff?(L.noteOff[1]+ORG.y):s[1]-1.3);/* [1524] WF\u2192LOCAL */
     var ld=el('line',{x1:s[0],y1:s[1],x2:lx,y2:ly,stroke:nc,'stroke-width':0.8,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);
     var anc=el('circle',{cx:s[0],cy:s[1],r:0.32,fill:nc,'pointer-events':'none'});gAnc.appendChild(anc); // 보이는 원
     var ahR=Math.max(20*pxToWorld(), 1.0); // 클릭영역: 화면 ~20px 고정 (측점 9px보다 크게 → 쉽게 잡힘)
@@ -1161,7 +1178,7 @@ function mergeAftMh(){/* [1445] 자동병합 중단 — 후측 CSV 맨홀/입상
 function _refTxtFix(){/* [1460] field: REF(완료결선 DXF) 텍스트 화면 px 고정 */try{if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return;var host=document.getElementById('gRefDxf');if(!host)return;var U=(typeof pxToWorld==='function')?pxToWorld():0.06;var ts=host.getElementsByTagName('text');for(var i=0;i<ts.length;i++){var t=ts[i];if(t._rht==null||!t._rU)continue;t.setAttribute('font-size',t._rht*(U/t._rU));}}catch(_e){}}
 function _mhLeadSync(){/* [1457] 줄 중 인출선·라벨 좌표만 경량 갱신 — DOM 재생성 없음 */try{if(!(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))))return;var U=(typeof pxToWorld==='function')?pxToWorld():0.06;var EM=15*(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))?0.12:U);/* [1517] 완전 월드고정 */var upd={};var proc=function(mh){var k=mh.id;if(upd[k])return upd[k];var s9=S(mh.wx,mh.wy);var mx=s9[0],my=s9[1];var txtW=0,_lb=(typeof mhDisp==='function')?(''+mhDisp(mh)):(mh.label||'');for(var i=0;i<_lb.length;i++)txtW+=(_lb.charCodeAt(i)>127?EM:EM*0.55);txtW+=EM*0.5;txtW*=0.73;var lp=mhLabelBase(mh,txtW);var ls=S(lp.lx,lp.ly);var isR=(ls[0]>=mx);var u1=ls[0],u2=isR?ls[0]+txtW:ls[0]-txtW,uy=ls[1];return upd[k]={mx:mx,my:my,kx:ls[0],ky:ls[1],u1:u1,u2:u2,uy:uy,tc:(u1+u2)/2,ty:uy-EM*0.95};};var ns=gMH.querySelectorAll('line');for(var i2=0;i2<ns.length;i2++){var e=ns[i2],m=e._mSync;if(!m)continue;var P=proc(m.mh);if(m.t==='d'){e.setAttribute('x1',P.mx);e.setAttribute('y1',P.my);e.setAttribute('x2',P.kx);e.setAttribute('y2',P.ky);}else{e.setAttribute('x1',P.u1);e.setAttribute('y1',P.uy);e.setAttribute('x2',P.u2);e.setAttribute('y2',P.uy);}}if(typeof lblOverlay!=='undefined'&&lblOverlay){var ds=lblOverlay.children;for(var j2=0;j2<ds.length;j2++){var d=ds[j2];if(!d._mSync)continue;var P2=proc(d._mSync.mh);d._sx=P2.tc;d._sy=P2.ty;if(typeof placeLabelDiv==='function')placeLabelDiv(d);}}}catch(_s){}}
 function _fldTamsaPts(){try{if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return [];var arr=(typeof finalCsvArr==='function')?finalCsvArr():[];var key=arr.map(function(f){return (f.name||'')+':'+((f.text||'').length);}).join('|')+'#'+((state.points||[]).length)+'#'+(state.mhDel?Object.keys(state.mhDel).length:0);if(window._ftpC&&window._ftpC.k===key)return window._ftpC.v;var det=/^[tT]?\s*(\d+(?:\.\d+)?)(\s*\([^)]*\))?$/;var out=[];arr.forEach(function(it){var rs=[];try{rs=parseInspCsv(it.text||'');}catch(e){}rs.forEach(function(q){if(q.skip)return;var c=((q.code||'')+'').trim();if(/^l$/i.test(c))return;var m=det.exec(c);if(!m)return;var ex=false,pts=state.points||[];for(var i=0;i<pts.length;i++){if(Math.hypot(pts[i].x-q.ex,pts[i].y-q.no)<0.3){ex=true;break;}}if(ex)return;if(state.mhDel&&state.mhDel[q.ex+'_'+q.no])return;out.push({no:q.name||'',x:q.ex,y:q.no,z:parseFloat(m[1]),code:c});});});window._ftpC={k:key,v:out};return out;}catch(_e){return [];}}function drawTamsaPts(){try{if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return;clearLabels('tamsapt');if(typeof LV!=='undefined'&&LV&&LV.tamsaPt===0)return;var _og9=gMH.querySelectorAll('.sym-tamsapt');for(var _oi9=0;_oi9<_og9.length;_oi9++)_og9[_oi9].remove();var L=_fldTamsaPts();if(!L.length)return;var YC='#e6b800';L.forEach(function(q){var s0=S(q.x,q.y);var _g9=el('g',{'class':'sym-tamsapt'});_g9.appendChild(el('rect',{x:s0[0]-0.147,y:s0[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:YC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));_g9.appendChild(el('line',{x1:s0[0],y1:s0[1],x2:s0[0],y2:s0[1],stroke:YC,'stroke-width':4,'stroke-linecap':'square','vector-effect':'non-scaling-stroke','pointer-events':'none'}));gMH.appendChild(_g9);if(!(typeof LV!=='undefined'&&LV&&LV.depth===0)){var _U8=(typeof pxToWorld==='function')?pxToWorld():0.06;mkLabel(s0[0]+0.07,s0[1],(+q.z).toFixed(2),{fill:'#1f6fd6',weight:'700',anchor:'start',grp:'tamsapt',px:11});}});}catch(_e){}}/* [1480] 탐사 보완점(노랑) 표시 전용 */
-function drawManholes(){
+function drawManholes(){_orgSync();/* [1524] */
   clearSvg(gMH); try{clearSvg(gJBI);}catch(_g7){} clearLabels('mh');clearLabels('riser');clearLabels('tgnotemh');try{drawTamsaPts();}catch(_tp){}/* [1473] IP주 연결선 제거 */
   (state.manholes||[]).forEach(function(mh){if(typeof tgCarMhShow==='function'&&!tgCarMhShow(mh))return;/* [1327] */if(mh.type==='jb'||mh.type==='inlet'){var _s2=S(mh.wx,mh.wy);var _jx=_s2[0],_jy=_s2[1];var _g2=el('g',{'class':'sym-'+mh.type});var _symc=((mh.insp||mh._fromCsv)?'#111':'#1f6fd6');/* [1463] realtime JB/inlet blue */if(mh.type==='jb'){var _U7=((typeof pxToWorld==='function'&&pxToWorld())||0.06);if(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)))_U7=0.294/22;/* [1494] JB=\uce21\uc810\ub3d9\uc77c \uc6d4\ub4dc 0.294m \uc644\uc804\uace0\uc815 */var _gj=el('g',{'class':'jbfix','data-cx':_jx,'data-cy':_jy,transform:'translate('+_jx+' '+_jy+') scale('+_U7+')'});_gj.appendChild(el('rect',{x:-11,y:-11,width:22,height:22,fill:'none',stroke:_symc,'stroke-width':2.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));/* [1494] \ud14c\ub450\ub9ac px \uc720\uc9c0 */var _tB=el('text',{x:0,y:4.3,'text-anchor':'middle','font-size':'12',fill:_symc,'font-weight':'700','pointer-events':'none'});_tB.textContent='B';_gj.appendChild(_tB);_g2.appendChild(_gj);/* [1490] JB px비율 완전고정(스케일 그룹) */}else{var _ir7=(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)))?0.147:(((typeof pxToWorld==='function'&&pxToWorld())||0.06)*5.5);/* [1494] \uc778\uc785=\uce21\uc810\ub3d9\uc77c \uc6d4\ub4dc r0.147 \uc644\uc804\uace0\uc815 */var _ic7=el('circle',{cx:_jx,cy:_jy,r:_ir7,fill:_symc,'class':'inlt','pointer-events':'none'});gJBI.appendChild(_ic7);/* [1488] 인입 px고정 크기·관로선 아래 */}/* [1443] JB=맨홀사이즈(0.294)·인입=속찬 원(SD214 bulge 재해석) */gMH.appendChild(_g2);if(!viewerMode&&!readOnly){var _jh=el('circle',{cx:_jx,cy:_jy,r:Math.max((typeof pxToWorld==='function'?pxToWorld():0.06)*12,0.3),fill:'transparent','pointer-events':'all'});_jh.style.cursor='pointer';_jh.addEventListener('mouseenter',function(){if(mode==='delall2'||mode==='delmh'){_jh.setAttribute('fill','rgba(211,47,47,0.28)');_jh.setAttribute('stroke','#d32f2f');_jh.setAttribute('stroke-width','2');_jh.setAttribute('vector-effect','non-scaling-stroke');}});_jh.addEventListener('mouseleave',function(){_jh.setAttribute('fill','transparent');_jh.removeAttribute('stroke');});_jh.addEventListener('pointerdown',function(ev){if(mode!=='delall2'&&mode!=='delmh')return;ev.stopPropagation();ev.preventDefault();pushHist();var _ix=state.manholes.indexOf(mh);if(_ix>=0)state.manholes.splice(_ix,1);if(typeof saveProject==='function'){try{saveProject();}catch(_e){}}redrawAll();toast(mh.type==='jb'?'JB 삭제':'인입 삭제');_da2Off();});gMH.appendChild(_jh);}return;}/* [1442] JB/인입 심벌 */
     var isRiser=(mh.type==='riser');var MHC=(mh._fromCsv&&isRiser)?'#111':((mh._aft||mh.insp||(state.tamsa&&!isRiser))?'#111':'#1f6fd6');/* [1445] 후측 CSV 맨홀 검정 고정 *//* [1380] CSV 전주 검정 */
@@ -1528,12 +1545,12 @@ function removeManholePassLines(mh){
 function drawMarks(){ clearSvg(gMark); clearLabels('mk');
   state.markups.forEach(function(m){
     var insp=(m.near==='관공수'||m.near==='중복'||m.near==='끝점'); // 검수 오류 서클(자동검출)
-    var sh=m.type==='cir'?el('ellipse',{cx:m.cx,cy:m.cy,rx:m.rx,ry:m.ry}):el('rect',{x:m.x,y:m.y,width:m.w,height:m.h,rx:0.4});
+    var sh=m.type==='cir'?el('ellipse',{cx:m.cx-ORG.x,cy:m.cy+ORG.y,rx:m.rx,ry:m.ry}):el('rect',{x:m.x-ORG.x,y:m.y+ORG.y,width:m.w,height:m.h,rx:0.4});/* [1524] */
     var fillCol=m.soft?'#ffb74d':(insp?'#f4c400':(m.near==='특이사항'?'#87ceeb':MKCOL[m.status])); var strokeCol=m.soft?'#f57c00':(m.near==='특이사항'?'#1565c0':MKCOL[m.status]);
     sh.setAttribute('fill',fillCol);sh.setAttribute('fill-opacity',insp?0.25:(m.near==='특이사항'?0.32:0.13));sh.setAttribute('stroke',strokeCol);sh.setAttribute('stroke-width',m.near==='특이사항'?3.2:2);sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');
     gMark.appendChild(sh); m.el=sh;
-    if(m.seg){var ln=el('line',{x1:m.seg[0][0],y1:m.seg[0][1],x2:m.seg[1][0],y2:m.seg[1][1],stroke:'#16a34a','stroke-width':2.6,'stroke-dasharray':'6 4','stroke-linecap':'butt','vector-effect':'non-scaling-stroke','pointer-events':'none'});gMark.appendChild(ln);} // 20m 초과 구간 = 초록 점선
-    if(m.num!=null&&m.num!=='')mkLabel(m.cx, m.cy, String(m.num), {fill:m.soft?'#f57c00':'#c0392b',weight:'800',anchor:'middle',grp:'mk',px:15}); // 오류 번호(써클 중앙) — 써클 지우면 같이 사라짐
+    if(m.seg){var ln=el('line',{x1:m.seg[0][0]-ORG.x,y1:m.seg[0][1]+ORG.y,x2:m.seg[1][0]-ORG.x,y2:m.seg[1][1]+ORG.y,stroke:'#16a34a','stroke-width':2.6,'stroke-dasharray':'6 4','stroke-linecap':'butt','vector-effect':'non-scaling-stroke','pointer-events':'none'});gMark.appendChild(ln);} // 20m 초과 구간 = 초록 점선
+    if(m.num!=null&&m.num!=='')mkLabel(m.cx-ORG.x, m.cy+ORG.y, String(m.num), {fill:m.soft?'#f57c00':'#c0392b',weight:'800',anchor:'middle',grp:'mk',px:15}); // 오류 번호(써클 중앙) — 써클 지우면 같이 사라짐
     if(m.near==='중복'&&m.cnt){mkLabel(m.cx, m.cy-(m.ry||0.7)-0.35, m.cnt+'선', {fill:'#d32f2f',weight:'700',anchor:'middle',grp:'mk',px:14});}
     if(m.near==='특이사항'&&m.note){var _pd=(typeof nearestPipeDir==='function'&&nearestPipeDir(m.cx,m.cy,999))||[0,1,0];var _off=(m.rx||1.4)+0.9;var _tx=m.cx+_pd[0]*_off, _ty=m.cy+_pd[1]*_off;var _anc=_pd[0]>=0?'start':'end';mkLabel(_tx, _ty, m.note, {fill:'#d32f2f',weight:'800',anchor:_anc,grp:'mk',px:((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))?16:Math.max(14,Math.min(28,1.2/((typeof pxToWorld==='function'&&pxToWorld())||0.06)))});}
   });
@@ -1590,7 +1607,7 @@ function drawBackdrop(){
 }
 function fixAspect(){var r=cv.getBoundingClientRect();if(r.width<1||r.height<1)return;var car=r.width/r.height,cx=vb.x+vb.w/2,cy=vb.y+vb.h/2;if(vb.w/vb.h<car)vb.w=vb.h*car;else vb.h=vb.w/car;vb.x=cx-vb.w/2;vb.y=cy-vb.h/2;}
 function fitSoon(){var n=0;(function go(){var done=false;try{var r=cv.getBoundingClientRect();if(r.width>=1&&r.height>=1){fitView();requestAnimationFrame(function(){if(typeof drawGeo==='function')drawGeo();});done=true;}}catch(e){}if(!done&&n++<50)requestAnimationFrame(go);})();}
-function fitView(){
+function fitView(){_orgSync();/* [1524] */
   var xs=[],ys=[];function add(x,y){if(!isFinite(x)||!isFinite(y))return;var s=S(x,y);xs.push(s[0]);ys.push(s[1]);}
   state.points.forEach(function(p){add(p.x,p.y);});
   state.lines.forEach(function(L){L.pts.forEach(function(p){add(p[0],p[1]);});});if(state.gpsPts){var _haveF={};(state.points||[]).forEach(function(p){_haveF[p.no]=1;});var _nsF2=state.nightShift,_cutF2=(_nsF2&&_nsF2.on)?_nsF2.cut:null;state.gpsPts.forEach(function(g){var _wnoF2=g.no;if(g._d0!=null&&g._nm!=null){var _dtF2=g._d0;if(_cutF2!=null&&g._tm!=null&&g._tm<_cutF2)_dtF2=prevDayYMD(g._d0);_wnoF2=_dtF2+'-'+g._nm;}if(_haveF[g.no]||_haveF[_wnoF2])return;add(g.x,g.y);});}
@@ -1635,7 +1652,7 @@ function clipPolyRect(pts,xmin,ymin,xmax,ymax){
 }
 function drawBpRect(){
   if(!bpCrop)return;clearSvg(gDraft);
-  var x=Math.min(bpCrop.sx,bpCrop.ex),y=Math.min(bpCrop.sy,bpCrop.ey),
+  var x=Math.min(bpCrop.sx,bpCrop.ex)-ORG.x,y=Math.min(bpCrop.sy,bpCrop.ey)+ORG.y,/* [1524] */
       w=Math.abs(bpCrop.ex-bpCrop.sx),h=Math.abs(bpCrop.ey-bpCrop.sy);
   var r=el('rect',{x:x,y:y,width:w,height:h,fill:'rgba(122,82,224,0.06)',stroke:'#000','stroke-width':1.2,'vector-effect':'non-scaling-stroke','stroke-dasharray':'4 3','pointer-events':'none'});
   gDraft.appendChild(r);
@@ -1702,13 +1719,13 @@ function bpEraseAt(cw){
   else{state.baseTexts.splice(best.i,1);drawGeo();toast('백판 텍스트 삭제');}
   clearSvg(gDraw);
 }
-function toWorld(cx,cy){var m=null;try{m=cv.getScreenCTM();}catch(e){}if(m&&m.a){var im=m.inverse();return [im.a*cx+im.c*cy+im.e, im.b*cx+im.d*cy+im.f];}var r=cv.getBoundingClientRect();return [vb.x+(cx-r.left)/r.width*vb.w, vb.y+(cy-r.top)/r.height*vb.h];}
-function zoomAt(f,cx,cy){var w=toWorld(cx,cy),r=cv.getBoundingClientRect();vb.w*=f;vb.h*=f;vb.x=w[0]-(cx-r.left)/r.width*vb.w;vb.y=w[1]-(cy-r.top)/r.height*vb.h;applyVB();if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();}
+function toWorld(cx,cy){var m=null;try{m=cv.getScreenCTM();}catch(e){}if(m&&m.a){var im=m.inverse();return [im.a*cx+im.c*cy+im.e+ORG.x, im.b*cx+im.d*cy+im.f-ORG.y];}var r=cv.getBoundingClientRect();return [vb.x+(cx-r.left)/r.width*vb.w+ORG.x, vb.y+(cy-r.top)/r.height*vb.h-ORG.y];}/* [1524] \ucd9c\ub825=\uae30\uc874 WF \uadf8\ub300\ub85c(\uc800\uc7a5\ub370\uc774\ud130 \ubb34\ub9c8\uc774\uadf8\ub808\uc774\uc158) */
+function zoomAt(f,cx,cy){var w=SL(toWorld(cx,cy)),r=cv.getBoundingClientRect();vb.w*=f;vb.h*=f;vb.x=w[0]-(cx-r.left)/r.width*vb.w;vb.y=w[1]-(cy-r.top)/r.height*vb.h;applyVB();if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();}
 
 /* ====== 결선 ====== */
-function nearestPointWorld(wx,wy){var best=null,bd=1e18;state.points.forEach(function(p){var s=S(p.x,p.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;best=p;}});return {p:best,d:Math.sqrt(bd)};}
+function nearestPointWorld(wx,wy){wx-=ORG.x;wy+=ORG.y;/* [1524] WF\uc778\uc790\u2192LOCAL */var best=null,bd=1e18;state.points.forEach(function(p){var s=S(p.x,p.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;best=p;}});return {p:best,d:Math.sqrt(bd)};}
 // 그리기 스냅: 측점 + 맨홀 중심 중 가장 가까운 것 (pt=[worldX,worldY])
-function nearestSnapWorld(wx,wy){var bd=1e18,pt=null;
+function nearestSnapWorld(wx,wy){wx-=ORG.x;wy+=ORG.y;/* [1524] */var bd=1e18,pt=null;
   state.points.forEach(function(p){var s=S(p.x,p.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;pt=[p.x,p.y];}});
   (state.manholes||[]).forEach(function(mh){var s=S(mh.wx,mh.wy);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;pt=[mh.wx,mh.wy];}});
   try{if(window._drawBult&&mode==='line'&&typeof _fldTamsaPts==='function'){_fldTamsaPts().forEach(function(q){var s=S(q.x,q.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;pt=[q.x,q.y];}});}}catch(_t){}/* [1512] 불탐 그리기 중 노란측점 스냅 */
@@ -5594,13 +5611,13 @@ function drawIndicators(cw){clearSvg(gDraw);if(mode!=='line'||!lineDraft)return;
       var _hr=Math.max(0.35,13*pxToWorld());
       gDraw.appendChild(el('circle',{cx:s2[0],cy:s2[1],r:_hr,fill:'none',stroke:'#d500f2','stroke-width':2.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));   /* [1192] 스냅 후보 마젠타 원 */
     }}}
-function delHoverHighlight(cw){clearSvg(gDraw);var best=null,bd=1e18;
-  state.lines.forEach(function(L){if(L.base||(mode!=='delall2'&&L.layer!==delLayer))return;for(var s=0;s<L.pts.length-1;s++){var a=S(L.pts[s][0],L.pts[s][1]),b=S(L.pts[s+1][0],L.pts[s+1][1]);var d=segDist(cw[0],cw[1],a[0],a[1],b[0],b[1]);if(d<bd){bd=d;best={a:a,b:b,layer:L.layer};}}});
+function delHoverHighlight(cw){var _cl=SL(cw);/* [1524] */clearSvg(gDraw);var best=null,bd=1e18;
+  state.lines.forEach(function(L){if(L.base||(mode!=='delall2'&&L.layer!==delLayer))return;for(var s=0;s<L.pts.length-1;s++){var a=S(L.pts[s][0],L.pts[s][1]),b=S(L.pts[s+1][0],L.pts[s+1][1]);var d=segDist(_cl[0],_cl[1],a[0],a[1],b[0],b[1]);if(d<bd){bd=d;best={a:a,b:b,layer:L.layer};}}});
   if(best&&bd<vb.w*0.03){var col=(LINECOL[best.layer]||{}).c||'#d92b2b';gDraw.appendChild(el('line',{x1:best.a[0],y1:best.a[1],x2:best.b[0],y2:best.b[1],stroke:col,'stroke-width':6,'stroke-opacity':0.4,'vector-effect':'non-scaling-stroke','stroke-linecap':'round','pointer-events':'none'}));}
   if(mode==='delall2'){ // 검수 써클·박스도 마우스가 위에 오면 두껍게
     var mb=-1,mbd=1e18;
     state.markups.forEach(function(m,i){var cx=m.type==='cir'?m.cx:(m.x+m.w/2),cy=m.type==='cir'?m.cy:(m.y+m.h/2);var rr=m.type==='cir'?Math.max(m.rx,m.ry):Math.max(m.w,m.h)/2;var d=Math.hypot(cw[0]-cx,cw[1]-cy);if(d<rr+vb.w*0.015&&d<mbd){mbd=d;mb=i;}});
-    if(mb>=0){var m=state.markups[mb];var sh=m.type==='cir'?el('ellipse',{cx:m.cx,cy:m.cy,rx:m.rx,ry:m.ry}):el('rect',{x:m.x,y:m.y,width:m.w,height:m.h,rx:0.4});sh.setAttribute('fill','none');sh.setAttribute('stroke',MKCOL[m.status]||'#d32f2f');sh.setAttribute('stroke-width',7);sh.setAttribute('stroke-opacity',0.55);sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');gDraw.appendChild(sh);}
+    if(mb>=0){var m=state.markups[mb];var sh=m.type==='cir'?el('ellipse',{cx:m.cx-ORG.x,cy:m.cy+ORG.y,rx:m.rx,ry:m.ry}):el('rect',{x:m.x-ORG.x,y:m.y+ORG.y,width:m.w,height:m.h,rx:0.4});/* [1524] */sh.setAttribute('fill','none');sh.setAttribute('stroke',MKCOL[m.status]||'#d32f2f');sh.setAttribute('stroke-width',7);sh.setAttribute('stroke-opacity',0.55);sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');gDraw.appendChild(sh);}
   }
 }
 function startDraw(layer,bult){drawLayer=layer||'통신관로';window._drawBult=!!bult;/* [1511] */mode='line';setModeUI();lineDraft=[];clearSvg(gDraft);clearSvg(gDraw);toast((drawLayer==='지거'?'지거선':(drawLayer==='압입구간'?'압입구간':'관로선'))+' 그리기: 점 클릭 → Enter/Space 또는 "완료" (되돌리기=한 점 취소)');}
@@ -5628,7 +5645,7 @@ function clearAllSym(){
   toast('선·심벌 전체 삭제 ('+nL+'선·'+nM+'심벌 / 되돌리기로 복구)');
 }
 function segDist(px,py,ax,ay,bx,by){var dx=bx-ax,dy=by-ay,L2=dx*dx+dy*dy,t=L2?((px-ax)*dx+(py-ay)*dy)/L2:0;t=Math.max(0,Math.min(1,t));var cx=ax+t*dx,cy=ay+t*dy;return Math.hypot(px-cx,py-cy);}
-function deleteSegmentAt(wx,wy){
+function deleteSegmentAt(wx,wy){wx-=ORG.x;wy+=ORG.y;/* [1524] */
   var best=null,bd=1e18;
   state.lines.forEach(function(L,li){ if(L.base||(mode!=='delall2'&&L.layer!==delLayer))return;
     for(var s=0;s<L.pts.length-1;s++){var a=S(L.pts[s][0],L.pts[s][1]),b=S(L.pts[s+1][0],L.pts[s+1][1]);
@@ -5677,14 +5694,14 @@ cv.addEventListener('pointermove',function(ev){if(mode==='roadfollow'){var _w=to
 cv.addEventListener('pointerdown',function(e){
   if(typeof _tgMode==='function'&&_tgMode()&&mode!=='pan'&&mode!=='tgptedit'&&mode!=='tglineedit'&&mode!=='tglinedel'&&mode!=='measure'&&mode!=='tgsegfix'&&mode!=='tgsegadd'){if(typeof toast==='function')toast('탱고성과 제작 중에는 검수 편집도구를 쓸 수 없습니다');mode='pan';if(typeof setModeUI==='function')setModeUI();return;}
   if(mode==='bpcrop'&&e.button===0){var w=toWorld(e.clientX,e.clientY);bpCrop={sx:w[0],sy:w[1],ex:w[0],ey:w[1]};try{cv.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();return;}
-  if(mode==='bperase'&&e.button===0){bpEraseAt(toWorld(e.clientX,e.clientY));e.preventDefault();return;}
+  if(mode==='bperase'&&e.button===0){bpEraseAt(SL(toWorld(e.clientX,e.clientY)));e.preventDefault();return;}
   if(e.pointerType==='touch'){activePtrs[e.pointerId]={x:e.clientX,y:e.clientY};
     var pids=Object.keys(activePtrs);
     if(pids.length>=2){ // 두 손가락 = 핀치 확대/축소(+이동)
       dragging=false;midPanning=false;drawing=false;pendAct=null;cv.style.cursor='';
       var pa=activePtrs[pids[0]],pb=activePtrs[pids[1]];
       var pmx=(pa.x+pb.x)/2,pmy=(pa.y+pb.y)/2;
-      pinch={d0:Math.max(1,Math.hypot(pa.x-pb.x,pa.y-pb.y)),w0:toWorld(pmx,pmy),vbw0:vb.w,vbh0:vb.h};
+      pinch={d0:Math.max(1,Math.hypot(pa.x-pb.x,pa.y-pb.y)),w0:SL(toWorld(pmx,pmy)),vbw0:vb.w,vbh0:vb.h};
       try{cv.setPointerCapture(e.pointerId);}catch(x){}
       return;
     }
@@ -5725,7 +5742,7 @@ cv.addEventListener('pointerdown',function(e){
     deleteSegmentAt(wd[0],wd[1]);}
   else if(mode==='measure'){var wm=toWorld(e.clientX,e.clientY);var nm=nearestSnapWorld(wm[0],wm[1]);var mp=(nm.pt&&nm.d<vb.w*0.04)?[nm.pt[0],nm.pt[1]]:[wm[0],-wm[1]];measureClick(mp);return;}
   else if(mode==='delmh'){/* 맨홀 삭제 모드: 빈 곳 클릭은 아무것도 안 함 (맨홀 클릭은 심벌 핸들러가 처리) */return;}
-  else{drawing=true;var w2=toWorld(e.clientX,e.clientY);sx=w2[0];sy=w2[1];
+  else{drawing=true;var w2=SL(toWorld(e.clientX,e.clientY));sx=w2[0];sy=w2[1];
     cur=el(mode==='box'?'rect':'ellipse',{fill:MKCOL[status],'fill-opacity':0.13,stroke:MKCOL[status],'stroke-width':2,'vector-effect':'non-scaling-stroke','pointer-events':'none'});
     if(mode==='box'){cur.setAttribute('x',sx);cur.setAttribute('y',sy);cur.setAttribute('width',0);cur.setAttribute('height',0);cur.setAttribute('rx',0.4);}else{cur.setAttribute('cx',sx);cur.setAttribute('cy',sy);cur.setAttribute('rx',0);cur.setAttribute('ry',0);}
     gMark.appendChild(cur);}
@@ -5739,7 +5756,7 @@ cv.addEventListener('pointermove',function(e){
   if(roadEditVtx){var _rw=toWorld(e.clientX,e.clientY);state.roadZones[roadEditVtx.zi].poly[roadEditVtx.vi]=[_rw[0],-_rw[1]];drawGeo();return;}
   if(bpDragZone){var dw=toWorld(e.clientX,e.clientY);bpDragZone.lx=dw[0];bpDragZone.ly=-dw[1];drawGeo();return;}
   if(bpCrop){var w=toWorld(e.clientX,e.clientY);bpCrop.ex=w[0];bpCrop.ey=w[1];drawBpRect();return;}
-  if(mode==='bperase'&&!midPanning){bpHover(toWorld(e.clientX,e.clientY));return;}
+  if(mode==='bperase'&&!midPanning){bpHover(SL(toWorld(e.clientX,e.clientY)));return;}
   if((mode==='bpz1'||mode==='bpz2')&&!midPanning&&!dragging&&!pinch){var hw=toWorld(e.clientX,e.clientY);bpHoverPt(hw);if(mode==='bpz2'&&bpFirst){var hbp=nearBpPoint(hw[0],-hw[1]);bpPreview(bpFirst,hbp?[hbp.x,hbp.y]:[hw[0],-hw[1]]);}else bpPreviewClear();return;}
   if(mode==='bpzdel'&&!midPanning){var _ew=toWorld(e.clientX,e.clientY),_ex=_ew[0],_ey=-_ew[1],_hi=-1;if(state.bpzones)for(var _zi=0;_zi<state.bpzones.length;_zi++){var _pl=bpOffsetBand(bpPathOf(state.bpzones[_zi]),5);if(_pl&&bpPtInPoly(_ex,_ey,_pl)){_hi=_zi;break;}}if(_hi!==bpEraseHover){bpEraseHover=_hi;drawGeo();}return;}
   if(e.pointerType==='touch'&&activePtrs[e.pointerId]){activePtrs[e.pointerId].x=e.clientX;activePtrs[e.pointerId].y=e.clientY;}
@@ -5760,8 +5777,8 @@ cv.addEventListener('pointermove',function(e){
   if(dragging){var r=cv.getBoundingClientRect();var dx=(e.clientX-startC[0])/r.width*startVB.w,dy=(e.clientY-startC[1])/r.height*startVB.h;vb.x=startVB.x-dx;vb.y=startVB.y-dy;applyVB();}
   else if(mode==='line'&&lineDraft&&lineDraft.length){var w=toWorld(e.clientX,e.clientY);var last=S(lineDraft[lineDraft.length-1][0],lineDraft[lineDraft.length-1][1]);
     if(!previewLine){previewLine=el('line',{stroke:(window._drawBult?'#e6b800':((LINECOL[drawLayer]||{}).c||'#d92b2b')),'stroke-width':1.2,'stroke-dasharray':'4 3','vector-effect':'non-scaling-stroke','pointer-events':'none'});gDraft.appendChild(previewLine);}
-    previewLine.setAttribute('x1',last[0]);previewLine.setAttribute('y1',last[1]);previewLine.setAttribute('x2',w[0]);previewLine.setAttribute('y2',w[1]);}
-  else if(drawing&&cur){var w=toWorld(e.clientX,e.clientY),x=w[0],y=w[1];
+    previewLine.setAttribute('x1',last[0]);previewLine.setAttribute('y1',last[1]);previewLine.setAttribute('x2',w[0]-ORG.x);previewLine.setAttribute('y2',w[1]+ORG.y);}
+  else if(drawing&&cur){var w=SL(toWorld(e.clientX,e.clientY)),x=w[0],y=w[1];
     if(mode==='box'){cur.setAttribute('x',Math.min(sx,x));cur.setAttribute('y',Math.min(sy,y));cur.setAttribute('width',Math.abs(x-sx));cur.setAttribute('height',Math.abs(y-sy));}
     else{cur.setAttribute('cx',(sx+x)/2);cur.setAttribute('cy',(sy+y)/2);cur.setAttribute('rx',Math.abs(x-sx)/2);cur.setAttribute('ry',Math.abs(y-sy)/2);}}
 });
@@ -5785,8 +5802,8 @@ function endPtr(e){
     var isBox=mode==='box';var w=isBox?+cur.getAttribute('width'):+cur.getAttribute('rx')*2;var h=isBox?+cur.getAttribute('height'):+cur.getAttribute('ry')*2;
     if(w<0.4&&h<0.4){cur.remove();cur=null;return;}
     var ccx=isBox?(+cur.getAttribute('x')+w/2):+cur.getAttribute('cx');var ccy=isBox?(+cur.getAttribute('y')+h/2):+cur.getAttribute('cy');
-    var np=nearestPointWorld(ccx,ccy);var rec={type:isBox?'box':'cir',status:status,near:np.p?np.p.no:'-',el:cur};
-    if(isBox){rec.x=+cur.getAttribute('x');rec.y=+cur.getAttribute('y');rec.w=w;rec.h=h;}else{rec.cx=+cur.getAttribute('cx');rec.cy=+cur.getAttribute('cy');rec.rx=+cur.getAttribute('rx');rec.ry=+cur.getAttribute('ry');}
+    var np=nearestPointWorld(ccx+ORG.x,ccy-ORG.y);/* [1524] LOCAL\u2192WF */var rec={type:isBox?'box':'cir',status:status,near:np.p?np.p.no:'-',el:cur};
+    if(isBox){rec.x=+cur.getAttribute('x')+ORG.x;rec.y=+cur.getAttribute('y')-ORG.y;rec.w=w;rec.h=h;}else{rec.cx=+cur.getAttribute('cx')+ORG.x;rec.cy=+cur.getAttribute('cy')-ORG.y;rec.rx=+cur.getAttribute('rx');rec.ry=+cur.getAttribute('ry');}/* [1524] WF \uc800\uc7a5 */
     pushHist();state.markups.push(rec);cur=null;renderRecs();}
 }
 cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endPtr);
@@ -10612,7 +10629,7 @@ function syncMapBgNow(){
   _bgSync=true;
   try{
     var crs=state.crs||'5186';
-    var wE=vb.x+vb.w/2,wN=-(vb.y+vb.h/2);
+    var wE=vb.x+vb.w/2+ORG.x,wN=ORG.y-(vb.y+vb.h/2);/* [1524] */
     var ll=toLatLng(wE,wN,crs);
     if(ll){
       bgmap.setCenter(new kakao.maps.LatLng(ll.lat,ll.lng));
@@ -14239,7 +14256,7 @@ function wheelFactor(){
    보간 중에는 viewBox 스케일만(가벼움), drawGeo/drawManholes 는 제스처 종료 시 1회.
    최종 배율·마우스 앵커점·감도(wheelFactor)는 기존과 동일. */
 function zoomAtLight(f,cx,cy){
-  var w=toWorld(cx,cy),r=cv.getBoundingClientRect();
+  var w=SL(toWorld(cx,cy)),r=cv.getBoundingClientRect();
   vb.w*=f;vb.h*=f;
   vb.x=w[0]-(cx-r.left)/r.width*vb.w;
   vb.y=w[1]-(cy-r.top)/r.height*vb.h;
