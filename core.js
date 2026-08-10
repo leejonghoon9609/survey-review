@@ -1136,6 +1136,13 @@ function drawGeo(){_orgSync();/* [1524] */if(typeof _tgCarGeomBuild==='function'
      종류별 사진이 한 장도 없으면 그 종류는 판정 제외(업로드 전 도배 방지).
      색: 둘다없음=빨강 / 노출관로없음=주황 / 후측량없음=파랑.
      크기: 화면 6~12px (zoomAt이 drawGeo 재호출 -> 줌마다 재계산, 함정 E 해소) */
+  /* [1539] \ud6c4\uce21\ub7c9 CSV \ub85c\ub529 \uc2dc \uc2ec\ub3c4 \ubbf8\ubc30\uc815 \uce21\uc810 = \ub9c8\uc820\ud0c0 \ud14c\ub450\ub9ac+\ubd89\uc740 \ucc44\uc6c0 \uc6d0 (\uc2ec\ub3c4 \ub808\uc774\uc5b4 \uc5f0\ub3d9) */
+  try{if(typeof IS_FIELD!=='undefined'&&IS_FIELD&&!state.tamsa&&state.depthGround&&state.depthGround.length&&!(typeof LV!=='undefined'&&LV&&LV.depth===0)){
+    var _dbn9=state._depthByNo||{};
+    state.points.forEach(function(p){if(p._hyun)return;if(typeof isRiserPt==='function'&&isRiserPt(p))return;if(typeof isManhole==='function'&&isManhole(p))return;if(!/[xX\u00D7]\s*\d+/.test(p.code||''))return;
+      var _dv9=_dbn9[p.no];if(_dv9!=null&&_dv9!==''&&isFinite(+_dv9))return;
+      var _ps9=S(p.x,p.y);gPts.appendChild(el('circle',{cx:_ps9[0],cy:_ps9[1],r:0.6,fill:'#d32f2f','fill-opacity':0.3,stroke:'#d500f2','stroke-width':2.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));});
+  }}catch(_dm9){}
   try{if(typeof photoMap!=='undefined'&&photoMap&&typeof afterMap!=='undefined'&&afterMap){
     var _refPrj=!!(typeof REF!=='undefined'&&REF&&REF.ents); /* [1278] 완료결선 업로드 사업 판별(REF 결선 존재) */
     var _yOn=!(typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof photoPanelOpen!=='undefined'&&photoPanelOpen); /* [1280] field=사진 모드에서만 표시 */
