@@ -1193,13 +1193,12 @@ function drawManholes(){
 
     if(isRiser){
       // 입상주 = 테이퍼 목주(전봇대): 밑동이 넓고 위로 갈수록 좁아짐. 중심점=밑동(mx,my). 색=파랑
-      var H=0.9, wB=0.16, wT=0.05, armW=0.27, armY=my-H*0.74, RC=MHC;/* [1375] CSV 전주 검정 */
-      var gR=el('g',{'class':'sym-riser'});gMH.appendChild(gR);
-      gR.appendChild(el('line',{x1:mx-wB,y1:my,x2:mx-wT,y2:my-H,stroke:RC,'stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-      gR.appendChild(el('line',{x1:mx+wB,y1:my,x2:mx+wT,y2:my-H,stroke:RC,'stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-      gR.appendChild(el('line',{x1:mx-armW,y1:armY,x2:mx+armW,y2:armY,stroke:RC,'stroke-width':2.2,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-      gR.appendChild(el('ellipse',{cx:mx,cy:my-H,rx:wT+0.05,ry:0.05,fill:'none',stroke:RC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
-      gR.appendChild(el('line',{x1:mx,y1:my,x2:mx,y2:my,stroke:RC,'stroke-width':5,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'})); // 밑동 중심점(화면고정)
+      var RC=MHC;var _isEJ9=/한전주/.test(mh.label||'');/* [1516] EJ=SD000(원+ETC) TJ·IP=SD300(원+좌반원호), 월드 r0.375 고정 */
+      var _sc9=0.375/11;var gR=el('g',{'class':'sym-riser','data-cx':mx,'data-cy':my,transform:'translate('+mx+' '+my+') scale('+_sc9+')'});gMH.appendChild(gR);
+      gR.appendChild(el('circle',{cx:0,cy:0,r:11,fill:'none',stroke:RC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
+      if(_isEJ9){var _tE9=el('text',{x:0,y:0,'text-anchor':'middle','dominant-baseline':'central','font-size':'5.5',fill:RC,'font-weight':'700','pointer-events':'none'});_tE9.textContent='ETC';gR.appendChild(_tE9);}
+      else{gR.appendChild(el('path',{d:'M -0.18 -7.39 A 7.392 7.392 0 0 0 -0.18 7.39',fill:'none',stroke:RC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}
+      gR.appendChild(el('circle',{cx:0,cy:0,r:0.6,fill:RC,'pointer-events':'none'}));
     } else {
       // 맨홀 = 이중원(◎) + 중심점
       gMH.appendChild(el('circle',{cx:mx,cy:my,r:0.294,fill:'none',stroke:MHC,'stroke-width':1.4,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
@@ -1408,7 +1407,7 @@ function _tjTokOf(c){var t=(''+(c||'')).trim().toUpperCase().split(/\s+/);for(va
 function buildRisersFromCsv(){if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))state.mhDel=null;/* [1353][1471] field는 묘비 유지 */
   var arr=(typeof finalCsvArr==='function')?finalCsvArr():[];
   var rows=[];
-  arr.forEach(function(it){var rs;try{rs=parseInspCsv(it.text||'');}catch(e){rs=[];}rs.forEach(function(p){if(p.skip)return;var c=(p.code||'').trim();var _tk9=_tjTokOf(c);if(_tk9)rows.push({x:p.ex,y:p.no,no:p.name||'',code:_tk9,surface:p.surface||'',pave:p.pave||''});else if((typeof IS_FIELD!=='undefined'&&IS_FIELD)&&/^(입상|ip\s*주|통신주입상|통신입상)/i.test(c)){var _pp9=/\(([^)]+)\)/.exec(c);rows.push({x:p.ex,y:p.no,no:p.name||'',code:'IPJU',spec:(_pp9?_pp9[1]:''),surface:p.surface||'',pave:p.pave||''});}else if((typeof IS_FIELD!=='undefined'&&IS_FIELD)&&/(입상|ip)/i.test(c)&&!/^(in|tj|ej)/i.test(c)){try{console.info('[IP주 미매칭 코드]',JSON.stringify(c),'측점',p.name||'');}catch(_l9){}}/* [1463] IP주 2점짝중점(field) *//* [1416] */});});
+  arr.forEach(function(it){var rs;try{rs=parseInspCsv(it.text||'');}catch(e){rs=[];}rs.forEach(function(p){if(p.skip)return;var c=(p.code||'').trim();var _tk9=_tjTokOf(c);if(_tk9)rows.push({x:p.ex,y:p.no,no:p.name||'',code:_tk9,surface:p.surface||'',pave:p.pave||''});else if((typeof IS_FIELD!=='undefined'&&IS_FIELD)&&/^(입상|ip\s*주|ip\b|통신주입상|통신입상)/i.test(c)){var _pp9=/\(([^)]+)\)/.exec(c);rows.push({x:p.ex,y:p.no,no:p.name||'',code:'IPJU',spec:(_pp9?_pp9[1]:''),surface:p.surface||'',pave:p.pave||''});}else if((typeof IS_FIELD!=='undefined'&&IS_FIELD)&&/(입상|ip)/i.test(c)&&!/^(in|tj|ej)/i.test(c)){try{console.info('[IP주 미매칭 코드]',JSON.stringify(c),'측점',p.name||'');}catch(_l9){}}/* [1463] IP주 2점짝중점(field) *//* [1416] */});});
   if(!rows.length)return 0;
   if(state.tamsa)state.points.forEach(function(p){if(_tjTokOf(p.code))p._hideMark=true;});/* [1416] */
   var _keepR={};(state.manholes||[]).forEach(function(m){if(m._fromCsv&&m.type==='riser'&&m._edited&&m.wx!=null)_keepR[m.wx+'_'+m.wy]=1;});state.manholes=(state.manholes||[]).filter(function(m){return !(m._fromCsv&&m.type==='riser'&&!m._edited);});   /* [1161][1483] 수정 입상 보존 */
@@ -2171,7 +2170,7 @@ function _exportDXFInner(returnStr){
   function _pdfCirc(cx,cy,r,col,layer){_pq(4,function(){var d=_PDF.doc,c=ACIrgb(col);d.setDrawColor(c[0],c[1],c[2]);d.setLineWidth(_PDF.lw);d.setLineDashPattern([],0);d.circle(PX(cx),PY(cy),Math.max(0.2,r*_PDF.sc),'S');});}
   function _pdfLine(x1,y1,x2,y2,col,lt,layer){_pq(2,function(){var d=_PDF.doc,c=ACIrgb(col);d.setDrawColor(c[0],c[1],c[2]);d.setLineWidth(_PDF.lw);d.setLineDashPattern(lt==='DASHED'?[1.0,0.7]:[],0);d.line(PX(x1),PY(y1),PX(x2),PY(y2));d.setLineDashPattern([],0);});}
   function _pdfText(x,y,h,s,layer,col,align,rot,valign){if(s==null||s==='')return;var z=(layer==='PT_DEPTH')?9:5;var tc=(layer==='PT_DEPTH')?[0,40,150]:ACIrgb(col);_pq(z,function(){var d=_PDF.doc;d.setTextColor(tc[0],tc[1],tc[2]);var fmm=h*_PDF.sc;if(layer==='DEPTHCHK')fmm*=1.25;var fpt=fmm*2.8346;if(fpt<1.2)fpt=1.2;d.setFontSize(fpt);if(layer==='PT_DEPTH'){var oo={align:'center',baseline:(valign===1)?'bottom':(valign===3)?'top':'alphabetic'};if(rot)oo.angle=-rot;try{d.text(String(s),PX(x),PY(y),oo);}catch(e){}return;}var o={align:(align===1)?'center':(align===2)?'right':'left',baseline:(valign===2)?'middle':(valign===3)?'top':'alphabetic'};if(rot)o.angle=-rot;try{d.text(String(s),PX(x),PY(y),o);}catch(e){}});}
-  function _pdfInsert(name,x,y,sc,col){_pq(4,function(){var d=_PDF.doc,c=ACIrgb(col);d.setDrawColor(c[0],c[1],c[2]);d.setLineWidth(_PDF.lw);d.setLineDashPattern([],0);var px=PX(x),py=PY(y);if(name==='SD100'){d.circle(px,py,Math.max(0.3,0.504*sc*_PDF.sc*0.65),'S');d.circle(px,py,Math.max(0.42,0.750*sc*_PDF.sc*0.65),'S');}else if(name==='SD213'){var _h5=Math.max(0.3,0.672*sc*_PDF.sc*0.65);d.line(px-_h5,py-_h5,px+_h5,py-_h5);d.line(px+_h5,py-_h5,px+_h5,py+_h5);d.line(px+_h5,py+_h5,px-_h5,py+_h5);d.line(px-_h5,py+_h5,px-_h5,py-_h5);}else if(name==='SD214'){var _r5=Math.max(0.2,0.6*sc*_PDF.sc*0.65);d.setFillColor(c[0],c[1],c[2]);d.circle(px,py,_r5,'F');}else{/* [1495] */d.setLineWidth(_PDF.lw*0.5);var r=Math.max(0.12,0.055*sc*_PDF.sc);d.line(px-r,py-r,px+r,py+r);d.line(px-r,py+r,px+r,py-r);}});}
+  function _pdfInsert(name,x,y,sc,col){_pq(4,function(){var d=_PDF.doc,c=ACIrgb(col);d.setDrawColor(c[0],c[1],c[2]);d.setLineWidth(_PDF.lw);d.setLineDashPattern([],0);var px=PX(x),py=PY(y);if(name==='SD100'){d.circle(px,py,Math.max(0.3,0.504*sc*_PDF.sc*0.65),'S');d.circle(px,py,Math.max(0.42,0.750*sc*_PDF.sc*0.65),'S');}else if(name==='SD213'){var _h5=Math.max(0.3,0.672*sc*_PDF.sc*0.65);d.line(px-_h5,py-_h5,px+_h5,py-_h5);d.line(px+_h5,py-_h5,px+_h5,py+_h5);d.line(px+_h5,py+_h5,px-_h5,py+_h5);d.line(px-_h5,py+_h5,px-_h5,py-_h5);}else if(name==='SD214'){var _r5=Math.max(0.2,0.6*sc*_PDF.sc*0.65);d.setFillColor(c[0],c[1],c[2]);d.circle(px,py,_r5,'F');}else if(name==='SD000'||name==='SD300'){var _r6=Math.max(0.3,0.75*sc*_PDF.sc*0.65);d.circle(px,py,_r6,'S');}else{/* [1516] */d.setLineWidth(_PDF.lw*0.5);var r=Math.max(0.12,0.055*sc*_PDF.sc);d.line(px-r,py-r,px+r,py+r);d.line(px-r,py+r,px+r,py-r);}});}
   function _pdfFill(p1,p2,p3,p4,r,g,bl){_pq(0,function(){var d=_PDF.doc;d.setFillColor(r,g,bl);d.triangle(PX(p1[0]),PY(p1[1]),PX(p2[0]),PY(p2[1]),PX(p3[0]),PY(p3[1]),'F');d.triangle(PX(p1[0]),PY(p1[1]),PX(p3[0]),PY(p3[1]),PX(p4[0]),PY(p4[1]),'F');});}var PRE=`  0
 SECTION
   2
@@ -5456,9 +5455,7 @@ EOF
     if((typeof LV!=='undefined')&&((isRiser&&LV.riser===0)||(!isRiser&&LV.mh===0)))return;
     if(mh.type==='jb'||mh.type==='inlet'){insert(mh.type==='jb'?'SD213':'SD214',mh.wx,mh.wy,(mh.type==='jb')?1:0.5,(mh.type==='jb')?'SD213':'SD214',7);return;}/* [1495] JB/인입=표준블럭 삽입, 인출선·라벨 없음 */
     var lyr=isRiser?'RISER':'MANHOLE', col=isRiser?((mh._fromCsv)?7:5):7;/* [1380] */
-    if(isRiser){var wB=0.14,wT=0.04,armW=0.24,armY=mh.wy+RH*0.74;
-      line(mh.wx-wB,mh.wy,mh.wx-wT,mh.wy+RH,lyr,col);line(mh.wx+wB,mh.wy,mh.wx+wT,mh.wy+RH,lyr,col);
-      line(mh.wx-armW,armY,mh.wx+armW,armY,lyr,col);circle(mh.wx,mh.wy+RH,wT+0.05,lyr,col);
+    if(isRiser){var _isEJd=/한전주/.test(mh.label||'');insert(_isEJd?'SD000':'SD300',mh.wx,mh.wy,0.5,_isEJd?'SD000':'SD300',7);/* [1516] 입상주=표준블럭 */
     } else {insert('SD100',mh.wx,mh.wy,0.5,'SD100',7);}
     var MTH=TH*1.02; var w=tw(mhDisp(mh),MTH);/* [1378] 라벨 40% 축소 */
     var _p=mhLabelBase(mh,w); var lx=_p.lx, lyy=_p.ly;
@@ -5537,6 +5534,26 @@ EOF
       +'  0\nPOINT\n  5\n'+_e8+'\n330\n'+_hR2+'\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbPoint\n 10\n0\n 20\n0\n 30\n0\n'
       +'  0\nENDBLK\n  5\n'+_hE2+'\n330\n'+_hR2+'\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockEnd\n';
     PREx=PREx.replace('  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES',DEF3+DEF4+'  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES');
+  })();
+  (function(){/* [1516] SD000(EJ:circle+ETC)/SD300(TJ,IP:circle+arc) */
+    var _hL1=H(),_hL2=H(),_hR1=H(),_hR2=H(),_hB1=H(),_hE1=H(),_hB2=H(),_hE2=H(),_e1=H(),_e2=H(),_e3=H(),_e4=H(),_e5=H(),_e6=H();
+    var L5='  0\nLAYER\n  5\n'+_hL1+'\n330\n1\n100\nAcDbSymbolTableRecord\n100\nAcDbLayerTableRecord\n  2\nSD000\n 70\n0\n 62\n7\n  6\nContinuous\n370\n-3\n390\n13\n';
+    var L6='  0\nLAYER\n  5\n'+_hL2+'\n330\n1\n100\nAcDbSymbolTableRecord\n100\nAcDbLayerTableRecord\n  2\nSD300\n 70\n0\n 62\n7\n  6\nContinuous\n370\n-3\n390\n13\n';
+    PREx=PREx.replace('390\n13\n  0\nENDTAB','390\n13\n'+L5+L6+'  0\nENDTAB');
+    var BR5='  0\nBLOCK_RECORD\n  5\n'+_hR1+'\n330\n9\n100\nAcDbSymbolTableRecord\n100\nAcDbBlockTableRecord\n  2\nSD000\n';
+    var BR6='  0\nBLOCK_RECORD\n  5\n'+_hR2+'\n330\n9\n100\nAcDbSymbolTableRecord\n100\nAcDbBlockTableRecord\n  2\nSD300\n';
+    PREx=PREx.replace('  0\nENDTAB\n  0\nENDSEC\n  0\nSECTION\n  2\nBLOCKS',BR5+BR6+'  0\nENDTAB\n  0\nENDSEC\n  0\nSECTION\n  2\nBLOCKS');
+    var DEF5='  0\nBLOCK\n  5\n'+_hB1+'\n330\n'+_hR1+'\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockBegin\n  2\nSD000\n 70\n0\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  3\nSD000\n  1\n\n'
+      +'  0\nCIRCLE\n  5\n'+_e1+'\n330\n'+_hR1+'\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbCircle\n 10\n0\n 20\n0\n 30\n0\n 40\n0.75\n'
+      +'  0\nTEXT\n  5\n'+_e2+'\n330\n'+_hR1+'\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbText\n 10\n-0.6286\n 20\n-0.225\n 30\n0\n 40\n0.45\n  1\nETC\n 72\n1\n 11\n0\n 21\n0\n 31\n0\n100\nAcDbText\n 73\n2\n'
+      +'  0\nPOINT\n  5\n'+_e3+'\n330\n'+_hR1+'\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbPoint\n 10\n0\n 20\n0\n 30\n0\n'
+      +'  0\nENDBLK\n  5\n'+_hE1+'\n330\n'+_hR1+'\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockEnd\n';
+    var DEF6='  0\nBLOCK\n  5\n'+_hB2+'\n330\n'+_hR2+'\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockBegin\n  2\nSD300\n 70\n0\n 10\n0.0\n 20\n0.0\n 30\n0.0\n  3\nSD300\n  1\n\n'
+      +'  0\nCIRCLE\n  5\n'+_e4+'\n330\n'+_hR2+'\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbCircle\n 10\n0\n 20\n0\n 30\n0\n 40\n0.7505\n'
+      +'  0\nARC\n  5\n'+_e5+'\n330\n'+_hR2+'\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbCircle\n 10\n0\n 20\n0\n 30\n0\n 40\n0.504\n100\nAcDbArc\n 50\n91.39\n 51\n268.61\n'
+      +'  0\nPOINT\n  5\n'+_e6+'\n330\n'+_hR2+'\n100\nAcDbEntity\n  8\n0\n 62\n0\n100\nAcDbPoint\n 10\n0\n 20\n0\n 30\n0\n'
+      +'  0\nENDBLK\n  5\n'+_hE2+'\n330\n'+_hR2+'\n100\nAcDbEntity\n  8\n0\n100\nAcDbBlockEnd\n';
+    PREx=PREx.replace('  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES',DEF5+DEF6+'  0\nENDSEC\n  0\nSECTION\n  2\nENTITIES');
   })();
   if(_depBlkUsed){var _dBR=H(),_dBK=H(),_dAD=H(),_dEB=H();/* [1320] PT_DEPTH_BLK 정의 */
     PREx=PREx.replace('  0\nENDTAB\n  0\nENDSEC\n  0\nSECTION\n  2\nBLOCKS','  0\nBLOCK_RECORD\n  5\n'+_dBR+'\n330\n9\n100\nAcDbSymbolTableRecord\n100\nAcDbBlockTableRecord\n  2\nPT_DEPTH_BLK\n  0\nENDTAB\n  0\nENDSEC\n  0\nSECTION\n  2\nBLOCKS');
