@@ -1365,9 +1365,9 @@ function drawManholes(){_orgSync();/* [1524] */
       inpIn.style.cssText='font-size:14px;font-weight:600;color:#333;border:none;background:transparent;outline:none;width:52px;text-align:center;';
       var _selCss='font-size:13px;font-weight:700;color:#333;border:1px solid #bbb;border-radius:4px;background:#fff;outline:none;padding:1px 2px;cursor:pointer';
       var selPre=document.createElement('select');selPre.innerHTML='<option value=""></option>'+[1,2,3,4,5,6,7,8,9,10].map(function(n){return '<option>'+n+'</option>';}).join('')+'<option value="_c">직접입력</option>';selPre.style.cssText=_selCss;
-      var selIn=document.createElement('select');selIn.innerHTML='<option value=""></option>'+['SKT','SKB','KT','LGU+','시청','세종','드림'].map(function(c){return '<option>'+c+'</option>';}).join('')+'<option value="_c">직접입력</option>';selIn.style.cssText=_selCss;
+      var selIn=document.createElement('select');selIn.innerHTML='<option value=""></option>'+MH_OWNERS.map(function(c){return '<option>'+c+'</option>';}).join('')+'<option value="_c">직접입력</option>';selIn.style.cssText=_selCss;
       if(/^([1-9]|10)$/.test(mhNum)){selPre.value=mhNum;inpPre.style.display='none';}else if(mhNum){selPre.value='_c';}else{inpPre.style.display='none';}
-      if(['SKT','SKB','KT','LGU+','시청','세종','드림'].indexOf(inner)>=0){selIn.value=inner;inpIn.style.display='none';}else if(inner){selIn.value='_c';}else{inpIn.style.display='none';}
+      if(MH_OWNERS.indexOf(inner)>=0){selIn.value=inner;inpIn.style.display='none';}else if(inner){selIn.value='_c';}else{inpIn.style.display='none';}
       selPre.addEventListener('change',function(){inpPre.style.display=(selPre.value==='_c')?'':'none';if(selPre.value==='_c')inpPre.focus();});
       selIn.addEventListener('change',function(){inpIn.style.display=(selIn.value==='_c')?'':'none';if(selIn.value==='_c')inpIn.focus();});
       var spR=document.createElement('span');var selKind=document.createElement('select');selKind.innerHTML='<option value="신">신설</option><option value="기">기설</option>';selKind.value=(mh.kind==='기'?'기':'신');selKind.style.cssText='font-size:13px;font-weight:700;color:#333;border:1px solid #bbb;border-radius:4px;background:#fff;outline:none;margin-right:4px;padding:1px 2px;cursor:pointer';
@@ -1386,7 +1386,7 @@ function drawManholes(){_orgSync();/* [1524] */
         try{var _sr9=(typeof mnList==='function')?mnList().filter(function(r){return r&&!r.delAt&&r.mhId===mh.id;})[0]:null;/* [1545] \ub3c4\uba74\u2192\uc57c\uc7a5 \ub3d9\uae30\ud654 */
          if(_sr9){var _n9=(_nm9+p).trim();_sr9.no=_n9?(_n9+selSuf.value):'';_sr9.suf=selSuf.value;
           _sr9.newFlag=(selKind.value==='\uae30'?'\uae30\uc124':'\uc2e0\uc124');
-          var _ow9=(v||'').trim();var _std9=['LG','SKT','SKB','\uc2dc\uccad','\uc138\uc885','\ub4dc\ub9bc'];
+          var _ow9=(v||'').trim();var _std9=MH_OWNERS;/* [1553] */
           if(!_ow9){_sr9.owner='';}else if(_std9.indexOf(_ow9)>=0){_sr9.owner=_ow9;_sr9.ownerC='';}else{_sr9.owner='_c';_sr9.ownerC=_ow9;}
           if(typeof mnPersistRec==='function'){try{mnPersistRec(_sr9);}catch(_mp9){}}
           try{var _fm9=document.getElementById('mnFormModal');var _hh9=(typeof mnHostOpen==='function')?mnHostOpen():null;if((_fm9||_hh9)&&typeof mnOpenForm==='function')mnOpenForm(_sr9);}catch(_rr9){}
@@ -7938,6 +7938,7 @@ function mnDetectSpec(dep,w12,w34){
   if(!best)return null;
   return {name:best.name,w:best.w,h:best.h,dep:best.dep,orient:(w12>=w34)?'가로':'세로'};
 }
+var MH_OWNERS=['SKT','SKB','KT','LG','LGU+','CATV','SJ','DL','\uc2dc\uccad'];/* [1553] \ub3c4\uba74\u00b7\uc57c\uc7a5 \uacf5\uc6a9 \uc18c\uc720\uc790 \ubaa9\ub85d (\uc138\uc885\u2192SJ, \ub4dc\ub9bc\u2192DL, CATV \ucd94\uac00) */
 function mnList(){if(!state.mnList)state.mnList=[];return state.mnList;}
 function mnHasId(r){return !!(r&&((r.no||'').trim()||(r.owner&&r.owner!=='_c')||(r.owner==='_c'&&(r.ownerC||'').trim())||r.newFlag));}/* [1547] \ubc88\ud638 \uc5c6\uc5b4\ub3c4 \uc18c\uc720\uc790\u00b7\uc2e0\uae30 \uc788\uc73c\uba74 \ud45c\uc2dc */
 function mnLabel(r){var ow=(r.owner==='_c'?(r.ownerC||''):(r.owner||''));var nt=(r.note||'').trim();var pf=(r.newFlag==='신설'?'신설':(r.newFlag==='기설'?'기설':''));return pf+(r.no||'')+(ow?'('+ow+')':'')+(nt?nt:'');}
@@ -8080,7 +8081,7 @@ function mnAskNoOwner(rec,cb){/* [1551] \uc7ac\ubc30\uce58: \uc2e0/\uae30 \ubc84
   var nf=rec.newFlag||'\uae30\uc124';
   var w=document.createElement('div');w.id='mnAskModal';
   w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:12dvh';
-  var opts=['LG','SKT','SKB','\uc2dc\uccad','\uc138\uc885','\ub4dc\ub9bc'].map(function(o){return '<option value="'+o+'"'+(rec.owner===o?' selected':'')+'>'+o+'</option>';}).join('')+'<option value="_c"'+(rec.owner==='_c'?' selected':'')+'>\uc9c1\uc811\uc785\ub825</option>';
+  var _owl=MH_OWNERS.slice();if(rec.owner&&rec.owner!=='_c'&&_owl.indexOf(rec.owner)<0)_owl.unshift(rec.owner);/* [1553] \uad6c\uac12(\uc138\uc885 \ub4f1) \ubcf4\uc874 */var opts=_owl.map(function(o){return '<option value="'+o+'"'+(rec.owner===o?' selected':'')+'>'+o+'</option>';}).join('')+'<option value="_c"'+(rec.owner==='_c'?' selected':'')+'>\uc9c1\uc811\uc785\ub825</option>';
   function nfBtn(v){var on=(nf===v);return '<button type="button" class="mnNfB" data-v="'+v+'" style="flex:1;border:1.5px solid '+(on?'#1d9e75':'#ccc')+';background:'+(on?'#e1f5ee':'#fff')+';color:'+(on?'#0f6e56':'#667')+';border-radius:8px;padding:8px 4px;font-weight:800;font-size:14px;cursor:pointer">'+v+'</button>';}
   w.innerHTML='<div style="background:#fff;border-radius:13px;width:min(90vw,360px);padding:16px;max-height:86dvh;overflow:auto">'
     +'<div style="font-weight:800;font-size:15px;margin-bottom:10px">\ub9e8\ud640\ubc88\ud638</div>'
@@ -12644,7 +12645,7 @@ function refFit(){
 /* 맨홀 라벨 정규화 — 번호+소유자만 뽑아 비교 (신설/기설 접두·특이사항 무시) */
 /* [BUILD 1040] 소유자 동의어 — 결선(DL)·야장 드롭다운(드림)·사진폴더가
    섞여 있어도 같은 맨홀로 인식. 양방향 동일 취급 */
-var REF_OWALIAS={'DL':'DL','드림':'DL','드림라인':'DL','DREAM':'DL','DREAMLINE':'DL'};
+var REF_OWALIAS={'DL':'DL','드림':'DL','드림라인':'DL','DREAM':'DL','DREAMLINE':'DL','SJ':'SJ','세종':'SJ','SEJONG':'SJ'};/* [1553] */
 function refOwKey(ow){
   var k=String(ow||'').replace(/[\s._\-]/g,'').toUpperCase();
   return REF_OWALIAS[k]||k;
@@ -13256,7 +13257,7 @@ function refOpen(){
 }
 
 /* ===== [BUILD 1039] 결선 맨홀 ↔ 야장 매칭 : 도면 표시 + 패널 + 야장 자동생성 ===== */
-var REF_OWNERS=['LG','SKT','SKB','\uc2dc\uccad','\uc138\uc885','\ub4dc\ub9bc'];
+var REF_OWNERS=['SKT','SKB','KT','LG','LGU+','CATV','SJ','DL','\uc2dc\uccad'];/* [1553] */
 var refMhShow=true;
 /* [1094] 맨홀 야장·조서 패널이 열려 있을 때만 해당 표시를 보여준다 */
 function _uiVisible(id){var e=document.getElementById(id);if(!e)return false;
