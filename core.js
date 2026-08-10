@@ -6140,8 +6140,8 @@ var TB=[
     {t:'결선지우기(선택)',tone:'del',mode:'delline',delLayer:'통신관로',hint:'지울 결선을 클릭'},
     {t:'결선지우기(전체)',tone:'delall',fn:clearLines}]},
   {k:'pipe',label:'관로선편집',icon:'✎',c:{bg:'#e6effb',fg:'#2f7fe0'},tools:[
-    {t:'관로선 그리기',tone:'draw',fn:function(){startDraw('통신관로');},activeMode:'line'},
-    {t:'불탐관로선 그리기',tone:'bult',fn:function(){startDraw('통신관로',true);},activeMode:'line'},/* [1512] 노란 버튼 */
+    {t:'관로선 그리기',tone:'draw',fn:function(){startDraw('통신관로');},activeMode:'line',bultChk:false},/* [1515] */
+    {t:'불탐관로선 그리기',tone:'bult',fn:function(){startDraw('통신관로',true);},activeMode:'line',bultChk:true},/* [1515] */
     {t:'관로선 지우기',tone:'del',mode:'delline',delLayer:'통신관로',hint:'지울 관로선 위에 마우스→두껍게 표시되면 클릭'},
     {t:'전체삭제',tone:'delall',fn:clearAllDraw}]},
   {k:'jiger',label:'지거편집',icon:'〰',c:{bg:'#fdf7e3',fg:'#c9920a'},tools:[
@@ -6218,7 +6218,7 @@ function renderRail(){
   var dc=document.getElementById('depthCalc');if(dc)dc.onclick=openDepthCalc;var ib=document.getElementById('inspBuild');if(ib)ib.onclick=buildInspData;
 }
 function mkBtn(tool,i){
-  var active=(tool.mode&&mode===tool.mode)||(tool.activeMode&&mode===tool.activeMode)||(tool.status&&status===tool.status);
+  var active=(tool.mode&&mode===tool.mode)||(tool.activeMode&&mode===tool.activeMode)||(tool.status&&status===tool.status);if(tool.bultChk!=null&&active&&mode==='line')active=(!!window._drawBult===tool.bultChk);/* [1515] 선택한 그리기 버튼만 활성 */
   if(tool.soon)return '<button class="sub-b soon" style="'+toneStyle(tool.tone,false)+'opacity:.55">'+tool.t+'</button>';
   var kb=keyForAction('tool:'+curCat().k+':'+i),bdg=kb?'<span class="hk-badge">'+kb+'</span>':'';
   return '<button data-i="'+i+'" class="sub-b" style="'+toneStyle(tool.tone,active)+'">'+tool.t+bdg+'</button>';
