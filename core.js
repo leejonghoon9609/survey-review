@@ -6268,6 +6268,51 @@ function _prApply(x1,y1,x2,y2){/* [1522] \uc601\uc5ed \ub418\uc0b4\ub9ac\uae30: 
   if(typeof window._autosaveDirty==='function'){try{window._autosaveDirty();}catch(_r4){}}
   toast('\ub418\uc0b4\ub9bc \u2014 \uce21\uc810 '+addPts.length+' \u00b7 \uc120 '+addLns.length+' \u00b7 \uc0ad\uc81c\ud45c\uc2dc \ud574\uc81c '+delKeys.length);
   return addPts.length+addLns.length+delKeys.length;}
+function _prCloud(x1,y1,x2,y2,done){/* [1523] \ud074\ub77c\uc6b0\ub4dc \ud3f4\ubc31: field \uc774\ub825 + \uacb0\uc120DB(survey) \uc6d0\ubcf8\uc5d0\uc11c \uc0ad\uc81c \uce21\uc810\u00b7\uc120 \ubcf5\uc6d0(\uc138\uc158 \ubb34\uad00) */
+  done=done||function(){};
+  try{
+  if(typeof online==='undefined'||!online||typeof sb==='undefined'||!sb){done(0);return;}
+  function inBox(x,y){return x>=x1&&x<=x2&&y>=y1&&y<=y2;}
+  function lineKey(L){return (L.layer||'')+'|'+(L.pts||[]).map(function(q){return (+q[0]).toFixed(2)+','+(+q[1]).toFixed(2);}).join(';');}
+  var app={'\ud1b5\uc2e0\uad00\ub85c':1,'\uc9c0\uac70':1,'\uc555\uc785\uad6c\uac04':1,'\uc8fc\uc785\uc0c1\uc778\ucd9c\uc120':1};
+  function applyRows(pls){
+    var curNo={},curXY=[];(state.points||[]).forEach(function(q){if(q.no!=null)curNo[q.no]=1;curXY.push([q.x,q.y]);});
+    function ptExists(q){if(q.no!=null&&curNo[q.no])return true;for(var i=0;i<curXY.length;i++){if(Math.abs(curXY[i][0]-q.x)<0.05&&Math.abs(curXY[i][1]-q.y)<0.05)return true;}return false;}
+    var curLK={};(state.lines||[]).forEach(function(L){curLK[lineKey(L)]=1;});
+    var addPts=[],addLns=[],seenP={},seenL={};
+    pls.forEach(function(pl){if(!pl)return;
+      (pl.points||[]).forEach(function(q){if(!q||q.x==null||q.y==null)return;if(!inBox(q.x,q.y))return;var kk=(q.no!=null)?('n'+q.no):('c'+(+q.x).toFixed(2)+'_'+(+q.y).toFixed(2));if(seenP[kk])return;seenP[kk]=1;if(!ptExists(q))addPts.push(q);});
+      (pl.lines||[]).forEach(function(L){if(!L||!L.pts||L.base)return;if(!app[L.layer])return;var hit=false;for(var i=0;i<L.pts.length;i++){if(inBox(L.pts[i][0],L.pts[i][1])){hit=true;break;}}if(!hit)return;var lk=lineKey(L);if(seenL[lk]||curLK[lk])return;seenL[lk]=1;addLns.push(L);});});
+    if(!addPts.length&&!addLns.length)return 0;
+    if(typeof pushHist==='function')pushHist();
+    addPts.forEach(function(q){state.points.push(q);});
+    addLns.forEach(function(L){state.lines.push(L);});
+    window._ftpC=null;
+    try{if(typeof _fldAutoRisers==='function')_fldAutoRisers();else if(typeof buildRisersFromCsv==='function')buildRisersFromCsv();}catch(_c1){}
+    try{if(typeof _fldAutoAftMh==='function')_fldAutoAftMh();}catch(_c2){}
+    try{if(typeof _fldAutoMnRecs==='function')_fldAutoMnRecs();}catch(_c3){}
+    if(typeof redrawAll==='function')redrawAll();else{if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();}
+    if(typeof updMeta==='function')updMeta();
+    if(typeof window._autosaveDirty==='function'){try{window._autosaveDirty();}catch(_c4){}}
+    toast('\ud074\ub77c\uc6b0\ub4dc\uc5d0\uc11c \ub418\uc0b4\ub9bc \u2014 \uce21\uc810 '+addPts.length+' \u00b7 \uc120 '+addLns.length);
+    return addPts.length+addLns.length;}
+  var pls=[];
+  function stepSurvey(){
+    var _bn='';try{_bn=(typeof baseName==='function')?baseName(state.projectName||''):'';}catch(_b){}
+    if(!_bn){done(applyRows(pls));return;}
+    sb.from('survey_projects').select('id,name,updated_at').order('updated_at',{ascending:false}).then(function(r2){
+      var rows=[];try{rows=((r2&&r2.data)||[]).filter(function(q){try{return baseName(q.name||'')===_bn;}catch(_f){return false;}}).slice(0,2);}catch(_g){}
+      if(!rows.length){done(applyRows(pls));return;}
+      var i=0;(function nx(){if(i>=rows.length){done(applyRows(pls));return;}
+        var _id=rows[i++].id;
+        sb.from('survey_projects').select('payload').eq('id',_id).single().then(function(r3){try{var pl=r3&&r3.data&&r3.data.payload;if(pl&&!pl.delAt)pls.push(pl);}catch(_h){}nx();});})();
+    });}
+  if(state.projectId){
+    sb.from(DB+'_history').select('payload').eq('project_id',state.projectId).order('created_at',{ascending:false}).limit(6).then(function(r1){
+      try{((r1&&r1.data)||[]).forEach(function(row){if(row&&row.payload)pls.push(row.payload);});}catch(_i){}stepSurvey();});
+  }else{stepSurvey();}
+  }catch(_e){try{done(0);}catch(_z){}}
+}
 function ptRestoreTool(){/* [1522] \uce21\uc810 \ub418\uc0b4\ub9ac\uae30 \u2014 \uc601\uc5ed \ub4dc\ub798\uadf8 \uc624\ubc84\ub808\uc774 */
   if(window._prOv){try{window._prOv.remove();}catch(_e){}window._prOv=null;var _b0=document.getElementById('fldRestoreBtn');if(_b0){_b0.style.background='#fff';_b0.style.color='#1e7e34';}toast('\uce21\uc810 \ub418\uc0b4\ub9ac\uae30 \uc885\ub8cc');return;}
   if(typeof readOnly!=='undefined'&&readOnly){toast('\ubcf4\uae30 \uc804\uc6a9');return;}
@@ -6292,7 +6337,8 @@ function ptRestoreTool(){/* [1522] \uce21\uc810 \ub418\uc0b4\ub9ac\uae30 \u2014 
     var w1=toWorld(r.left+Math.min(sx,cx),r.top+Math.min(sy,cy)),w2=toWorld(r.left+Math.max(sx,cx),r.top+Math.max(sy,cy));
     var x1=Math.min(w1[0],w2[0]),x2=Math.max(w1[0],w2[0]),y1=Math.min(-w1[1],-w2[1]),y2=Math.max(-w1[1],-w2[1]);
     var n=_prApply(x1,y1,x2,y2);
-    if(n>0){fin();}else{toast('\ub418\uc0b4\ub9b4 \ud56d\ubaa9 \uc5c6\uc74c \u2014 \ub2e4\ub978 \uc601\uc5ed\uc744 \ub4dc\ub798\uadf8\ud558\uac70\ub098 ESC\ub85c \uc885\ub8cc');}});
+    if(typeof _prCloud==='function'){if(!n)toast('\ud074\ub77c\uc6b0\ub4dc \uc774\ub825 \ud655\uc778 \uc911\u2026');_prCloud(x1,y1,x2,y2,function(n2){var t=n+(n2||0);if(t>0){fin();}else{toast('\ub418\uc0b4\ub9b4 \ud56d\ubaa9 \uc5c6\uc74c \u2014 \ub2e4\ub978 \uc601\uc5ed\uc744 \ub4dc\ub798\uadf8\ud558\uac70\ub098 ESC\ub85c \uc885\ub8cc');}});}
+    else if(n>0){fin();}else{toast('\ub418\uc0b4\ub9b4 \ud56d\ubaa9 \uc5c6\uc74c');}});
 }
 function tamsaDelTool(){/* [1502] 노란측점(탐사보완점) 전용 지우기 — 클릭=1개, 드래그=박스 일괄. mhDel 묘비 영구 */
   if(window._tdOv){try{window._tdOv.remove();}catch(_e){}window._tdOv=null;var _b0=document.getElementById('tamsaDelBtn');if(_b0){_b0.style.background='#fff';_b0.style.color='#b8860b';}toast('\ub178\ub780\uce21\uc810 \uc0ad\uc81c \uc885\ub8cc');return;}
