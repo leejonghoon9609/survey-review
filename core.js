@@ -1383,6 +1383,14 @@ function drawManholes(){_orgSync();/* [1524] */
         mh.kind=selKind.value;
         mh.spec=selSpec.value;if(selSurf){mh.surface=selSurf.value;mh.pave=selPave.value;if(typeof tangoFill==='function')tangoFill();}
         mh._edited=true; // 사용자가 직접 고침 → 자동정리 안 함
+        try{var _sr9=(typeof mnList==='function')?mnList().filter(function(r){return r&&!r.delAt&&r.mhId===mh.id;})[0]:null;/* [1545] \ub3c4\uba74\u2192\uc57c\uc7a5 \ub3d9\uae30\ud654 */
+         if(_sr9){var _n9=(_nm9+p).trim();_sr9.no=_n9?(_n9+selSuf.value):'';_sr9.suf=selSuf.value;
+          _sr9.newFlag=(selKind.value==='\uae30'?'\uae30\uc124':'\uc2e0\uc124');
+          var _ow9=(v||'').trim();var _std9=['LG','SKT','SKB','\uc2dc\uccad','\uc138\uc885','\ub4dc\ub9bc'];
+          if(!_ow9){_sr9.owner='';}else if(_std9.indexOf(_ow9)>=0){_sr9.owner=_ow9;_sr9.ownerC='';}else{_sr9.owner='_c';_sr9.ownerC=_ow9;}
+          if(typeof mnPersistRec==='function'){try{mnPersistRec(_sr9);}catch(_mp9){}}
+          try{var _fm9=document.getElementById('mnFormModal');var _hh9=(typeof mnHostOpen==='function')?mnHostOpen():null;if((_fm9||_hh9)&&typeof mnOpenForm==='function')mnOpenForm(_sr9);}catch(_rr9){}
+         }}catch(_sy9){}
         try{if(typeof _tgSegs!=='undefined'&&_tgSegs){var _hit9=-1;for(var _si=0;_si<_tgSegs.length;_si++){var _sg=_tgSegs[_si];if(!_sg.length)continue;var _s0=_sg[0],_se=_sg[_sg.length-1];var _k=tgManualKey(_sg);var _setP=function(pre){_hit9=_si;if(!state.tangoManual)state.tangoManual={};if(!state.tangoManual[_k])state.tangoManual[_k]={};state.tangoManual[_k][pre+'_fac']=(mh.kind==='기'?'기설_맨홀':'신설_맨홀');state.tangoManual[_k][pre+'_own']=(v&&v!=='SKT'&&v!=='SKB')?'타사':v;/* [1433] 비SK 맨홀 자동 타사 등록(도면은 실소유 유지) */state.tangoManual[_k][pre+'_spec']=(mh.spec||'');state.tangoManual[_k][pre+'_nm']=(p+selSuf.value);/* [1431] M/H 선택 반영 — 'M' 하드코딩 제거 */};if(_s0&&_s0.mh&&Math.abs(_s0.x-mh.wx)<0.5&&Math.abs(_s0.y-mh.wy)<0.5)_setP('s');if(_se&&_se.mh&&Math.abs(_se.x-mh.wx)<0.5&&Math.abs(_se.y-mh.wy)<0.5)_setP('e');}}if(typeof tangoSelSeg==='function'){var _rs9=(typeof tgSeg!=='undefined'&&tgSeg>=0)?tgSeg:_hit9;if(_rs9>=0)tangoSelSeg(_rs9,true);}}catch(_e){}/* [1399] 폴백 갱신 */if(typeof saveProject==='function')try{saveProject();}catch(_sv){}_mhEditAnchor=null;wrap.remove();drawManholes();}};/* [1394] 저장 */
       var onKey=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();};
       inpPre.addEventListener('keydown',onKey);inpIn.addEventListener('keydown',onKey);
@@ -8070,6 +8078,16 @@ function mnAskNoOwner(rec,cb){
     rec.no=n?(n+sf):'';
     rec.owner=w.querySelector('#mnOwIn').value;rec.ownerC=w.querySelector('#mnOwC').value.trim();
     rec.note=w.querySelector('#mnNoteIn').value.trim();
+    try{if(rec.mhId){var _mh9=(state.manholes||[]).filter(function(m){return m&&m.id===rec.mhId;})[0];/* [1545] \uc57c\uc7a5\u2192\ub3c4\uba74 \ub3d9\uae30\ud654 */
+     if(_mh9){var _ow8=(rec.owner==='_c'?(rec.ownerC||''):(rec.owner||''));
+      var _lb8=(n?(n+sf):'')+' ('+_ow8+(_ow8?' ':'')+')';
+      var _kd8=(nf==='\uae30\uc124'?'\uae30':'\uc2e0');
+      if(_lb8!==(_mh9.label||'')||_kd8!==(_mh9.kind||'\uc2e0')){
+       if(typeof pushHist==='function')try{pushHist();}catch(_ph8){}
+       _mh9.label=_lb8;_mh9.kind=_kd8;_mh9._edited=true;
+       if(typeof drawManholes==='function')try{drawManholes();}catch(_dm8){}
+       if(typeof saveProject==='function')try{saveProject();}catch(_sv8){}
+      }}}}catch(_sy8){}
     w.remove();cb();
   };
   setTimeout(function(){var c=w.querySelector('#mnNoSel').value==='_c';(c?w.querySelector('#mnNoIn'):w.querySelector('#mnNoSel')).focus();},60);
