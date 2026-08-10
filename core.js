@@ -7426,41 +7426,67 @@ function fldDoneRegList(){ /* [1286] 결선DB 최종성과 — 사업 목록 모
     });
   });
 }
-function _fldMnZipModal(){ /* [1285] 맨홀사진 ZIP 드롭 모달 — CSV 등록 창 스타일, refPhotoZip 재사용 */
+function _fldMnZipModal(){ /* [1548] \ub9e8\ud640\uc0ac\uc9c4 ZIP \u2014 \ub4f1\ub85d\ud604\ud669\u00b7\ubaa9\ub85d\u00b7\ud655\uc778/\ucde8\uc18c */
   var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:1350;background:rgba(0,0,0,.38);display:flex;align-items:center;justify-content:center';
-  ov.innerHTML='<div style="background:#fff;border-radius:14px;width:92%;max-width:430px;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden;border-top:5px solid #1565c0">'
-    +'<div style="display:flex;align-items:center;padding:13px 16px;border-bottom:1px solid #eee"><b style="font-size:15px;color:#1565c0">\uD83D\uDCF7 \uB9E8\uD640\uC0AC\uC9C4 ZIP \uB4F1\uB85D</b><button id="mnzX" style="margin-left:auto;border:1px solid #ddd;background:#fff;border-radius:7px;padding:4px 12px;cursor:pointer">\uB2EB\uAE30</button></div>'
-    +'<div style="padding:15px 16px">'
-    +'<div id="mnzDrop" style="border:2px dashed #1565c0;border-radius:11px;padding:26px 12px;text-align:center;color:#1565c0;font-weight:700;cursor:pointer;background:#f4f8ff">\uB9E8\uD640\uC0AC\uC9C4 ZIP (.zip) \uB04C\uC5B4\uB2E4 \uB193\uAE30 / \uD074\uB9AD<br><span style="font-size:11.5px;font-weight:400;color:#5c7fb3">\uD3F4\uB354 \uADDC\uCE59: \uB9E8\uD640\uBC88\uD638(\uC18C\uC720\uC790)/1.jpg \u00B7 2-1~2-4 \u00B7 \uD45C\uCC30</span></div>'
-    +'<div id="mnzInfo" style="margin-top:12px;font-size:13px;color:#555;min-height:20px"></div>'
+  ov.innerHTML='<div style="background:#fff;border-radius:14px;width:92%;max-width:480px;max-height:88vh;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.3);border-top:5px solid #1565c0;display:flex;flex-direction:column">'
+    +'<div style="display:flex;align-items:center;padding:13px 16px;border-bottom:1px solid #eee"><b style="font-size:15px;color:#1565c0">\ud83d\udcf7 \ub9e8\ud640\uc0ac\uc9c4 ZIP \ub4f1\ub85d</b><button id="mnzX" style="margin-left:auto;border:1px solid #ddd;background:#fff;border-radius:7px;padding:4px 12px;cursor:pointer">\ub2eb\uae30</button></div>'
+    +'<div style="padding:14px 16px">'
+    +'<div id="mnzReg" style="display:none;margin-bottom:12px;border:1px solid #cfe3cf;border-radius:9px;max-height:170px;overflow:auto"></div>'
+    +'<div id="mnzDrop" style="border:2px dashed #1565c0;border-radius:11px;padding:20px 12px;text-align:center;color:#1565c0;font-weight:700;cursor:pointer;background:#f4f8ff">\ub9e8\ud640\uc0ac\uc9c4 ZIP (.zip) \ub04c\uc5b4\ub2e4 \ub193\uae30<br><span style="font-size:11.5px;font-weight:400;color:#5c7fb3">\ud3f4\ub354 \uaddc\uce59: \ub9e8\ud640\ubc88\ud638(\uc18c\uc720\uc790)/1.jpg \u00b7 2-1~2-4 \u00b7 \ud45c\ucc30</span></div>'
+    +'<div style="display:flex;justify-content:center;margin-top:10px"><button id="mnzPick" style="border:1.5px solid #1565c0;color:#1565c0;background:#fff;border-radius:8px;padding:7px 16px;font-weight:800;cursor:pointer">\ud83d\udcc1 \uc9c1\uc811 \ucc3e\uc544\uc11c \ucd94\uac00 (ZIP)</button></div>'
+    +'<div id="mnzList" style="display:none;margin-top:12px;border:1px solid #e3e8f0;border-radius:9px;max-height:230px;overflow:auto"></div>'
+    +'<div id="mnzInfo" style="margin-top:10px;font-size:12.5px;color:#555;min-height:18px"></div>'
+    +'<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:12px"><button id="mnzCancel" style="border:1px solid #c0392b;color:#c0392b;background:#fff;border-radius:8px;padding:9px 20px;font-weight:800;cursor:pointer">\ucde8\uc18c</button><button id="mnzOk" disabled style="border:1px solid #1e7e34;color:#fff;background:#1e7e34;border-radius:8px;padding:9px 20px;font-weight:800;cursor:pointer;opacity:0.5">\ud655\uc778 \u2014 \ub2e4\uc74c \ub2e8\uacc4</button></div>'
     +'</div></div>';
   document.body.appendChild(ov);
-  ov.querySelector('#mnzX').onclick=function(){ov.remove();};
-  ov.onclick=function(e){if(e.target===ov)ov.remove();};
-  var dz=ov.querySelector('#mnzDrop'),inf=ov.querySelector('#mnzInfo');
+  var dz=ov.querySelector('#mnzDrop'),inf=ov.querySelector('#mnzInfo'),okB=ov.querySelector('#mnzOk');
+  function _close(){window._mnzHold=false;window._mnzReady=null;ov.remove();}
+  ov.querySelector('#mnzX').onclick=_close;ov.querySelector('#mnzCancel').onclick=_close;
+  ov.onclick=function(e){if(e.target===ov)_close();};
   function _stat(t,c){inf.style.color=c||'#555';inf.innerHTML=t;}
+  /* \ub4f1\ub85d \ud604\ud669: \uc57c\uc7a5\ubcc4 \uc0ac\uc9c4 \uc7a5\uc218 + \uc0ad\uc81c\u00b7\uc804\uccb4\uc0ad\uc81c */
+  function _phCnt(r){var n=0;try{for(var k in (r.photos||{}))if(r.photos[k])n++;}catch(_c){}return n;}
+  function _regDel(recs,label){
+   if(!recs.length)return;
+   if(!confirm(label+' \ub9e8\ud640\uc0ac\uc9c4 '+recs.reduce(function(a,r){return a+_phCnt(r);},0)+'\uc7a5\uc744 \uc0ad\uc81c\ud560\uae4c\uc694?\n(\uc57c\uc7a5 \uae30\ub85d\uc740 \uc720\uc9c0, \uc0ac\uc9c4\ub9cc \ube44\uc6c0)'))return;
+   recs.forEach(function(r){r.photos={};if(r.rotP)r.rotP={};if(typeof mnPersistRec==='function'){try{mnPersistRec(r);}catch(_p){}}});
+   if(typeof saveProject==='function'){try{saveProject();}catch(_s){}}
+   toast(label+' \uc0ac\uc9c4 \uc0ad\uc81c \uc644\ub8cc');_reg();}
+  function _reg(){var host=ov.querySelector('#mnzReg');if(!host)return;
+   var recs=(typeof mnList==='function')?mnList().filter(function(r){return r&&!r.delAt&&_phCnt(r)>0;}):[];
+   if(!recs.length){host.style.display='none';host.innerHTML='';return;}
+   var tot=recs.reduce(function(a,r){return a+_phCnt(r);},0);
+   var h='<div style="display:flex;align-items:center;gap:8px;padding:7px 9px;background:#f0f6f0;border-bottom:1px solid #dbe7db"><b style="font-size:12.5px;color:#1e7e34">\ub4f1\ub85d\ub41c \ub9e8\ud640\uc0ac\uc9c4 '+tot+'\uc7a5 \u00b7 '+recs.length+'\uac1c \ub9e8\ud640</b><button data-md="__ALL__" style="margin-left:auto;border:1px solid #c0392b;color:#c0392b;background:#fff;border-radius:6px;padding:3px 10px;font-size:11.5px;font-weight:800;cursor:pointer">\uc804\uccb4\uc0ad\uc81c</button></div>';
+   recs.forEach(function(r,i){h+='<div style="display:flex;align-items:center;gap:8px;padding:5px 9px;border-bottom:1px solid #eef1f6;font-size:12.5px"><span style="font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">\ud83d\udd73 '+((typeof mnLabel==='function')?mnLabel(r):(r.no||''))+'</span><span style="color:#555">'+_phCnt(r)+'\uc7a5</span><button data-md="'+i+'" style="border:1px solid #c0392b;color:#c0392b;background:#fff;border-radius:6px;padding:2px 9px;font-size:11px;font-weight:700;cursor:pointer">\uc0ad\uc81c</button></div>';});
+   host.innerHTML=h;host.style.display='block';
+   host.querySelectorAll('button[data-md]').forEach(function(bt){bt.onclick=function(){var d=bt.getAttribute('data-md');
+    if(d==='__ALL__')_regDel(recs,'\uc804\uccb4');
+    else{var r=recs[+d];if(r)_regDel([r],(typeof mnLabel==='function')?mnLabel(r):'\ub9e8\ud640');}};});}
+  _reg();
+  /* ZIP \ubd84\uc11d \ud6c4 \ud3f4\ub354\ubcc4 \ubaa9\ub85d */
+  function _list(){var host=ov.querySelector('#mnzList');if(!host)return;
+   var P=(typeof REF_PZ!=='undefined')?REF_PZ:null;
+   if(!P||!P.map){host.style.display='none';host.innerHTML='';okB.disabled=true;okB.style.opacity='0.5';return;}
+   var recs=(typeof mnList==='function')?mnList().filter(function(r){return r&&!r.delAt;}):[];
+   var byKey={};recs.forEach(function(r){var k=refNormLab(mnLabel(r));if(k)byKey[k]=mnLabel(r);});
+   var folds=Object.keys(P.map).sort();var mat=0,tot=0;
+   var h='';folds.forEach(function(fd){var fl=(P.map[fd]||[]);tot+=fl.length;var mk=byKey[refNormLab(fd)];if(mk)mat++;
+    h+='<div style="display:flex;gap:9px;align-items:center;padding:5px 9px;border-bottom:1px solid #eef1f6;font-size:12.5px;background:'+(mk?'#f7fbf7':'#fdf1f1')+'"><span style="font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">\ud83d\udcc1 '+fd+'</span><span style="color:#555">'+fl.length+'\uc7a5</span>'+(mk?('<span style="color:#1e7e34;font-weight:700;white-space:nowrap">\u2192 '+mk+'</span>'):'<span style="color:#c0392b;font-weight:700">\uc57c\uc7a5 \uc5c6\uc74c</span>')+'</div>';});
+   h+='<div style="padding:7px 9px;font-size:12px;color:#444;font-weight:700;background:#f7f9fc">\ud3f4\ub354 '+folds.length+'\uac1c \u00b7 \uc0ac\uc9c4 '+tot+'\uc7a5 \u2014 \ub9e4\uce6d '+mat+' \u00b7 \ubbf8\ub9e4\uce6d '+(folds.length-mat)+((P.skip&&P.skip.length)?(' \u00b7 \uc81c\uc678\ud30c\uc77c '+P.skip.length):'')+'</div>';
+   host.innerHTML=h;host.style.display='block';
+   okB.disabled=false;okB.style.opacity='1';
+   _stat('\ud655\uc778\uc744 \ub204\ub974\uba74 \ub9e4\uce6d\u00b7\ub4f1\ub85d \ub2e8\uacc4\ub85c \uc9c4\ud589\ud569\ub2c8\ub2e4 (\uc57c\uc7a5 \uc5c6\uc74c \ud3f4\ub354\ub294 \uadf8 \ub2e8\uacc4\uc5d0\uc11c \uc57c\uc7a5 \uc77c\uad04\uc0dd\uc131 \uac00\ub2a5)','#1d9e75');}
+  window._mnzReady=function(){_list();};
   function _take(f){
     if(!f)return;
-    if(!/\.zip$/i.test(f.name||'')){_stat('ZIP \uD30C\uC77C\uB9CC \uAC00\uB2A5\uD569\uB2C8\uB2E4','#c0392b');return;}
-    _stat('\u23F3 '+f.name+' \uBD84\uC11D \uC911\u2026','#1565c0');
-    var _tk=Date.now();try{window._mnzTk=_tk;}catch(_w){}
-    try{refPhotoZip(f);}catch(e){_stat('ZIP \uCC98\uB9AC \uC2E4\uD328: '+(e&&e.message||e),'#c0392b');return;}
-    var _n=0;var _iv=setInterval(function(){
-      _n++;
-      if(typeof REF_PZ!=='undefined'&&REF_PZ&&REF_PZ.name===f.name){
-        clearInterval(_iv);
-        try{
-          var folds=Object.keys(REF_PZ.map||{});
-          var recs=(typeof mnList==='function')?mnList().filter(function(r){return r&&!r.delAt;}):[];
-          var byKey={};recs.forEach(function(r){var k=refNormLab(mnLabel(r));if(k)byKey[k]=1;});
-          var mat=0;folds.forEach(function(fd){if(byKey[refNormLab(fd)])mat++;});
-          var ph=0;folds.forEach(function(fd){ph+=(REF_PZ.map[fd]||[]).length;});
-          _stat('\u2705 <b>'+f.name+'</b><br>\uB9E8\uD640 \uD3F4\uB354 '+folds.length+'\uAC1C \u00B7 \uC0AC\uC9C4 '+ph+'\uC7A5 \u00B7 \uC57C\uC7A5 \uB9E4\uCE6D '+mat+'\uAC1C'+((folds.length-mat)?(' \u00B7 <span style=\"color:#c0392b\">\uBBF8\uB9E4\uCE6D '+(folds.length-mat)+'\uAC1C</span>'):'')+((REF_PZ.skip&&REF_PZ.skip.length)?(' \u00B7 \uC81C\uC678 '+REF_PZ.skip.length):''),'#1d9e75');
-        }catch(_s){_stat('\u2705 \uB85C\uB529 \uC644\uB8CC — \uB9E4\uCE6D \uD328\uB110 \uD655\uC778','#1d9e75');}
-      }else if(_n>40){clearInterval(_iv);_stat('\uCC98\uB9AC \uC9C0\uC5F0 — \uD1A0\uC2A4\uD2B8/\uB9E4\uCE6D \uD328\uB110 \uD655\uC778','#b58900');}
-    },350);
+    if(!/\.zip$/i.test(f.name||'')){_stat('ZIP \ud30c\uc77c\ub9cc \uac00\ub2a5\ud569\ub2c8\ub2e4','#c0392b');return;}
+    _stat('\u23f3 '+f.name+' \ubd84\uc11d \uc911\u2026','#1565c0');
+    window._mnzHold=true;
+    try{refPhotoZip(f);}catch(e){_stat('ZIP \ucc98\ub9ac \uc2e4\ud328: '+(e&&e.message||e),'#c0392b');}
   }
-  dz.onclick=function(){var ip=document.createElement('input');ip.type='file';ip.accept='.zip';ip.onchange=function(e){_take(e.target.files&&e.target.files[0]);};ip.click();};
+  okB.onclick=function(){if(okB.disabled)return;window._mnzHold=false;window._mnzReady=null;ov.remove();try{refPhotoPreview();}catch(_pv){toast('\ubbf8\ub9ac\ubcf4\uae30 \uc624\ub958');}};
+  ov.querySelector('#mnzPick').onclick=function(){var ip=document.createElement('input');ip.type='file';ip.accept='.zip';ip.onchange=function(e){_take(e.target.files&&e.target.files[0]);};ip.click();};
+  dz.onclick=function(){ov.querySelector('#mnzPick').click();};
   dz.addEventListener('dragover',function(e){e.preventDefault();dz.style.background='#e3edff';});
   dz.addEventListener('dragleave',function(){dz.style.background='#f4f8ff';});
   dz.addEventListener('drop',function(e){e.preventDefault();dz.style.background='#f4f8ff';var f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];_take(f);});
@@ -12672,7 +12698,7 @@ function refPhotoZip(f){
     });
     REF_PZ={zip:z,map:map,name:f.name,skip:skip};
     refPzMatch();
-    refPhotoPreview();
+    if(window._mnzHold){try{if(typeof window._mnzReady==='function')window._mnzReady();}catch(_h){}}else{refPhotoPreview();}/* [1548] \ubaa8\ub2ec \ud655\uc778 \ub2e8\uacc4 \uac70\uce68 */
   }).catch(function(e){console.error('refPhotoZip',e);toast('ZIP \uc77d\uae30 \uc2e4\ud328');});
 }
 
