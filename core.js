@@ -458,11 +458,11 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
   if(isSel&&(typeof LV==='undefined'||!LV||LV.tagbox!==0)){handle.setAttribute('stroke','#22cc00');handle.setAttribute('stroke-width',0.8);handle.setAttribute('stroke-dasharray','2 2');handle.setAttribute('vector-effect','non-scaling-stroke');}
   handle.style.cursor='move';
   var lx=ls[0],ly=ls[1],dragging=false,moved=false,gx=0,gy=0;
-  handle.addEventListener('pointerdown',function(ev){
+  var _pd9=function(ev){
     if(mode!=='pan'||(viewerMode&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD))||readOnly)return;ev.stopPropagation();ev.preventDefault();/* [1479] field 라벨 이동 허용 */
     if(p.no!==selNum){selNum=p.no;highlightSel();if(photoPanelOpen)refreshPhotoPanel();try{if(typeof joseoSyncFromMap==='function')joseoSyncFromMap();}catch(_se){}}   /* [1094] */
     dragging=true;moved=false;labelDragging=true;var w=toWorld(ev.clientX,ev.clientY);gx=w[0]-lx;gy=w[1]-ly;
-    try{handle.setPointerCapture(ev.pointerId);}catch(e){}});
+    try{handle.setPointerCapture(ev.pointerId);}catch(e){}};handle.addEventListener('pointerdown',_pd9);
   handle.addEventListener('pointermove',function(ev){
     if(!dragging)return;ev.preventDefault();moved=true;var w=toWorld(ev.clientX,ev.clientY);
     lx=w[0]-gx;ly=w[1]-gy;var off=anchor==='start'?0.15:-0.15;
@@ -476,6 +476,7 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
     try{handle.releasePointerCapture(ev.pointerId);}catch(e){}
     drawGeo();highlightSel();}
   handle.addEventListener('pointerup',up);handle.addEventListener('pointercancel',up);
+  if((((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)))&&!readOnly&&!(typeof LV!=='undefined'&&LV&&LV.tagbox===0)&&nt){nt.style.pointerEvents='auto';nt.style.cursor='move';nt.addEventListener('pointerdown',_pd9);}/* [1501] \ub77c\ubca8 \uae00\uc790 \uc9c1\uc811 \ub4dc\ub798\uadf8(\uce90\ucc98\ub294 \ud578\ub4e4\uc774 \uc774\uc5b4\ubc1b\uc74c) */
   gAnc.appendChild(handle);
 }
 function openPtEdit(p,ls){
