@@ -1429,7 +1429,7 @@ function buildRisersFromCsv(){if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))stat
       }
       if(best<0)continue;
       used[i]=used[best]=1;
-      [a2[i],a2[best]].forEach(function(rp){state.points.push({no:rp.no,x:rp.x,y:rp.y,z:null,code:rp.code,_riserPt:true,_hideMark:!!state.tamsa});});
+      [a2[i],a2[best]].forEach(function(rp){if(state.mhDel&&state.mhDel[rp.x+'_'+rp.y])return;/* [1514] 묘비 존중 */state.points.push({no:rp.no,x:rp.x,y:rp.y,z:null,code:rp.code,_riserPt:true,_hideMark:!!state.tamsa});});
       
       var mx=(a2[i].x+a2[best].x)/2,my=(a2[i].y+a2[best].y)/2;if(state.mhDel&&state.mhDel[mx+'_'+my])continue;if(_keepR[mx+'_'+my]){made++;continue;}/* [1471] */
       state.manholes=(state.manholes||[]).filter(function(m){return !(m.type==='riser'&&!m._fromCsv&&Math.hypot((m.wx||0)-mx,(m.wy||0)-my)<2);});/* [1470] 이번 생성분(_fromCsv) 보호 — 근접 EJ/IP 상호 삭제 버그 */
@@ -1465,6 +1465,7 @@ function deletePoint(p){
   var i=(state.points||[]).indexOf(p); if(i<0)return;
   pushHist();
   state.points.splice(i,1);
+  if(p._riserPt){state.mhDel=state.mhDel||{};state.mhDel[p.x+'_'+p.y]=1;}/* [1514] CSV 유래 원천점 삭제=묘비 영구 */
   var app={'통신관로':1,'지거':1,'압입구간':1,'주입상인출선':1};
   state.lines=(state.lines||[]).filter(function(l){
     if(!app[l.layer])return true;
