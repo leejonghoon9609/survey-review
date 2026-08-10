@@ -366,6 +366,7 @@
   /* 나머지 숨김 */
   header #fldRefHint,header #fldFit,header #fldViewLbl,header #fldCrop,header #fldTrash,header #modeToggle,header #sysSwitch,header #roBadge,header #vRv,header #fldJoseo,header #proj,header #save,header #delProj,header #bpToggle,header #doneListBtn,header #doneSummary,header #asbuiltBtn,header #photoBtn,header #bgBtn,header #rvBtn,header #buildno,header #conn,header #tamsaBadge,header #globalbtns{display:none!important}
   #projFilterChip{display:none!important} /* [1292] 모바일 사업 전체보기 칩 숨김 */
+  #aftPhotoUp{display:none!important} /* [1509] 모바일 숨김 */
 }
 /* ===== [1261] field PC 사진 패널 — 헤더 줄바꽈(닫기 보임)·사진 폭 꽉 채움 ===== */
 @media(min-width:761px){
@@ -375,12 +376,13 @@
   /* [1300] 헤더 한 줄 고정 + 명시 순서: 방향ON → 측설사진 → 셀렉트 → 연동 → 특이사항 → ✕ */
   .viewer .php-head{flex-wrap:nowrap}
   .viewer .php-head button,.viewer .php-head select{font-size:11px;padding:3px 6px}
-  .viewer .php-head #photoSel{max-width:140px;order:3}
+  .viewer .php-head #photoSel{max-width:140px;order:4}
   .viewer .php-head #dirToggle{order:1}
-  .viewer .php-head #fldStakePhTgl{order:2;margin-left:2px}
-  .viewer .php-head #photoLinkBtn{order:4}
-  .viewer .php-head #vNote2{order:5}
-  .viewer .php-head #photoClose{order:6;margin-left:auto}
+  .viewer .php-head #aftPhotoUp{order:2;margin-left:2px;border:1.5px solid #1565c0;color:#1565c0;background:#fff;border-radius:8px;font-weight:800;cursor:pointer}/* [1509] */
+  .viewer .php-head #fldStakePhTgl{order:3;margin-left:auto}/* [1509] 파란그룹 우측 밀착 */
+  .viewer .php-head #photoLinkBtn{order:5}
+  .viewer .php-head #vNote2{order:6}
+  .viewer .php-head #photoClose{order:7;margin-left:2px}
 }
 /* ===== [1243] 현장 PC 헤더 3줄 — survey(1233) 배치 미러 (field 전용, 모바일 무영향) ===== */
 @media(min-width:761px){
@@ -483,6 +485,7 @@
       <div class="php-head">
         <h3>측점 사진</h3>
         <button id="dirToggle" class="dirtgl on">🧭 방향 ON</button>
+        <button id="aftPhotoUp" title="파일명=점번호(예: 251103-14.jpg)로 자동 배정">📷 후측량사진 업로드</button>
         <button id="fldStakePhTgl" style="border-radius:8px;padding:3px 7px;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap;flex:none;background:#fff8e1;color:#b7791f;border:1.5px solid #e0a800">측설사진 미등록</button>
         <select id="photoSel"><option value="">측점 선택…</option></select>
         <button id="photoLinkBtn" class="linkon">🔗 연동</button>
@@ -627,6 +630,6 @@
     </div>
   </div>
 
-<script src="login.js?v=1508"></script><script src="core.js?v=1508"></script>
+<script src="login.js?v=1509"></script><script src="core.js?v=1509"></script>
 </body>
 </html>

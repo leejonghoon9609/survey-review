@@ -6758,6 +6758,30 @@ function toggleRvPick(){
   toast('지도에서 로드뷰 볼 위치를 클릭하세요 (측점을 찍으면 아래에 사진)');
 }
 bind('rvBtn',toggleRvPick);bind('fldStakePhTgl',function(){if(typeof IS_FIELD==='undefined'||!IS_FIELD)return;if(!state.fieldDone)state.fieldDone={csv:false,joseo:false,manhole:false};state.fieldDone.aftPhoto=!state.fieldDone.aftPhoto;if(online&&state.projectId){window._silentSave=true;try{saveProject();}catch(_e){}}_fldStakePhSync();toast(state.fieldDone.aftPhoto?'측설사진 등록완료 — 최종성과 창에 반영됨':'측설사진 미등록');});/* [1298] */
+function uploadAfterPhotos(files){/* [1509] 후측량(_A) 사진 일괄 업로드 — 파일명=점번호 자동 배정 */
+  if(!online){toast('\uc624\ud504\ub77c\uc778 \u2014 \uc5c5\ub85c\ub4dc \ubd88\uac00');return;}
+  if(!state.projectId){toast('\uc0ac\uc5c5\uc744 \uba3c\uc800 \uc120\ud0dd\ud558\uc138\uc694');return;}
+  var arr=[].slice.call(files||[]);if(!arr.length)return;toast('\ud6c4\uce21\ub7c9 \uc0ac\uc9c4 '+arr.length+'\uc7a5 \uc5c5\ub85c\ub4dc \uc911\u2026');
+  var done=0,ok=0,un=0,total=arr.length;
+  function fin(){if(done<total)return;var m='\ud6c4\uce21\ub7c9 \uc0ac\uc9c4 '+ok+'/'+total+'\uc7a5 \uc644\ub8cc';if(un)m+=' \u00b7 \ubc88\ud638 \ubbf8\ub9e4\uce6d '+un+'\uc7a5(\ud30c\uc77c\uba85 \ud655\uc778)';toast(m);if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();if(typeof drawGeo==='function')drawGeo();}
+  arr.forEach(function(f){
+    var base=(f.name||'').replace(/\.[^.]+$/,'').trim();var no=null;
+    if(base&&typeof pointByNo==='function'&&pointByNo(base))no=base;
+    else{var r=(typeof resolvePhotoNo==='function')?resolvePhotoNo(f):null;if(r&&r.no&&(r.matched||(typeof pointByNo==='function'&&pointByNo(r.no))))no=r.no;}
+    if(!no){un++;done++;fin();return;}
+    compressImage(f,1600,0.8).then(function(blob){
+      var path=state.projectId+'/'+safeName(no)+'_A.jpg';
+      return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
+        if(up.error)throw up.error;
+        var url=sb.storage.from('photos').getPublicUrl(path).data.publicUrl+'?t='+Date.now();
+        return sb.from(DB+'_photos')['delete']().eq('project_id',state.projectId).eq('point_no',no+'_A').then(function(){
+          return sb.from(DB+'_photos').insert({project_id:state.projectId,point_no:no+'_A',url:url}).then(function(ins){if(ins.error)throw ins.error;afterMap[no]=url;ok++;});
+        });
+      });
+    }).catch(function(err){console.error('aft upload',no,err);}).then(function(){done++;fin();});
+  });
+}
+(function(){var b=document.getElementById('aftPhotoUp');if(!b)return;var inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.multiple=true;inp.style.display='none';document.body.appendChild(inp);b.onclick=function(){inp.value='';inp.click();};inp.onchange=function(){if(inp.files&&inp.files.length)uploadAfterPhotos(inp.files);};})();/* [1509] */
 bind('dirToggle',function(){showDirArrows=!showDirArrows;var b=document.getElementById('dirToggle');b.classList.toggle('on',showDirArrows);b.textContent='🧭 방향 '+(showDirArrows?'ON':'OFF');drawGeo();});
 
 /* ===== 작업/뷰어 모드 + 특이사항 ===== */
