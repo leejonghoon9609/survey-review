@@ -228,7 +228,7 @@ function computeDepth(){
 }
 /* [1538] \uc870\uc11c \uc2ec\ub3c4 \ud074\ub9ad \u2192 \ubc18\uacbd 3m \uc9c0\ubc18\uc810(l) \ud45c\uc2dc \u2192 \ud074\ub9ad \uc2dc \uc790\ub3d9\uc2ec\ub3c4(\uc9c0\ubc18\ub808\ubca8-\uad00\ub85c\ub808\ubca8) \uc785\ub825 */
 function _depPickEsc(e){if(e.key==='Escape'){depPickClear();if(typeof toast==='function')toast('\uc9c0\ubc18\uc810 \uc120\ud0dd \ucde8\uc18c');}}
-function depPickClear(){var g=document.getElementById('depPickG');if(g)g.remove();window._depPick=null;document.removeEventListener('keydown',_depPickEsc);}
+function depPickClear(){var g=document.getElementById('depPickG');if(g)g.remove();window._depPick=null;document.removeEventListener('keydown',_depPickEsc);if(window._depPickDoc){document.removeEventListener('pointerdown',window._depPickDoc,true);window._depPickDoc=null;}}/* [1540] */
 function _depCellSync(no){try{var td=document.querySelector('td[data-jzdep="'+no+'"]');if(td)td.textContent=(state._depthByNo&&state._depthByNo[no]!=null)?(+state._depthByNo[no]).toFixed(2):'';}catch(_e){}}
 function depPickApply(no,g,dep){
  if(dep==null||!isFinite(dep)){if(typeof toast==='function')toast('\ub808\ubca8\uac12 \uc624\ub958');depPickClear();return;}
@@ -267,6 +267,8 @@ function depPickStart(no){
   G.appendChild(ci);G.appendChild(tx);});
  cv.appendChild(G);
  document.addEventListener('keydown',_depPickEsc);
+ window._depPickDoc=function(ev){var g9=document.getElementById('depPickG');if(!g9)return;var t9=ev.target;try{if(g9.contains(t9))return;}catch(_c9){}depPickClear();};/* [1540] \ub2e4\ub978 \uce21\uc810\u00b7\ube48 \uacf3 \ud074\ub9ad \uc2dc \uc790\ub3d9 \ud574\uc81c */
+ document.addEventListener('pointerdown',window._depPickDoc,true);
  if(typeof toast==='function')toast('\uc9c0\ubc18\uc810 '+cands.length+'\uac1c \ud45c\uc2dc \u2014 \uc8fc\ud669 \uc6d0 \ud074\ub9ad=\uc790\ub3d9 \uc2ec\ub3c4 \uc785\ub825 \u00b7 ESC=\ucde8\uc18c');}
 function buildTamsaMh(){
   if(!state.tamsa)return 0;
