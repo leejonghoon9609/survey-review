@@ -76,7 +76,7 @@ function _orgSync(){try{var p=null;
  if(typeof vb!=='undefined'&&vb){vb.x+=(ORG.x-ox);vb.y+=(oy-ORG.y);}
  if(typeof vb0!=='undefined'&&vb0){vb0.x+=(ORG.x-ox);vb0.y+=(oy-ORG.y);}
  ORG.x=ox;ORG.y=oy;
- try{['gRefDxf','gRefMH','gRefRiser'].forEach(function(_gid){var _rg9=document.getElementById(_gid);if(_rg9&&typeof REF!=='undefined'&&REF)_rg9.setAttribute('transform','translate('+((REF.ox||0)-ORG.x)+','+(ORG.y-(REF.oy||0))+')');});}catch(_rg8){}/* [1559] */
+ try{if(typeof REF!=='undefined'&&REF&&REF.ents&&typeof refDraw==='function'){refDraw();if(typeof _refMhDraw==='function')try{_refMhDraw();}catch(_rm9){}}}catch(_rg8){}/* [1561] ORG \ubcc0\uacbd \uc2dc REF path \uc7ac\uc0dd\uc131 */
  if(typeof cv!=='undefined'&&cv){try{cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);}catch(_v){}}
 }catch(_e){}}
 function S(x,y){return [x-ORG.x,ORG.y-y];}      // \ud654\uba74\uc88c\ud45c(\ubd81\ucabd \uc704) \u2014 [1524] \uc6d0\uc810 \ub85c\uceec
@@ -12359,7 +12359,7 @@ REF_SEL=null;REF.terrOn=false;REF.ents=null;REF.layers=null;REF.blocks=null;REF.
    float32 로 계산하면서 a*x 가 수억이 되어 최소간격이 128px 까지 벌어진다.
    → 확대 시 심볼과 선이 어긋나고 텍스트가 화면 밖으로 밀려 사라짐.
    큰 값은 그룹 transform 으로 빼내고 자식은 원점 기준 작은 좌표만 쓴다. */
-function refSR(x,y){return [x-REF.ox,-(y-REF.oy)];}
+function refSR(x,y){return [x-ORG.x,ORG.y-y];}/* [1561] ORG \ub85c\uceec \u2014 \uae4a\uc740 \uc90c \ub300\uc88c\ud45c path \ucef8\ub9c1 \uc81c\uac70 */
 /* depth>0 = 블록 내부(로컬좌표) → 원점 빼면 안 됨 */
 function refXY(d,x,y){return d?[x,-y]:refSR(x,y);}
 
@@ -12401,7 +12401,7 @@ function refDraw(){
   if(!REF.ents||!REF.on)return;
   if(!REF.box)refCalcBox();
   var g=document.createElementNS(SVGNS,'g');g.id='gRefDxf';g.setAttribute('pointer-events','none');
-  g.setAttribute('transform','translate('+((REF.ox||0)-ORG.x)+','+(ORG.y-(REF.oy||0))+')');/* [1559] ORG \ubc18\uc601 */
+  g.setAttribute('transform','translate('+(REF.ox||0)+','+(-(REF.oy||0))+')');/* [1561] \uc774\ub3d9 \uc624\ud504\uc14b\ub9cc \u2014 ORG\ub294 path\uc5d0 \ubc18\uc601 */
   var sp=REF.hsp||0.12;
   var defs=document.createElementNS(SVGNS,'defs');
   var pat=el('pattern',{id:'refHatchP',patternUnits:'userSpaceOnUse',width:sp,height:sp,patternTransform:'rotate(45)'});
@@ -13405,7 +13405,7 @@ function refDrawMh(){
   if(typeof mnUiOpen==='function'&&!mnUiOpen())return;   /* [1094] 맨홀도 꺼지면 초록원도 꺼짐 */
   var host=document.getElementById('gRefDxf');if(!host)return;
   var g=document.createElementNS(SVGNS,'g');g.id='gRefMH';
-  g.setAttribute('transform','translate('+((REF.ox||0)-ORG.x)+','+(ORG.y-(REF.oy||0))+')');/* [1559] ORG \ubc18\uc601 */
+  g.setAttribute('transform','translate('+(REF.ox||0)+','+(-(REF.oy||0))+')');/* [1561] \uc774\ub3d9 \uc624\ud504\uc14b\ub9cc \u2014 ORG\ub294 path\uc5d0 \ubc18\uc601 */
   if(host.nextSibling)cv.insertBefore(g,host.nextSibling);else cv.appendChild(g);
   var mm=refMhMatch(),ok={};
   mm.matched.forEach(function(x){ok[refNormLab(x.mh.label)]=x.rec;});
@@ -13716,7 +13716,7 @@ function refRiserPick(rec,lab,cb){
   refRiserClear();
   var mob=_refMob();
   var g=document.createElementNS(SVGNS,'g');g.id='gRefRiser';
-  g.setAttribute('transform','translate('+((REF.ox||0)-ORG.x)+','+(ORG.y-(REF.oy||0))+')');/* [1559] ORG \ubc18\uc601 */
+  g.setAttribute('transform','translate('+(REF.ox||0)+','+(-(REF.oy||0))+')');/* [1561] \uc774\ub3d9 \uc624\ud504\uc14b\ub9cc \u2014 ORG\ub294 path\uc5d0 \ubc18\uc601 */
   if(host.nextSibling)cv.insertBefore(g,host.nextSibling);else cv.appendChild(g);
   refRiserSel={cb:cb,lab:lab,n:list.length,mob:mob,pend:null,list:list,hidden:(mob?_refHideSheet():[])};
   list.forEach(function(q){
