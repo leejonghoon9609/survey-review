@@ -7903,7 +7903,13 @@ var MH_SPECS=[
 function mnSyncSpec(rec){
   rec.spec=mnDetectSpec(rec.dep,rec.w12,rec.w34);
   if(rec.spec&&rec.dep>0)rec.spec.dep=Math.round(rec.dep*1000);
+  _mnSpecSync(rec);/* [1587] */
 }
+function _mnSpecSync(rec){/* [1587] \ud45c\ucc30 \uaddc\uaca9 \ud655\uc815 \u2192 \ub3c4\uba74 \ub9e8\ud640 \uaddc\uaca9 \uc790\ub3d9 \uc5f0\ub3d9 */
+ try{if(!rec||rec.mhId==null||!rec.spec||!rec.spec.name)return;
+  var mh=null;(state.manholes||[]).forEach(function(m){if(!mh&&m&&m.id===rec.mhId)mh=m;});
+  if(mh&&mh.spec!==rec.spec.name){mh.spec=rec.spec.name;if(typeof saveProject==='function')try{saveProject();}catch(_s){}}
+ }catch(_e){}}
 function mnAskSpec(rec,cb){mnAskSpecDim(rec,'w12',cb);} /* 하위호환 */
 function mnAskSpecDim(rec,mode,cb){
   var w=document.createElement('div');w.id='mnSpecModal';
@@ -9203,6 +9209,7 @@ function mnOpenForm(rec){
   function render(){
     window.mnRerenderSheet=render;
     rec.spec=mnDetectSpec(rec.dep,rec.w12,rec.w34);
+    if(typeof _mnSpecSync==='function')_mnSpecSync(rec);/* [1587] */
     var specTxt=rec.spec?(rec.spec.name+' ('+(rec.spec.w/1000)+'×'+(rec.spec.h/1000)+')·'+rec.spec.orient):'';
     var dash='stroke="#999" stroke-width="0.8" stroke-dasharray="5,4"';
     function grid(arm){
