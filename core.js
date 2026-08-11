@@ -10697,7 +10697,7 @@ function joseoGoto(p){
   try{
     if(!p||typeof vb==='undefined')return;
     var span=Math.min(30,(vb&&vb.w>1)?vb.w:30);
-    vb={x:p.x-span/2,y:-(p.y+span/2),w:span,h:span};
+    var _sp9=S(p.x,p.y);vb={x:_sp9[0]-span/2,y:_sp9[1]-span/2,w:span,h:span};/* [1567] ORG \ub85c\uceec */
     if(typeof fixAspect==='function')fixAspect();
     if(typeof applyVB==='function')applyVB();
   }catch(e){}
@@ -13522,7 +13522,7 @@ function refMhCreate(only){
 /* ---------- 매칭 패널 ---------- */
 function refMhGoto(x,y){
   var span=Math.min(40,(vb&&vb.w>1)?vb.w:40);
-  vb={x:x-span/2,y:-(y+span/2),w:span,h:span};
+  var _sp9=S(x,y);vb={x:_sp9[0]-span/2,y:_sp9[1]-span/2,w:span,h:span};/* [1567] ORG \ub85c\uceec */
   if(typeof fixAspect==='function')fixAspect();
   if(typeof applyVB==='function')applyVB();
 }
