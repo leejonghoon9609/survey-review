@@ -9058,6 +9058,12 @@ function mnEquipXls(rec){
             zip.file('xl/drawings/_rels/drawing1.xml.rels').async('string').then(function(rl){
               rl=rl.replace(/(Id="rId1"[^>]*Target=")[^"]*(")/,'$1../media/image1.png$2');
               zip.file('xl/drawings/_rels/drawing1.xml.rels',rl);
+            }),
+            /* [1593] \uc124\ube44\uc704\uce58 \uadf8\ub9bc top 4px \ub0b4\ub9bc \u2014 \uc0c1\ub2e8 \uc140 \ud14c\ub450\ub9ac \ub178\ucd9c (col2\u00b7row3 \uc575\ucee4\ub294 image1 \uc720\uc77c) */
+            zip.file('xl/drawings/drawing1.xml').async('string').then(function(dw){
+              dw=dw.replace('<xdr:from><xdr:col>2</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>3</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from>',
+                            '<xdr:from><xdr:col>2</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>3</xdr:row><xdr:rowOff>38100</xdr:rowOff></xdr:from>');
+              zip.file('xl/drawings/drawing1.xml',dw);
             })
           ]);
         }).catch(function(e){console.error('site image',e);}));
