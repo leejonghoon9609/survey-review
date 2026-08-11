@@ -9319,8 +9319,9 @@ function mnOpenForm(rec){
       +'<text x="420" y="960" text-anchor="middle" font-size="11.5" fill="#aab">벽면=관배치 · 색칸=치수 · 표찰표=번호 · 우측=사진</text>'
       +(function(){ /* [BUILD 1050] 설비위치 미리보기 */
         try{
-          if(typeof refSiteSVG!=='function'||typeof REF==='undefined'||!REF||!REF.ents)return '';
-          var _sv=refSiteSVG(rec,256,184,REF_SITE_SPAN,[440,768]);
+          var _sv=null;
+          if(typeof refSiteSVG==='function'&&typeof REF!=='undefined'&&REF&&REF.ents)_sv=refSiteSVG(rec,256,184,REF_SITE_SPAN,[440,768]);
+          if(!_sv&&typeof fldSiteSVG==='function')_sv=fldSiteSVG(rec,256,184,REF_SITE_SPAN,[440,768]);/* [1570] \uce21\ub7c9\ud604\uc7a5 \ud3f4\ubc31 */
           if(!_sv)return '';
           return '<rect x="439" y="767" width="258" height="186" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>'
                +_sv
@@ -13959,6 +13960,39 @@ function refSiteSVG(rec,W,H,span,at){
          '<defs><clipPath id="'+cid+'">'+bg+'</clipPath></defs>'+bg+
          '<g clip-path="url(#'+cid+')">'+body.join('')+'</g></svg>';
 }
+function fldSiteSVG(rec,W,H,span,at){/* [1570] \uce21\ub7c9\ud604\uc7a5 \uc57c\uc7a5 \uc124\ube44\uc704\uce58 \u2014 state \uad00\ub85c\uc120\u00b7\ub9e8\ud640 \uae30\ubc18 (REF \uc5c6\ub294 \uc0ac\uc5c5\uc6a9) */
+ try{
+  var c=null;
+  if(rec&&rec.refXY&&rec.refXY.length===2&&isFinite(+rec.refXY[0]))c=[+rec.refXY[0],+rec.refXY[1]];
+  if(!c&&rec&&rec.mhId!=null){(state.manholes||[]).forEach(function(m){if(!c&&m&&m.id===rec.mhId&&m.wx!=null)c=[+m.wx,+m.wy];});}
+  if(!c)return null;
+  if(!((state.lines&&state.lines.length)||(state.manholes&&state.manholes.length)))return null;
+  W=W||256;H=H||184;span=span||200;
+  var vw=span,vh=span*(H/W);
+  var x0=c[0]-vw/2,x1=c[0]+vw/2,y0=c[1]-vh/2,y1=c[1]+vh/2;
+  var OX=Math.round(c[0]),OY=Math.round(c[1]);
+  function P(x,y){return [(x-OX).toFixed(3),(-(y-OY)).toFixed(3)];}
+  var pad=vw*0.15;function inView(px,py){return px>x0-pad&&px<x1+pad&&py>y0-pad&&py<y1+pad;}
+  var kW=vw/1000,body=[];
+  (state.lines||[]).forEach(function(L){var ps=L&&L.pts;if(!ps||ps.length<2)return;
+   var any=false;for(var q=0;q<ps.length;q++){if(inView(ps[q][0],ps[q][1])){any=true;break;}}
+   if(!any)return;
+   var isPipe=(L.layer==='\ud1b5\uc2e0\uad00\ub85c');
+   body.push('<polyline points="'+ps.map(function(p){var s2=P(p[0],p[1]);return s2[0]+','+s2[1];}).join(' ')+'" fill="none" stroke="'+(isPipe?'#0033cc':'#a3a3a3')+'" stroke-width="'+((isPipe?7.0:1.2)*kW)+'" stroke-linejoin="round" stroke-linecap="round"/>');});
+  (state.manholes||[]).forEach(function(m){if(!m||m.wx==null)return;if(!inView(m.wx,m.wy))return;
+   var s2=P(m.wx,m.wy);var isR=(m.type==='riser');
+   body.push('<circle cx="'+s2[0]+'" cy="'+s2[1]+'" r="'+(vw*(isR?0.012:0.022)).toFixed(2)+'" fill="'+(isR?'#7a52e0':'#0aa060')+'" fill-opacity="0.85"/>');});
+  var mc=P(c[0],c[1]);var R=vw*0.072;
+  body.push('<circle cx="'+mc[0]+'" cy="'+mc[1]+'" r="'+R.toFixed(2)+'" fill="none" stroke="#e60000" stroke-width="'+(3.0*kW)+'"/>');
+  var lab=(typeof refSiteEsc==='function')?refSiteEsc((typeof mnLabel==='function'?mnLabel(rec):'')||''):'';
+  var fs=vw*0.058;
+  body.push('<text x="'+mc[0]+'" y="'+(parseFloat(mc[1])-R-fs*0.45).toFixed(2)+'" font-size="'+fs.toFixed(2)+'" fill="#e60000" font-weight="600" text-anchor="middle" font-family="Malgun Gothic, Dotum, sans-serif">'+lab+'</text>');
+  var vb=[(x0-OX).toFixed(3),(-(y1-OY)).toFixed(3),vw.toFixed(3),vh.toFixed(3)].join(' ');
+  var pos=at?(' x="'+at[0]+'" y="'+at[1]+'"'):'';
+  var cid='fsc'+Math.random().toString(36).slice(2,9);
+  var bg='<rect x="'+(x0-OX).toFixed(3)+'" y="'+(-(y1-OY)).toFixed(3)+'" width="'+vw+'" height="'+vh+'" fill="#ffffff"/>';
+  return '<svg xmlns="http://www.w3.org/2000/svg"'+pos+' width="'+W+'" height="'+H+'" viewBox="'+vb+'" overflow="hidden">'+'<defs><clipPath id="'+cid+'">'+bg+'</clipPath></defs>'+bg+'<g clip-path="url(#'+cid+')">'+body.join('')+'</g></svg>';
+ }catch(_e){return null;}}
 /* 블록 자체 반경(캐시) — 심벨 확대 기준 */
 var REF_BLKR={};
 function refBlockR(nm){
@@ -14007,7 +14041,7 @@ var REF_SITE_MGX=0.006;   /* 좌우 여백 비율 — 엑셀 셀 테두리선이
 /* 영역 직접 지정: 도면창에서 드래그 */
 var refAreaSel=null;
 function refSiteAreaStart(rec){
-  if(!REF.ents){toast('\uacb0\uc120\uc744 \uba3c\uc800 \ubd88\ub7ec\uc624\uc138\uc694');return;}
+  if(!REF.ents){var _nv=prompt('\uc124\ube44\uc704\uce58 \ud45c\uc2dc \ubc94\uc704 (m)',String(REF_SITE_SPAN||200));if(_nv==null)return;var _sp=parseFloat(_nv);if(!isFinite(_sp)||_sp<20)return;REF_SITE_SPAN=_sp;if(typeof mnOpenForm==='function')try{mnOpenForm(rec);}catch(_r){}return;}/* [1570] \uce21\ub7c9\ud604\uc7a5: \ubc94\uc704 \uc785\ub825 */
   refAreaSel={rec:rec,p0:null,el:null};
   try{cv.style.cursor='crosshair';}catch(e){}
   toast('\ub3c4\uba74\ucc3d\uc5d0\uc11c \ub4dc\ub798\uadf8\ud574 \uce90\ud504\uccb4 \uc601\uc5ed\uc744 \uc9c0\uc815\ud558\uc138\uc694 (ESC \ucde8\uc18c)');
