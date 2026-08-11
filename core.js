@@ -9828,7 +9828,7 @@ function mnPipeEditor(rec,wall){
     ctx.clearRect(0,0,cssW,cssH);
     ctx.setTransform(dpr*vz,0,0,dpr*vz,-vox*dpr,-voy*dpr);
     if(bg){var iw=bg.width,ih=bg.height;var k=Math.max(cssW/iw,cssH/ih);var dw=iw*k,dh=ih*k;ctx.globalAlpha=0.5;try{ctx.drawImage(bg,(cssW-dw)/2,(cssH-dh)/2,dw,dh);}catch(_e){}ctx.globalAlpha=1;}
-    ctx.lineWidth=1;/* [1582] 50mm \ubcf4\uc870\uc120+100mm \uc8fc\uc120 \u2014 \ubc30\uce58 \uc815\ub82c\uac10 \ud5a5\uc0c1 */
+    ctx.lineWidth=0.5;/* [1585] \uaca9\uc790\uc120 \uc587\uac8c *//* [1582] 50mm \ubcf4\uc870\uc120+100mm \uc8fc\uc120 \u2014 \ubc30\uce58 \uc815\ub82c\uac10 \ud5a5\uc0c1 */
     for(var gx=25;gx<W;gx+=25){ctx.strokeStyle=(gx%100===0)?'#d5dbe6':(gx%50===0?'#e6eaf1':'#f3f5f9');ctx.beginPath();ctx.moveTo(gx*sx,0);ctx.lineTo(gx*sx,cssH);ctx.stroke();}/* [1583] 25mm \u2014 \uc2a4\ub0c5 \uac04\uaca9\uacfc \uc77c\uce58 */
     for(var gy=25;gy<H;gy+=25){ctx.strokeStyle=(gy%100===0)?'#d5dbe6':(gy%50===0?'#e6eaf1':'#f3f5f9');ctx.beginPath();ctx.moveTo(0,gy*sy);ctx.lineTo(cssW,gy*sy);ctx.stroke();}
     /* 중심선 (빨강) */
