@@ -8666,8 +8666,8 @@ function mnDxfGen(rec){
     var slots={
       /* [1059] 완료샘플 실측: 수평 700 / 수직 560 — 몸체에 더 붙임.
          라벨은 항상 화살표 반대편 (U/D/L/R) */
-      p1:{sx:g.bx0-700,sy:g.by1+560,lab:'U',ar:'down'},
-      p2:{sx:g.bx1+700,sy:g.by0-560,lab:'D',ar:'up'},
+      p1:{sx:g.bx0-700,sy:g.by1+860,lab:'U',ar:'down'},/* [1579] +300 \u2014 \ud314 \uc704\ub85c \uc62c\ub9bc(\ub9e8\ud640\ub3c4 \uce68\ubc94 \ubc29\uc9c0) */
+      p2:{sx:g.bx1+700,sy:g.by0-860,lab:'D',ar:'up'},/* [1579] -300 \u2014 \uce58\uc218\uc120 \uc544\ub798\ub85c \ub0b4\ub9bc */
       p3:{sx:g.bx1+700,sy:g.by1+560,lab:'R',ar:'left'},
       p4:{sx:g.bx0-700,sy:g.by0-560,lab:'L',ar:'right'}
     };
