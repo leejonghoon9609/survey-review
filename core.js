@@ -8406,7 +8406,7 @@ function mnEfbGen(rec){
     if(!r.ok)throw new Error('tpl');
     return r.text();
   }).then(function(x){
-    x=x.split('{{MHNO}}').join(mnLabel(rec)||'');
+    x=x.split('{{MHNO}}').join(mnLabelNoPf(rec)||'');/* [1596] */
     var hm=x.match(/\$HANDSEED\r?\n  5\r?\n([0-9A-Fa-f]+)/);
     var seed=hm?parseInt(hm[1],16):0x50000;
     function nh(){return (seed++).toString(16).toUpperCase();}
@@ -8531,7 +8531,7 @@ function mnEfbGen(rec){
     ['p1','p2','p3','p4'].forEach(function(w){
       out+=armWalls(w)+armDims(w); /* 팔·치수는 4방 항상 (샘플 규칙) */
       var dv2=d[dm[w]];
-      if(dv2){
+      if(dv2){dv2=(typeof mnStripPf==='function')?mnStripPf(dv2):dv2;/* [1596] */
         if(w==='p1'){out+=eArrow(x0-A-N,CY,0.5,180)+eTxt(x0-A-N-182,CY,dv2,100,90,'DIM','Attr');}
         else if(w==='p2'){out+=eArrow(x1+A+N,CY,-0.5,180)+eTxt(x1+A+N+181,CY,dv2,100,270,'DIM','Attr');}
         else if(w==='p3'){out+=eArrow(CX,y1+A+N,0.5,90)+eTxt(CX,y1+A+N+182,dv2,100,0,'DIM','Attr');}
@@ -8561,9 +8561,16 @@ function mnEfbGen(rec){
           tip=[ccx+399,y0-450];out+=eArrow(tip[0],tip[1],-0.5,90);
           lst=[Math.max(tip[0]+24,x1+382+_half),tip[1]-164];lstep=-131;
         }
-        else if(w==='p3'){var _lx3=Math.max(x1+441,mxx+180);tip=[mnx-180,ccy+399];out+=eArrow(tip[0],tip[1],-0.5,180);lst=[_lx3+320,tip[1]+164];lstep=131;}/* [1578] \ud654\uc0b4\ud45c=\uc6d0 \uc67c\ucabd\u00b7\ucd09\u2192\uad00, \ub77c\ubca8=\uc624\ub978\ucabd \uc720\uc9c0 */
-        else{var _lx4=Math.max(x1+441,mxx+180);tip=[mnx-180,ccy-399];out+=eArrow(tip[0],tip[1],-0.5,180);lst=[_lx4+320,tip[1]-164];lstep=-131;}/* [1578] */
-        dias.forEach(function(dv,i){
+        else{/* [1596] p3\u00b7p4 \u2014 \ub9e8\ud640\ub3c4 \uc88c\uc6b0\ubcbd [1578] \ubbf8\ub7ec: \ud654\uc0b4\ud45c=\uad00\ubb36\uc74c \uc624\ub978\ucabd 80\u00b7\ucd09\u2192\uad00\u00b7\ubab8\ud1b5 \ub77c\ubca8\ucabd, \ub77c\ubca8=\ud654\uc0b4\ud45c \uc624\ub978\ucabd \uc67c\ub05d\uc815\ub82c\u00b7\uad00\ubb36\uc74c \uc911\uc2ec \uc138\ub85c\ubc30\uc5f4 */
+          out+=eArrow(mxx+80,ccy,0.5,180);
+          var _LX=Math.max(mxx+380,x1+441),_n=dias.length;/* \ud654\uc0b4\ud45c \ubab8\ud1b5(+323.5) \ud68c\ud53c */
+          dias.forEach(function(dv,i){
+            var _t='FC\u00d8'+dv+'X'+agg[dv].n+'('+agg[dv].f+')';
+            out+=eTxt(_LX+_t.length*39.5,ccy+((_n-1)/2-i)*131,_t,100,0,'DIM','Attr');
+          });
+          lst=null;
+        }
+        if(lst)dias.forEach(function(dv,i){
           out+=eTxt(lst[0],lst[1]+lstep*i,'FC\u00d8'+dv+'X'+agg[dv].n+'('+agg[dv].f+')',100,0,'DIM','Attr');
         });
       }
@@ -8598,7 +8605,7 @@ function mnEfbGen(rec){
     if(CRLF)out=out.replace(/\n/g,'\r\n');
     x=x.slice(0,end+Q.length)+out+x.slice(end+Q.length);
     if(hm)x=x.replace(/\$HANDSEED\r?\n  5\r?\n[0-9A-Fa-f]+/,'$HANDSEED'+Q+'  5'+Q+seed.toString(16).toUpperCase());
-    var nm=(mnLabel(rec)||'맨홀').replace(/[\\/:*?"<>|]/g,'_');
+    var nm=(mnLabelNoPf(rec)||'맨홀').replace(/[\\/:*?"<>|]/g,'_');/* [1596] */
     var blob=new Blob([x],{type:'application/dxf'});
     mnOut(blob,nm+'_전자야장.dxf');
     toast('현장전자야장 '+nm+'_전자야장.dxf 다운로드');
