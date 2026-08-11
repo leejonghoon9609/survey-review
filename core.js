@@ -9362,7 +9362,7 @@ function mnOpenForm(rec){
         }
         else if(act==='dest'){var dk=el.getAttribute('data-d');var dn={d1:'1',d2:'2',d3:'3',d4:'4'}[dk];mnAskDest((rec.dest&&rec.dest[dk])||'',dn,function(v){if(!rec.dest)rec.dest={};rec.dest[dk]=v;mnPersistRec(rec);render();},rec,dk);}
         else if(act==='wall'){var wl=el.getAttribute('data-w');var closeIt=function(){if(!host&&wrap)wrap.remove();};if(!(rec.photos&&rec.photos[wl])){toast('벽면 사진을 먼저 촬영합니다');mnShootSlot(rec,wl,function(){closeIt();mnPipeEditor(rec,wl);});}else{closeIt();mnPipeEditor(rec,wl);}}
-        else if(act==='pview'){
+        else if(act==='pview'||(act==='ph'&&rec.photos&&rec.photos[el.getAttribute('data-s')])){/* [1580] \uc0ac\uc9c4 \uc788\uc73c\uba74 \ubcf4\uae30\u00b7\uc5c6\uc73c\uba74 \ucd2c\uc601 */
           var vs=el.getAttribute('data-s');var vu=rec.photos&&rec.photos[vs];
           if(vu){
             var ov=document.createElement('div');
