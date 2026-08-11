@@ -9760,6 +9760,7 @@ function mnPipeEditor(rec,wall){
   function _rLocal(h,cx,cy){var r=h.getBoundingClientRect();return [cx-r.left-r.width/2,cy-r.top-r.height/2];}
   (function wireRef(){
     var h=wrap.querySelector('#mnRefImgBox');if(!h)return;
+    try{h.style.touchAction='pan-y';}catch(_ta){}/* [1574] */
     h.addEventListener('wheel',function(e){
       if(!_rEl())return;e.preventDefault();
       var p=_rLocal(h,e.clientX,e.clientY);
@@ -9773,9 +9774,10 @@ function mnPipeEditor(rec,wall){
         var a=_rpts[ks[0]],b=_rpts[ks[1]];
         _rpin={d:Math.hypot(a.x-b.x,a.y-b.y),z:_rz};_rdrg=null;
       }else if(n===1){
-        _rdrg={x:e.clientX,y:e.clientY,ox:_rx,oy:_ry};
         var now=Date.now();
-        if(now-_rtap<330){refReset0();_rtap=0;}else _rtap=now;
+        if(now-_rtap<330){refReset0();_rtap=0;delete _rpts[e.pointerId];return;}else _rtap=now;
+        if(_rz<=1){_rdrg=null;delete _rpts[e.pointerId];return;}/* [1574] \ubbf8\ud655\ub300 \uc2dc \uc2a4\ud06c\ub864 \ud1b5\uacfc \u2014 \ubaa8\ubc14\uc77c \ubc84\ud2bc \uc811\uadfc \ubcf5\uad6c */
+        _rdrg={x:e.clientX,y:e.clientY,ox:_rx,oy:_ry};
         try{h.setPointerCapture(e.pointerId);}catch(_pe){}
         h.style.cursor='grabbing';
       }
@@ -10038,6 +10040,12 @@ function mnPipeEditor(rec,wall){
     vox=bx*vz-(e.clientX-r.left);voy=by*vz-(e.clientY-r.top);
     clampView();draw();
   },{passive:false});
+  (function(){var card=wrap.firstElementChild;var hd=card&&card.firstElementChild;if(hd){hd.style.cursor='move';var dx=0,dy=0;
+  hd.addEventListener('pointerdown',function(e){if(e.pointerType!=='mouse')return;if(e.target&&(e.target.tagName==='BUTTON'||e.target.closest&&e.target.closest('button')))return;e.preventDefault();
+   var sx=e.clientX-dx,sy=e.clientY-dy;
+   function mv(ev){dx=ev.clientX-sx;dy=ev.clientY-sy;card.style.transform='translate('+dx+'px,'+dy+'px)';}
+   function up(){document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);}
+   document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);});}})();/* [1574] PC \ucc3d \uc774\ub3d9 */
   wrap.querySelector('#mnPClose').onclick=function(){wrap.remove();mnOpenForm(rec);};
   wrap.querySelector('#mnPDone').onclick=function(){mnPersistRec(rec,'관배치 저장됨');wrap.remove();mnOpenForm(rec);};
 }
