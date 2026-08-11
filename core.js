@@ -12395,7 +12395,7 @@ function refDraw(){
   if(!REF.ents||!REF.on)return;
   if(!REF.box)refCalcBox();
   var g=document.createElementNS(SVGNS,'g');g.id='gRefDxf';g.setAttribute('pointer-events','none');
-  g.setAttribute('transform','translate('+REF.ox+','+(-REF.oy)+')');
+  g.setAttribute('transform','translate('+((REF.ox||0)-ORG.x)+','+(ORG.y-(REF.oy||0))+')');/* [1566] REF \ud654\uba74\uc88c\ud45c ORG \ub85c\uceec \ud1b5\uc77c \u2014 \uc774 1\uac74\ub9cc */
   var sp=REF.hsp||0.12;
   var defs=document.createElementNS(SVGNS,'defs');
   var pat=el('pattern',{id:'refHatchP',patternUnits:'userSpaceOnUse',width:sp,height:sp,patternTransform:'rotate(45)'});
@@ -13399,7 +13399,7 @@ function refDrawMh(){
   if(typeof mnUiOpen==='function'&&!mnUiOpen())return;   /* [1094] 맨홀도 꺼지면 초록원도 꺼짐 */
   var host=document.getElementById('gRefDxf');if(!host)return;
   var g=document.createElementNS(SVGNS,'g');g.id='gRefMH';
-  g.setAttribute('transform','translate('+REF.ox+','+(-REF.oy)+')');
+  g.setAttribute('transform','translate('+((REF.ox||0)-ORG.x)+','+(ORG.y-(REF.oy||0))+')');/* [1566] REF \ud654\uba74\uc88c\ud45c ORG \ub85c\uceec \ud1b5\uc77c \u2014 \uc774 1\uac74\ub9cc */
   if(host.nextSibling)cv.insertBefore(g,host.nextSibling);else cv.appendChild(g);
   var mm=refMhMatch(),ok={};
   mm.matched.forEach(function(x){ok[refNormLab(x.mh.label)]=x.rec;});
@@ -13710,7 +13710,7 @@ function refRiserPick(rec,lab,cb){
   refRiserClear();
   var mob=_refMob();
   var g=document.createElementNS(SVGNS,'g');g.id='gRefRiser';
-  g.setAttribute('transform','translate('+REF.ox+','+(-REF.oy)+')');
+  g.setAttribute('transform','translate('+((REF.ox||0)-ORG.x)+','+(ORG.y-(REF.oy||0))+')');/* [1566] REF \ud654\uba74\uc88c\ud45c ORG \ub85c\uceec \ud1b5\uc77c \u2014 \uc774 1\uac74\ub9cc */
   if(host.nextSibling)cv.insertBefore(g,host.nextSibling);else cv.appendChild(g);
   refRiserSel={cb:cb,lab:lab,n:list.length,mob:mob,pend:null,list:list,hidden:(mob?_refHideSheet():[])};
   list.forEach(function(q){
