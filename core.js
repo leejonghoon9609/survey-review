@@ -9641,7 +9641,7 @@ function mnPipeEditor(rec,wall){
       +'<button id="mnMdDel" class="mn-md" style="flex:none;border:1px solid #e67e22;background:#fff;color:#e67e22;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">개별삭제</button>'
       +'<button id="mnDelAll" style="flex:none;border:1px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:800;cursor:pointer">전체삭제</button>'
       +'<button id="mnReShoot" style="margin-left:auto;flex:none;border:1px solid #d32f2f;background:#fdeaea;color:#d32f2f;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:800;cursor:pointer">재촬영</button></div>'
-    +'<div id="mnRefBox" style="display:none;margin-bottom:7px">'
+    +'<div id="mnRefBox" style="display:block;margin-bottom:7px">'/* [1573] \uc608\uc804\ucc98\ub7fc \uc0c1\uc2dc \ud45c\uc2dc */
       +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><b style="font-size:12px;color:#2471a3">\uCC38\uACE0 \uC0AC\uC9C4</b>'
       +'<span style="font-size:11px;color:#99a">\uD720/\uD540\uCE58=\uD655\uB300 \u00B7 \uB04C\uAE30=\uC774\uB3D9 \u00B7 \uB354\uBE14\uD0ED=\uC6D0\uB798\uB300\uB85C</span>'
       +'<button id="mnRefRst" style="margin-left:auto;border:1px solid #cfd8e3;background:#fff;color:#5b6577;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer">\uC6D0\uB798\uB300\uB85C</button></div>'
@@ -9813,8 +9813,8 @@ function mnPipeEditor(rec,wall){
     _placeOn=!!on;
     var rb=wrap.querySelector('#mnRefBox'),gb=wrap.querySelector('#mnGBox'),
         pd=wrap.querySelector('#mnPDone'),bd=wrap.querySelector('#mnPlaceDone');
-    if(rb)rb.style.display=on?'block':'none';
-    if(gb)gb.style.display=on?'none':'block';
+    if(rb)rb.style.display='block';/* [1573] \uc0c1\uc2dc */
+    if(gb)gb.style.display='block';/* [1573] \uc0c1\uc2dc */
     if(pd)pd.style.display='flex';               /* [1064] 최종 완료는 항상 보임 */
     if(bd)bd.style.display=on?'flex':'none';
     if(on){refFill();try{var bd2=wrap.querySelector('#mnRefBox');if(bd2&&bd2.scrollIntoView)bd2.scrollIntoView({block:'start'});}catch(_se){}}
