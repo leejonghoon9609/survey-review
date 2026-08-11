@@ -8737,8 +8737,8 @@ function mnDxfGen(rec){
       var cxm=(minX+maxX)/2, cym=(minY+maxY)/2;
       if(sl.ar==='down')out+=mnDxfIns(nh(),cxm,minY-200,0.5,0.5,90);
       else if(sl.ar==='up')out+=mnDxfIns(nh(),cxm,maxY+200,-0.5,0.5,90);
-      else if(sl.ar==='left')out+=mnDxfIns(nh(),minX-200,cym,0.5,0.5,180);
-      else out+=mnDxfIns(nh(),maxX+200,cym,-0.5,0.5,180);
+      else if(sl.ar==='left')out+=mnDxfIns(nh(),maxX+324,cym,-0.5,0.5,180);/* [1577] \uc6d0\u2194\ub77c\ubca8 \uc0ac\uc774, \ucd09=\ub77c\ubca8\ucabd(\u2192), \ubab8\ud1b5 \uc6d0\uc5d0\uc11c 80 \uc774\uaca9 */
+      else out+=mnDxfIns(nh(),minX-324,cym,0.5,0.5,180);/* [1577] \ucd09 \u2190, \ub77c\ubca8\ucabd \ubc30\uce58 */
     });
     var ei=x.indexOf('\nENTITIES\n');
     var end=x.indexOf('\n  0\nENDSEC',ei);
