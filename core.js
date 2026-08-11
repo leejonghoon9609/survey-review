@@ -68,7 +68,7 @@ function _orgSync(){try{var p=null;
  if(!p&&state.manholes&&state.manholes.length&&state.manholes[0].wx!=null)p=[state.manholes[0].wx,state.manholes[0].wy];
  if(!p&&state.gpsPts&&state.gpsPts.length&&isFinite(state.gpsPts[0].x))p=[state.gpsPts[0].x,state.gpsPts[0].y];
  if(!p&&state.baseTexts&&state.baseTexts.length&&isFinite(state.baseTexts[0].x))p=[state.baseTexts[0].x,state.baseTexts[0].y];
- if(!p&&typeof REF!=='undefined'&&REF&&REF.box&&isFinite(REF.box.minx))p=[REF.box.minx+(REF.ox||0),REF.box.miny+(REF.oy||0)];/* [1559] */
+ if(!p&&typeof REF!=='undefined'&&REF&&REF.box&&isFinite(REF.box.x0))p=[REF.box.x0+(REF.ox||0),REF.box.y0+(REF.oy||0)];/* [1562] \ud544\ub4dc\uba85 \uad50\uc815 */
  if(!p&&state.mnList&&state.mnList.length){for(var _i9=0;_i9<state.mnList.length&&!p;_i9++){var _r9=state.mnList[_i9];if(_r9&&_r9.refXY&&isFinite(+_r9.refXY[0]))p=[_r9.refXY[0],_r9.refXY[1]];}}
  if(!p)return;
  var ox=Math.floor(p[0]/1000)*1000,oy=Math.floor(p[1]/1000)*1000;
@@ -1694,7 +1694,7 @@ function fitView(){_orgSync();/* [1524] */
   state.points.forEach(function(p){add(p.x,p.y);});
   state.lines.forEach(function(L){L.pts.forEach(function(p){add(p[0],p[1]);});});if(state.gpsPts){var _haveF={};(state.points||[]).forEach(function(p){_haveF[p.no]=1;});var _nsF2=state.nightShift,_cutF2=(_nsF2&&_nsF2.on)?_nsF2.cut:null;state.gpsPts.forEach(function(g){var _wnoF2=g.no;if(g._d0!=null&&g._nm!=null){var _dtF2=g._d0;if(_cutF2!=null&&g._tm!=null&&g._tm<_cutF2)_dtF2=prevDayYMD(g._d0);_wnoF2=_dtF2+'-'+g._nm;}if(_haveF[g.no]||_haveF[_wnoF2])return;add(g.x,g.y);});}
   (state.manholes||[]).forEach(function(m){if(m&&m.wx!=null)add(m.wx,m.wy);});/* [1559] */
-  try{if(typeof REF!=='undefined'&&REF&&REF.ents&&REF.box){var _ro9=REF.ox||0,_ry9=REF.oy||0;add(REF.box.minx+_ro9,REF.box.miny+_ry9);add(REF.box.maxx+_ro9,REF.box.maxy+_ry9);}}catch(_rb9){}/* [1559] REF \uc131\uacfc \ud3ec\ud568 */
+  try{if(typeof REF!=='undefined'&&REF&&REF.ents&&REF.box){var _ro9=REF.ox||0,_ry9=REF.oy||0;add(REF.box.x0+_ro9,REF.box.y0+_ry9);add(REF.box.x1+_ro9,REF.box.y1+_ry9);}}catch(_rb9){}/* [1562] \ud544\ub4dc\uba85 x0/y1 \uad50\uc815 *//* [1559] REF \uc131\uacfc \ud3ec\ud568 */
   try{(state.mnList||[]).forEach(function(r){if(r&&!r.delAt&&r.refXY&&isFinite(+r.refXY[0]))add(r.refXY[0],r.refXY[1]);});}catch(_mr9){}
   if(!xs.length){vb={x:0,y:0,w:100,h:100};vb0={x:0,y:0,w:100,h:100};applyVB();return;}
   var pad=5,minx=Math.min.apply(0,xs),maxx=Math.max.apply(0,xs),miny=Math.min.apply(0,ys),maxy=Math.max.apply(0,ys);
@@ -12686,8 +12686,9 @@ function refFit(){
   if(!REF.ents)return;
   var b=refCalcBox();
   if(!b||b.x1-b.x0<1)return;
+  if(typeof _orgSync==='function')_orgSync();/* [1562] ORG \ud655\uc815(\ubcc0\uacbd \uc2dc path \uc7ac\uc0dd\uc131 \ud3ec\ud568) */
   var pad=Math.max(b.x1-b.x0,b.y1-b.y0)*0.05;
-  vb0={x:b.x0-pad,y:-(b.y1+pad),w:(b.x1-b.x0)+2*pad,h:(b.y1-b.y0)+2*pad};
+  vb0={x:(b.x0-ORG.x)-pad,y:(ORG.y-b.y1)-pad,w:(b.x1-b.x0)+2*pad,h:(b.y1-b.y0)+2*pad};/* [1562] ORG \ub85c\uceec */
   vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};
   if(typeof fixAspect==='function')fixAspect();
   if(typeof applyVB==='function')applyVB();
