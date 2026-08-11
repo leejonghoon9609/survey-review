@@ -8101,7 +8101,7 @@ function mnOpenList(){
   function uClose(){if(host)mnHostClose();else if(wrap)wrap.remove();}
   root.querySelector('#mnLClose').onclick=uClose;
   root.querySelector('#mnNew').onclick=function(){uClose();mnOpenForm(null);};
-  [].forEach.call(root.querySelectorAll('.mn-card'),function(b){b.onclick=function(e){if(e.target.classList.contains('mn-del'))return;var i=+b.getAttribute('data-i');var _r=mnList()[i];try{if(typeof refMhFocus==='function')refMhFocus(_r);}catch(_e){}uClose();mnOpenForm(_r);};});
+  [].forEach.call(root.querySelectorAll('.mn-card'),function(b){b.onclick=function(e){if(e.target.classList.contains('mn-del'))return;var i=+b.getAttribute('data-i');var _r=mnList()[i];try{if(typeof REF!=='undefined'&&REF&&REF.ents){if(typeof refMhFocus==='function')refMhFocus(_r);}else if(typeof _fldMhFocus==='function'){_fldMhFocus(_r);}}catch(_e){}uClose();mnOpenForm(_r);};});
   [].forEach.call(root.querySelectorAll('.mn-del'),function(b){b.onclick=function(){var i=+b.getAttribute('data-i');var r=mnList()[i];if(!confirm('맨홀 '+mnLabel(r)+' 조사를 삭제할까요?\n(7일 보관 후 완전삭제 — 삭제목록에서 복원 가능)'))return;r.delAt=Date.now();saveProject();uClose();mnOpenList();toast('🗑 삭제됨 (7일 보관)');};});
   var _tb=root.querySelector('#mnTrashBtn');if(_tb)_tb.onclick=function(){mnTrashList(uClose);};var _mdb=root.querySelector('#mnDoneBtn');if(_mdb)_mdb.onclick=mnRegisterDone; /* [1265] */var _mpu=root.querySelector('#mnPhUpBtn');if(_mpu)_mpu.onclick=function(){if(typeof _fldMnZipModal==='function')_fldMnZipModal();}; /* [1285] 드롭 모달 */ /* [1273] 완료결선 맨홈사진 ZIP과 동일 경로 */
 }
@@ -13528,6 +13528,19 @@ function refMhCreate(only){
 }
 
 /* ---------- 매칭 패널 ---------- */
+function _fldMhFocus(rec){/* [1571] \uce21\ub7c9\ud604\uc7a5: \uc57c\uc7a5\uce74\ub4dc\u2192\ub3c4\uba74 \uc774\ub3d9+\ub9c8\uc820\ud0c0 \uac15\uc870 */
+ try{
+  var xy=null;
+  if(rec&&rec.mhId!=null)(state.manholes||[]).forEach(function(m){if(!xy&&m&&m.id===rec.mhId&&m.wx!=null)xy=[+m.wx,+m.wy];});
+  if(!xy&&rec&&rec.refXY&&isFinite(+rec.refXY[0]))xy=[+rec.refXY[0],+rec.refXY[1]];
+  if(!xy)return false;
+  refMhGoto(xy[0],xy[1]);
+  window._fldMhSelXY=xy;
+  var _dr=function(){try{var old=document.getElementById('fldMhSelRing');if(old)old.remove();var _xy=window._fldMhSelXY;if(!_xy)return;var sp=S(_xy[0],_xy[1]);var g=(typeof gSel!=='undefined'&&gSel)?gSel:cv;var c=el('circle',{id:'fldMhSelRing',cx:sp[0],cy:sp[1],r:2.0,fill:'#e91ee9','fill-opacity':0.12,stroke:'#e91ee9','stroke-width':3,'vector-effect':'non-scaling-stroke','pointer-events':'none'});g.appendChild(c);}catch(_d){}};
+  _dr();setTimeout(_dr,120);setTimeout(_dr,400);
+  return true;
+ }catch(_e){return false;}
+}
 function refMhGoto(x,y){
   var span=Math.min(40,(vb&&vb.w>1)?vb.w:40);
   var _sp9=S(x,y);vb={x:_sp9[0]-span/2,y:_sp9[1]-span/2,w:span,h:span};/* [1567] ORG \ub85c\uceec */
@@ -13980,8 +13993,9 @@ function fldSiteSVG(rec,W,H,span,at){/* [1570] \uce21\ub7c9\ud604\uc7a5 \uc57c\u
    var isPipe=(L.layer==='\ud1b5\uc2e0\uad00\ub85c');
    body.push('<polyline points="'+ps.map(function(p){var s2=P(p[0],p[1]);return s2[0]+','+s2[1];}).join(' ')+'" fill="none" stroke="'+(isPipe?'#0033cc':'#a3a3a3')+'" stroke-width="'+((isPipe?7.0:1.2)*kW)+'" stroke-linejoin="round" stroke-linecap="round"/>');});
   (state.manholes||[]).forEach(function(m){if(!m||m.wx==null)return;if(!inView(m.wx,m.wy))return;
-   var s2=P(m.wx,m.wy);var isR=(m.type==='riser');
-   body.push('<circle cx="'+s2[0]+'" cy="'+s2[1]+'" r="'+(vw*(isR?0.012:0.022)).toFixed(2)+'" fill="'+(isR?'#7a52e0':'#0aa060')+'" fill-opacity="0.85"/>');});
+   var isR=(m.type==='riser');if(!isR)return;/* [1571] \ub179\uc0c9 \ub9e8\ud640 \uc6d0 \uc81c\uac70 */
+   var s2=P(m.wx,m.wy);
+   body.push('<circle cx="'+s2[0]+'" cy="'+s2[1]+'" r="'+(vw*0.012).toFixed(2)+'" fill="#7a52e0" fill-opacity="0.85"/>');});
   var mc=P(c[0],c[1]);var R=vw*0.072;
   body.push('<circle cx="'+mc[0]+'" cy="'+mc[1]+'" r="'+R.toFixed(2)+'" fill="none" stroke="#e60000" stroke-width="'+(3.0*kW)+'"/>');
   var lab=(typeof refSiteEsc==='function')?refSiteEsc((typeof mnLabel==='function'?mnLabel(rec):'')||''):'';
