@@ -8522,8 +8522,8 @@ function mnEfbGen(rec){
           tip=[ccx+399,y0-450];out+=eArrow(tip[0],tip[1],-0.5,90);
           lst=[Math.max(tip[0]+24,x1+382+_half),tip[1]-164];lstep=-131;
         }
-        else if(w==='p3'){var _tx3=Math.max(x1+441,mxx+220);tip=[_tx3,ccy+399];out+=eArrow(tip[0],tip[1],-0.5,180);lst=[tip[0]+320,tip[1]+164];lstep=131;}/* [1575] \uad00 \ubb34\ub9ac \ubc14\uae65\uc73c\ub85c \u2014 \uacb9\uce68 \ubc29\uc9c0 */
-        else{var _tx4=Math.max(x1+441,mxx+220);tip=[_tx4,ccy-399];out+=eArrow(tip[0],tip[1],0.5,180);lst=[tip[0]+320,tip[1]-164];lstep=-131;}/* [1575] */
+        else if(w==='p3'){var _tx3=Math.max(x1+441,mxx+180);tip=[_tx3,ccy+399];out+=eArrow(tip[0],tip[1],0.5,180);lst=[tip[0]+320,tip[1]+164];lstep=131;}/* [1576] \ucd09=\uad00 \ud5a5\ud568(\u2190)\u00b7\ubab8\ud1b5\uc740 \ubc18\ub300\ucabd \u2014 \uacb9\uce68 \uc81c\uac70 */
+        else{var _tx4=Math.max(x1+441,mxx+180);tip=[_tx4,ccy-399];out+=eArrow(tip[0],tip[1],0.5,180);lst=[tip[0]+320,tip[1]-164];lstep=-131;}/* [1576] */
         dias.forEach(function(dv,i){
           out+=eTxt(lst[0],lst[1]+lstep*i,'FC\u00d8'+dv+'X'+agg[dv].n+'('+agg[dv].f+')',100,0,'DIM','Attr');
         });
