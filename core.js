@@ -8197,12 +8197,13 @@ function mnAskDest(cur,dn,cb,rec,dk){
   var opts=['LG','SKT','SKB','시청','세종','드림','통신주입상','전주입상'].map(function(o){return '<option value="'+o+'"'+(ow===o?' selected':'')+'>'+o+'</option>';}).join('')+'<option value="_c"'+(ow==='_c'?' selected':'')+'>직접입력</option>';
   w.innerHTML='<div style="background:#f1f8e9;border:1.5px solid #558b2f;border-radius:12px;width:min(80vw,280px);padding:13px 14px">'
     +'<div style="font-weight:800;font-size:13.5px;color:#558b2f;margin-bottom:9px">연결 맨홀 ('+dn+'방향)</div>'
-    +'<div style="display:flex;gap:7px;align-items:center"><div style="flex:1.1;min-width:0;display:flex;align-items:center;gap:4px"><select id="mnDNoSel" style="flex:1;min-width:0;border:1.5px solid #558b2f;border-radius:9px;padding:9px 5px;font-size:15px;background:#fff">'+noOpts+'</select><input id="mnDNo" type="text" inputmode="numeric" value="'+joseoEsc(no)+'" placeholder="직접입력" style="flex:1;min-width:0;display:'+(noSel==='_c'?'block':'none')+';border:1.5px solid #558b2f;border-radius:9px;padding:9px;font-size:15px;background:#fff"><b style="font-size:15px;color:#558b2f;flex:none">M</b></div>'
+    +'<div style="display:flex;gap:5px">'
+      +'<button id="mnDJeon" style="flex:1;min-width:0;background:#fff;color:#7a6a3a;border:1.5px solid #b9a86a;border-radius:9px;padding:9px 2px;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap">\uD83D\uDDFC \uC804\uC8FC\uC785\uC0C1</button>'
+      +'<button id="mnDTong" style="flex:1;min-width:0;background:#fff;color:#2471a3;border:1.5px solid #8fb8d6;border-radius:9px;padding:9px 2px;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap">\uD83D\uDCE1 \uD1B5\uC2E0\uC8FC\uC785\uC0C1</button>'
+      +'<button id="mnDMh" style="flex:0.8;min-width:0;background:#fff;color:#1d9e75;border:1.5px solid #1d9e75;border-radius:9px;padding:9px 2px;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap">\uD83D\uDD73 \ub9e8\ud640</button></div>'/* [1586] \ub9e8\ud640 \uc120\ud0dd \ubc84\ud2bc */
+    +'<div style="display:flex;gap:7px;align-items:center;margin-top:9px"><div style="flex:1.1;min-width:0;display:flex;align-items:center;gap:4px"><select id="mnDNoSel" style="flex:1;min-width:0;border:1.5px solid #558b2f;border-radius:9px;padding:9px 5px;font-size:15px;background:#fff">'+noOpts+'</select><input id="mnDNo" type="text" inputmode="numeric" value="'+joseoEsc(no)+'" placeholder="직접입력" style="flex:1;min-width:0;display:'+(noSel==='_c'?'block':'none')+';border:1.5px solid #558b2f;border-radius:9px;padding:9px;font-size:15px;background:#fff"><b style="font-size:15px;color:#558b2f;flex:none">M</b></div>'
     +'<select id="mnDOw" style="flex:1;min-width:0;border:1px solid #ccd8c0;border-radius:9px;padding:9px 6px;font-size:14px;background:#fff">'+opts+'</select></div>'
     +'<input id="mnDOwC" value="'+joseoEsc(owc)+'" placeholder="소유자 직접입력" style="width:100%;box-sizing:border-box;border:1px solid #ccd8c0;border-radius:9px;padding:9px;font-size:14px;margin-top:8px;background:#fff;display:'+(ow==='_c'?'block':'none')+'">'
-    +'<div style="display:flex;gap:6px;margin-top:9px">'
-      +'<button id="mnDJeon" style="flex:1;background:#fff;color:#7a6a3a;border:1.5px solid #b9a86a;border-radius:9px;padding:9px 4px;font-weight:800;font-size:12.5px;cursor:pointer">\uD83D\uDDFC \uC804\uC8FC\uC785\uC0C1</button>'
-      +'<button id="mnDTong" style="flex:1;background:#fff;color:#2471a3;border:1.5px solid #8fb8d6;border-radius:9px;padding:9px 4px;font-weight:800;font-size:12.5px;cursor:pointer">\uD83D\uDCE1 \uD1B5\uC2E0\uC8FC\uC785\uC0C1</button></div>'
     +'<div style="display:flex;gap:7px;margin-top:10px"><button id="mnDOk" style="flex:1;background:#558b2f;color:#fff;border:0;border-radius:9px;padding:10px;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">확인</span></button><button id="mnDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">취소</span></button></div></div>';
   document.body.appendChild(w);
   w.querySelector('#mnDOw').addEventListener('change',function(){
@@ -8233,6 +8234,21 @@ function mnAskDest(cur,dn,cb,rec,dk){
   }
   var _bj=w.querySelector('#mnDJeon');if(_bj)_bj.onclick=function(){pickRiser('전주입상');};
   var _bt=w.querySelector('#mnDTong');if(_bt)_bt.onclick=function(){pickRiser('통신주입상');};
+  var _bm=w.querySelector('#mnDMh');if(_bm)_bm.onclick=function(){/* [1586] \uc57c\uc7a5 \ub9e8\ud640 \uc120\ud0dd */
+    var L=(typeof mnList==='function')?mnList().filter(function(r){return r&&!r.delAt&&(!rec||r.id!==rec.id)&&(typeof mnHasId!=='function'||mnHasId(r));}):[];
+    if(!L.length){toast('\uc120\ud0dd\ud560 \ub2e4\ub978 \ub9e8\ud640 \uc57c\uc7a5\uc774 \uc5c6\uc2b5\ub2c8\ub2e4');return;}
+    var pv=document.createElement('div');pv.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1340;display:flex;align-items:flex-start;justify-content:center;padding-top:12dvh';
+    pv.innerHTML='<div style="background:#fff;border-radius:12px;width:min(86vw,300px);max-height:66dvh;display:flex;flex-direction:column;overflow:hidden"><div style="padding:11px 13px;border-bottom:1px solid #eee;font-weight:800;font-size:13.5px;color:#1d9e75">\uc5f0\uacb0 \ub9e8\ud640 \uc120\ud0dd</div><div id="mnDMhL" style="overflow:auto;flex:1"></div><button id="mnDMhX" style="margin:9px 13px 11px;border:1px solid #ddd;background:#f6f6f4;border-radius:9px;padding:9px;font-weight:700;cursor:pointer">\ucde8\uc18c</button></div>';
+    document.body.appendChild(pv);
+    var host=pv.querySelector('#mnDMhL');
+    L.forEach(function(r){var b=document.createElement('button');
+      b.style.cssText='display:block;width:100%;text-align:left;border:0;border-bottom:1px solid #f2f2f0;background:#fff;padding:11px 13px;font-size:14px;font-weight:700;color:#333;cursor:pointer';
+      b.textContent=(typeof mnLabel==='function')?mnLabel(r):(r.no||'');
+      b.onclick=function(){try{if(rec&&dk&&rec.destXY)delete rec.destXY[dk];}catch(_de){}pv.remove();w.remove();cb(b.textContent);};
+      host.appendChild(b);});
+    pv.querySelector('#mnDMhX').onclick=function(){pv.remove();};
+    pv.onclick=function(e){if(e.target===pv)pv.remove();};
+  };
   w.querySelector('#mnDNo2').onclick=function(){w.remove();};
   w.onclick=function(e){if(e.target===w)w.remove();};
   w.querySelector('#mnDOk').onclick=function(){
