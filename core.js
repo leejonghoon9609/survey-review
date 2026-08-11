@@ -6930,6 +6930,7 @@ function setRvPhoto(pt){
   var big=IS_FIELD||(typeof isMobileDevice==='function'&&isMobileDevice());
   body.innerHTML=paneImg(pt.no,'측점 사진',big);
   if(big&&typeof setupZoom==='function')setupZoom(document.getElementById('zoomImg'));
+  try{[].forEach.call(document.querySelectorAll('img.zoomImgA'),function(_zi){if(typeof setupZoom==='function')setupZoom(_zi);});}catch(_za){}/* [1568] */
 }
 function pickRoadview(clientX,clientY){
   var w=toWorld(clientX,clientY),east=w[0],north=-w[1];
@@ -11211,15 +11212,17 @@ function highlightSel(){clearSvg(gSel);if(selNum==null)return;
   _sg.appendChild(el('line',{x1:_lx-_xr,y1:_ly+_xr,x2:_lx+_xr,y2:_ly-_xr,stroke:_selC,'stroke-width':0.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
   gSel.appendChild(_sg);}   /* [1096/1122] 선택=빨간원+중심X · 화면비례 */
 function compressImage(file,maxW,q){return new Promise(function(res,rej){var img=new Image(),u=URL.createObjectURL(file);img.onload=function(){URL.revokeObjectURL(u);var w=img.width,h=img.height;if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(function(b){b?res(b):rej(new Error('blob'));},'image/jpeg',q);};img.onerror=function(){rej(new Error('img'));};img.src=u;});}
-var zoomState={img:null,scale:1,tx:0,ty:0,drag:false,sx:0,sy:0};
-function applyZoom(){var z=zoomState;if(!z.img)return;z.img.style.transform='translate('+z.tx+'px,'+z.ty+'px) scale('+z.scale+')';z.img.style.cursor=z.scale>1?(z.drag?'grabbing':'grab'):'zoom-in';}
-function setupZoom(img){zoomState={img:img,scale:1,tx:0,ty:0,drag:false,sx:0,sy:0};if(!img)return;img.style.transformOrigin='center center';
-  img.addEventListener('wheel',function(e){e.preventDefault();var z=zoomState;z.scale*=(e.deltaY<0?1.2:0.83);z.scale=Math.max(1,Math.min(6,z.scale));if(z.scale<=1){z.scale=1;z.tx=0;z.ty=0;}applyZoom();},{passive:false});
-  img.addEventListener('mousedown',function(e){var z=zoomState;if(z.scale<=1)return;e.preventDefault();z.drag=true;z.sx=e.clientX-z.tx;z.sy=e.clientY-z.ty;applyZoom();});
-  img.addEventListener('dblclick',function(e){e.preventDefault();var z=zoomState;z.scale=1;z.tx=0;z.ty=0;applyZoom();});
-  applyZoom();}
-window.addEventListener('mousemove',function(e){var z=zoomState;if(!z.drag)return;z.tx=e.clientX-z.sx;z.ty=e.clientY-z.sy;applyZoom();});
-window.addEventListener('mouseup',function(){var z=zoomState;if(z.drag){z.drag=false;applyZoom();}});
+var zoomState={img:null,scale:1,tx:0,ty:0,drag:false,sx:0,sy:0};/* [1568] \ud638\ud658\uc6a9 \uc794\uc874 */
+function applyZoom(z){z=z||zoomState;if(!z||!z.img)return;z.img.style.transform='translate('+z.tx+'px,'+z.ty+'px) scale('+z.scale+')';z.img.style.cursor=z.scale>1?(z.drag?'grabbing':'grab'):'zoom-in';}
+function setupZoom(img){if(!img)return;/* [1568] \uc774\ubbf8\uc9c0\ubcc4 \uc0c1\ud0dc \u2014 \ub178\ucd9c\uad00\ub85c+\ud6c4\uce21\ub7c9 \ub3d9\uc2dc \ud655\ub300 \uc9c0\uc6d0 */
+  var z={img:img,scale:1,tx:0,ty:0,drag:false,sx:0,sy:0};img._zs=z;zoomState=z;
+  img.style.transformOrigin='center center';
+  img.addEventListener('wheel',function(e){e.preventDefault();z.scale*=(e.deltaY<0?1.2:0.83);z.scale=Math.max(1,Math.min(6,z.scale));if(z.scale<=1){z.scale=1;z.tx=0;z.ty=0;}applyZoom(z);},{passive:false});
+  img.addEventListener('mousedown',function(e){if(z.scale<=1)return;e.preventDefault();z.drag=true;z.sx=e.clientX-z.tx;z.sy=e.clientY-z.ty;window._zsDrag=z;applyZoom(z);});
+  img.addEventListener('dblclick',function(e){e.preventDefault();z.scale=1;z.tx=0;z.ty=0;applyZoom(z);});
+  applyZoom(z);}
+window.addEventListener('mousemove',function(e){var z=window._zsDrag;if(!z||!z.drag)return;z.tx=e.clientX-z.sx;z.ty=e.clientY-z.sy;applyZoom(z);});/* [1568] */
+window.addEventListener('mouseup',function(){var z=window._zsDrag;if(z&&z.drag){z.drag=false;applyZoom(z);window._zsDrag=null;}});
 /* ===== 측점사진 방향 화살표 (0=↑북 1=→동 2=↓남 3=←서) ===== */
 var ARROWS=['↑','→','↓','←'],showDirArrows=true;
 function pipeDirAt(p){
@@ -11254,7 +11257,7 @@ function paneAfter(no,label){var p=no!=null?pointByNo(no):null;var bn=p?ptNum(p)
     if(isMob&&viewerMode)btn='<button class="afterCap" data-num="'+dn+'" style="flex:none;margin-left:auto;border:1px solid #16a34a;background:#eafaf0;color:#16a34a;border-radius:7px;padding:4px 10px;font-size:13px;font-weight:700;cursor:pointer">📷 '+(url?'재촬영':'촬영')+'</button>';
     else if(!isMob)btn='<button class="afterRefresh" data-num="'+dn+'" style="flex:none;margin-left:auto;border:1px solid #1f6fd6;background:#eef4fc;color:#1f6fd6;border-radius:7px;padding:4px 10px;font-size:13px;font-weight:700;cursor:pointer">🔄 새로고침</button>';
   }
-  var ph=url?('<img class="ph" src="'+url+'" alt="">'):('<div class="ph php-none">'+((isMob&&viewerMode)?'📷 촬영 버튼으로 후측량 사진을 찍어주세요':(!isMob?'🔄 새로고침으로 최신 후측량 사진을 불러오세요':'촬영 예정'))+'</div>');
+  var ph=url?('<div class="zoomwrap"><img class="ph zoomImgA" src="'+url+'" alt=""></div>'):/* [1568] \ud6c4\uce21\ub7c9\ub3c4 \ud655\ub300 */('<div class="ph php-none">'+((isMob&&viewerMode)?'📷 촬영 버튼으로 후측량 사진을 찍어주세요':(!isMob?'🔄 새로고침으로 최신 후측량 사진을 불러오세요':'촬영 예정'))+'</div>');
   return '<div class="php-main php-after"><div class="cap"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+cap+'</span>'+btn+'</div>'+ph+'</div>';}
 /* [1136] 현황판 합성 — 원본 사진 아래에 표(공사명/번호/관경/날짜)를 좌하단에 그린 복사본.
    저장은 원본 그대로, 표시용으로만 즉석 생성(캐시). 실시간측량 전용 */
@@ -11525,6 +11528,7 @@ function refreshPhotoPanel(){
     else{body.innerHTML=paneImg(selNum,'선택측점 사진',true)+'<div class="php-row">'+paneImg(n1,'위 측점',false)+paneImg(n2,'아래 측점',false)+'</div>';}
   }
   setupZoom(document.getElementById('zoomImg'));
+  [].forEach.call(document.querySelectorAll('img.zoomImgA'),function(_zi){setupZoom(_zi);});/* [1568] */
   var ac=document.querySelector('.afterCap');if(ac)ac.onclick=function(){afterTargetNum=this.getAttribute('data-num');document.getElementById('fAfter').click();};
   var ar=document.querySelector('.afterRefresh');if(ar)ar.onclick=function(){toast('후측량 사진 새로고침…');loadPhotos();};
 }
