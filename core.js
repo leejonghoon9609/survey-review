@@ -8522,8 +8522,8 @@ function mnEfbGen(rec){
           tip=[ccx+399,y0-450];out+=eArrow(tip[0],tip[1],-0.5,90);
           lst=[Math.max(tip[0]+24,x1+382+_half),tip[1]-164];lstep=-131;
         }
-        else if(w==='p3'){var _tx3=Math.max(x1+441,mxx+180);tip=[_tx3,ccy+399];out+=eArrow(tip[0],tip[1],0.5,180);lst=[tip[0]+320,tip[1]+164];lstep=131;}/* [1576] \ucd09=\uad00 \ud5a5\ud568(\u2190)\u00b7\ubab8\ud1b5\uc740 \ubc18\ub300\ucabd \u2014 \uacb9\uce68 \uc81c\uac70 */
-        else{var _tx4=Math.max(x1+441,mxx+180);tip=[_tx4,ccy-399];out+=eArrow(tip[0],tip[1],0.5,180);lst=[tip[0]+320,tip[1]-164];lstep=-131;}/* [1576] */
+        else if(w==='p3'){var _lx3=Math.max(x1+441,mxx+180);tip=[mnx-180,ccy+399];out+=eArrow(tip[0],tip[1],-0.5,180);lst=[_lx3+320,tip[1]+164];lstep=131;}/* [1578] \ud654\uc0b4\ud45c=\uc6d0 \uc67c\ucabd\u00b7\ucd09\u2192\uad00, \ub77c\ubca8=\uc624\ub978\ucabd \uc720\uc9c0 */
+        else{var _lx4=Math.max(x1+441,mxx+180);tip=[mnx-180,ccy-399];out+=eArrow(tip[0],tip[1],-0.5,180);lst=[_lx4+320,tip[1]-164];lstep=-131;}/* [1578] */
         dias.forEach(function(dv,i){
           out+=eTxt(lst[0],lst[1]+lstep*i,'FC\u00d8'+dv+'X'+agg[dv].n+'('+agg[dv].f+')',100,0,'DIM','Attr');
         });
@@ -8737,8 +8737,8 @@ function mnDxfGen(rec){
       var cxm=(minX+maxX)/2, cym=(minY+maxY)/2;
       if(sl.ar==='down')out+=mnDxfIns(nh(),cxm,minY-200,0.5,0.5,90);
       else if(sl.ar==='up')out+=mnDxfIns(nh(),cxm,maxY+200,-0.5,0.5,90);
-      else if(sl.ar==='left')out+=mnDxfIns(nh(),maxX+324,cym,-0.5,0.5,180);/* [1577] \uc6d0\u2194\ub77c\ubca8 \uc0ac\uc774, \ucd09=\ub77c\ubca8\ucabd(\u2192), \ubab8\ud1b5 \uc6d0\uc5d0\uc11c 80 \uc774\uaca9 */
-      else out+=mnDxfIns(nh(),minX-324,cym,0.5,0.5,180);/* [1577] \ucd09 \u2190, \ub77c\ubca8\ucabd \ubc30\uce58 */
+      else if(sl.ar==='left')out+=mnDxfIns(nh(),minX-80,cym,-0.5,0.5,180);/* [1578] \ub77c\ubca8 \ubc18\ub300\ud3b8(\uc6d0 \uc67c\ucabd 80)\u00b7\ucd09\u2192\uad00\u00b7\ubab8\ud1b5 \ubc14\uae65 */
+      else out+=mnDxfIns(nh(),maxX+80,cym,0.5,0.5,180);/* [1578] \uc6d0 \uc624\ub978\ucabd 80\u00b7\ucd09\u2190\uad00 */
     });
     var ei=x.indexOf('\nENTITIES\n');
     var end=x.indexOf('\n  0\nENDSEC',ei);
