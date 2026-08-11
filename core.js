@@ -9647,7 +9647,7 @@ function mnPipeEditor(rec,wall){
       +'<button id="mnRefRst" style="margin-left:auto;border:1px solid #cfd8e3;background:#fff;color:#5b6577;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer">\uC6D0\uB798\uB300\uB85C</button></div>'
       +'<div id="mnRefImgBox" style="border:1.5px solid #cfd8e3;border-radius:8px;overflow:hidden;background:#f7f9fb;display:flex;align-items:center;justify-content:center;max-height:20dvh;touch-action:none;cursor:grab"></div></div>'
     +'<div id="mnCvBox" style="border:1.5px solid #556;border-radius:8px;overflow:hidden;background:#fff"><canvas id="mnCv" style="display:block;touch-action:none;user-select:none;-webkit-user-select:none"></canvas></div>'
-    +'<div style="font-size:11px;color:#99a;margin-top:4px;text-align:right">탭: 빈관→내선(검정)→제외(빨강) · 노란선=맨홀 바닥</div>'
+    +'<div style="display:flex;align-items:center;gap:6px;font-size:11px;margin-top:4px"><span style="color:#b58900;font-weight:800;white-space:nowrap"><span style="display:inline-block;width:18px;height:3px;background:#e6c200;border-radius:2px;vertical-align:middle;margin-right:3px"></span>\ub9e8\ud640 \ubc14\ub2e5</span><span style="flex:1;text-align:right;color:#99a">\ud0ed: \ube48\uad00\u2192\ub0b4\uc120(\uac80\uc815)\u2192\uc81c\uc678(\ube68\uac15)</span></div>'
     +'<div id="mnGChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"></div>'
     +'<div id="mnGBox" style="border-top:1px dashed #ddd;margin-top:10px;padding-top:9px">'
       +'<div style="display:flex;gap:6px;margin-bottom:6px"><select id="mnGKind" style="flex:1;border:1px solid #ddd;border-radius:7px;padding:7px 5px;font-size:13px;background:#fff">'+MN_KINDS.map(function(k){return '<option>'+k+'</option>';}).join('')+'<option value="_c">직접입력</option></select>'
@@ -9838,7 +9838,7 @@ function mnPipeEditor(rec,wall){
     /* 바닥선 (노랑) */
     ctx.strokeStyle='#e6c200';ctx.lineWidth=3;
     ctx.beginPath();ctx.moveTo(0,cssH-1.5);ctx.lineTo(cssW,cssH-1.5);ctx.stroke();
-    ctx.fillStyle='#c8a600';ctx.font='700 10px sans-serif';ctx.fillText('맨홀 바닥',6,cssH-7);
+    /* [1584] \ub77c\ubca8\uc740 \uce94\ubc84\uc2a4 \uc544\ub798 \uce90\uc158\uc73c\ub85c \uc774\ub3d9 */
     pw.groups.forEach(function(g){(g.circles||[]).forEach(function(c){
       var r=c.dia/2*sy;
       var st=(c.st!=null?c.st:(c.fill?1:0));
