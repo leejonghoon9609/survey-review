@@ -7971,6 +7971,8 @@ var MH_OWNERS=['SKT','SKB','KT','LG','LGU+','CATV','SJ','DL','\uc2dc\uccad'];/* 
 function mnList(){if(!state.mnList)state.mnList=[];return state.mnList;}
 function mnHasId(r){return !!(r&&((r.no||'').trim()||(r.owner&&r.owner!=='_c')||(r.owner==='_c'&&(r.ownerC||'').trim())||r.newFlag));}/* [1547] \ubc88\ud638 \uc5c6\uc5b4\ub3c4 \uc18c\uc720\uc790\u00b7\uc2e0\uae30 \uc788\uc73c\uba74 \ud45c\uc2dc */
 function mnLabel(r){var ow=(r.owner==='_c'?(r.ownerC||''):(r.owner||''));var nt=(r.note||'').trim();var pf=(r.newFlag==='신설'?'신설':(r.newFlag==='기설'?'기설':''));return pf+(r.no||'')+(ow?'('+ow+')':'')+(nt?nt:'');}
+function mnStripPf(t){return String(t==null?'':t).replace(/^(\uC2E0\uC124|\uAE30\uC124)/,'');}/* [1590] \ud45c\uc2dc\uc6a9 \uc811\ub450 \uc81c\uac70 */
+function mnLabelNoPf(r){return mnStripPf(mnLabel(r));}/* [1590] \ub9e4\uce6d(refNormLab)\uc740 mnLabel \uadf8\ub300\ub85c */
 var MN_SLOTS=[['bd','표찰'],['fr','전경'],['p1','① 서'],['p2','② 동'],['p3','③ 북'],['p4','④ 남']];
 /* [BUILD 935] PC: 맨홀조사를 우측 도킹 패널로 (실시간조서 방식) */
 function mnHostOpen(){
@@ -8615,7 +8617,7 @@ function mnDxfGen(rec){
     var ym=now.getFullYear()+'. '+(now.getMonth()+1<10?'0':'')+(now.getMonth()+1)+'.';
     /* [1013] 표제 현행번호 길면 텍스트 높이 자동 축소(칸 맞춤) */
     (function(){
-      var lb=mnLabel(rec)||'';var ew=0;
+      var lb=mnLabelNoPf(rec)||'';var ew=0;/* [1590] */
       for(var ci=0;ci<lb.length;ci++){ew+=(lb.charCodeAt(ci)>0x2500?1:0.55);}
       if(ew>8){
         var nh2=Math.max(52,Math.round(150*8/ew));
@@ -8629,9 +8631,9 @@ function mnDxfGen(rec){
         }
       }
     })();
-    x=x.split('{{MHNO}}').join(mnLabel(rec)||'');
-    x=x.split('{{D1}}').join(d.d1||'');x=x.split('{{D2}}').join(d.d2||'');
-    x=x.split('{{D3}}').join(d.d3||'');x=x.split('{{D4}}').join(d.d4||'');
+    x=x.split('{{MHNO}}').join(mnLabelNoPf(rec)||'');/* [1590] */
+    x=x.split('{{D1}}').join(mnStripPf(d.d1||''));x=x.split('{{D2}}').join(mnStripPf(d.d2||''));
+    x=x.split('{{D3}}').join(mnStripPf(d.d3||''));x=x.split('{{D4}}').join(mnStripPf(d.d4||''));
     x=x.split('{{MAPNO}}').join(rec.mapNo||'');x=x.split('{{YM}}').join(ym);
     var hm=x.match(/\$HANDSEED\n  5\n([0-9A-Fa-f]+)/);
     var seed=hm?parseInt(hm[1],16):0x50000;
@@ -8782,7 +8784,7 @@ function mnDxfGen(rec){
     if(ei<0||end<0)throw new Error('sec');
     x=x.slice(0,end+1)+out+x.slice(end+1);
     if(hm)x=x.replace(/\$HANDSEED\n  5\n[0-9A-Fa-f]+/,'$HANDSEED\n  5\n'+seed.toString(16).toUpperCase());
-    var nm2=(mnLabel(rec)||'맨홀').replace(/[\\/:*?"<>|]/g,'_');
+    var nm2=(mnLabelNoPf(rec)||'맨홀').replace(/[\\/:*?"<>|]/g,'_');
     var blob=new Blob([x],{type:'application/dxf'});
     mnOut(blob,nm2+'.dxf');
     toast('맨홀도 '+nm2+'.dxf 다운로드');
@@ -9125,7 +9127,7 @@ function mnOpenForm(rec){
   }
   function destPill(k,x,y,w,h,rot){
     var v=(rec.dest&&rec.dest[k])||'';
-    var t=v||'방향';
+    var t=v?((typeof mnStripPf==='function')?mnStripPf(v):v):'방향';
     var cx=x+w/2,cy=y+h/2,txt;
     if(rot===0)txt='<text x="'+cx+'" y="'+(cy+3.5)+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="'+(v?'#558b2f':'#a8c790')+'" pointer-events="none">'+joseoEsc(t)+'</text>';
     else txt='<text x="'+cx+'" y="'+cy+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="'+(v?'#558b2f':'#a8c790')+'" transform="rotate('+rot+' '+cx+' '+cy+')" dominant-baseline="central" pointer-events="none">'+joseoEsc(t)+'</text>';
@@ -14143,7 +14145,7 @@ function refSiteSVG(rec,W,H,span,at){
   var mc=P(c[0],c[1]);
   var R=v.w*0.072;   /* [1056] 조금 더 크게 */
   body.push('<circle cx="'+mc[0]+'" cy="'+mc[1]+'" r="'+R.toFixed(2)+'" fill="none" stroke="#e60000" stroke-width="'+(3.0*kW)+'"/>');
-  var lab=refSiteEsc((typeof mnLabel==='function'?mnLabel(rec):'')||'');
+  var lab=refSiteEsc((typeof mnLabelNoPf==='function'?mnLabelNoPf(rec):'')||'');/* [1590] */
   var fs=v.w*0.058;
   body.push('<text x="'+mc[0]+'" y="'+(parseFloat(mc[1])-R-fs*0.45).toFixed(2)+'" font-size="'+fs.toFixed(2)+
     '" fill="#e60000" font-weight="600" text-anchor="middle" font-family="Malgun Gothic, Dotum, sans-serif">'+lab+'</text>');
@@ -14155,6 +14157,26 @@ function refSiteSVG(rec,W,H,span,at){
          '<defs><clipPath id="'+cid+'">'+bg+'</clipPath></defs>'+bg+
          '<g clip-path="url(#'+cid+')">'+body.join('')+'</g></svg>';
 }
+/* [1590] \ud30c\uc774\ud504\ub77c\uc778 \u2014 \ubc29\ud5a5(dest) \ub300\uc0c1 \uc88c\ud45c: destXY \uc6b0\uc120, \ub77c\ubca8\u2192\uc57c\uc7a5/\ub9e8\ud640 refNormLab \ub9e4\uce6d */
+function _fldSiteTargets(rec){
+  try{
+    var d=(rec&&rec.dest)||{},dxy=(rec&&rec.destXY)||{},out=[];
+    var recs=(typeof mnList==='function')?mnList().filter(function(r){return r&&!r.delAt;}):[];
+    ['d1','d2','d3','d4'].forEach(function(dk){
+      var v=String(d[dk]==null?'':d[dk]).trim();
+      if(!v)return;
+      if(dxy[dk]&&dxy[dk].length===2&&isFinite(+dxy[dk][0])){out.push([+dxy[dk][0],+dxy[dk][1]]);return;}
+      if(/\uc785\uc0c1/.test(v))return;             /* \uc88c\ud45c \ubbf8\uc9c0\uc815 \uc785\uc0c1 \ub77c\ubca8\uc740 \ucd94\uc815 \ubd88\uac00 */
+      if(typeof refNormLab!=='function')return;
+      var k=refNormLab(v);if(!k)return;
+      var hit=null;
+      recs.forEach(function(r){if(!hit&&r!==rec&&refNormLab((typeof mnLabel==='function')?mnLabel(r):'')===k){var xy=(typeof _mnRecXY==='function')?_mnRecXY(r):null;if(xy)hit=xy;}});
+      if(!hit)(state.manholes||[]).forEach(function(m){if(!hit&&m&&m.wx!=null&&m.label&&refNormLab(m.label)===k)hit=[+m.wx,+m.wy];});
+      if(hit)out.push(hit);
+    });
+    return out.length?out:null;
+  }catch(_e){return null;}
+}
 function fldSiteSVG(rec,W,H,span,at){/* [1570] \uce21\ub7c9\ud604\uc7a5 \uc57c\uc7a5 \uc124\ube44\uc704\uce58 \u2014 state \uad00\ub85c\uc120\u00b7\ub9e8\ud640 \uae30\ubc18 (REF \uc5c6\ub294 \uc0ac\uc5c5\uc6a9) */
  try{
   var c=null;
@@ -14163,9 +14185,26 @@ function fldSiteSVG(rec,W,H,span,at){/* [1570] \uce21\ub7c9\ud604\uc7a5 \uc57c\u
   if(!c)return null;
   if(!((state.lines&&state.lines.length)||(state.manholes&&state.manholes.length)))return null;
   W=W||256;H=H||184;span=span||200;
-  var vw=span,vh=span*(H/W);
-  var x0=c[0]-vw/2,x1=c[0]+vw/2,y0=c[1]-vh/2,y1=c[1]+vh/2;
-  var OX=Math.round(c[0]),OY=Math.round(c[1]);
+  /* [1590] refSiteView \ubbf8\ub7ec \u2014 \u2460\uc601\uc5ed\uc124\uc815 siteBox \u2461\ubc29\ud5a5 \ub300\uc0c1 \ubc18\uacbd \u2462\uae30\ubcf8 span */
+  var tg=(typeof _fldSiteTargets==='function')?_fldSiteTargets(rec):null;
+  var cx=c[0],cy=c[1],vw,vh,_rat=W/H;
+  var sb=rec&&rec.siteBox;
+  if(sb&&isFinite(+sb.x0)&&sb.x1>sb.x0){
+    cx=(sb.x0+sb.x1)/2;cy=(sb.y0+sb.y1)/2;
+    vw=sb.x1-sb.x0;vh=sb.y1-sb.y0;
+    if(vw/vh<_rat)vw=vh*_rat;else vh=vw/_rat;
+  }else if(tg&&tg.length){
+    var dxm=0,dym=0;
+    tg.forEach(function(p){var a=Math.abs(p[0]-cx);if(a>dxm)dxm=a;var b=Math.abs(p[1]-cy);if(b>dym)dym=b;});
+    if(dxm<3&&dym<3){vw=span;vh=span/_rat;}
+    else{
+      var MG=Math.max(3,Math.max(dxm,dym)*0.14);
+      vw=2*(dxm+MG);vh=2*(dym+MG);
+      if(vw/vh<_rat)vw=vh*_rat;else vh=vw/_rat;
+    }
+  }else{vw=span;vh=span/_rat;}
+  var x0=cx-vw/2,x1=cx+vw/2,y0=cy-vh/2,y1=cy+vh/2;
+  var OX=Math.round(cx),OY=Math.round(cy);
   function P(x,y){return [(x-OX).toFixed(3),(-(y-OY)).toFixed(3)];}
   var pad=vw*0.15;function inView(px,py){return px>x0-pad&&px<x1+pad&&py>y0-pad&&py<y1+pad;}
   var kW=vw/1000,body=[];
@@ -14178,9 +14217,15 @@ function fldSiteSVG(rec,W,H,span,at){/* [1570] \uce21\ub7c9\ud604\uc7a5 \uc57c\u
    var isR=(m.type==='riser');if(!isR)return;/* [1571] \ub179\uc0c9 \ub9e8\ud640 \uc6d0 \uc81c\uac70 */
    var s2=P(m.wx,m.wy);
    body.push('<circle cx="'+s2[0]+'" cy="'+s2[1]+'" r="'+(vw*0.012).toFixed(2)+'" fill="#7a52e0" fill-opacity="0.85"/>');});
+  if(tg)tg.forEach(function(p){/* [1590] \ubc29\ud5a5 \ub300\uc0c1 = \uc774\uc911\uc6d0 */
+   if(!inView(p[0],p[1]))return;
+   var s3=P(p[0],p[1]),rr=vw*0.02;
+   body.push('<circle cx="'+s3[0]+'" cy="'+s3[1]+'" r="'+rr.toFixed(2)+'" fill="none" stroke="#111" stroke-width="'+(2.2*kW)+'"/>');
+   body.push('<circle cx="'+s3[0]+'" cy="'+s3[1]+'" r="'+(rr*0.55).toFixed(2)+'" fill="none" stroke="#111" stroke-width="'+(2.2*kW)+'"/>');
+  });
   var mc=P(c[0],c[1]);var R=vw*0.072;
   body.push('<circle cx="'+mc[0]+'" cy="'+mc[1]+'" r="'+R.toFixed(2)+'" fill="none" stroke="#e60000" stroke-width="'+(3.0*kW)+'"/>');
-  var lab=(typeof refSiteEsc==='function')?refSiteEsc((typeof mnLabel==='function'?mnLabel(rec):'')||''):'';
+  var lab=(typeof refSiteEsc==='function')?refSiteEsc((typeof mnLabelNoPf==='function'?mnLabelNoPf(rec):'')||''):'';/* [1590] */
   var fs=vw*0.058;
   body.push('<text x="'+mc[0]+'" y="'+(parseFloat(mc[1])-R-fs*0.45).toFixed(2)+'" font-size="'+fs.toFixed(2)+'" fill="#e60000" font-weight="600" text-anchor="middle" font-family="Malgun Gothic, Dotum, sans-serif">'+lab+'</text>');
   var vb=[(x0-OX).toFixed(3),(-(y1-OY)).toFixed(3),vw.toFixed(3),vh.toFixed(3)].join(' ');
