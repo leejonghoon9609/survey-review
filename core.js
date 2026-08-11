@@ -13528,16 +13528,16 @@ function refMhCreate(only){
 }
 
 /* ---------- 매칭 패널 ---------- */
-function _fldMhFocus(rec){/* [1571] \uce21\ub7c9\ud604\uc7a5: \uc57c\uc7a5\uce74\ub4dc\u2192\ub3c4\uba74 \uc774\ub3d9+\ub9c8\uc820\ud0c0 \uac15\uc870 */
+function _fldMhFocus(rec){/* [1572] \uce21\ub7c9\ud604\uc7a5: \uc57c\uc7a5\uce74\ub4dc\u2192\ub3c4\uba74 \uc774\ub3d9 + \uae30\uc874 \uc120\ud0dd \uba54\ucee4\ub2c8\uc998(_fldSelMhId \ub9c8\uc820\ud0c0) \uc7ac\uc0ac\uc6a9 */
  try{
-  var xy=null;
-  if(rec&&rec.mhId!=null)(state.manholes||[]).forEach(function(m){if(!xy&&m&&m.id===rec.mhId&&m.wx!=null)xy=[+m.wx,+m.wy];});
-  if(!xy&&rec&&rec.refXY&&isFinite(+rec.refXY[0]))xy=[+rec.refXY[0],+rec.refXY[1]];
+  var xy=null,mid=null;
+  if(rec&&rec.mhId!=null)(state.manholes||[]).forEach(function(m){if(!xy&&m&&m.id===rec.mhId&&m.wx!=null){xy=[+m.wx,+m.wy];mid=m.id;}});
+  if(!xy&&rec&&rec.refXY&&isFinite(+rec.refXY[0])){xy=[+rec.refXY[0],+rec.refXY[1]];
+   (state.manholes||[]).forEach(function(m){if(mid==null&&m&&m.wx!=null&&Math.hypot(m.wx-xy[0],m.wy-xy[1])<0.5)mid=m.id;});}
   if(!xy)return false;
+  var _old=document.getElementById('fldMhSelRing');if(_old)_old.remove();/* [1572] \uad6c \ub9c1 \uc794\uc7ac \uc815\ub9ac */
   refMhGoto(xy[0],xy[1]);
-  window._fldMhSelXY=xy;
-  var _dr=function(){try{var old=document.getElementById('fldMhSelRing');if(old)old.remove();var _xy=window._fldMhSelXY;if(!_xy)return;var sp=S(_xy[0],_xy[1]);var g=(typeof gSel!=='undefined'&&gSel)?gSel:cv;var c=el('circle',{id:'fldMhSelRing',cx:sp[0],cy:sp[1],r:2.0,fill:'#e91ee9','fill-opacity':0.12,stroke:'#e91ee9','stroke-width':3,'vector-effect':'non-scaling-stroke','pointer-events':'none'});g.appendChild(c);}catch(_d){}};
-  _dr();setTimeout(_dr,120);setTimeout(_dr,400);
+  if(mid!=null){window._fldSelMhId=mid;if(typeof drawManholes==='function')try{drawManholes();}catch(_dm){}}
   return true;
  }catch(_e){return false;}
 }
