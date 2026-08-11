@@ -8555,16 +8555,16 @@ function mnEfbGen(rec){
         var _n=dias.length;
         var _lbls=dias.map(function(dv){return 'FC\u00d8'+dv+'X'+agg[dv].n+'('+agg[dv].f+')';});
         function _eArrB(ax2,ay2,sx2,rot2){return mnDxfEnt(['  0','INSERT','  5',nh(),'330','2','100','AcDbEntity','  8','arrow',' 62','5','100','AcDbBlockReference','  2','arrow',' 10',fx(ax2),' 20',fx(ay2),' 30','0.0',' 41',String(sx2),' 42','0.5',' 43','1.0',' 50',String(rot2)]);}
-        if(w==='p1'){var _C=[x0-700,y1+860];/* \uc88c\uc0c1: \ub77c\ubca8 \uc704\u00b7\ucd09\u2191 */
+        if(w==='p1'){var _C=[x0-700,y1+610];/* [1599] \ub0b4\ub9bc *//* \uc88c\uc0c1: \ub77c\ubca8 \uc704\u00b7\ucd09\u2191 */
           out+=_eArrB(_C[0],_C[1],0.5,90);
           _lbls.forEach(function(_t,i2){out+=eTxt(_C[0],_C[1]+150+((_n-1)-i2)*131,_t,100,0,'DIM','Attr',5);});
-        }else if(w==='p3'){var _C=[x1+700,y1+560];/* \uc6b0\uc0c1: \ub77c\ubca8 \uc624\ub978\ucabd\u00b7\ucd09\u2192 */
+        }else if(w==='p3'){var _C=[x1+450,y1+560];/* [1599] \uc67c\ucabd *//* \uc6b0\uc0c1: \ub77c\ubca8 \uc624\ub978\ucabd\u00b7\ucd09\u2192 */
           out+=_eArrB(_C[0],_C[1],-0.5,180);
           _lbls.forEach(function(_t,i2){out+=eTxt(_C[0]+60+_t.length*39.5,_C[1]+((_n-1)/2-i2)*131,_t,100,0,'DIM','Attr',5);});
-        }else if(w==='p2'){var _C=[x1+700,y0-860];/* \uc6b0\ud558: \ub77c\ubca8 \uc544\ub798\u00b7\ucd09\u2193 */
+        }else if(w==='p2'){var _C=[x1+700,y0-610];/* [1599] \uc704\ub85c *//* \uc6b0\ud558: \ub77c\ubca8 \uc544\ub798\u00b7\ucd09\u2193 */
           out+=_eArrB(_C[0],_C[1],-0.5,90);
           _lbls.forEach(function(_t,i2){out+=eTxt(_C[0],_C[1]-150-i2*131,_t,100,0,'DIM','Attr',5);});
-        }else{var _C=[x0-700,y0-560];/* \uc88c\ud558: \ub77c\ubca8 \uc67c\ucabd\u00b7\ucd09\u2190 */
+        }else{var _C=[x0-450,y0-560];/* [1599] \uc624\ub978\ucabd *//* \uc88c\ud558: \ub77c\ubca8 \uc67c\ucabd\u00b7\ucd09\u2190 */
           out+=_eArrB(_C[0],_C[1],0.5,180);
           _lbls.forEach(function(_t,i2){out+=eTxt(_C[0]-60-_t.length*39.5,_C[1]+((_n-1)/2-i2)*131,_t,100,0,'DIM','Attr',5);});
         }
