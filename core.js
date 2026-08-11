@@ -9645,7 +9645,7 @@ function mnPipeEditor(rec,wall){
       +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><b style="font-size:12px;color:#2471a3">\uCC38\uACE0 \uC0AC\uC9C4</b>'
       +'<span style="font-size:11px;color:#99a">\uD720/\uD540\uCE58=\uD655\uB300 \u00B7 \uB04C\uAE30=\uC774\uB3D9 \u00B7 \uB354\uBE14\uD0ED=\uC6D0\uB798\uB300\uB85C</span>'
       +'<button id="mnRefRst" style="margin-left:auto;border:1px solid #cfd8e3;background:#fff;color:#5b6577;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer">\uC6D0\uB798\uB300\uB85C</button></div>'
-      +'<div id="mnRefImgBox" style="border:1.5px solid #cfd8e3;border-radius:8px;overflow:hidden;background:#f7f9fb;display:flex;align-items:center;justify-content:center;max-height:32dvh;touch-action:none;cursor:grab"></div></div>'
+      +'<div id="mnRefImgBox" style="border:1.5px solid #cfd8e3;border-radius:8px;overflow:hidden;background:#f7f9fb;display:flex;align-items:center;justify-content:center;max-height:20dvh;touch-action:none;cursor:grab"></div></div>'
     +'<div id="mnCvBox" style="border:1.5px solid #556;border-radius:8px;overflow:hidden;background:#fff"><canvas id="mnCv" style="display:block;touch-action:none;user-select:none;-webkit-user-select:none"></canvas></div>'
     +'<div style="font-size:11px;color:#99a;margin-top:4px;text-align:right">탭: 빈관→내선(검정)→제외(빨강) · 노란선=맨홀 바닥</div>'
     +'<div id="mnGChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"></div>'
@@ -9664,7 +9664,7 @@ function mnPipeEditor(rec,wall){
   var cv=wrap.querySelector('#mnCv'),bx=wrap.querySelector('#mnCvBox');
   var sp0=rec.spec||{w:800,h:1700,dep:1100};
   var cssW=Math.min(window.innerWidth*0.96,460)-30;
-  var cssH=cssW*H/W;var maxH=window.innerHeight*0.4;
+  var cssH=cssW*H/W;var maxH=window.innerHeight*0.26;/* [1581] \ud55c \ud654\uba74 \uc218\uc6a9 */
   if(cssH>maxH){var _f=maxH/cssH;cssH=maxH;cssW*=_f;}
   var sx=cssW/W, sy=cssH/H;
   var dpr=window.devicePixelRatio||1;
