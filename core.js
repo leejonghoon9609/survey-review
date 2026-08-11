@@ -9031,10 +9031,10 @@ function mnEquipXls(rec){
          .replace('{{MAPNO}}',mnXmlEsc(rec.mapNo||''))
          .replace('{{MHNO}}',mnXmlEsc(mnLabel(rec)||''))
          .replace('{{ADDR}}',mnXmlEsc(rec.addr||''))
-         .replace('{{D1}}',mnXmlEsc(dest.d1||''))
-         .replace('{{D2}}',mnXmlEsc(dest.d2||''))
-         .replace('{{D3}}',mnXmlEsc(dest.d3||''))
-         .replace('{{D4}}',mnXmlEsc(dest.d4||''));
+         .replace('{{D1}}',mnXmlEsc(mnStripPf(dest.d1||'')))/* [1592] */
+         .replace('{{D2}}',mnXmlEsc(mnStripPf(dest.d2||'')))
+         .replace('{{D3}}',mnXmlEsc(mnStripPf(dest.d3||'')))
+         .replace('{{D4}}',mnXmlEsc(mnStripPf(dest.d4||'')));
       zip.file('xl/worksheets/sheet1.xml',x);
       /* 사진: image2=전경 image3=① image4=② image5=③ image6=④ (image1=설비위치, 추후) */
       var ph=rec.photos||{};
@@ -9044,7 +9044,7 @@ function mnEquipXls(rec){
         return fetch(ph[m[0]]).then(function(r){return r.blob();}).then(function(b){return mnFixOrient(b);}).then(function(fx){zip.file(m[1],fx.blob);}).catch(function(){});
       });
       /* [BUILD 1050] image1 = \uc124\ube44\uc704\uce58 (\uacb0\uc120 \ub3c4\uba74 396x360 \ube44\uc728) */
-      if(typeof refSitePNG==='function'&&REF&&REF.ents){
+      if(typeof refSitePNG==='function'){/* [1592] REF \uc5c6\ub294 \ud30c\uc774\ud504\ub77c\uc778\ub3c4 fldSiteSVG \ud3f4\ubc31\uc73c\ub85c \uc0dd\uc131 */
         jobs.push(refSitePNG(rec,1509,1083,REF_SITE_SPAN).then(function(b){
           if(!b)return;
           /* [1054] 투명여백 PNG 로 넣기 — 확장자/타입/관계 3곳을 함께 갱신 */
@@ -9067,7 +9067,7 @@ function mnEquipXls(rec){
   }).then(function(zip){
     return zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
   }).then(function(blob){
-    var nm=(mnLabel(rec)||'맨홀').replace(/[\\/:*?"<>|]/g,'_').trim()||'맨홀';
+    var nm=(mnLabelNoPf(rec)||'맨홀').replace(/[\\/:*?"<>|]/g,'_').trim()||'맨홀';
     mnOut(blob,nm+((state.tgCarrier&&state.tgCarrier.view&&state.tgCarrier.view!=='ALL')?'_'+state.tgCarrier.view:'')+'.xlsx');
     toast('📄 '+nm+'.xlsx 다운로드');
   }).catch(function(e){if(e==='__cancel'){toast('취소됨');return;}console.error('mnEquipXls',e);toast('엑셀 생성 실패');});
@@ -9084,7 +9084,7 @@ function mnPhotoZip(rec){
   Promise.all(jobs.map(function(j){
     return fetch(j.url).then(function(r){return r.blob();}).then(function(b){return mnFixOrient(b);}).then(function(fx){zip.file(j.name+'.jpg',fx.blob);}).catch(function(){});
   })).then(function(){
-    var nm=(mnLabel(rec)||'맨홀').replace(/[\\/:*?"<>|]/g,'_').trim()||'맨홀';
+    var nm=(mnLabelNoPf(rec)||'맨홀').replace(/[\\/:*?"<>|]/g,'_').trim()||'맨홀';
     zip.generateAsync({type:'blob'}).then(function(blob){
       mnOut(blob,nm+'.zip');
       toast('📦 '+jobs.length+'장 → '+nm+'.zip');
@@ -9129,8 +9129,12 @@ function mnOpenForm(rec){
     var v=(rec.dest&&rec.dest[k])||'';
     var t=v?((typeof mnStripPf==='function')?mnStripPf(v):v):'방향';
     var cx=x+w/2,cy=y+h/2,txt;
-    if(rot===0)txt='<text x="'+cx+'" y="'+(cy+3.5)+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="'+(v?'#558b2f':'#a8c790')+'" pointer-events="none">'+joseoEsc(t)+'</text>';
-    else txt='<text x="'+cx+'" y="'+cy+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="'+(v?'#558b2f':'#a8c790')+'" transform="rotate('+rot+' '+cx+' '+cy+')" dominant-baseline="central" pointer-events="none">'+joseoEsc(t)+'</text>';
+    /* [1591] \uae34 \ud14d\uc2a4\ud2b8 \uc790\ub3d9 \uc555\ucd95 \u2014 \uac00\ub85c pill\uc740 w, \uc138\ub85c(\ud68c\uc804) pill\uc740 h \uae30\uc900 (\ud45c\ucc30 [1552] \ubc29\uc2dd) */
+    var _wpx=0;for(var _ci=0;_ci<t.length;_ci++){_wpx+=(t.charCodeAt(_ci)>0x2500?11.5:7);}
+    var _lim=(rot===0?w:h)-8;
+    var _tl=(_wpx>_lim)?(' textLength="'+_lim+'" lengthAdjust="spacingAndGlyphs"'):'';
+    if(rot===0)txt='<text x="'+cx+'" y="'+(cy+3.5)+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="'+(v?'#558b2f':'#a8c790')+'" pointer-events="none"'+_tl+'>'+joseoEsc(t)+'</text>';
+    else txt='<text x="'+cx+'" y="'+cy+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="'+(v?'#558b2f':'#a8c790')+'" transform="rotate('+rot+' '+cx+' '+cy+')" dominant-baseline="central" pointer-events="none"'+_tl+'>'+joseoEsc(t)+'</text>';
     return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="5" fill="#f1f8e9" stroke="#7cb342" stroke-width="1.2" data-act="dest" data-d="'+k+'" style="cursor:pointer"/>'+txt;
   }
   function wallPhoto(k,x,y,w,h,rot){var u=rec.photos&&rec.photos[k];if(!u)return '';
@@ -14256,7 +14260,8 @@ function refLayerOnSite(lay){
 function refSitePNG(rec,W,H,span){
   return new Promise(function(res){
     var svg=null;
-    try{svg=refSiteSVG(rec,W,H,span);}catch(e){console.error('refSiteSVG',e);}
+    try{if(typeof REF!=='undefined'&&REF&&REF.ents)svg=refSiteSVG(rec,W,H,span);}catch(e){console.error('refSiteSVG',e);}
+    if(!svg){try{if(typeof fldSiteSVG==='function')svg=fldSiteSVG(rec,W,H,span);}catch(e2){console.error('fldSiteSVG',e2);}}/* [1592] */
     if(!svg){res(null);return;}
     var url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}));
     var im=new Image();
