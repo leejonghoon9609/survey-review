@@ -12570,7 +12570,7 @@ function refApplyDxf(txt,name){
   /* [1093] 결선 로딩 직후 레이어 체크바 전부 ‘꺼짐’ 으로 시작
      (도면이 깔끔하게 보이도록 — 필요한 레이어만 켜서 본다) */
   try{
-    ['no','stake','code','depth','date','mh','riser','bizbox','dogak','bp','bpbox','photoDir','tgseg','hyun','tagbox'].forEach(function(k){LV[k]=0;});   /* [1102] tagbox=인출선 이동 핸들 — 켜져있으면 맨홀·측점 클릭을 가로채다 */
+    LV.tagbox=0;/* [1565] [1093] \uc804\uccb4 \ub044\uae30 \ud3d0\uc9c0 \u2014 \uc0ac\uc6a9\uc790 \ub808\uc774\uc5b4 \uc720\uc9c0(\uc131\uacfc \uc0ac\ub77c\uc9d0 \ubc29\uc9c0). \ud074\ub9ad \uac00\ub85c\ucc44\ub294 tagbox\ub9cc \ud574\uc81c[1102] */
     try{if(typeof LV_KEY!=='undefined')localStorage.setItem(LV_KEY,JSON.stringify(LV));}catch(_se){}
     if(typeof applyLayerVis==='function')applyLayerVis();
     /* 레이어바 UI 갱신 — 다음 틱에 반영되도록 */
