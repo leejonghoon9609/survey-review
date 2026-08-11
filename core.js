@@ -14224,15 +14224,12 @@ function fldSiteSVG(rec,W,H,span,at){/* [1570] \uce21\ub7c9\ud604\uc7a5 \uc57c\u
    var isPipe=(L.layer==='\ud1b5\uc2e0\uad00\ub85c');
    body.push('<polyline points="'+ps.map(function(p){var s2=P(p[0],p[1]);return s2[0]+','+s2[1];}).join(' ')+'" fill="none" stroke="'+(isPipe?'#0033cc':'#a3a3a3')+'" stroke-width="'+((isPipe?7.0:1.2)*kW)+'" stroke-linejoin="round" stroke-linecap="round"/>');});
   (state.manholes||[]).forEach(function(m){if(!m||m.wx==null)return;if(!inView(m.wx,m.wy))return;
-   var isR=(m.type==='riser');if(!isR)return;/* [1571] \ub179\uc0c9 \ub9e8\ud640 \uc6d0 \uc81c\uac70 */
    var s2=P(m.wx,m.wy);
-   body.push('<circle cx="'+s2[0]+'" cy="'+s2[1]+'" r="'+(vw*0.012).toFixed(2)+'" fill="#7a52e0" fill-opacity="0.85"/>');});
-  if(tg)tg.forEach(function(p){/* [1590] \ubc29\ud5a5 \ub300\uc0c1 = \uc774\uc911\uc6d0 */
-   if(!inView(p[0],p[1]))return;
-   var s3=P(p[0],p[1]),rr=vw*0.02;
-   body.push('<circle cx="'+s3[0]+'" cy="'+s3[1]+'" r="'+rr.toFixed(2)+'" fill="none" stroke="#111" stroke-width="'+(2.2*kW)+'"/>');
-   body.push('<circle cx="'+s3[0]+'" cy="'+s3[1]+'" r="'+(rr*0.55).toFixed(2)+'" fill="none" stroke="#111" stroke-width="'+(2.2*kW)+'"/>');
-  });
+   if(m.type==='riser'){body.push('<circle cx="'+s2[0]+'" cy="'+s2[1]+'" r="'+(vw*0.012).toFixed(2)+'" fill="#7a52e0" fill-opacity="0.85"/>');return;}
+   /* [1594] \ub9e8\ud640 \uc774\uc911\uc6d0 \uc2ec\ubcbc(\ub3c4\uba74 \ubbf8\ub7ec, \uc778\ucd9c\uc120 \uc5c6\uc74c) */
+   var rr=vw*0.016;
+   body.push('<circle cx="'+s2[0]+'" cy="'+s2[1]+'" r="'+rr.toFixed(2)+'" fill="none" stroke="#111" stroke-width="'+(1.8*kW)+'"/>');
+   body.push('<circle cx="'+s2[0]+'" cy="'+s2[1]+'" r="'+(rr*0.55).toFixed(2)+'" fill="none" stroke="#111" stroke-width="'+(1.8*kW)+'"/>');});
   var mc=P(c[0],c[1]);var R=vw*0.072;
   body.push('<circle cx="'+mc[0]+'" cy="'+mc[1]+'" r="'+R.toFixed(2)+'" fill="none" stroke="#e60000" stroke-width="'+(3.0*kW)+'"/>');
   var lab=(typeof refSiteEsc==='function')?refSiteEsc((typeof mnLabelNoPf==='function'?mnLabelNoPf(rec):'')||''):'';/* [1590] */
