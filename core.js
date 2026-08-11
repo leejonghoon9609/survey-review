@@ -68,15 +68,12 @@ function _orgSync(){try{var p=null;
  if(!p&&state.manholes&&state.manholes.length&&state.manholes[0].wx!=null)p=[state.manholes[0].wx,state.manholes[0].wy];
  if(!p&&state.gpsPts&&state.gpsPts.length&&isFinite(state.gpsPts[0].x))p=[state.gpsPts[0].x,state.gpsPts[0].y];
  if(!p&&state.baseTexts&&state.baseTexts.length&&isFinite(state.baseTexts[0].x))p=[state.baseTexts[0].x,state.baseTexts[0].y];
- if(!p&&typeof REF!=='undefined'&&REF&&REF.box&&isFinite(REF.box.x0))p=[REF.box.x0+(REF.ox||0),REF.box.y0+(REF.oy||0)];/* [1562] \ud544\ub4dc\uba85 \uad50\uc815 */
- if(!p&&state.mnList&&state.mnList.length){for(var _i9=0;_i9<state.mnList.length&&!p;_i9++){var _r9=state.mnList[_i9];if(_r9&&_r9.refXY&&isFinite(+_r9.refXY[0]))p=[_r9.refXY[0],_r9.refXY[1]];}}
  if(!p)return;
  var ox=Math.floor(p[0]/1000)*1000,oy=Math.floor(p[1]/1000)*1000;
  if(ox===ORG.x&&oy===ORG.y)return;
  if(typeof vb!=='undefined'&&vb){vb.x+=(ORG.x-ox);vb.y+=(oy-ORG.y);}
  if(typeof vb0!=='undefined'&&vb0){vb0.x+=(ORG.x-ox);vb0.y+=(oy-ORG.y);}
  ORG.x=ox;ORG.y=oy;
- try{if(typeof REF!=='undefined'&&REF&&REF.ents&&typeof refDraw==='function'){refDraw();if(typeof _refMhDraw==='function')try{_refMhDraw();}catch(_rm9){}}}catch(_rg8){}/* [1561] ORG \ubcc0\uacbd \uc2dc REF path \uc7ac\uc0dd\uc131 */
  if(typeof cv!=='undefined'&&cv){try{cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);}catch(_v){}}
 }catch(_e){}}
 function S(x,y){return [x-ORG.x,ORG.y-y];}      // \ud654\uba74\uc88c\ud45c(\ubd81\ucabd \uc704) \u2014 [1524] \uc6d0\uc810 \ub85c\uceec
@@ -1232,7 +1229,7 @@ function mhLabelBase(mh, txtW){
   return {lx:(mh.lx!=null?mh.lx:defLx), ly:(mh.ly!=null?mh.ly:defLy)};
 }
 function mergeAftMh(){/* [1445] 자동병합 중단 — 후측 CSV 맨홀/입상은 그대로 추가(검정), 실시간 맨홀(파랑) 유지, 결선은 작업자 수정 */}
-function _refTxtFix(){/* [1560] REF \ud14d\uc2a4\ud2b8 \uc6d4\ub4dc \uace0\uc815 \u2014 [1460] px\uace0\uc815 \ud3d0\uae30(\ucd95\uc18c \uc2dc \uac70\ub300\ud654 \ubb38\uc81c). DXF \uc6d0\ub798 \ud06c\uae30\ub85c \uc9c0\ub3c4\uc640 \ube44\ub840 */try{var host=document.getElementById('gRefDxf');if(!host)return;var ts=host.getElementsByTagName('text');for(var i=0;i<ts.length;i++){var t=ts[i];if(t._rht==null)continue;if(t.getAttribute('font-size')!=String(t._rht))t.setAttribute('font-size',t._rht);}}catch(_e){}}
+function _refTxtFix(){/* [1460] field: REF(완료결선 DXF) 텍스트 화면 px 고정 */try{if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return;var host=document.getElementById('gRefDxf');if(!host)return;var U=(typeof pxToWorld==='function')?pxToWorld():0.06;var ts=host.getElementsByTagName('text');for(var i=0;i<ts.length;i++){var t=ts[i];if(t._rht==null||!t._rU)continue;t.setAttribute('font-size',t._rht*(U/t._rU));}}catch(_e){}}
 function _mhLeadSync(){/* [1457] 줄 중 인출선·라벨 좌표만 경량 갱신 — DOM 재생성 없음 */try{if(!(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))))return;var U=(typeof pxToWorld==='function')?pxToWorld():0.06;var EM=15*(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))?0.12:U);/* [1517] 완전 월드고정 */var upd={};var proc=function(mh){var k=mh.id;if(upd[k])return upd[k];var s9=S(mh.wx,mh.wy);var mx=s9[0],my=s9[1];var txtW=0,_lb=(typeof mhDisp==='function')?(''+mhDisp(mh)):(mh.label||'');for(var i=0;i<_lb.length;i++)txtW+=(_lb.charCodeAt(i)>127?EM:EM*0.55);txtW+=EM*0.5;txtW*=0.73;var lp=mhLabelBase(mh,txtW);var ls=S(lp.lx,lp.ly);var isR=(ls[0]>=mx);var u1=ls[0],u2=isR?ls[0]+txtW:ls[0]-txtW,uy=ls[1];return upd[k]={mx:mx,my:my,kx:ls[0],ky:ls[1],u1:u1,u2:u2,uy:uy,tc:(u1+u2)/2,ty:uy-EM*0.95};};var ns=gMH.querySelectorAll('line');for(var i2=0;i2<ns.length;i2++){var e=ns[i2],m=e._mSync;if(!m)continue;var P=proc(m.mh);if(m.t==='d'){e.setAttribute('x1',P.mx);e.setAttribute('y1',P.my);e.setAttribute('x2',P.kx);e.setAttribute('y2',P.ky);}else{e.setAttribute('x1',P.u1);e.setAttribute('y1',P.uy);e.setAttribute('x2',P.u2);e.setAttribute('y2',P.uy);}}if(typeof lblOverlay!=='undefined'&&lblOverlay){var ds=lblOverlay.children;for(var j2=0;j2<ds.length;j2++){var d=ds[j2];if(!d._mSync)continue;var P2=proc(d._mSync.mh);d._sx=P2.tc;d._sy=P2.ty;if(typeof placeLabelDiv==='function')placeLabelDiv(d);}}}catch(_s){}}
 function _fldTamsaPts(){try{if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return [];var arr=(typeof finalCsvArr==='function')?finalCsvArr():[];var key=arr.map(function(f){return (f.name||'')+':'+((f.text||'').length);}).join('|')+'#'+((state.points||[]).length)+'#'+(state.mhDel?Object.keys(state.mhDel).length:0);if(window._ftpC&&window._ftpC.k===key)return window._ftpC.v;var det=/^[tT]?\s*(\d+(?:\.\d+)?)(\s*\([^)]*\))?$/;var out=[];arr.forEach(function(it){var rs=[];try{rs=parseInspCsv(it.text||'');}catch(e){}rs.forEach(function(q){if(q.skip)return;var c=((q.code||'')+'').trim();if(/^l$/i.test(c))return;var m=det.exec(c);if(!m)return;var ex=false,pts=state.points||[];for(var i=0;i<pts.length;i++){if(Math.hypot(pts[i].x-q.ex,pts[i].y-q.no)<0.3){ex=true;break;}}if(ex)return;if(state.mhDel&&state.mhDel[q.ex+'_'+q.no])return;out.push({no:q.name||'',x:q.ex,y:q.no,z:parseFloat(m[1]),code:c});});});window._ftpC={k:key,v:out};return out;}catch(_e){return [];}}function drawTamsaPts(){try{if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return;clearLabels('tamsapt');if(typeof LV!=='undefined'&&LV&&LV.tamsaPt===0)return;var _og9=gMH.querySelectorAll('.sym-tamsapt');for(var _oi9=0;_oi9<_og9.length;_oi9++)_og9[_oi9].remove();var L=_fldTamsaPts();if(!L.length)return;var YC='#e6b800';L.forEach(function(q){var s0=S(q.x,q.y);var _g9=el('g',{'class':'sym-tamsapt'});_g9.appendChild(el('rect',{x:s0[0]-0.147,y:s0[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:YC,'stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));_g9.appendChild(el('line',{x1:s0[0],y1:s0[1],x2:s0[0],y2:s0[1],stroke:YC,'stroke-width':4,'stroke-linecap':'square','vector-effect':'non-scaling-stroke','pointer-events':'none'}));gMH.appendChild(_g9);if(!(typeof LV!=='undefined'&&LV&&LV.depth===0)){var _U8=(typeof pxToWorld==='function')?pxToWorld():0.06;mkLabel(s0[0]+0.07,s0[1],(+q.z).toFixed(2),{fill:'#1f6fd6',weight:'700',anchor:'start',grp:'tamsapt',px:11});}});}catch(_e){}}/* [1480] 탐사 보완점(노랑) 표시 전용 */
 function drawManholes(){_orgSync();/* [1524] */
@@ -1693,9 +1690,6 @@ function fitView(){_orgSync();/* [1524] */
   var xs=[],ys=[];function add(x,y){if(!isFinite(x)||!isFinite(y))return;var s=S(x,y);xs.push(s[0]);ys.push(s[1]);}
   state.points.forEach(function(p){add(p.x,p.y);});
   state.lines.forEach(function(L){L.pts.forEach(function(p){add(p[0],p[1]);});});if(state.gpsPts){var _haveF={};(state.points||[]).forEach(function(p){_haveF[p.no]=1;});var _nsF2=state.nightShift,_cutF2=(_nsF2&&_nsF2.on)?_nsF2.cut:null;state.gpsPts.forEach(function(g){var _wnoF2=g.no;if(g._d0!=null&&g._nm!=null){var _dtF2=g._d0;if(_cutF2!=null&&g._tm!=null&&g._tm<_cutF2)_dtF2=prevDayYMD(g._d0);_wnoF2=_dtF2+'-'+g._nm;}if(_haveF[g.no]||_haveF[_wnoF2])return;add(g.x,g.y);});}
-  (state.manholes||[]).forEach(function(m){if(m&&m.wx!=null)add(m.wx,m.wy);});/* [1559] */
-  try{if(typeof REF!=='undefined'&&REF&&REF.ents&&REF.box){var _ro9=REF.ox||0,_ry9=REF.oy||0;add(REF.box.x0+_ro9,REF.box.y0+_ry9);add(REF.box.x1+_ro9,REF.box.y1+_ry9);}}catch(_rb9){}/* [1562] \ud544\ub4dc\uba85 x0/y1 \uad50\uc815 *//* [1559] REF \uc131\uacfc \ud3ec\ud568 */
-  try{(state.mnList||[]).forEach(function(r){if(r&&!r.delAt&&r.refXY&&isFinite(+r.refXY[0]))add(r.refXY[0],r.refXY[1]);});}catch(_mr9){}
   if(!xs.length){vb={x:0,y:0,w:100,h:100};vb0={x:0,y:0,w:100,h:100};applyVB();return;}
   var pad=5,minx=Math.min.apply(0,xs),maxx=Math.max.apply(0,xs),miny=Math.min.apply(0,ys),maxy=Math.max.apply(0,ys);
   vb0={x:minx-pad,y:miny-pad,w:(maxx-minx)+2*pad,h:(maxy-miny)+2*pad};
@@ -12359,7 +12353,7 @@ REF_SEL=null;REF.terrOn=false;REF.ents=null;REF.layers=null;REF.blocks=null;REF.
    float32 로 계산하면서 a*x 가 수억이 되어 최소간격이 128px 까지 벌어진다.
    → 확대 시 심볼과 선이 어긋나고 텍스트가 화면 밖으로 밀려 사라짐.
    큰 값은 그룹 transform 으로 빼내고 자식은 원점 기준 작은 좌표만 쓴다. */
-function refSR(x,y){return [x-ORG.x,ORG.y-y];}/* [1561] ORG \ub85c\uceec \u2014 \uae4a\uc740 \uc90c \ub300\uc88c\ud45c path \ucef8\ub9c1 \uc81c\uac70 */
+function refSR(x,y){return [x-REF.ox,-(y-REF.oy)];}
 /* depth>0 = 블록 내부(로컬좌표) → 원점 빼면 안 됨 */
 function refXY(d,x,y){return d?[x,-y]:refSR(x,y);}
 
@@ -12401,7 +12395,7 @@ function refDraw(){
   if(!REF.ents||!REF.on)return;
   if(!REF.box)refCalcBox();
   var g=document.createElementNS(SVGNS,'g');g.id='gRefDxf';g.setAttribute('pointer-events','none');
-  g.setAttribute('transform','translate('+(REF.ox||0)+','+(-(REF.oy||0))+')');/* [1561] \uc774\ub3d9 \uc624\ud504\uc14b\ub9cc \u2014 ORG\ub294 path\uc5d0 \ubc18\uc601 */
+  g.setAttribute('transform','translate('+REF.ox+','+(-REF.oy)+')');
   var sp=REF.hsp||0.12;
   var defs=document.createElementNS(SVGNS,'defs');
   var pat=el('pattern',{id:'refHatchP',patternUnits:'userSpaceOnUse',width:sp,height:sp,patternTransform:'rotate(45)'});
@@ -12686,9 +12680,8 @@ function refFit(){
   if(!REF.ents)return;
   var b=refCalcBox();
   if(!b||b.x1-b.x0<1)return;
-  if(typeof _orgSync==='function')_orgSync();/* [1562] ORG \ud655\uc815(\ubcc0\uacbd \uc2dc path \uc7ac\uc0dd\uc131 \ud3ec\ud568) */
   var pad=Math.max(b.x1-b.x0,b.y1-b.y0)*0.05;
-  vb0={x:(b.x0-ORG.x)-pad,y:(ORG.y-b.y1)-pad,w:(b.x1-b.x0)+2*pad,h:(b.y1-b.y0)+2*pad};/* [1562] ORG \ub85c\uceec */
+  vb0={x:b.x0-pad,y:-(b.y1+pad),w:(b.x1-b.x0)+2*pad,h:(b.y1-b.y0)+2*pad};
   vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};
   if(typeof fixAspect==='function')fixAspect();
   if(typeof applyVB==='function')applyVB();
@@ -13406,7 +13399,7 @@ function refDrawMh(){
   if(typeof mnUiOpen==='function'&&!mnUiOpen())return;   /* [1094] 맨홀도 꺼지면 초록원도 꺼짐 */
   var host=document.getElementById('gRefDxf');if(!host)return;
   var g=document.createElementNS(SVGNS,'g');g.id='gRefMH';
-  g.setAttribute('transform','translate('+(REF.ox||0)+','+(-(REF.oy||0))+')');/* [1561] \uc774\ub3d9 \uc624\ud504\uc14b\ub9cc \u2014 ORG\ub294 path\uc5d0 \ubc18\uc601 */
+  g.setAttribute('transform','translate('+REF.ox+','+(-REF.oy)+')');
   if(host.nextSibling)cv.insertBefore(g,host.nextSibling);else cv.appendChild(g);
   var mm=refMhMatch(),ok={};
   mm.matched.forEach(function(x){ok[refNormLab(x.mh.label)]=x.rec;});
@@ -13717,7 +13710,7 @@ function refRiserPick(rec,lab,cb){
   refRiserClear();
   var mob=_refMob();
   var g=document.createElementNS(SVGNS,'g');g.id='gRefRiser';
-  g.setAttribute('transform','translate('+(REF.ox||0)+','+(-(REF.oy||0))+')');/* [1561] \uc774\ub3d9 \uc624\ud504\uc14b\ub9cc \u2014 ORG\ub294 path\uc5d0 \ubc18\uc601 */
+  g.setAttribute('transform','translate('+REF.ox+','+(-REF.oy)+')');
   if(host.nextSibling)cv.insertBefore(g,host.nextSibling);else cv.appendChild(g);
   refRiserSel={cb:cb,lab:lab,n:list.length,mob:mob,pend:null,list:list,hidden:(mob?_refHideSheet():[])};
   list.forEach(function(q){
