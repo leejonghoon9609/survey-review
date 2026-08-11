@@ -9828,9 +9828,9 @@ function mnPipeEditor(rec,wall){
     ctx.clearRect(0,0,cssW,cssH);
     ctx.setTransform(dpr*vz,0,0,dpr*vz,-vox*dpr,-voy*dpr);
     if(bg){var iw=bg.width,ih=bg.height;var k=Math.max(cssW/iw,cssH/ih);var dw=iw*k,dh=ih*k;ctx.globalAlpha=0.5;try{ctx.drawImage(bg,(cssW-dw)/2,(cssH-dh)/2,dw,dh);}catch(_e){}ctx.globalAlpha=1;}
-    ctx.strokeStyle='#e4e8ee';ctx.lineWidth=1;
-    for(var gx=100;gx<W;gx+=100){ctx.beginPath();ctx.moveTo(gx*sx,0);ctx.lineTo(gx*sx,cssH);ctx.stroke();}
-    for(var gy=100;gy<H;gy+=100){ctx.beginPath();ctx.moveTo(0,gy*sy);ctx.lineTo(cssW,gy*sy);ctx.stroke();}
+    ctx.lineWidth=1;/* [1582] 50mm \ubcf4\uc870\uc120+100mm \uc8fc\uc120 \u2014 \ubc30\uce58 \uc815\ub82c\uac10 \ud5a5\uc0c1 */
+    for(var gx=50;gx<W;gx+=50){ctx.strokeStyle=(gx%100===0)?'#d9dfe8':'#eef1f6';ctx.beginPath();ctx.moveTo(gx*sx,0);ctx.lineTo(gx*sx,cssH);ctx.stroke();}
+    for(var gy=50;gy<H;gy+=50){ctx.strokeStyle=(gy%100===0)?'#d9dfe8':'#eef1f6';ctx.beginPath();ctx.moveTo(0,gy*sy);ctx.lineTo(cssW,gy*sy);ctx.stroke();}
     /* 중심선 (빨강) */
     ctx.strokeStyle='#e05252';ctx.lineWidth=1.3;
     ctx.beginPath();ctx.moveTo(W/2*sx,0);ctx.lineTo(W/2*sx,cssH);ctx.stroke();
