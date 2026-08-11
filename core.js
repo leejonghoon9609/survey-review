@@ -7351,10 +7351,13 @@ function _fldStakePhSync(){ /* [1298] field 전용 — 측설사진 등록 토�
 }
 function finalCsvArr(){var f=state.finalCsv;if(!f)return [];return Array.isArray(f)?f:[f];}
 function _fldMnRecFor(m,force){ /* [1258] field — 맨홈 1개→야장 rec 생성/연결(mhId) · 멱등 · [1556] 삭제 묘비 존중 */
-  if(!m||m.type==='riser'||m.wx==null)return null;
+  if(!m||m.type==='riser'||m.type==='jb'||m.type==='inlet'||m.wx==null)return null;/* [1558] \ubd80\uc18d\ubb3c \uc81c\uc678 */
+  var _lb0=String(m.label||'');
+  if(/^JB$/i.test(_lb0)||/^\uc778\uc785/.test(_lb0)||/\uc785\uc0c1/.test(_lb0))return null;/* [1558] JB\u00b7\uc778\uc785\u00b7\uc785\uc0c1 \ub77c\ubca8 \ubcf4\uac15 */
+  if(!m.kind&&!/[MH]\s*\(/.test(_lb0))return null;/* [1558] \ub9e8\ud640 \ud615\uc2dd \uc544\ub2cc \uac83 \uc81c\uc678 */
   var L=mnList();
   var ex=L.filter(function(r){return r&&!r.delAt&&r.mhId===m.id;})[0];
-  if(!ex&&!force){var _dead=L.some(function(r){return r&&r.delAt&&r.mhId===m.id;});if(_dead)return null;}/* [1556] 삭제한 야장 자동 부활 금지 */
+  if(!ex&&!force){var _dead=L.some(function(r){if(!r||!r.delAt)return false;if(r.mhId===m.id)return true;var xy=r.refXY;return !!(xy&&isFinite(+xy[0])&&Math.hypot(xy[0]-m.wx,xy[1]-m.wy)<0.5);});if(_dead)return null;}/* [1556][1558] \uc0ad\uc81c \ubb18\ube44: id+\uc88c\ud45c \uc774\uc911 */
   if(ex){if(!ex.refXY||ex.refXY[0]!==m.wx||ex.refXY[1]!==m.wy){ex.refXY=[m.wx,m.wy];try{refGeoFill(ex,m.wx,m.wy);}catch(e){}}return ex;}
   var no=0;L.forEach(function(r){var v=parseInt(r&&r.no,10);if(isFinite(v)&&v>no)no=v;});
   var ow=/\(([^)]+)\)/.exec(m.label||'');ow=ow?ow[1].trim():'SK';
@@ -8011,7 +8014,7 @@ function mnTrashList(afterClose){/* [1556] \uc0c1\ub2e8: \uc57c\uc7a5 \uccb4\ud0
     +'<div style="padding:11px 14px;overflow:auto;flex:1">'
     +'<div style="font-size:12.5px;font-weight:800;color:#8a6d00;margin-bottom:6px">\uc57c\uc7a5 \ubaa9\ub85d \u2014 \uccb4\ud06c \ud6c4 \uc0ad\uc81c</div>'
     +'<div style="background:#fff;border:1px solid #eee2c8;border-radius:11px;max-height:34dvh;overflow:auto">'+aliveRows+'</div>'
-    +'<div style="display:flex;gap:9px;margin-top:10px"><button id="mnDelDo" style="flex:1;border:0;background:#d32f2f;color:#fff;border-radius:9px;padding:10px;font-weight:800;font-size:14px;cursor:pointer">\uc0ad\uc81c</button><button id="mnDelCa" style="flex:1;border:0;background:#f1f1ee;color:#333;border-radius:9px;padding:10px;font-weight:700;font-size:14px;cursor:pointer">\ucde8\uc18c</button></div>'
+    +'<div style="display:flex;gap:9px;margin-top:10px"><button id="mnDelDo" style="flex:1;border:0;background:#d32f2f;color:#fff;border-radius:9px;padding:10px;font-weight:800;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:8px;margin-right:-8px">\uc0ad\uc81c</span></button><button id="mnDelCa" style="flex:1;border:0;background:#f1f1ee;color:#333;border-radius:9px;padding:10px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:8px;margin-right:-8px">\ucde8\uc18c</span></button></div>'
     +'<div style="border-top:1px dashed #d8c890;margin:13px 0 9px"></div>'
     +'<div style="font-size:12.5px;font-weight:800;color:#8a6d00;margin-bottom:6px">\ud83d\uddc2 \uc0ad\uc81c\ubaa9\ub85d (7\uc77c \ubcf4\uad00 \u00b7 \ubcf5\uc6d0 \uac00\ub2a5)</div>'
     +trashRows
