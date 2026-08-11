@@ -8551,28 +8551,17 @@ function mnEfbGen(rec){
       var agg={};all.forEach(function(c){var st=(c.st!=null?c.st:(c.fill?1:0));if(st===2)return;if(!agg[c.dia])agg[c.dia]={n:0,f:0};agg[c.dia].n++;if(st===1)agg[c.dia].f++;});
       var dias=Object.keys(agg).map(Number).sort(function(a,b){return a-b;});
       if(dias.length){
-        var tip,lsx,lst,lstep;
-        /* [1026] 라벨·화살표는 팔 바깥 모서리 기준 (샘플: 위+441 / 아래-450). 관 묶음 고정거리 방식은 몸체가 길면 팔 안으로 들어감 */
-        if(w==='p1'){tip=[ccx-438,y1+441];out+=eArrow(tip[0],tip[1],0.5,90);lst=[tip[0]-40,tip[1]+165];lstep=131;}
-        else if(w==='p2'){
-          /* [1027] 우측 세로 치수선(x1+107·연장선 x1+157)과 겹침 방지: 라벨 왼끝이 x1+382 이상 */
-          var _mw=0;dias.forEach(function(dv){_mw=Math.max(_mw,('FC\u00d8'+dv+'X'+agg[dv].n+'('+agg[dv].f+')').length);});
-          var _half=_mw*39.5;
-          tip=[ccx+399,y0-450];out+=eArrow(tip[0],tip[1],-0.5,90);
-          lst=[Math.max(tip[0]+24,x1+382+_half),tip[1]-164];lstep=-131;
-        }
-        else{/* [1596] p3\u00b7p4 \u2014 \ub9e8\ud640\ub3c4 \uc88c\uc6b0\ubcbd [1578] \ubbf8\ub7ec: \ud654\uc0b4\ud45c=\uad00\ubb36\uc74c \uc624\ub978\ucabd 80\u00b7\ucd09\u2192\uad00\u00b7\ubab8\ud1b5 \ub77c\ubca8\ucabd, \ub77c\ubca8=\ud654\uc0b4\ud45c \uc624\ub978\ucabd \uc67c\ub05d\uc815\ub82c\u00b7\uad00\ubb36\uc74c \uc911\uc2ec \uc138\ub85c\ubc30\uc5f4 */
+        /* [1597] 4\ud314 \uacf5\ud1b5 \u2014 \ub9e8\ud640\ub3c4 [1578] \uaddc\uce59 \ud1b5\uc77c: \ud654\uc0b4\ud45c=\ub77c\ubca8 \ubc18\ub300\ud3b8 \uad00\ubb36\uc74c \ubc14\uae65 80\u00b7\ucd09\u2192\uad00, \ub77c\ubca8=\uad00\ubb36\uc74c \uc911\uc2ec \uc138\ub85c\ubc30\uc5f4(131)\u00b7\uc67c\ub05d/\uc624\ub978\ub05d \uc815\ub82c */
+        var _n=dias.length;
+        var _lbls=dias.map(function(dv){return 'FC\u00d8'+dv+'X'+agg[dv].n+'('+agg[dv].f+')';});
+        if(w==='p1'){/* \uc88c\ud314: \ub77c\ubca8 \uc67c\ucabd\u00b7\ud654\uc0b4\ud45c \uc624\ub978\ucabd(\ucd09\u2190\uad00) */
           out+=eArrow(mxx+80,ccy,0.5,180);
-          var _LX=Math.max(mxx+380,x1+441),_n=dias.length;/* \ud654\uc0b4\ud45c \ubab8\ud1b5(+323.5) \ud68c\ud53c */
-          dias.forEach(function(dv,i){
-            var _t='FC\u00d8'+dv+'X'+agg[dv].n+'('+agg[dv].f+')';
-            out+=eTxt(_LX+_t.length*39.5,ccy+((_n-1)/2-i)*131,_t,100,0,'DIM','Attr');
-          });
-          lst=null;
+          _lbls.forEach(function(_t,i2){out+=eTxt(mnx-220-_t.length*39.5,ccy+((_n-1)/2-i2)*131,_t,100,0,'DIM','Attr');});
+        }else{/* \uc6b0\u00b7\uc0c1\u00b7\ud558\ud314: \ub77c\ubca8 \uc624\ub978\ucabd\u00b7\ud654\uc0b4\ud45c \uc67c\ucabd(\ucd09\u2192\uad00), \uce58\uc218\uc120 \ud68c\ud53c \ud074\ub7a8\ud504 \uc720\uc9c0 */
+          out+=eArrow(mnx-80,ccy,-0.5,180);
+          var _LX=(w==='p2')?Math.max(mxx+220,x1+382):Math.max(mxx+220,x1+441);
+          _lbls.forEach(function(_t,i2){out+=eTxt(_LX+_t.length*39.5,ccy+((_n-1)/2-i2)*131,_t,100,0,'DIM','Attr');});
         }
-        if(lst)dias.forEach(function(dv,i){
-          out+=eTxt(lst[0],lst[1]+lstep*i,'FC\u00d8'+dv+'X'+agg[dv].n+'('+agg[dv].f+')',100,0,'DIM','Attr');
-        });
       }
     });
     var _hasPipe=false;['p1','p2','p3','p4'].forEach(function(w){var pw=rec.pipes&&rec.pipes[w];if(pw&&pw.groups&&pw.groups.some(function(g){return g.circles&&g.circles.length;}))_hasPipe=true;});
