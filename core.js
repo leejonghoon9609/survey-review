@@ -68,12 +68,15 @@ function _orgSync(){try{var p=null;
  if(!p&&state.manholes&&state.manholes.length&&state.manholes[0].wx!=null)p=[state.manholes[0].wx,state.manholes[0].wy];
  if(!p&&state.gpsPts&&state.gpsPts.length&&isFinite(state.gpsPts[0].x))p=[state.gpsPts[0].x,state.gpsPts[0].y];
  if(!p&&state.baseTexts&&state.baseTexts.length&&isFinite(state.baseTexts[0].x))p=[state.baseTexts[0].x,state.baseTexts[0].y];
+ if(!p&&typeof REF!=='undefined'&&REF&&REF.box&&isFinite(REF.box.minx))p=[REF.box.minx+(REF.ox||0),REF.box.miny+(REF.oy||0)];/* [1559] */
+ if(!p&&state.mnList&&state.mnList.length){for(var _i9=0;_i9<state.mnList.length&&!p;_i9++){var _r9=state.mnList[_i9];if(_r9&&_r9.refXY&&isFinite(+_r9.refXY[0]))p=[_r9.refXY[0],_r9.refXY[1]];}}
  if(!p)return;
  var ox=Math.floor(p[0]/1000)*1000,oy=Math.floor(p[1]/1000)*1000;
  if(ox===ORG.x&&oy===ORG.y)return;
  if(typeof vb!=='undefined'&&vb){vb.x+=(ORG.x-ox);vb.y+=(oy-ORG.y);}
  if(typeof vb0!=='undefined'&&vb0){vb0.x+=(ORG.x-ox);vb0.y+=(oy-ORG.y);}
  ORG.x=ox;ORG.y=oy;
+ try{['gRefDxf','gRefMH','gRefRiser'].forEach(function(_gid){var _rg9=document.getElementById(_gid);if(_rg9&&typeof REF!=='undefined'&&REF)_rg9.setAttribute('transform','translate('+((REF.ox||0)-ORG.x)+','+(ORG.y-(REF.oy||0))+')');});}catch(_rg8){}/* [1559] */
  if(typeof cv!=='undefined'&&cv){try{cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);}catch(_v){}}
 }catch(_e){}}
 function S(x,y){return [x-ORG.x,ORG.y-y];}      // \ud654\uba74\uc88c\ud45c(\ubd81\ucabd \uc704) \u2014 [1524] \uc6d0\uc810 \ub85c\uceec
@@ -1690,6 +1693,9 @@ function fitView(){_orgSync();/* [1524] */
   var xs=[],ys=[];function add(x,y){if(!isFinite(x)||!isFinite(y))return;var s=S(x,y);xs.push(s[0]);ys.push(s[1]);}
   state.points.forEach(function(p){add(p.x,p.y);});
   state.lines.forEach(function(L){L.pts.forEach(function(p){add(p[0],p[1]);});});if(state.gpsPts){var _haveF={};(state.points||[]).forEach(function(p){_haveF[p.no]=1;});var _nsF2=state.nightShift,_cutF2=(_nsF2&&_nsF2.on)?_nsF2.cut:null;state.gpsPts.forEach(function(g){var _wnoF2=g.no;if(g._d0!=null&&g._nm!=null){var _dtF2=g._d0;if(_cutF2!=null&&g._tm!=null&&g._tm<_cutF2)_dtF2=prevDayYMD(g._d0);_wnoF2=_dtF2+'-'+g._nm;}if(_haveF[g.no]||_haveF[_wnoF2])return;add(g.x,g.y);});}
+  (state.manholes||[]).forEach(function(m){if(m&&m.wx!=null)add(m.wx,m.wy);});/* [1559] */
+  try{if(typeof REF!=='undefined'&&REF&&REF.ents&&REF.box){var _ro9=REF.ox||0,_ry9=REF.oy||0;add(REF.box.minx+_ro9,REF.box.miny+_ry9);add(REF.box.maxx+_ro9,REF.box.maxy+_ry9);}}catch(_rb9){}/* [1559] REF \uc131\uacfc \ud3ec\ud568 */
+  try{(state.mnList||[]).forEach(function(r){if(r&&!r.delAt&&r.refXY&&isFinite(+r.refXY[0]))add(r.refXY[0],r.refXY[1]);});}catch(_mr9){}
   if(!xs.length){vb={x:0,y:0,w:100,h:100};vb0={x:0,y:0,w:100,h:100};applyVB();return;}
   var pad=5,minx=Math.min.apply(0,xs),maxx=Math.max.apply(0,xs),miny=Math.min.apply(0,ys),maxy=Math.max.apply(0,ys);
   vb0={x:minx-pad,y:miny-pad,w:(maxx-minx)+2*pad,h:(maxy-miny)+2*pad};
@@ -12395,7 +12401,7 @@ function refDraw(){
   if(!REF.ents||!REF.on)return;
   if(!REF.box)refCalcBox();
   var g=document.createElementNS(SVGNS,'g');g.id='gRefDxf';g.setAttribute('pointer-events','none');
-  g.setAttribute('transform','translate('+REF.ox+','+(-REF.oy)+')');
+  g.setAttribute('transform','translate('+((REF.ox||0)-ORG.x)+','+(ORG.y-(REF.oy||0))+')');/* [1559] ORG \ubc18\uc601 */
   var sp=REF.hsp||0.12;
   var defs=document.createElementNS(SVGNS,'defs');
   var pat=el('pattern',{id:'refHatchP',patternUnits:'userSpaceOnUse',width:sp,height:sp,patternTransform:'rotate(45)'});
@@ -13399,7 +13405,7 @@ function refDrawMh(){
   if(typeof mnUiOpen==='function'&&!mnUiOpen())return;   /* [1094] 맨홀도 꺼지면 초록원도 꺼짐 */
   var host=document.getElementById('gRefDxf');if(!host)return;
   var g=document.createElementNS(SVGNS,'g');g.id='gRefMH';
-  g.setAttribute('transform','translate('+REF.ox+','+(-REF.oy)+')');
+  g.setAttribute('transform','translate('+((REF.ox||0)-ORG.x)+','+(ORG.y-(REF.oy||0))+')');/* [1559] ORG \ubc18\uc601 */
   if(host.nextSibling)cv.insertBefore(g,host.nextSibling);else cv.appendChild(g);
   var mm=refMhMatch(),ok={};
   mm.matched.forEach(function(x){ok[refNormLab(x.mh.label)]=x.rec;});
@@ -13710,7 +13716,7 @@ function refRiserPick(rec,lab,cb){
   refRiserClear();
   var mob=_refMob();
   var g=document.createElementNS(SVGNS,'g');g.id='gRefRiser';
-  g.setAttribute('transform','translate('+REF.ox+','+(-REF.oy)+')');
+  g.setAttribute('transform','translate('+((REF.ox||0)-ORG.x)+','+(ORG.y-(REF.oy||0))+')');/* [1559] ORG \ubc18\uc601 */
   if(host.nextSibling)cv.insertBefore(g,host.nextSibling);else cv.appendChild(g);
   refRiserSel={cb:cb,lab:lab,n:list.length,mob:mob,pend:null,list:list,hidden:(mob?_refHideSheet():[])};
   list.forEach(function(q){
