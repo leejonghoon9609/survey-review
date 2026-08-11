@@ -8605,6 +8605,7 @@ function mnEfbGen(rec){
   }).catch(function(e){console.error('mnEfbGen',e);toast('전자야장 생성 실패 — dxf/tpl_efb.dxf 배포 확인');});
 }
 function mnDxfGen(rec){
+  try{var _gx=(typeof _mnRecXY==='function')?_mnRecXY(rec):null;if(_gx&&typeof toLatLng==='function'){var _gl=toLatLng(_gx[0],_gx[1]);if(_gl&&isFinite(_gl.lat)&&typeof mnMapSheetNo==='function')rec.mapNo=mnMapSheetNo(_gl.lat,_gl.lng);}}catch(_mn){}/* [1595] \ub3c4\uc5fd \uce21\ub7c9\uc88c\ud45c \uae30\uc900 */
   var pick=mnDxfPickTpl(rec);
   var g=MN_DXF_GEO[pick.key];
   if(!g){toast('규격 템플릿 없음');return;}
@@ -8925,6 +8926,22 @@ function mnEnsureAddr(rec){
     /* 공백만 저장된 과거 기록은 '값 있음'으로 오판되므로 정규화 */
     if(rec.addr&&!String(rec.addr).trim())rec.addr='';
     if(rec.road&&!String(rec.road).trim())rec.road='';
+    /* [1595] \uce21\ub7c9\uc88c\ud45c(cm\uae09) \ub300\uc870 \u2014 \uae30\uc874 GPS\uac00 200m+ \uc5b4\uae0b\ub098\uba74(PC IP \uc704\uce58 \uc624\uc5fc) geo\u00b7\ub3c4\uc5fd \ub36e\uc5b4\uc4f0\uace0 \uc8fc\uc18c \ub9ac\uc14b\u2192\uc7ac\uc870\ud68c */
+    try{
+      var _sx=(typeof _mnRecXY==='function')?_mnRecXY(rec):null;
+      if(_sx&&typeof toLatLng==='function'){
+        var _sl=toLatLng(_sx[0],_sx[1]);
+        if(_sl&&isFinite(_sl.lat)){
+          var _g0=rec.geo,_far=false;
+          if(_g0&&isFinite(_g0.lat)&&_g0.src!=='ref'&&_g0.src!=='fld')
+            _far=Math.hypot((_g0.lat-_sl.lat)*111000,(_g0.lng-_sl.lng)*88000)>200;
+          rec.geo={lat:_sl.lat,lng:_sl.lng,acc:0,src:(_g0&&_g0.src==='ref')?'ref':'fld'};
+          if(typeof mnMapSheetNo==='function'){try{rec.mapNo=mnMapSheetNo(_sl.lat,_sl.lng);}catch(_mp){}}
+          if(_far){rec.addr='';rec.road='';}
+          try{mnPersistRec(rec);}catch(_ps){}
+        }
+      }
+    }catch(_gf){}
     if(rec.addr&&rec.road){res();return;}
     /* [BUILD 1047] geo 가 없으면 결선 측량좌표로 자동 보충 (버튼 조작 불필요) */
     if(!(rec.geo&&rec.geo.lat)&&typeof refGeoFill==='function'){
