@@ -10122,7 +10122,7 @@ function mnPipeEditor(rec,wall){
    function mv(ev){dx=ev.clientX-sx;dy=ev.clientY-sy;card.style.transform='translate('+dx+'px,'+dy+'px)';}
    function up(){document.removeEventListener('pointermove',mv);document.removeEventListener('pointerup',up);}
    document.addEventListener('pointermove',mv);document.addEventListener('pointerup',up);});}})();/* [1574] PC \ucc3d \uc774\ub3d9 */
-  wrap.querySelector('#mnPClose').onclick=function(){wrap.remove();mnOpenForm(rec);};
+  wrap.querySelector('#mnPClose').onclick=function(){try{mnPersistRec(rec);}catch(_ps){}wrap.remove();mnOpenForm(rec);};/* [1618] \ub2eb\uae30\ub85c \ub098\uac00\ub3c4 \uad00\ubc30\uce58 \ubcf4\uc874 \u2014 \uc644\ub8cc \uc548 \ub204\ub974\uba74 \uc720\uc2e4\ub418\ub358 \ubb38\uc81c */
   wrap.querySelector('#mnPDone').onclick=function(){mnPersistRec(rec,'관배치 저장됨');wrap.remove();mnOpenForm(rec);};
 }
 /* ===== [BUILD 1083] 실시간측량 — 결선 DXF에서 측점 자동 로드 =====
