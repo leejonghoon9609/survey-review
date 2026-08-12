@@ -8493,7 +8493,7 @@ function mnEfbGen(rec){
     function drawPipe(w,c){ /* 심볼: Ø50=삼각형, Ø120=사각형, 그외=원(실척) */
       var st=(c.st!=null?c.st:(c.fill?1:0));
       var p=armXY(w,c.x,c.y), px=p[0],py=p[1];
-      var col=(st===2?1:7), o='';/* [1615] \uc81c\uc678(\ube68\uac15) \uc678 \ud14c\ub450\ub9ac \uac80\uc815 */
+      var col=7, o='';/* [1617] \ud14c\ub450\ub9ac\ub294 \ud56d\uc0c1 \uac80\uc815, \ud574\uce58\ub9cc \ube68\uac15(st2) */
       if(c.dia===50){
         var tri=[[px-21,py-14],[px,py+28],[px+21,py-14]];
         o+=ePL('Pipe',tri,true,null,col||null);
