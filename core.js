@@ -8130,7 +8130,15 @@ function mnMobilePick(){/* [1636] 폰 — 도면에서 야장 맨홀 선택(초�
     var _lb0=String(mnLabel(r)||'');
     var _t9=(String(r.no||'')+' '+String(r.note||'')+' '+_lb0);
     if(/JB/i.test(_t9)||/\uc778\uc785/.test(_t9)||/\uc785\uc0c1/.test(_t9))return;/* [1642] \ud544\ub4dc \uae30\ubc18 JB\u00b7\uc778\uc785\u00b7\uc785\uc0c1 \uc81c\uc678 */
-    if(r.mhId!=null){var _sk=false;(state.manholes||[]).forEach(function(m){if(!_sk&&m&&m.id===r.mhId&&(m.type==='jb'||m.type==='inlet'||m.type==='riser'))_sk=true;});if(_sk)return;}
+    if(r.mhId!=null){/* [1643] \uc2ec\ubca8 \ud654\uc774\ud2b8\ub9ac\uc2a4\ud2b8 \u2014 \ub9e8\ud640(mh)\ub9cc \ud1b5\uacfc, id\ub294 String \ube44\uad50 */
+      var _mm=null;(state.manholes||[]).forEach(function(m){if(!_mm&&m&&String(m.id)===String(r.mhId))_mm=m;});
+      if(_mm){
+        var _ty=String(_mm.type||'').toLowerCase();
+        if(_ty&&_ty!=='mh')return;
+        var _ml=String(_mm.label||'');
+        if(/JB/i.test(_ml)||/\uc778\uc785/.test(_ml)||/\uc785\uc0c1/.test(_ml))return;
+      }
+    }
     var xy=(typeof _mnRecXY==='function')?_mnRecXY(r):null;
     if(!xy)return;
     items.push({x:xy[0],y:xy[1],lab:(typeof mnStripPf==='function')?mnStripPf(_lb0):_lb0,old:(r.newFlag==='\uae30\uc124')||/^\uae30\uc124/.test(_lb0),rec:r});/* [1642] newFlag \uc9c1\uac80\uc0ac */
