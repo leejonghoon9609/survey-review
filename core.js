@@ -8483,7 +8483,8 @@ function mnEfbGen(rec){
       }else{
         var s2=(w==='p3'?1:-1), by=(w==='p3'?y1:y0), xa=x1+107;
         var f1=by+s2*A, f2=by+s2*(A+N);
-        o+=eL('Dim',x1+10,by,x1+157,by)+eL('Dim',x1+10,f1,x1+157,f1)+eL('Dim',x1+10,f2,x1+157,f2);
+        var xe=Math.max(x1+10,(x1-(bw/2-lr))+10);/* [1606] \ubaa9\uc774 \ubc14\uae65(si<0)\uc774\uba74 \uc5f0\uc7a5\uc120\uc774 \ubcbd \uc548\uc73c\ub85c \uc548 \ub4e4\uc5b4\uc624\uac8c */
+        o+=eL('Dim',x1+10,by,x1+157,by)+eL('Dim',xe,f1,x1+157,f1)+eL('Dim',xe,f2,x1+157,f2);
         o+=eL('Dim',xa,by+s2*50,xa,f1-s2*50,0)+eOpen(xa,by,s2>0?270:90)+eOpen(xa,f1,s2>0?90:270)+eTxt(xa-43,(by+f1)/2,String(A),50,90,'DIM','Dim');  /* [1078] 세로 치수는 텍스트도 세로 — 치수선 겹침 방지 */
         o+=eL('Dim',xa,f1+s2*50,xa,f2-s2*50,0)+eOpen(xa,f1,s2>0?270:90)+eOpen(xa,f2,s2>0?90:270)+eTxt(xa-43,(f1+f2)/2,String(N),50,90,'DIM','Dim');  /* [1078] */
       }
