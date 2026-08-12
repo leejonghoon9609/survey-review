@@ -1245,11 +1245,11 @@ function drawManholes(){_orgSync();/* [1524] */
     var mx=s[0], my=s[1];
     /* [1262] field 전용 — 야장 UI 열림 시: 야장 연결 맨홀=초록 배경 원, 선택(열린 야장)=마젠타 (REF refDrawMh 미러) */
     if((typeof IS_FIELD!=='undefined'&&IS_FIELD)&&!isRiser&&typeof mnUiOpen==='function'&&mnUiOpen()){
-      var _hasRec=false;try{_hasRec=mnList().some(function(r){return r&&!r.delAt&&r.mhId===mh.id;});}catch(_hr){}
-      if(_hasRec){
+      var _rec9=null;try{mnList().forEach(function(r){if(!_rec9&&r&&!r.delAt&&r.mhId===mh.id)_rec9=r;});}catch(_hr){}
+      if(_rec9){
         var _selMh9=(typeof window!=='undefined'&&window._fldSelMhId===mh.id);
         var _r9=2.1;if(_selMh9)_r9*=1.4; /* [1280] 월드 고정 — 확대/축소 시 도면과 함께(후측량 원과 동일 체감) */
-        var _c9=_selMh9?'#d500f2':'#16a34a';
+        var _c9=_selMh9?'#d500f2':(_rec9.savedAt?'#eab308':'#16a34a');/* [1611] 저장된 야장=노랑 */
         var _bg9=el('circle',{cx:mx,cy:my,r:_r9,fill:_c9,'fill-opacity':0.22,stroke:_c9,'stroke-width':2.4,'vector-effect':'non-scaling-stroke'});
         _bg9.setAttribute('pointer-events','none');
         gMH.appendChild(_bg9);
@@ -8203,26 +8203,15 @@ function mnAskDest(cur,dn,cb,rec,dk){
   var noOpts=['1','2','3','4','5'].map(function(v){return '<option value="'+v+'"'+(noSel===v?' selected':'')+'>'+v+'</option>';}).join('')
              +'<option value="_c"'+(noSel==='_c'?' selected':'')+'>\uC9C1\uC811\uC785\uB825</option>';
   var opts=['LG','SKT','SKB','시청','세종','드림','통신주입상','전주입상'].map(function(o){return '<option value="'+o+'"'+(ow===o?' selected':'')+'>'+o+'</option>';}).join('')+'<option value="_c"'+(ow==='_c'?' selected':'')+'>직접입력</option>';
-  w.innerHTML='<div style="background:#f1f8e9;border:1.5px solid #558b2f;border-radius:12px;width:min(80vw,280px);padding:13px 14px">'
+  w.innerHTML='<div style="background:#f1f8e9;border:1.5px solid #558b2f;border-radius:12px;width:min(80vw,300px);padding:13px 14px">'/* [1612] 재배치 — 번호/소유자 행 제거, 모든 선택=도면 픽커 */
     +'<div style="font-weight:800;font-size:13.5px;color:#558b2f;margin-bottom:9px">연결 맨홀 ('+dn+'방향)</div>'
-    +'<div style="display:flex;gap:5px">'
-      +'<button id="mnDMh" style="flex:0.8;min-width:0;background:#fff;color:#1d9e75;border:1.5px solid #1d9e75;border-radius:9px;padding:9px 2px;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap">\uD83D\uDD73 \ub9e8\ud640</button>'/* [1588] \ub9e8\ud640 \ub9e8 \uc55e */
-      +'<button id="mnDJeon" style="flex:0.95;min-width:0;background:#fff;color:#7a6a3a;border:1.5px solid #b9a86a;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden">\uD83D\uDDFC \uC804\uC8FC\uC785\uC0C1</button>'
-      +'<button id="mnDTong" style="flex:1.25;min-width:0;background:#fff;color:#2471a3;border:1.5px solid #8fb8d6;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden">\uD83D\uDCE1 \uD1B5\uC2E0\uC8FC\uC785\uC0C1</button></div>'/* [1586] \ub9e8\ud640 \uc120\ud0dd \ubc84\ud2bc */
-    +'<div style="display:flex;gap:7px;align-items:center;margin-top:9px"><div style="flex:1.1;min-width:0;display:flex;align-items:center;gap:4px"><select id="mnDNoSel" style="flex:1;min-width:0;border:1.5px solid #558b2f;border-radius:9px;padding:9px 5px;font-size:15px;background:#fff">'+noOpts+'</select><input id="mnDNo" type="text" inputmode="numeric" value="'+joseoEsc(no)+'" placeholder="직접입력" style="flex:1;min-width:0;display:'+(noSel==='_c'?'block':'none')+';border:1.5px solid #558b2f;border-radius:9px;padding:9px;font-size:15px;background:#fff"><b style="font-size:15px;color:#558b2f;flex:none">M</b></div>'
-    +'<select id="mnDOw" style="flex:1;min-width:0;border:1px solid #ccd8c0;border-radius:9px;padding:9px 6px;font-size:14px;background:#fff">'+opts+'</select></div>'
-    +'<input id="mnDOwC" value="'+joseoEsc(owc)+'" placeholder="소유자 직접입력" style="width:100%;box-sizing:border-box;border:1px solid #ccd8c0;border-radius:9px;padding:9px;font-size:14px;margin-top:8px;background:#fff;display:'+(ow==='_c'?'block':'none')+'">'
-    +'<div style="display:flex;gap:7px;margin-top:10px"><button id="mnDOk" style="flex:1;background:#558b2f;color:#fff;border:0;border-radius:9px;padding:10px;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">확인</span></button><button id="mnDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">취소</span></button></div></div>';
+    +'<button id="mnDMh" style="width:100%;box-sizing:border-box;background:#fff;color:#1d9e75;border:1.5px solid #1d9e75;border-radius:9px;padding:11px 2px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap">\uD83D\uDD73 맨홀</button>'
+    +'<div style="display:flex;gap:5px;margin-top:7px">'
+      +'<button id="mnDJeon" style="flex:1;min-width:0;background:#fff;color:#7a6a3a;border:1.5px solid #b9a86a;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden">\uD83D\uDDFC 전주입상</button>'
+      +'<button id="mnDTong" style="flex:1.15;min-width:0;background:#fff;color:#2471a3;border:1.5px solid #8fb8d6;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden">\uD83D\uDCE1 통신주입상</button>'
+      +'<button id="mnDJb" style="flex:0.95;min-width:0;background:#fff;color:#8e44ad;border:1.5px solid #c39bd3;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden">\uD83D\uDD0C JB/인입</button></div>'
+    +'<div style="display:flex;gap:7px;margin-top:10px"><button id="mnDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">취소</span></button></div></div>';
   document.body.appendChild(w);
-  w.querySelector('#mnDOw').addEventListener('change',function(){
-    if(this.value==='전주입상'||this.value==='통신주입상'){pickRiser(this.value);return;}
-    w.querySelector('#mnDOwC').style.display=(this.value==='_c')?'block':'none';
-  });
-  w.querySelector('#mnDNoSel').addEventListener('change',function(){
-    var e=w.querySelector('#mnDNo');
-    if(this.value==='_c'){e.style.display='block';e.focus();}
-    else{e.style.display='none';e.value=this.value;}
-  });
   /* [1066] 입상 전용 버튼 — 결선에 심볼이 여러 개면 가까운 순으로 골라 좌표를 고정한다 */
   function pickRiser(lab){
     /* [1067] 도면에서 직접 클릭해 고른다 (목록은 현장에서 알아보기 어렵다) */
@@ -8246,6 +8235,12 @@ function mnAskDest(cur,dn,cb,rec,dk){
   }
   var _bj=w.querySelector('#mnDJeon');if(_bj)_bj.onclick=function(){pickRiser('전주입상');};
   var _bt=w.querySelector('#mnDTong');if(_bt)_bt.onclick=function(){pickRiser('통신주입상');};
+  var _bb=w.querySelector('#mnDJb');if(_bb)_bb.onclick=function(){/* [1612] JB·인입 도면 선택 */
+    w.remove();
+    var okJ=false;
+    try{okJ=(typeof fldJbPick==='function')&&fldJbPick(rec,dk,cb);}catch(_je){okJ=false;}
+    if(!okJ)toast('JB/인입 심벼이 없습니다');
+  };
   var _bm=w.querySelector('#mnDMh');if(_bm)_bm.onclick=function(){/* [1589] 도면에서 직접 선택 — 좌표 없는 야장은 목록 보조 */
     var L=(typeof mnList==='function')?mnList().filter(function(r){return r&&!r.delAt&&(!rec||r.id!==rec.id)&&(typeof mnHasId!=='function'||mnHasId(r));}):[];
     if(!L.length){toast('\uc120\ud0dd\ud560 \ub2e4\ub978 \ub9e8\ud640 \uc57c\uc7a5\uc774 \uc5c6\uc2b5\ub2c8\ub2e4');return;}
@@ -8274,18 +8269,6 @@ function mnAskDest(cur,dn,cb,rec,dk){
   };
   w.querySelector('#mnDNo2').onclick=function(){w.remove();};
   w.onclick=function(e){if(e.target===w)w.remove();};
-  w.querySelector('#mnDOk').onclick=function(){
-    var _ns=w.querySelector('#mnDNoSel');
-    var n=(_ns&&_ns.value!=='_c')?_ns.value:w.querySelector('#mnDNo').value.trim();
-    var o=w.querySelector('#mnDOw').value;
-    if(o==='전주입상'||o==='통신주입상'){pickRiser(o);return;}
-    if(o==='_c')o=w.querySelector('#mnDOwC').value.trim();
-    /* [BUILD 1055] 번호가 비어도 소유자만으로 저장 (직접입력이 무시되던 문제) */
-    /* [1066] 입상이 아닌 값으로 바꾸면 이전에 고른 입상 좌표는 버린다 */
-    try{if(rec&&dk&&rec.destXY)delete rec.destXY[dk];}catch(_de){}
-    w.remove();cb(n?(n+'M'+(o?'('+o+')':'')):(o||''));
-  };
-  setTimeout(function(){var _f=w.querySelector('#mnDNo');if(_f&&_f.style.display!=='none')_f.focus();},60);
 }
 /* [BUILD 983] 맨홀도 DXF — 규격샘플 템플릿(dxf/) fetch → 마커치환 + 관 실좌표 재그리기 */
 var MN_DXF_GEO={"tpl_045x095": {"bx0": 139955, "bx1": 140405, "by0": -150953, "by1": -150003, "ar": {"d1": [138854.9, -150473.3], "d3": [140179.9, -148903.2], "d4": [140179.9, -152053.2], "d2": [141504.9, -150473.3]}, "nk": [{"d": "L", "ax": "x", "end": 138854.9, "sign": 1, "blk": ["*D9"]}, {"d": "R", "ax": "x", "end": 141504.9, "sign": -1, "blk": ["*D5"]}, {"d": "T", "ax": "y", "end": -148903.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -152053.2, "sign": 1, "blk": []}]}, "tpl_095x045": {"bx0": 139705, "bx1": 140655, "by0": -150703, "by1": -150253, "ar": {"d1": [138604.9, -150478.2], "d3": [140174.9, -149153.2], "d2": [141754.9, -150478.2], "d4": [140174.9, -151803.2]}, "nk": [{"d": "L", "ax": "x", "end": 138604.9, "sign": 1, "blk": ["*D8"]}, {"d": "R", "ax": "x", "end": 141754.9, "sign": -1, "blk": ["*D12"]}, {"d": "T", "ax": "y", "end": -149153.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -151803.2, "sign": 1, "blk": []}]}, "tpl_07x13": {"bx0": 139830, "bx1": 140530, "by0": -151128, "by1": -149828, "ar": {"d4": [140179.9, -152228.2], "d1": [138729.9, -150483.2], "d2": [141629.9, -150483.2], "d3": [140179.9, -148728.2]}, "nk": [{"d": "L", "ax": "x", "end": 138729.9, "sign": 1, "blk": ["*D12"]}, {"d": "R", "ax": "x", "end": 141629.9, "sign": -1, "blk": ["*D6"]}, {"d": "T", "ax": "y", "end": -148728.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -152228.2, "sign": 1, "blk": []}]}, "tpl_13x07": {"bx0": 139530, "bx1": 140830, "by0": -150828, "by1": -150128, "ar": {"d2": [141929.9, -150478.2], "d4": [140183.4, -151928.2], "d1": [138429.9, -150478.2], "d3": [140183.4, -149028.2]}, "nk": [{"d": "L", "ax": "x", "end": 138429.9, "sign": 1, "blk": ["*D12"]}, {"d": "R", "ax": "x", "end": 141929.9, "sign": -1, "blk": ["*D8"]}, {"d": "T", "ax": "y", "end": -149028.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -151928.2, "sign": 1, "blk": []}]}, "tpl_08x17": {"bx0": 139780, "bx1": 140580, "by0": -151328, "by1": -149628, "ar": {"d4": [140179.9, -152828.2], "d1": [138279.9, -150483.2], "d2": [142079.9, -150483.2], "d3": [140179.9, -148128.2]}, "nk": [{"d": "L", "ax": "x", "end": 138279.9, "sign": 1, "blk": ["*D10"]}, {"d": "R", "ax": "x", "end": 142079.9, "sign": -1, "blk": ["*D6"]}, {"d": "T", "ax": "y", "end": -148128.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -152828.2, "sign": 1, "blk": []}]}, "tpl_17x08": {"bx0": 139330, "bx1": 141030, "by0": -150878, "by1": -150078, "ar": {"d2": [142529.9, -150478.2], "d4": [140184.9, -152378.2], "d3": [140184.9, -148578.2], "d1": [137829.9, -150478.2]}, "nk": [{"d": "L", "ax": "x", "end": 137829.9, "sign": 1, "blk": ["*D10"]}, {"d": "R", "ax": "x", "end": 142529.9, "sign": -1, "blk": ["*D8"]}, {"d": "T", "ax": "y", "end": -148578.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -152378.2, "sign": 1, "blk": []}]}, "tpl_10x20": {"bx0": 139680, "bx1": 140680, "by0": -151478, "by1": -149478, "ar": {"d4": [140179.9, -152978.2], "d1": [138179.9, -150483.2], "d2": [142179.9, -150483.2], "d3": [140179.9, -147978.2]}, "nk": [{"d": "L", "ax": "x", "end": 138179.9, "sign": 1, "blk": ["*D7"]}, {"d": "R", "ax": "x", "end": 142179.9, "sign": -1, "blk": ["*D9"]}, {"d": "T", "ax": "y", "end": -147978.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -152978.2, "sign": 1, "blk": []}]}, "tpl_20x10": {"bx0": 139180, "bx1": 141180, "by0": -150978, "by1": -149978, "ar": {"d2": [142679.9, -150478.2], "d4": [140184.9, -152478.2], "d3": [140184.9, -148478.2], "d1": [137679.9, -150478.2]}, "nk": [{"d": "L", "ax": "x", "end": 137679.9, "sign": 1, "blk": ["*D10"]}, {"d": "R", "ax": "x", "end": 142679.9, "sign": -1, "blk": ["*D7"]}, {"d": "T", "ax": "y", "end": -148478.2, "sign": -1, "blk": []}, {"d": "B", "ax": "y", "end": -152478.2, "sign": 1, "blk": []}]}};
@@ -8556,7 +8539,7 @@ function mnEfbGen(rec){
         var _n=dias.length;
         var _lbls=dias.map(function(dv){return 'FC\u00d8'+dv+'X'+agg[dv].n+'('+agg[dv].f+')';});
         function _eArrB(ax2,ay2,sx2,rot2){return mnDxfEnt(['  0','INSERT','  5',nh(),'330','2','100','AcDbEntity','  8','arrow',' 62','5','100','AcDbBlockReference','  2','arrow',' 10',fx(ax2),' 20',fx(ay2),' 30','0.0',' 41',String(sx2),' 42','0.5',' 43','1.0',' 50',String(rot2)]);}
-        if(w==='p1'){var _C=[x0-700,y1+420];/* [1609] \ub9e8\ud640\ub3c4 \uc88c\uc0c1 \ub0b4\ub9bc \ubbf8\ub7ec *//* [1603] \ub9e8\ud640\ub3c4 \uc88c\uc0c1 slot \ud654\uc0b4\ud45c \uc704\uce58(by1+860-400) \ubbf8\ub7ec *//* [1600] \uc624\ub978\ucabd+\uc704 *//* [1599] \ub0b4\ub9bc *//* \uc88c\uc0c1: \ub77c\ubca8 \uc704\u00b7\ucd09\u2191 */
+        if(w==='p1'){var _C=[x0-700,y1+340];/* [1610] 80 \ucd94\uac00 \ub0b4\ub9bc(\uc804\uc790\uc57c\uc7a5\ub9cc) *//* [1609] \ub9e8\ud640\ub3c4 \uc88c\uc0c1 \ub0b4\ub9bc \ubbf8\ub7ec *//* [1603] \ub9e8\ud640\ub3c4 \uc88c\uc0c1 slot \ud654\uc0b4\ud45c \uc704\uce58(by1+860-400) \ubbf8\ub7ec *//* [1600] \uc624\ub978\ucabd+\uc704 *//* [1599] \ub0b4\ub9bc *//* \uc88c\uc0c1: \ub77c\ubca8 \uc704\u00b7\ucd09\u2191 */
           out+=_eArrB(_C[0],_C[1],0.5,90);
           _lbls.forEach(function(_t,i2){out+=eTxt(_C[0],_C[1]+150+((_n-1)-i2)*131,_t,100,0,'DIM','Attr',5);});
         }else if(w==='p3'){var _C=[x1+420,y1+560];/* [1603] \ub9e8\ud640\ub3c4 \uc6b0\uc0c1(bx1+700-280) *//* [1600] \uc67c\ucabd+\uc704 \ub098\ub780\ud788 *//* [1599] \uc67c\ucabd *//* \uc6b0\uc0c1: \ub77c\ubca8 \uc624\ub978\ucabd\u00b7\ucd09\u2192 */
@@ -9545,6 +9528,7 @@ function mnOpenForm(rec){
     if(miss.length){alert(miss.join(', ')+' 사진을 등록하세요');return;}
     var dup=null;mnList().forEach(function(r){if(r.id!==rec.id&&mnLabel(r)===mnLabel(rec))dup=r;});
     if(dup){if(!confirm('같은 번호('+mnLabel(rec)+')가 목록에 있습니다. 덮어쓸까요?'))return;var L=mnList();var di=L.indexOf(dup);if(di>=0)L.splice(di,1);}
+    rec.savedAt=Date.now();/* [1611] 저장 완료 표시 — 도면 노란 원 */
     mnPersistRec(rec,'맨홀조사 저장됨');uClose();mnOpenList();
   };
 }
@@ -14003,6 +13987,28 @@ function fldRiserPick(rec,lab,dk,cb){
     if(q===false)return;                          /* \ucde8\uc18c \u2014 \uc544\ubb34\uac83\ub3c4 \ub4f1\ub85d \uc548 \ud568 */
     if(q&&rec&&dk){try{if(!rec.destXY)rec.destXY={};rec.destXY[dk]=[q.x,q.y];}catch(_e){}}
     cb(lab);
+  },null);
+}
+/* [1612] JB·인입 도면 선택 — state.manholes type jb/inlet (노란 원, fldRiserPick 미러) */
+function fldJbPick(rec,dk,cb){
+  var items=[];
+  (state.manholes||[]).forEach(function(m){
+    if(!m||m.wx==null)return;
+    if(m.type!=='jb'&&m.type!=='inlet')return;
+    items.push({x:+m.wx,y:+m.wy,lab:(m.label||((m.type==='jb')?'JB':'인입'))});
+  });
+  if(!items.length)return false;
+  var c0=(typeof _mnRecXY==='function')?_mnRecXY(rec):null;
+  if(c0){
+    items.forEach(function(q){q.d=Math.hypot(q.x-c0[0],q.y-c0[1]);});
+    var near=items.filter(function(q){return q.d<=400;});
+    if(near.length)items=near;
+    items.sort(function(a,b){return (a.d||0)-(b.d||0);});
+  }
+  return fldMapPick(items,'JB/인입',function(q){
+    if(q===false)return;
+    if(q&&rec&&dk){try{if(!rec.destXY)rec.destXY={};rec.destXY[dk]=[q.x,q.y];}catch(_e){}}
+    cb((typeof mnStripPf==='function')?mnStripPf(q.lab):q.lab);
   },null);
 }
 function refSiteTargets(rec){
