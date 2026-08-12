@@ -8635,6 +8635,22 @@ function mnDxfGen(rec){
         }
       }
     })();
+    /* [1608] \ud314 \ubaa9 \uac1c\uad6c\ub97c rec.lid\ub85c \u2014 \ud15c\ud50c\ub9bf \uc815\uc810 \uc218\uc220(\uc88c\uc6b0\ud314 770\u00b7\uc0c1\ud558\ud314 766 \uace0\uc815 \u2192 \ub46c\uaecd \uc785\ub825\uac12). \uc815\ud655\uac12 \ub9e4\uce6d\ub9cc, \uc2e4\ud328 \uc2dc \uae30\uc874 \uc720\uc9c0 */
+    try{
+      var _lidV=parseFloat(rec.lid)||766,_hr=_lidV/2;
+      var _ncx=(g.bx0+g.bx1)/2,_ncy=(g.by0+g.by1)/2;
+      /* [code, \uc911\uc2ec\ub300\ube44 \uc624\ud504\uc14b, delta] \u2014 \uc0c1\ub300 \uc774\ub3d9\uc73c\ub85c \uc88c\ud45c \uaf2c\ub9ac \ubcf4\uc874, geo \uc815\uc218 \ubc18\uc62c\ub9bc \ub300\ube44 \ud5c8\uc6a9 0.5 */
+      var _tg=[['20',380,_hr-380],['20',-390,390-_hr],
+               ['10',383,_hr-383],['10',-383,383-_hr],
+               ['10',413.7,_hr-383],['10',-413.7,383-_hr]];
+      x=x.replace(/(\n[ \t]*(10|20)\r?\n)(-?\d+(?:\.\d+)?)/g,function(_m,_pre,_code,_val){
+        var _v=parseFloat(_val),_nc=(_code==='10')?_ncx:_ncy;
+        for(var _i=0;_i<_tg.length;_i++){
+          if(_tg[_i][0]===_code&&Math.abs((_v-_nc)-_tg[_i][1])<0.5)return _pre+String(Math.round((_v+_tg[_i][2])*100)/100);
+        }
+        return _m;
+      });
+    }catch(_nk){}
     x=x.split('{{MHNO}}').join(mnLabelNoPf(rec)||'');/* [1590] */
     x=x.split('{{D1}}').join(mnStripPf(d.d1||''));x=x.split('{{D2}}').join(mnStripPf(d.d2||''));
     x=x.split('{{D3}}').join(mnStripPf(d.d3||''));x=x.split('{{D4}}').join(mnStripPf(d.d4||''));
