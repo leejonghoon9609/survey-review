@@ -8127,9 +8127,11 @@ function mnMobilePick(){/* [1636] 폰 — 도면에서 야장 맨홀 선택(초�
   var items=[];
   (mnList()||[]).forEach(function(r){
     if(!r||r.delAt)return;
+    var _lb0=String(mnLabel(r)||'');
+    if(/^JB$/i.test(_lb0)||/^\uc778\uc785/.test(_lb0)||/\uc785\uc0c1/.test(_lb0))return;/* [1639] JB\u00b7\uc778\uc785\u00b7\uc785\uc0c1 \uc81c\uc678 */
     var xy=(typeof _mnRecXY==='function')?_mnRecXY(r):null;
     if(!xy)return;
-    items.push({x:xy[0],y:xy[1],lab:(typeof mnStripPf==='function')?mnStripPf(mnLabel(r)||''):(mnLabel(r)||''),rec:r});
+    items.push({x:xy[0],y:xy[1],lab:(typeof mnStripPf==='function')?mnStripPf(_lb0):_lb0,old:/^\uae30\uc124/.test(_lb0),rec:r});
   });
   if(!items.length){toast('좌표 있는 야장이 없습니다');return;}
   var lm=document.getElementById('mnListModal');if(lm)lm.remove();
@@ -8138,7 +8140,7 @@ function mnMobilePick(){/* [1636] 폰 — 도면에서 야장 맨홀 선택(초�
     if(q===false){mnOpenList();return;}
     if(q&&q.rec)mnOpenForm(q.rec);
   },null,{instant:true,barColor:'#16a34a',
-    colorFn:function(it){return (it.rec&&it.rec.savedAt)?'#eab308':'#16a34a';},
+    colorFn:function(it){return it.old?'#e60000':((it.rec&&it.rec.savedAt)?'#eab308':'#16a34a');},/* [1639] \uae30\uc124=\ube68\uac15 */
     msg:'야장 맨홀 — 초록 원을 도면에서 클릭하세요 ('+items.length+' / 완료 '+_dn+')'});
 }
 function mnOpenList(){
