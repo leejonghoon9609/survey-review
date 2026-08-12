@@ -6486,6 +6486,26 @@ function renderSub(){
   if(typeof IS_TANGO!=='undefined'&&IS_TANGO){var _tk1=document.getElementById('tgTakeBtn');if(_tk1)_tk1.onclick=function(){tgFinalTakeOpen();};var _tk2=document.getElementById('tgFinRegBtn');if(_tk2)_tk2.onclick=function(){tgFinalRegOpen();};var _tk3=document.getElementById('tgInspRegBtn');if(_tk3)_tk3.onclick=function(){tgInspRegOpen();};}
   if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){var _np=document.getElementById('rtNewProj');if(_np)_np.onclick=function(){if(typeof openRegModal==='function')openRegModal();};var _dn=document.getElementById('rtDoneBtn');if(_dn)_dn.onclick=function(){if(typeof rtDailyOpen==='function')rtDailyOpen();};/* [1206] 일별성과 모달 */var _dl=document.getElementById('rtDoneListBtn');if(_dl)_dl.onclick=function(){if(typeof rtDailyAllOpen==='function')rtDailyAllOpen();};/* [1209] 일별 누적 목록 */}
   if(c.k==='inspmk')wireInspmk(s);
+  /* [1628] field \u2014 \ud604\ud669\uce21\ub7c9 \ud234\ubc14 \uc904 \uc624\ub978\ucabd\uc5d0 \uacb0\uc120DB/\ud6c4\uce21\ub7c9 \ubc84\ud2bc \ubc30\uce58(\uac04\uaca9 34px), \ub2eb\uc73c\uba74 \uc6d0\uc704\uce58 \ubcf5\uad6c */
+  try{
+    if(typeof IS_FIELD!=='undefined'&&IS_FIELD){
+      var _bi=document.getElementById('fldImport'),_bf=document.getElementById('fldFinal');
+      if(_bi&&_bf){
+        if(!window._fldBtnHome)window._fldBtnHome={p:_bi.parentNode,next:_bf.nextSibling};
+        var _hd=s.querySelector('#hyunDelAll');
+        if(c.k==='inspmk'&&_hd){
+          var _row=_hd.parentNode;
+          var _sp=document.getElementById('fldHyunSp');
+          if(!_sp){_sp=document.createElement('span');_sp.id='fldHyunSp';_sp.style.cssText='display:inline-block;width:34px';}
+          _row.appendChild(_sp);_row.appendChild(_bi);_row.appendChild(_bf);
+        }else if(window._fldBtnHome&&_bi.parentNode!==window._fldBtnHome.p){
+          window._fldBtnHome.p.insertBefore(_bi,window._fldBtnHome.next||null);
+          window._fldBtnHome.p.insertBefore(_bf,window._fldBtnHome.next||null);
+          var _sp2=document.getElementById('fldHyunSp');if(_sp2)_sp2.remove();
+        }
+      }
+    }
+  }catch(_mv){}
   var gb=document.getElementById('globalbtns'); if(gb)gb.innerHTML=vhtml;
   c.tools.forEach(function(tool,i){if(tool.soon)return;var b=s.querySelector('button[data-i="'+i+'"]');if(!b)return;
     b.onclick=function(){
