@@ -8123,6 +8123,26 @@ function mnTrashList(afterClose){/* [1556] \uc0c1\ub2e8: \uc57c\uc7a5 \uccb4\ud0
     if(afterClose){afterClose();mnOpenList();}else{mnTrashList(null);}
   };});
 }
+function mnMobilePick(){/* [1636] 폰 — 도면에서 야장 맨홀 선택(초록=연결·노랑=저장) → 야장 열기 */
+  var items=[];
+  (mnList()||[]).forEach(function(r){
+    if(!r||r.delAt)return;
+    var xy=(typeof _mnRecXY==='function')?_mnRecXY(r):null;
+    if(!xy)return;
+    items.push({x:xy[0],y:xy[1],lab:(typeof mnStripPf==='function')?mnStripPf(mnLabel(r)||''):(mnLabel(r)||''),rec:r});
+  });
+  if(!items.length){toast('좌표 있는 야장이 없습니다');return;}
+  var lm=document.getElementById('mnListModal');if(lm)lm.remove();
+  var ok=fldMapPick(items,'야장 맨홀',function(q){
+    if(q===false){mnOpenList();return;}
+    if(q&&q.rec)mnOpenForm(q.rec);
+  },null);
+  if(ok){setTimeout(function(){try{
+    var g=document.getElementById('gFldPick');if(!g)return;
+    var cs=g.querySelectorAll('circle');
+    items.forEach(function(it,i){var c=cs[i];if(!c)return;var col=(it.rec&&it.rec.savedAt)?'#eab308':'#16a34a';c.setAttribute('fill',col);c.setAttribute('stroke',col);});
+  }catch(_gc){}},80);}
+}
 function mnOpenList(){
   if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
   var host=mnHostOpen();
@@ -8163,6 +8183,7 @@ function mnOpenList(){
     +'<div style="padding:12px 17px;background:#fff;border-bottom:1px solid #e7eeea;display:flex;align-items:center;gap:7px;flex-wrap:wrap">' /* [1275] 2줄 헤더 */
       +'<span style="flex:none;display:flex;align-items:center;gap:8px;white-space:nowrap"><span style="width:10px;height:10px;border-radius:50%;background:#1d9e75;flex:none"></span><b style="font-size:16px;color:#22332b">맨홀조사 야장</b></span>' /* [1283] 한 줄 */
       +'<button id="mnDoneBtn" class="jz-done'+((state.fieldDone&&state.fieldDone.manhole)?' on':'')+'" style="padding:3px 8px;font-size:12px;white-space:nowrap">'+((state.fieldDone&&state.fieldDone.manhole)?'✅ 등록완료':'미등록')+'</button><button id="mnPhUpBtn" title="ZIP 폴더 규칙: 맨홀번호(소유자)/1.jpg·2-1~2-4·표찰 — 완료결선 업로드와 동일" style="margin-left:auto;border:1px solid #1565c0;background:#fff;color:#1565c0;border-radius:7px;padding:3px 8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">📷 맨홀사진 업로드</button>' /* [1265~1283] 제목 바로 옆 + 스페이서 */
+      +(((typeof isMobileDevice==='function'&&isMobileDevice()))?'<button id="mnMapPickBtn" style="border:1px solid #16a34a;background:#e9f7ef;color:#0f7a3d;border-radius:9px;padding:4px 8px;cursor:pointer;font-weight:800;font-size:12px;white-space:nowrap">🗺 도면 선택</button>':'')/* [1636] 폰 전용 */
       +'<button id="mnTrashBtn" style="border:1px solid #b58900;background:#fdf6e3;color:#8a6d00;border-radius:9px;padding:4px 8px;cursor:pointer;font-weight:800;font-size:12px;white-space:nowrap">🗑 삭제(야장)</button>'
       +'<button id="mnLClose" style="border:1.5px solid #d32f2f;background:#fff;border-radius:9px;padding:4px 10px;cursor:pointer;color:#d32f2f;font-weight:800;font-size:12px;white-space:nowrap">닫기</button></div>'
     +(host?newBtn:'')
@@ -8182,7 +8203,7 @@ function mnOpenList(){
   root.querySelector('#mnNew').onclick=function(){uClose();mnOpenForm(null);};
   [].forEach.call(root.querySelectorAll('.mn-card'),function(b){b.onclick=function(e){if(e.target.classList.contains('mn-del'))return;var i=+b.getAttribute('data-i');var _r=mnList()[i];try{if(typeof REF!=='undefined'&&REF&&REF.ents){if(typeof refMhFocus==='function')refMhFocus(_r);}else if(typeof _fldMhFocus==='function'){_fldMhFocus(_r);}}catch(_e){}uClose();mnOpenForm(_r);};});
   [].forEach.call(root.querySelectorAll('.mn-del'),function(b){b.onclick=function(){var i=+b.getAttribute('data-i');var r=mnList()[i];if(!confirm('맨홀 '+mnLabel(r)+' 조사를 삭제할까요?\n(7일 보관 후 완전삭제 — 삭제목록에서 복원 가능)'))return;r.delAt=Date.now();saveProject();uClose();mnOpenList();toast('🗑 삭제됨 (7일 보관)');};});
-  var _tb=root.querySelector('#mnTrashBtn');if(_tb)_tb.onclick=function(){mnTrashList(uClose);};var _mdb=root.querySelector('#mnDoneBtn');if(_mdb)_mdb.onclick=mnRegisterDone; /* [1265] */var _mpu=root.querySelector('#mnPhUpBtn');if(_mpu)_mpu.onclick=function(){if(typeof _fldMnZipModal==='function')_fldMnZipModal();}; /* [1285] 드롭 모달 */ /* [1273] 완료결선 맨홈사진 ZIP과 동일 경로 */
+  var _mpb=root.querySelector('#mnMapPickBtn');if(_mpb)_mpb.onclick=function(){mnMobilePick();};/* [1636] */var _tb=root.querySelector('#mnTrashBtn');if(_tb)_tb.onclick=function(){mnTrashList(uClose);};var _mdb=root.querySelector('#mnDoneBtn');if(_mdb)_mdb.onclick=mnRegisterDone; /* [1265] */var _mpu=root.querySelector('#mnPhUpBtn');if(_mpu)_mpu.onclick=function(){if(typeof _fldMnZipModal==='function')_fldMnZipModal();}; /* [1285] 드롭 모달 */ /* [1273] 완료결선 맨홈사진 ZIP과 동일 경로 */
 }
 function mnAsk(opt){
   var old=document.getElementById('mnAskModal');if(old)old.remove();
