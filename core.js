@@ -7974,6 +7974,17 @@ function mnLabel(r){var ow=(r.owner==='_c'?(r.ownerC||''):(r.owner||''));var nt=
 function mnStripPf(t){return String(t==null?'':t).replace(/^(\uC2E0\uC124|\uAE30\uC124)/,'');}/* [1590] \ud45c\uc2dc\uc6a9 \uc811\ub450 \uc81c\uac70 */
 function mnLabelNoPf(r){return mnStripPf(mnLabel(r));}/* [1590] \ub9e4\uce6d(refNormLab)\uc740 mnLabel \uadf8\ub300\ub85c */
 var MN_SLOTS=[['bd','표찰'],['fr','전경'],['p1','① 서'],['p2','② 동'],['p3','③ 북'],['p4','④ 남']];
+function mnAlert(msg){/* [1621] 화면 가운데 노란 알림 — 브라우저 alert가 상단에 떠서 안 보이던 문제 */
+  var old=document.getElementById('mnAlertBox');if(old)old.remove();
+  var w=document.createElement('div');w.id='mnAlertBox';
+  w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:14000;display:flex;align-items:center;justify-content:center';
+  w.innerHTML='<div style="background:#fff9c4;border:2px solid #f9a825;border-radius:14px;min-width:min(78vw,300px);max-width:86vw;padding:20px 22px;box-shadow:0 8px 26px rgba(0,0,0,.25)">'
+    +'<div style="font-size:15px;font-weight:800;color:#7a5b00;line-height:1.5;word-break:keep-all">'+((typeof joseoEsc==='function')?joseoEsc(msg):msg)+'</div>'
+    +'<button id="mnAlertOk" style="margin-top:15px;width:100%;background:#f9a825;border:0;color:#fff;border-radius:9px;padding:11px;font-weight:800;font-size:14.5px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">확인</span></button></div>';
+  document.body.appendChild(w);
+  w.querySelector('#mnAlertOk').onclick=function(){w.remove();};
+  w.onclick=function(e){if(e.target===w)w.remove();};
+}
 /* [BUILD 935] PC: 맨홀조사를 우측 도킹 패널로 (실시간조서 방식) */
 function mnHostOpen(){
   if(typeof isMobileDevice==='function'&&isMobileDevice())return null;
@@ -9516,7 +9527,7 @@ function mnOpenForm(rec){
   root.querySelector('#mnSave').onclick=function(){
     if(!mnHasId(rec)){toast('\ub9e8\ud640\ubc88\ud638(\ub610\ub294 \uc18c\uc720\uc790\u00b7\uc2e0\uae30)\ub97c \uc785\ub825\ud558\uc138\uc694');mnAskNoOwner(rec,function(){mnPersistRec(rec);render();});return;}
     var miss=[];MN_SLOTS.forEach(function(sl){if(!(rec.chk&&rec.chk[sl[0]]===0)&&!(rec.photos&&rec.photos[sl[0]]))miss.push(sl[1].replace(/^[①-④] /,''));});
-    if(miss.length){alert(miss.join(', ')+' 사진을 등록하세요');return;}
+    if(miss.length){mnAlert(miss.join(', ')+' 사진을 등록하세요');return;}/* [1621] */
     var dup=null;mnList().forEach(function(r){if(r.id!==rec.id&&mnLabel(r)===mnLabel(rec))dup=r;});
     if(dup){if(!confirm('같은 번호('+mnLabel(rec)+')가 목록에 있습니다. 덮어쓸까요?'))return;var L=mnList();var di=L.indexOf(dup);if(di>=0)L.splice(di,1);}
     rec.savedAt=Date.now();/* [1611] 저장 완료 표시 — 도면 노란 원 */
