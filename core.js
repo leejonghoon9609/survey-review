@@ -7722,6 +7722,7 @@ function fldRegToNext(cb){ /* [1289] field 성과 → 탱고(_T)·정위치(_P) 
     sb.from(tbl).select('id,name,payload').then(function(res){
       var rows=((res&&res.data)||[]).filter(function(r){var pl0=r.payload||{};return !pl0.delAt&&(pl0.stage||'survey')===stage&&baseName(r.name)===base;});
       var pl=JSON.parse(JSON.stringify(payload));pl.stage=stage;
+      pl.routingDone=false;pl.tangoArchived=null;/* [1625] field \uacb0\uc120\uc644\ub8cc \ud50c\ub798\uadf8\uac00 \ubcf5\uc0ac\ub3fc \ud604\ud669\ud310\uc5d0\uc11c '\ud0f1\uace0\uc644\ub8cc'\ub85c \uc624\ubd84\ub958\ub418\ub358 \ubb38\uc81c \u2014 \uc0ac\ubcf8\uc740 \uc791\uc5c5\uc911\uc73c\ub85c */
       var fin=function(row){
         if(row&&row.error){toast('등록 오류('+stage+'): '+row.error.message);next(null);return;}
         var saved=row&&row.data&&row.data[0];if(!saved){next(null);return;}
