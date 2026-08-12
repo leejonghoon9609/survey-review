@@ -13502,7 +13502,7 @@ function refDrawMh(){
     var key=refNormLab(m.label);
     var rec=ok[key];
     var sel=(REF_SEL&&key===REF_SEL);
-    var col=sel?'#d100d1':(rec?'#00a651':'#e60000');
+    var col=sel?'#d100d1':(rec?((rec.savedAt)?'#eab308':'#00a651'):'#e60000');/* [1624] \uc800\uc7a5\ub41c \uc57c\uc7a5=\ub178\ub791 (drawManholes \ubbf8\ub7ec) */
     var s=refSR(m.x,m.y);
     /* [1101] 보이는 원은 예전 크기(월드 1.0m) 유지 · 단 화면 7px 미만으로는 안 줄어듦.
        클릭은 별도 투명 원(항상 18px)이 받아 → 원은 작아도 잘 잡힌다 */
@@ -13530,7 +13530,7 @@ function refDrawMh(){
    자식(맨홀 원)의 click 이벤트가 cv 로 리타깃돼 사라진다.
    앱 측점과 동일하게, 결선 맨홀 위에서는 드래그/캡처를 시작하지 않도록 예외 처리 */
 function refNearMh(cx,cy){
-  /* [1071] 입상 선택 중이라도 주황 원 '근처'에서만 캐프처를 막는다.
+  /* [1071] 입상 선택 중이라도 하늘색 원 '근처'에서만 캐프처를 막는다.
      (1067에서 무조건 true 로 두는 바람에 한손가락 화면이동이 통째로 막혔다) */
   if(refRiserSel){
     try{
@@ -13740,7 +13740,7 @@ function refRiserList(rec,lim){
     return out;
   }catch(_e){return null;}
 }
-/* [1067] 입상 도면 직접 선택 — 주황 원으로 표시 → 클릭 시 등록되고 원 사라짐 */
+/* [1067] 입상 도면 직접 선택 — 하늘색 원으로 표시 → 클릭 시 등록되고 원 사라짐 */
 var refRiserSel=null;
 function _refMob(){try{return (typeof isMobileDevice==='function'&&isMobileDevice())||window.innerWidth<=760;}catch(_e){return false;}}
 function refRiserClear(){
@@ -13803,8 +13803,8 @@ function refRiserChoose(q,elc){
   refRiserSel.pend=q;
   var g=document.getElementById('gRefRiser');
   if(g)[].forEach.call(g.childNodes,function(n){
-    try{n.setAttribute('stroke',(n===elc)?'#d100d1':'#ef6c00');
-        n.setAttribute('fill',(n===elc)?'#d100d1':'#ff8f00');
+    try{n.setAttribute('stroke',(n===elc)?'#d100d1':'#0288d1');
+        n.setAttribute('fill',(n===elc)?'#d100d1':'#4fc3f7');
         n.setAttribute('fill-opacity',(n===elc)?'0.35':'0.20');}catch(_e){}
   });
   _refRiserAsk();
@@ -13822,8 +13822,8 @@ function refRiserPick(rec,lab,cb){
   refRiserSel={cb:cb,lab:lab,n:list.length,mob:mob,pend:null,list:list,hidden:(mob?_refHideSheet():[])};
   list.forEach(function(q){
     var s=refSR(q.x,q.y);
-    var c=el('circle',{cx:s[0],cy:s[1],r:1.7,fill:'#ff8f00','fill-opacity':0.20,
-      stroke:'#ef6c00','stroke-width':3.6,'vector-effect':'non-scaling-stroke'});
+    var c=el('circle',{cx:s[0],cy:s[1],r:1.7,fill:'#4fc3f7','fill-opacity':0.20,
+      stroke:'#0288d1','stroke-width':3.6,'vector-effect':'non-scaling-stroke'});
     c.style.cursor='pointer';c.setAttribute('pointer-events','auto');
     c.addEventListener('click',function(ev){ev.stopPropagation();refRiserChoose(q,c);});
     g.appendChild(c);
@@ -13832,7 +13832,7 @@ function refRiserPick(rec,lab,cb){
   /* [1071] 도면 상단(레이어 바 높이)으로 내리고, 손가락으로 옮길 수 있게 */
   var _top=56;
   try{var _cw=document.querySelector('.canvas-wrap');if(_cw){var _cr=_cw.getBoundingClientRect();if(_cr.height>40)_top=Math.round(_cr.top+10);}}catch(_te){}
-  bar.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:'+_top+'px;z-index:13000;background:#fff;border:2px solid #ef6c00;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:9px 12px;display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:800;color:#bf360c;max-width:94vw;flex-wrap:wrap;justify-content:center;touch-action:none;cursor:move;user-select:none;-webkit-user-select:none';
+  bar.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:'+_top+'px;z-index:13000;background:#fff;border:2px solid #0288d1;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:9px 12px;display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:800;color:#01579b;max-width:94vw;flex-wrap:wrap;justify-content:center;touch-action:none;cursor:move;user-select:none;-webkit-user-select:none';
   document.body.appendChild(bar);
   (function(){
     var dg=null;
