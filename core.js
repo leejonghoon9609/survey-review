@@ -8355,7 +8355,9 @@ function mnAskDest(cur,dn,cb,rec,dk){
     var ok=false;
     if(items.length&&typeof fldMapPick==='function'){
       w.remove();
-      ok=fldMapPick(items,'\uc5f0\uacb0 \ub9e8\ud640',function(q){if(q===false)return;_pk(q.lab);},_openList);
+      ok=fldMapPick(items,'\uc5f0\uacb0 \ub9e8\ud640',function(q){if(q===false)return;_pk(q.lab);},_openList,
+        {barColor:'#16a34a',colorFn:function(){return '#16a34a';},
+         msg:'\uc5f0\uacb0 \ub9e8\ud640 \u2014 \ucd08\ub85d \uc6d0\uc744 \ub3c4\uba74\uc5d0\uc11c \ud074\ub9ad\ud558\uc138\uc694 ('+items.length+'\uac1c)'});/* [1640] \ub9e8\ud640=\ucd08\ub85d \uc6d0 */
     }
     if(!ok)_openList();
   };
