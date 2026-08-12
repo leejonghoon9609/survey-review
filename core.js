@@ -9906,7 +9906,7 @@ function mnPipeEditor(rec,wall){
     ctx.beginPath();ctx.moveTo(W/2*sx,0);ctx.lineTo(W/2*sx,cssH);ctx.stroke();
     ctx.beginPath();ctx.moveTo(0,H/2*sy);ctx.lineTo(cssW,H/2*sy);ctx.stroke();
     /* [1615] 중심선 인접 첫 칸만 반칸(12.5mm) 보조선 — 양옆·위아래 4선 */
-    ctx.strokeStyle='#f0b8b8';ctx.lineWidth=0.5;
+    ctx.strokeStyle='#ffffff';ctx.lineWidth=0.5;/* [1616] \ud770\uc0c9 \u2014 \uc0ac\uc9c4 \uc704 \uac00\uc2dc\uc131 */
     [W/2-12.5,W/2+12.5].forEach(function(hx){ctx.beginPath();ctx.moveTo(hx*sx,0);ctx.lineTo(hx*sx,cssH);ctx.stroke();});
     [H/2-12.5,H/2+12.5].forEach(function(hy){ctx.beginPath();ctx.moveTo(0,hy*sy);ctx.lineTo(cssW,hy*sy);ctx.stroke();});
     /* 바닥선 (노랑) */
