@@ -8449,7 +8449,7 @@ function mnEfbGen(rec){
     /* ── 몸체 ── */
     out+=ePL('Con',[[x0,y0],[x1,y0],[x1,y1],[x0,y1]],true);
     /* ── 뚜껑(DASHED2 원 + 지름 치수) ── */
-    var lid=Math.min(parseFloat(rec.lid)||766, Math.min(bw,bh)-34), lr=lid/2;
+    var lid=parseFloat(rec.lid)||766, lr=lid/2;/* [1604] \uc57c\uc7a5 \uc6d0\ud615\ub9e8\ud640\ub46c\uaecd \uc2e4\uce21\uac12 \uadf8\ub300\ub85c \u2014 \ubcf8\uccb4\ubcf4\ub2e4 \ucee4\ub3c4 \uc644\ub8cc\uc6d0\ubcf8\ucc98\ub7fc \uc6d0\uc774 \ubcbd\uc744 \ub118\uc74c(\ud074\ub7a8\ud504 \uc81c\uac70) */
     out+=ePL('mh',[[CX+lr,CY,1],[CX-lr,CY,1],[CX+lr,CY]],false,'DASHED2');
     out+=eL('mh',CX-lr,CY+10,CX-lr,CY+50)+eL('mh',CX+lr,CY+10,CX+lr,CY+50)+eL('mh',CX-lr+50,CY,CX+lr-50,CY);
     out+=eOpen(CX-lr,CY,180)+eOpen(CX+lr,CY,0)+eTxt(CX,CY+43,String(lid),50,0,'DIM','mh');
