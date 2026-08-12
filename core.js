@@ -10015,13 +10015,15 @@ function mnPipeEditor(rec,wall){
   var pDown=null,pTarget=null,pMoved=false;
   var _pts={},_pinch=null;
   function _ptCount(){var n=0;for(var k in _pts)n++;return n;}
-  function hit(mx,my){
+  function hit(mx,my){/* [1614] \ubc18\uacbd \ub0b4 \ucd5c\uadfc\uc811 \uc6d0 \uc120\ud0dd \u2014 \ubd99\uc740 \uad00\uc5d0\uc11c \uc606 \uad00 \uc624\uc7a1\ud790 \ubc29\uc9c0(\ud130\uce58 \ubc18\uacbd\uc740 \uc720\uc9c0) */
+    var best=null,bd=1e18;
     for(var gi=pw.groups.length-1;gi>=0;gi--){var g=pw.groups[gi];
       for(var ci=(g.circles||[]).length-1;ci>=0;ci--){var c=g.circles[ci];
         var dx=mx-c.x,dy=my-c.y,rr=Math.max(c.dia*0.8,90);
-        if(dx*dx+dy*dy<=rr*rr)return {gi:gi,ci:ci};
+        var d2=dx*dx+dy*dy;
+        if(d2<=rr*rr&&d2<bd){bd=d2;best={gi:gi,ci:ci};}
       }}
-    return null;
+    return best;
   }
   function hitGroup(mx,my){
     for(var gi=pw.groups.length-1;gi>=0;gi--){var g=pw.groups[gi];
