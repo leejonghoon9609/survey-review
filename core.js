@@ -9717,7 +9717,7 @@ function mnPipeEditor(rec,wall){
       +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><b style="font-size:12px;color:#2471a3">\uCC38\uACE0 \uC0AC\uC9C4</b>'
       +'<span style="font-size:11px;color:#99a">\uD720/\uD540\uCE58=\uD655\uB300 \u00B7 \uB04C\uAE30=\uC774\uB3D9 \u00B7 \uB354\uBE14\uD0ED=\uC6D0\uB798\uB300\uB85C</span>'
       +'<button id="mnRefRst" style="margin-left:auto;border:1px solid #cfd8e3;background:#fff;color:#5b6577;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer">\uC6D0\uB798\uB300\uB85C</button></div>'
-      +'<div id="mnRefImgBox" style="border:1.5px solid #cfd8e3;border-radius:8px;overflow:hidden;background:#f7f9fb;display:flex;align-items:center;justify-content:center;max-height:20dvh;touch-action:none;cursor:grab"></div></div>'
+      +'<div id="mnRefImgBox" style="border:1.5px solid #cfd8e3;border-radius:8px;overflow:hidden;background:#f7f9fb;display:flex;align-items:center;justify-content:center;max-height:28dvh;touch-action:none;cursor:grab"></div></div>'
     +'<div id="mnCvBox" style="border:1.5px solid #556;border-radius:8px;overflow:hidden;background:#fff"><canvas id="mnCv" style="display:block;touch-action:none;user-select:none;-webkit-user-select:none"></canvas></div>'
     +'<div style="display:flex;align-items:center;gap:6px;font-size:11px;margin-top:4px"><span style="color:#b58900;font-weight:800;white-space:nowrap"><span style="display:inline-block;width:18px;height:3px;background:#e6c200;border-radius:2px;vertical-align:middle;margin-right:3px"></span>\ub9e8\ud640 \ubc14\ub2e5</span><span style="flex:1;text-align:right;color:#99a">\ud0ed: \ube48\uad00\u2192\ub0b4\uc120(\uac80\uc815)\u2192\uc81c\uc678(\ube68\uac15)</span></div>'
     +'<div id="mnGChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"></div>'
@@ -9726,11 +9726,11 @@ function mnPipeEditor(rec,wall){
       +'<input id="mnGKindC" placeholder="관종" style="flex:1;display:none;border:1px solid #ddd;border-radius:7px;padding:7px 8px;font-size:13px">'
       +'<div style="flex:1;display:flex;align-items:center;gap:4px"><span style="font-size:12px;color:#667">단수</span><select id="mnGRowsSel" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:7px;padding:7px 4px;font-size:14px;background:#fff"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option value="_c">직접입력</option></select><input id="mnGRows" type="number" min="1" max="12" value="6" inputmode="numeric" style="flex:1;min-width:0;border:1px solid #ddd;border-radius:7px;padding:7px 8px;font-size:14px;display:none"></div></div>'
       +'<div id="mnGRowsBox"></div>'
-      +'<button id="mnGAdd" style="width:100%;margin-top:12px;background:#fff;color:#1d9e75;border:2.5px solid #1d9e75;border-radius:8px;padding:9px;font-weight:800;font-size:13.5px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:2px;margin-right:-2px">관위치 조정</span></button>'
+      +'<button id="mnGAdd" style="width:100%;margin-top:7px;background:#fff;color:#1d9e75;border:2px solid #1d9e75;border-radius:8px;padding:6px;font-weight:800;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:2px;margin-right:-2px">관위치 조정</span></button>'
     +'</div></div>'
-    +'<div style="display:flex;gap:8px;padding:11px 14px;border-top:1px solid #eee">'
-    +'<button id="mnPDone" style="flex:1;background:#fff;color:#d32f2f;border:2.5px solid #d32f2f;border-radius:10px;padding:12px;font-weight:800;font-size:14.5px;cursor:pointer;display:flex;align-items:center;justify-content:center">완료 ('+({p1:'1',p2:'2',p3:'3',p4:'4'}[wall])+'번 완료등록합니다)</button>'
-    +'<button id="mnPlaceDone" style="display:none;flex:1;background:#fff;color:#1d9e75;border:2.5px solid #1d9e75;border-radius:10px;padding:12px;font-weight:800;font-size:14.5px;cursor:pointer;align-items:center;justify-content:center">\uBC30\uCE58 \uC644\uB8CC</button>'
+    +'<div style="display:flex;gap:8px;padding:7px 14px 9px;border-top:1px solid #eee">'
+    +'<button id="mnPDone" style="flex:1;background:#fff;color:#d32f2f;border:2px solid #d32f2f;border-radius:9px;padding:8px;font-weight:800;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">완료 ('+({p1:'1',p2:'2',p3:'3',p4:'4'}[wall])+'번 완료등록합니다)</button>'
+    +'<button id="mnPlaceDone" style="display:none;flex:1;background:#fff;color:#1d9e75;border:2px solid #1d9e75;border-radius:9px;padding:8px;font-weight:800;font-size:14px;cursor:pointer;align-items:center;justify-content:center">\uBC30\uCE58 \uC644\uB8CC</button>'
     +'</div></div>';
   document.body.appendChild(wrap);
   var cv=wrap.querySelector('#mnCv'),bx=wrap.querySelector('#mnCvBox');
