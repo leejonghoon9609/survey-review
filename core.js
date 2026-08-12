@@ -8361,7 +8361,19 @@ function mnAskDest(cur,dn,cb,rec,dk){
       pv.onclick=function(e){if(e.target===pv)pv.remove();};
     }
     var items=[];
-    L.forEach(function(r){var xy=(typeof _mnRecXY==='function')?_mnRecXY(r):null;if(xy)items.push({x:xy[0],y:xy[1],lab:(typeof mnLabel==='function')?mnLabel(r):(r.no||'')});});
+    L.forEach(function(r){
+      if(r.mhId!=null){/* [1644] \ub9e8\ud640 \uc2ec\ubca8\ub9cc \u2014 JB\u00b7\uc778\uc785\u00b7\uc785\uc0c1 \uc81c\uc678 (1643 \ubbf8\ub7ec) */
+        var _mm=null;(state.manholes||[]).forEach(function(m){if(!_mm&&m&&String(m.id)===String(r.mhId))_mm=m;});
+        if(_mm){
+          var _ty=String(_mm.type||'').toLowerCase();
+          if(_ty&&_ty!=='mh')return;
+          var _ml2=String(_mm.label||'');
+          if(/JB/i.test(_ml2)||/\uc778\uc785/.test(_ml2)||/\uc785\uc0c1/.test(_ml2))return;
+        }
+      }
+      var xy=(typeof _mnRecXY==='function')?_mnRecXY(r):null;
+      if(xy)items.push({x:xy[0],y:xy[1],lab:(typeof mnLabel==='function')?mnLabel(r):(r.no||'')});
+    });
     var ok=false;
     if(items.length&&typeof fldMapPick==='function'){
       w.remove();
