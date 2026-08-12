@@ -8132,12 +8132,11 @@ function mnMobilePick(){/* [1636] 폰 — 도면에서 야장 맨홀 선택(초�
     if(/JB/i.test(_t9)||/\uc778\uc785/.test(_t9)||/\uc785\uc0c1/.test(_t9))return;/* [1642] \ud544\ub4dc \uae30\ubc18 JB\u00b7\uc778\uc785\u00b7\uc785\uc0c1 \uc81c\uc678 */
     if(r.mhId!=null){/* [1643] \uc2ec\ubca8 \ud654\uc774\ud2b8\ub9ac\uc2a4\ud2b8 \u2014 \ub9e8\ud640(mh)\ub9cc \ud1b5\uacfc, id\ub294 String \ube44\uad50 */
       var _mm=null;(state.manholes||[]).forEach(function(m){if(!_mm&&m&&String(m.id)===String(r.mhId))_mm=m;});
-      if(_mm){
-        var _ty=String(_mm.type||'').toLowerCase();
-        if(_ty&&_ty!=='mh')return;
-        var _ml=String(_mm.label||'');
-        if(/JB/i.test(_ml)||/\uc778\uc785/.test(_ml)||/\uc785\uc0c1/.test(_ml))return;
-      }
+      if(!_mm)return;/* [1645] \uc2ec\ubca8 \uc5c6\ub294 \uace0\uc544 rec(\uad6c\uc138\ub300 JB\u00b7\uc778\uc785) \uc81c\uc678 */
+      var _ty=String(_mm.type||'').toLowerCase();
+      if(_ty&&_ty!=='mh')return;
+      var _ml=String(_mm.label||'');
+      if(/JB/i.test(_ml)||/\uc778\uc785/.test(_ml)||/\uc785\uc0c1/.test(_ml))return;
     }
     var xy=(typeof _mnRecXY==='function')?_mnRecXY(r):null;
     if(!xy)return;
@@ -8364,12 +8363,11 @@ function mnAskDest(cur,dn,cb,rec,dk){
     L.forEach(function(r){
       if(r.mhId!=null){/* [1644] \ub9e8\ud640 \uc2ec\ubca8\ub9cc \u2014 JB\u00b7\uc778\uc785\u00b7\uc785\uc0c1 \uc81c\uc678 (1643 \ubbf8\ub7ec) */
         var _mm=null;(state.manholes||[]).forEach(function(m){if(!_mm&&m&&String(m.id)===String(r.mhId))_mm=m;});
-        if(_mm){
-          var _ty=String(_mm.type||'').toLowerCase();
-          if(_ty&&_ty!=='mh')return;
-          var _ml2=String(_mm.label||'');
-          if(/JB/i.test(_ml2)||/\uc778\uc785/.test(_ml2)||/\uc785\uc0c1/.test(_ml2))return;
-        }
+        if(!_mm)return;/* [1645] \uace0\uc544 rec \uc81c\uc678 */
+        var _ty=String(_mm.type||'').toLowerCase();
+        if(_ty&&_ty!=='mh')return;
+        var _ml2=String(_mm.label||'');
+        if(/JB/i.test(_ml2)||/\uc778\uc785/.test(_ml2)||/\uc785\uc0c1/.test(_ml2))return;
       }
       var xy=(typeof _mnRecXY==='function')?_mnRecXY(r):null;
       if(xy)items.push({x:xy[0],y:xy[1],lab:(typeof mnLabel==='function')?mnLabel(r):(r.no||'')});
