@@ -13924,8 +13924,10 @@ function refRiserPick(rec,lab,cb){
   if(host.nextSibling)cv.insertBefore(g,host.nextSibling);else cv.appendChild(g);
   refRiserSel={cb:cb,lab:lab,n:list.length,mob:mob,pend:null,list:list,hidden:(mob?_refHideSheet():[])};
   try{var _a0=refSiteXY(rec);if(_a0){var _sa=S(_a0[0],_a0[1]);
-    var _ca=el('circle',{cx:_sa[0],cy:_sa[1],r:2.6,fill:'#16a34a','fill-opacity':0.12,stroke:'#0f7a3d','stroke-width':4,'stroke-dasharray':'7 5','vector-effect':'non-scaling-stroke','pointer-events':'none'});
+    var _ca=el('circle',{cx:_sa[0],cy:_sa[1],r:2.6,fill:'#d500f2','fill-opacity':0.10,stroke:'#d500f2','stroke-width':4,'stroke-dasharray':'7 5','vector-effect':'non-scaling-stroke','pointer-events':'none'});/* [1647] */
     g.appendChild(_ca);}}catch(_an9){}/* [1646] \uae30\uc900 \ub9e8\ud640 */
+  try{var _fl9=list.slice();var _a1=refSiteXY(rec);if(_a1)_fl9=_fl9.concat([{x:_a1[0],y:_a1[1]}]);
+    if(typeof fldPickFit==='function'&&(mob||_a1))fldPickFit(_fl9);}catch(_ft9){}/* [1647] \uae30\uc900 \ud3ec\ud568 \uc790\ub3d9 \uc774\ub3d9 */
   list.forEach(function(q){
     var s=refSR(q.x,q.y);
     var c=el('circle',{cx:s[0],cy:s[1],r:1.7,fill:'#4fc3f7','fill-opacity':0.20,
@@ -14045,7 +14047,7 @@ function fldMapPick(items,title,cb,listFn,opts){
     });
     if(opts.anchor&&opts.anchor.length===2){/* [1646] \uae30\uc900 \ub9e8\ud640 \ud45c\uc2dc \u2014 \ucd08\ub85d \uc810\uc120 \uc6d0(\uc120\ud0dd \ubd88\uac00) */
       try{var sa=S(opts.anchor[0],opts.anchor[1]);
-      var ca=el('circle',{cx:sa[0],cy:sa[1],r:2.6,fill:'#16a34a','fill-opacity':0.12,stroke:'#0f7a3d','stroke-width':4,'stroke-dasharray':'7 5','vector-effect':'non-scaling-stroke','pointer-events':'none'});
+      var ca=el('circle',{cx:sa[0],cy:sa[1],r:2.6,fill:'#d500f2','fill-opacity':0.10,stroke:'#d500f2','stroke-width':4,'stroke-dasharray':'7 5','vector-effect':'non-scaling-stroke','pointer-events':'none'});/* [1647] \ub9c8\uc820\ud0c0 */
       g.appendChild(ca);}catch(_an){}
     }
     var bar=document.createElement('div');bar.id='fldPickBar';
@@ -14076,7 +14078,8 @@ function fldMapPick(items,title,cb,listFn,opts){
       bar.addEventListener('pointerup',_up);bar.addEventListener('pointercancel',_up);
     })();
     _fldPickMsg();
-    if(mob)fldPickFit(items);
+    var _fitList=(opts.anchor&&opts.anchor.length===2)?items.concat([{x:opts.anchor[0],y:opts.anchor[1]}]):items;/* [1647] \uae30\uc900 \ub9e8\ud640 \ud3ec\ud568 \ud54f */
+    if(mob||opts.anchor)fldPickFit(_fitList);
     try{cv.style.cursor='pointer';}catch(_e){}
     return true;
   }catch(_e2){try{fldPickClear();}catch(_e3){}fldPickSel=null;return false;}
