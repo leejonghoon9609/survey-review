@@ -8128,7 +8128,8 @@ function mnMobilePick(){/* [1636] 폰 — 도면에서 야장 맨홀 선택(초�
   (mnList()||[]).forEach(function(r){
     if(!r||r.delAt)return;
     var _lb0=String(mnLabel(r)||'');
-    if(/^JB$/i.test(_lb0)||/^\uc778\uc785/.test(_lb0)||/\uc785\uc0c1/.test(_lb0))return;/* [1639] JB\u00b7\uc778\uc785\u00b7\uc785\uc0c1 \uc81c\uc678 */
+    if(/^JB/i.test(_lb0)||/\uc778\uc785/.test(_lb0)||/\uc785\uc0c1/.test(_lb0))return;/* [1641] JB\uc811\ub450\u00b7\uc778\uc785\ud3ec\ud568\u00b7\uc785\uc0c1 \uc81c\uc678(\ub77c\ubca8 \ubcc0\ud615 \ub300\uc751) */
+    if(r.mhId!=null){var _sk=false;(state.manholes||[]).forEach(function(m){if(!_sk&&m&&m.id===r.mhId&&(m.type==='jb'||m.type==='inlet'||m.type==='riser'))_sk=true;});if(_sk)return;}/* [1641] \uc2ec\ubca8 type\uc73c\ub85c\ub3c4 \uc81c\uc678 */
     var xy=(typeof _mnRecXY==='function')?_mnRecXY(r):null;
     if(!xy)return;
     items.push({x:xy[0],y:xy[1],lab:(typeof mnStripPf==='function')?mnStripPf(_lb0):_lb0,old:/^\uae30\uc124/.test(_lb0),rec:r});
