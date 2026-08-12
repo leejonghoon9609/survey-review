@@ -13923,6 +13923,9 @@ function refRiserPick(rec,lab,cb){
   g.setAttribute('transform','translate('+((REF.ox||0)-ORG.x)+','+(ORG.y-(REF.oy||0))+')');/* [1566] REF \ud654\uba74\uc88c\ud45c ORG \ub85c\uceec \ud1b5\uc77c \u2014 \uc774 1\uac74\ub9cc */
   if(host.nextSibling)cv.insertBefore(g,host.nextSibling);else cv.appendChild(g);
   refRiserSel={cb:cb,lab:lab,n:list.length,mob:mob,pend:null,list:list,hidden:(mob?_refHideSheet():[])};
+  try{var _a0=refSiteXY(rec);if(_a0){var _sa=S(_a0[0],_a0[1]);
+    var _ca=el('circle',{cx:_sa[0],cy:_sa[1],r:2.6,fill:'#16a34a','fill-opacity':0.12,stroke:'#0f7a3d','stroke-width':4,'stroke-dasharray':'7 5','vector-effect':'non-scaling-stroke','pointer-events':'none'});
+    g.appendChild(_ca);}}catch(_an9){}/* [1646] \uae30\uc900 \ub9e8\ud640 */
   list.forEach(function(q){
     var s=refSR(q.x,q.y);
     var c=el('circle',{cx:s[0],cy:s[1],r:1.7,fill:'#4fc3f7','fill-opacity':0.20,
@@ -14040,6 +14043,11 @@ function fldMapPick(items,title,cb,listFn,opts){
       c.addEventListener('click',function(ev){ev.stopPropagation();fldPickChoose(q,c);});
       g.appendChild(c);
     });
+    if(opts.anchor&&opts.anchor.length===2){/* [1646] \uae30\uc900 \ub9e8\ud640 \ud45c\uc2dc \u2014 \ucd08\ub85d \uc810\uc120 \uc6d0(\uc120\ud0dd \ubd88\uac00) */
+      try{var sa=S(opts.anchor[0],opts.anchor[1]);
+      var ca=el('circle',{cx:sa[0],cy:sa[1],r:2.6,fill:'#16a34a','fill-opacity':0.12,stroke:'#0f7a3d','stroke-width':4,'stroke-dasharray':'7 5','vector-effect':'non-scaling-stroke','pointer-events':'none'});
+      g.appendChild(ca);}catch(_an){}
+    }
     var bar=document.createElement('div');bar.id='fldPickBar';
     var _top=56;
     try{var _cw=document.querySelector('.canvas-wrap');if(_cw){var _cr=_cw.getBoundingClientRect();if(_cr.height>40)_top=Math.round(_cr.top+10);}}catch(_te){}
@@ -14103,7 +14111,7 @@ function fldRiserPick(rec,lab,dk,cb){
     if(q===false)return;                          /* \ucde8\uc18c \u2014 \uc544\ubb34\uac83\ub3c4 \ub4f1\ub85d \uc548 \ud568 */
     if(q&&rec&&dk){try{if(!rec.destXY)rec.destXY={};rec.destXY[dk]=[q.x,q.y];}catch(_e){}}
     cb(lab);
-  },null);
+  },null,{anchor:c0});/* [1646] \uae30\uc900 \ub9e8\ud640 \ud45c\uc2dc */
 }
 /* [1612] JB·인입 도면 선택 — state.manholes type jb/inlet (노란 원, fldRiserPick 미러) */
 function fldJbPick(rec,dk,cb){
@@ -14125,7 +14133,7 @@ function fldJbPick(rec,dk,cb){
     if(q===false)return;
     if(q&&rec&&dk){try{if(!rec.destXY)rec.destXY={};rec.destXY[dk]=[q.x,q.y];}catch(_e){}}
     cb((typeof mnStripPf==='function')?mnStripPf(q.lab):q.lab);
-  },null);
+  },null,{anchor:c0});/* [1646] \uae30\uc900 \ub9e8\ud640 \ud45c\uc2dc */
 }
 function refSiteTargets(rec){
   var d=(rec&&rec.dest)||{},out=[];
