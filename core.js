@@ -8133,15 +8133,13 @@ function mnMobilePick(){/* [1636] 폰 — 도면에서 야장 맨홀 선택(초�
   });
   if(!items.length){toast('좌표 있는 야장이 없습니다');return;}
   var lm=document.getElementById('mnListModal');if(lm)lm.remove();
-  var ok=fldMapPick(items,'야장 맨홀',function(q){
+  var _dn=0;items.forEach(function(it){if(it.rec&&it.rec.savedAt)_dn++;});
+  fldMapPick(items,'야장 맨홀',function(q){
     if(q===false){mnOpenList();return;}
     if(q&&q.rec)mnOpenForm(q.rec);
-  },null);
-  if(ok){setTimeout(function(){try{
-    var g=document.getElementById('gFldPick');if(!g)return;
-    var cs=g.querySelectorAll('circle');
-    items.forEach(function(it,i){var c=cs[i];if(!c)return;var col=(it.rec&&it.rec.savedAt)?'#eab308':'#16a34a';c.setAttribute('fill',col);c.setAttribute('stroke',col);});
-  }catch(_gc){}},80);}
+  },null,{instant:true,barColor:'#16a34a',
+    colorFn:function(it){return (it.rec&&it.rec.savedAt)?'#eab308':'#16a34a';},
+    msg:'야장 맨홀 — 초록 원을 도면에서 클릭하세요 ('+items.length+' / 완료 '+_dn+')'});
 }
 function mnOpenList(){
   if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
@@ -13957,7 +13955,8 @@ function fldPickEnd(q){
 function _fldPickBar2(html){var b=document.getElementById('fldPickBar');if(!b)return null;b.innerHTML=html;return b;}
 function _fldPickMsg(){
   if(!fldPickSel)return;var s=fldPickSel;
-  _fldPickBar2('<span>'+s.title+' \u2014 \ud558\ub298\uc0c9 \uc6d0\uc744 \ub3c4\uba74\uc5d0\uc11c \ud074\ub9ad\ud558\uc138\uc694 ('+s.n+'\uac1c)</span>'
+  var _m9=(s.opts&&s.opts.msg)?s.opts.msg:(s.title+' \u2014 \ud558\ub298\uc0c9 \uc6d0\uc744 \ub3c4\uba74\uc5d0\uc11c \ud074\ub9ad\ud558\uc138\uc694 ('+s.n+'\uac1c)');/* [1637] */
+  _fldPickBar2('<span>'+_m9+'</span>'
     +(s.listFn?'<button id="fldPickLs" style="background:#fff;border:1.5px solid #1d9e75;color:#1d9e75;border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:800;cursor:pointer">\ubaa9\ub85d</button>':'')
     +'<button id="fldPickCx" style="background:#fff;border:1.5px solid #ddd;color:#555;border-radius:8px;padding:6px 12px;font-size:12.5px;font-weight:700;cursor:pointer">\ucde8\uc18c</button>');
   var ls=document.getElementById('fldPickLs');if(ls)ls.onclick=function(){var z=fldPickSel;if(z)z.cb=null;fldPickEnd(false);if(z&&z.listFn)z.listFn();};
@@ -13974,12 +13973,13 @@ function _fldPickAsk(){
 }
 function fldPickChoose(q,elc){
   if(!fldPickSel)return;
-  if(!fldPickSel.mob){fldPickEnd(q);return;}
+  if(!fldPickSel.mob||(fldPickSel.opts&&fldPickSel.opts.instant)){fldPickEnd(q);return;}/* [1637] instant */
   fldPickSel.pend=q;
   var g=document.getElementById('gFldPick');
   if(g)[].forEach.call(g.childNodes,function(n){
-    try{n.setAttribute('stroke',(n===elc)?'#d100d1':'#0288d1');
-        n.setAttribute('fill',(n===elc)?'#d100d1':'#4fc3f7');
+    try{var _pc9=n.getAttribute&&n.getAttribute('data-pc');
+        n.setAttribute('stroke',(n===elc)?'#d100d1':(_pc9||'#0288d1'));
+        n.setAttribute('fill',(n===elc)?'#d100d1':(_pc9||'#4fc3f7'));
         n.setAttribute('fill-opacity',(n===elc)?'0.35':'0.25');}catch(_e){}
   });
   _fldPickAsk();
@@ -13996,7 +13996,8 @@ function fldPickFit(items){
   }catch(_e){}
 }
 /* items=[{x,y,lab}] (world) \u2014 \ud654\uba74\uc740 S() \ub85c\uceec. listFn \uc788\uc73c\uba74 \uc0c1\ub2e8\ubc14\uc5d0 [\ubaa9\ub85d] \ubcf4\uc870 \ubc84\ud2bc */
-function fldMapPick(items,title,cb,listFn){
+function fldMapPick(items,title,cb,listFn,opts){
+  opts=opts||{};/* [1637] {colorFn,barColor,msg,instant} */
   try{
     if(!items||!items.length)return false;
     if(typeof cv==='undefined'||!cv)return false;
@@ -14004,11 +14005,13 @@ function fldMapPick(items,title,cb,listFn){
     var mob=(typeof _refMob==='function')?_refMob():false;
     var g=document.createElementNS(SVGNS,'g');g.id='gFldPick';
     cv.appendChild(g);
-    fldPickSel={cb:cb,title:title,n:items.length,mob:mob,pend:null,listFn:listFn||null,hidden:(mob&&typeof _refHideSheet==='function')?_refHideSheet():[]};
+    fldPickSel={cb:cb,title:title,n:items.length,mob:mob,pend:null,listFn:listFn||null,opts:opts,hidden:(mob&&typeof _refHideSheet==='function')?_refHideSheet():[]};
     items.forEach(function(q){
       var s2=S(q.x,q.y);
-      var c=el('circle',{cx:s2[0],cy:s2[1],r:2.1,fill:'#4fc3f7','fill-opacity':0.25,
-        stroke:'#0288d1','stroke-width':3.6,'vector-effect':'non-scaling-stroke'});
+      var _pc=(opts.colorFn?opts.colorFn(q):null);
+      var c=el('circle',{cx:s2[0],cy:s2[1],r:2.1,fill:_pc||'#4fc3f7','fill-opacity':0.25,
+        stroke:_pc||'#0288d1','stroke-width':3.6,'vector-effect':'non-scaling-stroke'});
+      if(_pc)c.setAttribute('data-pc',_pc);/* [1637] */
       c.style.cursor='pointer';c.setAttribute('pointer-events','auto');
       c.addEventListener('click',function(ev){ev.stopPropagation();fldPickChoose(q,c);});
       g.appendChild(c);
@@ -14016,7 +14019,7 @@ function fldMapPick(items,title,cb,listFn){
     var bar=document.createElement('div');bar.id='fldPickBar';
     var _top=56;
     try{var _cw=document.querySelector('.canvas-wrap');if(_cw){var _cr=_cw.getBoundingClientRect();if(_cr.height>40)_top=Math.round(_cr.top+10);}}catch(_te){}
-    bar.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:'+_top+'px;z-index:13000;background:#fff;border:2px solid #0288d1;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:9px 12px;display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:800;color:#01579b;max-width:94vw;flex-wrap:wrap;justify-content:center;touch-action:none;cursor:move;user-select:none;-webkit-user-select:none';
+    bar.style.cssText='position:fixed;left:50%;transform:translateX(-50%);top:'+_top+'px;z-index:13000;background:#fff;border:2px solid '+(opts.barColor||'#0288d1')+';border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:9px 12px;display:flex;align-items:center;gap:9px;font-size:12.5px;font-weight:800;color:#01579b;max-width:94vw;flex-wrap:wrap;justify-content:center;touch-action:none;cursor:move;user-select:none;-webkit-user-select:none';
     document.body.appendChild(bar);
     (function(){
       var dg=null;
