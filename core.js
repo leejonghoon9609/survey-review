@@ -9188,18 +9188,8 @@ function mnOpenForm(rec){
     var Wm=mnWallRealW(rec,wallKey),Hm=(mnWallDims(rec,wallKey)[1])||1100,out='';
     var all=[];pwv.groups.forEach(function(g){(g.circles||[]).forEach(function(c){all.push(c);});});
     if(!all.length)return '';
-    /* 1) 인접(닿음) 그룹핑: 중심거리 ≤ (d1+d2)/2 * 1.4 이면 같은 덩어리 (BFS) */
-    var n=all.length,seen=new Array(n).fill(false),clusters=[];
-    for(var i=0;i<n;i++){ if(seen[i])continue;
-      var q=[i],comp=[];seen[i]=true;
-      while(q.length){ var a=q.pop();comp.push(a);
-        for(var b=0;b<n;b++){ if(seen[b])continue;
-          var dx=all[a].x-all[b].x,dy=all[a].y-all[b].y,th=(all[a].dia+all[b].dia)/2*1.4;
-          if(dx*dx+dy*dy<=th*th){seen[b]=true;q.push(b);}
-        }
-      }
-      clusters.push(comp);
-    }
+    /* [1620] \ubc30\uce58 \ucda9\uc2e4 \u2014 \ud074\ub7ec\uc2a4\ud130 \uc81c\uac70: \uc804 \uad00\uc744 \ud55c \ub369\uc5b4\ub9ac\ub85c(\uc2e4\ubc30\uce58 \uc0c1\ub300\uc704\uce58 \uadf8\ub300\ub85c). 50/100 \ubd84\ub9ac \uc624\ubc30\uce58 \ud574\uacb0 \u2014 DXF\uc640 \ub3d9\uc77c \uad6c\ub3c4 */
+    var n=all.length,clusters=[all.map(function(_,i){return i;})];
     /* 2) mapFn 단위벡터(회전 자동 반영) */
     var o0=mapFn(0,0),e1=mapFn(1,0),e2=mapFn(0,1);
     var ex=[e1[0]-o0[0],e1[1]-o0[1]],ey=[e2[0]-o0[0],e2[1]-o0[1]];
