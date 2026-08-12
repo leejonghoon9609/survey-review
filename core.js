@@ -8556,7 +8556,7 @@ function mnEfbGen(rec){
         var _n=dias.length;
         var _lbls=dias.map(function(dv){return 'FC\u00d8'+dv+'X'+agg[dv].n+'('+agg[dv].f+')';});
         function _eArrB(ax2,ay2,sx2,rot2){return mnDxfEnt(['  0','INSERT','  5',nh(),'330','2','100','AcDbEntity','  8','arrow',' 62','5','100','AcDbBlockReference','  2','arrow',' 10',fx(ax2),' 20',fx(ay2),' 30','0.0',' 41',String(sx2),' 42','0.5',' 43','1.0',' 50',String(rot2)]);}
-        if(w==='p1'){var _C=[x0-700,y1+580];/* [1607] \uac04\uaca9 80 \ubbf8\ub7ec *//* [1603] \ub9e8\ud640\ub3c4 \uc88c\uc0c1 slot \ud654\uc0b4\ud45c \uc704\uce58(by1+860-400) \ubbf8\ub7ec *//* [1600] \uc624\ub978\ucabd+\uc704 *//* [1599] \ub0b4\ub9bc *//* \uc88c\uc0c1: \ub77c\ubca8 \uc704\u00b7\ucd09\u2191 */
+        if(w==='p1'){var _C=[x0-700,y1+420];/* [1609] \ub9e8\ud640\ub3c4 \uc88c\uc0c1 \ub0b4\ub9bc \ubbf8\ub7ec *//* [1603] \ub9e8\ud640\ub3c4 \uc88c\uc0c1 slot \ud654\uc0b4\ud45c \uc704\uce58(by1+860-400) \ubbf8\ub7ec *//* [1600] \uc624\ub978\ucabd+\uc704 *//* [1599] \ub0b4\ub9bc *//* \uc88c\uc0c1: \ub77c\ubca8 \uc704\u00b7\ucd09\u2191 */
           out+=_eArrB(_C[0],_C[1],0.5,90);
           _lbls.forEach(function(_t,i2){out+=eTxt(_C[0],_C[1]+150+((_n-1)-i2)*131,_t,100,0,'DIM','Attr',5);});
         }else if(w==='p3'){var _C=[x1+420,y1+560];/* [1603] \ub9e8\ud640\ub3c4 \uc6b0\uc0c1(bx1+700-280) *//* [1600] \uc67c\ucabd+\uc704 \ub098\ub780\ud788 *//* [1599] \uc67c\ucabd *//* \uc6b0\uc0c1: \ub77c\ubca8 \uc624\ub978\ucabd\u00b7\ucd09\u2192 */
@@ -8725,7 +8725,7 @@ function mnDxfGen(rec){
     var slots={
       /* [1059] 완료샘플 실측: 수평 700 / 수직 560 — 몸체에 더 붙임.
          라벨은 항상 화살표 반대편 (U/D/L/R) */
-      p1:{sx:g.bx0-700,sy:g.by1+860,lab:'U',ar:'down'},/* [1579] +300 \u2014 \ud314 \uc704\ub85c \uc62c\ub9bc(\ub9e8\ud640\ub3c4 \uce68\ubc94 \ubc29\uc9c0) */
+      p1:{sx:g.bx0-700,sy:g.by1+700,lab:'U',ar:'down'},/* [1609] 160 \ub0b4\ub9bc \u2014 [1607] \ud654\uc0b4\ud45c \ub2e8\ucd95\ubd84 \ud65c\uc6a9, \ud314 \uc704\ubcbd\uacfc 176 \uc5ec\uc720 *//* [1579] +300 \u2014 \ud314 \uc704\ub85c \uc62c\ub9bc(\ub9e8\ud640\ub3c4 \uce68\ubc94 \ubc29\uc9c0) */
       p2:{sx:g.bx1+700,sy:g.by0-860,lab:'D',ar:'up'},/* [1579] -300 \u2014 \uce58\uc218\uc120 \uc544\ub798\ub85c \ub0b4\ub9bc */
       p3:{sx:g.bx1+700,sy:g.by1+560,lab:'R',ar:'left'},
       p4:{sx:g.bx0-700,sy:g.by0-560,lab:'L',ar:'right'}
