@@ -8494,21 +8494,22 @@ function mnEfbGen(rec){
       var st=(c.st!=null?c.st:(c.fill?1:0));
       var p=armXY(w,c.x,c.y), px=p[0],py=p[1];
       var col=7, o='';/* [1617] \ud14c\ub450\ub9ac\ub294 \ud56d\uc0c1 \uac80\uc815, \ud574\uce58\ub9cc \ube68\uac15(st2) */
+      /* [1619] \ud574\uce58 \uba3c\uc800 \u2192 \ud14c\ub450\ub9ac \ub098\uc911 \u2014 \ucc44\uc6c0\uc774 \uc120\uc744 \ub36e\uc5b4 \uc587\uc544 \ubcf4\uc774\ub358 \ubb38\uc81c */
       if(c.dia===50){
         var tri=[[px-21,py-14],[px,py+28],[px+21,py-14]];
-        o+=ePL('Pipe',tri,true,null,col||null);
         if(st===1)o+=eHatchPoly(tri,false);
         if(st===2)o+=eHatchPoly(tri,true,1);
+        o+=ePL('Pipe',tri,true,null,col||null);
       }else if(c.dia===120){
         var sq=[[px-60,py-60],[px+60,py-60],[px+60,py+60],[px-60,py+60]];
-        o+=ePL('Pipe',sq,true,null,col||null);
         if(st===1)o+=eHatchPoly(sq,false);
         if(st===2)o+=eHatchPoly(sq,true,1);
+        o+=ePL('Pipe',sq,true,null,col||null);
       }else{
         var r=c.dia/2;
-        o+=eC('Pipe',px,py,r,col||null);
         if(st===1)o+=eHatchCirc(px,py,r,false);
         if(st===2)o+=eHatchCirc(px,py,r,true,1);
+        o+=eC('Pipe',px,py,r,col||null);
       }
       return o;
     }
