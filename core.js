@@ -8493,7 +8493,7 @@ function mnEfbGen(rec){
     function drawPipe(w,c){ /* 심볼: Ø50=삼각형, Ø120=사각형, 그외=원(실척) */
       var st=(c.st!=null?c.st:(c.fill?1:0));
       var p=armXY(w,c.x,c.y), px=p[0],py=p[1];
-      var col=(st===2?1:0), o='';
+      var col=(st===2?1:7), o='';/* [1615] \uc81c\uc678(\ube68\uac15) \uc678 \ud14c\ub450\ub9ac \uac80\uc815 */
       if(c.dia===50){
         var tri=[[px-21,py-14],[px,py+28],[px+21,py-14]];
         o+=ePL('Pipe',tri,true,null,col||null);
@@ -9905,6 +9905,10 @@ function mnPipeEditor(rec,wall){
     ctx.strokeStyle='#e05252';ctx.lineWidth=1.3;
     ctx.beginPath();ctx.moveTo(W/2*sx,0);ctx.lineTo(W/2*sx,cssH);ctx.stroke();
     ctx.beginPath();ctx.moveTo(0,H/2*sy);ctx.lineTo(cssW,H/2*sy);ctx.stroke();
+    /* [1615] 중심선 인접 첫 칸만 반칸(12.5mm) 보조선 — 양옆·위아래 4선 */
+    ctx.strokeStyle='#f0b8b8';ctx.lineWidth=0.5;
+    [W/2-12.5,W/2+12.5].forEach(function(hx){ctx.beginPath();ctx.moveTo(hx*sx,0);ctx.lineTo(hx*sx,cssH);ctx.stroke();});
+    [H/2-12.5,H/2+12.5].forEach(function(hy){ctx.beginPath();ctx.moveTo(0,hy*sy);ctx.lineTo(cssW,hy*sy);ctx.stroke();});
     /* 바닥선 (노랑) */
     ctx.strokeStyle='#e6c200';ctx.lineWidth=3;
     ctx.beginPath();ctx.moveTo(0,cssH-1.5);ctx.lineTo(cssW,cssH-1.5);ctx.stroke();
@@ -10004,7 +10008,7 @@ function mnPipeEditor(rec,wall){
         for(var j=0;j<s2.cnt;j++){
           var cx=xcur+s2.dia/2;xcur+=s2.dia;
           cx=Math.min(Math.max(cx,s2.dia/2),W-s2.dia/2);
-          g.circles.push({x:Math.round(cx/25)*25,y:Math.round(cy/25)*25,dia:s2.dia,ri:ri,st:0,fill:false});
+          g.circles.push({x:Math.round(cx/12.5)*12.5,y:Math.round(cy/12.5)*12.5,dia:s2.dia,ri:ri,st:0,fill:false});
         }
       });
     });
@@ -10074,14 +10078,14 @@ function mnPipeEditor(rec,wall){
     if(mode==='all'){
       g.circles.forEach(function(c){
         if(c._bx==null){c._bx=c.x;c._by=c.y;}
-        c.x=Math.min(Math.max(Math.round((c._bx+dmx)/25)*25,c.dia/2),W-c.dia/2);
-        c.y=Math.min(Math.max(Math.round((c._by+dmy)/25)*25,c.dia/2),H-c.dia/2);
+        c.x=Math.min(Math.max(Math.round((c._bx+dmx)/12.5)*12.5,c.dia/2),W-c.dia/2);
+        c.y=Math.min(Math.max(Math.round((c._by+dmy)/12.5)*12.5,c.dia/2),H-c.dia/2);
       });
     }else{
       var c=g.circles[pTarget.ci];if(!c)return;
       if(c._bx==null){c._bx=c.x;c._by=c.y;}
-      c.x=Math.min(Math.max(Math.round((c._bx+dmx)/25)*25,c.dia/2),W-c.dia/2);
-      c.y=Math.min(Math.max(Math.round((c._by+dmy)/25)*25,c.dia/2),H-c.dia/2);
+      c.x=Math.min(Math.max(Math.round((c._bx+dmx)/12.5)*12.5,c.dia/2),W-c.dia/2);
+      c.y=Math.min(Math.max(Math.round((c._by+dmy)/12.5)*12.5,c.dia/2),H-c.dia/2);
     }
     draw();
   });
