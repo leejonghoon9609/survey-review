@@ -8778,7 +8778,7 @@ function mnDxfGen(rec){
       /* 확대묶음↔벽 연결 화살표 (완성본 arrow 블록 방식) */
       var cxm=(minX+maxX)/2, cym=(minY+maxY)/2;
       if(sl.ar==='down')out+=mnDxfIns(nh(),cxm,minY-200,0.5,0.5,90);
-      else if(sl.ar==='up')out+=mnDxfIns(nh(),cxm,maxY+200,-0.5,0.5,90);
+      else if(sl.ar==='up')out+=mnDxfIns(nh(),cxm,maxY+120,-0.5,0.5,90);/* [1602] \ubab8\ud1b5 \uc0c1\ub2e8\u2194\uce58\uc218\uc120 \uac04\uaca9 \ud655\ubcf4(9.5\u219289.5) */
       else if(sl.ar==='left')out+=mnDxfIns(nh(),minX-80,cym,-0.5,0.5,180);/* [1578] \ub77c\ubca8 \ubc18\ub300\ud3b8(\uc6d0 \uc67c\ucabd 80)\u00b7\ucd09\u2192\uad00\u00b7\ubab8\ud1b5 \ubc14\uae65 */
       else out+=mnDxfIns(nh(),maxX+80,cym,0.5,0.5,180);/* [1578] \uc6d0 \uc624\ub978\ucabd 80\u00b7\ucd09\u2190\uad00 */
     });
