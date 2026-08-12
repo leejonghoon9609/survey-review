@@ -8491,7 +8491,7 @@ function mnEfbGen(rec){
     }
     function armWalls(w){ /* 팔 외벽 2체인: 목 개구 766 기준 si/flare */
       var armW=(w==='p1'||w==='p2')?bh:bw;
-      var si=Math.max(17,armW/2-lr), fl=Math.max(41,armW/2-lr);
+      var si=armW/2-lr, fl=Math.max(41,armW/2-lr);/* [1605] \ubaa9 \uac1c\uad6c=lid \uc815\ud655(766) \u2014 \ubcf8\uccb4\uac00 \ub46c\uaecd\ubcf4\ub2e4 \uc881\uc73c\uba74 \ubaa9\uc774 \ubc14\uae65\uc73c\ub85c(si \uc74c\uc218 \ud5c8\uc6a9) */
       var o='';
       if(w==='p1'||w==='p2'){
         var s=(w==='p1'?-1:1), bx=(w==='p1'?x0:x1);
