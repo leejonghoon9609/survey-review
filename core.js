@@ -1147,7 +1147,7 @@ function drawGeo(){_orgSync();/* [1524] */if(typeof _tgCarGeomBuild==='function'
       var _dv9=_dbn9[p.no];if(_dv9!=null&&_dv9!==''&&isFinite(+_dv9))return;
       var _ps9=S(p.x,p.y);gPts.appendChild(el('circle',{cx:_ps9[0],cy:_ps9[1],r:2.4,/* [1543] 1.2\u21922.4 \uc7ac2\ubc30 */fill:'#4fc3f7','fill-opacity':0.3,stroke:'#03a9f4',/* [1542] \ud558\ub298\uc0c9 */'stroke-width':2.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));});
   }}catch(_dm9){}
-  try{if(typeof photoMap!=='undefined'&&photoMap&&typeof afterMap!=='undefined'&&afterMap){
+  try{if(typeof photoMap!=='undefined'&&photoMap&&typeof afterMap!=='undefined'&&afterMap&&!(typeof IS_TANGO!=='undefined'&&IS_TANGO)){/* [1655] \ud0b1\uace0\ub294 \uc0ac\uc9c4\uc720\ubb34 \ud45c\uc2dc \uc6d0(\ub178\ub780\ub9c1) \uc0dd\ub7b5 */
     var _refPrj=!!(typeof REF!=='undefined'&&REF&&REF.ents); /* [1278] 완료결선 업로드 사업 판별(REF 결선 존재) */
     var _yOn=!(typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof photoPanelOpen!=='undefined'&&photoPanelOpen); /* [1280] field=사진 모드에서만 표시 */
     if((typeof STAGE==='undefined'||STAGE!=='survey')&&(!(typeof IS_FIELD!=='undefined'&&IS_FIELD)||!_refPrj)&&_yOn){/* [1438] 결선 레이어바 */
