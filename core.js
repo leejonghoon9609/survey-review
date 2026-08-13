@@ -13929,7 +13929,7 @@ function refRiserPick(rec,lab,cb){
   try{var _a1=refSiteXY(rec);
     if(_a1&&typeof fldPickFit==='function'){
       var _ds9=list.map(function(q){return Math.hypot(q.x-_a1[0],q.y-_a1[1]);}).sort(function(a,b){return a-b;});
-      var _rr9=Math.min(150,Math.max(50,(_ds9[Math.min(1,_ds9.length-1)]||50)*1.2));/* [1649] */
+      var _rr9=Math.min(100,Math.max(35,(_ds9[0]||35)*1.3));/* [1650] */
       fldPickFit([{x:_a1[0]-_rr9,y:_a1[1]-_rr9},{x:_a1[0]+_rr9,y:_a1[1]+_rr9}]);
     }else if(mob&&typeof fldPickFit==='function')fldPickFit(list);}catch(_ft9){}/* [1648] \uae30\uc900 \uc911\uc2ec \ubc18\uacbd \ud54f */
   list.forEach(function(q){
@@ -14085,7 +14085,7 @@ function fldMapPick(items,title,cb,listFn,opts){
         if(opts.anchor&&opts.anchor.length===2){/* [1648] \uae30\uc900 \ub9e8\ud640 \uc911\uc2ec \ubc18\uacbd \ud54f \u2014 \uac00\uae4c\uc6b4 \ud6c4\ubcf4 3\uac1c \ud3ec\ud568(60~250m) */
       var _ax=opts.anchor[0],_ay=opts.anchor[1];
       var _ds=items.map(function(q){return Math.hypot(q.x-_ax,q.y-_ay);}).sort(function(a,b){return a-b;});
-      var _rr=Math.min(150,Math.max(50,(_ds[Math.min(1,_ds.length-1)]||50)*1.2));/* [1649] \ub354 \uac00\uae4c\uc774 */
+      var _rr=Math.min(100,Math.max(35,(_ds[0]||35)*1.3));/* [1650] \ucd94\uac00 \ud655\ub300 */
       fldPickFit([{x:_ax-_rr,y:_ay-_rr},{x:_ax+_rr,y:_ay+_rr}]);
     }else if(mob)fldPickFit(items);
     try{cv.style.cursor='pointer';}catch(_e){}
