@@ -30,7 +30,7 @@ var state={ projectId:null, projectName:null, loadedStage:STAGE, _importSrc:[], 
 // label = '2M(SKB)' 등
 var mode='pan', status='ok', bpCrop=null, bpEraseHover=-1;
 var bpOff=false; /* 백판(수치지도) 숨김 여부 */
-var LINECOL={"통신관로":{c:"#d92b2b",w:1.6},"압입구간":{c:"#1f6fd6",w:3.0,dash:"10 7"},"지거":{c:"#f2b400",w:2.4},"주입상인출선":{c:"#999",w:1},"보도":{c:"#81d4fa",w:1.4},"도로":{c:"#0277bd",w:1.6}};
+var LINECOL={"통신관로":{c:"#d92b2b",w:1.6},"압입구간":{c:"#1f6fd6",w:3.0,dash:"10 7"},"지거":{c:"#f2b400",w:2.4},"주입상인출선":{c:"#999",w:1},"보도":{c:"#aed581",w:0.8},"도로":{c:"#7cb342",w:0.9}};
 function isTpoint(p){var c=(p&&p.code)||'';return /(^|\s)T(\s|\d|$)/.test(c)||/(^|\s)t(\s|\d|$)/.test(c);}/* [1444] */
   function tamsaTag(p){
     if(p._tcode)return p._tcode;
