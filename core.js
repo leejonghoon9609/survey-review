@@ -8379,7 +8379,7 @@ function mnAskDest(cur,dn,cb,rec,dk){
       +'<button id="mnDJeon" style="flex:1;min-width:0;background:#fff;color:#7a6a3a;border:1.5px solid #b9a86a;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden">\uD83D\uDDFC 전주입상</button>'
       +'<button id="mnDTong" style="flex:1.15;min-width:0;background:#fff;color:#2471a3;border:1.5px solid #8fb8d6;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden">\uD83D\uDCE1 통신주입상</button>'
       +'<button id="mnDJb" style="flex:0.95;min-width:0;background:#fff;color:#8e44ad;border:1.5px solid #c39bd3;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden">\uD83D\uDD0C JB/인입</button></div>'
-    +'<div style="display:flex;gap:7px;margin-top:10px"><button id="mnDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">취소</span></button></div></div>';
+    +'<div style="display:flex;gap:7px;margin-top:10px"><button id="mnDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">취소</span></button><button id="mnDDel" style="flex:1;background:#fff;color:#d32f2f;border:1.5px solid #ef9a9a;border-radius:9px;padding:10px;font-weight:800;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">삭제</span></button></div></div>';
   document.body.appendChild(w);
   /* [1066] 입상 전용 버튼 — 결선에 심볼이 여러 개면 가까운 순으로 골라 좌표를 고정한다 */
   function pickRiser(lab){
@@ -8450,6 +8450,7 @@ function mnAskDest(cur,dn,cb,rec,dk){
     if(!ok)_openList();
   };
   w.querySelector('#mnDNo2').onclick=function(){w.remove();};
+  var _bDel=w.querySelector('#mnDDel');if(_bDel)_bDel.onclick=function(){w.remove();cb('__DEL__');};/* [1669] 방향 정보 삭제 */
   w.onclick=function(e){if(e.target===w)w.remove();};
 }
 /* [BUILD 983] 맨홀도 DXF — 규격샘플 템플릿(dxf/) fetch → 마커치환 + 관 실좌표 재그리기 */
@@ -9602,7 +9603,7 @@ function mnOpenForm(rec){
           var units={dep:'m',w12:'m',w34:'m',topi:'m',lid:'mm',lidRect:'',lidW:'mm',lidH:'mm'};
           mnAsk({title:titles[k],unit:units[k],val:rec[k],text:(k==='lidRect'),color:MN_DIMC[k],cb:function(v){rec[k]=(v===''?'':v);mnPersistRec(rec);render();}});
         }
-        else if(act==='dest'){var dk=el.getAttribute('data-d');var dn={d1:'1',d2:'2',d3:'3',d4:'4'}[dk];mnAskDest((rec.dest&&rec.dest[dk])||'',dn,function(v){if(!rec.dest)rec.dest={};rec.dest[dk]=v;mnPersistRec(rec);render();},rec,dk);}
+        else if(act==='dest'){var dk=el.getAttribute('data-d');var dn={d1:'1',d2:'2',d3:'3',d4:'4'}[dk];mnAskDest((rec.dest&&rec.dest[dk])||'',dn,function(v){if(!rec.dest)rec.dest={};if(v==='__DEL__'){delete rec.dest[dk];if(rec.destXY)delete rec.destXY[dk];}else{rec.dest[dk]=v;}mnPersistRec(rec);render();},rec,dk);/* [1669] 삭제 처리 */}
         else if(act==='wall'){var wl=el.getAttribute('data-w');var closeIt=function(){if(!host&&wrap)wrap.remove();};if(!(rec.photos&&rec.photos[wl])){toast('벽면 사진을 먼저 촬영합니다');mnShootSlot(rec,wl,function(){closeIt();mnPipeEditor(rec,wl);});}else{closeIt();mnPipeEditor(rec,wl);}}
         else if(act==='pview'||(act==='ph'&&rec.photos&&rec.photos[el.getAttribute('data-s')])){/* [1580] \uc0ac\uc9c4 \uc788\uc73c\uba74 \ubcf4\uae30\u00b7\uc5c6\uc73c\uba74 \ucd2c\uc601 */
           var vs=el.getAttribute('data-s');var vu=rec.photos&&rec.photos[vs];
