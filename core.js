@@ -6499,6 +6499,12 @@ function _tgPrApplyCsv(x1,y1,x2,y2){/* [1657] tango 측점 되살리기 — 관�
   if(typeof updMeta==='function')updMeta();if(typeof saveProject==='function'){try{saveProject();}catch(_s){}}
   if(typeof toast==='function')toast('되살림 — 측점 '+addPts.length+' · 시설물 '+(addFac.length+addRiser.length));
   return addPts.length+addFac.length+addRiser.length;}
+function _tgMhBtn(){/* [1674] tango \ub9e8\ud640\ub3c4 \ubc84\ud2bc — \ub9e8\ud640\ub3c4 \ubaa8\ub4dc(\ud328\ub110) \ud1a0\uae00, \ud328\ub110 \uc5f4\ub838\uc744 \ub54c\ub9cc \ub9e8\ud640 \ud074\ub9ad=\uc57c\uc7a5 \uc5f0\ub3d9 */
+  try{if(!(typeof IS_TANGO!=='undefined'&&IS_TANGO))return;if(document.getElementById('tgMhBtn'))return;var _hd=document.querySelector('header');if(!_hd)return;
+  var b=document.createElement('button');b.id='tgMhBtn';b.textContent='\uD83D\uDD73 \ub9e8\ud640\ub3c4';
+  b.style.cssText='order:8;display:inline-flex;background:#fff;border:1.5px solid #8e44ad;color:#8e44ad;font-weight:800;padding:9px 13px;font-size:13px;border-radius:7px;cursor:pointer;margin-left:12px';
+  b.onclick=function(){if(typeof mnUiOpen==='function'&&mnUiOpen()){if(typeof mnHostClose==='function')mnHostClose();}else{if(typeof mnOpenList==='function')mnOpenList();else if(typeof mnHostOpen==='function')mnHostOpen();}};
+  _hd.appendChild(b);}catch(_e){}}
 function _tgRestoreBtn(){/* [1657] tango 헤더 '측점 되살리기' 버튼 — 노란측점 삭제 제외 */
   try{if(!(typeof IS_TANGO!=='undefined'&&IS_TANGO))return;if(document.getElementById('fldRestoreBtn'))return;var _hd=document.querySelector('header');if(!_hd)return;
   var b=document.createElement('button');b.id='fldRestoreBtn';b.textContent='\u267b 측점 되살리기';
@@ -6633,7 +6639,7 @@ function renderSub(){
     else if(g==='fit'){fitView();drawGeo();drawManholes();}};});
   var db=gb&&gb.querySelector('button[data-g="delall2"]');if(db&&mode==='delall2'){db.style.background='#c0392b';db.style.color='#fff';db.style.borderColor='#c0392b';}
   var mb=gb&&gb.querySelector('button[data-g="measure"]');if(mb&&mode==='measure'){mb.style.background='#e8590c';mb.style.color='#fff';mb.style.borderColor='#e8590c';}
-if(typeof _fpcSubBtns==='function')_fpcSubBtns();if(typeof _tgRestoreBtn==='function')_tgRestoreBtn();/* [1657] */}
+if(typeof _fpcSubBtns==='function')_fpcSubBtns();if(typeof _tgRestoreBtn==='function')_tgRestoreBtn();if(typeof _tgMhBtn==='function')_tgMhBtn();/* [1674] *//* [1657] */}
 /* ====== 단축키 시스템 ====== */
 var HK_KEY='survey_hotkeys';
 function loadHotkeys(){try{return JSON.parse(localStorage.getItem(HK_KEY)||'{}')||{};}catch(e){return {};}}
@@ -7655,7 +7661,7 @@ function _fldMhHover(cx,cy){ /* [1284] field — 맨홀 근접 호버 판정(커
 }
 function _fldMhClickAt(cx,cy){ /* [1258] field 전용 — 도면 맨홈 클릭→해당 야장 자동 열기 */
   try{
-    if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return false;
+    if(!((typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO)))return false;/* [1674] tango \ub9e8\ud640\ub3c4 \ubaa8\ub4dc \uc5f0\ub3d9 */
     if(typeof mnUiOpen==='function'&&!mnUiOpen())return false;/* [1450] 맨홀도 제작 창이 열려 있을 때만 야장 연동 — 닫혔 상태에서는 일반 확인·수정 */
     if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen)return false; /* [1280] 후측량 사진 모드에선 맨홀 안 잡힘(측점만) */
     var w=toWorld(cx,cy),wx=w[0],wy=-w[1];
