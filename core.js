@@ -6461,11 +6461,10 @@ function _tgIsPipePt(p){/* [1657] tango 관측점 판별 — 관경x관수 있�
   if(!p||p.skip)return false;if(p._hyun)return false;var c=((p.code||'')+'').trim();if(!c)return false;
   if(/^l$/i.test(c))return false;if(/^jb\s*m?$/i.test(c)||/^in$/i.test(c)||/^(입상|ip주)/i.test(c))return false;
   if(typeof isMhCode==='function'&&isMhCode(p.code))return false;return /[xX\u00D7]\s*\d+/.test(c);}
-function _tgFacOf(p){/* [1657] CSV 코드 → 시설물(맨홀/입상주/JB/인입) */
+function _tgFacOf(p){/* [1658] CSV 코드 → 시설물(맨홀/JB/인입만 — 입상주는 2점 페어링으로 별도 처리) */
   var c=((p.code||'')+'').trim();
   if(/^jb\s*m?$/i.test(c))return {type:'jb',label:'JB'};
   if(/^in$/i.test(c))return {type:'inlet',label:'인입'};
-  if(/^(입상|ip주)/i.test(c)){var m=/\(([^)]+)\)/.exec(c);return {type:'riser',label:'통신주입상'+(m?(' ('+m[1]+')'):'')};}
   if(typeof isMhCode==='function'&&isMhCode(p.code)){var k=(typeof mhKindOf==='function')?mhKindOf(p.code):'SK';var n=(typeof mhNumOf==='function')?mhNumOf(p.code):'';return {type:'mh',label:(n||'')+'M ('+k+' )',_edited:!!n};}
   return null;}
 function _tgPrApplyCsv(x1,y1,x2,y2){/* [1657] tango 측점 되살리기 — 관측점·시설물만 CSV에서 복원, 노란점 복원 없음 */
@@ -6476,19 +6475,30 @@ function _tgPrApplyCsv(x1,y1,x2,y2){/* [1657] tango 측점 되살리기 — 관�
   var curNo={},curXY=[];(state.points||[]).forEach(function(q){if(q.no!=null)curNo[q.no]=1;curXY.push([q.x,q.y]);});
   function ptExists(x,y,no){if(no!=null&&curNo[no])return true;for(var i=0;i<curXY.length;i++){if(Math.abs(curXY[i][0]-x)<0.05&&Math.abs(curXY[i][1]-y)<0.05)return true;}return false;}
   var haveMh={};(state.manholes||[]).forEach(function(m){if(m&&m.wx!=null)haveMh['c'+Math.round(m.wx*100)+'_'+Math.round(m.wy*100)]=1;});
-  var addPts=[],addFac=[],seenP={},seenF={},delK={};
-  rows.forEach(function(p){if(!p||p.skip)return;var ex=p.ex,no=p.no;if(ex==null||no==null||!inBox(ex,no))return;
+  var addPts=[],addFac=[],addRiser=[],seenP={},seenF={},delK={},riserRows=[];
+  rows.forEach(function(p){if(!p||p.skip)return;var ex=p.ex,no=p.no;if(ex==null||no==null)return;var c=((p.code||'')+'').trim();
+    var tk=(typeof _tjTokOf==='function')?_tjTokOf(c):null;if(tk){riserRows.push({x:ex,y:no,code:tk});return;}/* TJ/EJ 전주 */
+    if(/^(입상|ip\s*주|ip\b|통신주입상|통신입상)/i.test(c)){var _mm=/\(([^)]+)\)/.exec(c);riserRows.push({x:ex,y:no,code:'IPJU',spec:(_mm?_mm[1]:'')});return;}/* 입상/IP주 */
+    if(!inBox(ex,no))return;
     var fac=_tgFacOf(p);if(fac){var ck='c'+Math.round(ex*100)+'_'+Math.round(no*100);if(haveMh[ck]||seenF[ck])return;seenF[ck]=1;addFac.push({ex:ex,no:no,fac:fac});delK[ex+'_'+no]=1;return;}
     if(_tgIsPipePt(p)){var pk=(p.name!=null&&p.name!=='')?('n'+p.name):('c'+(+ex).toFixed(2)+'_'+(+no).toFixed(2));if(seenP[pk])return;seenP[pk]=1;if(!ptExists(ex,no,p.name)){addPts.push({no:p.name||'',x:ex,y:no,z:p.z,code:p.code});delK[ex+'_'+no]=1;}}});
-  if(!addPts.length&&!addFac.length)return 0;
+  /* [1658] 입상주: 같은 코드 최근접 2점 짝 → 중점 1개(현장 buildRisersFromCsv 동일) */
+  var _byC={};riserRows.forEach(function(rp){(_byC[rp.code]=_byC[rp.code]||[]).push(rp);});
+  for(var _cd in _byC){var a2=_byC[_cd].slice(),used={};
+    for(var i=0;i<a2.length;i++){if(used[i])continue;var best=-1,bd=1e9;for(var j=i+1;j<a2.length;j++){if(used[j])continue;var d=Math.hypot(a2[i].x-a2[j].x,a2[i].y-a2[j].y);if(d<bd){bd=d;best=j;}}
+      if(best<0)continue;used[i]=used[best]=1;var mx=(a2[i].x+a2[best].x)/2,my=(a2[i].y+a2[best].y)/2;if(!inBox(mx,my))continue;var _rck='c'+Math.round(mx*100)+'_'+Math.round(my*100);if(haveMh[_rck]||seenF[_rck])continue;seenF[_rck]=1;
+      var isEJ=/^EJ/i.test(_cd);addRiser.push({mx:mx,my:my,label:isEJ?'한전주입상':('통신주입상'+((_cd==='IPJU'&&(a2[i].spec||a2[best].spec))?(' ('+(a2[i].spec||a2[best].spec)+')'):''))});delK[mx+'_'+my]=1;}
+    if(_cd==='IPJU'){for(var q=0;q<a2.length;q++){if(used[q])continue;var _rp=a2[q];if(!inBox(_rp.x,_rp.y))continue;var _rck2='c'+Math.round(_rp.x*100)+'_'+Math.round(_rp.y*100);if(haveMh[_rck2]||seenF[_rck2])continue;seenF[_rck2]=1;addRiser.push({mx:_rp.x,my:_rp.y,label:'통신주입상'+(_rp.spec?(' ('+_rp.spec+')'):'')});delK[_rp.x+'_'+_rp.y]=1;}}}
+  if(!addPts.length&&!addFac.length&&!addRiser.length)return 0;
   if(typeof pushHist==='function')pushHist();
   if(state.mhDel){for(var k in delK){if(state.mhDel[k])delete state.mhDel[k];}}
   addPts.forEach(function(q){state.points.push(q);});
   addFac.forEach(function(f){state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+state.manholes.length)),wx:f.ex,wy:f.no,label:f.fac.label,lx:null,ly:null,type:f.fac.type,insp:true,_fromCsv:true,_edited:!!f.fac._edited});});
+  addRiser.forEach(function(r){state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+state.manholes.length)),wx:r.mx,wy:r.my,label:r.label,lx:null,ly:null,type:'riser',insp:true,_fromCsv:true});});/* [1658] 입상주 중점 1개 */
   window._ftpC=null;if(typeof redrawAll==='function')redrawAll();else{if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();}
   if(typeof updMeta==='function')updMeta();if(typeof saveProject==='function'){try{saveProject();}catch(_s){}}
-  if(typeof toast==='function')toast('되살림 — 측점 '+addPts.length+' · 시설물 '+addFac.length);
-  return addPts.length+addFac.length;}
+  if(typeof toast==='function')toast('되살림 — 측점 '+addPts.length+' · 시설물 '+(addFac.length+addRiser.length));
+  return addPts.length+addFac.length+addRiser.length;}
 function _tgRestoreBtn(){/* [1657] tango 헤더 '측점 되살리기' 버튼 — 노란측점 삭제 제외 */
   try{if(!(typeof IS_TANGO!=='undefined'&&IS_TANGO))return;if(document.getElementById('fldRestoreBtn'))return;var _hd=document.querySelector('header');if(!_hd)return;
   var b=document.createElement('button');b.id='fldRestoreBtn';b.textContent='\u267b 측점 되살리기';
