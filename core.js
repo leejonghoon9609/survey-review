@@ -15099,6 +15099,7 @@ function zoomAtLight(f,cx,cy){
 }
 var _zw={pend:1,cx:0,cy:0,run:false};
 function zoomWheelSmooth(e){
+  if(_zw.reT){clearTimeout(_zw.reT);_zw.reT=null;}/* [1661] \uc0c8 \uc90c \uc2dc \ub300\uae30 \uc7ac\uadf8\ub9ac\uae30 \ucde8\uc18c */
   var f=wheelFactor(), k=(e.deltaY>0)?f:1/f;
   _zw.pend*=k; _zw.cx=e.clientX; _zw.cy=e.clientY;
   if(_zw.run)return; _zw.run=true;
@@ -15108,9 +15109,9 @@ function zoomWheelSmooth(e){
     if(Math.abs(lg)<0.004){
       if(_zw.pend!==1){zoomAtLight(_zw.pend,_zw.cx,_zw.cy);_zw.pend=1;}
       _zw.run=false;
-      if(typeof drawGeo==='function')drawGeo();
-      if(typeof drawManholes==='function')drawManholes();
-      if(typeof highlightSel==='function')highlightSel();   /* [1191] */
+      var _fin9=function(){if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();if(typeof highlightSel==='function')highlightSel();};/* [1191] */
+      if(typeof IS_TANGO!=='undefined'&&IS_TANGO){if(_zw.reT)clearTimeout(_zw.reT);_zw.reT=setTimeout(function(){_zw.reT=null;if(!_zw.run)_fin9();},90);}/* [1661] tango: \ubb34\uac70\uc6b4 \uc7ac\uadf8\ub9ac\uae30 \ub514\ubc14\uc6b4\uc2a4 — \uc5f0\uc18d \uc90c\uc740 \uac00\ubccd\uac8c, \uba48\ucd98 \ub4a4 1\ud68c */
+      else{_fin9();}
       return;
     }
     var part=Math.exp(lg*0.45); /* [1190] 드리프트감 감소: 프레임당 45% 소화 */
@@ -15123,6 +15124,7 @@ function zoomWheelSmooth(e){
 /* [1190] 줌 애니메이션 중 드래그 시작 시: 남은 줌을 즉시 적용·재그리기 완료 후 드래그 진행
    (애니 종료 재그리기가 드래그 중 요소를 교체해 첫 잡기가 풀리던 문제 해결) */
 function zoomWheelFlush(){
+  if(_zw.reT){clearTimeout(_zw.reT);_zw.reT=null;}/* [1661] \ub300\uae30 \uc7ac\uadf8\ub9ac\uae30 \ucde8\uc18c(\ub4dc\ub798\uadf8 \ubcf4\ud638) */
   if(!_zw.run && _zw.pend===1)return;
   if(_zw.pend!==1){zoomAtLight(_zw.pend,_zw.cx,_zw.cy);_zw.pend=1;}
   _zw.kill=true; _zw.run=false;
