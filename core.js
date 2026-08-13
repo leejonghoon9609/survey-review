@@ -662,7 +662,7 @@ function mkLabel(svgX,svgY,text,opt){
   var anchor=opt.anchor||'start';
   d._anchor=anchor;
   d.style.cssText='position:absolute;'
-    +'font-size:'+(function(){var _p9=(opt.px||13);if((((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)))&&_p9<12)_p9=12;_p9=_p9*((viewerMode&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD))?0.7:1);var _nsc9=(opt.grp==='depth'||opt.grp==='depthchk');var _G5=(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)));var _TG5=(typeof IS_TANGO!=='undefined'&&IS_TANGO);var _wl5=(_G5&&(_nsc9||opt.grp==='tamsapt'||opt.grp==='pt'||opt.grp==='mh'||opt.grp==='riser'));/* [1666] tango pt/depth \uc6d4\ub4dc\ub77d \ud574\uc81c \u2014 \ub9e8\ud640\uc815\ubcf4\ucc98\ub7fc \ud654\uba74\uace0\uc815(\uc77c\uad00) *//* [1653] tango 관정보·점번호·심도 현장식 월드락(field 동일 계수) */var _k5=_wl5?((_G5&&(opt.grp==='mh'||opt.grp==='riser'))?0.12:0.01015):0;d._bpx=(_nsc9&&!_wl5)?null:_p9;d._wlk=_k5||null;var _sf9=1;if(_k5){var _uW5=((typeof pxToWorld==='function'&&pxToWorld())||0.06);return _p9*(_k5/_uW5);}/* [1517] mh·riser 포함 *//* [1500] 30% 추가축소 *//* [1497] 0.4배=DXF TH0.5m 근사 *//* [1496] 관정보·점번호·심도=월드잠금(DXF동일) */if(_nsc9)return _p9;/* [1490] 심도 항상 고정 */if((((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)))){var _u9=((typeof pxToWorld==='function'&&pxToWorld())||0.06);if(_u9>0.12)_sf9=0.12/_u9;}/* [1477] */return _p9*_sf9;})()+'px;color:'/* [1453] 폰트 하한 12px *//* [1451] field 텍스트 0.7 축소 해제 */+(opt.fill||'#333')+';'
+    +'font-size:'+(function(){var _p9=(opt.px||13);if((((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO)))&&_p9<12)_p9=12;_p9=_p9*((viewerMode&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD))?0.7:1);var _nsc9=(opt.grp==='depth'||opt.grp==='depthchk');var _G5=(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO)));var _TG5=(typeof IS_TANGO!=='undefined'&&IS_TANGO);var _wl5=(_G5&&(_nsc9||opt.grp==='tamsapt'||opt.grp==='pt'||opt.grp==='mh'||opt.grp==='riser'));/* [1666] tango pt/depth \uc6d4\ub4dc\ub77d \ud574\uc81c \u2014 \ub9e8\ud640\uc815\ubcf4\ucc98\ub7fc \ud654\uba74\uace0\uc815(\uc77c\uad00) *//* [1653] tango 관정보·점번호·심도 현장식 월드락(field 동일 계수) */var _k5=_wl5?((_G5&&(opt.grp==='mh'||opt.grp==='riser'))?0.12:0.01015):0;d._bpx=(_nsc9&&!_wl5)?null:_p9;d._wlk=_k5||null;var _sf9=1;if(_k5){var _uW5=((typeof pxToWorld==='function'&&pxToWorld())||0.06);return _p9*(_k5/_uW5);}/* [1517] mh·riser 포함 *//* [1500] 30% 추가축소 *//* [1497] 0.4배=DXF TH0.5m 근사 *//* [1496] 관정보·점번호·심도=월드잠금(DXF동일) */if(_nsc9)return _p9;/* [1490] 심도 항상 고정 */if((((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO)))){var _u9=((typeof pxToWorld==='function'&&pxToWorld())||0.06);if(_u9>0.12)_sf9=0.12/_u9;}/* [1477] */return _p9*_sf9;})()+'px;color:'/* [1453] 폰트 하한 12px *//* [1451] field 텍스트 0.7 축소 해제 */+(opt.fill||'#333')+';'
     +'font-weight:'+(opt.weight||'400')+';white-space:nowrap;pointer-events:none;'+'text-shadow:-1.2px -1.2px 0 #fff,1.2px -1.2px 0 #fff,-1.2px 1.2px 0 #fff,1.2px 1.2px 0 #fff,0 0 2px #fff,0 0 3px #fff;'
     +'transform:translate('+(anchor==='end'?'-100%':(anchor==='middle'?'-50%':'0'))+',-50%)'+(opt.rot?(' rotate('+opt.rot+'deg)'):'')+';line-height:1;';
   placeLabelDiv(d);
@@ -694,7 +694,7 @@ function repositionLabels(){
     xs[i]=sx; ys[i]=sy;
     if(!d._sym && sx>=0&&sx<=W&&sy>=0&&sy<=H) inTxt++;
   }
-  var lod=inTxt>LBL_LOD_MAX;var _sfL=1,_wsf=1;var _uL=vb.w/Math.max(W,1);/* [1653] _uL 호이스팅 — tango 월드락 적용 */if((((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)))){_wsf=0.01015/_uL;/* [1500] */if(_uL>0.12)_sfL=0.12/_uL;}/* [1496] *//* [1477] 줌 중 글자 스무드 축소 */
+  var lod=inTxt>LBL_LOD_MAX;var _sfL=1,_wsf=1;var _uL=vb.w/Math.max(W,1);/* [1653] _uL 호이스팅 — tango 월드락 적용 */if((((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO)))){_wsf=0.01015/_uL;/* [1500] */if(_uL>0.12)_sfL=0.12/_uL;}/* [1496] *//* [1477] 줌 중 글자 스무드 축소 */
   for(var k=0;k<n;k++){var e=ns[k];
     if(xs[k]==null)continue;
     var off=(xs[k]<-px||xs[k]>W+px||ys[k]<-py||ys[k]>H+py);
@@ -1262,8 +1262,8 @@ function drawManholes(){_orgSync();/* [1524] */
     if(!isRiser)state.points.forEach(function(p){if(!isManhole(p))return;var d=Math.hypot(p.x-mh.wx,p.y-mh.wy);if(d<md){md=d;mp=p;}});
 
     var U=pxToWorld(); // 1px당 월드
-    var EM=15*(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))?0.12:U);/* [1517] 완전 월드고정 */
-    var _mhPx=11;if(typeof IS_TANGO!=='undefined'&&IS_TANGO){var _WH=Math.min(U*13,0.9);_mhPx=Math.max(2,_WH/U);EM=_WH*1.364;/* [1413] *//* [1411] 화면 고정 13px *//* [1359] 월드 고정 0.85m — 확대·축소 시 도면과 동일 비율(DXF·미니와 일치), 인출선도 동일 EM 기반 */}/* [1314] 라벨 텍스트 월드 연동 */
+    var EM=15*(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO))?0.12:U);/* [1517] 완전 월드고정 */
+    var _mhPx=11;/* [1667] tango도 field와 동일: _mhPx=11, EM=1.8(월드) — _WH/U 오버라이드 제거(1/U² 폭발 방지) */
 
     if(isRiser){
       // 입상주 = 테이퍼 목주(전봇대): 밑동이 넓고 위로 갈수록 좁아짐. 중심점=밑동(mx,my). 색=파랑
