@@ -6380,6 +6380,20 @@ var inspmkSub='bp',inspmkOpen=true;function inspmkBar(extra){if(typeof IS_FIELD!
   toast('\uD604\uD669 \uD0C0\uC810 \uC804\uCCB4 \uC0AD\uC81C');
 };var hda=document.getElementById('hyunDelAll');if(hda)hda.onclick=function(){if(!confirm('\uD604\uD669\uC120 \uC804\uCCB4\uB97C \uC9C0\uC6B8\uAE4C\uC694?'))return;if(typeof pushHist==='function')pushHist();state.lines=(state.lines||[]).filter(function(l){return !l.insp;});if(typeof saveProject==='function')saveProject();drawGeo();toast('\uD604\uD669\uC120 \uC804\uCCB4 \uC0AD\uC81C');};var rau=document.getElementById('roadAuto');if(rau)rau.onclick=function(){buildRoadZones();};var rcl=document.getElementById('roadClear');if(rcl)rcl.onclick=function(){if(!confirm('\uB3C4\uB85C\uBA74 \uC804\uCCB4\uB97C \uC0AD\uC81C\uD560\uAE4C\uC694?'))return;if(typeof pushHist==='function')pushHist();state.roadZones=[];classifyRoad();if(typeof saveProject==='function')saveProject();drawGeo();toast('\uB3C4\uB85C\uBA74 \uC0AD\uC81C');};var rtg=document.getElementById('roadToggle');if(rtg)rtg.onclick=function(){if(mode==='roadtoggle'){mode='pan';}else{mode='roadtoggle';toast('\uCE21\uC810\uC744 \uD074\uB9AD\uD558\uBA74 \uB3C4\uB85C\u2194\uBCF4\uB3C4 \uC804\uD658');}setModeUI();drawGeo();renderSub();};var rdl=document.getElementById('roadDel');if(rdl)rdl.onclick=function(){if(mode==='roaddel'){mode='pan';}else{mode='roaddel';toast('\uC9C0\uC6B8 \uB3C4\uB85C\uBA74 \uC548\uC744 \uD074\uB9AD');}setModeUI();renderSub();};var red=document.getElementById('roadEdit');if(red)red.onclick=function(){if(mode==='roadedit'){mode='pan';}else{mode='roadedit';toast('\uBA74 \uC815\uC810\uC744 \uB4DC\uB798\uADF8\uD574 \uC218\uC815');}setModeUI();drawGeo();renderSub();};var rfl=document.getElementById('roadFollow');if(rfl)rfl.onclick=function(){if(mode==='roadfollow'){mode='pan';roadFollow=null;}else{mode='roadfollow';roadFollow=null;if(typeof loadHyunPts==='function'){try{loadHyunPts();}catch(e){}}toast('\uBA74 \uC815\uC810 \uD074\uB9AD \u2192 \uD604\uD669\uC810 \uD074\uB9AD (\uC2A4\uD398\uC774\uC2A4=\uB05D)');}setModeUI();drawGeo();renderSub();};var rvx=document.getElementById('roadVtx');if(rvx)rvx.onclick=function(){if(mode==='roadvtxdel'){mode='roadvtxadd';toast('\uBCC0\uC744 \uD074\uB9AD\uD558\uBA74 \uC810 \uC0BD\uC785');}else if(mode==='roadvtxadd'){mode='pan';}else{mode='roadvtxdel';toast('\uC815\uC810\uC744 \uD074\uB9AD\uD558\uBA74 \uC0AD\uC81C');}setModeUI();drawGeo();renderSub();};}
 function _fpcSubBtns(){/* [1454] field PC: 둘째줄 버튼 4종을 도구줄로 이설(프록시) */try{if(!document.body.classList.contains('fpc'))return;var sb=document.getElementById('subbar');if(!sb||document.getElementById('fpcX1'))return;var mk=function(oid,nid){var o=document.getElementById(oid);if(!o)return null;var c=o.cloneNode(true);c.id=nid;c.style.setProperty('display','inline-flex','important');c.style.order='';c.onclick=function(){var oo=document.getElementById(oid);if(oo)oo.click();};return c;};var sp=document.createElement('span');sp.id='fpcSpL';sp.style.cssText='display:inline-flex;gap:8px;align-items:center;margin-left:26px';var rt=document.createElement('span');rt.id='fpcSpR';rt.style.cssText='display:inline-flex;gap:8px;align-items:center;margin-left:auto';var b1=mk('fldImport','fpcX1');if(b1)sp.appendChild(b1);var b2=mk('fldFinal','fpcX2');if(b2)sp.appendChild(b2);var _big=function(b,bg){if(!b)return;b.style.setProperty('background','#fff','important');b.style.setProperty('border','2px solid '+bg,'important');b.style.setProperty('color',bg,'important');/* [1502] \uc544\uc6c3\ub77c\uc778 \uc2a4\ud0c0\uc77c */b.style.setProperty('font-size','15px','important');b.style.setProperty('font-weight','800','important');b.style.setProperty('padding','10px 16px','important');b.style.setProperty('border-radius','8px','important');};var b3=mk('fldJoseo','fpcX3');_big(b3,'#0d9488');if(b3)rt.appendChild(b3);var b4=mk('fldManhole','fpcX4');_big(b4,'#d97706');if(b4)rt.appendChild(b4);/* [1456] 큰 버튼+색 */if(sp.children.length)sb.appendChild(sp);if(rt.children.length)sb.appendChild(rt);try{if(!document.getElementById('tamsaDelBtn')){var _tb=document.createElement('button');_tb.id='tamsaDelBtn';_tb.className='fbtn';_tb.textContent='\ub178\ub780\uce21\uc810 \uc0ad\uc81c';_tb.style.cssText='order:9;display:inline-flex;background:#fff;border:1px solid #b8860b;color:#b8860b;font-weight:700;padding:9px 10px;font-size:13px;border-radius:7px;cursor:pointer';_tb.onclick=function(){if(typeof tamsaDelTool==='function')tamsaDelTool();};var _hd=document.querySelector('header');if(_hd)_hd.appendChild(_tb);}}catch(_t9){}/* [1502] */try{if(!document.getElementById('fldUndoBtn')){var _hd2=document.querySelector('header');var _mkUR=function(id,txt,ml){var b=document.createElement('button');b.id=id;b.textContent=txt;b.style.cssText='order:9;display:inline-flex;background:#eef4ff;border:1.5px solid #90b4e8;color:#0a3ea0;font-weight:800;padding:9px 13px;font-size:13px;border-radius:7px;cursor:pointer;margin-left:'+ml+'px';return b;};var _ub=_mkUR('fldUndoBtn','\u2190 \ub418\ub3cc\ub9ac\uae30',18);_ub.onclick=function(){if(typeof readOnly!=='undefined'&&readOnly){toast('\ubcf4\uae30 \uc804\uc6a9');return;}if(typeof doUndo==='function')doUndo();};var _rb=_mkUR('fldRedoBtn','\uc55e\uc73c\ub85c \u2192',6);_rb.onclick=function(){if(typeof readOnly!=='undefined'&&readOnly){toast('\ubcf4\uae30 \uc804\uc6a9');return;}if(typeof doRedo==='function')doRedo();};if(_hd2){_hd2.appendChild(_ub);_hd2.appendChild(_rb);}var _sb2=document.createElement('button');_sb2.id='fldRestoreBtn';_sb2.textContent='\u267b \uce21\uc810 \ub418\uc0b4\ub9ac\uae30';_sb2.style.cssText='order:9;display:inline-flex;background:#fff;border:1.5px solid #1e7e34;color:#1e7e34;font-weight:800;padding:9px 13px;font-size:13px;border-radius:7px;cursor:pointer;margin-left:14px';_sb2.onclick=function(){if(typeof ptRestoreTool==='function')ptRestoreTool();};if(_hd2)_hd2.appendChild(_sb2);/* [1522] */}}catch(_u9){}/* [1521] field \ub418\ub3cc\ub9ac\uae30\u00b7\uc55e\uc73c\ub85c */}catch(_e){}}
+function _prSymPick(mhLists,x1,y1,x2,y2){/* [1652] restore symbols(mh/riser/jb/inlet) in box from original manhole objects */
+  function inBox(x,y){return x>=x1&&x<=x2&&y>=y1&&y<=y2;}
+  var SYM={mh:1,riser:1,jb:1,inlet:1};
+  var have={};(state.manholes||[]).forEach(function(m){if(!m)return;if(m.id!=null)have['i'+m.id]=1;if(m.wx!=null)have['c'+Math.round(m.wx*100)+'_'+Math.round(m.wy*100)]=1;});
+  var out=[],seen={};
+  (mhLists||[]).forEach(function(ml){if(!ml||!ml.length)return;ml.forEach(function(m){
+    if(!m||!SYM[m.type]||m.wx==null||m.wy==null)return;
+    if(!inBox(m.wx,m.wy))return;
+    var ck='c'+Math.round(m.wx*100)+'_'+Math.round(m.wy*100);if(have[ck])return;
+    var ik=(m.id!=null)?('i'+m.id):null;if(ik&&have[ik])return;
+    if(seen[ck])return;seen[ck]=1;
+    var c={};for(var k in m){if(k!=='el')c[k]=m[k];}c._mhMatched=false;out.push(c);
+  });});
+  return out;}
 function _prApply(x1,y1,x2,y2){/* [1527] \uce21\uc810 \uc804\uc6a9 \ubcf5\uc6d0 \u2014 \uc2e4\uc2dc\uac04\u00b7\ud6c4\uce21\ub7c9 CSV \uce21\uc810 + \ub178\ub780\uce21\uc810\ub9cc. \uad00\ub85c\uc120\u00b7\ub9e8\ud640 \uc81c\uc678 */
   function inBox(x,y){return x>=x1&&x<=x2&&y>=y1&&y<=y2;}
   /* \ub178\ub780\uce21\uc810 \ud6c4\ubcf4 \uc7ac\ud30c\uc2f1(\ubb18\ube44 \ubb34\uc2dc) \u2014 \uc774 \uc88c\ud45c\uc758 \ubb18\ube44\ub9cc \ud574\uc81c */
@@ -6391,16 +6405,19 @@ function _prApply(x1,y1,x2,y2){/* [1527] \uce21\uc810 \uc804\uc6a9 \ubcf5\uc6d0 
   var addPts=[],seenP={};
   for(var si=undoStack.length-1;si>=0;si--){var o;try{o=JSON.parse(undoStack[si]);}catch(_e){continue;}
     (o.pt||[]).forEach(function(q){if(!q||q.x==null||q.y==null)return;if(!inBox(q.x,q.y))return;var kk=(q.no!=null)?('n'+q.no):('c'+(+q.x).toFixed(2)+'_'+(+q.y).toFixed(2));if(seenP[kk])return;seenP[kk]=1;if(!ptExists(q))addPts.push(q);});}
-  if(!delKeys.length&&!addPts.length)return 0;
+  var mhLists=[];for(var s2=undoStack.length-1;s2>=0;s2--){var o2;try{o2=JSON.parse(undoStack[s2]);}catch(_e2){continue;}if(o2&&o2.m)mhLists.push(o2.m);}/* [1652] snapshot manholes for symbol restore */
+  var addSym=(typeof _prSymPick==='function')?_prSymPick(mhLists,x1,y1,x2,y2):[];
+  if(!delKeys.length&&!addPts.length&&!addSym.length)return 0;
   if(typeof pushHist==='function')pushHist();
   delKeys.forEach(function(k){delete state.mhDel[k];});
   addPts.forEach(function(q){state.points.push(q);});
+  addSym.forEach(function(m){state.manholes.push(m);if(state.mhDel){delete state.mhDel[m.wx+'_'+m.wy];}});/* [1652] restore symbol + clear tombstone */
   window._ftpC=null;
   if(typeof redrawAll==='function')redrawAll();else{if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();}
   if(typeof updMeta==='function')updMeta();
   if(typeof window._autosaveDirty==='function'){try{window._autosaveDirty();}catch(_r4){}}
-  toast('\ub418\uc0b4\ub9bc \u2014 \uce21\uc810 '+addPts.length+' \u00b7 \ub178\ub780\uce21\uc810 '+delKeys.length);
-  return addPts.length+delKeys.length;}
+  toast('되살림 — 측점 '+addPts.length+' · 노란측점 '+delKeys.length+' · 심벌 '+addSym.length);
+  return addPts.length+delKeys.length+addSym.length;}
 function _prCloud(x1,y1,x2,y2,done){/* [1527] \ud074\ub77c\uc6b0\ub4dc \ud3f4\ubc31 \u2014 \uce21\uc810\ub9cc(\uc120 \uc81c\uc678) */
   done=done||function(){};
   try{
@@ -6411,15 +6428,18 @@ function _prCloud(x1,y1,x2,y2,done){/* [1527] \ud074\ub77c\uc6b0\ub4dc \ud3f4\ub
     function ptExists(q){if(q.no!=null&&curNo[q.no])return true;for(var i=0;i<curXY.length;i++){if(Math.abs(curXY[i][0]-q.x)<0.05&&Math.abs(curXY[i][1]-q.y)<0.05)return true;}return false;}
     var addPts=[],seenP={};
     pls.forEach(function(pl){if(!pl)return;(pl.points||[]).forEach(function(q){if(!q||q.x==null||q.y==null)return;if(!inBox(q.x,q.y))return;var kk=(q.no!=null)?('n'+q.no):('c'+(+q.x).toFixed(2)+'_'+(+q.y).toFixed(2));if(seenP[kk])return;seenP[kk]=1;if(!ptExists(q))addPts.push(q);});});
-    if(!addPts.length)return 0;
+    var mhLists=pls.map(function(pl){return pl&&pl.manholes;});/* [1652] payload manholes */
+    var addSym=(typeof _prSymPick==='function')?_prSymPick(mhLists,x1,y1,x2,y2):[];
+    if(!addPts.length&&!addSym.length)return 0;
     if(typeof pushHist==='function')pushHist();
     addPts.forEach(function(q){state.points.push(q);});
+    addSym.forEach(function(m){state.manholes.push(m);if(state.mhDel){delete state.mhDel[m.wx+'_'+m.wy];}});/* [1652] restore symbol */
     window._ftpC=null;
     if(typeof redrawAll==='function')redrawAll();else{if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();}
     if(typeof updMeta==='function')updMeta();
     if(typeof window._autosaveDirty==='function'){try{window._autosaveDirty();}catch(_c4){}}
-    toast('\ud074\ub77c\uc6b0\ub4dc\uc5d0\uc11c \ub418\uc0b4\ub9bc \u2014 \uce21\uc810 '+addPts.length);
-    return addPts.length;}
+    toast('클라우드에서 되살림 — 측점 '+addPts.length+' · 심벌 '+addSym.length);
+    return addPts.length+addSym.length;}
   var pls=[];
   function stepSurvey(){
     var _bn='';try{_bn=(typeof baseName==='function')?baseName(state.projectName||''):'';}catch(_b){}
@@ -6444,7 +6464,7 @@ function ptRestoreTool(){/* [1522] \uce21\uc810 \ub418\uc0b4\ub9ac\uae30 \u2014 
   if(getComputedStyle(wrap).position==='static')wrap.style.position='relative';
   var ov=document.createElement('div');window._prOv=ov;ov.style.cssText='position:absolute;inset:0;z-index:9998;cursor:crosshair;background:rgba(30,126,52,0.05)';
   var box=document.createElement('div');box.style.cssText='position:absolute;border:2px dashed #1e7e34;background:rgba(30,126,52,0.13);display:none;pointer-events:none';ov.appendChild(box);
-  var hint=document.createElement('div');hint.textContent='\ub418\uc0b4\ub9b4 \uc601\uc5ed\uc744 \ub4dc\ub798\uadf8\ud558\uc138\uc694(\uc2e4\uc2dc\uac04\u00b7\ud6c4\uce21\ub7c9 CSV \uce21\uc810\u00b7\ub178\ub780\uce21\uc810\ub9cc \ubcf5\uc6d0) \u00b7 \ud720=\uc90c \u00b7 ESC/\ubc84\ud2bc=\uc885\ub8cc';
+  var hint=document.createElement('div');hint.textContent='\ub418\uc0b4\ub9b4 \uc601\uc5ed\uc744 \ub4dc\ub798\uadf8\ud558\uc138\uc694(측점·노란측점·맨홀/입상주/JB/인입 복원) \u00b7 \ud720=\uc90c \u00b7 ESC/\ubc84\ud2bc=\uc885\ub8cc';
   hint.style.cssText='position:absolute;top:8px;left:50%;transform:translateX(-50%);background:#1e7e34;color:#fff;padding:6px 12px;border-radius:6px;font-size:13px;pointer-events:none;white-space:nowrap';ov.appendChild(hint);
   wrap.appendChild(ov);
   var _bt=document.getElementById('fldRestoreBtn');if(_bt){_bt.style.background='#1e7e34';_bt.style.color='#fff';}
