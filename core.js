@@ -30,7 +30,7 @@ var state={ projectId:null, projectName:null, loadedStage:STAGE, _importSrc:[], 
 // label = '2M(SKB)' 등
 var mode='pan', status='ok', bpCrop=null, bpEraseHover=-1;
 var bpOff=false; /* 백판(수치지도) 숨김 여부 */
-var LINECOL={"통신관로":{c:"#d92b2b",w:1.6},"압입구간":{c:"#1f6fd6",w:3.0,dash:"10 7"},"지거":{c:"#f2b400",w:2.4},"주입상인출선":{c:"#999",w:1},"보도":{c:"#aed581",w:0.8},"도로":{c:"#7cb342",w:0.9}};
+var LINECOL={"통신관로":{c:"#d92b2b",w:1.6},"압입구간":{c:"#1f6fd6",w:3.0,dash:"10 7"},"지거":{c:"#f2b400",w:2.4},"주입상인출선":{c:"#999",w:1},"보도":{c:"#81d4fa",w:1.4},"도로":{c:"#0277bd",w:1.6}};
 function isTpoint(p){var c=(p&&p.code)||'';return /(^|\s)T(\s|\d|$)/.test(c)||/(^|\s)t(\s|\d|$)/.test(c);}/* [1444] */
   function tamsaTag(p){
     if(p._tcode)return p._tcode;
@@ -14468,8 +14468,8 @@ function fldSiteSVG(rec,W,H,span,at){/* [1570] \uce21\ub7c9\ud604\uc7a5 \uc57c\u
   (state.lines||[]).forEach(function(L){var ps=L&&L.pts;if(!ps||ps.length<2)return;
    var any=false;for(var q=0;q<ps.length;q++){if(inView(ps[q][0],ps[q][1])){any=true;break;}}
    if(!any)return;
-   var isPipe=(L.layer==='\ud1b5\uc2e0\uad00\ub85c');
-   body.push('<polyline points="'+ps.map(function(p){var s2=P(p[0],p[1]);return s2[0]+','+s2[1];}).join(' ')+'" fill="none" stroke="'+(isPipe?'#0033cc':'#a3a3a3')+'" stroke-width="'+((isPipe?7.0:1.2)*kW)+'" stroke-linejoin="round" stroke-linecap="round"/>');});
+   var isPipe=(L.layer==='\ud1b5\uc2e0\uad00\ub85c');var _hy=(L.layer==='\ub3c4\ub85c'||L.layer==='\ubcf4\ub3c4');/* [1672] \ud604\ud669\uc120=\uc5f0\ub450 */
+   body.push('<polyline points="'+ps.map(function(p){var s2=P(p[0],p[1]);return s2[0]+','+s2[1];}).join(' ')+'" fill="none" stroke="'+(isPipe?'#0033cc':(_hy?'#7cb342':'#a3a3a3'))+'" stroke-width="'+((isPipe?7.0:(_hy?2.0:1.2))*kW)+'" stroke-linejoin="round" stroke-linecap="round"/>');});
   (state.manholes||[]).forEach(function(m){if(!m||m.wx==null)return;if(!inView(m.wx,m.wy))return;
    var s2=P(m.wx,m.wy);
    if(m.type==='riser'){body.push('<circle cx="'+s2[0]+'" cy="'+s2[1]+'" r="'+(vw*0.012).toFixed(2)+'" fill="#7a52e0" fill-opacity="0.85"/>');return;}
