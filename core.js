@@ -8137,7 +8137,7 @@ function mnHostOpen(){
   return pn;
 }
 function mnHostClose(){try{setTimeout(function(){if(typeof refDrawMh==='function')refDrawMh();},0);}catch(e){}   /* [1094] */
-  var pn=document.getElementById('mnPanel');if(pn){pn.classList.remove('open');pn.style.display='none';pn.innerHTML='';}}
+  var pn=document.getElementById('mnPanel');if(pn){pn.classList.remove('open');pn.style.display='none';pn.innerHTML='';}try{if(typeof _tgMhSplit==='function')_tgMhSplit(false);}catch(_e){}/* [1688] \ub2eb\uae30 \uc2dc \uc18d\uc131\ucc3d \uc624\ub978\ucabd \ubcf5\uc6d0 */}
 /* [1030] 사업 전환 시 맨홀야장 UI 전부 닫기 — 이전 사업 내용이 화면에 남아 혼동되는 문제 방지 */
 function mnCloseAll(){
   try{mnHostClose();}catch(e){}
