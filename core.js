@@ -15129,7 +15129,7 @@ function zoomWheelSmooth(e){
     var part=Math.exp(lg*0.45); /* [1190] 드리프트감 감소: 프레임당 45% 소화 */
     zoomAtLight(part,_zw.cx,_zw.cy);
     _zw.pend/=part;
-    if(typeof drawTgPipeTags==='function')try{drawTgPipeTags();}catch(_zt9){}var _hv9=document.getElementById('tgNoteHov');if(_hv9)_hv9.remove();/* [1413] *//* [1409] 줌 중 태그 고정 */
+    if(typeof drawTgPipeTags==='function')try{drawTgPipeTags();}catch(_zt9){}if(typeof tgFacCircles==='function')try{tgFacCircles();}catch(_zc9){}if(typeof tgSelPtMark==='function')try{tgSelPtMark();}catch(_zs9){}var _hv9=document.getElementById('tgNoteHov');if(_hv9)_hv9.remove();/* [1413] *//* [1409] 줌 중 태그 고정 */
     requestAnimationFrame(_st);
   })();
 }
