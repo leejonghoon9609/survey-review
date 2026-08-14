@@ -441,6 +441,10 @@ var LABEL_D=4.5; // (구) 근접 그룹 거리 — 현재 미사용, 호환용 �
 function computeLabels(){
   var pts=state.points, n=pts.length, lay=new Array(n);
   if(!n) return lay;
+  /* [BUILD1710] 라벨 위치 캐시 — 줌/팬은 데이터 불변이므로 재계산 생략 (편집은 pushHist에서 무효화) */
+  var _clcs=0;for(var _clci=0;_clci<n;_clci++){var _clp=pts[_clci];if(_clp){_clcs+=(_clp.x||0)+(_clp.y||0);}}
+  var _clSig=n+':'+_clcs.toFixed(1)+':'+((state.lines&&state.lines.length)||0)+':'+((state.manholes&&state.manholes.length)||0);
+  if(window._clSig===_clSig&&window._clLay)return window._clLay;
   var sum=0,cnt=0;
   for(var i=0;i<n;i++){var best=Infinity;
     for(var j=0;j<n;j++){if(i!==j){var d=Math.hypot(pts[i].x-pts[j].x,pts[i].y-pts[j].y);if(d<best)best=d;}}
@@ -494,6 +498,7 @@ function computeLabels(){
     if(!bestPos)bestPos=[p.x+L,p.y];
     lay[k]={lx:bestPos[0],ly:bestPos[1],anchor:(bestPos[0]<p.x?'end':'start'),leader:true};
     placed.push([bestPos[0],bestPos[1],p.x,p.y]);}
+  window._clSig=_clSig;window._clLay=lay;
   return lay;
 }
 
@@ -11419,7 +11424,7 @@ var gMeasure=document.createElementNS(SVGNS,'g'); cv.appendChild(gMeasure); // �
 var undoStack=[],redoStack=[];
 function snapHist(){return JSON.stringify({rc:state.refCrop,l:state.lines,bt:state.baseTexts,m:state.manholes,lo:state.labelOff,pt:state.points,gp:state.gpsPts,tr:state._trash,md:state.mhDel,mk:state.markups.map(function(x){var o={};for(var k in x)if(k!=='el')o[k]=x[k];return o;})});}
 function restoreHist(s){var o=JSON.parse(s);state.refCrop=o.rc||null;try{if(typeof REF!=='undefined'&&REF.ents){refCalcBox();refDraw();}if(typeof refCropBtn==='function')refCropBtn();}catch(_re){}state.lines=o.l||[];if(o.bt)state.baseTexts=o.bt;state.manholes=o.m||[];state.labelOff=o.lo||{};if(o.pt)state.points=o.pt;if(o.gp)state.gpsPts=o.gp;if(o.tr)state._trash=o.tr;if('md' in o){state.mhDel=o.md||null;}window._ftpC=null;/* [1521] \ubb18\ube44 \ubcf5\uc6d0+\ud0d0\uc0ac\uce90\uc2dc \ubb34\ud6a8\ud654 */state.markups.forEach(function(x){if(x.el)x.el.remove();});state.markups=o.mk||[];drawGeo();drawManholes();drawMarks();updMeta();}
-function pushHist(){undoStack.push(snapHist());if(undoStack.length>60)undoStack.shift();redoStack=[];/* [1222] ★자동저장 훅 — 절대 제거 금지: 모든 편집은 여기서 자동저장 예약됨 (전 공정 공통) */if(typeof window!=='undefined'&&typeof window._autosaveDirty==='function'){try{window._autosaveDirty();}catch(e){}}else if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&typeof rtSaveSoon==='function'){try{rtSaveSoon();}catch(e){}}}
+function pushHist(){window._clSig=null;/* [BUILD1710] 편집=라벨캐시 무효화 */undoStack.push(snapHist());if(undoStack.length>60)undoStack.shift();redoStack=[];/* [1222] ★자동저장 훅 — 절대 제거 금지: 모든 편집은 여기서 자동저장 예약됨 (전 공정 공통) */if(typeof window!=='undefined'&&typeof window._autosaveDirty==='function'){try{window._autosaveDirty();}catch(e){}}else if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&typeof rtSaveSoon==='function'){try{rtSaveSoon();}catch(e){}}}
 function doUndo(){if(!undoStack.length){toast('되돌릴 작업이 없습니다');return;}redoStack.push(snapHist());restoreHist(undoStack.pop());if(typeof window._autosaveDirty==='function'){try{window._autosaveDirty();}catch(_e){}}toast('되돌렸습니다');}
 document.addEventListener('keydown',function(e){if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return;if(!(e.ctrlKey||e.metaKey))return;var t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable))return;var k=(e.key||'').toLowerCase();if(k!=='z'&&k!=='y')return;e.preventDefault();if(typeof readOnly!=='undefined'&&readOnly){toast('\ubcf4\uae30 \uc804\uc6a9');return;}if(k==='z'&&!e.shiftKey)doUndo();else doRedo();});/* [1521] field Ctrl+Z/Y */
 function doRedo(){if(!redoStack.length){toast('다시 실행할 작업이 없습니다');return;}undoStack.push(snapHist());restoreHist(redoStack.pop());if(typeof window._autosaveDirty==='function'){try{window._autosaveDirty();}catch(_e){}}toast('다시 실행했습니다');}
