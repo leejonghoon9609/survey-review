@@ -2302,7 +2302,7 @@ function _exportDXFInner(returnStr){
   var _pdfQ=[],_pqi=0;
   function _pq(z,fn){_pdfQ.push([z,_pqi++,fn]);}
   function _pdfFlush(){_pdfQ.sort(function(a,b){return a[0]-b[0]||a[1]-b[1];});for(var i=0;i<_pdfQ.length;i++){try{_pdfQ[i][2]();}catch(e){}}_pdfQ=[];_pqi=0;}
-  function _pdfPoly(pts,col,closed,lt,layer){if(!pts||pts.length<2)return;var z=(layer==='PIPE')?1:2;_pq(z,function(){var d=_PDF.doc,c=ACIrgb(col);d.setDrawColor(c[0],c[1],c[2]);d.setLineWidth(_PDF.lw);d.setLineDashPattern(lt==='DASHED'?[0.35,0.2]:[],0);for(var i=0;i<pts.length-1;i++)d.line(PX(pts[i][0]),PY(pts[i][1]),PX(pts[i+1][0]),PY(pts[i+1][1]));if(closed&&pts.length>2)d.line(PX(pts[pts.length-1][0]),PY(pts[pts.length-1][1]),PX(pts[0][0]),PY(pts[0][1]));d.setLineDashPattern([],0);});}
+  function _pdfPoly(pts,col,closed,lt,layer){if(!pts||pts.length<2)return;var z=(layer==='PIPE')?1:2;_pq(z,function(){var d=_PDF.doc,c=ACIrgb(col);d.setDrawColor(c[0],c[1],c[2]);d.setLineWidth(_PDF.lw);d.setLineDashPattern(lt==='DASHED'?[0.22,0.12]:[],0);for(var i=0;i<pts.length-1;i++)d.line(PX(pts[i][0]),PY(pts[i][1]),PX(pts[i+1][0]),PY(pts[i+1][1]));if(closed&&pts.length>2)d.line(PX(pts[pts.length-1][0]),PY(pts[pts.length-1][1]),PX(pts[0][0]),PY(pts[0][1]));d.setLineDashPattern([],0);});}
   function _pdfCirc(cx,cy,r,col,layer){_pq(4,function(){var d=_PDF.doc,c=ACIrgb(col);d.setDrawColor(c[0],c[1],c[2]);d.setLineWidth(_PDF.lw);d.setLineDashPattern([],0);d.circle(PX(cx),PY(cy),Math.max(0.2,r*_PDF.sc),'S');});}
   function _pdfLine(x1,y1,x2,y2,col,lt,layer){_pq(2,function(){var d=_PDF.doc,c=ACIrgb(col);d.setDrawColor(c[0],c[1],c[2]);d.setLineWidth(_PDF.lw);d.setLineDashPattern(lt==='DASHED'?[1.0,0.7]:[],0);d.line(PX(x1),PY(y1),PX(x2),PY(y2));d.setLineDashPattern([],0);});}
   function _pdfText(x,y,h,s,layer,col,align,rot,valign){if(s==null||s==='')return;var z=(layer==='PT_DEPTH')?9:5;var tc=(layer==='PT_DEPTH')?[0,40,150]:ACIrgb(col);_pq(z,function(){var d=_PDF.doc;d.setTextColor(tc[0],tc[1],tc[2]);var fmm=h*_PDF.sc;if(layer==='DEPTHCHK')fmm*=1.25;var fpt=fmm*2.8346;if(fpt<1.2)fpt=1.2;d.setFontSize(fpt);if(layer==='PT_DEPTH'){var oo={align:'center',baseline:(valign===1)?'bottom':(valign===3)?'top':'alphabetic'};if(rot)oo.angle=-rot;try{d.text(String(s),PX(x),PY(y),oo);}catch(e){}return;}var o={align:(align===1)?'center':(align===2)?'right':'left',baseline:(valign===2)?'middle':(valign===3)?'top':'alphabetic'};if(rot)o.angle=-rot;try{d.text(String(s),PX(x),PY(y),o);}catch(e){}});}
@@ -3626,19 +3626,19 @@ DASHED
  70
 0
   3
-_ _ _ _
+_ _ _ _ _
  72
 65
  73
 2
  40
-0.4
- 49
 0.25
+ 49
+0.15
  74
 0
  49
--0.15
+-0.1
  74
 0
   0
