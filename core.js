@@ -1715,10 +1715,11 @@ function drawBackdrop(){
   if(typeof gGeo==='undefined'||!gGeo)return;
   if(bpOff)return;
   var sig=bpSignature();
-  if(sig!==_bpSig||!_bpImgURL){bakeBackdrop();_bpSig=sig;}
+  if(sig!==_bpSig||!_bpImgURL){bakeBackdrop();_bpSig=sig;window._bpImgEl=null;}/* [BUILD1711] 재굽기면 이미지요소 재생성 */
   if(!_bpImgURL||!_bpImgBox)return;
   var b=_bpImgBox;
-  var im=el('image',{x:b.minx-ORG.x,y:ORG.y-b.maxy,width:(b.maxx-b.minx),height:(b.maxy-b.miny),preserveAspectRatio:'none','pointer-events':'none'});/* [1526] \ubc31\ud310 \ubc30\uce58 WF\u2192LOCAL */
+  var im=window._bpImgEl;
+  if(!im){im=el('image',{x:b.minx-ORG.x,y:ORG.y-b.maxy,width:(b.maxx-b.minx),height:(b.maxy-b.miny),preserveAspectRatio:'none','pointer-events':'none'});window._bpImgEl=im;}/* [1526] \ubc31\ud310 \ubc30\uce58 WF\u2192LOCAL */
   try{im.setAttributeNS('http://www.w3.org/1999/xlink','href',_bpImgURL);}catch(e){}
   im.setAttribute('href',_bpImgURL);
   gGeo.insertBefore(im,gGeo.firstChild);
@@ -15127,7 +15128,7 @@ function zoomWheelSmooth(e){
       if(_zw.pend!==1){zoomAtLight(_zw.pend,_zw.cx,_zw.cy);_zw.pend=1;}
       _zw.run=false;
       var _fin9=function(){if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();if(typeof highlightSel==='function')highlightSel();};/* [1191] */
-      if(typeof IS_TANGO!=='undefined'&&IS_TANGO){if(_zw.reT)clearTimeout(_zw.reT);_zw.reT=setTimeout(function(){_zw.reT=null;if(!_zw.run)_fin9();},90);}/* [1661] tango: \ubb34\uac70\uc6b4 \uc7ac\uadf8\ub9ac\uae30 \ub514\ubc14\uc6b4\uc2a4 — \uc5f0\uc18d \uc90c\uc740 \uac00\ubccd\uac8c, \uba48\ucd98 \ub4a4 1\ud68c */
+      if((typeof IS_TANGO!=='undefined'&&IS_TANGO)||(typeof STAGE!=='undefined'&&STAGE==='survey')){if(_zw.reT)clearTimeout(_zw.reT);_zw.reT=setTimeout(function(){_zw.reT=null;if(!_zw.run)_fin9();},90);}/* [BUILD1711] 결선도 줌 디바운스 *//* [1661] tango: \ubb34\uac70\uc6b4 \uc7ac\uadf8\ub9ac\uae30 \ub514\ubc14\uc6b4\uc2a4 — \uc5f0\uc18d \uc90c\uc740 \uac00\ubccd\uac8c, \uba48\ucd98 \ub4a4 1\ud68c */
       else{_fin9();}
       return;
     }
