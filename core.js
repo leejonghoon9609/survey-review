@@ -1060,7 +1060,7 @@ function drawGeo(){_orgSync();/* [1524] */if(typeof _tgCarGeomBuild==='function'
   if(typeof drawDepthCheck==='function')drawDepthCheck();
   if(typeof drawTgNotes==='function')drawTgNotes();if(typeof drawTgPipeTags==='function')drawTgPipeTags();/* [1401] */
   if(typeof drawTitleBlock==='function')drawTitleBlock();
-  /* [BUILD1707] 백판 글자는 bakeBackdrop 이미지에 구워짐 — 개별 SVG 제거(성능) */
+  if(!bpOff)(state.baseTexts||[]).forEach(function(t){var sc=S(t.x,t.y);var tn=el('text',{x:sc[0],y:sc[1],'font-size':Math.max(t.h*2,1.1),fill:'#888','text-anchor':'start','pointer-events':'none'});if(t.rot){tn.setAttribute('transform','rotate('+(-t.rot)+' '+sc[0]+' '+sc[1]+')');}tn.textContent=t.text;gGeo.appendChild(tn);});
   // ★ 백판은 화면영역 컬링으로 그림(drawBackdrop) — 화면 밖 백판은 안 그려 줌/팬 가벼움(BUILD509)
   drawBackdrop();
   // 앱 레이어·crop 라인만 개별(색·굵기·dash 다양, 클릭 필요)
@@ -1689,11 +1689,10 @@ function _updateMhEditPos(){if(!_mhEditAnchor||!_mhEditAnchor.wrap||!_mhEditAnch
 var _mhZW=0,_mhZReq=0;/* [1455] 줄 배율 변경 시 맨홀 인출선 재계산(rAF 1회) — 결선/field */
 function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);/* [BUILD1703] data-fixpx marker screen-fixed on zoom (줌 매프레임 반경/선폭 재계산) */try{if(typeof IS_TANGO!=='undefined'&&IS_TANGO&&typeof pxToWorld==='function'){var _fpu=pxToWorld(),_fpL=cv.querySelectorAll('[data-fixpx]');for(var _fpi=0;_fpi<_fpL.length;_fpi++){var _fe=_fpL[_fpi],_fpr=parseFloat(_fe.getAttribute('data-fixpx'))||15,_fps=parseFloat(_fe.getAttribute('data-fixsw'))||0;_fe.setAttribute('r',_fpu*_fpr);if(_fps)_fe.setAttribute('stroke-width',_fpu*_fps);}}}catch(_fpz){}repositionLabels();if(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))&&typeof _mhLeadSync==='function'&&Math.abs(vb.w-_mhZW)>1e-9){_mhZW=vb.w;_mhLeadSync();if(typeof _refTxtFix==='function')_refTxtFix();if(typeof _refMhSync==='function')_refMhSync();}/* [1457] 매 프레임 경량 동기화(재그리기 없음) */if(bgMapOn)syncMapBg();_updateMhEditPos();try{if(typeof refMhSize==='function')refMhSize();}catch(e){}try{if(state.hyunPts&&state.hyunPts.length&&typeof drawHyunSym==='function'&&Math.abs(vb.w-(window._hyZW||0))>1e-9){window._hyZW=vb.w;drawHyunSym();}}catch(_hz){}/* [1634] \ud0c0\uc810 \ud654\uba74 \uace0\uc815 \ud06c\uae30 \u2014 \uc90c\ub9c8\ub2e4 \uc7ac\uacc4\uc0b0 */}   /* [1105] 줌/팬마다 맨홀 원 반경 갱신 */
 // ★ 백판(수치지도) 화면영역 컬링 렌더 (BUILD509) — 화면보다 넓은 여유영역에 걸치는 백판만 통합 path로
-function bpSignature(){var n=0,fx=0,fy=0;(state.lines||[]).forEach(function(L){if(LINECOL[L.layer]||L.crop||!L.pts||!L.pts.length)return;n++;fx+=L.pts[0][0];fy+=L.pts[0][1];});return (function(){var _tn=0,_tfx=0;(state.baseTexts||[]).forEach(function(t){if(!t||t.x==null)return;_tn++;_tfx+=t.x;});return n+':'+fx.toFixed(0)+':'+fy.toFixed(0)+':'+_tn+':'+_tfx.toFixed(0)+':'+(bpOff?'off':'on');})();}
+function bpSignature(){var n=0,fx=0,fy=0;(state.lines||[]).forEach(function(L){if(LINECOL[L.layer]||L.crop||!L.pts||!L.pts.length)return;n++;fx+=L.pts[0][0];fy+=L.pts[0][1];});return n+':'+fx.toFixed(0)+':'+fy.toFixed(0)+':'+(bpOff?'off':'on');}
 function bakeBackdrop(){
   var minx=1e18,miny=1e18,maxx=-1e18,maxy=-1e18,has=false;
   (state.lines||[]).forEach(function(L){if(LINECOL[L.layer]||L.crop||!L.pts||!L.pts.length)return;has=true;for(var i=0;i<L.pts.length;i++){var x=L.pts[i][0],y=L.pts[i][1];if(x<minx)minx=x;if(x>maxx)maxx=x;if(y<miny)miny=y;if(y>maxy)maxy=y;}});
-  (state.baseTexts||[]).forEach(function(t){if(!t||t.x==null||t.y==null||!isFinite(t.x)||!isFinite(t.y))return;has=true;if(t.x<minx)minx=t.x;if(t.x>maxx)maxx=t.x;if(t.y<miny)miny=t.y;if(t.y>maxy)maxy=t.y;});
   if(!has||maxx<=minx||maxy<=miny){_bpImgURL=null;_bpImgBox=null;return;}
   var ww=maxx-minx,hh=maxy-miny,diag=Math.max(ww,hh);
   var pxPerWorld=2048/diag;   // 긴 변 2048px (끊김 방지 우선, 줄 중 재그림 없음)
@@ -1704,9 +1703,6 @@ function bakeBackdrop(){
   ctx.strokeStyle='#bbb';ctx.lineWidth=Math.max(1,pxPerWorld*0.1);ctx.lineJoin='round';ctx.lineCap='round';ctx.beginPath();
   (state.lines||[]).forEach(function(L){if(LINECOL[L.layer]||L.crop||!L.pts||!L.pts.length)return;for(var i=0;i<L.pts.length;i++){var px=(L.pts[i][0]-minx)*pxPerWorld,py=(maxy-L.pts[i][1])*pxPerWorld;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);}});
   ctx.stroke();
-  /* [BUILD1707] 백판 글자도 이미지에 굽기 — 개별 SVG text 제거로 경량화 */
-  ctx.fillStyle='#888';ctx.textAlign='left';ctx.textBaseline='alphabetic';
-  (state.baseTexts||[]).forEach(function(t){if(!t||!t.text||t.x==null||t.y==null)return;var _wfs=Math.max((t.h||0)*2,1.1),_fpx=_wfs*pxPerWorld;if(_fpx<1)return;ctx.font=_fpx+'px sans-serif';var _px=(t.x-minx)*pxPerWorld,_py=(maxy-t.y)*pxPerWorld;if(t.rot){ctx.save();ctx.translate(_px,_py);ctx.rotate(-(t.rot)*Math.PI/180);ctx.fillText(t.text,0,0);ctx.restore();}else ctx.fillText(t.text,_px,_py);});
   try{_bpImgURL=cvs.toDataURL('image/png');_bpImgBox={minx:minx,miny:miny,maxx:maxx,maxy:maxy};}catch(e){_bpImgURL=null;_bpImgBox=null;}
 }
 // ★ 백판은 고해상도 이미지로 구워 SVG image로 배치(BUILD510). 줌/팬은 viewBox만 변환→가벼움. 좌표(state.lines)는 보존(DXF·수선의발 계산용)
@@ -15618,3 +15614,6 @@ document.addEventListener('pointerup',function(ev){
   window._refMhDrag=null;
   try{if(typeof saveProject==='function')saveProject();}catch(_s){}
 },true);
+
+/* [BUILD1708] 임시 성능 진단 — 8ms 초과 함수만 콘솔 출력(진단 끝나면 제거) */
+try{['drawGeo','applyVB','repositionLabels','drawManholes','drawBackdrop','bakeBackdrop','computeLabels','drawHyunSym'].forEach(function(fn){if(typeof window[fn]==='function'){var _o=window[fn];window[fn]=function(){var _t=performance.now();var _r=_o.apply(this,arguments);var _d=performance.now()-_t;if(_d>8)console.log('\u23f1 '+fn+' '+_d.toFixed(0)+'ms');return _r;};}});console.log('[perf] 진단 로그 상태');}catch(_perf){}
