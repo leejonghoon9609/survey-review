@@ -6506,13 +6506,13 @@ function _tgMhSplit(on){/* [1675] \uc18d\uc131\ucc3d+\ub9e8\ud640\ub3c4\ucc3d \u
 function _tgMhBtn(){/* [1674] tango \ub9e8\ud640\ub3c4 \ubc84\ud2bc — \ub9e8\ud640\ub3c4 \ubaa8\ub4dc(\ud328\ub110) \ud1a0\uae00, \ud328\ub110 \uc5f4\ub838\uc744 \ub54c\ub9cc \ub9e8\ud640 \ud074\ub9ad=\uc57c\uc7a5 \uc5f0\ub3d9 */
   try{if(!(typeof IS_TANGO!=='undefined'&&IS_TANGO))return;if(document.getElementById('tgMhBtn'))return;var _hd=document.querySelector('header');if(!_hd)return;
   var b=document.createElement('button');b.id='tgMhBtn';b.textContent='\uD83D\uDD73 \ub9e8\ud640\ub3c4';
-  b.style.cssText='order:3;display:inline-flex;background:#fff;border:1.5px solid #8e44ad;color:#8e44ad;font-weight:800;padding:9px 13px;font-size:13px;border-radius:7px;cursor:pointer;margin-left:12px';
+  b.style.cssText='order:8;display:inline-flex;background:#fff;border:1.5px solid #8e44ad;color:#8e44ad;font-weight:800;padding:9px 13px;font-size:13px;border-radius:7px;cursor:pointer;margin-left:12px';
   b.onclick=function(){if(typeof mnUiOpen==='function'&&mnUiOpen()){if(typeof mnHostClose==='function')mnHostClose();_tgMhSplit(false);}else{if(typeof mnOpenList==='function')mnOpenList();else if(typeof mnHostOpen==='function')mnHostOpen();_tgMhSplit(true);}};
   var _rb=document.getElementById('fldRestoreBtn');if(_rb&&_rb.parentNode){_rb.parentNode.insertBefore(b,_rb.nextSibling);}else{_hd.appendChild(b);}/* [1676] \uce21\uc810\ub418\uc0b4\ub9ac\uae30 \uc606\uc5d0 \ubc30\uce58(\ud655\uc2e4\ud788 \ubcf4\uc784) */}catch(_e){}}
 function _tgRestoreBtn(){/* [1657] tango 헤더 '측점 되살리기' 버튼 — 노란측점 삭제 제외 */
   try{if(!(typeof IS_TANGO!=='undefined'&&IS_TANGO))return;if(document.getElementById('fldRestoreBtn'))return;var _hd=document.querySelector('header');if(!_hd)return;
   var b=document.createElement('button');b.id='fldRestoreBtn';b.textContent='\u267b 측점 되살리기';
-  b.style.cssText='order:2;display:inline-flex;background:#fff;border:1.5px solid #1e7e34;color:#1e7e34;font-weight:800;padding:9px 13px;font-size:13px;border-radius:7px;cursor:pointer;margin-left:14px';
+  b.style.cssText='order:7;display:inline-flex;background:#fff;border:1.5px solid #1e7e34;color:#1e7e34;font-weight:800;padding:9px 13px;font-size:13px;border-radius:7px;cursor:pointer;margin-left:14px';
   b.onclick=function(){if(typeof ptRestoreTool==='function')ptRestoreTool();};_hd.appendChild(b);}catch(_e){}}
 function ptRestoreTool(){/* [1522] \uce21\uc810 \ub418\uc0b4\ub9ac\uae30 \u2014 \uc601\uc5ed \ub4dc\ub798\uadf8 \uc624\ubc84\ub808\uc774 */
   if(window._prOv){try{window._prOv.remove();}catch(_e){}window._prOv=null;var _b0=document.getElementById('fldRestoreBtn');if(_b0){_b0.style.background='#fff';_b0.style.color='#1e7e34';}toast('\uce21\uc810 \ub418\uc0b4\ub9ac\uae30 \uc885\ub8cc');return;}

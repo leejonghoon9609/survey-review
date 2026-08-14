@@ -333,7 +333,9 @@
   #projFilterChip{order:5;margin-left:auto!important;max-width:170px}
   #projFilterChip~#conn{margin-left:8px!important}
   /* 2줄: [완료목록·준공도면] | [지우기·거리산출] | [보기·전체·백판] | [되돌리기·다시실행·휠감도] … 우측 [측점사진보기·카카오맵·로드뷰] */
-  #doneListBtn,#doneSummary,#asbuiltBtn{order:9}
+  #doneListBtn,#doneSummary{order:9}
+  #asbuiltBtn{order:6}/* [1678] 준공도면 맨앞 */
+  #doneListBtn{display:none!important}/* [1678] tango 결선완료 삭제 */
   #globalbtns{display:contents}
   #globalbtns button[data-g="delall2"]{order:10;margin-left:72px}
   #globalbtns button[data-g="measure"]{order:10}
@@ -341,8 +343,6 @@
   #globalbtns button[data-g="fit"],#bpToggle{order:11}
   #globalbtns button[data-g="undo"]{order:12;margin-left:72px}
   #globalbtns button[data-g="redo"]{order:12}
-#globalbtns button#doneListBtn{display:none!important}/* [1677] tango 결선완료 숨김 */
-#globalbtns button#asbuiltBtn{order:1!important}/* [1677] 준공도면 맨앞 */
   #wheelAdjBox{order:12}
   #photoBtn,#bgBtn,#rvBtn{order:13}
   /* 전체=빨강 / 백판=마젠타 (결선DB 동일) */
@@ -550,6 +550,6 @@
     </div>
   </div>
 
-<script src="login.js?v=1677"></script><script src="core.js?v=1677"></script>
+<script src="login.js?v=1678"></script><script src="core.js?v=1678"></script>
 </body>
 </html>
