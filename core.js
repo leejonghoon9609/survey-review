@@ -6508,7 +6508,7 @@ function _tgMhBtn(){/* [1674] tango \ub9e8\ud640\ub3c4 \ubc84\ud2bc — \ub9e8\u
   var b=document.createElement('button');b.id='tgMhBtn';b.textContent='\uD83D\uDD73 \ub9e8\ud640\ub3c4';
   b.style.cssText='order:8;display:inline-flex;background:#fff;border:1.5px solid #8e44ad;color:#8e44ad;font-weight:800;padding:9px 13px;font-size:13px;border-radius:7px;cursor:pointer;margin-left:12px';
   b.onclick=function(){if(typeof mnUiOpen==='function'&&mnUiOpen()){if(typeof mnHostClose==='function')mnHostClose();_tgMhSplit(false);}else{if(typeof mnOpenList==='function')mnOpenList();else if(typeof mnHostOpen==='function')mnHostOpen();_tgMhSplit(true);}};
-  _hd.appendChild(b);}catch(_e){}}
+  var _rb=document.getElementById('fldRestoreBtn');if(_rb&&_rb.parentNode){_rb.parentNode.insertBefore(b,_rb.nextSibling);}else{_hd.appendChild(b);}/* [1676] \uce21\uc810\ub418\uc0b4\ub9ac\uae30 \uc606\uc5d0 \ubc30\uce58(\ud655\uc2e4\ud788 \ubcf4\uc784) */}catch(_e){}}
 function _tgRestoreBtn(){/* [1657] tango 헤더 '측점 되살리기' 버튼 — 노란측점 삭제 제외 */
   try{if(!(typeof IS_TANGO!=='undefined'&&IS_TANGO))return;if(document.getElementById('fldRestoreBtn'))return;var _hd=document.querySelector('header');if(!_hd)return;
   var b=document.createElement('button');b.id='fldRestoreBtn';b.textContent='\u267b 측점 되살리기';
