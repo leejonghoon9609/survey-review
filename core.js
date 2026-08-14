@@ -15088,8 +15088,8 @@ function wheelFactor(){
   var f=base+adj*0.06; if(f<1.02)f=1.02; if(f>2.4)f=2.4; return f;
 }
 (function(){try{
-  if(typeof IS_TANGO==='undefined'||!IS_TANGO)return; /* [1184] 탱고 전용 UI — 다른 공정 적용 금지 */
-  var tb=document.getElementById('tamsaBadge'); if(!tb||!tb.parentNode)return;
+  if(!((typeof IS_TANGO!=='undefined'&&IS_TANGO)||(typeof STAGE!=='undefined'&&STAGE==='survey')))return; /* [BUILD1712] 휠감도 UI: 탱고+결선 */
+  var tb=document.getElementById((typeof IS_TANGO!=='undefined'&&IS_TANGO)?'tamsaBadge':'trashProj'); if(!tb||!tb.parentNode)return;
   var bs='border:1px solid #c9d4de;background:#fff;border-radius:6px;width:24px;height:24px;cursor:pointer;font-size:15px;font-weight:800;color:#1565c0;line-height:1;padding:0;display:inline-flex;align-items:center;justify-content:center';
   var box=document.createElement('span');
   box.id='wheelAdjBox';
