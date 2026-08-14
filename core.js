@@ -460,7 +460,7 @@ function computeLabels(){
     return cs;}
   function score(lx,ly,selfIdx){var sc=0;var near=L*3;
     for(var i=0;i<n;i++){if(i===selfIdx)continue;if(Math.abs(lx-pts[i].x)>near||Math.abs(ly-pts[i].y)>near)continue;var d=Math.hypot(lx-pts[i].x,ly-pts[i].y);if(d<lblR*1.2)sc+=(lblR*1.2-d)*5;}
-    for(var li=0;li<state.lines.length;li++){var L2=state.lines[li];if(!L2.pts)continue;
+    for(var li=0;li<state.lines.length;li++){var L2=state.lines[li];if(!L2.pts)continue;if(!(LINECOL[L2.layer]||L2.crop))continue;/* [BUILD1709] 라벨 배치: 백판 라인 스킵(성능) */
       for(var s=0;s<L2.pts.length-1;s++){var a=L2.pts[s],b=L2.pts[s+1];if(!a||!b)continue;if(Math.abs(lx-a[0])>near&&Math.abs(lx-b[0])>near)continue;var d=distSeg(lx,ly,a,b);if(d<lblR)sc+=(lblR-d)*8;}}
     for(var q=0;q<placed.length;q++){if(Math.abs(lx-placed[q][0])>near||Math.abs(ly-placed[q][1])>near)continue;var d=Math.hypot(lx-placed[q][0],ly-placed[q][1]);if(d<lblR*1.6)sc+=(lblR*1.6-d)*6;}
     // ★ 인출선(측점→라벨) 교차 강제 배제: (1)관로선 가로지름 (2)다른 인출선 가로지름
@@ -15615,5 +15615,3 @@ document.addEventListener('pointerup',function(ev){
   try{if(typeof saveProject==='function')saveProject();}catch(_s){}
 },true);
 
-/* [BUILD1708] 임시 성능 진단 — 8ms 초과 함수만 콘솔 출력(진단 끝나면 제거) */
-try{['drawGeo','applyVB','repositionLabels','drawManholes','drawBackdrop','bakeBackdrop','computeLabels','drawHyunSym'].forEach(function(fn){if(typeof window[fn]==='function'){var _o=window[fn];window[fn]=function(){var _t=performance.now();var _r=_o.apply(this,arguments);var _d=performance.now()-_t;if(_d>8)console.log('\u23f1 '+fn+' '+_d.toFixed(0)+'ms');return _r;};}});console.log('[perf] 진단 로그 상태');}catch(_perf){}
