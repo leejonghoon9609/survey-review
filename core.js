@@ -8940,9 +8940,7 @@ function mnDxfGen(rec){
       var pcArm=armXY(wall,mx,my);
       var sl=slots[wall];
       var minX=1e18,maxX=-1e18,minY=1e18,maxY=-1e18;
-      var gInfo=[]; /* 그룹별 확대 y중심(라벨 줄 순서용) */
       pw.groups.forEach(function(gr){
-        var gys=0,gn=0;
         (gr.circles||[]).forEach(function(c){
           var st=(c.st!=null?c.st:(c.fill?1:0));if(st===2)return;
           var pp=armXY(wall,c.x,c.y);
@@ -8951,20 +8949,13 @@ function mnDxfGen(rec){
           if(st===1)out+=mnDxfHatch(nh(),ex,ey,c.dia);
           if(ex-c.dia<minX)minX=ex-c.dia; if(ex+c.dia>maxX)maxX=ex+c.dia;
           if(ey-c.dia<minY)minY=ey-c.dia; if(ey+c.dia>maxY)maxY=ey+c.dia;
-          gys+=ey;gn++;
         });
-        if(gn){
-          var lb=(typeof mnGroupLabel==='function')?mnGroupLabel(gr):'';
-          if(lb){
-            var kind=lb.split('\u00d8')[0]||'';
-            var ls=[];lb.split(' ').forEach(function(tk){if(!tk)return;ls.push(tk.indexOf('\u00d8')>=0?tk:(kind+'\u00d8'+tk));});
-            gInfo.push({cy:gys/gn,lines:ls});
-          }
-        }
       });
-      /* [993] 라벨: DIM 스타일·중앙정렬, 완성본 간격(묶음끝+220+폭/2), 줄간격 131, 위쪽 그룹 먼저 */
-      gInfo.sort(function(a,b){return b.cy-a.cy;});
-      var lines=[];gInfo.forEach(function(gi){gi.lines.forEach(function(L){lines.push(L);});});
+      /* [BUILD1720] 벙 전체 관종+관경 합산 — 1개씩 배치(그룹 분리)해도 관경 같으면 관수 합산 1줄 (mnPipeSummary 동일 규칙) */
+      var _mag={},_mord=[];
+      pw.groups.forEach(function(gr){var _kd=(gr&&gr.kind)||'FC';(gr.circles||[]).forEach(function(c){var st=(c.st!=null?c.st:(c.fill?1:0));if(st===2)return;var _k=_kd+'|'+c.dia;if(!(_k in _mag)){_mag[_k]={kind:_kd,dia:c.dia,cnt:0,fill:0};_mord.push(_k);}_mag[_k].cnt++;if(st===1)_mag[_k].fill++;});});
+      _mord.sort(function(a,b){return _mag[a].dia-_mag[b].dia;});
+      var lines=_mord.map(function(_k){var a=_mag[_k];return a.kind+'\u00d8'+a.dia+'X'+a.cnt+'('+a.fill+')';});
       var cymL=(minY+maxY)/2;
       var cxmL=(minX+maxX)/2;
       lines.forEach(function(L,i){
