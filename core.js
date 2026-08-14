@@ -12011,25 +12011,24 @@ function fieldLayerBar(){
   var cw=document.querySelector('.canvas-wrap'); if(!cw) return;
   if(getComputedStyle(cw).position==='static') cw.style.position='relative';
   var lw=document.getElementById('fldLayerWrap');
-  if(!lw){ lw=document.createElement('div'); lw.id='fldLayerWrap'; lw.style.cssText='position:absolute;left:10px;top:10px;z-index:20'; cw.appendChild(lw); }
+  if(!lw){ lw=document.createElement('div'); lw.id='fldLayerWrap'; var _fx=(typeof IS_FIELD!=='undefined'&&IS_FIELD); lw.style.cssText=_fx?'position:fixed;left:230px;top:150px;z-index:55':'position:absolute;left:10px;top:10px;z-index:20'; cw.appendChild(lw); }/* [BUILD1721] field 레이어바 fixed→사이드바로 이동 가능 */
   lw.innerHTML=fldLayerBox();
   /* [1242] field 전용 — 레이어바 드래그 이동 (다른 공정 적용 금지) */
   if((typeof IS_FIELD!=='undefined'&&IS_FIELD)&&!lw._dragOn){
     lw._dragOn=true; lw.style.touchAction='none';
-    try{var _sp=JSON.parse(localStorage.getItem('fldLayerPos_field')||'null');
-      if(_sp&&isFinite(_sp.l)&&isFinite(_sp.t)){lw.style.left=Math.max(0,_sp.l)+'px';lw.style.top=Math.max(0,_sp.t)+'px';}}catch(e){}
+    try{var _sp=JSON.parse(localStorage.getItem('fldLayerPosVp')||'null');
+      if(_sp&&isFinite(_sp.l)&&isFinite(_sp.t)){lw.style.left=Math.max(0,Math.min(window.innerWidth-40,_sp.l))+'px';lw.style.top=Math.max(0,Math.min(window.innerHeight-24,_sp.t))+'px';lw.style.right='auto';}}catch(e){}
     lw.addEventListener('pointerdown',function(ev){
       if(ev.target.closest('label,input'))return; /* 체크박스 클릭 보존 (함정 V) */
-      var sx=ev.clientX,sy=ev.clientY,sl=lw.offsetLeft,st=lw.offsetTop,mv=false;
+      var _lr=lw.getBoundingClientRect();var sx=ev.clientX,sy=ev.clientY,sl=_lr.left,st=_lr.top,mv=false;
       function onMv(e2){var dx=e2.clientX-sx,dy=e2.clientY-sy;
         if(!mv){if(Math.abs(dx)<4&&Math.abs(dy)<4)return; mv=true; try{lw.setPointerCapture(ev.pointerId);}catch(e){}}
-        var cw2=lw.parentElement||document.body;
-        var mxL=Math.max(0,cw2.clientWidth-lw.offsetWidth),mxT=Math.max(0,cw2.clientHeight-lw.offsetHeight);
+        var mxL=Math.max(0,window.innerWidth-40),mxT=Math.max(0,window.innerHeight-24);
         lw.style.left=Math.min(mxL,Math.max(0,sl+dx))+'px';
-        lw.style.top=Math.min(mxT,Math.max(0,st+dy))+'px';
+        lw.style.top=Math.min(mxT,Math.max(0,st+dy))+'px';lw.style.right='auto';
         e2.preventDefault();}
       function onUp(){lw.removeEventListener('pointermove',onMv);lw.removeEventListener('pointerup',onUp);lw.removeEventListener('pointercancel',onUp);
-        if(mv){try{localStorage.setItem('fldLayerPos_field',JSON.stringify({l:lw.offsetLeft,t:lw.offsetTop}));}catch(e){}
+        if(mv){try{var _r=lw.getBoundingClientRect();localStorage.setItem('fldLayerPosVp',JSON.stringify({l:_r.left,t:_r.top}));}catch(e){}
           lw.addEventListener('click',function cs(e3){e3.stopPropagation();e3.preventDefault();lw.removeEventListener('click',cs,true);},true); /* 드래그 후 접기 오발동 차단 */
         }}
       lw.addEventListener('pointermove',onMv);lw.addEventListener('pointerup',onUp);lw.addEventListener('pointercancel',onUp);
