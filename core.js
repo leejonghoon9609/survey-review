@@ -12020,14 +12020,20 @@ function fieldLayerBar(){
       if(_sp&&isFinite(_sp.l)&&isFinite(_sp.t)){lw.style.left=Math.max(0,Math.min(window.innerWidth-40,_sp.l))+'px';lw.style.top=Math.max(0,Math.min(window.innerHeight-24,_sp.t))+'px';lw.style.right='auto';}}catch(e){}
     lw.addEventListener('pointerdown',function(ev){
       if(ev.target.closest('label,input'))return; /* 체크박스 클릭 보존 (함정 V) */
-      var _lr=lw.getBoundingClientRect();var sx=ev.clientX,sy=ev.clientY,sl=_lr.left,st=_lr.top,mv=false;
+      var _lr=lw.getBoundingClientRect();var _cw2=document.querySelector('.canvas-wrap');var _bx=_cw2?_cw2.getBoundingClientRect().left:200;var sx=ev.clientX,sy=ev.clientY,sl=_lr.left,st=_lr.top,mv=false,_curX=_lr.left,_hold=0,_relT=0,_lTx=0,_lTy=0;
       function onMv(e2){var dx=e2.clientX-sx,dy=e2.clientY-sy;
         if(!mv){if(Math.abs(dx)<4&&Math.abs(dy)<4)return; mv=true; try{lw.setPointerCapture(ev.pointerId);}catch(e){}}
-        var mxL=Math.max(0,window.innerWidth-40),mxT=Math.max(0,window.innerHeight-24);
-        lw.style.left=Math.min(mxL,Math.max(0,sl+dx))+'px';
-        lw.style.top=Math.min(mxT,Math.max(0,st+dy))+'px';lw.style.right='auto';
+        var tx=Math.max(0,Math.min(window.innerWidth-40,sl+dx)),ty=Math.max(0,Math.min(window.innerHeight-24,st+dy));
+        var _cx=(_curX==null?sl:_curX),_cs=_cx<_bx?-1:1,_ts=tx<_bx?-1:1;
+        if(_ts!==_cs){/* [BUILD1723] 사이드바 경계 0.3초 dwell (탱고 방식) */
+          if(!_hold)_hold=e2.timeStamp;
+          if(e2.timeStamp-_hold>=300){_curX=tx;_hold=0;if(_relT){clearTimeout(_relT);_relT=0;}}
+          else{_curX=_bx;_lTx=tx;_lTy=ty;if(_relT)clearTimeout(_relT);_relT=setTimeout(function(){if(_hold){_curX=_lTx;_hold=0;lw.style.left=_curX+'px';lw.style.top=_lTy+'px';}},Math.max(0,300-(e2.timeStamp-_hold)));}
+        }else{_curX=tx;_hold=0;if(_relT){clearTimeout(_relT);_relT=0;}}
+        lw.style.left=_curX+'px';lw.style.top=ty+'px';lw.style.right='auto';
         e2.preventDefault();}
       function onUp(){lw.removeEventListener('pointermove',onMv);lw.removeEventListener('pointerup',onUp);lw.removeEventListener('pointercancel',onUp);
+        if(_relT){clearTimeout(_relT);_relT=0;}
         if(mv){try{var _r=lw.getBoundingClientRect();localStorage.setItem('fldLayerPosVp',JSON.stringify({l:_r.left,t:_r.top}));}catch(e){}
           lw.addEventListener('click',function cs(e3){e3.stopPropagation();e3.preventDefault();lw.removeEventListener('click',cs,true);},true); /* 드래그 후 접기 오발동 차단 */
         }}
