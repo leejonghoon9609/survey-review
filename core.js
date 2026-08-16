@@ -539,7 +539,7 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
     if(ld){ld.setAttribute('x2',lx);ld.setAttribute('y2',ly);}
     handle.setAttribute('x',anchor==='start'?(lx-3*Uh):(lx-tw+3*Uh));handle.setAttribute('y',ly-hh*0.5);});
   function up(ev){if(!dragging)return;dragging=false;setTimeout(function(){labelDragging=false;},40);
-    if(moved){state.labelOff[p.no]=[lx+ORG.x,ORG.y-ly];/* [1524] LOCAL\u2192\uc6d4\ub4dc */if(typeof _dirtySave==='function')_dirtySave();}
+    if(moved){state.labelOff[p.no]=[lx+ORG.x,ORG.y-ly];window._clSig=null;/* [1524][BUILD1772] \uD0DC\uADF8 \uB4DC\uB798\uADF8=\uB77C\uBCA8\uCE90\uC2DC \uBB34\uD6A8\uD654(1710 \uCE90\uC2DC\uAC00 \uC61B\uBC30\uCE58 \uBC18\uD658\uD558\uB358 \uBC84\uADF8) */if(typeof _dirtySave==='function')_dirtySave();}
     else{var now=Date.now();if(now-(p._lastClick||0)<350){p._lastClick=0;openPtEdit(p,ls);}else{p._lastClick=now;}}
     try{handle.releasePointerCapture(ev.pointerId);}catch(e){}
     drawGeo();highlightSel();}
