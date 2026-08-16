@@ -1454,7 +1454,7 @@ function drawManholes(){_orgSync();/* [1524] */
       if(mh._fromCsv&&mh.type==='riser'){toast('CSV 전주입상 — 좌표 고정(라벨만 이동 가능)');return;} /* [1255→1375] 전 공정 좌표 고정 */
       if(mh._aft||state.tamsa){toast(state.tamsa?'탐사 측량 — CSV 점 고정(이동 불가)':'후측량 맨홀 — 위치 고정(라벨만 이동 가능)');return;}
       pushHist();
-      if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
+      if(mh.lx==null){mh.lx=lx;mh.ly=ly;mh._lxSeed=1;}/* [BUILD1776] \uD074\uB9AD\uB9CC\uC73C\uB85C \uBC15\uC81C \uAE08\uC9C0 */
       var w=toWorld(ev.clientX,ev.clientY);
       mhDragState={type:'center',mh:mh,gx:w[0]-mh.wx,gy:(-w[1])-mh.wy};});
     drag.addEventListener('dblclick',function(ev){ev.stopPropagation();openLabelEdit();});
@@ -1467,7 +1467,7 @@ function drawManholes(){_orgSync();/* [1524] */
         if(mh._fromCsv&&mh.wx!=null){if(!state.mhDel)state.mhDel={};state.mhDel[mh.wx+'_'+mh.wy]=1;}/* [1338] 삭제 영구화 */var idx=state.manholes.indexOf(mh);if(idx>=0)state.manholes.splice(idx,1);if(!isRiser&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD))removeManholePassLines(mh);/* [1458] field: 맨홀/입상만 삭제 — 관로선 유지 */redrawAll();toast(isRiser?'입상주 삭제':'맨홀 삭제(통과결선 포함)');_da2Off();return;}
       if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace'||(viewerMode&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD))||readOnly)return;
       ev.stopPropagation();ev.preventDefault();
-      if(mh.lx==null){mh.lx=lx;mh.ly=ly;}
+      if(mh.lx==null){mh.lx=lx;mh.ly=ly;mh._lxSeed=1;}
       var w=toWorld(ev.clientX,ev.clientY);
       mhDragState={type:'label',mh:mh,gx:w[0]-mh.lx,gy:(-w[1])-mh.ly};});
     lbDrag.addEventListener('dblclick',function(ev){ev.stopPropagation();openLabelEdit();});
@@ -1493,16 +1493,16 @@ window.addEventListener('pointermove',function(ev){
     // 이 맨홀을 통과하는 관로선의 맨홀좌표점도 같이 이동 (결선이 맨홀 중심에 붙어 따라옴)
     state.lines.forEach(function(L){if(L.layer!=='통신관로'||!L.pts)return;L.pts.forEach(function(p){if(Math.abs(p[0]-oldWx)<1e-4&&Math.abs(p[1]-oldWy)<1e-4){p[0]=newWx;p[1]=newWy;}});});
     // 라벨도 같이 이동 (상대위치 유지)
-    if(mh.lx!=null){mh.lx+=newWx-mh.wx;mh.ly+=newWy-mh.wy;}
+    if(mh.lx!=null){mh._lxSeed=null;mh.lx+=newWx-mh.wx;mh.ly+=newWy-mh.wy;}
     mh.wx=newWx;mh.wy=newWy;
     drawManholes();drawGeo();
   } else {
-    mh.lx=wx-mhDragState.gx; mh.ly=wy-mhDragState.gy; mh._edited=true; mh._ldrag=true;var _Ud=((typeof pxToWorld==='function'&&pxToWorld())||0.06);mh._lpm=Math.min(400,Math.max(2,Math.hypot(mh.lx-mh.wx,mh.ly-mh.wy)/_Ud));mh._lpx=null;mh._lpy=null;/* [1462] drag offset stored in px (zoom-fixed) *//* [1459] 사용자 이동 — 거리 고정 해제 */
+    mh._lxSeed=null;mh.lx=wx-mhDragState.gx; mh.ly=wy-mhDragState.gy; mh._edited=true; mh._ldrag=true;var _Ud=((typeof pxToWorld==='function'&&pxToWorld())||0.06);mh._lpm=Math.min(400,Math.max(2,Math.hypot(mh.lx-mh.wx,mh.ly-mh.wy)/_Ud));mh._lpx=null;mh._lpy=null;/* [1462] drag offset stored in px (zoom-fixed) *//* [1459] 사용자 이동 — 거리 고정 해제 */
     drawManholes();
   }
 });
 window.addEventListener('pointerup',function(ev){
-  if(_mhLp){clearTimeout(_mhLp);_mhLp=null;}if(!mhDragState)return;mhDragState=null;drawManholes();drawGeo();_dirtySave();
+  if(_mhLp){clearTimeout(_mhLp);_mhLp=null;}if(!mhDragState)return;var _sm9=mhDragState.mh;if(_sm9&&_sm9._lxSeed){delete _sm9.lx;delete _sm9.ly;delete _sm9._lxSeed;}mhDragState=null;drawManholes();drawGeo();_dirtySave();
 });
 var mhIdSeq=1;
 function _mhIdFix(){/* [1554] \ub85c\ub4dc \uc2dc id \uc2dc\ud000\uc2a4 \ubcf4\uc815 + \uc911\ubcf5\u00b7\ub204\ub77d id \uce58\uc720(\uc88c\ud45c\ub85c \uc57c\uc7a5 \uc7ac\ubc14\uc778\ub529) */
