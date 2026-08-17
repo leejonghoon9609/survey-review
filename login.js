@@ -1,11 +1,11 @@
-/* ===== 대원항업 로그인/작업자 선택 (login.js) — 포털+앱 공용 · BUILD 1870 ===== */
+/* ===== 대원항업 로그인/작업자 선택 (login.js) — 포털+앱 공용 · BUILD 1871 ===== */
 var STAFF=[{dept:'관리자',admin:true,people:[['이종훈','실장'],['송규헌','차장']]},{dept:'총무부',people:[['조윤미','차장'],['황현희','과장']]},{dept:'사업관리',people:[['남윤지','과장'],['조은주','과장'],['선한슬','주임']]},{dept:'사업관리(현장)',people:[['박영범','과장'],['최진복','과장'],['황창하','대리'],['김경호','대리']]},{dept:'측량부',people:[['이형석','상무'],['라상윤','대리'],['김민재','대리'],['서재형','대리'],['이찬규','대리'],['김도현','주임'],['이윤용','주임'],['조성준','주임'],['정세호','주임'],['곽귀민','사원'],['지현우','사원']]},{dept:'측량부(DB)',people:[['김성한','부장'],['채청민','사원']]}];
 /* [BUILD1795] 로그인 암호 — djb2 해시(평문 미노출) */
-var _PWH={'이종훈':2081305499,'송규헌':2413987888,'*':2088290635};
+var _PWH={'이종훈':2081305499,'송규헌':2413987888,'라상윤':2314995716,'*':2088290635};/* [BUILD1871] */
 function _pwHash(t){var h=5381;for(var i=0;i<t.length;i++){h=((h*33)+t.charCodeAt(i))>>>0;}return h;}
 function _pwOk(name,pw){var e=_PWH[name]!=null?_PWH[name]:_PWH['*'];return _pwHash((''+pw).trim())===e;}
-var ME=(function(){try{return localStorage.getItem('workerName')||'';}catch(e){return '';}})();
-function setWorker(n){ME=n||'';try{localStorage.setItem('workerName',ME);}catch(e){}updWorkerChip();}
+var ME=(function(){try{return sessionStorage.getItem('workerName')||'';}catch(e){return '';}})();/* [BUILD1871] 앱 재시작 시 항상 로그인 */
+function setWorker(n){ME=n||'';try{sessionStorage.setItem('workerName',ME);}catch(e){}updWorkerChip();}
 function updWorkerChip(){
   var c=document.getElementById('workerChip');
   if(!c){var h=document.querySelector('header');if(!h)return;
