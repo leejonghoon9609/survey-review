@@ -12485,7 +12485,9 @@ function rtEditNo(no){
 /* ===== [BUILD 818] 폰 GPS 위경도 -> 도면좌표(EPSG:5186) 변환 + 파란 임시측점 ===== */
 function tm5186(lat,lon){
   var a=6378137.0,f=1/298.257222101,e2=f*(2-f);
-  var lat0=38.0*Math.PI/180,lon0=127.0*Math.PI/180,k0=1.0,FE=200000.0,FN=600000.0;
+  /* [BUILD1805] 사업 좌표계(state.crs)에 따라 기준경도 분기: 5185=125 / 5186=127 / 5187=129 */
+  var _ln={'5185':125.0,'5186':127.0,'5187':129.0}[String((typeof state!=='undefined'&&state.crs)||'5186')]||127.0;
+  var lat0=38.0*Math.PI/180,lon0=_ln*Math.PI/180,k0=1.0,FE=200000.0,FN=600000.0;
   var phi=lat*Math.PI/180,lam=lon*Math.PI/180,ep2=e2/(1-e2);
   var N=a/Math.sqrt(1-e2*Math.sin(phi)*Math.sin(phi));
   var T=Math.tan(phi)*Math.tan(phi),C=ep2*Math.cos(phi)*Math.cos(phi),A=(lam-lon0)*Math.cos(phi);
