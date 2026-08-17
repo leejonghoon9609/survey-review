@@ -5750,8 +5750,8 @@ if(!((typeof LV!=='undefined')&&LV.depthchk===0))(state.depthCheck||[]).forEach(
 function renderDraft(){clearSvg(gDraft);previewLine=null;if(!lineDraft)return;
   var col=(window._drawBult?'#e6b800':((LINECOL[drawLayer]||{}).c||'#d92b2b')), lw=(LINECOL[drawLayer]||{}).w||1.6;/* [1511] */
   for(var i=1;i<lineDraft.length;i++){var a=S(lineDraft[i-1][0],lineDraft[i-1][1]),b=S(lineDraft[i][0],lineDraft[i][1]);
-    gDraft.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:col,'stroke-width':lw,'stroke-dasharray':'4 3','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}
-  lineDraft.forEach(function(p){var s=S(p[0],p[1]);gDraft.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#1f6fd6','stroke-width':8,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));});
+    gDraft.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:col,'stroke-width':(window._drawFree?lw+1:lw),'stroke-dasharray':(window._drawFree?'none':'4 3'),'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}/* [BUILD1844] 위치표시=실선 */
+  lineDraft.forEach(function(p){var s=S(p[0],p[1]);if(window._drawFree){gDraft.appendChild(el('circle',{cx:s[0],cy:s[1],r:Math.max(0.3,7*((typeof pxToWorld==='function'&&pxToWorld())||0.06)),fill:'#f2b400',stroke:'#b8860b','stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}else{gDraft.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#1f6fd6','stroke-width':8,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}});/* [BUILD1844] 위치표시 클릭점=노란 원 */
   /* [1192] 마지막 확정점 초록 점선원+X — 다음 점 확정 시 재렌더로 자동 이동, 완료/시작 시 자동 제거 */
   if(lineDraft.length){var _lgp=lineDraft[lineDraft.length-1];if(typeof _draftGreen==='function')_draftGreen(_lgp[0],_lgp[1]);}
   drawIndicators(null);}
