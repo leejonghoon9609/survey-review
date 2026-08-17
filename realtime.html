@@ -596,7 +596,7 @@ function rtOpenCsvModal(){
   var old=document.getElementById('rtCsvModal');if(old)old.remove();
   var days={},total=0;((typeof state!=='undefined'&&state.points)||[]).forEach(function(pt){if(!pt||!pt._csv||!pt.no)return;var d=String(pt.no).split('-')[0];days[d]=(days[d]||0)+1;total++;});
   var keys=Object.keys(days).sort();
-  var _stat=(window._rtCsvStat||{});function _fmtD(k){return String(parseInt(k.slice(2,4),10))+'/'+String(parseInt(k.slice(4,6),10));}var dupTxt=keys.filter(function(k){return _stat[k]&&_stat[k].dup>0;}).map(function(k){return _fmtD(k)+' 중복 '+_stat[k].dup+'점';}).join(' · ');var rows=keys.length?keys.map(function(d){var st=_stat[d];var right;if(st&&st.fresh>0){right=(dupTxt?'<span style=\"color:#1f6fd6;font-weight:800\">'+dupTxt+'</span><span style=\"display:inline-block;width:14px\"></span>':'')+'<span style=\"color:#c0392b;font-weight:800\">신규 '+st.fresh+'점</span>';}else{right='<span style=\"color:#c0392b;font-weight:700\">'+days[d]+'개 측점</span>';}return '<div class=\"rtCsvRow\" data-d=\"'+d+'\" style=\"display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #eee;font-size:13.5px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation\"><b>'+d+'</b><span style=\"white-space:nowrap\">'+right+'</span></div>';}).join('')
+  var _stat=(window._rtCsvStat||{});function _fmtD(k){return String(parseInt(k.slice(2,4),10))+'/'+String(parseInt(k.slice(4,6),10));}var dupTxt=keys.filter(function(k){return _stat[k]&&_stat[k].dup>0;}).map(function(k){return _fmtD(k)+' 중복 '+_stat[k].dup+'점';}).join(' · ');var rows=keys.length?keys.map(function(d){var st=_stat[d];var right;if(st&&st.fresh>0){right=(dupTxt?'<span style=\"color:#1f6fd6;font-weight:800\">'+dupTxt+'</span><span style=\"display:inline-block;width:14px\"></span>':'')+'<span style=\"color:#c0392b;font-weight:800\">신규 '+st.fresh+'점</span>';}else{right='<span style=\"color:#c0392b;font-weight:700\">'+days[d]+'개 측점</span>';}return '<div class=\"rtCsvRow\" data-d=\"'+d+'\" style=\"display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #eee;font-size:13.5px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation\"><b>'+d+'</b><span style=\"white-space:nowrap\">'+right+'</span><button type=\"button\" class=\"rtCsvDel\" data-d=\"'+d+'\" style=\"flex:none;border:1px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:7px;padding:4px 9px;font-size:12px;font-weight:800;cursor:pointer\">삭제</button></div>';}).join('')
     :'<div style=\"padding:18px;text-align:center;color:#999;font-size:13px\">아직 올린 CSV가 없습니다</div>';
   var wrap=document.createElement('div');wrap.id='rtCsvModal';
   wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center';
@@ -610,6 +610,7 @@ function rtOpenCsvModal(){
   document.body.appendChild(wrap);
   wrap.addEventListener('click',function(e){if(e.target===wrap)wrap.remove();});
   document.getElementById('rtCsvClose').onclick=function(){wrap.remove();};
+  [].forEach.call(wrap.querySelectorAll('.rtCsvDel'),function(db){db.addEventListener('click',function(ev){ev.stopPropagation();var d=db.getAttribute('data-d');if(confirm(d+' 날짜 CSV 측점 전체를 삭제할까요?\n(되돌리기로 복구 가능, 사진은 7일 보관)')){rtDeleteCsvDay(d);wrap.remove();rtOpenCsvModal();}});});/* [BUILD1862] 목록별 삭제 버튼 */
   [].forEach.call(wrap.querySelectorAll('.rtCsvRow'),function(row){var tm=null,sx=0,sy=0;
     row.addEventListener('pointerdown',function(ev){sx=ev.clientX;sy=ev.clientY;if(tm)clearTimeout(tm);
       tm=setTimeout(function(){tm=null;var d=row.getAttribute('data-d');
@@ -779,6 +780,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=1861"></script><script src="core.js?v=1861"></script>
+<script src="login.js?v=1862"></script><script src="core.js?v=1862"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
