@@ -625,50 +625,69 @@ function rtOpenAsbuilt(){
 pb.addEventListener('click',function(ev){var m=document.getElementById('rtAsbModal');
 if(m){m.remove();if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen){ev.stopImmediatePropagation();ev.preventDefault();}}
 },true);})();
-function rtOpenCsvModal(){
+function rtOpenCsvModal(){/* [BUILD1869] \ub85c\ub529\ucc3d \uc7ac\uad6c\uc131: \ub4dc\ub86d\uc874 \uac15\uc870 + \uc0ad\uc81c\ubaa9\ub85d \ubd84\ub9ac */
   var old=document.getElementById('rtCsvModal');if(old)old.remove();
-  var days={},total=0;((typeof state!=='undefined'&&state.points)||[]).forEach(function(pt){if(!pt||!pt._csv||!pt.no)return;var d=String(pt.no).split('-')[0];days[d]=(days[d]||0)+1;total++;});
-  var keys=Object.keys(days).sort();
-  var _stat=(window._rtCsvStat||{});function _fmtD(k){return String(parseInt(k.slice(2,4),10))+'/'+String(parseInt(k.slice(4,6),10));}var dupTxt=keys.filter(function(k){return _stat[k]&&_stat[k].dup>0;}).map(function(k){return _fmtD(k)+' 중복 '+_stat[k].dup+'점';}).join(' · ');var rows=keys.length?keys.map(function(d){var st=_stat[d];var right;if(st&&st.fresh>0){right=(dupTxt?'<span style=\"color:#1f6fd6;font-weight:800\">'+dupTxt+'</span><span style=\"display:inline-block;width:14px\"></span>':'')+'<span style=\"color:#c0392b;font-weight:800\">신규 '+st.fresh+'점</span>';}else{right='<span style=\"color:#c0392b;font-weight:700\">'+days[d]+'개 측점</span>';}return '<div class=\"rtCsvRow\" data-d=\"'+d+'\" style=\"display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #eee;font-size:13.5px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation\"><b>'+d+'</b><span style=\"white-space:nowrap\">'+right+'</span><button type=\"button\" class=\"rtCsvDel\" data-d=\"'+d+'\" style=\"flex:none;border:1px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:7px;padding:4px 9px;font-size:12px;font-weight:800;cursor:pointer\">삭제</button></div>';}).join('')
-    :'<div style=\"padding:18px;text-align:center;color:#999;font-size:13px\">아직 올린 CSV가 없습니다</div>';
-  try{rtCsvTrashPurge();}catch(_tp9){}var _tn9=(state._csvTrash||[]).length;rows+='<div id=\"rtCsvTrashRow\" style=\"display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #eee;font-size:13px;color:#a04040;cursor:pointer\"><span>삭제목록</span><span style=\"font-weight:800\">'+_tn9+'건</span></div>';/* [BUILD1863] */
+  var total=0;((typeof state!=='undefined'&&state.points)||[]).forEach(function(pt){if(pt&&pt._csv&&pt.no)total++;});
   var wrap=document.createElement('div');wrap.id='rtCsvModal';
   wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center';
-  wrap.innerHTML='<div style=\"background:#fff;border-radius:14px;width:min(92vw,360px);max-height:80dvh;display:flex;flex-direction:column;overflow:hidden\">'
-    +'<div style=\"padding:13px 14px;font-weight:800;font-size:15px;border-bottom:1px solid #eee\">CSV 누적 현황'+(total?' (총 '+total+'개)':'')+'</div>'
-    +'<div style=\"overflow-y:auto;flex:1\">'+rows+'</div>'
-    +'<div style=\"padding:2px 14px 0;color:#9aa5b1;font-size:12px;text-align:center\">\uD30C\uC77C\uC744 \uC774 \uCC3D\uC5D0 \uB04C\uC5B4\uB2E4 \uB193\uC544\uB3C4 \uC5C5\uB85C\uB4DC\uB429\uB2C8\uB2E4</div>'/* [BUILD1868] */
-    +'<div style=\"display:flex;gap:8px;padding:12px\">'
-    +'<button type=\"button\" id=\"rtCsvUp\" style=\"flex:1;background:#1f6fd6;color:#fff;border:0;border-radius:9px;padding:12px;font-weight:800;font-size:15px\">CSV 업로드</button>'
-    +'<button type=\"button\" id=\"rtCsvClose\" style=\"background:#f1f1ee;color:#333;border:0;border-radius:9px;padding:12px 16px;font-weight:700\">닫기</button>'
+  wrap.innerHTML='<div style="background:#fff;border-radius:14px;width:min(92vw,300px);display:flex;flex-direction:column;overflow:hidden">'
+    +'<div style="padding:13px 14px 6px;font-weight:800;font-size:15px;text-align:center;position:relative">CSV \ub85c\ub529<span id="rtCsvX" style="position:absolute;right:10px;top:9px;color:#aaa;font-size:17px;cursor:pointer;padding:2px 6px">\u2715</span></div>'
+    +'<div id="rtCsvDz" style="margin:4px 14px 10px;border:2px dashed #c3ccd6;border-radius:12px;padding:24px 10px;text-align:center;cursor:pointer">'
+      +'<div style="color:#1f6fd6;font-size:26px;line-height:1">\u2b07</div>'
+      +'<div style="font-weight:800;font-size:14.5px;margin-top:8px">\uce21\uc810 '+total+'\uac1c \ub85c\ub529\ub428</div>'
+      +'<div style="color:#9aa5b1;font-size:12px;margin-top:4px">\ud30c\uc77c\uc744 \ub04c\uc5b4\ub2e4 \ub193\uae30</div>'
+    +'</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px;padding:0 14px 14px">'
+    +'<button type="button" id="rtCsvUp" style="background:#fff;color:#1f6fd6;border:1.5px solid #1f6fd6;border-radius:10px;padding:11px;font-weight:800;font-size:14.5px;cursor:pointer">\uc9c1\uc811 \ub85c\ub529</button>'
+    +'<button type="button" id="rtCsvDelBtn" style="background:#fff;color:#d32f2f;border:1.5px solid #f2b8b5;border-radius:10px;padding:9px;font-weight:700;font-size:13px;cursor:pointer">CSV\ubcc4 \uc0ad\uc81c</button>'
     +'</div></div>';
   document.body.appendChild(wrap);
   wrap.addEventListener('click',function(e){if(e.target===wrap)wrap.remove();});
-  document.getElementById('rtCsvClose').onclick=function(){wrap.remove();};
-  var _tr9=document.getElementById('rtCsvTrashRow');if(_tr9)_tr9.onclick=function(){wrap.remove();rtOpenCsvTrash();};/* [BUILD1863] */
-  [].forEach.call(wrap.querySelectorAll('.rtCsvDel'),function(db){db.addEventListener('click',function(ev){ev.stopPropagation();var d=db.getAttribute('data-d');if(confirm(d+' 날짜 CSV 측점 전체를 삭제할까요?\n(되돌리기로 복구 가능, 사진은 7일 보관)')){rtDeleteCsvDay(d);wrap.remove();rtOpenCsvModal();}});});/* [BUILD1862] 목록별 삭제 버튼 */
-  [].forEach.call(wrap.querySelectorAll('.rtCsvRow'),function(row){var tm=null,sx=0,sy=0;
-    row.addEventListener('pointerdown',function(ev){sx=ev.clientX;sy=ev.clientY;if(tm)clearTimeout(tm);
-      tm=setTimeout(function(){tm=null;var d=row.getAttribute('data-d');
-        if(confirm(d+' 날짜 CSV 측점 전체를 삭제할까요?\n(되돌리기로 복구 가능, 사진은 7일 보관)')){rtDeleteCsvDay(d);wrap.remove();rtOpenCsvModal();}
-      },1000);});
-    function _c(){if(tm){clearTimeout(tm);tm=null;}}
-    row.addEventListener('pointerup',_c);row.addEventListener('pointercancel',_c);
-    row.addEventListener('pointermove',function(ev){if(tm&&Math.abs(ev.clientX-sx)+Math.abs(ev.clientY-sy)>10)_c();});
-  });
-  document.getElementById('rtCsvUp').onclick=function(){wrap.remove();var f=document.getElementById('fCsv');if(f)f.click();};
-  /* [BUILD1868] CSV \uB4DC\uB798\uADF8&\uB4DC\uB86D \uC5C5\uB85C\uB4DC \u2014 fCsv change \uD30C\uC774\uD504\uB77C\uC778 \uC7AC\uC0AC\uC6A9 */
-  (function(){var card=wrap.firstElementChild;function hl(on){if(!card)return;card.style.outline=on?'3px dashed #1f6fd6':'';card.style.outlineOffset=on?'-6px':'';}
+  document.getElementById('rtCsvX').onclick=function(){wrap.remove();};
+  function _pick9(){wrap.remove();var f=document.getElementById('fCsv');if(f)f.click();}
+  document.getElementById('rtCsvUp').onclick=_pick9;
+  document.getElementById('rtCsvDz').onclick=_pick9;
+  document.getElementById('rtCsvDelBtn').onclick=function(){wrap.remove();rtOpenCsvDelList();};
+  /* [BUILD1868] CSV \ub4dc\ub798\uadf8&\ub4dc\ub86d \u2014 fCsv change \ud30c\uc774\ud504\ub77c\uc778 \uc7ac\uc0ac\uc6a9, [1869] \ud558\uc774\ub77c\uc774\ud2b8=\ub4dc\ub86d\uc874 */
+  (function(){var dz=document.getElementById('rtCsvDz');function hl(on){if(!dz)return;dz.style.borderColor=on?'#1f6fd6':'#c3ccd6';dz.style.background=on?'#eef5ff':'';}
   ['dragenter','dragover'].forEach(function(t){wrap.addEventListener(t,function(e){e.preventDefault();e.stopPropagation();hl(true);});});
   wrap.addEventListener('dragleave',function(e){if(!wrap.contains(e.relatedTarget))hl(false);});
   wrap.addEventListener('drop',function(e){e.preventDefault();e.stopPropagation();hl(false);
     var fs=(e.dataTransfer&&e.dataTransfer.files)||[];if(!fs.length)return;
     var ok=[];for(var i=0;i<fs.length;i++){if(/\.(csv|txt)$/i.test(fs[i].name))ok.push(fs[i]);}
-    if(!ok.length){if(typeof toast==='function')toast('CSV \uD30C\uC77C\uB9CC \uC5C5\uB85C\uB4DC\uB429\uB2C8\uB2E4 (.csv/.txt)');return;}
+    if(!ok.length){if(typeof toast==='function')toast('CSV \ud30c\uc77c\ub9cc \uc5c5\ub85c\ub4dc\ub429\ub2c8\ub2e4 (.csv/.txt)');return;}
     var f=document.getElementById('fCsv');if(!f)return;
-    try{var dt=new DataTransfer();ok.forEach(function(x){dt.items.add(x);});f.files=dt.files;}catch(_d9){if(typeof toast==='function')toast('\uC774 \uBE0C\uB77C\uC6B0\uC800\uB294 \uB4DC\uB798\uADF8 \uC5C5\uB85C\uB4DC \uBBF8\uC9C0\uC6D0 \u2014 \uBC84\uD2BC\uC744 \uC774\uC6A9\uD558\uC138\uC694');return;}
+    try{var dt=new DataTransfer();ok.forEach(function(x){dt.items.add(x);});f.files=dt.files;}catch(_d9){if(typeof toast==='function')toast('\uc774 \ube0c\ub77c\uc6b0\uc800\ub294 \ub4dc\ub798\uadf8 \uc5c5\ub85c\ub4dc \ubbf8\uc9c0\uc6d0 \u2014 \ubc84\ud2bc\uc744 \uc774\uc6a9\ud558\uc138\uc694');return;}
     wrap.remove();f.dispatchEvent(new Event('change',{bubbles:true}));
   });})();
+}
+function rtOpenCsvDelList(){/* [BUILD1869] \uae30\uc874 \ub0a0\uc9dc\ubcc4 \ubaa9\ub85d+\uc0ad\uc81c \ubd84\ub9ac \uc774\uc804 (\ub85c\uc9c1 \ubcc0\uacbd \uc5c6\uc74c) */
+  var old=document.getElementById('rtCsvDelList');if(old)old.remove();
+  var days={},total=0;((typeof state!=='undefined'&&state.points)||[]).forEach(function(pt){if(!pt||!pt._csv||!pt.no)return;var d=String(pt.no).split('-')[0];days[d]=(days[d]||0)+1;total++;});
+  var keys=Object.keys(days).sort();
+  var _stat=(window._rtCsvStat||{});function _fmtD(k){return String(parseInt(k.slice(2,4),10))+'/'+String(parseInt(k.slice(4,6),10));}var dupTxt=keys.filter(function(k){return _stat[k]&&_stat[k].dup>0;}).map(function(k){return _fmtD(k)+' \uc911\ubcf5 '+_stat[k].dup+'\uc810';}).join(' \u00b7 ');var rows=keys.length?keys.map(function(d){var st=_stat[d];var right;if(st&&st.fresh>0){right=(dupTxt?'<span style="color:#1f6fd6;font-weight:800">'+dupTxt+'</span><span style="display:inline-block;width:14px"></span>':'')+'<span style="color:#c0392b;font-weight:800">\uc2e0\uaddc '+st.fresh+'\uc810</span>';}else{right='<span style="color:#c0392b;font-weight:700">'+days[d]+'\uac1c \uce21\uc810</span>';}return '<div class="rtCsvRow" data-d="'+d+'" style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #eee;font-size:13.5px;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;touch-action:manipulation"><b>'+d+'</b><span style="white-space:nowrap">'+right+'</span><button type="button" class="rtCsvDel" data-d="'+d+'" style="flex:none;border:1px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:7px;padding:4px 9px;font-size:12px;font-weight:800;cursor:pointer">\uc0ad\uc81c</button></div>';}).join('')
+    :'<div style="padding:18px;text-align:center;color:#999;font-size:13px">\uc544\uc9c1 \uc62c\ub9b0 CSV\uac00 \uc5c6\uc2b5\ub2c8\ub2e4</div>';
+  try{rtCsvTrashPurge();}catch(_tp9){}var _tn9=(state._csvTrash||[]).length;rows+='<div id="rtCsvTrashRow" style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #eee;font-size:13px;color:#a04040;cursor:pointer"><span>\uc0ad\uc81c\ubaa9\ub85d</span><span style="font-weight:800">'+_tn9+'\uac74</span></div>';/* [BUILD1863] */
+  var wrap=document.createElement('div');wrap.id='rtCsvDelList';
+  wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center';
+  wrap.innerHTML='<div style="background:#fff;border-radius:14px;width:min(92vw,360px);max-height:80dvh;display:flex;flex-direction:column;overflow:hidden">'
+    +'<div style="padding:13px 14px;font-weight:800;font-size:15px;border-bottom:1px solid #eee">CSV\ubcc4 \uc0ad\uc81c'+(total?' (\ucd1d '+total+'\uac1c)':'')+'</div>'
+    +'<div style="overflow-y:auto;flex:1">'+rows+'</div>'
+    +'<div style="display:flex;gap:8px;padding:12px"><button type="button" id="rtCdClose" style="flex:1;background:#f1f1ee;color:#333;border:0;border-radius:9px;padding:12px;font-weight:700">\ub2eb\uae30</button></div></div>';
+  document.body.appendChild(wrap);
+  wrap.addEventListener('click',function(e){if(e.target===wrap)wrap.remove();});
+  document.getElementById('rtCdClose').onclick=function(){wrap.remove();};
+  var _tr9=document.getElementById('rtCsvTrashRow');if(_tr9)_tr9.onclick=function(){wrap.remove();rtOpenCsvTrash();};/* [BUILD1863] */
+  [].forEach.call(wrap.querySelectorAll('.rtCsvDel'),function(db){db.addEventListener('click',function(ev){ev.stopPropagation();var d=db.getAttribute('data-d');if(confirm(d+' \ub0a0\uc9dc CSV \uce21\uc810 \uc804\uccb4\ub97c \uc0ad\uc81c\ud560\uae4c\uc694?\n(\ub418\ub3cc\ub9ac\uae30\ub85c \ubcf5\uad6c \uac00\ub2a5, \uc0ac\uc9c4\uc740 7\uc77c \ubcf4\uad00)')){rtDeleteCsvDay(d);wrap.remove();rtOpenCsvDelList();}});});/* [BUILD1862] */
+  [].forEach.call(wrap.querySelectorAll('.rtCsvRow'),function(row){var tm=null,sx=0,sy=0;
+    row.addEventListener('pointerdown',function(ev){sx=ev.clientX;sy=ev.clientY;if(tm)clearTimeout(tm);
+      tm=setTimeout(function(){tm=null;var d=row.getAttribute('data-d');
+        if(confirm(d+' \ub0a0\uc9dc CSV \uce21\uc810 \uc804\uccb4\ub97c \uc0ad\uc81c\ud560\uae4c\uc694?\n(\ub418\ub3cc\ub9ac\uae30\ub85c \ubcf5\uad6c \uac00\ub2a5, \uc0ac\uc9c4\uc740 7\uc77c \ubcf4\uad00)')){rtDeleteCsvDay(d);wrap.remove();rtOpenCsvDelList();}
+      },1000);});
+    function _c(){if(tm){clearTimeout(tm);tm=null;}}
+    row.addEventListener('pointerup',_c);row.addEventListener('pointercancel',_c);
+    row.addEventListener('pointermove',function(ev){if(tm&&Math.abs(ev.clientX-sx)+Math.abs(ev.clientY-sy)>10)_c();});
+  });
 }
 function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDraft.length){if(typeof finishDraw==='function')finishDraw();}else{if(typeof bpFirst!=='undefined')bpFirst=null;if(typeof bpPreviewClear==='function')bpPreviewClear();}mode='pan';if(typeof setModeUI==='function')setModeUI();}catch(e){}rtWireMark(null);}
 (function(){var bar=document.getElementById('rtWireBar');if(!bar)return;[].forEach.call(bar.querySelectorAll('button'),function(b){if(b.id==='rtWireDone'){b.addEventListener('click',rtWireDoneFn);return;}b.addEventListener('click',function(){rtWireMark(b);});});})();</script>
@@ -828,6 +847,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=1868"></script><script src="core.js?v=1868"></script>
+<script src="login.js?v=1869"></script><script src="core.js?v=1869"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
