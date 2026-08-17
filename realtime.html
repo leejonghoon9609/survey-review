@@ -547,7 +547,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
       <button type="button" onclick="startDraw('지거')" style="background:#eeedfe;color:#3c3489">지거</button>
       <button type="button" onclick="startDraw('압입구간')" style="background:#fbeaf0;color:#993556">압입</button>
       <button type="button" onclick="mode='bpz1';setModeUI()" style="background:#fdf6e3;color:#b8860b">보강판</button>
-      <button type="button" onclick="startDraw('탐사구간')" style="background:#e6effb;color:#1f6fd6">탐사구간</button><!-- [BUILD1833] -->
+      <button type="button" onclick="startDraw('탐사구간')" style="background:#e3f6fb;color:#007a99">탐사구간</button><!-- [BUILD1837] -->
       <button type="button" id="rtWireDone" style="color:#111;font-weight:800">완료</button>
     </div>
     <script>function rtToggleWire(){var b=document.getElementById('rtWireBar');if(!b)return;var op=(b.style.display!=='none'&&b.style.display!=='');b.style.display=op?'none':'flex';var t=document.getElementById('rtLine');if(t)t.classList.toggle('on',!op);}/* [1221] 클래스 방식 — bg !important에 안 눌림 */
@@ -779,6 +779,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=1836"></script><script src="core.js?v=1836"></script>
+<script src="login.js?v=1837"></script><script src="core.js?v=1837"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
