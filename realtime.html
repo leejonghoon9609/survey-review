@@ -555,7 +555,7 @@ function rtWireMark(btn){var bar=document.getElementById('rtWireBar');if(!bar)re
 function rtCsvTrashPurge(){try{var lim=Date.now()-7*864e5;var b=(state._csvTrash||[]).length;state._csvTrash=(state._csvTrash||[]).filter(function(t){var tm=new Date(t.at).getTime();return isFinite(tm)&&tm>lim;});if(b!==state._csvTrash.length&&typeof rtSaveSoon==='function')rtSaveSoon();}catch(e){}}
 function rtOpenCsvTrash(){try{rtCsvTrashPurge();var old=document.getElementById('rtCsvTrash');if(old)old.remove();
   var lst=state._csvTrash||[];
-  var rows=lst.length?lst.map(function(t,i){var dt=new Date(t.at);var ds=(dt.getMonth()+1)+'/'+dt.getDate();return '<div style=\"display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #eee;font-size:13.5px\"><b>'+t.d+'</b><span style=\"color:#666\">삭제 '+ds+' · '+(t.pts||[]).length+'개</span><button type=\"button\" class=\"rtCsvRes\" data-i=\"'+i+'\" style=\"flex:none;border:1px solid #16a34a;background:#eafaf0;color:#15803d;border-radius:7px;padding:4px 10px;font-size:12px;font-weight:800;cursor:pointer\">복원</button></div>';}).join('')
+  var rows=lst.length?lst.map(function(t,i){var dt=new Date(t.at);var ds=(dt.getMonth()+1)+'/'+dt.getDate();return '<div style=\"display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #eee;font-size:13.5px\"><b>'+t.d+'</b><span style=\"color:#666\">삭제 '+ds+' · '+(t.pts||[]).length+'개</span><button type=\"button\" class=\"rtCsvRes\" data-i=\"'+i+'\" style=\"flex:none;border:1px solid #16a34a;background:#eafaf0;color:#15803d;border-radius:7px;padding:4px 10px;font-size:12px;font-weight:800;cursor:pointer\">복원</button><button type=\"button\" class=\"rtCsvKill\" data-i=\"'+i+'\" style=\"flex:none;border:1px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:7px;padding:4px 9px;font-size:12px;font-weight:800;cursor:pointer\">완전삭제</button></div>';}).join('')
     :'<div style=\"padding:18px;text-align:center;color:#999;font-size:13px\">삭제된 CSV가 없습니다<br>(7일 보관 후 자동 삭제)</div>';
   var wrap=document.createElement('div');wrap.id='rtCsvTrash';
   wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:10000;display:flex;align-items:center;justify-content:center';
@@ -577,6 +577,12 @@ function rtOpenCsvTrash(){try{rtCsvTrashPurge();var old=document.getElementById(
     if(typeof toast==='function')toast(t.d+' 복원 완료: '+add+'개'+(skip?(' (중복 '+skip+'개 제외)'):''));
     wrap.remove();rtOpenCsvTrash();
   });});
+  [].forEach.call(wrap.querySelectorAll('.rtCsvKill'),function(kb){kb.addEventListener('click',function(){var i=+kb.getAttribute('data-i');var t=(state._csvTrash||[])[i];if(!t)return;
+    if(!confirm(t.d+' CSV 보관본('+(t.pts||[]).length+'개)을 완전삭제할까요?\n(복원 불가 — 즉시 제거)'))return;
+    state._csvTrash.splice(i,1);if(typeof rtSaveSoon==='function')rtSaveSoon();
+    if(typeof toast==='function')toast(t.d+' 보관본 완전삭제됨');
+    wrap.remove();rtOpenCsvTrash();
+  });});/* [BUILD1864] 완전삭제 */
 }catch(e){}}
 function rtDeleteCsvDay(d){try{
   if(typeof pushHist==='function')pushHist();
@@ -809,6 +815,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=1863"></script><script src="core.js?v=1863"></script>
+<script src="login.js?v=1864"></script><script src="core.js?v=1864"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
