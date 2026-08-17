@@ -12073,9 +12073,11 @@ function fieldLayerBar(){
   if(!lw){ lw=document.createElement('div'); lw.id='fldLayerWrap'; var _fx=(typeof IS_FIELD!=='undefined'&&IS_FIELD); lw.style.cssText=_fx?'position:fixed;left:230px;top:150px;z-index:55':'position:absolute;left:10px;top:10px;z-index:20'; cw.appendChild(lw); }/* [BUILD1721] field 레이어바 fixed→사이드바로 이동 가능 */
   lw.innerHTML=fldLayerBox();
   /* [1242] field 전용 — 레이어바 드래그 이동 (다른 공정 적용 금지) */
-  if((typeof IS_FIELD!=='undefined'&&IS_FIELD)&&!lw._dragOn){
+  var _rtMob9=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&typeof isMobileDevice==='function'&&isMobileDevice());/* [BUILD1852] 폰 실시간도 레이어바 이동 */
+  if(((typeof IS_FIELD!=='undefined'&&IS_FIELD)||_rtMob9)&&!lw._dragOn){
     lw._dragOn=true; lw.style.touchAction='none';
-    try{var _sp=JSON.parse(localStorage.getItem('fldLayerPosVp')||'null');
+    if(_rtMob9){try{var _r0=lw.getBoundingClientRect();lw.style.cssText='position:fixed;left:'+_r0.left+'px;top:'+_r0.top+'px;z-index:55;touch-action:none';}catch(_f0){}}
+    var _pk9=_rtMob9?'rtLayerPosVp':'fldLayerPosVp';try{var _sp=JSON.parse(localStorage.getItem(_pk9)||'null');
       if(_sp&&isFinite(_sp.l)&&isFinite(_sp.t)){lw.style.left=Math.max(0,Math.min(window.innerWidth-40,_sp.l))+'px';lw.style.top=Math.max(0,Math.min(window.innerHeight-24,_sp.t))+'px';lw.style.right='auto';}}catch(e){}
     lw.addEventListener('pointerdown',function(ev){
       if(ev.target.closest('label,input'))return; /* 체크박스 클릭 보존 (함정 V) */
@@ -12093,7 +12095,7 @@ function fieldLayerBar(){
         e2.preventDefault();}
       function onUp(){lw.removeEventListener('pointermove',onMv);lw.removeEventListener('pointerup',onUp);lw.removeEventListener('pointercancel',onUp);
         if(_relT){clearTimeout(_relT);_relT=0;}
-        if(mv){try{var _r=lw.getBoundingClientRect();localStorage.setItem('fldLayerPosVp',JSON.stringify({l:_r.left,t:_r.top}));}catch(e){}
+        if(mv){try{var _r=lw.getBoundingClientRect();localStorage.setItem(_pk9,JSON.stringify({l:_r.left,t:_r.top}));}catch(e){}
           lw.addEventListener('click',function cs(e3){e3.stopPropagation();e3.preventDefault();lw.removeEventListener('click',cs,true);},true); /* 드래그 후 접기 오발동 차단 */
         }}
       lw.addEventListener('pointermove',onMv);lw.addEventListener('pointerup',onUp);lw.addEventListener('pointercancel',onUp);
