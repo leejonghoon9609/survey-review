@@ -11505,7 +11505,7 @@ function highlightSel(){clearSvg(gSel);if(selNum==null)return;
   /* [1146] 초록 원+중심X 공용 헬퍼 — GPS 파란점과 실시간 CSV 측점 양쪽에서 사용 */
   function _greenSel(wx,wy){
     var _ggs=S(wx,wy);
-    var _u9g=((typeof pxToWorld==='function')?pxToWorld():0.05);var _rt9=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME);var _gr=_rt9?2.6:Math.max(0.95,16*_u9g),_gxr=_gr*0.7071;/* [BUILD1842] 2.0→2.6m */var _gcl9=_rt9?'#f0f':'#12b312';/* [BUILD1841] 월드2m 상수(측점과 동비율)+마젠타 */
+    var _u9g=((typeof pxToWorld==='function')?pxToWorld():0.05);var _rt9=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME);var _gr=_rt9?1.8:Math.max(0.95,16*_u9g),_gxr=_gr*0.7071;/* [BUILD1848] 2.6→1.8m */var _gcl9=_rt9?'#f0f':'#12b312';/* [BUILD1841] 월드2m 상수(측점과 동비율)+마젠타 */
     var _gsg=document.createElementNS(SVGNS,'g');
     var _gsx=Math.round(_ggs[0]),_gsy=Math.round(_ggs[1]);
     _gsg.setAttribute('transform','translate('+_gsx+','+_gsy+')');
