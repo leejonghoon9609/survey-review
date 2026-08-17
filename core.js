@@ -1629,6 +1629,7 @@ function deletePoint(p){
   if(p._riserPt){state.mhDel=state.mhDel||{};state.mhDel[p.x+'_'+p.y]=1;}/* [1514] CSV 유래 원천점 삭제=묘비 영구 */
   var app={'통신관로':1,'지거':1,'압입구간':1,'주입상인출선':1,'탐사구간':1};
   state.lines=(state.lines||[]).filter(function(l){
+    if(l.free)return true;/* [BUILD1843] */
     if(!app[l.layer])return true;
     return !l.pts.some(function(v){return Math.hypot(v[0]-p.x,v[1]-p.y)<0.3;});
   });
@@ -2156,7 +2157,7 @@ function inspectPipeCount(){
   function idxOf(p){for(var i=0;i<pts.length;i++)if(pts[i]===p)return i;return -1;}
   var issues=[]; // {wx,wy,msg}
 
-  state.lines.forEach(function(L){if((L.layer!=='통신관로'&&L.layer!=='지거')||!L.pts||L.pts.length<2)return; // 결선+지거선 함께
+  state.lines.forEach(function(L){if(L.free)return;/* [BUILD1843] */if((L.layer!=='통신관로'&&L.layer!=='지거')||!L.pts||L.pts.length<2)return; // 결선+지거선 함께
     for(var s=0;s<L.pts.length-1;s++){
       var a=L.pts[s], b=L.pts[s+1];
       if(isMHcoord(a)||isMHcoord(b))continue;            // 맨홀 거치는 구간 → 관수 변화 허용
@@ -2174,7 +2175,7 @@ function inspectPipeCount(){
   // ===== T점 관 흐름 보존 검수 (트리: 맨홀/입상에서만 관 추가) =====
   var adj={};
   function addAdj(u,w){if(u===w)return;adj[u]=adj[u]||[];adj[w]=adj[w]||[];if(adj[u].indexOf(w)<0)adj[u].push(w);if(adj[w].indexOf(u)<0)adj[w].push(u);}
-  state.lines.forEach(function(L){if((L.layer!=='통신관로'&&L.layer!=='지거')||!L.pts)return; // 결선+지거(연결되면 같은 관망으로 계산)
+  state.lines.forEach(function(L){if(L.free)return;/* [BUILD1843] */if((L.layer!=='통신관로'&&L.layer!=='지거')||!L.pts)return; // 결선+지거(연결되면 같은 관망으로 계산)
     var seq=[]; // 선을 따라가며 측점 순서 수집(맨홀 꼭짓점은 건너뛰되 양옆 측점 연결)
     L.pts.forEach(function(v){if(isMHcoord(v))return;var p=findPt(v);if(p){var i=idxOf(p);if(i>=0&&(!seq.length||seq[seq.length-1]!==i))seq.push(i);}});
     for(var k=0;k<seq.length-1;k++)addAdj(seq[k],seq[k+1]);
@@ -5770,8 +5771,25 @@ function delHoverHighlight(cw){var _cl=SL(cw);/* [1524] */clearSvg(gDraw);var be
     if(mb>=0){var m=state.markups[mb];var sh=m.type==='cir'?el('ellipse',{cx:m.cx-ORG.x,cy:m.cy+ORG.y,rx:m.rx,ry:m.ry}):el('rect',{x:m.x-ORG.x,y:m.y+ORG.y,width:m.w,height:m.h,rx:0.4});/* [1524] */sh.setAttribute('fill','none');sh.setAttribute('stroke',MKCOL[m.status]||'#d32f2f');sh.setAttribute('stroke-width',7);sh.setAttribute('stroke-opacity',0.55);sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');gDraw.appendChild(sh);}
   }
 }
-function startDraw(layer,bult){drawLayer=layer||'통신관로';window._drawBult=!!bult;/* [1511] */mode='line';setModeUI();lineDraft=[];clearSvg(gDraft);clearSvg(gDraw);toast((drawLayer==='지거'?'지거선':(drawLayer==='압입구간'?'압입구간':(drawLayer==='탐사구간'?'탐사구간':'관로선')))+' 그리기: 점 클릭 → Enter/Space 또는 "완료" (되돌리기=한 점 취소)');}
-function finishDraw(){if(lineDraft&&lineDraft.length>=2){pushHist();var rec={layer:drawLayer,pts:lineDraft.slice()};if(window._drawBult){rec.color='#e6b800';rec.bult=1;}/* [1511] 불탐관로선=노랑 */if(drawLayer==='지거'){rec.note='점(번호 :  )';}else if(drawLayer==='압입구간'){rec.note='압입구간 ';}else if(drawLayer==='탐사구간'){rec.note='탐사구간 ';}/* [BUILD1835] */state.lines.push(rec);if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&rec.layer==='통신관로'&&typeof rtAutoTags==='function')rtAutoTags(rec);}lineDraft=null;previewLine=null;clearSvg(gDraft);clearSvg(gDraw);mode='pan';setModeUI();drawGeo();updMeta();}
+function _rtDrawPick(layer,bult){/* [BUILD1843] 지거/압입/탐사 그리기 방식 선택창 */
+  var _old=document.getElementById('rtDrawPick');if(_old)_old.remove();
+  var ov=document.createElement('div');ov.id='rtDrawPick';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(60,10,10,.38);z-index:9999;display:flex;align-items:center;justify-content:center';
+  var nm=(layer==='지거')?'지거선':layer;
+  ov.innerHTML='<div id="rtDpCard" style="background:#fff;border:2px solid #c0392b;border-radius:14px;padding:18px 20px;min-width:252px;max-width:86vw;box-shadow:0 12px 34px rgba(120,20,20,.35);text-align:center">'
+   +'<div style="font-size:17px;font-weight:800;color:#c0392b;margin-bottom:3px">'+nm+' 그리기</div>'
+   +'<div style="font-size:12.5px;color:#9b5a52;margin-bottom:13px">그리기 방식을 선택하세요</div>'
+   +'<button id="rtDpSnap" style="display:block;width:100%;padding:11px 10px;margin-bottom:8px;border:1.5px solid #c0392b;border-radius:10px;background:#fdecea;color:#c0392b;font-weight:800;font-size:15px;cursor:pointer">측점 연결<div style="font-size:11px;font-weight:600;color:#a3564e;margin-top:2px">측점끼리만 스냅되어 연결</div></button>'
+   +'<button id="rtDpFree" style="display:block;width:100%;padding:11px 10px;margin-bottom:8px;border:1.5px solid #e07a5f;border-radius:10px;background:#fff;color:#c0392b;font-weight:800;font-size:15px;cursor:pointer">위치 표시<div style="font-size:11px;font-weight:600;color:#a3564e;margin-top:2px">화면 아무 곳이나 클릭해 구간 표시 (측점 무관)</div></button>'
+   +'<button id="rtDpX" style="border:none;background:none;color:#b07a72;font-size:12.5px;font-weight:700;cursor:pointer;margin-top:2px">취소</button></div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('pointerdown',function(e){if(e.target===ov)ov.remove();});
+  document.getElementById('rtDpX').onclick=function(){ov.remove();};
+  document.getElementById('rtDpSnap').onclick=function(){ov.remove();startDraw(layer,bult,'snap');};
+  document.getElementById('rtDpFree').onclick=function(){ov.remove();startDraw(layer,bult,'free');};
+}
+function startDraw(layer,bult,pick){if(!pick&&typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&(layer==='지거'||layer==='압입구간'||layer==='탐사구간')){_rtDrawPick(layer,bult);return;}/* [BUILD1843] */window._drawFree=(pick==='free');drawLayer=layer||'통신관로';window._drawBult=!!bult;/* [1511] */mode='line';setModeUI();lineDraft=[];clearSvg(gDraft);clearSvg(gDraw);toast((drawLayer==='지거'?'지거선':(drawLayer==='압입구간'?'압입구간':(drawLayer==='탐사구간'?'탐사구간':'관로선')))+' 그리기: '+(window._drawFree?'화면 아무 곳이나 클릭(측점 무관)':'점 클릭')+' → Enter/Space 또는 "완료" (되돌리기=한 점 취소)');}
+function finishDraw(){if(lineDraft&&lineDraft.length>=2){pushHist();var rec={layer:drawLayer,pts:lineDraft.slice()};if(window._drawFree)rec.free=1;/* [BUILD1843] 표시용 — 측점 로직 제외 */if(window._drawBult){rec.color='#e6b800';rec.bult=1;}/* [1511] 불탐관로선=노랑 */if(drawLayer==='지거'){rec.note='점(번호 :  )';}else if(drawLayer==='압입구간'){rec.note='압입구간 ';}else if(drawLayer==='탐사구간'){rec.note='탐사구간 ';}/* [BUILD1835] */state.lines.push(rec);if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&rec.layer==='통신관로'&&typeof rtAutoTags==='function')rtAutoTags(rec);}lineDraft=null;previewLine=null;clearSvg(gDraft);clearSvg(gDraw);mode='pan';setModeUI();drawGeo();updMeta();}
 function clearLines(){pushHist();state.lines=state.lines.filter(function(l){return l.layer!=='통신관로';});drawGeo();updMeta();toast('결선 모두 삭제');}
 // 수치지도 백판 전체 삭제 (앱 레이어=통신관로·지거·압입·주입상인출선 외 모두 = 백판)
 function clearBaseMap(){
@@ -5882,7 +5900,7 @@ cv.addEventListener('pointerdown',function(e){
   else if(mode==='roaddel'){var wi=toWorld(e.clientX,e.clientY),wx=wi[0],wy=-wi[1];if(state.roadZones){for(var ri=state.roadZones.length-1;ri>=0;ri--){if(roadPtInPoly([wx,wy],state.roadZones[ri].poly)){if(typeof pushHist==='function')pushHist();state.roadZones.splice(ri,1);classifyRoad();if(typeof saveProject==='function')saveProject();drawGeo();toast('\uB3C4\uB85C\uBA74 \uC0AD\uC81C');return;}}}return;}
   else if(mode==='roadvtxadd'){var wi=toWorld(e.clientX,e.clientY),wx=wi[0],wy=-wi[1];if(state.roadZones){var bz=-1,bv=-1,bd=1e18;for(var zi2=0;zi2<state.roadZones.length;zi2++){var pl=state.roadZones[zi2].poly;for(var vi2=0;vi2<pl.length;vi2++){var a=pl[vi2],b=pl[(vi2+1)%pl.length];var dd=distSegW(wx,wy,a,b);if(dd<bd){bd=dd;bz=zi2;bv=vi2;}}}if(bz>=0&&bd<pxToWorld()*15){if(typeof pushHist==='function')pushHist();state.roadZones[bz].poly.splice(bv+1,0,[wx,wy]);classifyRoad();if(typeof saveProject==='function')saveProject();drawGeo();toast('\uC815\uC810 \uC0BD\uC785');return;}}return;}
   else if(mode==='ptdel'){return;} // 측점삭제: 빈 곳 클릭은 무시(측점 클릭은 hit 핸들러가 삭제)
-  else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);var ns=nearestSnapWorld(w[0],w[1]);
+  else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);if(window._drawFree){var _fp9=[w[0],w[1]];pendAct=function(){lineDraft.push(_fp9);renderDraft();};startPanFrom(e);return;}/* [BUILD1843] 위치표시: 스냅 없이 자유 타점 */var ns=nearestSnapWorld(w[0],w[1]);
     var snapTol=(drawLayer==='지거')?Math.max(pxToWorld()*14,0.25):vb.w*0.04;
     var _ok=(ns.pt&&ns.d<snapTol),_pt=_ok?[ns.pt[0],ns.pt[1]]:null;
     pendAct=function(){if(_pt){lineDraft.push(_pt);renderDraft();}else if(typeof toast==='function')toast('측점 위를 클릭하세요 — 측점끼리만 연결됩니다');};
@@ -12171,7 +12189,7 @@ function _rtLineLen(){var t=0;(state.lines||[]).forEach(function(L){if(!L||!L.pt
 function rtDailyDistMap(){
   var tol=0.25, pts=state.points||[], dist={}, seg={};
   function dateAt(x,y){var bd=tol,best=null;for(var i=0;i<pts.length;i++){var p=pts[i];if(!p||!isFinite(p.x))continue;var d=Math.hypot(p.x-x,p.y-y);if(d<bd){bd=d;best=p;}}return best?(best._d0||(''+best.no).split('-')[0]):null;}
-  (state.lines||[]).forEach(function(L){if(!L||!L.pts)return;if(L.layer&&L.layer!=='통신관로'&&L.layer!=='지거'&&L.layer!=='압입구간')return;/* [1209] 관로·지거·압입만 */for(var i=1;i<L.pts.length;i++){
+  (state.lines||[]).forEach(function(L){if(!L||!L.pts)return;if(L.free)return;/* [BUILD1843] */if(L.layer&&L.layer!=='통신관로'&&L.layer!=='지거'&&L.layer!=='압입구간')return;/* [1209] 관로·지거·압입만 */for(var i=1;i<L.pts.length;i++){
     var a=L.pts[i-1],b=L.pts[i];var da=dateAt(a[0],a[1]),db=dateAt(b[0],b[1]);
     var d=(da&&db)?(da>db?da:db):(da||db); if(!d)continue;
     dist[d]=(dist[d]||0)+Math.hypot(b[0]-a[0],b[1]-a[1]); seg[d]=(seg[d]||0)+1;
@@ -14901,7 +14919,7 @@ function _projFilterChip(){
 function svDistMap(points,lines){
   var tol=0.25, pts=points||[], dist={}, seg={};
   function dateAt(x,y){var bd=tol,best=null;for(var i=0;i<pts.length;i++){var p=pts[i];if(!p||!isFinite(p.x))continue;var d=Math.hypot(p.x-x,p.y-y);if(d<bd){bd=d;best=p;}}return best?(best._d0||(''+best.no).split('-')[0]):null;}
-  (lines||[]).forEach(function(L){if(!L||!L.pts)return;if(L.layer&&L.layer!=='통신관로'&&L.layer!=='지거'&&L.layer!=='압입구간')return;for(var i=1;i<L.pts.length;i++){
+  (lines||[]).forEach(function(L){if(!L||!L.pts)return;if(L.free)return;/* [BUILD1843] */if(L.layer&&L.layer!=='통신관로'&&L.layer!=='지거'&&L.layer!=='압입구간')return;for(var i=1;i<L.pts.length;i++){
     var a=L.pts[i-1],b=L.pts[i];var da=dateAt(a[0],a[1]),db=dateAt(b[0],b[1]);
     var d=(da&&db)?(da>db?da:db):(da||db); if(!d)continue;
     dist[d]=(dist[d]||0)+Math.hypot(b[0]-a[0],b[1]-a[1]); seg[d]=(seg[d]||0)+1;
