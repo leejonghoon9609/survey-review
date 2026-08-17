@@ -11510,7 +11510,7 @@ function highlightSel(){clearSvg(gSel);if(selNum==null)return;
     var _gsx=Math.round(_ggs[0]),_gsy=Math.round(_ggs[1]);
     _gsg.setAttribute('transform','translate('+_gsx+','+_gsy+')');
     var _glx=_ggs[0]-_gsx,_gly=_ggs[1]-_gsy;
-    var _gc9=el('circle',{cx:_glx,cy:_gly,r:_gr,fill:'none',stroke:_gcl9,'stroke-width':3.4,'stroke-dasharray':(_rt9?'8 5':'5 3'),'vector-effect':'non-scaling-stroke'});_gsg.appendChild(_gc9);/* [BUILD1840] fixpx 대신 재그리기 방식 */
+    var _gc9=el('circle',{cx:_glx,cy:_gly,r:_gr,fill:(_rt9?'rgba(255,244,170,0.35)':'none'),stroke:_gcl9,/* [BUILD1850] 연한 노랑 채움 */'stroke-width':3.4,'stroke-dasharray':(_rt9?'8 5':'5 3'),'vector-effect':'non-scaling-stroke'});_gsg.appendChild(_gc9);/* [BUILD1840] fixpx 대신 재그리기 방식 */
     _gsg.appendChild(el('line',{x1:_glx-_gxr,y1:_gly-_gxr,x2:_glx+_gxr,y2:_gly+_gxr,stroke:_gcl9,'stroke-width':0.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     _gsg.appendChild(el('line',{x1:_glx-_gxr,y1:_gly+_gxr,x2:_glx+_gxr,y2:_gly-_gxr,stroke:_gcl9,'stroke-width':0.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
     gSel.appendChild(_gsg);
