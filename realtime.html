@@ -440,10 +440,10 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
 @media(max-width:760px){
   .stage{flex-direction:column!important}
   /* [BUILD1810] 도면:사진 = 6:4 */
-  .maincol{flex:6 1 0!important;min-height:0!important;width:100%!important;order:1!important}
+  .maincol{flex:5.5 1 0!important;min-height:0!important;width:100%!important;order:1!important}/* [BUILD1815] 사진창 확대 5.5:4.5 */
   .photo-panel{width:100%!important;min-width:0!important;max-width:none!important;border-left:none!important;border-top:2px solid var(--line)!important;order:2!important}
   /* [BUILD1807] 폰 사진창 확대 40→48vh — 노출관로 사진 하단 잘림 해결 */
-  .photo-panel.open{display:flex!important;flex:4 1 0!important;height:auto!important;min-height:0!important}
+  .photo-panel.open{display:flex!important;flex:4.5 1 0!important;height:auto!important;min-height:0!important}
   /* [BUILD1811] 폰: 관정보 라벨(L-code)만 확대 — 점번호 15px 유지 */
   .lbl-pt .L-code{font-size:17px!important}
   /* [BUILD1813] 폰: 좌표창 반투명 + 글자 흐림 — 도면 방해 최소화 */
@@ -465,7 +465,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   .php-body{display:block!important;overflow-y:auto!important;scroll-snap-type:y proximity!important;-webkit-overflow-scrolling:touch!important}
   .php-main{flex:none!important;min-height:0!important;margin-bottom:10px!important;display:block!important;scroll-snap-align:start!important;scroll-snap-stop:normal!important}
   /* [BUILD1808] 사진 높이를 패널 48vh 기준으로 재계산 — 헤더+캡션 공제 후 한 화면 표시 */
-  .php-main .zoomwrap,.php-main .ph{height:calc(40vh - 130px)!important;max-height:none!important;width:100%!important}/* [BUILD1814] 패널 꽉 채움 */
+  .php-main .zoomwrap,.php-main .ph{height:calc(45vh - 138px)!important;max-height:none!important;width:100%!important}/* [BUILD1815] 4.5비율 기준 */
   .php-main .zoomwrap .ph{height:100%!important}
 }
 
@@ -778,6 +778,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=1814"></script><script src="core.js?v=1814"></script>
+<script src="login.js?v=1815"></script><script src="core.js?v=1815"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>

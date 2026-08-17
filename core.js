@@ -522,7 +522,7 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
   var tw=13*Uh;  // 이동/수정 핸들 폭 — 작게(인출선 닿는 라벨 앞부분만)
   var hh=15*Uh;  // 핸들 높이 — 한 줄 정도
   var hx=anchor==='start'?(ls[0]-3*Uh):(ls[0]-tw+3*Uh);
-  var handle=el('rect',{x:hx,y:ls[1]-hh*0.5,width:tw,height:hh,fill:'transparent','pointer-events':((typeof LV!=='undefined'&&LV&&LV.tagbox===0&&!(typeof IS_REALTIME!=='undefined'&&IS_REALTIME))?'none':'all')});/* [BUILD1814] 실시간: 태그 드래그 항상 허용(체크는 테두리 표시용) */
+  var handle=el('rect',{x:hx,y:ls[1]-hh*0.5,width:tw,height:hh,fill:'transparent','pointer-events':((typeof LV!=='undefined'&&LV&&LV.tagbox===0)?'none':'all')});/* [BUILD1815] 원복: 체크 ON=이동 / OFF=잠금 */
   if(isSel&&(typeof LV==='undefined'||!LV||LV.tagbox!==0)){handle.setAttribute('stroke','#22cc00');handle.setAttribute('stroke-width',0.8);handle.setAttribute('stroke-dasharray','2 2');handle.setAttribute('vector-effect','non-scaling-stroke');}
   handle.style.cursor='move';
   var lx=ls[0],ly=ls[1],dragging=false,moved=false,gx=0,gy=0;
