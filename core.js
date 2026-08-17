@@ -1590,7 +1590,7 @@ function insertPointAt(wx,wy){
   toast('측점 생성 — 번호·코드 입력 후 Enter (측점삽입 계속하려면 버튼 다시 클릭)');
 }
 // 측점 삭제: 측점 + 거기 붙은 결선/지거/압입 정리(백판은 유지)
-function _da2Off(){if(typeof mode!=='undefined'&&mode==='delall2'){mode='pan';if(typeof setModeUI==='function')setModeUI();}}/* [1395] 통합지우기 1회 후 자동 종료 */
+function _da2Off(){if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&typeof isMobileDevice==='function'&&isMobileDevice())return;/* [BUILD1847] 폰 실시간: 연속 지우기 유지(완료·타 버튼으로 해제) */if(typeof mode!=='undefined'&&mode==='delall2'){mode='pan';if(typeof setModeUI==='function')setModeUI();}}/* [1395] 통합지우기 1회 후 자동 종료 */
 /* [1633] 지우기(통합) — 현황 타점 삭제 폴백 (타점은 pointer-events none이라 cv 레벨 히트) */
 cv.addEventListener('pointerdown',function(ev){
   if(typeof mode==='undefined'||mode!=='delall2')return;
