@@ -11760,7 +11760,8 @@ function rtViewZoom(img,opts){
 }
 function refreshPhotoPanel(){
   var sel=document.getElementById('photoSel'),nos=sortedNos();
-  sel.innerHTML='<option value="">측점 선택…</option>'+nos.map(function(n){return '<option value="'+n+'">'+n+'</option>';}).join('');
+  var _ex9=[];if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){for(var _k9 in photoMap){if(nos.indexOf(_k9)<0&&nos.indexOf(String(_k9))<0)_ex9.push(_k9);}_ex9.sort();}/* [BUILD1865] 좌표 없는 촬영분 확인용 */
+  sel.innerHTML='<option value="">측점 선택…</option>'+nos.map(function(n){return '<option value="'+n+'">'+n+'</option>';}).join('')+_ex9.map(function(n){return '<option value="'+n+'">⚠ '+n+' (위치없음)</option>';}).join('');
   if(selNum!=null)sel.value=String(selNum);
   var body=document.getElementById('photoBody');
   if(selNum==null){body.innerHTML='<div style="color:#999;font-size:12px;padding:14px;text-align:center;line-height:1.7">측점을 선택하세요.<br>(위 드롭다운 또는 도면에서 점 클릭)<br>또는 <b>사진 업로드</b>로 일괄 등록</div>';return;}
@@ -12549,7 +12550,7 @@ var _rtWatchId=null,_rtLastPos=null;
 function rtStartWatch(){if(!navigator.geolocation||_rtWatchId!=null)return;try{_rtWatchId=navigator.geolocation.watchPosition(function(pos){_rtLastPos={lat:pos.coords.latitude,lon:pos.coords.longitude,acc:pos.coords.accuracy,t:Date.now()};},function(e){},{enableHighAccuracy:true,timeout:20000,maximumAge:3000});}catch(e){}}
 function rtStopWatch(){if(_rtWatchId!=null&&navigator.geolocation){try{navigator.geolocation.clearWatch(_rtWatchId);}catch(e){}_rtWatchId=null;}}
 function rtGetLoc(no){
-  if(_rtLastPos&&(Date.now()-_rtLastPos.t)<12000){rtAddGps(no,_rtLastPos.lat,_rtLastPos.lon);if(typeof toast==='function')toast('측점 '+no+' 위치 표시(파란점)');return;}
+  if(_rtLastPos&&(Date.now()-_rtLastPos.t)<60000){rtAddGps(no,_rtLastPos.lat,_rtLastPos.lon);/* [BUILD1865] 12s→60s */if(typeof toast==='function')toast('측점 '+no+' 위치 표시(파란점)');return;}
   if(!navigator.geolocation){toast('이 브라우저는 위치 미지원');return;}
   // 1차: 빠른 저정밀(와이파이/기지국) — 실내·도심에서 잘 잡힘
   navigator.geolocation.getCurrentPosition(function(pos){
@@ -12561,7 +12562,7 @@ function rtGetLoc(no){
       rtAddGps(no,pos.coords.latitude,pos.coords.longitude);
       toast('측점 '+no+' 위치 표시(파란점)');
     },function(err2){
-      toast('⚠ 위치 못 받음 — 사진만 저장됨(나중에 CSV로 위치 표시)');
+      if(_rtLastPos){rtAddGps(no,_rtLastPos.lat,_rtLastPos.lon);toast('측점 '+no+' 위치 표시(지연좌표 — 대략적)');return;}/* [BUILD1865] 마지막 위치라도 사용 */toast('⚠ 위치 못 받음 — 사진은 저장됨 (사진창 드롭다운 ⚠'+no+'로 확인 가능)');
     },{enableHighAccuracy:true,timeout:15000,maximumAge:0});
   },{enableHighAccuracy:false,timeout:6000,maximumAge:60000});
 }
