@@ -1,4 +1,4 @@
-/* ===== 대원항업 로그인/작업자 선택 (login.js) — 포털+앱 공용 · BUILD 1795 ===== */
+/* ===== 대원항업 로그인/작업자 선택 (login.js) — 포털+앱 공용 · BUILD 1796 ===== */
 var STAFF=[{dept:'관리자',admin:true,people:[['이종훈','실장'],['송규헌','차장']]},{dept:'총무부',people:[['조윤미','차장'],['황현희','과장']]},{dept:'사업관리',people:[['남윤지','과장'],['조은주','과장'],['선한슬','주임']]},{dept:'사업관리(현장)',people:[['박영범','과장'],['최진복','과장'],['황창하','대리'],['김경호','대리']]},{dept:'측량부',people:[['이형석','상무'],['라상윤','대리'],['김민재','대리'],['서재형','대리'],['이찬규','대리'],['김도현','주임'],['이윤용','주임'],['조성준','주임'],['정세호','주임'],['곽귀민','사원'],['지현우','사원']]},{dept:'측량부(DB)',people:[['김성한','부장'],['채청민','사원']]}];
 /* [BUILD1795] 로그인 암호 — djb2 해시(평문 미노출) */
 var _PWH={'이종훈':2081305499,'송규헌':2413987888,'*':2088290635};
@@ -39,9 +39,9 @@ function pickWorker(){
   function _askPw(v,btn){var ex=box.querySelector('#_wkPwRow');if(ex)ex.remove();
     var row=document.createElement('div');row.id='_wkPwRow';row.style.cssText='display:flex;gap:6px;margin-top:10px';
     var ip=document.createElement('input');ip.type='password';ip.placeholder='암호 입력';ip.autocomplete='off';
-    ip.style.cssText='flex:1;font-size:14px;padding:10px;border:1.5px solid #1f4e9e;border-radius:9px;outline:none';
+    ip.style.cssText='flex:1;min-width:0;width:100%;box-sizing:border-box;font-size:14px;padding:9px 8px;border:1.5px solid #1f4e9e;border-radius:9px;outline:none';
     var ok=document.createElement('button');ok.textContent='확인';
-    ok.style.cssText='background:#1f4e9e;color:#fff;border:0;border-radius:9px;padding:0 16px;font-weight:800;font-size:13px;cursor:pointer';
+    ok.style.cssText='flex:0 0 auto;white-space:nowrap;background:#4da3ff;color:#fff;border:0;border-radius:9px;padding:0 14px;font-weight:800;font-size:13px;cursor:pointer';
     var go=function(){if(_pwOk(v,ip.value)){done(v);}else{alert('암호가 올바르지 않습니다');ip.value='';ip.focus();}};
     ok.onclick=go;ip.addEventListener('keydown',function(e){if(e.key==='Enter')go();});
     row.appendChild(ip);row.appendChild(ok);btn.parentNode.insertBefore(row,btn.nextSibling);ip.focus();}
