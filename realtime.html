@@ -440,7 +440,8 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   .stage{flex-direction:column!important}
   .maincol{flex:1 1 auto!important;min-height:0!important;width:100%!important;order:1!important}
   .photo-panel{width:100%!important;min-width:0!important;max-width:none!important;border-left:none!important;border-top:2px solid var(--line)!important;order:2!important}
-  .photo-panel.open{display:flex!important;flex:0 0 40vh!important;height:40vh!important}
+  /* [BUILD1807] 폰 사진창 확대 40→48vh — 노출관로 사진 하단 잘림 해결 */
+  .photo-panel.open{display:flex!important;flex:0 0 48vh!important;height:48vh!important}
   /* [1133] 버튼 5개 한 줄 — 서브바 버튼 축소 + 오른쪽 예약폭 축소 + 줄바꿈 금지 */
   .subbar{min-height:0!important;padding:5px 150px 5px 8px!important;gap:3px!important;flex-wrap:nowrap!important;overflow-x:auto!important}
   .subbar button{padding:6px 8px!important;font-size:12px!important;white-space:nowrap!important}
@@ -769,6 +770,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=1805"></script><script src="core.js?v=1805"></script>
+<script src="login.js?v=1807"></script><script src="core.js?v=1807"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>

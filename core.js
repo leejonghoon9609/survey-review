@@ -15094,7 +15094,11 @@ function svRegToField(cb){ /* 결선 성과 → 측량(현장) _B 사본. [1216]
   (function _w(){
     if(typeof online!=='undefined'&&online&&typeof pickProject==='function'){
       pickProject(_oid);
-      setTimeout(function(){var ps=document.getElementById('proj');if(ps)ps.value=_oid;},600);
+      /* [BUILD1806] 옵션 로드 레이스 해결: 옵션 생길 때까지 재시도, 끝까지 없으면 사업명으로 옵션 삽입 */
+      (function _sv(n){var ps=document.getElementById('proj');if(!ps){if(n<25)setTimeout(function(){_sv(n+1);},400);return;}
+        if(ps.querySelector('option[value="'+_oid+'"]')){ps.value=_oid;return;}
+        if(n>=25){var nm=(typeof state!=='undefined'&&state.projectName)||_oid;var op=document.createElement('option');op.value=_oid;op.textContent=nm;ps.appendChild(op);ps.value=_oid;return;}
+        setTimeout(function(){_sv(n+1);},400);})(0);
     }else if(_try++<50){ setTimeout(_w,200); }
   })();
 }catch(_oe){console.warn('[open]',_oe);}})();
