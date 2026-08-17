@@ -11931,7 +11931,9 @@ cv.addEventListener('click',function(e){
 function fmtCoord(v){return v.toLocaleString('en-US',{minimumFractionDigits:3,maximumFractionDigits:3});}
 var coordBox=document.getElementById('coordBox');
 var cwrap=cv.parentElement;
-function placeCoord(){var r=cv.getBoundingClientRect();coordBox.style.right=(Math.max(2,window.innerWidth-r.right)+10)+'px';coordBox.style.bottom=(Math.max(2,window.innerHeight-r.bottom)+10)+'px';}
+function placeCoord(){if(coordBox&&coordBox._pin)return;/* [BUILD1813] 핀 고정 시 재계산 안 함 */var r=cv.getBoundingClientRect();coordBox.style.right=(Math.max(2,window.innerWidth-r.right)+10)+'px';coordBox.style.bottom=(Math.max(2,window.innerHeight-r.bottom)+10)+'px';}
+/* [BUILD1813] 폰 실시간: 좌표창을 도면창 내부 absolute로 이동 — 사진창 침범 원천차단 */
+try{if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&window.matchMedia&&matchMedia('(max-width:760px)').matches){var _mc9=document.querySelector('.maincol');if(_mc9&&coordBox){_mc9.appendChild(coordBox);coordBox.style.position='absolute';coordBox.style.right='8px';coordBox.style.bottom='8px';coordBox._pin=1;}}}catch(_cp9){}
 function coordReset(){coordBox.innerHTML='X <b>–</b>　Y <b>–</b>';placeCoord();if(gDraw)clearSvg(gDraw);}
 cwrap.addEventListener('mousemove',function(e){
   placeCoord();
