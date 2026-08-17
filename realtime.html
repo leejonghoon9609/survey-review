@@ -391,7 +391,8 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   /* [1217] 폰 헤더 1줄: [홈으로][실시간측량][사업선택(남은폭 꽉)][작업자] */
   header h1{font-size:13px!important;margin:0 2px 0 0!important;order:2!important;flex:none!important;display:inline-block!important}
   header #homeBtn{order:1!important}
-  header #proj{order:3!important;flex:1 1 auto!important;min-width:0!important;max-width:none!important;width:auto!important;display:inline-block!important}
+  /* [BUILD1809] 사업명 길어도 한 줄 유지 — 남는 폭만 차지(넘치면 말줄임) */
+  header #proj{order:3!important;flex:1 1 0!important;min-width:0!important;max-width:none!important;width:0!important;display:inline-block!important;text-overflow:ellipsis!important}
   header #workerChip{order:3!important;flex:none!important;margin-left:4px!important}
   #projFilterChip{display:none!important}/* [1241] 폰: 사업 전체보기 칩 숨김 — 1행 밀림 방지 */
   /* [1218] 폰 2행 그룹 간격: 빨강[저장·삭제] | 연두[도구~준공] | 파랑[사진·지도=우측 auto] */
@@ -771,6 +772,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=1808"></script><script src="core.js?v=1808"></script>
+<script src="login.js?v=1809"></script><script src="core.js?v=1809"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
