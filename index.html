@@ -168,7 +168,7 @@
   .app .ds{font-size:12.5px!important;line-height:1.45!important;margin-top:5px!important}
   .badge{font-size:11.5px!important;padding:4px 10px!important}
   .open{font-size:14px!important}
-  .stack{gap:13px!important;margin-top:8px!important}
+  .stack{gap:13px!important;margin-top:4px!important}
   /* [BUILD1799] 헤더·타이틀 텍스트 축소 + 상하 간격 확대 */
   header{padding:14px 10px!important;height:auto!important;min-height:72px!important}
   header img.logo{width:24px!important;height:24px!important}
@@ -176,14 +176,15 @@
   .clock .t{font-size:12px!important}
   .clock .d{font-size:11px!important}
   #workerChip{font-size:11px!important;padding:3px 8px!important}
-  .wrap{padding-top:12px!important}
+  /* [BUILD1804] 타이틀 블록 상하 여백 절반 */
+  .wrap{padding-top:6px!important}
   /* [BUILD1801] 타이틀 줄간격 축소 + 업무시스템↔BUILD 동일라인 정렬(업무시스템 확대, 배지 고정) */
   /* [BUILD1802] 업무시스템 확대 + 아래 간격 추가 */
   /* [BUILD1803] 업무시스템 추가 확대 + 빨간색 */
-  .eyebrow{font-size:19px!important;line-height:26px!important;margin:8px 0 15px!important;color:#c0392b!important}
+  .eyebrow{font-size:19px!important;line-height:26px!important;margin:4px 0 15px!important;color:#c0392b!important}
   .h-lead{font-size:16.5px!important;margin-bottom:5px!important}
-  .h-desc{font-size:11.5px!important;margin-bottom:10px!important}
-  .buildno{top:calc(100% + 22px)!important}
+  .h-desc{font-size:11.5px!important;margin-bottom:5px!important}
+  .buildno{top:calc(100% + 12px)!important}
 }
 
   /* ===== [1174] PC 공정 현황판 (min-width:1024px 전용 — 모바일 무영향) ===== */
@@ -642,6 +643,6 @@
   });
 })();
 </script>
-<script src="login.js?v=1803"></script>
+<script src="login.js?v=1804"></script>
 </body>
 </html>
