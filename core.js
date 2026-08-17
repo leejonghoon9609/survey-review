@@ -11935,6 +11935,8 @@ var cwrap=cv.parentElement;
 function placeCoord(){if(coordBox&&coordBox._pin)return;/* [BUILD1813] 핀 고정 시 재계산 안 함 */var r=cv.getBoundingClientRect();coordBox.style.right=(Math.max(2,window.innerWidth-r.right)+10)+'px';coordBox.style.bottom=(Math.max(2,window.innerHeight-r.bottom)+10)+'px';}
 /* [BUILD1813] 폰 실시간: 좌표창을 도면창 내부 absolute로 이동 — 사진창 침범 원천차단 */
 try{if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&window.matchMedia&&matchMedia('(max-width:760px)').matches){var _mc9=document.querySelector('.maincol');if(_mc9&&coordBox){_mc9.appendChild(coordBox);coordBox.style.position='absolute';coordBox.style.right='8px';coordBox.style.bottom='8px';coordBox._pin=1;}}}catch(_cp9){}
+/* [BUILD1817] 폰 실시간: BUILD 배지를 도면창 좌하단 미니 표시 — 버전 확인용 */
+try{if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&window.matchMedia&&matchMedia('(max-width:760px)').matches){var _bn9=document.getElementById('buildno'),_mc8=document.querySelector('.maincol');if(_bn9&&_mc8){_mc8.appendChild(_bn9);_bn9.style.cssText='display:inline-block;position:absolute;left:8px;bottom:8px;z-index:49;font-size:10px;font-weight:800;color:#fff;background:rgba(192,57,43,.8);padding:2px 7px;border-radius:6px;letter-spacing:.4px;pointer-events:none';}}}catch(_bn8){}
 function coordReset(){coordBox.innerHTML='X <b>–</b>　Y <b>–</b>';placeCoord();if(gDraw)clearSvg(gDraw);}
 cwrap.addEventListener('mousemove',function(e){
   placeCoord();
