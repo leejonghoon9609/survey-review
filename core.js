@@ -1456,7 +1456,7 @@ function drawManholes(){_orgSync();/* [1524] */
       pushHist();
       if(mh.lx==null){mh.lx=lx;mh.ly=ly;mh._lxSeed=1;}/* [BUILD1776] \uD074\uB9AD\uB9CC\uC73C\uB85C \uBC15\uC81C \uAE08\uC9C0 */
       var w=toWorld(ev.clientX,ev.clientY);
-      mhDragState={type:'center',mh:mh,gx:w[0]-mh.wx,gy:(-w[1])-mh.wy};});
+      mhDragState={type:'center',mh:mh,gx:w[0]-mh.wx,gy:(-w[1])-mh.wy,ox:mh.wx,oy:mh.wy};});/* [BUILD1819] 원좌표 보관 */
     drag.addEventListener('dblclick',function(ev){ev.stopPropagation();openLabelEdit();});
     gMH.appendChild(drag);
 
@@ -1502,7 +1502,7 @@ window.addEventListener('pointermove',function(ev){
   }
 });
 window.addEventListener('pointerup',function(ev){
-  if(_mhLp){clearTimeout(_mhLp);_mhLp=null;}if(!mhDragState)return;var _sm9=mhDragState.mh;if(_sm9&&_sm9._lxSeed){delete _sm9.lx;delete _sm9.ly;delete _sm9._lxSeed;}mhDragState=null;drawManholes();drawGeo();_dirtySave();
+  if(_mhLp){clearTimeout(_mhLp);_mhLp=null;}if(!mhDragState)return;var _sm9=mhDragState.mh;var _ds9=mhDragState;/* [BUILD1819] 폰 실시간: 시설물 본체 이동 확인창 — 취소 시 완전 원복 */try{if(_ds9.type==='center'&&_ds9.ox!=null&&typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&typeof isMobileDevice==='function'&&isMobileDevice()){var _dm9=Math.hypot(_sm9.wx-_ds9.ox,_sm9.wy-_ds9.oy);if(_dm9>0.05){var _nm9=(_sm9.label||({mh:'맨홀',jb:'JB',inlet:'인입',riser:'입상주'})[_sm9.type]||'시설물');if(!confirm('⚠ '+_nm9+' 위치가 '+_dm9.toFixed(2)+'m 이동되었습니다.\n적용하려면 확인을 누르세요. (취소=원위치 복구)')){var _nx9=_sm9.wx,_ny9=_sm9.wy;state.lines.forEach(function(L){if(L.layer!=='통신관로'||!L.pts)return;L.pts.forEach(function(p){if(Math.abs(p[0]-_nx9)<1e-4&&Math.abs(p[1]-_ny9)<1e-4){p[0]=_ds9.ox;p[1]=_ds9.oy;}});});if(_sm9.lx!=null){_sm9.lx+=_ds9.ox-_nx9;_sm9.ly+=_ds9.oy-_ny9;}_sm9.wx=_ds9.ox;_sm9.wy=_ds9.oy;}}}}catch(_cf9){}if(_sm9&&_sm9._lxSeed){delete _sm9.lx;delete _sm9.ly;delete _sm9._lxSeed;}mhDragState=null;drawManholes();drawGeo();_dirtySave();
 });
 var mhIdSeq=1;
 function _mhIdFix(){/* [1554] \ub85c\ub4dc \uc2dc id \uc2dc\ud000\uc2a4 \ubcf4\uc815 + \uc911\ubcf5\u00b7\ub204\ub77d id \uce58\uc720(\uc88c\ud45c\ub85c \uc57c\uc7a5 \uc7ac\ubc14\uc778\ub529) */
