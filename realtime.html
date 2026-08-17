@@ -439,10 +439,11 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
 /* ===== [BUILD 822] 실시간 모바일: 사진패널 도면 아래로(높이 확보) ===== */
 @media(max-width:760px){
   .stage{flex-direction:column!important}
-  .maincol{flex:1 1 auto!important;min-height:0!important;width:100%!important;order:1!important}
+  /* [BUILD1810] 도면:사진 = 6:4 */
+  .maincol{flex:6 1 0!important;min-height:0!important;width:100%!important;order:1!important}
   .photo-panel{width:100%!important;min-width:0!important;max-width:none!important;border-left:none!important;border-top:2px solid var(--line)!important;order:2!important}
   /* [BUILD1807] 폰 사진창 확대 40→48vh — 노출관로 사진 하단 잘림 해결 */
-  .photo-panel.open{display:flex!important;flex:0 0 48vh!important;height:48vh!important}
+  .photo-panel.open{display:flex!important;flex:4 1 0!important;height:auto!important;min-height:0!important}
   /* [1133] 버튼 5개 한 줄 — 서브바 버튼 축소 + 오른쪽 예약폭 축소 + 줄바꿈 금지 */
   .subbar{min-height:0!important;padding:5px 150px 5px 8px!important;gap:3px!important;flex-wrap:nowrap!important;overflow-x:auto!important}
   .subbar button{padding:6px 8px!important;font-size:12px!important;white-space:nowrap!important}
@@ -459,7 +460,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   .php-body{display:block!important;overflow-y:auto!important;scroll-snap-type:y proximity!important;-webkit-overflow-scrolling:touch!important}
   .php-main{flex:none!important;min-height:0!important;margin-bottom:10px!important;display:block!important;scroll-snap-align:start!important;scroll-snap-stop:normal!important}
   /* [BUILD1808] 사진 높이를 패널 48vh 기준으로 재계산 — 헤더+캡션 공제 후 한 화면 표시 */
-  .php-main .zoomwrap,.php-main .ph{height:calc(48vh - 96px)!important;max-height:none!important;width:100%!important}
+  .php-main .zoomwrap,.php-main .ph{height:calc(34vh - 90px)!important;max-height:none!important;width:100%!important}
   .php-main .zoomwrap .ph{height:100%!important}
 }
 
@@ -772,6 +773,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=1809"></script><script src="core.js?v=1809"></script>
+<script src="login.js?v=1810"></script><script src="core.js?v=1810"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
