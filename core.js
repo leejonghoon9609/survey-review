@@ -1074,7 +1074,7 @@ function drawGeo(){_orgSync();/* [1524] */if(typeof _tgCarGeomBuild==='function'
   ((typeof _tgCarLines==='function')?_tgCarLines(state.lines):state.lines).forEach(function(L){if(bpOff&&L.base)return;/* [1329] 엣지 분할 필터 */
     if(!(LINECOL[L.layer]||L.crop))return;      // 백판은 위 통합 path로 처리됨
     if(L.crop&&(typeof LV!=='undefined')&&LV.bizbox===0)return;   /* [1092] 사업정보 끔 → 크롭 테두리도 같이 */
-    var def=LINECOL[L.layer]||{c:"#bbb",w:1.2};if(L.color)def={c:L.color,w:def.w,dash:def.dash};if(L.crop)def={c:"#000",w:1.4};
+    var def=LINECOL[L.layer]||{c:"#bbb",w:1.2};if(L.color)def={c:L.color,w:def.w,dash:def.dash};if(L.free)def={c:def.c,w:def.w,dash:"7 5"};/* [BUILD1846] 위치표시=점선 */if(L.crop)def={c:"#000",w:1.4};
     var pts=(function(){var _G9=(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)));var _o9=[],_P9=L.pts,_i9,_a9,_b9;for(_i9=0;_i9<_P9.length;_i9++){_a9=_P9[_i9];if(_G9&&_i9>0){_b9=_P9[_i9-1];var _dx9=_a9[0]-_b9[0],_dy9=_a9[1]-_b9[1],_dl9=Math.hypot(_dx9,_dy9);if(_dl9>5){var _n9=Math.ceil(_dl9/5);/* [1518] 50m→5m — 깊은 줌 컸링 커버 */for(var _k9=1;_k9<_n9;_k9++){var _t9=_k9/_n9,_sI9=S(_b9[0]+_dx9*_t9,_b9[1]+_dy9*_t9);_o9.push(_sI9[0]+','+_sI9[1]);}}}var _s9=S(_a9[0],_a9[1]);_o9.push(_s9[0]+','+_s9[1]);}return _o9.join(' ');})();/* [1494] 50m \ucd08\uacfc \uc138\uadf8 \ubcf4\uac04\uc810 \uc0bd\uc785 \u2014 Chromium vector-effect \ucef8\ub9c1 \ud68c\ud53c(\ud654\uba74 \ub3d9\uc77c) */
     var pl=el('polyline',{points:pts,fill:'none',stroke:def.c,'stroke-width':def.w,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':def.dash?'butt':'round'});
     if(def.dash)pl.setAttribute('stroke-dasharray',def.dash);
@@ -5604,7 +5604,7 @@ EOF
   state.lines.forEach(function(_L){if(_L.insp&&_L.pts&&_L.pts.length>=2&&!((typeof LV!=='undefined')&&LV.hyun===0))pline(_L.pts,'HYUN',4,false);});
   (state.hyunPts||[]).forEach(function(_hp){if((typeof LV!=='undefined')&&LV.hyun===0)return;var _hcol=({b:4,d:5,s:8,bd:1,db:1})[(_hp[2]||'').toLowerCase()]||3;insert('SD901',_hp[0],_hp[1],0.3,'\ud604\ud669',_hcol);});
   state.lines.forEach(function(Ln){if(!Ln.pts||Ln.pts.length<2)return;if(Ln.base||!appLay[Ln.layer])return;var lm=LM[Ln.layer]||['PIPE',1];
-    if(Ln.layer==='압입구간'){pline(Ln.pts,'PUSH',5,false,'DASHED');} // 압입=DASHED 선종 1폴리라인(첨부2 스타일, 가는 점선)
+    if(Ln.layer==='압입구간'){pline(Ln.pts,'PUSH',5,false,'DASHED');}else if(Ln.free){var _lmF=LM[Ln.layer]||['PIPE',1];pline(Ln.pts,_lmF[0],_lmF[1],false,'DASHED');}/* [BUILD1846] */ // 압입=DASHED 선종 1폴리라인(첨부2 스타일, 가는 점선)
     else pline(Ln.pts,lm[0],lm[1],false);
     if((Ln.layer==='지거'||Ln.layer==='압입구간'||Ln.layer==='탐사구간')&&Ln.note){/* [BUILD1835] */
       var aw=ptOnPoly(Ln.pts,polyAnchorT(Ln));
@@ -5750,7 +5750,7 @@ if(!((typeof LV!=='undefined')&&LV.depthchk===0))(state.depthCheck||[]).forEach(
 function renderDraft(){clearSvg(gDraft);previewLine=null;if(!lineDraft)return;
   var col=(window._drawBult?'#e6b800':((LINECOL[drawLayer]||{}).c||'#d92b2b')), lw=(LINECOL[drawLayer]||{}).w||1.6;/* [1511] */
   for(var i=1;i<lineDraft.length;i++){var a=S(lineDraft[i-1][0],lineDraft[i-1][1]),b=S(lineDraft[i][0],lineDraft[i][1]);
-    gDraft.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:col,'stroke-width':(window._drawFree?lw+1:lw),'stroke-dasharray':(window._drawFree?'none':'4 3'),'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}/* [BUILD1844] 위치표시=실선 */
+    gDraft.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:col,'stroke-width':(window._drawFree?lw+1:lw),'stroke-dasharray':(window._drawFree?'7 5':'4 3'),'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}/* [BUILD1844] 위치표시=실선 */
   lineDraft.forEach(function(p){var s=S(p[0],p[1]);if(window._drawFree){gDraft.appendChild(el('circle',{cx:s[0],cy:s[1],r:Math.max(0.3,7*((typeof pxToWorld==='function'&&pxToWorld())||0.06)),fill:'#f2b400',stroke:'#b8860b','stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}else{gDraft.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#1f6fd6','stroke-width':8,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}});/* [BUILD1844] 위치표시 클릭점=노란 원 */
   /* [1192] 마지막 확정점 초록 점선원+X — 다음 점 확정 시 재렌더로 자동 이동, 완료/시작 시 자동 제거 */
   if(lineDraft.length){var _lgp=lineDraft[lineDraft.length-1];if(typeof _draftGreen==='function')_draftGreen(_lgp[0],_lgp[1]);}
