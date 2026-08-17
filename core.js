@@ -11514,7 +11514,7 @@ function highlightSel(){clearSvg(gSel);if(selNum==null)return;
   gSel.appendChild(_sg);}   /* [1096/1122] 선택=빨간원+중심X · 화면비례 */
 function compressImage(file,maxW,q){return new Promise(function(res,rej){var img=new Image(),u=URL.createObjectURL(file);img.onload=function(){URL.revokeObjectURL(u);var w=img.width,h=img.height;if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);c.toBlob(function(b){b?res(b):rej(new Error('blob'));},'image/jpeg',q);};img.onerror=function(){rej(new Error('img'));};img.src=u;});}
 var zoomState={img:null,scale:1,tx:0,ty:0,drag:false,sx:0,sy:0};/* [1568] \ud638\ud658\uc6a9 \uc794\uc874 */
-function applyZoom(z){z=z||zoomState;if(!z||!z.img)return;z.img.style.transform='translate('+z.tx+'px,'+z.ty+'px) scale('+z.scale+')';z.img.style.cursor=z.scale>1?(z.drag?'grabbing':'grab'):'zoom-in';}
+function applyZoom(z){z=z||zoomState;if(!z||!z.img)return;var _lx=(z.scale-1)*(z.img.offsetWidth||0)/2,_ly=(z.scale-1)*(z.img.offsetHeight||0)/2;z.tx=Math.max(-_lx,Math.min(_lx,z.tx));z.ty=Math.max(-_ly,Math.min(_ly,z.ty));/* [BUILD1816] 클램프 */z.img.style.transform='translate('+z.tx+'px,'+z.ty+'px) scale('+z.scale+')';z.img.style.cursor=z.scale>1?(z.drag?'grabbing':'grab'):'zoom-in';}
 function setupZoom(img){if(!img)return;/* [1568] \uc774\ubbf8\uc9c0\ubcc4 \uc0c1\ud0dc \u2014 \ub178\ucd9c\uad00\ub85c+\ud6c4\uce21\ub7c9 \ub3d9\uc2dc \ud655\ub300 \uc9c0\uc6d0 */
   var z={img:img,scale:1,tx:0,ty:0,drag:false,sx:0,sy:0};img._zs=z;zoomState=z;
   img.style.transformOrigin='center center';
@@ -11681,7 +11681,7 @@ function _imMap(im){var r=im.getBoundingClientRect(),W=im.naturalWidth||im.width
    배율 1에선 폰 세로 스크롤 유지(현황판으로 내려가야 하므로). tryBoard=현황판 표 이동 우선 */
 function rtViewZoom(img,opts){
   var z={s:1,tx:0,ty:0};
-  function ap(){img.style.transform='translate('+z.tx+'px,'+z.ty+'px) scale('+z.s+')';img.style.touchAction=(z.s>1?'none':'auto');}   /* [1140] 배율1=auto(부모 스크롤 위임) */
+  function ap(){/* [BUILD1816] 팬 경계 클램프 — 사진이 창 밖으로 안 나감 */var _lx=(z.s-1)*(img.offsetWidth||0)/2,_ly=(z.s-1)*(img.offsetHeight||0)/2;z.tx=Math.max(-_lx,Math.min(_lx,z.tx));z.ty=Math.max(-_ly,Math.min(_ly,z.ty));img.style.transform='translate('+z.tx+'px,'+z.ty+'px) scale('+z.s+')';img.style.touchAction=(z.s>1?'none':'auto');}   /* [1140] 배율1=auto(부모 스크롤 위임) */
   img.style.transformOrigin='center center';img.style.willChange='transform';img.style.touchAction='auto';   /* [1140] 초기 스크롤 허용 */
   img.addEventListener('wheel',function(e){e.preventDefault();var k=(e.deltaY<0)?1.2:1/1.2;z.s=Math.max(1,Math.min(6,z.s*k));if(z.s===1){z.tx=0;z.ty=0;}ap();},{passive:false});
   img.addEventListener('dblclick',function(e){e.preventDefault();z.s=1;z.tx=0;z.ty=0;ap();});
@@ -11727,7 +11727,8 @@ function rtViewZoom(img,opts){
       ap();
     }else if(pan){z.tx=e.clientX-pan.x;z.ty=e.clientY-pan.y;ap();}
   });
-  function _up(e){delete pts[e.pointerId];var n=Object.keys(pts).length;if(n<2)pinch=null;if(n<1)pan=null;}
+  var _tap9={t:0,x:0,y:0};/* [BUILD1816] 더블탭 리셋 */
+  function _up(e){delete pts[e.pointerId];var n=Object.keys(pts).length;if(n<2)pinch=null;if(n<1)pan=null;var _nw=Date.now();if(_nw-_tap9.t<320&&Math.hypot(e.clientX-_tap9.x,e.clientY-_tap9.y)<28){z.s=1;z.tx=0;z.ty=0;ap();_tap9.t=0;}else{_tap9={t:_nw,x:e.clientX,y:e.clientY};}}
   img.addEventListener('pointerup',_up);
   img.addEventListener('pointercancel',_up);
   ap();
