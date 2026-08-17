@@ -12129,7 +12129,7 @@ function rtCapture(){
 function rtShowNumPopup(day,sug,onOk){
   var old=document.getElementById('rtNumOv');if(old&&old.parentNode)old.parentNode.removeChild(old);
   var ov=document.createElement('div');ov.id='rtNumOv';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(15,20,30,.5);z-index:100000;display:flex;align-items:center;justify-content:center';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(15,20,30,.5);z-index:100000;display:flex;align-items:center;justify-content:center;padding-bottom:110px;box-sizing:border-box'/* [BUILD1866] 창을 촬영버튼만큼 위로 */;
   var card=document.createElement('div');
   card.style.cssText='background:#fff;border-radius:16px;width:300px;max-width:90vw;box-shadow:0 24px 70px rgba(0,0,0,.4);overflow:hidden';
   card.innerHTML=
