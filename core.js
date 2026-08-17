@@ -6087,7 +6087,7 @@ function refreshProjects(){ if(!online)return;
     if(window._projFilterId&&!window._projFilterBase){var _fd=res.data||[];for(var _fi=0;_fi<_fd.length;_fi++){if(_fd[_fi].id===window._projFilterId){window._projFilterBase=baseName(_fd[_fi].name);break;}}if(!window._projFilterBase){console.warn('[projfilter] open 대상 미발견 — 필터 해제');window._projFilterId=null;}}
     var sel=document.getElementById('proj');sel.innerHTML='<option value="">사업 선택…</option>';
     (res.data||[]).forEach(function(p){if((p.stage||'survey')!==STAGE)return;if(window._projFilterBase&&baseName(p.name)!==window._projFilterBase)return;/* [1199] 사업 필터 *//* [1183] realtime 전용 — 실측완료 사업은 드롭다운 제외(완료목록에서 열람), 다른 공정 적용 금지 */if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&p.rtd==='true')return;var o=document.createElement('option');o.value=p.id;o.textContent=p.name;o.title=p.name;sel.appendChild(o);});
-    if(state.projectId)sel.value=state.projectId;
+    if(state.projectId){sel.value=state.projectId;/* [BUILD1808] 완료사업 등 옵션 미포함 시 사업명 옵션 삽입 */if(String(sel.value)!==String(state.projectId)){var _mo=document.createElement('option');_mo.value=state.projectId;_mo.textContent=state.projectName||'현재 사업';_mo.title=_mo.textContent;sel.appendChild(_mo);sel.value=state.projectId;}}
     if(typeof _projFilterChip==='function')_projFilterChip();
     /* [BUILD 913] 실시간측량 기존 사업명 _S 마이그레이션 */
     if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){(res.data||[]).forEach(function(p){if((p.stage||'survey')!==STAGE)return;if(/_S$/.test(p.name||''))return;var nn=(p.name||'')+'_S';sb.from(DB+'_projects').update({name:nn}).eq('id',p.id).then(function(){});var o=sel.querySelector('option[value="'+p.id+'"]');if(o){o.textContent=nn;o.title=nn;}if(state.projectId===p.id)state.projectName=nn;});}
@@ -6124,7 +6124,8 @@ function saveProject(cb){ if(readOnly){if(typeof cb==='function')cb();return;} v
     });
   }else{ _doUpsert(); }
 }
-function pickProject(id){ if(!id)return;try{if(typeof IS_TANGO!=='undefined'&&IS_TANGO)localStorage.setItem('lastProj_tango',id);}catch(_lp){}/* [1321] */
+function _projSelSync(){try{var ps=document.getElementById('proj');if(!ps||!state.projectId)return;if(ps.querySelector('option[value="'+state.projectId+'"]')){ps.value=state.projectId;return;}var o=document.createElement('option');o.value=state.projectId;o.textContent=state.projectName||'현재 사업';o.title=o.textContent;ps.appendChild(o);ps.value=state.projectId;}catch(_ss){}}/* [BUILD1808] 어느 경로로 열든 select에 사업명 표시 */
+function pickProject(id){ if(!id)return;setTimeout(_projSelSync,1500);setTimeout(_projSelSync,4000);try{if(typeof IS_TANGO!=='undefined'&&IS_TANGO)localStorage.setItem('lastProj_tango',id);}catch(_lp){}/* [1321] */
   if(STAGE==='survey'||STAGE==='realtime'||STAGE==='position'||!online){ loadProject(id); return; }/* [1436] */
   /* 다운스트림(현장/탱고): 사업 선택 즉시 내 단계 사본으로 전환 */
   sb.from(DB+'_projects').select('id,name,stage:payload->>stage').eq('id',id).single().then(function(r){
