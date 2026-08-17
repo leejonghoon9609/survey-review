@@ -162,7 +162,7 @@
   .toast.show{opacity:.95}
   .coordbox{position:fixed;right:10px;bottom:10px;z-index:50;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:12px;color:var(--ink);font-variant-numeric:tabular-nums;pointer-events:none;box-shadow:0 1px 6px rgba(0,0,0,.12);line-height:1.5}
   .coordbox b{font-weight:600}
-  .coordbox .cb-near{display:block;color:var(--muted);font-size:11px;margin-top:1px}
+  .coordbox .cb-near{display:none}/* [BUILD1814] 근접측점 정보 숨김 */
   .recclr{padding:2px 8px;font-size:11px;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer}
   .recclr:hover{color:var(--bad);border-color:var(--bad);background:#fbeeee}
   .photoBtn{background:#eef6ef;border-color:#bcdcc0;color:#2a9e50;font-weight:600}
@@ -465,7 +465,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   .php-body{display:block!important;overflow-y:auto!important;scroll-snap-type:y proximity!important;-webkit-overflow-scrolling:touch!important}
   .php-main{flex:none!important;min-height:0!important;margin-bottom:10px!important;display:block!important;scroll-snap-align:start!important;scroll-snap-stop:normal!important}
   /* [BUILD1808] 사진 높이를 패널 48vh 기준으로 재계산 — 헤더+캡션 공제 후 한 화면 표시 */
-  .php-main .zoomwrap,.php-main .ph{height:calc(34vh - 90px)!important;max-height:none!important;width:100%!important}
+  .php-main .zoomwrap,.php-main .ph{height:calc(40vh - 130px)!important;max-height:none!important;width:100%!important}/* [BUILD1814] 패널 꽉 채움 */
   .php-main .zoomwrap .ph{height:100%!important}
 }
 
@@ -778,6 +778,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=1813"></script><script src="core.js?v=1813"></script>
+<script src="login.js?v=1814"></script><script src="core.js?v=1814"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
