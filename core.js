@@ -11962,6 +11962,15 @@ function placeCoord(){if(coordBox&&coordBox._pin)return;/* [BUILD1813] 핀 고�
 try{if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&window.matchMedia&&matchMedia('(max-width:760px)').matches){var _mc9=document.querySelector('.maincol');if(_mc9&&coordBox){_mc9.appendChild(coordBox);coordBox.style.position='absolute';coordBox.style.right='8px';coordBox.style.bottom='8px';coordBox._pin=1;}}}catch(_cp9){}
 /* [BUILD1817] 폰 실시간: BUILD 배지를 도면창 좌하단 미니 표시 — 버전 확인용 */
 try{if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&window.matchMedia&&matchMedia('(max-width:760px)').matches){var _bn9=document.getElementById('buildno'),_mc8=document.querySelector('.maincol');if(_bn9&&_mc8){_mc8.appendChild(_bn9);_bn9.style.cssText='display:inline-block;position:absolute;left:8px;bottom:8px;z-index:49;font-size:10px;font-weight:800;color:#fff;background:rgba(192,57,43,.8);padding:2px 7px;border-radius:6px;letter-spacing:.4px;cursor:pointer';/* [BUILD1821] 배지 탭 = 캐시 우회 새로고침 */_bn9.onclick=function(){if(!confirm('최신 빌드로 새로고침 하시겠습니까?\n(저장 안 한 작업은 사라집니다)'))return;try{var u=new URL(location.href);u.searchParams.set('_r',Date.now());location.replace(u.toString());}catch(_u9){location.reload();}};}}}catch(_bn8){}
+/* [BUILD1853] 폰 실시간: 특이사항 버튼 — 도면 좌상단 (PC subbar와 동일 기능 tgNoteToggle) */
+try{if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&window.matchMedia&&matchMedia('(max-width:760px)').matches&&!document.getElementById('rtNoteBtn')){
+  var _mcN9=document.querySelector('.maincol');
+  if(_mcN9){var _nb2=document.createElement('button');_nb2.id='rtNoteBtn';_nb2.type='button';_nb2.textContent='❗ 특이사항';
+    _nb2.style.cssText='position:absolute;left:8px;top:8px;z-index:54;font-size:13px;font-weight:800;padding:7px 12px;border:1.5px solid #d500f2;border-radius:9px;background:#fff;color:#d500f2;box-shadow:0 2px 7px rgba(0,0,0,.16);cursor:pointer';
+    _mcN9.appendChild(_nb2);
+    _nb2.onclick=function(){if(typeof tgNoteToggle==='function')tgNoteToggle();_nb2.style.background=(typeof mode!=='undefined'&&mode==='tgnote')?'#fbe9fb':'#fff';};
+  }
+}}catch(_nb7){}
 function coordReset(){coordBox.innerHTML='X <b>–</b>　Y <b>–</b>';placeCoord();if(gDraw)clearSvg(gDraw);}
 cwrap.addEventListener('mousemove',function(e){
   placeCoord();
