@@ -10695,10 +10695,21 @@ async function joseoBuildWb(projectName, recs, perPage){
   for(var m=K;m<N;m+=K){ ws.getRow(2+m*17).addPageBreak(); }
   return wb;
 }
+function joseoBoardBuf(no,url){/* [BUILD1876] 현황판 합성 버퍼 — 실패 시 원본 폴백 */
+  return new Promise(function(res){
+    try{
+      rtBoardURL(no,url,function(du){
+        if(!du){joseoFetchBuf(url).then(res);return;}
+        try{var b=atob(String(du).split(',')[1]);var a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);res(a.buffer);}
+        catch(_c9){joseoFetchBuf(url).then(res);}
+      },(state.rtBoardPos&&state.rtBoardPos[no])||null);
+    }catch(_e9){joseoFetchBuf(url).then(res);}
+  });
+}
 async function joseoFetchPhotos(recs,onProg){
   var total=0; recs.forEach(function(r){ if(r.expUrl)total++; if(r.aftUrl)total++; }); var done=0;
   for(var i=0;i<recs.length;i++){ var r=recs[i];
-    if(r.expUrl){ r.expBuf=await joseoFetchBuf(r.expUrl); done++; if(onProg)onProg(done,total); }
+    if(r.expUrl){ r.expBuf=await (state.joseoBoard?joseoBoardBuf(r.fullNo||r.name,r.expUrl):joseoFetchBuf(r.expUrl)); done++; if(onProg)onProg(done,total); }/* [BUILD1876] 현황판/원본 반영 */
     if(r.aftUrl){ r.aftBuf=await joseoFetchBuf(r.aftUrl); done++; if(onProg)onProg(done,total); }
   }
 }
@@ -11002,7 +11013,7 @@ function joseoRegisterDone(){ /* [1275] 토글 */
 }
 (function(){
   var bt=document.getElementById('joseoBoardTgl');/* [BUILD1875] 현황판/원본 토글 */
-  function _jbSync(){if(!bt)return;var on=!!state.joseoBoard;bt.textContent=on?'현황판':'원본';bt.style.background=on?'#eaf3ff':'#fff';bt.style.color=on?'#1f4e9e':'#666';bt.style.borderColor=on?'#1f6fd6':'#bbb';}
+  function _jbSync(){if(!bt)return;var on=!!state.joseoBoard;bt.textContent=on?'현황판':'원본';bt.style.background=on?'#d32f2f':'#FFC61A';bt.style.color=on?'#fff':'#6b5300';bt.style.borderColor=on?'#d32f2f':'#d9a800';/* [BUILD1876] */}
   if(bt){window._jbSync9=_jbSync;bt.onclick=function(){state.joseoBoard=!state.joseoBoard;_jbSync();try{if(online&&state.projectId)saveProject();}catch(_e){}try{if(typeof joseoState!=='undefined'&&joseoState.cur)joseoRenderPreview(joseoState.cur);}catch(_e2){}toast(state.joseoBoard?'실시간 측량점: 현황판 합성 표시':'실시간 측량점: 사진 원본 표시');};_jbSync();}
   var lb=document.getElementById('joseoLinkBtn');
   if(lb) lb.onclick=function(){ joseoLink=!joseoLink; this.textContent=joseoLink?'🔗 연동':'🔓 미연동'; this.classList.toggle('off',!joseoLink); toast(joseoLink?'측점↔조서 연동 ON (점 클릭=조서 이동)':'조서 연동 OFF'); };
