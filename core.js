@@ -10631,7 +10631,7 @@ function joseoGetTemplate(){
 function joseoDateK(d){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d||'');return m?(m[1]+'년 '+(+m[2])+'월 '+(+m[3])+'일'):(d||'');}
 function joseoDate(no){ var d=(no||'').toString().slice(0,6); if(d.length<6) return ''; return '20'+d.slice(0,2)+'-'+d.slice(2,4)+'-'+d.slice(4,6); }
 function joseoParseCode(code){
-  var c=(code||'').replace(/(^|\s)T(?=\s|$)/g,' ').replace(/\s+/g,' ').trim();   // 내부표시 T 제거
+  var c=(code||'').replace(/(^|\s)[MT](?=\s|$)/g,' ')/* [BUILD1874] M·T 내부표시 제거 */.replace(/\s+/g,' ').trim();   // 내부표시 T 제거
   var m=/^([A-Za-z]+)\s*(.*)$/.exec(c);
   return { mat: m?m[1]:c, dia: m?((m[2]||'').trim()):'' };
 }
