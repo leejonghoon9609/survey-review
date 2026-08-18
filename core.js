@@ -44,7 +44,7 @@ function isTpoint(p){var c=(p&&p.code)||'';return /(^|\s)T(\s|\d|$)/.test(c)||/(
   }
   function isHyunPt(p){var c=((p&&p.code||'')+'').trim().toLowerCase();return c.charAt(0)==='b';}
 function pipeCount(p){var m=/[xX×]\s*(\d+)/.exec((p&&p.code)||'');return m?+m[1]:null;}
-function isManhole(p){return /^\s*M/.test((p&&p.code)||'');}
+function isManhole(p){var c=(((p&&p.code)||'')+'').trim();if(!c)return false;var C=c.toUpperCase();if(/^MD/.test(C))return false;/* [1879] MD(멀티덕트) 관종 자체 = 측점 */if(/^M\s*(FC|COD|ELP|MD|\d)/.test(C))return false;/* [1879] M+관종·심도 = 맨홀앞점(작업자 파악용) → 측점 유지 */if(/^M/.test(C))return true;/* 앞 M = 맨홀 */if(/^(SKT|SKB|SK|LGU|LG|DL|SJ|시청)\s*M$/.test(C))return true;/* [1879] 소유자+M = 맨홀(탐사) */return false;}
 function isRiserPt(p){if(p&&p._riserPt)return true;/* [1472] IP주 등 모든 입상 원천점 = 마젠타 ✕ */var c=((p&&p.code)||'').trim(),tc=((p&&p._tcode)||'').trim();return /(^|\s)(TJ|EJ)/i.test(c)||/(^|\s)(TJ|EJ)/i.test(tc)||/^IPJU$/i.test(c);} // 전주(통신주TJ·한전주EJ) 측점
 // ★ CSV 맨홀 코드 → 종류 이름표 (BUILD512). 코드 앞/뒤 M = 맨홀, M 뗀 나머지로 종류. SW=한전 특수. 모르는 M코드는 코드 그대로 표시(누락 방지)
 var MH_KINDS={'LG':'LG','LGU':'LGU+','\uBC29\uC1A1':'CATV','\uBC29\uC1A1\uB4DC\uB9BC':'CATV','TB':'SKB','\uD558\uB098\uB85C':'SKT','CATV':'CATV','DL':'드림라인','SKT':'SKT','SKB':'SKB','\uC2DC\uCCAD':'\uC2DC\uCCAD','\uC138\uC885':'\uC138\uC885','SJ':'\uC138\uC885','TBRO':'\uD2F0\uBE0C\uB85C','LGPOWER':'LG\uD30C\uC6CC','HTI':'HTI'};
