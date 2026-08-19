@@ -7734,7 +7734,8 @@ function _fldMhClickAt(cx,cy){ /* [1258] field 전용 — 도면 맨홈 클릭�
     (state.manholes||[]).forEach(function(m){if(m.type==='riser'||m.wx==null)return;var d=Math.hypot(m.wx-wx,m.wy-wy);if(d<bd){bd=d;best=m;}});
     if(!best||bd>tol)return false;
     var rec=mnList().filter(function(r){return r&&!r.delAt&&r.mhId===best.id;})[0];
-    if(!rec){rec=_fldMnRecFor(best,true);/* [1556] 지도 클릭=명시 의도 */if(rec&&online&&state.projectId&&typeof saveProject==='function')saveProject();}
+    if(!rec&&typeof refNormLab==='function'&&typeof mnLabel==='function'){var _bl9=refNormLab(best.label||'');if(_bl9)rec=mnList().filter(function(r){return r&&!r.delAt&&refNormLab(mnLabel(r))===_bl9;})[0];if(rec)rec.mhId=best.id;}/* [BUILD1897] 인계 야장 mhId 불일치 → 라벨 정규화 매칭 폴백(재연결) */
+    if(!rec){if(typeof IS_TANGO!=='undefined'&&IS_TANGO){toast('이 맨홀의 조사 야장이 없습니다');return true;}rec=_fldMnRecFor(best,true);/* [1556] 지도 클릭=명시 의도 */if(rec&&online&&state.projectId&&typeof saveProject==='function')saveProject();}
     if(rec){try{window._fldSelMhId=best.id;}catch(_w){}mnOpenForm(rec);try{drawManholes();}catch(_d){}return true;}
   }catch(e){try{console.warn('[mhClick]',e);}catch(_c){}}
   return false;
