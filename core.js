@@ -11054,7 +11054,7 @@ function joseoRegisterDone(){ /* [1275] 토글 */
 (function(){
   var bt=document.getElementById('joseoBoardTgl');/* [BUILD1875] 현황판/원본 토글 */
   function _jbSync(){if(!bt)return;var on=!!state.joseoBoard;bt.textContent=on?'현황판':'원본';bt.style.background=on?'#d32f2f':'#FFC61A';bt.style.color=on?'#fff':'#6b5300';bt.style.borderColor=on?'#d32f2f':'#d9a800';/* [BUILD1876] */}
-  if(bt){window._jbSync9=_jbSync;bt.onclick=function(){state.joseoBoard=!state.joseoBoard;_jbSync();try{if(online&&state.projectId)saveProject();}catch(_e){}try{if(typeof joseoState!=='undefined'&&joseoState.cur)joseoRenderPreview(joseoState.cur);}catch(_e2){}toast(state.joseoBoard?'실시간 측량점: 현황판 합성 표시':'실시간 측량점: 사진 원본 표시');};_jbSync();}
+  if(bt){window._jbSync9=_jbSync;bt.onclick=function(){state.joseoBoard=!state.joseoBoard;_jbSync();try{if(online&&state.projectId)saveProject();}catch(_e){}try{if(typeof joseoState!=='undefined'&&joseoState.cur)joseoRenderPreview(joseoState.cur);}catch(_e2){}try{if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();}catch(_e3){}/* [BUILD1916] */toast(state.joseoBoard?'실시간 측량점: 현황판 합성 표시':'실시간 측량점: 사진 원본 표시');};_jbSync();}
   var lb=document.getElementById('joseoLinkBtn');
   if(lb) lb.onclick=function(){ joseoLink=!joseoLink; this.textContent=joseoLink?'🔗 연동':'🔓 미연동'; this.classList.toggle('off',!joseoLink); toast(joseoLink?'측점↔조서 연동 ON (점 클릭=조서 이동)':'조서 연동 OFF'); };
   var db=document.getElementById('joseoDoneBtn');
@@ -11911,6 +11911,14 @@ function refreshPhotoPanel(){
     var n1=up?up.no:null,n2=down?down.no:null;
     if(viewerMode){body.innerHTML=paneImg(selNum,'선택측점 사진',true);}
     else{body.innerHTML=paneImg(selNum,'선택측점 사진',true)+'<div class="php-row">'+paneImg(n1,'위 측점',false)+paneImg(n2,'아래 측점',false)+'</div>';}
+    if(state.joseoBoard&&typeof rtBoardURL==='function'){/* [BUILD1916] 결선DB 측점사진 현황판 합성 — 조서[1195]와 동일 */
+      (function(){
+        function _bd9(no,img){if(no==null||!img)return;var u=img.getAttribute('src');if(!u)return;rtBoardURL(no,u,function(du){if(du)img.src=du;},(state.rtBoardPos&&state.rtBoardPos[no]));}
+        _bd9(selNum,body.querySelector('.php-main img.ph'));
+        var _sp9=body.querySelectorAll('.php-sub');var _no9=[n1,n2];
+        for(var _q9=0;_q9<_sp9.length&&_q9<_no9.length;_q9++)_bd9(_no9[_q9],_sp9[_q9].querySelector('img.ph'));
+      })();
+    }
   }
   setupZoom(document.getElementById('zoomImg'));
   [].forEach.call(document.querySelectorAll('img.zoomImgA'),function(_zi){setupZoom(_zi);});/* [1568] */
