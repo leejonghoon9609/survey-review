@@ -8896,6 +8896,7 @@ function mnDxfGen(rec){
       });
     }catch(_nk){}
     x=x.split('{{MHNO}}').join(mnLabelNoPf(rec)||'');/* [1590] */
+    var _dPos9={};try{['{{D1}}','{{D2}}','{{D3}}','{{D4}}'].forEach(function(tg,ti){var mi=x.indexOf(tg);if(mi<0)return;var seg=x.slice(Math.max(0,mi-520),mi);var re9=/\n 10\n([\-0-9.]+)\n 20\n([\-0-9.]+)/g,m1,mm=null;while((m1=re9.exec(seg)))mm=m1;if(mm)_dPos9['d'+(ti+1)]=[parseFloat(mm[1]),parseFloat(mm[2])];});}catch(_dp9){}/* [BUILD1919] */
     x=x.split('{{D1}}').join(mnStripPf(d.d1||''));x=x.split('{{D2}}').join(mnStripPf(d.d2||''));
     x=x.split('{{D3}}').join(mnStripPf(d.d3||''));x=x.split('{{D4}}').join(mnStripPf(d.d4||''));
     x=x.split('{{MAPNO}}').join(rec.mapNo||'');x=x.split('{{YM}}').join(ym);
@@ -9018,7 +9019,7 @@ function mnDxfGen(rec){
       var _chg9=false;
       _nkA9.forEach(function(nk){
         var AL=nk._al;if(!AL||_depM9===AL)return;
-        var armEnd=nk._armEnd,sign=nk.sign,sh=(AL-_depM9)*sign,xc=(nk.ax==='x');
+        var armEnd=nk._armEnd,sign=nk.sign,sh=(AL-_depM9)*sign,xc=(nk.ax==='x');nk._sh=sh;/* [BUILD1919] */
         var b0,b1;if(xc){b0=Math.min(g.by0,g.by1)-660;b1=Math.max(g.by0,g.by1)+660;}else{b0=g.bx0-660;b1=g.bx1+660;}
         var mid=(nk._edge+armEnd)/2,midTol=Math.abs(nk._edge-armEnd)*0.4;
         var rng=nk._armBlk?_fb9(nk._armBlk):null;
@@ -9032,8 +9033,8 @@ function mnDxfGen(rec){
             if(xc){var c2=(i+2<LA.length)?LA[i+2].trim():'';if(c2===prim[cd])pv=parseFloat(LA[i+3]);}
             else{var c0=(i>=2)?LA[i-2].trim():'';if(c0===prim[cd])pv=parseFloat(LA[i-1]);}
             if(pv==null||!isFinite(pv)||pv<b0||pv>b1)continue;
-            var od=(armEnd-v)*sign;
-            if(od>=-1.5&&od<=2000){LA[i+1]=(v+sh).toFixed(4);_chg9=true;}
+            var od=(armEnd-v)*sign,lo9=inR(i)?-60:-1.5;/* [BUILD1919] \uce58\uc218\uc120 \ub05d(armEnd-50) \ud3ec\ud568 */
+            if(od>=lo9&&od<=2000){LA[i+1]=(v+sh).toFixed(4);_chg9=true;}
             else if(inR(i)&&Math.abs(v-mid)<midTol){LA[i+1]=(v+sh/2).toFixed(4);_chg9=true;}
           }else if(cd==='1'&&LA[i+1]==='\\A1;'+AL&&inR(i)){
             LA[i+1]='\\A1;'+_depM9;_chg9=true;
@@ -9042,6 +9043,36 @@ function mnDxfGen(rec){
       });
       if(_chg9)x=LA.join('\n');
     }
+    /* [BUILD1919] 상/하 dest 라벨 재배치 — 목(토피)·팔(깊이) 변형 후 화살표와 안 겹치게 끝단 기준 고정 여백(중앙정렬 ±150) */
+    try{
+      if(_nkA9){
+        var LB=x.split('\n'),_ch2=false;
+        Object.keys(_dPos9||{}).forEach(function(dk){
+          if(!d[dk]||!_dPos9[dk])return;var P=_dPos9[dk];
+          var best=null,bd=1e18;
+          _nkA9.forEach(function(nk){var pv=(nk.ax==='x')?P[0]:P[1];var dd=Math.abs(pv-nk.end);if(dd<bd){bd=dd;best=nk;}});
+          if(!best||best.ax!=='y')return;
+          var sh2=best._sh||0;
+          var dxT=(typeof topiM!=='undefined'&&topiM>0&&topiM!==400)?(400-topiM)*best.sign:0;
+          var endT=best.end+dxT+sh2;
+          var tc=(best.d==='T')?(endT+150):(endT-150);
+          for(var i=0;i<LB.length-1;i+=2){
+            if(LB[i].trim()!=='10')continue;
+            var vx=parseFloat(LB[i+1]);if(!isFinite(vx)||Math.abs(vx-P[0])>1)continue;
+            if(!(LB[i+2]&&LB[i+2].trim()==='20'))continue;
+            var vy=parseFloat(LB[i+3]);
+            if(!(Math.abs(vy-P[1])<1||Math.abs(vy-(P[1]+sh2))<1))continue;
+            LB[i+3]=(tc-50).toFixed(4);_ch2=true;
+            for(var j=i+4;j<Math.min(LB.length-1,i+30);j+=2){
+              if(LB[j].trim()==='0')break;
+              if(LB[j].trim()==='21'){LB[j+1]=tc.toFixed(4);break;}
+            }
+            break;
+          }
+        });
+        if(_ch2)x=LB.join('\n');
+      }
+    }catch(_dr9){}
     var out='';
     var slots={
       /* [1059] 완료샘플 실측: 수평 700 / 수직 560 — 몸체에 더 붙임.
