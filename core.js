@@ -8660,7 +8660,7 @@ function mnEfbGen(rec){
        맨홀도(mnDxfGen)는 이미 목 400 을 토피 실측으로 바꾸고 있음 — 같은 규칙으로 맞춤 */
     var A=1100,N=320;
     try{
-      var _dp=Math.round(parseFloat((rec.spec&&rec.spec.dep)||0)||0);
+      var _dp=Math.round((parseFloat(rec.dep)||0)*1000);if(!(_dp>0))_dp=Math.round(parseFloat((rec.spec&&rec.spec.dep)||0)||0);/* [BUILD1918] */
       if(_dp>0)A=_dp;
       var _tp=Math.round((parseFloat(rec.topi)||0)*1000);
       if(_tp>0)N=_tp;
@@ -8998,7 +8998,8 @@ function mnDxfGen(rec){
       x=L.join('\n');
     }
     /* [BUILD1917] 팔 길이=깊이(dep) 반영 — 몸체 밖(팔끝 이후) 지오메트리·치수·화살표·dest라벨을 회랑 한정 이동, 팔 치수 스트레치+텍스트 교체 */
-    var _depM9=Math.round(parseFloat((rec.spec&&rec.spec.dep)||0)||0);
+    var _depM9=Math.round((parseFloat(rec.dep)||0)*1000);/* [BUILD1918] \uc6d0\ucc9c(rec.dep m) \uc6b0\uc120 \u2014 spec.dep\uc740 render \ub9ac\uc14b \uac00\ub2a5 */
+    if(!(_depM9>0))_depM9=Math.round(parseFloat((rec.spec&&rec.spec.dep)||0)||0);
     if(_depM9>0&&_nkA9){
       var LA=x.split('\n');
       function _fb9(nm){
@@ -9053,7 +9054,7 @@ function mnDxfGen(rec){
     ['p1','p2','p3','p4'].forEach(function(wall){
       var pw=rec.pipes&&rec.pipes[wall];if(!pw||!pw.groups)return;
       var _sp=rec.spec||{w:800,h:1700,dep:1100};
-      var _W=mnWallRealW(rec,wall),_H=_sp.dep||1100;
+      var _W=mnWallRealW(rec,wall),_H=(_depM9>0?_depM9:(_sp.dep||1100));/* [BUILD1918] */
       if(!pw.bw||!pw.bh){pw.bw=Math.max(_sp.w||800,_sp.h||1700);pw.bh=_sp.dep||1100;}
       if(pw.bw!==_W||pw.bh!==_H){
         var _fx=_W/pw.bw,_fy=_H/pw.bh;
@@ -9573,6 +9574,7 @@ function mnOpenForm(rec){
   function render(){
     window.mnRerenderSheet=render;
     rec.spec=mnDetectSpec(rec.dep,rec.w12,rec.w34);
+    if(rec.spec&&rec.dep>0)rec.spec.dep=Math.round(rec.dep*1000);/* [BUILD1918] \uc2e4\uce21 \uae4a\uc774 \ubcf4\uc874 \u2014 render \ub9ac\uc14b \ubc29\uc9c0 */
     if(typeof _mnSpecSync==='function')_mnSpecSync(rec);/* [1587] */
     var specTxt=rec.spec?(rec.spec.name+' ('+(rec.spec.w/1000)+'×'+(rec.spec.h/1000)+')·'+rec.spec.orient):'';
     var dash='stroke="#999" stroke-width="0.8" stroke-dasharray="5,4"';
