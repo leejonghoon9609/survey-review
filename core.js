@@ -6022,6 +6022,8 @@ function applyNightShift(){
   if(typeof drawGeo==='function')drawGeo();if(typeof drawMarks==='function')drawMarks();if(typeof updMeta==='function')updMeta();
   return n;
 }
+function rtNightPaint(b){/* [BUILD1914] */if(!b)return;var on=!!(state.nightShift&&state.nightShift.on);b.textContent='\uD83C\uDF19 \uC57C\uAC04\uBCF4\uC815'+(on?' ON':'');b.style.background=on?'#4f46e5':'#fff';b.style.color=on?'#fff':'#4f46e5';}
+function rtNightBtnToggle(){/* [BUILD1914] \uC0AC\uC5C5\uB4F1\uB85D \uC57C\uAC04\uBCF4\uC815\uACFC \uB3D9\uC77C \uB85C\uC9C1 \u2014 \uC804\uC5ED \uD1A0\uAE00 */var ns=state.nightShift||null;var on=!(ns&&ns.on);var cut=(ns&&ns.cut!=null)?ns.cut:360;state.nightShift={on:on,cut:cut};var n=(typeof applyNightShift==='function')?applyNightShift():0;var hh=('0'+Math.floor(cut/60)).slice(-2)+':'+('0'+(cut%60)).slice(-2);if(typeof toast==='function')toast(on?('\uC57C\uAC04 \uBCF4\uC815 ON \u2014 \uC0C8\uBCBD '+hh+' \uC774\uC804 '+n+'\uC810\uC744 \uC804\uB0A0\uB85C'):('\uC57C\uAC04 \uBCF4\uC815 OFF ('+n+'\uC810 \uBCF5\uADC0)'));var rn=document.getElementById('regNight');if(rn)rn.checked=on;try{if(typeof saveProject==='function')saveProject();}catch(_e){}if(typeof rtNightPaint==='function')rtNightPaint(document.getElementById('rtDailyNightBtn'));if(document.getElementById('rtDailyPop')&&typeof rtDailyTodayFill==='function')try{rtDailyTodayFill();}catch(_f){}if(document.getElementById('rtCsvModal')&&typeof rtOpenCsvModal==='function')try{rtOpenCsvModal();}catch(_c){}}
 function parseDxfLines(text){
   text=_dxfEntSlice(text);/* [1371] */
   var L=text.replace(/\r/g,'').split('\n'),pairs=[];
@@ -12278,7 +12280,7 @@ function rtDailyOpen(){ /* [1209] 일일(오늘) 등록 전용 — 빨간 테마
   var _fin=(state.rtDone&&state.rtDone.done);
   var pop=document.createElement('div');pop.id='rtDailyPop';
   pop.style.cssText='position:fixed;left:50%;top:110px;transform:translateX(-50%);z-index:9500;background:#fff;border:2px solid #c0392b;border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.25);width:min(94vw,560px);max-height:76vh;display:flex;flex-direction:column;overflow:hidden';
-  pop.innerHTML='<div id="rtDailyHead" style="display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:grab;user-select:none;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:#c0392b;display:inline-block"></span><b style="font-size:15px">일별 완료성과 등록</b><span style="font-size:11px;color:#bbb;margin-left:auto">드래그로 이동</span></div>'
+  pop.innerHTML='<div id="rtDailyHead" style="display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:grab;user-select:none;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:#c0392b;display:inline-block"></span><b style="font-size:15px">일별 완료성과 등록</b><button type="button" id="rtDailyNightBtn" onclick="rtNightBtnToggle()" onpointerdown="event.stopPropagation()" style="margin-left:10px;border:1.5px solid #4f46e5;border-radius:8px;padding:4px 10px;font-weight:800;font-size:12px;cursor:pointer;background:#fff;color:#4f46e5"></button><span style="font-size:11px;color:#bbb;margin-left:auto">드래그로 이동</span></div>'
     +'<div style="display:flex;gap:8px;align-items:center;padding:10px 14px;border-bottom:1px solid #f6eaea;flex-wrap:wrap">'
     +'<span style="font-size:12px;color:#888">오늘 작업분을 등록합니다 — 등록 성과는 [완료성과(전체)]에 일별로 쌓입니다</span>'
     +'<button id="rtDailyFinBtn" style="margin-left:auto;border:1px solid #c0392b;border-radius:8px;padding:7px 11px;font-weight:700;font-size:12px;cursor:pointer;'+(_fin?'background:#c0392b;color:#fff':'background:#fff;color:#c0392b')+'">사업 최종완료'+(_fin?' ✓':'')+'</button></div>'
@@ -12293,6 +12295,7 @@ function rtDailyOpen(){ /* [1209] 일일(오늘) 등록 전용 — 빨간 테마
     hd.addEventListener('pointermove',function(e){if(!drag)return;pop.style.left=(e.clientX-dx)+'px';pop.style.top=(e.clientY-dy)+'px';});
     hd.addEventListener('pointerup',function(){drag=false;});})();
   rtDailyTodayFill();
+  if(typeof rtNightPaint==='function')rtNightPaint(document.getElementById('rtDailyNightBtn'));/* [BUILD1914] */
 }
 function rtDailyTodayFill(){ /* [1211] 오늘 작업 — 전체 목록과 동일한 표 형식 */
   var el=document.getElementById('rtDailyToday');if(!el)return;

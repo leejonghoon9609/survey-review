@@ -641,6 +641,7 @@ function rtOpenCsvModal(){/* [BUILD1869] \ub85c\ub529\ucc3d \uc7ac\uad6c\uc131: 
       +'<div style="color:#9aa5b1;font-size:12px;margin-top:6px">\ud30c\uc77c\uc744 \ub04c\uc5b4\ub2e4 \ub193\uae30</div>'
     +'</div>'
     +'<div style="display:flex;flex-direction:column;gap:8px;padding:0 14px 14px">'
+    +'<button type="button" id="rtCsvNightBtn" style="background:#fff;color:#4f46e5;border:1.5px solid #4f46e5;border-radius:10px;padding:9px;font-weight:800;font-size:13.5px;cursor:pointer"></button>'
     +'<button type="button" id="rtCsvUp" style="background:#fff;color:#1f6fd6;border:1.5px solid #1f6fd6;border-radius:10px;padding:11px;font-weight:800;font-size:14.5px;cursor:pointer">\uc9c1\uc811 \ub85c\ub529</button>'
     +'<button type="button" id="rtCsvDelBtn" style="background:#fff;color:#d32f2f;border:1.5px solid #f2b8b5;border-radius:10px;padding:9px;font-weight:700;font-size:13px;cursor:pointer">CSV\ubcc4 \uc0ad\uc81c</button>'
     +'</div></div>';
@@ -651,6 +652,7 @@ function rtOpenCsvModal(){/* [BUILD1869] \ub85c\ub529\ucc3d \uc7ac\uad6c\uc131: 
   document.getElementById('rtCsvUp').onclick=_pick9;
   document.getElementById('rtCsvDz').onclick=_pick9;
   document.getElementById('rtCsvDelBtn').onclick=function(){wrap.remove();rtOpenCsvDelList();};
+  (function(){var _nb9=document.getElementById('rtCsvNightBtn');if(!_nb9)return;_nb9.onclick=function(){if(typeof rtNightBtnToggle==='function')rtNightBtnToggle();};if(typeof rtNightPaint==='function')rtNightPaint(_nb9);})();/* [BUILD1914] */
   /* [BUILD1868] CSV \ub4dc\ub798\uadf8&\ub4dc\ub86d \u2014 fCsv change \ud30c\uc774\ud504\ub77c\uc778 \uc7ac\uc0ac\uc6a9, [1869] \ud558\uc774\ub77c\uc774\ud2b8=\ub4dc\ub86d\uc874 */
   (function(){var dz=document.getElementById('rtCsvDz');function hl(on){if(!dz)return;dz.style.borderColor=on?'#1f6fd6':'#c3ccd6';dz.style.background=on?'#eef5ff':'';}
   ['dragenter','dragover'].forEach(function(t){wrap.addEventListener(t,function(e){e.preventDefault();e.stopPropagation();hl(true);});});
@@ -850,6 +852,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=1913"></script><script src="core.js?v=1913"></script>
+<script src="login.js?v=1914"></script><script src="core.js?v=1914"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
