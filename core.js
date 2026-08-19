@@ -1353,7 +1353,7 @@ function drawManholes(){_orgSync();/* [1524] */
     // 형식: [pre]M ([inner])  예: 2M (SK T), 4M (LG U+)
     function openLabelEdit(){
       if(mh&&(mh.type==='jb'||mh.type==='inlet')){var _jev=null;try{if(typeof cv!=='undefined'&&cv&&typeof vb!=='undefined'&&vb){var _jr=cv.getBoundingClientRect();_jev={clientX:_jr.left+(txtLeft-vb.x)*(_jr.width/vb.w),clientY:_jr.top+(uly-vb.y)*(_jr.height/vb.h)};}}catch(_e){}if(typeof jbTagEdit==='function')jbTagEdit(mh,_jev);return;}/* [BUILD1733] jb/inlet 전용 편집기 */
-      if(typeof IS_TANGO!=='undefined'&&IS_TANGO&&typeof _tgMode==='function'&&!_tgMode()&&typeof openTangoPanel==='function'&&mh&&mh.wx!=null){try{openTangoPanel('attr');}catch(_op9){}}/* [1399] 태그 편집 시 속성정보창 자동 오픈 */
+      /* [BUILD1889] 1399 자동오픈 제거 — 시설물 수정 시 속성정보창은 버튼으로만 열기 */
       if(typeof _tgMode==='function'&&_tgMode()&&typeof tgSelectMh==='function'&&mh&&mh.wx!=null){tgSelectMh(mh.wx,mh.wy);if(typeof _tgSegs!=='undefined'&&_tgSegs&&typeof tgSeg!=='undefined'&&tgSeg>=0&&_tgSegs[tgSeg]){var _fsg=_tgSegs[tgSeg],_fpre=null;if(_fsg[0]&&_fsg[0].mh&&Math.abs(_fsg[0].x-mh.wx)<0.5&&Math.abs(_fsg[0].y-mh.wy)<0.5)_fpre='s';else if(_fsg[_fsg.length-1]&&_fsg[_fsg.length-1].mh&&Math.abs(_fsg[_fsg.length-1].x-mh.wx)<0.5&&Math.abs(_fsg[_fsg.length-1].y-mh.wy)<0.5)_fpre='e';if(_fpre&&typeof tgFacHL==='function')tgFacHL(_fpre);}}
       var r=cv.getBoundingClientRect();
       var scaleX=r.width/vb.w, scaleY=r.height/vb.h;
