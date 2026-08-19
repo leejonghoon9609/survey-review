@@ -12256,14 +12256,18 @@ function rtDailyDistMap(){
   }});
   return {dist:dist,seg:seg};
 }
-function rtDailyReg(){
+function rtDailyReg(){/* [BUILD1915] 체크된 날짜 일괄 등록/갱신 */
   if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
-  var ymd=_rtTodayYMD();state.rtDaily=state.rtDaily||[];
-  var rec={date:ymd,worker:(typeof ME!=='undefined'&&ME)||'',cumDist:+_rtLineLen().toFixed(1),cumLines:(state.lines||[]).length,cumPts:(state.points||[]).length,at:new Date().toISOString()};
-  var ex=null,i;for(i=0;i<state.rtDaily.length;i++)if(state.rtDaily[i].date===ymd){ex=state.rtDaily[i];break;}
-  if(ex){for(var k in rec)ex[k]=rec[k];}else state.rtDaily.push(rec);
+  var ds=_rtDailyChecked();if(!ds.length){toast('체크된 날짜가 없습니다');return;}
+  state.rtDaily=state.rtDaily||[];var nNew=0,nUpd=0;
+  ds.forEach(function(ymd){
+    var rec={date:ymd,worker:(typeof ME!=='undefined'&&ME)||'',cumDist:+_rtLineLen().toFixed(1),cumLines:(state.lines||[]).length,cumPts:(state.points||[]).length,at:new Date().toISOString()};
+    var ex=null,i;for(i=0;i<state.rtDaily.length;i++)if(state.rtDaily[i].date===ymd){ex=state.rtDaily[i];break;}
+    if(ex){for(var k in rec)ex[k]=rec[k];nUpd++;}else{state.rtDaily.push(rec);nNew++;}
+  });
   state.rtDaily.sort(function(a,b){return a.date<b.date?-1:1;});
-  saveProject();var _dm=rtDailyDistMap();var _td=+((_dm.dist[ymd]||0).toFixed(1));toast((ex?'갱신':'등록')+' — 오늘('+ymd+') 관로거리 '+_td+'m');rtDailyRender();if(typeof rtDailyTodayFill==='function')rtDailyTodayFill();if(typeof renderSub==='function')renderSub();
+  saveProject();toast('등록 '+nNew+'일'+(nUpd?' · 갱신 '+nUpd+'일':''));
+  rtDailyRender();if(typeof rtDailyTodayFill==='function')rtDailyTodayFill();if(typeof renderSub==='function')renderSub();
 }
 function rtDailyCsv(ymd){
   var pts=(state.points||[]).filter(function(p){return p&&((p._d0===ymd)||((''+p.no).indexOf(ymd+'-')===0));});
@@ -12285,10 +12289,11 @@ function rtDailyOpen(){ /* [1209] 일일(오늘) 등록 전용 — 빨간 테마
     +'<span style="font-size:12px;color:#888">오늘 작업분을 등록합니다 — 등록 성과는 [완료성과(전체)]에 일별로 쌓입니다</span>'
     +'<button id="rtDailyFinBtn" style="margin-left:auto;border:1px solid #c0392b;border-radius:8px;padding:7px 11px;font-weight:700;font-size:12px;cursor:pointer;'+(_fin?'background:#c0392b;color:#fff':'background:#fff;color:#c0392b')+'">사업 최종완료'+(_fin?' ✓':'')+'</button></div>'
     +'<div id="rtDailyToday" style="overflow:auto;padding:12px 14px"></div>'
-    +'<div style="padding:9px 14px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px"><button id="rtDailyRegBtn" style="background:#c0392b;color:#fff;border:0;border-radius:9px;padding:9px 24px;font-weight:800;font-size:14px;cursor:pointer">등 록</button><button id="rtDailyClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:9px 18px;cursor:pointer;font-weight:700">닫기</button></div>';
+    +'<div style="padding:9px 14px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px"><button id="rtDailyRegBtn" style="background:#c0392b;color:#fff;border:0;border-radius:9px;padding:9px 24px;font-weight:800;font-size:14px;cursor:pointer">등 록</button><button id="rtDailyDelBtn" style="background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:9px;padding:9px 18px;font-weight:800;font-size:14px;cursor:pointer">삭 제</button><button id="rtDailyClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:9px 18px;cursor:pointer;font-weight:700">닫기</button></div>';
   document.body.appendChild(pop);
   document.getElementById('rtDailyClose').onclick=function(){pop.remove();};
   document.getElementById('rtDailyRegBtn').onclick=rtDailyReg;
+  var _db9=document.getElementById('rtDailyDelBtn');if(_db9)_db9.onclick=function(){if(typeof rtDailyDel==='function')rtDailyDel();};/* [BUILD1915] */
   document.getElementById('rtDailyFinBtn').onclick=function(){pop.remove();if(typeof rtOpenDoneModal==='function')rtOpenDoneModal();};
   (function(){var hd=document.getElementById('rtDailyHead'),dx=0,dy=0,drag=false;
     hd.addEventListener('pointerdown',function(e){drag=true;var r=pop.getBoundingClientRect();pop.style.left=r.left+'px';pop.style.top=r.top+'px';pop.style.transform='none';dx=e.clientX-r.left;dy=e.clientY-r.top;try{hd.setPointerCapture(e.pointerId);}catch(_e){}});
@@ -12297,33 +12302,52 @@ function rtDailyOpen(){ /* [1209] 일일(오늘) 등록 전용 — 빨간 테마
   rtDailyTodayFill();
   if(typeof rtNightPaint==='function')rtNightPaint(document.getElementById('rtDailyNightBtn'));/* [BUILD1914] */
 }
-function rtDailyTodayFill(){ /* [1211] 오늘 작업 — 전체 목록과 동일한 표 형식 */
+function rtDailyTodayFill(){ /* [BUILD1915] 날짜별 목록+체크박스 — 선택 등록/삭제 */
   var el=document.getElementById('rtDailyToday');if(!el)return;
   var ymd=_rtTodayYMD();var dm=rtDailyDistMap();
-  var pts=(state.points||[]).filter(function(p){return p&&((p._d0===ymd)||((''+p.no).indexOf(ymd+'-')===0));});
-  var ph=0;try{var pm=(typeof photoMap!=='undefined'&&photoMap)?photoMap:{};for(var k in pm)if(k.indexOf(ymd+'-')===0)ph++;}catch(_e){}
-  var r=null;(state.rtDaily||[]).forEach(function(x){if(x&&x.date===ymd)r=x;});
-  var dist=+((dm.dist[ymd]||0).toFixed(1)),seg=dm.seg[ymd]||0;
+  var recs={};(state.rtDaily||[]).forEach(function(r){if(r&&r.date)recs[r.date]=r;});
+  var ptBy={};(state.points||[]).forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0&&/^[0-9]{6}$/.test(d0))ptBy[d0]=(ptBy[d0]||0)+1;});
+  var phBy={};try{var pm=(typeof photoMap!=='undefined'&&photoMap)?photoMap:{};for(var k in pm){var pd=String(k).split('-')[0];if(/^[0-9]{6}$/.test(pd))phBy[pd]=(phBy[pd]||0)+1;}}catch(_e){}
+  var dset={};dset[ymd]=1;for(var k1 in dm.dist)dset[k1]=1;for(var k2 in recs)dset[k2]=1;for(var k3 in ptBy)dset[k3]=1;
+  var dates=Object.keys(dset).sort();
+  var prev=null;try{prev={};[].forEach.call(el.querySelectorAll('.rtdChk'),function(c){prev[c.getAttribute('data-d')]=c.checked;});if(!Object.keys(prev).length)prev=null;}catch(_p){prev=null;}
   var h='<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#fdf0f0;color:#a12b2b">'
-   +'<th style="padding:7px 6px;border-bottom:1px solid #edd">날짜</th><th style="border-bottom:1px solid #edd">사업명</th><th style="border-bottom:1px solid #edd">작업자</th><th style="border-bottom:1px solid #edd;text-align:right">거리(m)</th><th style="border-bottom:1px solid #edd;text-align:right">측점</th><th style="border-bottom:1px solid #edd;text-align:right">결선</th><th style="border-bottom:1px solid #edd">사진</th><th style="border-bottom:1px solid #edd">CSV</th></tr></thead><tbody>'
-   +'<tr style="border-bottom:1px solid #f2f2ef">'
-   +'<td style="padding:8px 6px;font-weight:700;font-size:12px;color:'+(r?'#c0392b':'#98a1ad')+';white-space:nowrap">20'+ymd.slice(0,2)+'-'+ymd.slice(2,4)+'-'+ymd.slice(4,6)
-   +(r?' <span style="font-size:10px;color:#0f6e56;font-weight:800">등록됨 ✓'+((r.at||'').slice(11,16)?(' '+(r.at||'').slice(11,16)):'')+'</span>':' <span style="font-size:10px;color:#b9b9b2">(미등록)</span>')+'</td>'
-   +'<td style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px" title="'+(state.projectName||'')+'">'+(state.projectName||'')+'</td>'
-   +'<td style="text-align:center;'+(r?'':'color:#98a1ad')+'">'+((r&&r.worker)||((typeof ME!=='undefined'&&ME)||'-'))+'</td>'
-   +'<td style="text-align:right;font-weight:800;color:#c0392b">'+dist+'</td>'
-   +'<td style="text-align:right">'+pts.length+'</td>'
-   +'<td style="text-align:right">'+seg+'</td>'
-   +'<td style="text-align:center"><button id="rtdTodayPh" style="background:'+(ph?'#7c3aed':'#e8e8e2')+';color:'+(ph?'#fff':'#999')+';border:0;border-radius:6px;padding:4px 9px;font-weight:700;font-size:12px;cursor:pointer">'+ph+'장</button></td>'
-   +'<td style="text-align:center"><button id="rtdTodayCsv" style="background:#1565c0;color:#fff;border:0;border-radius:6px;padding:4px 10px;font-weight:700;font-size:12px;cursor:pointer">CSV</button></td>'
-   +'</tr></tbody></table>'
-   +'<div style="margin-top:9px;border:1px solid #f0c9c9;background:#fdf6f6;border-radius:9px;padding:9px 12px;font-size:12.5px;line-height:1.7">'
-   +'측점 <b>'+pts.length+'</b>개 · 사진 <b>'+ph+'</b>장 · 결선 <b>'+seg+'</b>구간 · 관로거리 <b style="color:#c0392b">'+dist+'m</b>'
-   +((!pts.length&&!dist)?'<br><span style="color:#999;font-size:12px">오늘 날짜 데이터가 없습니다 — CSV 업로드·측점 촬영 후 등록하세요.</span>':'')
+   +'<th style="padding:7px 4px;border-bottom:1px solid #edd;width:24px"></th>'
+   +'<th style="padding:7px 6px;border-bottom:1px solid #edd">날짜</th><th style="border-bottom:1px solid #edd">사업명</th><th style="border-bottom:1px solid #edd">작업자</th><th style="border-bottom:1px solid #edd;text-align:right">거리(m)</th><th style="border-bottom:1px solid #edd;text-align:right">측점</th><th style="border-bottom:1px solid #edd;text-align:right">결선</th><th style="border-bottom:1px solid #edd">사진</th><th style="border-bottom:1px solid #edd">CSV</th></tr></thead><tbody>';
+  for(var di=dates.length-1;di>=0;di--){var d=dates[di],r=recs[d]||null;
+    var dist=+((dm.dist[d]||0).toFixed(1)),seg=dm.seg[d]||0,np=ptBy[d]||0,ph=phBy[d]||0;
+    var chk=prev?!!prev[d]:(d===ymd);
+    h+='<tr style="border-bottom:1px solid #f2f2ef">'
+     +'<td style="text-align:center;padding:6px 4px"><input type="checkbox" class="rtdChk" data-d="'+d+'"'+(chk?' checked':'')+' style="width:15px;height:15px;cursor:pointer"></td>'
+     +'<td style="padding:8px 6px;font-weight:700;font-size:12px;color:'+(r?'#c0392b':'#98a1ad')+';white-space:nowrap">20'+d.slice(0,2)+'-'+d.slice(2,4)+'-'+d.slice(4,6)
+     +(r?' <span style="font-size:10px;color:#0f6e56;font-weight:800">등록됨 ✓'+((r.at||'').slice(11,16)?(' '+(r.at||'').slice(11,16)):'')+'</span>':' <span style="font-size:10px;color:#b9b9b2">(미등록)</span>')+'</td>'
+     +'<td style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px" title="'+(state.projectName||'')+'">'+(state.projectName||'')+'</td>'
+     +'<td style="text-align:center;'+(r?'':'color:#98a1ad')+'">'+((r&&r.worker)||((typeof ME!=='undefined'&&ME)||'-'))+'</td>'
+     +'<td style="text-align:right;font-weight:800;color:#c0392b">'+dist+'</td>'
+     +'<td style="text-align:right">'+np+'</td>'
+     +'<td style="text-align:right">'+seg+'</td>'
+     +'<td style="text-align:center"><button class="rtdRowPh" data-d="'+d+'" style="background:'+(ph?'#7c3aed':'#e8e8e2')+';color:'+(ph?'#fff':'#999')+';border:0;border-radius:6px;padding:4px 9px;font-weight:700;font-size:12px;cursor:pointer">'+ph+'장</button></td>'
+     +'<td style="text-align:center"><button class="rtdRowCsv" data-d="'+d+'" style="background:#1565c0;color:#fff;border:0;border-radius:6px;padding:4px 10px;font-weight:700;font-size:12px;cursor:pointer">CSV</button></td>'
+     +'</tr>';}
+  h+='</tbody></table>';
+  var tpts=ptBy[ymd]||0,tph=phBy[ymd]||0,tdist=+((dm.dist[ymd]||0).toFixed(1)),tseg=dm.seg[ymd]||0;
+  h+='<div style="margin-top:9px;border:1px solid #f0c9c9;background:#fdf6f6;border-radius:9px;padding:9px 12px;font-size:12.5px;line-height:1.7">'
+   +'오늘 — 측점 <b>'+tpts+'</b>개 · 사진 <b>'+tph+'</b>장 · 결선 <b>'+tseg+'</b>구간 · 관로거리 <b style="color:#c0392b">'+tdist+'m</b>'
+   +((!tpts&&!tdist)?'<br><span style="color:#999;font-size:12px">오늘 날짜 데이터가 없습니다 — 과거 날짜는 체크 후 등록하세요.</span>':'')
    +'</div>';
   el.innerHTML=h;
-  var cb=document.getElementById('rtdTodayCsv');if(cb)cb.onclick=function(){rtDailyCsv(ymd);};
-  var pb=document.getElementById('rtdTodayPh');if(pb)pb.onclick=function(){var _it=[];try{var _pm2=(typeof photoMap!=='undefined'&&photoMap)?photoMap:{};for(var _k2 in _pm2)if(_k2.indexOf(ymd+'-')===0)_it.push({no:_k2,url:_pm2[_k2]});}catch(_e2){}if(typeof svPhotoDl==='function')svPhotoDl(_it);};/* [1235] */
+  [].forEach.call(el.querySelectorAll('.rtdRowCsv'),function(b){b.onclick=function(){rtDailyCsv(b.getAttribute('data-d'));};});
+  [].forEach.call(el.querySelectorAll('.rtdRowPh'),function(b){b.onclick=function(){var d=b.getAttribute('data-d');var _it=[];try{var _pm2=(typeof photoMap!=='undefined'&&photoMap)?photoMap:{};for(var _k2 in _pm2)if(_k2.indexOf(d+'-')===0)_it.push({no:_k2,url:_pm2[_k2]});}catch(_e2){}if(typeof svPhotoDl==='function')svPhotoDl(_it);};});
+}
+function _rtDailyChecked(){var out=[];[].forEach.call(document.querySelectorAll('#rtDailyToday .rtdChk'),function(c){if(c.checked)out.push(c.getAttribute('data-d'));});return out;}
+function rtDailyDel(){/* [BUILD1915] 체크된 날짜 등록 성과 삭제 — 등록 기록만, 실데이터 유지 */
+  var ds=_rtDailyChecked();if(!ds.length){toast('체크된 날짜가 없습니다');return;}
+  var hit=ds.filter(function(d){return (state.rtDaily||[]).some(function(r){return r&&r.date===d;});});
+  if(!hit.length){toast('체크된 날짜 중 등록된 성과가 없습니다');return;}
+  if(!confirm(hit.join(', ')+' — '+hit.length+'일 등록 성과를 삭제할까요?\n(등록 기록만 삭제됩니다 — 측점·사진 데이터는 유지)'))return;
+  state.rtDaily=(state.rtDaily||[]).filter(function(r){return !(r&&hit.indexOf(r.date)>=0);});
+  saveProject();toast('등록 성과 '+hit.length+'일 삭제됨');
+  if(typeof rtDailyRender==='function')rtDailyRender();rtDailyTodayFill();if(typeof renderSub==='function')renderSub();
 }
 /* [1215] realtime 전용 — 완료성과를 결선DB(survey) 사본으로 등록. 포털 결선DB 작업중 목록에 표시됨 */
 function rtRegToSurvey(){ /* [1216] 대상 테이블 = survey_projects/survey_photos (공정별 테이블 분리 — DB 상수 사용 금지) */
