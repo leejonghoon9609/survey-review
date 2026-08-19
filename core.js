@@ -8925,6 +8925,38 @@ function mnDxfGen(rec){
       }
     });
     /* [997] 토피 실측 변형: 목 구간(기본 400) 지오메트리·치수를 실측 토피로 — 팔 끝 좌표 이동 + 치수블록 '400'→실측 */
+    /* [BUILD1917] 목·팔 치수 캐시블록 자동판별 — DIMENSION 측정점(13/14·23/24) 기반, 템플릿 하드코딩 불필요 */
+    var _nkA9=null;
+    try{
+      var _sc9=(function(){var LL=x.split('\n'),out=[],i=0;
+        while(i<LL.length-1){
+          if(LL[i].trim()==='0'&&LL[i+1]==='DIMENSION'){
+            var j=i+2,dd={blk:null,m:{}};
+            while(j<LL.length-1&&LL[j].trim()!=='0'){
+              var c=LL[j].trim();
+              if(c==='2'&&dd.blk==null)dd.blk=LL[j+1];
+              if((c==='13'||c==='14'||c==='23'||c==='24')&&dd.m[c]==null)dd.m[c]=parseFloat(LL[j+1]);
+              j+=2;
+            }
+            out.push(dd);i=j;
+          }else i+=2;
+        }
+        return out;})();
+      _nkA9=(g.nk||[]).map(function(nk){
+        var edge=(nk.ax==='x')?((nk.d==='L')?g.bx0:g.bx1):((nk.d==='T')?g.by1:g.by0);
+        var armEnd=nk.end+400*nk.sign;
+        var AL=Math.round(Math.abs(edge-armEnd));
+        var c13=(nk.ax==='x')?'13':'23',c14=(nk.ax==='x')?'14':'24';
+        var neckB=null,armB=null;
+        function nr(v,t){return v!=null&&Math.abs(v-t)<1.5;}
+        _sc9.forEach(function(dd){var a=dd.m[c13],b=dd.m[c14];if(a==null||b==null)return;
+          if((nr(a,armEnd)&&nr(b,nk.end))||(nr(b,armEnd)&&nr(a,nk.end)))neckB=dd.blk;
+          if((nr(a,edge)&&nr(b,armEnd))||(nr(b,edge)&&nr(a,armEnd)))armB=dd.blk;
+        });
+        var blk=(nk.blk||[]).slice();if(neckB&&blk.indexOf(neckB)<0)blk.push(neckB);
+        return {d:nk.d,ax:nk.ax,end:nk.end,sign:nk.sign,blk:blk,_edge:edge,_armEnd:armEnd,_al:AL,_armBlk:armB};
+      });
+    }catch(_d9){_nkA9=null;}
     var topiM=Math.round((parseFloat(rec.topi)||0)*1000);
     if(topiM>0&&topiM!==400&&g.nk){
       var L=x.split('\n');
@@ -8943,7 +8975,7 @@ function mnDxfGen(rec){
         }
         return null;
       }
-      g.nk.forEach(function(nk){
+      (_nkA9||g.nk).forEach(function(nk){
         var dx=(400-topiM)*nk.sign;
         var xc=(nk.ax==='x'),codes=xc?{'10':1,'11':1,'13':1,'14':1}:{'20':1,'21':1,'23':1,'24':1};
         var end=nk.end,e50=end+50*nk.sign,e200=end+200*nk.sign;
@@ -8964,6 +8996,50 @@ function mnDxfGen(rec){
         }
       });
       x=L.join('\n');
+    }
+    /* [BUILD1917] 팔 길이=깊이(dep) 반영 — 몸체 밖(팔끝 이후) 지오메트리·치수·화살표·dest라벨을 회랑 한정 이동, 팔 치수 스트레치+텍스트 교체 */
+    var _depM9=Math.round(parseFloat((rec.spec&&rec.spec.dep)||0)||0);
+    if(_depM9>0&&_nkA9){
+      var LA=x.split('\n');
+      function _fb9(nm){
+        for(var i=0;i<LA.length-1;i+=2){
+          if(LA[i].trim()==='2'&&LA[i+1]===nm){
+            var isDef=false;
+            for(var b=i-2;b>=Math.max(0,i-60);b-=2){if(LA[b].trim()==='0'){isDef=(LA[b+1]==='BLOCK');break;}}
+            if(!isDef)continue;
+            var s0=i;while(s0>0&&!(LA[s0].trim()==='0'&&LA[s0+1]==='BLOCK'))s0-=2;
+            var e0=i;while(e0<LA.length-1&&!(LA[e0].trim()==='0'&&LA[e0+1]==='ENDBLK'))e0+=2;
+            return [s0,e0];
+          }
+        }
+        return null;
+      }
+      var _chg9=false;
+      _nkA9.forEach(function(nk){
+        var AL=nk._al;if(!AL||_depM9===AL)return;
+        var armEnd=nk._armEnd,sign=nk.sign,sh=(AL-_depM9)*sign,xc=(nk.ax==='x');
+        var b0,b1;if(xc){b0=Math.min(g.by0,g.by1)-660;b1=Math.max(g.by0,g.by1)+660;}else{b0=g.bx0-660;b1=g.bx1+660;}
+        var mid=(nk._edge+armEnd)/2,midTol=Math.abs(nk._edge-armEnd)*0.4;
+        var rng=nk._armBlk?_fb9(nk._armBlk):null;
+        function inR(i){return rng&&i>=rng[0]&&i<=rng[1];}
+        var prim=xc?{'10':'20','11':'21','13':'23','14':'24'}:{'20':'10','21':'11','23':'13','24':'14'};
+        for(var i=0;i<LA.length-1;i+=2){
+          var cd=LA[i].trim();
+          if(prim[cd]){
+            var v=parseFloat(LA[i+1]);if(!isFinite(v))continue;
+            var pv=null;
+            if(xc){var c2=(i+2<LA.length)?LA[i+2].trim():'';if(c2===prim[cd])pv=parseFloat(LA[i+3]);}
+            else{var c0=(i>=2)?LA[i-2].trim():'';if(c0===prim[cd])pv=parseFloat(LA[i-1]);}
+            if(pv==null||!isFinite(pv)||pv<b0||pv>b1)continue;
+            var od=(armEnd-v)*sign;
+            if(od>=-1.5&&od<=2000){LA[i+1]=(v+sh).toFixed(4);_chg9=true;}
+            else if(inR(i)&&Math.abs(v-mid)<midTol){LA[i+1]=(v+sh/2).toFixed(4);_chg9=true;}
+          }else if(cd==='1'&&LA[i+1]==='\\A1;'+AL&&inR(i)){
+            LA[i+1]='\\A1;'+_depM9;_chg9=true;
+          }
+        }
+      });
+      if(_chg9)x=LA.join('\n');
     }
     var out='';
     var slots={
