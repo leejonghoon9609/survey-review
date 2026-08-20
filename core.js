@@ -6952,7 +6952,8 @@ function registerProject(_appr){
   if(!_appr){projDupCheck(name,function(fin){if(fin===null){var _rn=document.getElementById('regName');if(_rn)_rn.focus();return;}registerProject(fin);});return;} /* [BUILD 1058] 중복 확인 */
   if(typeof _appr==='string'&&_appr)name=_appr;
   state.projectName=name;
-  state.mnList=[];state.bizInfo=readBizInfo();
+  if(!state.projectId)state.mnList=[];/* [BUILD1932] \uae30\uc874 \uc0ac\uc5c5 \uc7ac\ub4f1\ub85d(\uc218\uce58\uc9c0\ub3c4 \ucd94\uac00 \ub4f1) \uc2dc \ub9e8\ud640\ub3c4 \uc57c\uc7a5 \ubcf4\uc874 \u2014 \uc2e0\uaddc\ub9cc \ucd08\uae30\ud654 */
+  state.bizInfo=readBizInfo();
   var crsEl=document.querySelector('input[name="regCrs"]:checked');state.crs=crsEl?crsEl.value:'5186';
   var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,rtDaily:state.rtDaily||[],trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:state.finalCsv||null,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,depthManual:state._depthManual||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,mnList:state.mnList||[],tangoDone:state.tangoDone||null,tgCarrier:state.tgCarrier||null,mhDel:state.mhDel||null,tgNotes:state.tgNotes||null,hyunPts:state.hyunPts||null};
   payload.stage=STAGE;
