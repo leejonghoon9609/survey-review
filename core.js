@@ -1898,6 +1898,11 @@ function autoConnectTamsa(){
   toast('\uD0D0\uC0AC \uC790\uB3D9\uACB0\uC120: \uAD6C\uAC04 '+segs.length+'\uAC1C');
 }
 function autoConnect(){
+  /* [BUILD1920] 측량현장 가드 — 자동결선은 실시간 단계용. field에서 실행 시 기존 결선(결선DB 다듬은 경로)이 직선으로 재생성되는 사고 방지 */
+  if(typeof IS_FIELD!=='undefined'&&IS_FIELD){
+    var _gp=0,_gt=0;(state.lines||[]).forEach(function(L){if(!L||L.free)return;if(L.layer&&L.layer!=='통신관로'&&L.layer!=='지거'&&L.layer!=='압입구간')return;_gp++;var q=L.pts||[];for(var i=1;i<q.length;i++)_gt+=Math.hypot(q[i][0]-q[i-1][0],q[i][1]-q[i-1][1]);});
+    if(_gp>0&&!confirm('⚠ 측량현장에서 자동결선을 실행하면\n기존 관로결선 '+_gp+'개('+_gt.toFixed(1)+'m)가 삭제되고 직선으로 재생성됩니다.\n결선 수정은 결선DB 단계에서 하는 것을 권장합니다.\n\n정말 계속할까요?'))return;
+  }
   if(state.tamsa){autoConnectTamsa();return;}
   if(state.points.length<2){toast('측량점을 먼저 올려주세요');return;}
   pushHist();
