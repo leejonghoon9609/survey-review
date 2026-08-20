@@ -851,7 +851,7 @@ function tbData(){
   var inner=(t.inner!=null)?t.inner:tbCommonTop('inner');
   var gyeol=(t.gyeol!=null)?t.gyeol:tbCommonTop('gyeol');
   var gdan=(t.gdan!=null)?t.gdan:tbCommonTop('gdan');
-  var gwannum=(t.gwannum!=null)?t.gwannum:tbCommonTop('gwannum');var _sh9=null;if(typeof IS_TANGO!=='undefined'&&IS_TANGO&&typeof _tbSheetNos==='function'){try{_sh9=_tbSheetNos();}catch(_e){}}/* [1388] */
+  var gwannum=(t.gwannum!=null)?t.gwannum:tbCommonTop('gwannum');var _sh9=null;if(typeof _tbSheetNos==='function'){try{_sh9=_tbSheetNos();}catch(_e){}}/* [1388→BUILD1922] \uc804 \uacf5\uc815 \ub3c4\uc5fd \uc790\ub3d9\uacc4\uc0b0 */
   return { name:(state.projectName||''), bizNo:(b.bizNo||''), client:owner,
            outer:outer, inner:inner, mhOwner:mhOwner,
            gyeol:gyeol, gdan:gdan, gwannum:gwannum,
@@ -883,7 +883,7 @@ function tbLayout(dxf){
   var vxm=dxf?8.5:8.9, rlm=23.8, rvm=29.8;     // 물량 라벨=파란박스 라벨 x 일렬(BUILD662)
   var nameGap=th*2.5;
   var d=tbData();
-  var _tg9r=(typeof IS_TANGO!=='undefined'&&IS_TANGO);var bh=pad+nameH+nameGap+((_tg9r&&!dxf)?4.75:((_tg9r&&dxf)?3.92:4.6))*dy+pad*0.15;/* [1393] 탱고 DXF 하단 간격 반감(5.18→2.59m 실측 기반) *//* [1392] DXF는 기존 높이 *//* [1391] 하단 간격 반감 *//* [1388] 도엽번호 행 */
+  var _tg9r=(typeof IS_TANGO!=='undefined'&&IS_TANGO);var bh=pad+nameH+nameGap+((!dxf)?4.75:(_tg9r?3.92:4.6))*dy+pad*0.15;/* [BUILD1922] \ud654\uba74\uc740 \uc804 \uacf5\uc815 \ub3c4\uc5fd \ud589 \ub192\uc774 *//* [1393] 탱고 DXF 하단 간격 반감(5.18→2.59m 실측 기반) *//* [1392] DXF는 기존 높이 *//* [1391] 하단 간격 반감 *//* [1388] 도엽번호 행 */
   var b0=minX, by0=maxY, by1=maxY+bh;
   var it=[];
   function add(x,y,h,s,c,a,key){if(s==null)s='';it.push({x:x,y:y,h:h,s:s,c:c,a:a||'start',key:key||null});}
@@ -893,7 +893,7 @@ function tbLayout(dxf){
   add(b0+bw/2, by1-pad-nameH, _nameH, _nm, 'name', 'middle', 'name');var _rw9=0;for(var _ci2=0;_ci2<_nm.length;_ci2++){var _cc2=_nm.charCodeAt(_ci2);_rw9+=(_cc2>0x1100&&_cc2<0xD7A4)?(dxf?1.26:0.96):(dxf?0.8:0.48);/* [1402] */}var _ulW9=_rw9*_nameH+_nameH*(dxf?0.6:0.3);/* [1402] *//* [1399] 렌더 실측 폭 */var _ulY9=by1-pad-nameH-_nameH*0.28;var _nameUL9={x1:b0+bw/2-_ulW9/2,x2:b0+bw/2+_ulW9/2,y:_ulY9};/* [1398] 사업명 밑줄 */
   var lx=b0+pad, vx=b0+pad+th*vxm, firstY=by1-pad-nameH-nameGap-th*0.2;
   var L=[['탱고 번호',d.bizNo,'red','bizNo'],['관로(소유자)',d.client,'blue','client'],['관로(외관)',d.outer,'blue','outer'],['맨홀(소유자)',d.mhOwner,'blue','mhOwner']];
-  L.forEach(function(r,i){var y=firstY-dy*i; add(lx,y,gh,r[0]+' :','label'); add(vx,y,gh,r[1]||'확인요청',(r[1]?r[2]:'req'),'start',r[3]);});/* [1377] */add(vx+th*6.2,firstY-dy*2,gh,(d.outer2||(dxf?'':'(직접입력)')),(d.outer2?'blue':'ph'),'start','outer2');/* [1379] 둘째 외관 */if(_tg9r&&!dxf){var _gh9=gh*0.78,_yA9=firstY-dy*3.85,_yB9=_yA9-dy*0.55;/* [1425] 도엽 두 줄 간격 축소 0.72→0.55 *//* [1415] 두 줄·축소 */add(lx,_yA9,gh,'도엽번호 :','label');/* [1419] 라벨 원크기 */add(vx,_yA9,_gh9,(d.sheet1k||'확인요청'),(d.sheet1k?'red':'req'),'start','sheet1k');add(vx,_yB9,_gh9,(d.sheet5k||'확인요청'),(d.sheet5k?'grn':'req'),'start','sheet5k');}/* [1388] 1/1000·1/5000 */
+  L.forEach(function(r,i){var y=firstY-dy*i; add(lx,y,gh,r[0]+' :','label'); add(vx,y,gh,r[1]||'확인요청',(r[1]?r[2]:'req'),'start',r[3]);});/* [1377] */add(vx+th*6.2,firstY-dy*2,gh,(d.outer2||(dxf?'':'(직접입력)')),(d.outer2?'blue':'ph'),'start','outer2');/* [1379] 둘째 외관 */if(!dxf){/* [BUILD1922] \ub3c4\uc5fd\ubc88\ud638 \ud589 \uc804 \uacf5\uc815 \ud45c\uc2dc */var _gh9=gh*0.78,_yA9=firstY-dy*3.85,_yB9=_yA9-dy*0.55;/* [1425] 도엽 두 줄 간격 축소 0.72→0.55 *//* [1415] 두 줄·축소 */add(lx,_yA9,gh,'도엽번호 :','label');/* [1419] 라벨 원크기 */add(vx,_yA9,_gh9,(d.sheet1k||'확인요청'),(d.sheet1k?'red':'req'),'start','sheet1k');add(vx,_yB9,_gh9,(d.sheet5k||'확인요청'),(d.sheet5k?'grn':'req'),'start','sheet5k');}/* [1388] 1/1000·1/5000 */
   var rlx=b0+pad+th*rlm, rvx=b0+pad+th*rvm;
   var R=[['물량(탱고)',(d.volT||''),'volT'],['물량(GIS)',(d.volG||''),'volG']];
   R.forEach(function(r,i){var y=firstY-dy*i; add(rlx,y,gh,r[0]+' :','label'); add(rvx,y,gh,r[1]||'확인요청',(r[1]?'blue':'req'),'start',r[2]);});
