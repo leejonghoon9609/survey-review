@@ -2347,7 +2347,7 @@ function exportSurveyCsv(){
   var rows=_pts.map(function(p){
     var nm=ptNum(p);
     if(_sv){var _dd=(p&&(p._d0||(''+p.no).split('-')[0]))||'';if(/^[0-9]{6}$/.test(_dd))nm=_dd+'_'+nm;}
-    else if(typeof STAGE!=='undefined'&&STAGE==='realtime'){var _no9=(''+(p.no||''));if(/^[0-9]{6}-/.test(_no9))nm=_no9;}/* [BUILD1930] 실시간: 이름=날짜-번호 — 야간보정 반영된 현재 번호 그대로 */
+    else if(typeof STAGE!=='undefined'&&STAGE==='realtime'){var _no9=(''+(p.no||''));var _m9=/^([0-9]{6})-(.+)$/.exec(_no9);if(_m9)nm=_m9[1]+'_'+_m9[2];}/* [BUILD1930] 실시간: 이름=날짜-번호 — 야간보정 반영된 현재 번호 그대로 */
     var X=(p.y!=null&&!isNaN(p.y))?(+p.y).toFixed(3):'';   // CSV X = 앱 p.y (북)
     var Y=(p.x!=null&&!isNaN(p.x))?(+p.x).toFixed(3):'';   // CSV Y = 앱 p.x (동)
     var Z=(p.z!=null&&!isNaN(p.z))?(+p.z).toFixed(3):'';
