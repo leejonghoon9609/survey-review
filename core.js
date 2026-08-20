@@ -1413,6 +1413,7 @@ function drawManholes(){_orgSync();/* [1524] */
       var done=function(){try{document.removeEventListener('dblclick',_mhOutDbl,true);}catch(_e9){}try{document.removeEventListener('pointerdown',_mhOutClk,true);}catch(_e8){}if(wrap.parentNode){
         var p=(selPre.value==='_c'?inpPre.value.trim():selPre.value), v=(selIn.value==='_c'?inpIn.value.trim():selIn.value);var _nm9=inpNm.value.trim();var _nl9=_nm9+p+selSuf.value+' ('+v+(v?' ':'')+')';/* [1544] */var _ch9=(_nl9!==(mh.label||''))||(selKind.value!==(mh.kind==='기'?'기':'신'))||(selSpec.value!==(mh.spec||''))||(!!selSurf&&((selSurf.value!==(mh.surface||''))||(selPave.value!==(mh.pave||''))));if(!_ch9){_mhEditAnchor=null;wrap.remove();return;}/* [1397] */
         pushHist();
+        var _oldLab9=mh.label||'';/* [BUILD1923] dest \uc804\ud30c\uc6a9 \uc61b \ub77c\ubca8 */
         mh.label=_nl9;
         mh.kind=selKind.value;
         mh.spec=selSpec.value;if(selSurf){mh.surface=selSurf.value;mh.pave=selPave.value;if(typeof tangoFill==='function')tangoFill();}
@@ -1425,6 +1426,31 @@ function drawManholes(){_orgSync();/* [1524] */
           if(typeof mnPersistRec==='function'){try{mnPersistRec(_sr9);}catch(_mp9){}}
           try{var _fm9=document.getElementById('mnFormModal');var _hh9=(typeof mnHostOpen==='function')?mnHostOpen():null;if((_fm9||_hh9)&&typeof mnOpenForm==='function')mnOpenForm(_sr9);}catch(_rr9){}
          }}catch(_sy9){}
+        try{/* [BUILD1923] 이 맨홀을 방향(dest)으로 참조하는 모든 야장 라벨 자동 갱신 — 라벨 정규화 + destXY(1m) 이중 매칭, 위치·설정은 그대로 유지 */
+          var _ns9=function(x){return String(x==null?'':x).replace(/\s+/g,'');};
+          var _oldN9=_ns9(_oldLab9);
+          var _newD9=(typeof _sr9!=='undefined'&&_sr9&&typeof mnLabel==='function')?mnLabel(_sr9):((selKind.value==='기'?'기설':'신설')+_ns9(_nl9));
+          var _cands9=[_oldN9,'신설'+_oldN9,'기설'+_oldN9];
+          var _hitN9=0;
+          (typeof mnList==='function'?mnList():[]).forEach(function(rr){
+            if(!rr||rr.delAt||!rr.dest)return;if(_sr9&&rr.id===_sr9.id)return;
+            var chg=false;
+            ['d1','d2','d3','d4'].forEach(function(dk){
+              var dv=rr.dest[dk];if(!dv)return;
+              var hit=false;
+              var dn=_ns9(dv);
+              if(_oldN9&&(_cands9.indexOf(dn)>=0))hit=true;
+              if(!hit&&typeof mnStripPf==='function'&&_oldN9&&_ns9(mnStripPf(dv))===_oldN9)hit=true;
+              if(!hit&&rr.destXY&&rr.destXY[dk]&&mh&&mh.wx!=null){var _xy=rr.destXY[dk];if(Math.hypot((+_xy[0])-mh.wx,(+_xy[1])-mh.wy)<1.0)hit=true;}
+              if(hit&&dv!==_newD9){rr.dest[dk]=_newD9;chg=true;_hitN9++;}
+            });
+            if(chg)rr.up=new Date().toISOString();
+          });
+          if(_hitN9){if(typeof saveProject==='function')try{saveProject();}catch(_pv9){}
+            try{if(typeof window.mnRerenderSheet==='function')window.mnRerenderSheet();}catch(_rs9){}
+            try{if(typeof refDrawMh==='function')refDrawMh();}catch(_rd9){}
+            if(typeof toast==='function')toast('방향 라벨 '+_hitN9+'건 자동 갱신');}
+        }catch(_pp9){}
         try{if(typeof _tgSegs!=='undefined'&&_tgSegs){var _hit9=-1;for(var _si=0;_si<_tgSegs.length;_si++){var _sg=_tgSegs[_si];if(!_sg.length)continue;var _s0=_sg[0],_se=_sg[_sg.length-1];var _k=tgManualKey(_sg);var _setP=function(pre){_hit9=_si;if(!state.tangoManual)state.tangoManual={};if(!state.tangoManual[_k])state.tangoManual[_k]={};state.tangoManual[_k][pre+'_fac']=(mh.kind==='기'?'기설_맨홀':'신설_맨홀');state.tangoManual[_k][pre+'_own']=(v&&v!=='SKT'&&v!=='SKB')?'타사':v;/* [1433] 비SK 맨홀 자동 타사 등록(도면은 실소유 유지) */state.tangoManual[_k][pre+'_spec']=(mh.spec||'');state.tangoManual[_k][pre+'_nm']=(p+selSuf.value);/* [1431] M/H 선택 반영 — 'M' 하드코딩 제거 */};if(_s0&&_s0.mh&&Math.abs(_s0.x-mh.wx)<0.5&&Math.abs(_s0.y-mh.wy)<0.5)_setP('s');if(_se&&_se.mh&&Math.abs(_se.x-mh.wx)<0.5&&Math.abs(_se.y-mh.wy)<0.5)_setP('e');}}if(typeof tangoSelSeg==='function'){var _rs9=(typeof tgSeg!=='undefined'&&tgSeg>=0)?tgSeg:_hit9;if(_rs9>=0)tangoSelSeg(_rs9,true);}}catch(_e){}/* [1399] 폴백 갱신 */if(typeof saveProject==='function')try{saveProject();}catch(_sv){}_mhEditAnchor=null;wrap.remove();drawManholes();}};/* [1394] 저장 */
       var onKey=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();};
       inpPre.addEventListener('keydown',onKey);inpIn.addEventListener('keydown',onKey);
