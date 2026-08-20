@@ -6061,18 +6061,29 @@ function parseCsv(text,fname){
   return pts;
 }
 function applyNightShift(){
-  var ns=state.nightShift, cut=(ns&&ns.on)?ns.cut:null, n=0;
+  var ns=state.nightShift, cut=(ns&&ns.on)?ns.cut:null, n=0, _rn9=[];/* [BUILD1927] */
   (state.points||[]).forEach(function(p){
     if(p._d0==null||p._nm==null)return;
     var dt=p._d0;
     if(cut!=null&&p._tm!=null&&p._tm<cut&&p._d0)dt=prevDayYMD(p._d0);
-    var nu=(dt?dt+'-':'')+p._nm; if(nu!==p.no){p.no=nu;n++;}
+    var nu=(dt?dt+'-':'')+p._nm; if(nu!==p.no){var _ol9=p.no;p.no=nu;n++;_rn9.push([_ol9,nu]);}
   });
+  /* [BUILD1927] 야간보정 리네임 → 사진 키 동반 이동(자정 넘김 사진 매칭) — 대상 키가 비어있을 때만, DB point_no도 갱신 */
+  try{
+    _rn9.forEach(function(rp){var o=rp[0],u=rp[1];
+      if(typeof photoMap!=='undefined'&&photoMap[o]&&!photoMap[u]){photoMap[u]=photoMap[o];delete photoMap[o];
+        try{if(typeof online!=='undefined'&&online&&typeof sb!=='undefined'&&sb&&state.projectId)sb.from(DB+'_photos').update({point_no:u}).eq('project_id',state.projectId).eq('point_no',o).then(function(){});}catch(_u1){}}
+      if(typeof afterMap!=='undefined'&&afterMap[o]&&!afterMap[u]){afterMap[u]=afterMap[o];delete afterMap[o];
+        try{if(typeof online!=='undefined'&&online&&typeof sb!=='undefined'&&sb&&state.projectId)sb.from(DB+'_photos').update({point_no:u+'_A'}).eq('project_id',state.projectId).eq('point_no',o+'_A').then(function(){});}catch(_u2){}}
+    });
+  }catch(_pm9){}
   selNum=null;if(typeof clearSvg==='function'&&typeof gSel!=='undefined')clearSvg(gSel);
   if(typeof drawGeo==='function')drawGeo();if(typeof drawMarks==='function')drawMarks();if(typeof updMeta==='function')updMeta();
   return n;
 }
 function rtNightPaint(b){/* [BUILD1914] */if(!b)return;var on=!!(state.nightShift&&state.nightShift.on);b.textContent='\uD83C\uDF19 \uC57C\uAC04\uBCF4\uC815'+(on?' ON':'');b.style.background=on?'#4f46e5':'#fff';b.style.color=on?'#fff':'#4f46e5';}
+function rtNightCutChange(v){/* [BUILD1927] \uc0c8\ubcbd \ucef7\ud0c0\uc784 \ubcc0\uacbd \u2014 ON \uc0c1\ud0dc\uba74 \uc7ac\uc801\uc6a9 */var cut=(typeof timeMin==='function')?timeMin(v||'06:00'):360;if(cut==null)cut=360;var ns=state.nightShift||{on:false};state.nightShift={on:!!ns.on,cut:cut};var rc=document.getElementById('regNightCut');if(rc&&v)rc.value=v;if(ns.on){var n=(typeof applyNightShift==='function')?applyNightShift():0;if(typeof toast==='function')toast('\uc57c\uac04 \ubcf4\uc815 \ucef7 '+v+' \uc801\uc6a9 \u2014 '+n+'\uc810 \uc7ac\uadc0\uc18d');try{if(typeof saveProject==='function')saveProject();}catch(_e){}if(document.getElementById('rtDailyPop')&&typeof rtDailyTodayFill==='function')try{rtDailyTodayFill();}catch(_f){}if(document.getElementById('rtCsvModal')&&typeof rtOpenCsvModal==='function')try{rtOpenCsvModal();}catch(_c){}}else{try{if(typeof saveProject==='function')saveProject();}catch(_e2){}}}
+function rtNightCutVal(){var ns=state.nightShift;var c=(ns&&ns.cut!=null)?ns.cut:360;return ('0'+Math.floor(c/60)).slice(-2)+':'+('0'+(c%60)).slice(-2);}
 function rtNightBtnToggle(){/* [BUILD1914] \uC0AC\uC5C5\uB4F1\uB85D \uC57C\uAC04\uBCF4\uC815\uACFC \uB3D9\uC77C \uB85C\uC9C1 \u2014 \uC804\uC5ED \uD1A0\uAE00 */var ns=state.nightShift||null;var on=!(ns&&ns.on);var cut=(ns&&ns.cut!=null)?ns.cut:360;state.nightShift={on:on,cut:cut};var n=(typeof applyNightShift==='function')?applyNightShift():0;var hh=('0'+Math.floor(cut/60)).slice(-2)+':'+('0'+(cut%60)).slice(-2);if(typeof toast==='function')toast(on?('\uC57C\uAC04 \uBCF4\uC815 ON \u2014 \uC0C8\uBCBD '+hh+' \uC774\uC804 '+n+'\uC810\uC744 \uC804\uB0A0\uB85C'):('\uC57C\uAC04 \uBCF4\uC815 OFF ('+n+'\uC810 \uBCF5\uADC0)'));var rn=document.getElementById('regNight');if(rn)rn.checked=on;try{if(typeof saveProject==='function')saveProject();}catch(_e){}if(typeof rtNightPaint==='function')rtNightPaint(document.getElementById('rtDailyNightBtn'));if(document.getElementById('rtDailyPop')&&typeof rtDailyTodayFill==='function')try{rtDailyTodayFill();}catch(_f){}if(document.getElementById('rtCsvModal')&&typeof rtOpenCsvModal==='function')try{rtOpenCsvModal();}catch(_c){}}
 function parseDxfLines(text){
   text=_dxfEntSlice(text);/* [1371] */
@@ -12465,7 +12476,7 @@ function rtDailyOpen(){ /* [1209] 일일(오늘) 등록 전용 — 빨간 테마
   var _fin=(state.rtDone&&state.rtDone.done);
   var pop=document.createElement('div');pop.id='rtDailyPop';
   pop.style.cssText='position:fixed;left:50%;top:110px;transform:translateX(-50%);z-index:9500;background:#fff;border:2px solid #c0392b;border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.25);width:min(94vw,560px);max-height:76vh;display:flex;flex-direction:column;overflow:hidden';
-  pop.innerHTML='<div id="rtDailyHead" style="display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:grab;user-select:none;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:#c0392b;display:inline-block"></span><b style="font-size:15px">일별 완료성과 등록</b><button type="button" id="rtDailyNightBtn" onclick="rtNightBtnToggle()" onpointerdown="event.stopPropagation()" style="margin-left:10px;border:1.5px solid #4f46e5;border-radius:8px;padding:4px 10px;font-weight:800;font-size:12px;cursor:pointer;background:#fff;color:#4f46e5"></button><span style="font-size:11px;color:#bbb;margin-left:auto">드래그로 이동</span></div>'
+  pop.innerHTML='<div id="rtDailyHead" style="display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:grab;user-select:none;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:#c0392b;display:inline-block"></span><b style="font-size:15px">일별 완료성과 등록</b><button type="button" id="rtDailyNightBtn" onclick="rtNightBtnToggle()" onpointerdown="event.stopPropagation()" style="margin-left:10px;border:1.5px solid #4f46e5;border-radius:8px;padding:4px 10px;font-weight:800;font-size:12px;cursor:pointer;background:#fff;color:#4f46e5"></button><input type="time" id="rtDailyNightCut" onpointerdown="event.stopPropagation()" onchange="rtNightCutChange(this.value)" style="margin-left:5px;border:1px solid #c7cbe8;border-radius:7px;padding:3px 5px;font-size:12px;color:#4f46e5;font-weight:700"><span style="font-size:11px;color:#bbb;margin-left:auto">드래그로 이동</span></div>'
     +'<div style="display:flex;gap:8px;align-items:center;padding:10px 14px;border-bottom:1px solid #f6eaea;flex-wrap:wrap">'
     +'<span style="font-size:12px;color:#888">오늘 작업분을 등록합니다 — 등록 성과는 [완료성과(전체)]에 일별로 쌓입니다</span>'
     +'<button id="rtDailyFinBtn" style="margin-left:auto;border:1px solid #c0392b;border-radius:8px;padding:7px 11px;font-weight:700;font-size:12px;cursor:pointer;'+(_fin?'background:#c0392b;color:#fff':'background:#fff;color:#c0392b')+'">사업 최종완료'+(_fin?' ✓':'')+'</button></div>'
@@ -12482,6 +12493,7 @@ function rtDailyOpen(){ /* [1209] 일일(오늘) 등록 전용 — 빨간 테마
     hd.addEventListener('pointerup',function(){drag=false;});})();
   rtDailyTodayFill();
   if(typeof rtNightPaint==='function')rtNightPaint(document.getElementById('rtDailyNightBtn'));/* [BUILD1914] */
+  try{var _nc9=document.getElementById('rtDailyNightCut');if(_nc9&&typeof rtNightCutVal==='function')_nc9.value=rtNightCutVal();}catch(_v9){}/* [BUILD1927] */
 }
 function rtDailyTodayFill(){ /* [BUILD1915] 날짜별 목록+체크박스 — 선택 등록/삭제 */
   var el=document.getElementById('rtDailyToday');if(!el)return;
