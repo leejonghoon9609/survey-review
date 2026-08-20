@@ -1897,11 +1897,30 @@ function autoConnectTamsa(){
   state.routingDone=true;drawGeo();
   toast('\uD0D0\uC0AC \uC790\uB3D9\uACB0\uC120: \uAD6C\uAC04 '+segs.length+'\uAC1C');
 }
-function autoConnect(){
-  /* [BUILD1920] 측량현장 가드 — 자동결선은 실시간 단계용. field에서 실행 시 기존 결선(결선DB 다듬은 경로)이 직선으로 재생성되는 사고 방지 */
-  if(typeof IS_FIELD!=='undefined'&&IS_FIELD){
+function _fldAcWarn(n,mLen,onGo){/* [BUILD1921] 중앙 빨간 경고 모달 — 취소 기본 */
+  var w=document.createElement('div');w.id='fldAcWarn';
+  w.style.cssText='position:fixed;inset:0;background:rgba(60,10,10,.45);z-index:14000;display:flex;align-items:center;justify-content:center;padding:16px';
+  w.innerHTML='<div style="background:#fff;border:2.5px solid #d32f2f;border-radius:14px;box-shadow:0 16px 48px rgba(120,0,0,.35);width:min(440px,94vw);overflow:hidden">'
+   +'<div style="background:#d32f2f;color:#fff;padding:13px 18px;font-size:15.5px;font-weight:900;display:flex;align-items:center;gap:9px"><span style="font-size:19px">\u26A0</span>자동결선 경고 — 측량현장</div>'
+   +'<div style="padding:16px 20px;font-size:14px;line-height:1.85;color:#5b2020">'
+   +'기존 관로결선 <b style="color:#c62828;font-size:15px">'+n+'개('+mLen.toFixed(1)+'m)</b>가 삭제되고<br><b>직선으로 재생성</b>됩니다.<br>'
+   +'<span style="color:#8a6d6d;font-size:13px">결선 수정은 결선DB 단계에서 하는 것을 권장합니다.</span></div>'
+   +'<div style="display:flex;gap:10px;padding:0 20px 18px">'
+   +'<button id="fldAcNo" style="flex:1;background:#fff;border:2px solid #9aa5b1;color:#3b4652;border-radius:10px;padding:12px;font-size:14.5px;font-weight:900;cursor:pointer">취소 (권장)</button>'
+   +'<button id="fldAcGo" style="flex:1;background:#d32f2f;border:0;color:#fff;border-radius:10px;padding:12px;font-size:14.5px;font-weight:900;cursor:pointer">계속 진행</button>'
+   +'</div></div>';
+  document.body.appendChild(w);
+  function close(){var e=document.getElementById('fldAcWarn');if(e)e.remove();}
+  w.addEventListener('click',function(ev){if(ev.target===w)close();});
+  document.getElementById('fldAcNo').onclick=close;
+  document.getElementById('fldAcGo').onclick=function(){close();onGo();};
+  try{document.getElementById('fldAcNo').focus();}catch(_f){}
+}
+function autoConnect(_force){
+  /* [BUILD1920→1921] 측량현장 가드 — 자동결선은 실시간 단계용. field에서 실행 시 기존 결선(결선DB 다듬은 경로)이 직선으로 재생성되는 사고 방지 */
+  if(typeof IS_FIELD!=='undefined'&&IS_FIELD&&_force!==true){
     var _gp=0,_gt=0;(state.lines||[]).forEach(function(L){if(!L||L.free)return;if(L.layer&&L.layer!=='통신관로'&&L.layer!=='지거'&&L.layer!=='압입구간')return;_gp++;var q=L.pts||[];for(var i=1;i<q.length;i++)_gt+=Math.hypot(q[i][0]-q[i-1][0],q[i][1]-q[i-1][1]);});
-    if(_gp>0&&!confirm('⚠ 측량현장에서 자동결선을 실행하면\n기존 관로결선 '+_gp+'개('+_gt.toFixed(1)+'m)가 삭제되고 직선으로 재생성됩니다.\n결선 수정은 결선DB 단계에서 하는 것을 권장합니다.\n\n정말 계속할까요?'))return;
+    if(_gp>0){_fldAcWarn(_gp,_gt,function(){autoConnect(true);});return;}
   }
   if(state.tamsa){autoConnectTamsa();return;}
   if(state.points.length<2){toast('측량점을 먼저 올려주세요');return;}
