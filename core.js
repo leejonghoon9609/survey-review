@@ -8927,14 +8927,24 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
   var showPick=(fp===true)||(L.length===0);/* [BUILD1948] 0건이면 대상선택 우선 (mhDestPanel 규약) */
   function _touch(){try{if(typeof cb==='function')cb('__REFRESH__');}catch(_c){}}
   function _re(f2){mnAskDest(cur,dn,cb,rec,dk,f2);}
-  var rows=L.map(function(dv,ix){
-    var on=(ix===mainI);
-    return '<div style="display:flex;align-items:center;gap:7px;background:#fff;border:1.5px solid '+(on?'#7cb342':'#dbe4d2')+';border-left:4px solid '+(on?'#2e7d32':'#dbe4d2')+';border-radius:8px;padding:8px 9px;margin-bottom:6px;box-shadow:0 1px 2px rgba(0,0,0,.05)">'
-      +'<button class="mnDMainB" data-i="'+ix+'" title="\uC8FC\uBC29\uD5A5" style="flex:none;width:31px;height:26px;border-radius:6px;border:1.5px solid '+(on?'#2e7d32':'#cfd8c0')+';background:'+(on?'#2e7d32':'#fff')+';color:'+(on?'#fff':'#9aa89a')+';font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uC8FC</button>'
-      +'<span class="mnDGoR" data-i="'+ix+'" title="\uAD6C\uAC04 \uBCF4\uAE30" style="flex:1;min-width:0;font-size:12.5px;font-weight:'+(on?'800':'700')+';color:'+(on?'#1b5e20':'#33691e')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer">'+(ix+1)+'. '+((typeof joseoEsc==='function')?joseoEsc((dv&&dv.lab)||''):((dv&&dv.lab)||''))+'<span style="color:#9aa89a;font-weight:700">'+((_src9&&dv&&dv.xy&&dv.xy.length===2&&typeof mnPosTag9==='function')?mnPosTag9(_src9.wx,_src9.wy,dv.xy[0],dv.xy[1]):'')+'</span>'+((dv&&dv._auto)?'<span style="color:#b0bcb0;font-size:10px;font-weight:800"> \uC790\uB3D9</span>':'')+'</span>'
-      +'<button class="mnDDelR" data-i="'+ix+'" style="flex:none;background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uC0AD\uC81C</button></div>';
+  /* [BUILD1958] 4벽 전체를 한 목록으로 — 벽 뱃지 + 벽별 주방향. 현재 벽은 강조 */
+  var _WN8={d1:'\uC11C',d2:'\uB3D9',d3:'\uBD81',d4:'\uB0A8'};
+  var ALL8=[];
+  ['d1','d2','d3','d4'].forEach(function(k){
+    var LK=mnDestList(rec,k),mk=mnDestMain(rec,k);
+    LK.forEach(function(dv,ix){ALL8.push({k:k,ix:ix,dv:dv,main:(ix===mk)});});
+  });
+  var rows=ALL8.map(function(q,n){
+    var on=q.main,cur=(q.k===dk),dv=q.dv;
+    var bd=on?'#7cb342':'#dbe4d2', lf=on?'#2e7d32':'#dbe4d2';
+    return '<div style="display:flex;align-items:center;gap:6px;background:#fff;border:1.5px solid '+bd+';border-left:4px solid '+lf+';border-radius:8px;padding:8px 9px;margin-bottom:6px;box-shadow:0 1px 2px rgba(0,0,0,.05)'+(cur?'':';opacity:.88')+'">'
+      +'<span style="flex:none;min-width:22px;text-align:center;font-size:10.5px;font-weight:800;color:'+(cur?'#33691e':'#96a396')+';background:'+(cur?'#dcedc8':'#f2f5ef')+';border-radius:5px;padding:2px 4px">'+_WN8[q.k]+'</span>'
+      +'<button class="mnDMainB" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uC8FC\uBC29\uD5A5" style="flex:none;width:29px;height:25px;border-radius:6px;border:1.5px solid '+(on?'#2e7d32':'#cfd8c0')+';background:'+(on?'#2e7d32':'#fff')+';color:'+(on?'#fff':'#9aa89a')+';font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uC8FC</button>'
+      +'<span class="mnDGoR" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uAD6C\uAC04 \uBCF4\uAE30" style="flex:1;min-width:0;font-size:12.5px;font-weight:'+(on?'800':'700')+';color:'+(on?'#1b5e20':'#33691e')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer">'+(n+1)+'. '+((typeof joseoEsc==='function')?joseoEsc((dv&&dv.lab)||''):((dv&&dv.lab)||''))+'<span style="color:#9aa89a;font-weight:700">'+((_src9&&dv&&dv.xy&&dv.xy.length===2&&typeof mnPosTag9==='function')?mnPosTag9(_src9.wx,_src9.wy,dv.xy[0],dv.xy[1]):'')+'</span>'+((dv&&dv._auto)?'<span style="color:#b0bcb0;font-size:10px;font-weight:800"> \uC790\uB3D9</span>':'')+'</span>'
+      +'<button class="mnDDelR" data-k="'+q.k+'" data-i="'+q.ix+'" style="flex:none;background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uC0AD\uC81C</button></div>';
   }).join('');
   if(!rows)rows='<div style="background:#fff;border:1.5px dashed #dbe4d2;border-radius:8px;padding:12px 9px;margin-bottom:6px;font-size:12px;color:#9aa;text-align:center">\uC9C0\uC815\uB41C \uBC29\uD5A5\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div>';
+
   /* [BUILD1949] 도면(보조 시설물)에서 이 벽으로 연결된 항목 — 근거 θ 표기 + [편입] */
   var _AX9=[],_TH9=null;
   try{
@@ -8978,7 +8988,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
   w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:14dvh';
   w.innerHTML='<div style="background:#f1f8e9;border:1.5px solid #558b2f;border-radius:12px;width:min(88vw,330px);padding:13px 14px;max-height:86dvh;overflow:auto">'
     +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:9px">'
-      +'<div style="flex:1;min-width:0;font-weight:800;font-size:13.5px;color:#558b2f">\uC5F0\uACB0 \uB9E8\uD640 \u2014 '+dn+'\uBC29\uD5A5</div>'
+      +'<div style="flex:1;min-width:0;font-weight:800;font-size:13.5px;color:#558b2f">\uC5F0\uACB0 \uB9E8\uD640 \u2014 \uC804\uCCB4 '+ALL8.length+'\uAC74<span style="font-weight:700;font-size:11px;color:#8d9c8d"> \u00B7 \uCD94\uAC00\uB294 '+dn+'\uBC29\uD5A5</span></div>'
       +'<button id="mnDAdd" style="flex:none;background:#fff;color:#d32f2f;border:1.5px solid #ef9a9a;border-radius:8px;padding:5px 14px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uCD94\uAC00</button></div>'
     +pick
     +'<div id="mnDList">'+rows+auxRows+'</div>'+wallBar
@@ -9000,31 +9010,34 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
     _re(false);
   }
   w.querySelectorAll('.mnDMainB').forEach(function(b){b.onclick=function(){
-    var i=+this.getAttribute('data-i');
-    if(mnDestMain(rec,dk)===i)return;
+    var k=this.getAttribute('data-k')||dk,i=+this.getAttribute('data-i');
+    if(mnDestMain(rec,k)===i)return;
     if(typeof pushHist==='function'){try{pushHist();}catch(_ph){}}
-    if(!rec.destM)rec.destM={};rec.destM[dk]=i;
-    mnDestSync(rec,dk);_touch();
-    if(typeof toast==='function')toast('\uC8FC\uBC29\uD5A5 \uC9C0\uC815 \u2014 '+((L[i]&&L[i].lab)||''));
+    if(!rec.destM)rec.destM={};rec.destM[k]=i;
+    mnDestSync(rec,k);_touch();
+    var LK=mnDestList(rec,k);
+    if(typeof toast==='function')toast('\uC8FC\uBC29\uD5A5 \uC9C0\uC815 \u2014 '+((LK[i]&&LK[i].lab)||''));
     _re(false);
-  };});
+  };});/* [BUILD1958] 벽별 주방향 */
   w.querySelectorAll('.mnDDelR').forEach(function(b){b.onclick=function(){
-    var i=+this.getAttribute('data-i');
+    var k=this.getAttribute('data-k')||dk,i=+this.getAttribute('data-i');
     if(typeof pushHist==='function'){try{pushHist();}catch(_ph){}}
-    var mi=mnDestMain(rec,dk);L.splice(i,1);
+    var LK=mnDestList(rec,k),mi=mnDestMain(rec,k);
+    LK.splice(i,1);
     if(!rec.destM)rec.destM={};
-    var nm=(i<mi)?(mi-1):((i===mi)?0:mi);rec.destM[dk]=(nm<0?0:nm);
-    mnDestSync(rec,dk);_touch();
+    var nm=(i<mi)?(mi-1):((i===mi)?0:mi);rec.destM[k]=(nm<0?0:nm);
+    mnDestSync(rec,k);_touch();
     _re(false);
-  };});
+  };});/* [BUILD1958] 벽별 삭제 */
   w.querySelectorAll('.mnDJoinB').forEach(function(b){b.onclick=function(){/* [BUILD1949] 도면 연결을 이 벽으로 편입 */
     var a=_AX9[+this.getAttribute('data-i')];if(!a||!a.m)return;
     try{if(!rec.destXY)rec.destXY={};rec.destXY[dk]=[a.m.wx,a.m.wy];}catch(_e){}
     _reg(a.lab);
   };});
   w.querySelectorAll('.mnDGoR').forEach(function(b){b.onclick=function(){/* [BUILD1950] 목록 클릭 → 구간 색칠·자동이동 */
-    var dv=L[+this.getAttribute('data-i')];if(!dv||!_src9)return;
-    var t=(dv.xy&&dv.xy.length===2)?{x:dv.xy[0],y:dv.xy[1]}:((typeof _mnDestXY9==='function')?_mnDestXY9(rec,dk,dv.lab):null);
+    var _k8=this.getAttribute('data-k')||dk;
+    var dv=mnDestList(rec,_k8)[+this.getAttribute('data-i')];if(!dv||!_src9)return;
+    var t=(dv.xy&&dv.xy.length===2)?{x:dv.xy[0],y:dv.xy[1]}:((typeof _mnDestXY9==='function')?_mnDestXY9(rec,_k8,dv.lab):null);
     if(!t){if(typeof toast==='function')toast('\uB300\uC0C1 \uC88C\uD45C\uB97C \uCC3E\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4');return;}
     var si=(typeof mnSegFind9==='function')?mnSegFind9(_src9,{wx:t.x,wy:t.y}):-1;
     if(si<0){if(typeof toast==='function')toast('\uC5F0\uACB0\uB41C \uAD6C\uAC04\uC774 \uC544\uC9C1 \uC5C6\uC2B5\uB2C8\uB2E4');return;}
