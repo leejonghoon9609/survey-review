@@ -8729,6 +8729,38 @@ function mnPosTag9(ax,ay,bx,by){
 /* [BUILD1952] 맨홀에서 대상으로 나가는 '구간 진출 방위'.
    맨홀↔시설물 직선은 관로가 꺾이면 틀린 벽을 준다(6H 6구간: 직선 남서41° / 실제 남).
    구간 시작부 EXITL(3m) 지점의 방위를 쓰고, 구간이 없을 때만 직선으로 폴백. */
+/* [BUILD1967] 관로선에서 직접 진출 방위 — 구간(_tgSegs)이 없는 공정(측량현장)에서도 동작 */
+function _lineExit9(src,tgt){
+  try{
+    if(!src||!tgt||src.wx==null)return null;
+    var EX=3.0,best=null,bd=1e9;
+    (state.lines||[]).forEach(function(L){
+      if(!L||L.free||!L.pts||L.pts.length<2)return;
+      if(L.layer&&L.layer!=='\uD1B5\uC2E0\uAD00\uB85C'&&L.layer!=='\uC9C0\uAC70'&&L.layer!=='\uC555\uC785\uAD6C\uAC04')return;
+      for(var i=0;i<L.pts.length;i++){
+        var d=Math.hypot(L.pts[i][0]-src.wx,L.pts[i][1]-src.wy);
+        if(d<bd&&d<0.5){bd=d;best={L:L,i:i};}
+      }
+    });
+    if(!best)return null;
+    var P=best.L.pts,i0=best.i,cand=[];
+    [1,-1].forEach(function(dir){
+      var acc=0,px=P[i0][0],py=P[i0][1],ex=null,ey=null;
+      for(var j=i0+dir;j>=0&&j<P.length;j+=dir){
+        var dd=Math.hypot(P[j][0]-px,P[j][1]-py);
+        if(dd<1e-9)continue;
+        acc+=dd;ex=P[j][0];ey=P[j][1];px=P[j][0];py=P[j][1];
+        if(acc>=EX)break;
+      }
+      if(ex!=null)cand.push({x:ex,y:ey,d:Math.hypot(ex-tgt.wx,ey-tgt.wy)});
+    });
+    if(!cand.length)return null;
+    cand.sort(function(a,b){return a.d-b.d;});
+    var b=Math.atan2(cand[0].y-P[i0][1],cand[0].x-P[i0][0])*180/Math.PI;
+    if(!isFinite(b))return null;
+    return {b:((b%360)+360)%360,via:'line3'};
+  }catch(_e){return null;}
+}
 function mnExitBrg9(src,tgt){
   try{
     if(!src||!tgt)return null;
@@ -8750,6 +8782,7 @@ function mnExitBrg9(src,tgt){
       }
     }
   }catch(_e){}
+  try{var _le9=_lineExit9(src,tgt);if(_le9)return _le9;}catch(_le){}/* [BUILD1967] 관로선 진출 방위 */
   try{
     var a=Math.atan2(tgt.wy-src.wy,tgt.wx-src.wx)*180/Math.PI;
     return {b:((a%360)+360)%360,via:'line'};
@@ -9503,7 +9536,7 @@ function mhDestPanel(mh,forcePick){
       +'</div>'
     +pick
     +'<div style="border:1.5px solid #c0392b;border-radius:8px;background:#fff;max-height:32dvh;overflow:auto;padding:3px 4px">'+rows+'</div>'+sumBar
-    +'<div style="display:flex;gap:7px;margin-top:11px">'+'<button id="mhDReg" style="flex:1;background:#c0392b;color:#fff;border:0;border-radius:8px;padding:8px;font-weight:800;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;">구간등록</button>'+'<button id="mhDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:8px;padding:8px;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;">닫기</button></div></div>';
+    +'<div style="display:flex;gap:7px;margin-top:11px">'+'<button id="mhDReg" style="flex:1;background:#c0392b;color:#fff;border:0;border-radius:8px;padding:8px;font-weight:800;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;">'+(((typeof IS_TANGO!=='undefined')&&IS_TANGO)?'구간등록':'저장')+'</button>'+'<button id="mhDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:8px;padding:8px;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;">닫기</button></div></div>';
   document.body.appendChild(w);
   var _ad=w.querySelector('#mhDAdd');if(_ad)_ad.onclick=function(){var pk=w.querySelector('#mhDPick');if(pk)pk.style.display=(pk.style.display==='none')?'block':'none';};
   var _b1=w.querySelector('#mhDMh2');if(_b1)_b1.onclick=function(){w.remove();_facAddDest(mh,'mh',null);};
