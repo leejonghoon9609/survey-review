@@ -9133,20 +9133,7 @@ function mhDestPanel(mh,forcePick){
       +'<button class="mhDDelR" data-i="'+ix+'" style="flex:none;background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;">삭제</button></div>';
   }).join('');
   if(!rows)rows='<div style="background:#fff;border:1.5px dashed #dbe4d2;border-radius:8px;padding:12px 9px;margin-bottom:6px;font-size:12px;color:#9aa;text-align:center">지정된 연결 구간이 없습니다</div>';
-  /* [BUILD1949] 역방향 — 맨홀 야장에서 이 시설물을 지정한 건 읽기전용 표시 */
-  try{
-    var RV9=(typeof mnRevLinks9==='function')?mnRevLinks9(mh):[];
-    var seenR9={};
-    var rv9=RV9.filter(function(q){var kq=q.lab+'|'+q.dk;if(seenR9[kq])return false;seenR9[kq]=1;
-      var dup=false;L.forEach(function(d){if(d&&String(d.lab||'')===String(q.lab))dup=true;});return !dup;});
-    if(rv9.length){
-      rows+=rv9.map(function(q){
-        return '<div style="display:flex;align-items:center;gap:7px;background:#fff;border:1.5px dashed #b8cdd8;border-left:4px solid #90caf9;border-radius:8px;padding:8px 9px;margin-bottom:6px">'
-          +'<span style="flex:none;font-size:10.5px;color:#7d8f7d;font-weight:800">\u25C1\uC57C\uC7A5</span>'
-          +'<span style="flex:1;min-width:0;font-size:12px;font-weight:700;color:#6b7d6b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+q.lab+' <span style="color:#9aa89a">('+q.wall+'\uBCBD)</span></span></div>';
-      }).join('');
-    }
-  }catch(_rv9){}
+  /* [BUILD1956] 역방향 야장 표시 제거 — 참조가 원본과 섞여 혼란을 줌 */
   var pick='<div id="mhDPick" style="display:'+(showPick?'block':'none')+';margin-bottom:10px">'
     +'<button id="mhDMh2" style="width:100%;box-sizing:border-box;background:#fff;color:#1d9e75;border:1.5px solid #1d9e75;border-radius:9px;padding:11px 2px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;justify-content:center">\uD83D\uDD73&nbsp;<span style="letter-spacing:8px;margin-right:-8px">맨홀</span></button>'
     +'<div style="display:flex;gap:5px;margin-top:7px">'
