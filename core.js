@@ -1454,12 +1454,24 @@ function drawManholes(){_orgSync();/* [1524] */
             });
             if(chg)rr.up=new Date().toISOString();
           });
+          try{/* [BUILD1954] 보조 시설물(입상·JB·인입) dests 라벨도 동반 갱신 */
+            var _nd9='';try{_nd9=(typeof mhDisp==='function')?String(mhDisp(mh)):(mh.label||'');}catch(_md9){_nd9=(mh.label||'');}
+            (state.manholes||[]).forEach(function(am){
+              if(!am||am===mh||!am.dests||!am.dests.length)return;
+              am.dests.forEach(function(dv){
+                if(!dv)return;var hit=false;
+                if(dv.xy&&dv.xy.length===2&&mh.wx!=null&&Math.hypot(dv.xy[0]-mh.wx,dv.xy[1]-mh.wy)<0.5)hit=true;
+                if(!hit&&_oldN9&&_ns9(dv.lab)===_oldN9)hit=true;
+                if(hit&&_nd9&&dv.lab!==_nd9){dv.lab=_nd9;_hitN9++;}
+              });
+            });
+          }catch(_ad9){}
           if(_hitN9){if(typeof saveProject==='function')try{saveProject();}catch(_pv9){}
             try{if(typeof window.mnRerenderSheet==='function')window.mnRerenderSheet();}catch(_rs9){}
             try{if(typeof refDrawMh==='function')refDrawMh();}catch(_rd9){}
             if(typeof toast==='function')toast('방향 라벨 '+_hitN9+'건 자동 갱신');}
         }catch(_pp9){}
-        try{if(typeof _tgSegs!=='undefined'&&_tgSegs){var _hit9=-1;for(var _si=0;_si<_tgSegs.length;_si++){var _sg=_tgSegs[_si];if(!_sg.length)continue;var _s0=_sg[0],_se=_sg[_sg.length-1];var _k=tgManualKey(_sg);var _setP=function(pre){_hit9=_si;if(!state.tangoManual)state.tangoManual={};if(!state.tangoManual[_k])state.tangoManual[_k]={};state.tangoManual[_k][pre+'_fac']=(mh.kind==='기'?'기설_맨홀':'신설_맨홀');state.tangoManual[_k][pre+'_own']=(v&&v!=='SKT'&&v!=='SKB')?'타사':v;/* [1433] 비SK 맨홀 자동 타사 등록(도면은 실소유 유지) */state.tangoManual[_k][pre+'_spec']=(mh.spec||'');state.tangoManual[_k][pre+'_nm']=(p+selSuf.value);/* [1431] M/H 선택 반영 — 'M' 하드코딩 제거 */};if(_s0&&_s0.mh&&Math.abs(_s0.x-mh.wx)<0.5&&Math.abs(_s0.y-mh.wy)<0.5)_setP('s');if(_se&&_se.mh&&Math.abs(_se.x-mh.wx)<0.5&&Math.abs(_se.y-mh.wy)<0.5)_setP('e');}}if(typeof tangoSelSeg==='function'){var _rs9=(typeof tgSeg!=='undefined'&&tgSeg>=0)?tgSeg:_hit9;if(_rs9>=0)tangoSelSeg(_rs9,true);}}catch(_e){}/* [1399] 폴백 갱신 */if(typeof saveProject==='function')try{saveProject();}catch(_sv){}_mhEditAnchor=null;wrap.remove();drawManholes();}};/* [1394] 저장 */
+        try{if(typeof _tgSegs!=='undefined'&&_tgSegs){var _hit9=-1;for(var _si=0;_si<_tgSegs.length;_si++){var _sg=_tgSegs[_si];if(!_sg.length)continue;var _s0=_sg[0],_se=_sg[_sg.length-1];var _k=tgManualKey(_sg);var _setP=function(pre){_hit9=_si;if(!state.tangoManual)state.tangoManual={};if(!state.tangoManual[_k])state.tangoManual[_k]={};state.tangoManual[_k][pre+'_fac']=(mh.kind==='기'?'기설_맨홀':'신설_맨홀');state.tangoManual[_k][pre+'_own']=(v&&v!=='SKT'&&v!=='SKB')?'타사':v;/* [1433] 비SK 맨홀 자동 타사 등록(도면은 실소유 유지) */state.tangoManual[_k][pre+'_spec']=(mh.spec||'');state.tangoManual[_k][pre+'_nm']=((_nm9+p).trim()+selSuf.value);/* [BUILD1954] 이름 포함 — 빠지면 tgSyncMhFromManual이 mh.label을 되돌려 이름이 지워진다 */};if(_s0&&_s0.mh&&Math.abs(_s0.x-mh.wx)<0.5&&Math.abs(_s0.y-mh.wy)<0.5)_setP('s');if(_se&&_se.mh&&Math.abs(_se.x-mh.wx)<0.5&&Math.abs(_se.y-mh.wy)<0.5)_setP('e');}}if(typeof tangoSelSeg==='function'){var _rs9=(typeof tgSeg!=='undefined'&&tgSeg>=0)?tgSeg:_hit9;if(_rs9>=0)tangoSelSeg(_rs9,true);}}catch(_e){}/* [1399] 폴백 갱신 */if(typeof saveProject==='function')try{saveProject();}catch(_sv){}_mhEditAnchor=null;wrap.remove();drawManholes();}};/* [1394] 저장 */
       var onKey=function(e){if(e.key==='Enter'||e.key==='Escape'){e.stopPropagation();done();}else e.stopPropagation();};
       inpPre.addEventListener('keydown',onKey);inpIn.addEventListener('keydown',onKey);
       // 두 입력칸 모두에서 포커스 빠지면 done (단, 서로 이동 시는 유지)
