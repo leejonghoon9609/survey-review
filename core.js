@@ -8641,6 +8641,57 @@ function mnAuxLinks9(r){
   }catch(_e){}
   return out;
 }
+/* [BUILD1950] 방위+거리 꼬리표 — 이름 같은 입상주 구분용 */
+var _MN_D8=['\uB3D9','\uBD81\uB3D9','\uBD81','\uBD81\uC11C','\uC11C','\uB0A8\uC11C','\uB0A8','\uB0A8\uB3D9'];
+function mnPosTag9(ax,ay,bx,by){
+  try{
+    if(ax==null||bx==null)return '';
+    var dx=bx-ax,dy=by-ay,d=Math.hypot(dx,dy);
+    if(!isFinite(d)||d<0.2)return '';
+    var a=Math.atan2(dy,dx)*180/Math.PI;a=(a%360+360)%360;
+    var i=Math.round(a/45)%8;
+    return ' \u00B7 '+_MN_D8[i]+' '+(d<10?d.toFixed(1):Math.round(d))+'m';
+  }catch(_e){return '';}
+}
+/* [BUILD1950] 두 시설물을 잇는 구간 인덱스 */
+function mnSegFind9(a,b){
+  try{
+    if(typeof _tgSegs==='undefined'||!_tgSegs||!a||!b)return -1;
+    for(var i=0;i<_tgSegs.length;i++){
+      var sg=_tgSegs[i];if(!sg||sg.length<2)continue;
+      var s0=sg[0],e0=sg[sg.length-1];
+      var d1=Math.hypot(s0.x-a.wx,s0.y-a.wy)+Math.hypot(e0.x-b.wx,e0.y-b.wy);
+      var d2=Math.hypot(s0.x-b.wx,s0.y-b.wy)+Math.hypot(e0.x-a.wx,e0.y-a.wy);
+      if(Math.min(d1,d2)<1.2)return i;
+    }
+  }catch(_e){}
+  return -1;
+}
+/* [BUILD1950] 도면 연결 자동 편입 — 벽 판정된 보조 시설물을 야장 목록에 즉시 반영(중복 무시) */
+function mnAutoJoin9(rec){
+  var n=0;
+  try{
+    if(!rec||rec.mhId==null)return 0;
+    var links=(typeof mnAuxLinks9==='function')?mnAuxLinks9(rec):[];
+    if(!links.length)return 0;
+    links.forEach(function(a){
+      if(!a||!a.dk||!a.m||a.m.wx==null)return;
+      var LL=mnDestList(rec,a.dk),dup=false;
+      LL.forEach(function(d){if(!d)return;
+        if(d.xy&&d.xy.length===2&&Math.hypot(d.xy[0]-a.m.wx,d.xy[1]-a.m.wy)<0.5)dup=true;
+        else if(String(d.lab||'')===String(a.lab))dup=true;});
+      if(dup)return;
+      LL.push({lab:String(a.lab),xy:[a.m.wx,a.m.wy],_auto:1});
+      mnDestSync(rec,a.dk);n++;
+    });
+    if(n){
+      if(typeof pushHist==='function'){try{pushHist();}catch(_p){}}
+      if(typeof mnPersistRec==='function'){try{mnPersistRec(rec);}catch(_m){}}
+    }
+  }catch(_e){}
+  return n;
+}
+function mnAutoJoinAll9(){var t=0;try{(state.mnList||[]).filter(function(r){return r&&!r.delAt&&r.mhId!=null;}).forEach(function(r){t+=mnAutoJoin9(r);});}catch(_e){}return t;}
 /* 역방향 — 이 보조 시설물을 야장 dest로 지정한 맨홀 목록 */
 function mnRevLinks9(mh){
   var out=[];
@@ -8700,6 +8751,8 @@ function mnDestCount(rec,dk){try{if(rec&&rec.destL&&rec.destL[dk])return rec.des
 function mnAskDest(cur,dn,cb,rec,dk,fp){
   var old=document.getElementById('mnAskModal');if(old)old.remove();
   if(!rec||!dk)return;
+  var _aj9=0;try{if(typeof mnAutoJoin9==='function')_aj9=mnAutoJoin9(rec);}catch(_j9){}/* [BUILD1950] 자동 편입 */
+  var _src9=(typeof _mnMhOfRec9==='function')?_mnMhOfRec9(rec):null;
   var L=mnDestList(rec,dk);
   var mainI=mnDestMain(rec,dk);
   var showPick=(fp===true)||(L.length===0);/* [BUILD1948] 0건이면 대상선택 우선 (mhDestPanel 규약) */
@@ -8709,7 +8762,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
     var on=(ix===mainI);
     return '<div style="display:flex;align-items:center;gap:6px;border-bottom:1px solid #eef3e7;padding:7px 3px">'
       +'<button class="mnDMainB" data-i="'+ix+'" title="\uC8FC\uBC29\uD5A5" style="flex:none;width:31px;height:26px;border-radius:6px;border:1.5px solid '+(on?'#2e7d32':'#cfd8c0')+';background:'+(on?'#2e7d32':'#fff')+';color:'+(on?'#fff':'#9aa89a')+';font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uC8FC</button>'
-      +'<span style="flex:1;min-width:0;font-size:12.5px;font-weight:'+(on?'800':'700')+';color:'+(on?'#1b5e20':'#33691e')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(ix+1)+'. '+((typeof joseoEsc==='function')?joseoEsc((dv&&dv.lab)||''):((dv&&dv.lab)||''))+'</span>'
+      +'<span class="mnDGoR" data-i="'+ix+'" title="\uAD6C\uAC04 \uBCF4\uAE30" style="flex:1;min-width:0;font-size:12.5px;font-weight:'+(on?'800':'700')+';color:'+(on?'#1b5e20':'#33691e')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer">'+(ix+1)+'. '+((typeof joseoEsc==='function')?joseoEsc((dv&&dv.lab)||''):((dv&&dv.lab)||''))+'<span style="color:#9aa89a;font-weight:700">'+((_src9&&dv&&dv.xy&&dv.xy.length===2&&typeof mnPosTag9==='function')?mnPosTag9(_src9.wx,_src9.wy,dv.xy[0],dv.xy[1]):'')+'</span>'+((dv&&dv._auto)?'<span style="color:#b0bcb0;font-size:10px;font-weight:800"> \uC790\uB3D9</span>':'')+'</span>'
       +'<button class="mnDDelR" data-i="'+ix+'" style="flex:none;background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uC0AD\uC81C</button></div>';
   }).join('');
   if(!rows)rows='<div style="padding:11px 3px;font-size:12px;color:#9aa">\uC9C0\uC815\uB41C \uBC29\uD5A5\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div>';
@@ -8718,7 +8771,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
   try{
     _TH9=(typeof mnTheta9==='function')?mnTheta9(rec):null;
     ((typeof mnAuxLinks9==='function')?mnAuxLinks9(rec):[]).forEach(function(a){
-      if(!a||a.dk!==dk)return;
+      if(!a)return;if(a.dk&&a.dk!==dk)return;/* [BUILD1950] 벽 미판정은 전 벽에 노출 */
       var dup=false;
       L.forEach(function(d){if(!d)return;
         if(d.xy&&d.xy.length===2&&a.m&&Math.hypot(d.xy[0]-a.m.wx,d.xy[1]-a.m.wy)<0.5)dup=true;
@@ -8734,7 +8787,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
     auxRows=badge+_AX9.map(function(a,ax){
       return '<div style="display:flex;align-items:center;gap:6px;border-bottom:1px dashed #dfe6d6;padding:7px 3px;background:#fafcf7">'
         +'<span style="flex:none;font-size:10.5px;color:#7d8f7d;font-weight:800">\u25C1\uB3C4\uBA74</span>'
-        +'<span style="flex:1;min-width:0;font-size:12px;font-weight:700;color:#6b7d6b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+((typeof joseoEsc==='function')?joseoEsc(a.lab):a.lab)+'</span>'
+        +'<span style="flex:1;min-width:0;font-size:12px;font-weight:700;color:#6b7d6b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+((typeof joseoEsc==='function')?joseoEsc(a.lab):a.lab)+'<span style="color:#a9b6a9">'+((_src9&&a.m&&typeof mnPosTag9==='function')?mnPosTag9(_src9.wx,_src9.wy,a.m.wx,a.m.wy):'')+'</span></span>'
         +'<button class="mnDJoinB" data-i="'+ax+'" style="flex:none;background:#fff;color:#1565c0;border:1.5px solid #90caf9;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uD3B8\uC785</button></div>';
     }).join('');
   }else if(badge&&L.length)auxRows=badge;
@@ -8794,7 +8847,18 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
     try{if(!rec.destXY)rec.destXY={};rec.destXY[dk]=[a.m.wx,a.m.wy];}catch(_e){}
     _reg(a.lab);
   };});
+  w.querySelectorAll('.mnDGoR').forEach(function(b){b.onclick=function(){/* [BUILD1950] 목록 클릭 → 구간 색칠·자동이동 */
+    var dv=L[+this.getAttribute('data-i')];if(!dv||!_src9)return;
+    var t=(dv.xy&&dv.xy.length===2)?{x:dv.xy[0],y:dv.xy[1]}:((typeof _mnDestXY9==='function')?_mnDestXY9(rec,dk,dv.lab):null);
+    if(!t){if(typeof toast==='function')toast('\uB300\uC0C1 \uC88C\uD45C\uB97C \uCC3E\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4');return;}
+    var si=(typeof mnSegFind9==='function')?mnSegFind9(_src9,{wx:t.x,wy:t.y}):-1;
+    if(si<0){if(typeof toast==='function')toast('\uC5F0\uACB0\uB41C \uAD6C\uAC04\uC774 \uC544\uC9C1 \uC5C6\uC2B5\uB2C8\uB2E4');return;}
+    w.remove();
+    try{if(typeof tangoSelSeg==='function')tangoSelSeg(si);}catch(_g9){}
+    if(typeof toast==='function')toast((si+1)+'\uAD6C\uAC04 \u2014 '+(dv.lab||''));
+  };});
   var _bAdd=w.querySelector('#mnDAdd');if(_bAdd)_bAdd.onclick=function(){_re(true);};
+  if(_aj9){try{_touch();}catch(_t9){}if(typeof toast==='function')toast('\uB3C4\uBA74 \uC5F0\uACB0 '+_aj9+'\uAC74 \uC790\uB3D9 \uD3B8\uC785');}
   var _bNo=w.querySelector('#mnDNo2');if(_bNo)_bNo.onclick=function(){w.remove();};
   w.onclick=function(e){if(e.target===w)w.remove();};
   /* [1066/1067] 입상 — 도면에서 직접 클릭해 고른다 */
@@ -8882,7 +8946,8 @@ function _facPickItems(kind,self,re){
   return out;
 }
 function _facSegApply9(fmh){/* [BUILD1940] 연결구간 지정 → 구간 즉시 재빌드(탱고) */
-  try{if(typeof saveProject==='function'){try{saveProject();}catch(_s9){}}
+  try{try{if(typeof mnAutoJoinAll9==='function')mnAutoJoinAll9();}catch(_aj8){}/* [BUILD1950] 보조 지정 → 야장 자동 편입 전파 */
+    if(typeof saveProject==='function'){try{saveProject();}catch(_s9){}}
     if((typeof IS_TANGO!=='undefined'&&IS_TANGO)&&typeof tangoFill==='function'){try{tangoFill();}catch(_t9){}}
     var _pk9=-1;try{if(fmh&&typeof _tgSegs!=='undefined'&&_tgSegs){for(var _si9=_tgSegs.length-1;_si9>=0;_si9--){var _sg9=_tgSegs[_si9];if(!_sg9||!_sg9._dAux||!_sg9.length)continue;var _a9=_sg9[0],_b9=_sg9[_sg9.length-1];if((_a9&&Math.hypot(_a9.x-fmh.wx,_a9.y-fmh.wy)<0.6)||(_b9&&Math.hypot(_b9.x-fmh.wx,_b9.y-fmh.wy)<0.6)){_pk9=_si9;break;}}}}catch(_pe9){}/* [BUILD1945] 방금 만든 구간 자동 선택 */try{if(_pk9>=0&&typeof tangoSelSeg==='function')tangoSelSeg(_pk9);else if(typeof tgSeg!=='undefined'&&tgSeg>=0&&typeof _tgSegs!=='undefined'&&_tgSegs&&tgSeg<_tgSegs.length&&typeof tangoSelSeg==='function')tangoSelSeg(tgSeg);}catch(_i9){}/* [BUILD1941] 속성정보창 즉시 반영 */
     if(typeof drawGeo==='function'){try{drawGeo();}catch(_g9){}}
@@ -8918,7 +8983,7 @@ function mhDestPanel(mh,forcePick){
   var showPick=(forcePick===true)||(L.length===0);/* [BUILD1939] 구간 0건이면 대상 선택 화면 우선 */
   var rows=L.map(function(dv,ix){
     return '<div style="display:flex;align-items:center;gap:7px;border-bottom:1px solid #eef3e7;padding:7px 3px">'
-      +'<span style="flex:1;min-width:0;font-size:12.5px;font-weight:700;color:#33691e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(ix+1)+'. '+((dv&&dv.lab)||'')+'</span>'
+      +'<span style="flex:1;min-width:0;font-size:12.5px;font-weight:700;color:#33691e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(ix+1)+'. '+((dv&&dv.lab)||'')+'<span style="color:#9aa89a">'+((dv&&dv.xy&&dv.xy.length===2&&typeof mnPosTag9==='function')?mnPosTag9(mh.wx,mh.wy,dv.xy[0],dv.xy[1]):'')+'</span></span>'
       +'<button class="mhDDelR" data-i="'+ix+'" style="flex:none;background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;">삭제</button></div>';
   }).join('');
   if(!rows)rows='<div style="padding:11px 3px;font-size:12px;color:#9aa">지정된 연결 구간이 없습니다</div>';
