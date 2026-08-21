@@ -9168,18 +9168,129 @@ function _facAddDest(mh,kind,re){
   },null,{anchor:[mh.wx,mh.wy],barColor:'#1565c0',colorFn:function(){return '#1565c0';},msg:'연결 대상을 도면에서 클릭하세요 ('+items.length+'개)'});}catch(_pe){ok=false;}
   if(!ok){if(typeof toast==='function')toast('도면 선택을 시작할 수 없습니다');mhDestPanel(mh);}
 }
+/* ===== [BUILD1960] 보조 시설물 관정보 배분 =====
+   앞점(최근접 측점) 관정보 = 굴착 전체 관수. 방향이 여럿이면 관수를 나눠 넣고 합계를 검증한다.
+   저장: m._pExt/_pCnt(총계) · dv.ext/dv.cnt(행별) → [구간등록] 시 tangoManual.ext/gwansu 반영 */
+function _pipeParse9(code){
+  try{
+    var t=String(code||'').trim();if(!t)return null;
+    var m=/([A-Z]{1,4})\s*[￠\u00D8\u2205\uFF0F]?\s*(\d{2,4})\s*[xX*\u00D7]\s*(\d{1,3})/.exec(t);
+    if(m)return {kind:m[1].toUpperCase(),dia:m[2],cnt:+m[3]};
+    var m2=/([A-Z]{1,4})\s*[￠\u00D8\u2205]?\s*(\d{2,4})/.exec(t);
+    if(m2)return {kind:m2[1].toUpperCase(),dia:m2[2],cnt:null};
+    var m3=/(\d?(?:COD|MD))/i.exec(t);
+    if(m3)return {kind:m3[1].toUpperCase(),dia:'',cnt:null};
+  }catch(_e){}
+  return null;
+}
+function _extOf9(kind,dia){
+  try{
+    var opt=(typeof TG_OPT!=='undefined'&&TG_OPT.ext)?TG_OPT.ext:[];
+    if(!kind)return '';
+    var want=dia?(kind+'(￠'+dia+')'):kind;
+    for(var i=0;i<opt.length;i++){if(opt[i]===want)return opt[i];}
+    for(var j=0;j<opt.length;j++){if(String(opt[j]).toUpperCase().indexOf(kind)===0&&(!dia||String(opt[j]).indexOf(dia)>=0))return opt[j];}
+    return want;
+  }catch(_e){return '';}
+}
+function _extSplit9(ext){
+  var t=String(ext||'');
+  var m=/^([A-Z0-9]{1,5})\s*\([￠\u00D8\u2205]?\s*(\d{2,4})\)/.exec(t);
+  if(m)return {kind:m[1],dia:m[2]};
+  return {kind:t,dia:''};
+}
+/* 앞점 = 보조 시설물 최근접 측점 중 관정보(code) 보유 */
+function _auxFrontPt9(m){
+  try{
+    if(!m||m.wx==null)return null;
+    var best=null,bd=1e9;
+    (state.points||[]).forEach(function(p){
+      if(!p||p.x==null)return;
+      if(!_pipeParse9(p.code))return;
+      var d=Math.hypot(p.x-m.wx,p.y-m.wy);
+      if(d<bd){bd=d;best=p;}
+    });
+    if(!best||bd>25)return null;
+    var pr=_pipeParse9(best.code);
+    return {pt:best,d:bd,kind:pr.kind,dia:pr.dia,cnt:pr.cnt,code:best.code};
+  }catch(_e){return null;}
+}
+/* 총계 확정 — 저장값 우선, 없으면 앞점에서 */
+function auxPipeAll9(m){
+  var f=_auxFrontPt9(m);
+  var ext=(m&&m._pExt!=null&&m._pExt!=='')?m._pExt:(f?_extOf9(f.kind,f.dia):'');
+  var cnt=(m&&m._pCnt!=null&&m._pCnt!=='')?(+m._pCnt):((f&&f.cnt!=null)?f.cnt:null);
+  return {ext:ext,cnt:cnt,front:f};
+}
+function auxPipeSum9(m){
+  var n=0,any=false;
+  ((m&&m.dests)||[]).forEach(function(d){if(!d)return;if(d.cnt!=null&&d.cnt!==''){n+=(+d.cnt||0);any=true;}});
+  return any?n:null;
+}
+/* [BUILD1960] 방향별 관정보를 해당 구간의 외관·관수로 반영 */
+function auxPipeWrite9(mh){
+  var n=0;
+  try{
+    if(!mh||!mh.dests||!mh.dests.length)return 0;
+    if(typeof _tgSegs==='undefined'||!_tgSegs)return 0;
+    if(!state.tangoManual)state.tangoManual={};
+    var A=auxPipeAll9(mh);
+    mh.dests.forEach(function(dv){
+      if(!dv)return;
+      var tx=(dv.xy&&dv.xy.length===2)?{wx:dv.xy[0],wy:dv.xy[1]}:null;
+      if(!tx)return;
+      var si=(typeof mnSegFind9==='function')?mnSegFind9(mh,tx):-1;
+      if(si<0||!_tgSegs[si])return;
+      var k=tgManualKey(_tgSegs[si]);
+      var M=state.tangoManual[k]=state.tangoManual[k]||{};
+      var e=(dv.ext||A.ext||'');
+      var c=(dv.cnt!=null&&dv.cnt!=='')?dv.cnt:((mh.dests.length===1&&A.cnt!=null)?A.cnt:null);
+      var ch=false;
+      if(e&&M.ext!==e){M.ext=e;ch=true;}
+      if(c!=null&&String(M.gwansu||'')!==String(c)){M.gwansu=String(c);ch=true;}
+      if(ch)n++;
+    });
+    if(n&&typeof saveProject==='function'){try{saveProject();}catch(_s){}}
+  }catch(_e){}
+  return n;
+}
 function mhDestPanel(mh,forcePick){
   if(!mh)return;
   var old=document.getElementById('mhDestModal');if(old)old.remove();
   if(!mh.dests)mh.dests=[];
   var L=mh.dests;
   var showPick=(forcePick===true)||(L.length===0);/* [BUILD1939] 구간 0건이면 대상 선택 화면 우선 */
-  var rows=L.map(function(dv,ix){
-    return '<div style="display:flex;align-items:center;gap:7px;background:#fff;border:1.5px solid #dbe4d2;border-left:4px solid #7cb342;border-radius:8px;padding:8px 9px;margin-bottom:6px;box-shadow:0 1px 2px rgba(0,0,0,.05)">'
-      +'<span style="flex:1;min-width:0;font-size:12.5px;font-weight:700;color:#33691e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(ix+1)+'. '+((dv&&dv.lab)||'')+'<span style="color:#9aa89a">'+((dv&&dv.xy&&dv.xy.length===2&&typeof mnPosTag9==='function')?mnPosTag9(mh.wx,mh.wy,dv.xy[0],dv.xy[1]):'')+'</span></span>'
-      +'<button class="mhDDelR" data-i="'+ix+'" style="flex:none;background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;">삭제</button></div>';
+  /* [BUILD1960] 시설명/관종/관경/관수/시작시설물 표 */
+  var _PA9=auxPipeAll9(mh), _SUM9=auxPipeSum9(mh);
+  var _facNm9=_facDestTit(mh);
+  var _optE9=(typeof TG_OPT!=='undefined'&&TG_OPT.ext)?TG_OPT.ext.slice():[];
+  if(_PA9.ext&&_optE9.indexOf(_PA9.ext)<0)_optE9.unshift(_PA9.ext);
+  var rows='<table style="width:100%;border-collapse:collapse;font-size:11.5px">'
+   +'<tr style="background:#eef4e6"><th style="padding:5px 3px;border:1px solid #cfd8c0;font-weight:800;color:#33691e">\uC2DC\uC124\uBA85</th>'
+   +'<th style="padding:5px 3px;border:1px solid #cfd8c0;font-weight:800;color:#33691e;width:40px">\uAD00\uC885</th>'
+   +'<th style="padding:5px 3px;border:1px solid #cfd8c0;font-weight:800;color:#33691e;width:42px">\uAD00\uACBD</th>'
+   +'<th style="padding:5px 3px;border:1px solid #cfd8c0;font-weight:800;color:#33691e;width:46px">\uAD00\uC218</th>'
+   +'<th style="padding:5px 3px;border:1px solid #cfd8c0;font-weight:800;color:#33691e">\uC2DC\uC791\uC2DC\uC124\uBB3C</th>'
+   +'<th style="padding:5px 3px;border:1px solid #cfd8c0;width:34px"></th></tr>';
+  rows+=L.map(function(dv,ix){
+    var e9=(dv&&dv.ext)?dv.ext:_PA9.ext, sp9=_extSplit9(e9);
+    var c9=(dv&&dv.cnt!=null&&dv.cnt!=='')?dv.cnt:((L.length===1&&_PA9.cnt!=null)?_PA9.cnt:'');
+    var tag9=(dv&&dv.xy&&dv.xy.length===2&&typeof mnPosTag9==='function')?mnPosTag9(mh.wx,mh.wy,dv.xy[0],dv.xy[1]):'';
+    return '<tr>'
+      +'<td style="padding:5px 4px;border:1px solid #e2e8db;font-weight:700;color:#33691e">'+(ix+1)+'. '+_facNm9+'</td>'
+      +'<td style="padding:5px 3px;border:1px solid #e2e8db;text-align:center;color:#0f7a86;font-weight:800">'+(sp9.kind||'-')+'</td>'
+      +'<td style="padding:5px 3px;border:1px solid #e2e8db;text-align:center;color:#0f7a86;font-weight:800">'+(sp9.dia||'-')+'</td>'
+      +'<td style="padding:3px;border:1px solid #e2e8db;text-align:center"><input class="mhDCnt" data-i="'+ix+'" value="'+(c9===''?'':c9)+'" inputmode="numeric" style="width:38px;text-align:center;font-size:12px;font-weight:800;color:#0f7a86;border:1px solid #b9c9b0;border-radius:4px;padding:3px 2px"></td>'
+      +'<td style="padding:5px 4px;border:1px solid #e2e8db;color:#33691e;font-weight:700">'+((dv&&dv.lab)||'')+'<span style="color:#9aa89a;font-weight:600">'+tag9+'</span></td>'
+      +'<td style="padding:3px;border:1px solid #e2e8db;text-align:center"><button class="mhDDelR" data-i="'+ix+'" style="background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:5px;padding:3px 5px;font-size:10.5px;font-weight:800;cursor:pointer">\uC0AD\uC81C</button></td></tr>';
   }).join('');
-  if(!rows)rows='<div style="background:#fff;border:1.5px dashed #dbe4d2;border-radius:8px;padding:12px 9px;margin-bottom:6px;font-size:12px;color:#9aa;text-align:center">지정된 연결 구간이 없습니다</div>';
+  rows+='</table>';
+  if(!L.length)rows='<div style="background:#fff;border:1.5px dashed #dbe4d2;border-radius:8px;padding:12px 9px;margin:4px 0;font-size:12px;color:#9aa;text-align:center">\uC9C0\uC815\uB41C \uC5F0\uACB0 \uAD6C\uAC04\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div>';
+  var _okSum9=(_PA9.cnt==null)||(_SUM9==null)||(_SUM9===_PA9.cnt);
+  var sumBar=L.length?('<div style="display:flex;align-items:center;gap:6px;margin-top:7px;font-size:11.5px;font-weight:800;padding:6px 8px;border-radius:7px;background:'+(_okSum9?'#eef7e6':'#fdecea')+';border:1px solid '+(_okSum9?'#c5dfae':'#ef9a9a')+';color:'+(_okSum9?'#33691e':'#c62828')+'">'
+   +'<span style="flex:1">\uBC30\uBD84 \uD569\uACC4 '+((_SUM9==null)?'-':_SUM9)+' / \uCD1D '+((_PA9.cnt==null)?'-':_PA9.cnt)+'</span>'
+   +'<span>'+(_okSum9?'\uC77C\uCE58':'\u26A0 \uBD88\uC77C\uCE58')+'</span></div>'):'';
+
   /* [BUILD1956] 역방향 야장 표시 제거 — 참조가 원본과 섞여 혼란을 줌 */
   var pick='<div id="mhDPick" style="display:'+(showPick?'block':'none')+';margin-bottom:10px">'
     +'<button id="mhDMh2" style="width:100%;box-sizing:border-box;background:#fff;color:#1d9e75;border:1.5px solid #1d9e75;border-radius:9px;padding:11px 2px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;justify-content:center">\uD83D\uDD73&nbsp;<span style="letter-spacing:8px;margin-right:-8px">맨홀</span></button>'
@@ -9191,10 +9302,16 @@ function mhDestPanel(mh,forcePick){
   w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:14dvh';
   w.innerHTML='<div style="background:#f1f8e9;border:1.5px solid #558b2f;border-radius:12px;width:min(88vw,330px);padding:13px 14px">'
     +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">'
-      +'<div style="flex:1;min-width:0;font-weight:800;font-size:13.5px;color:#558b2f;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">연결 구간 \u2014 '+_facDestTit(mh)+'</div>'
+      +'<div style="flex:1;min-width:0;font-weight:800;font-size:13.5px;color:#558b2f;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_facNm9+'</div>'
       +'<button id="mhDAdd" style="flex:none;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:8px;padding:5px 13px;font-weight:800;font-size:12.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;">추가</button></div>'
+    +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:9px;background:#fff;border:1.5px solid #2e7d32;border-radius:8px;padding:7px 9px">'
+      +'<span style="flex:none;font-size:11px;font-weight:800;color:#558b2f">\uC55E\uC810 \uAD00\uC815\uBCF4</span>'
+      +'<select id="mhPExt" style="flex:1;min-width:0;font-size:12px;font-weight:800;color:#0f7a86;border:1px solid #b9c9b0;border-radius:5px;padding:4px 2px;background:#fff"><option value="">(\uC678\uAD00)</option>'+_optE9.map(function(o){return '<option'+((o===_PA9.ext)?' selected':'')+'>'+o+'</option>';}).join('')+'</select>'
+      +'<span style="flex:none;font-size:11px;font-weight:800;color:#558b2f">\uCD1D</span>'
+      +'<input id="mhPCnt" value="'+((_PA9.cnt==null)?'':_PA9.cnt)+'" inputmode="numeric" style="flex:none;width:40px;text-align:center;font-size:12px;font-weight:800;color:#0f7a86;border:1px solid #b9c9b0;border-radius:5px;padding:4px 2px">'
+      +'</div>'
     +pick
-    +'<div style="border:1.5px solid #2e7d32;border-radius:9px;background:#fff;max-height:32dvh;overflow:auto;padding:2px 9px">'+rows+'</div>'
+    +'<div style="border:1.5px solid #2e7d32;border-radius:9px;background:#fff;max-height:32dvh;overflow:auto;padding:4px 6px">'+rows+'</div>'+sumBar
     +'<div style="display:flex;gap:7px;margin-top:11px">'+'<button id="mhDReg" style="flex:1;background:#2e7d32;color:#fff;border:0;border-radius:9px;padding:10px;font-weight:800;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">구간등록</button>'+'<button id="mhDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">닫기</button></div></div>';
   document.body.appendChild(w);
   var _ad=w.querySelector('#mhDAdd');if(_ad)_ad.onclick=function(){var pk=w.querySelector('#mhDPick');if(pk)pk.style.display=(pk.style.display==='none')?'block':'none';};
@@ -9202,6 +9319,19 @@ function mhDestPanel(mh,forcePick){
   var _b2=w.querySelector('#mhDJeon2');if(_b2)_b2.onclick=function(){w.remove();_facAddDest(mh,'riser',/한전주|전주/);};
   var _b3=w.querySelector('#mhDTong2');if(_b3)_b3.onclick=function(){w.remove();_facAddDest(mh,'riser',/통신주/);};
   var _b4=w.querySelector('#mhDJb2');if(_b4)_b4.onclick=function(){w.remove();_facAddDest(mh,'jb',null);};
+  /* [BUILD1960] 앞점 총계 편집 */
+  var _pe=w.querySelector('#mhPExt');if(_pe)_pe.onchange=function(){mh._pExt=this.value;if(typeof saveProject==='function')try{saveProject();}catch(_s){}mhDestPanel(mh);};
+  var _pc=w.querySelector('#mhPCnt');if(_pc)_pc.onchange=function(){var v=(this.value||'').replace(/[^0-9]/g,'');mh._pCnt=(v===''?null:+v);if(typeof saveProject==='function')try{saveProject();}catch(_s2){}mhDestPanel(mh);};
+  /* [BUILD1960] 행별 관수 배분 */
+  var _cl=w.querySelectorAll('.mhDCnt');
+  for(var _ci2=0;_ci2<_cl.length;_ci2++){_cl[_ci2].onchange=function(){
+    var ix=+this.getAttribute('data-i');var v=(this.value||'').replace(/[^0-9]/g,'');
+    if(!mh.dests[ix])return;
+    mh.dests[ix].cnt=(v===''?null:+v);
+    if(!mh.dests[ix].ext)mh.dests[ix].ext=auxPipeAll9(mh).ext;
+    if(typeof saveProject==='function')try{saveProject();}catch(_s3){}
+    mhDestPanel(mh);
+  };}
   var _dl=w.querySelectorAll('.mhDDelR');
   for(var _di=0;_di<_dl.length;_di++){_dl[_di].onclick=function(){
     var ix=+this.getAttribute('data-i');
@@ -9211,7 +9341,8 @@ function mhDestPanel(mh,forcePick){
     if(typeof toast==='function')toast('연결 구간 삭제'+(_sd9>=0?(' / 총 '+_sd9+'구간'):''));
     mhDestPanel(mh);
   };}
-  var _rg=w.querySelector('#mhDReg');if(_rg)_rg.onclick=function(){w.remove();/* [BUILD1941] 등록 후 자동 닫기 */var n9=_facSegApply9(mh);if(typeof toast==='function')toast(n9>=0?('구간 등록 완료 — 총 '+n9+'구간'+((window._facPick9!=null&&window._facPick9>=0)?(' / '+(window._facPick9+1)+'구간 선택'):'')):'구간 등록 완료');};/* [BUILD1940] */
+  var _rg=w.querySelector('#mhDReg');if(_rg)_rg.onclick=function(){w.remove();/* [BUILD1941] 등록 후 자동 닫기 */var n9=_facSegApply9(mh);
+    try{var _wr9=auxPipeWrite9(mh);if(_wr9&&typeof toast==='function')setTimeout(function(){toast('\uAD00\uC815\uBCF4 '+_wr9+'\uAD6C\uAC04 \uBC18\uC601(\uC678\uAD00\u00B7\uAD00\uC218)');},900);}catch(_pw9){}/* [BUILD1960] */if(typeof toast==='function')toast(n9>=0?('구간 등록 완료 — 총 '+n9+'구간'+((window._facPick9!=null&&window._facPick9>=0)?(' / '+(window._facPick9+1)+'구간 선택'):'')):'구간 등록 완료');};/* [BUILD1940] */
   var _no=w.querySelector('#mhDNo2');if(_no)_no.onclick=function(){w.remove();};
   w.onclick=function(e){if(e.target===w)w.remove();};
 }
