@@ -8935,17 +8935,26 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     var LK=mnDestList(rec,k),mk=mnDestMain(rec,k);
     LK.forEach(function(dv,ix){ALL8.push({k:k,ix:ix,dv:dv,main:(ix===mk)});});
   });
-  ALL8.sort(function(x,y){if(x.main!==y.main)return x.main?-1:1;if(x.k!==y.k)return x.k<y.k?-1:1;return x.ix-y.ix;});
+  /* [BUILD1966] 벽(주)별 그룹 — 그룹 안에서 주관로가 위, 보조 시설물이 아래 */
+  function _isAux8(d){try{return /\uC785\uC0C1|JB|\uC778\uC785/.test(String((d&&d.lab)||''));}catch(_e){return false;}}
+  var _wOrd8={};(function(){var n=0;_WKS8.forEach(function(k){_wOrd8[k]=n++;});})();
+  ALL8.sort(function(x,y){
+    if(x.k!==y.k)return (_wOrd8[x.k]||0)-(_wOrd8[y.k]||0);
+    if(x.main!==y.main)return x.main?-1:1;
+    var ax=_isAux8(x.dv),ay=_isAux8(y.dv);
+    if(ax!==ay)return ax?1:-1;
+    return x.ix-y.ix;
+  });
   var _WP8=_wallPipe9(rec,dk);
   var rows='<table style="width:100%;border-collapse:collapse;font-size:10.5px;table-layout:fixed">'
-   +'<tr style="background:#eef4e6">'
-   +'<th style="padding:3px 2px;border:1px solid #cfd8c0;font-weight:800;color:#33691e;width:26px">\uC8FC</th>'
-   +((allW===true)?'<th style="padding:3px 2px;border:1px solid #cfd8c0;font-weight:800;color:#33691e;width:26px">\uBCBD</th>':'')
-   +'<th style="padding:3px 2px;border:1px solid #cfd8c0;font-weight:800;color:#33691e;width:34px">\uAD00\uC885</th>'
-   +'<th style="padding:3px 2px;border:1px solid #cfd8c0;font-weight:800;color:#33691e;width:38px">\uAD00\uACBD</th>'
-   +'<th style="padding:3px 2px;border:1px solid #cfd8c0;font-weight:800;color:#33691e;width:58px">\uAD00\uC218</th>'
-   +'<th style="padding:3px 2px;border:1px solid #cfd8c0;font-weight:800;color:#33691e">\uC5F0\uACB0\uC2DC\uC124\uBB3C</th>'
-   +'<th style="padding:3px 2px;border:1px solid #cfd8c0;width:32px"></th></tr>';
+   +'<tr style="background:#f4f7f0">'
+   +'<th style="padding:3px 2px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:26px">\uC8FC</th>'
+   +((allW===true)?'<th style="padding:3px 2px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:26px">\uBCBD</th>':'')
+   +'<th style="padding:3px 2px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:34px">\uAD00\uC885</th>'
+   +'<th style="padding:3px 2px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:38px">\uAD00\uACBD</th>'
+   +'<th style="padding:3px 2px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:58px">\uAD00\uC218</th>'
+   +'<th style="padding:3px 2px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f">\uC5F0\uACB0\uC2DC\uC124\uBB3C</th>'
+   +'<th style="padding:3px 2px;border:1px solid #9bb089;width:32px"></th></tr>';
   rows+=ALL8.map(function(q){
     var on=q.main,dv=q.dv,WP=_wallPipe9(rec,q.k)||{};
     var _pk8=(!(dv&&dv.ext)&&_src9&&dv&&dv.xy)?_extPeek9(_src9.wx,_src9.wy,dv.xy[0],dv.xy[1]):null;
@@ -8954,14 +8963,16 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     var c9=(dv&&dv.cnt!=null&&dv.cnt!=='')?dv.cnt:null;
     if(c9==null&&_src9&&dv&&dv.xy)c9=_cntPeek9(_src9.wx,_src9.wy,dv.xy[0],dv.xy[1]);/* [BUILD1964] 상대 채널 계승 */
     if(c9==null)c9=((LKn===1&&WP.cnt!=null)?WP.cnt:'');
-    return '<tr'+(on?' style="background:#f4faee"':'')+'>'
-      +'<td style="padding:2px;border:1px solid #e2e8db;text-align:center"><button class="mnDMainB" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uC8FC\uBC29\uD5A5" style="width:22px;height:20px;border-radius:4px;border:1.5px solid '+(on?'#2e7d32':'#cfd8c0')+';background:'+(on?'#2e7d32':'#fff')+';color:'+(on?'#fff':'#9aa89a')+';font-size:10px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;margin:0 auto;line-height:1">\uC8FC</button></td>'
-      +((allW===true)?('<td style="padding:3px 2px;border:1px solid #e2e8db;text-align:center;font-weight:800;color:#33691e;white-space:nowrap">'+_WN8[q.k]+'</td>'):'')
-      +'<td style="padding:3px 2px;border:1px solid #e2e8db;text-align:center;color:#0f7a86;font-weight:800;white-space:nowrap">'+(e9.kind||'-')+'</td>'
-      +'<td style="padding:3px 2px;border:1px solid #e2e8db;text-align:center;color:#0f7a86;font-weight:800;white-space:nowrap">'+(e9.dia||'-')+'</td>'
-      +'<td style="padding:2px;border:1px solid #e2e8db;text-align:center">'+_cntSel9('mnDCnt',ALL8.indexOf(q),c9)+'</td>'
-      +'<td class="mnDGoR" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uAD6C\uAC04 \uBCF4\uAE30" style="padding:3px 3px;border:1px solid #e2e8db;color:'+(on?'#1b5e20':'#33691e')+';font-weight:'+(on?'800':'700')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer">'+((typeof joseoEsc==='function')?joseoEsc(_labShort9((dv&&dv.lab)||'')):_labShort9((dv&&dv.lab)||''))+((dv&&dv._auto)?'<span style="color:#b0bcb0;font-size:9px;font-weight:800"> \uC790\uB3D9</span>':'')+'</td>'
-      +'<td style="padding:2px;border:1px solid #e2e8db;text-align:center"><button class="mnDDelR" data-k="'+q.k+'" data-i="'+q.ix+'" style="background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:5px;padding:2px 4px;font-size:10px;font-weight:800;cursor:pointer">\uC0AD\uC81C</button></td></tr>';
+    var _gi8=ALL8.indexOf(q), _first8=(_gi8===0)||(ALL8[_gi8-1].k!==q.k), _last8=(_gi8===ALL8.length-1)||(ALL8[_gi8+1].k!==q.k);
+    var _tb8=_first8?';border-top:2.5px solid #2e7d32':'', _bb8=_last8?';border-bottom:2.5px solid #2e7d32':'';
+    return '<tr style="background:'+(on?'#dcedc8':'#fff')+_tb8+_bb8+'">'
+      +'<td style="padding:2px;border:1px solid #b7c9a9;text-align:center"><button class="mnDMainB" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uC8FC\uBC29\uD5A5" style="width:22px;height:20px;border-radius:4px;border:1.5px solid '+(on?'#2e7d32':'#cfd8c0')+';background:'+(on?'#2e7d32':'#fff')+';color:'+(on?'#fff':'#9aa89a')+';font-size:10px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;margin:0 auto;line-height:1">\uC8FC</button></td>'
+      +((allW===true)?('<td style="padding:3px 2px;border:1px solid #b7c9a9;text-align:center;font-weight:800;color:'+(_first8?'#2e5a1f':'#c3d2b6')+';background:'+(_first8?'#eef4e6':'transparent')+';white-space:nowrap">'+(_first8?(_WNO8[q.k]+_WN8[q.k]):'\u00B7')+'</td>'):'')
+      +'<td style="padding:3px 2px;border:1px solid #b7c9a9;text-align:center;color:#0f7a86;font-weight:800;white-space:nowrap">'+(e9.kind||'-')+'</td>'
+      +'<td style="padding:3px 2px;border:1px solid #b7c9a9;text-align:center;color:#0f7a86;font-weight:800;white-space:nowrap">'+(e9.dia||'-')+'</td>'
+      +'<td style="padding:2px;border:1px solid #b7c9a9;text-align:center">'+_cntSel9('mnDCnt',ALL8.indexOf(q),c9)+'</td>'
+      +'<td class="mnDGoR" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uAD6C\uAC04 \uBCF4\uAE30" style="padding:3px 3px;border:1px solid #b7c9a9;color:'+(on?'#1b5e20':'#33691e')+';font-weight:'+(on?'800':'700')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer">'+((typeof joseoEsc==='function')?joseoEsc(_labShort9((dv&&dv.lab)||'')):_labShort9((dv&&dv.lab)||''))+((dv&&dv._auto)?'<span style="color:#b0bcb0;font-size:9px;font-weight:800"> \uC790\uB3D9</span>':'')+'</td>'
+      +'<td style="padding:2px;border:1px solid #b7c9a9;text-align:center"><button class="mnDDelR" data-k="'+q.k+'" data-i="'+q.ix+'" style="background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:5px;padding:2px 4px;font-size:10px;font-weight:800;cursor:pointer">\uC0AD\uC81C</button></td></tr>';
   }).join('');
   rows+='</table>';
   if(!ALL8.length)rows='<div style="background:#fff;border:1.5px dashed #dbe4d2;border-radius:8px;padding:12px 9px;margin:4px 0;font-size:12px;color:#9aa;text-align:center">\uC9C0\uC815\uB41C \uBC29\uD5A5\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div>';
@@ -8994,9 +9005,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
       if(!dup)_AX9.push(a);
     });
   }catch(_ax9){}
-  var badge='';
-  if(_TH9){var _bc9=(_TH9.kind==='\uD655\uC815')?['#1b5e20','#e8f5e9','#a5d6a7']:((_TH9.kind==='\uD6C4\uBCF4')?['#8d6e00','#fffbe6','#f0d888']:['#7a7a7a','#f4f4f2','#ddd']);
-    badge='<div style="display:flex;align-items:center;gap:5px;margin:7px 0 2px"><span style="background:'+_bc9[1]+';color:'+_bc9[0]+';border:1px solid '+_bc9[2]+';border-radius:5px;padding:2px 7px;font-size:10.5px;font-weight:800">\uBCBD\uD310\uC815 '+_TH9.kind+'</span><span style="font-size:10.5px;color:#8d9c8d">\u03B8='+_TH9.th.toFixed(0)+'\u00B0'+(_TH9.n>=2?(' \u00B7 \uADFC\uAC70 '+_TH9.n+'\uAC74 \u00B7 \uD3B8\uCC28 '+_TH9.dev.toFixed(0)+'\u00B0'):'')+'</span></div>';}
+  var badge='';/* [BUILD1966] 벽판정 배지 제거 */
   var auxRows='';
   if(_AX9.length){
     auxRows=badge+_AX9.map(function(a,ax){
@@ -9024,7 +9033,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
       +'<button id="mnDAdd" style="flex:none;background:#fff;color:#d32f2f;border:1.5px solid #ef9a9a;border-radius:8px;padding:5px 14px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uCD94\uAC00</button></div>'
     +pick
     +'<div id="mnDList">'+rows+auxRows+'</div>'+sumBar+wallBar
-    +'<div style="font-size:10.5px;color:#8d9c8d;margin:7px 0 9px;line-height:1.45">\u2605 \uC8FC\uBC29\uD5A5\uB9CC \uB9E8\uD640\uB3C4\u00B7\uC124\uBE44\uC0AC\uC9C4\uC5D1\uC140\u00B7\uD604\uC7A5\uC804\uC790\uC57C\uC7A5\uC5D0 \uD45C\uAE30\uB429\uB2C8\uB2E4. \uAD6C\uAC04\uC740 \uBAA9\uB85D \uC804\uCCB4\uAC00 \uC0DD\uC131\uB429\uB2C8\uB2E4.</div>'
+    +'<div style="height:7px"></div>'/* [BUILD1966] 안내문 제거 */
     +'<button id="mnDNo2" style="width:100%;box-sizing:border-box;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">\uB2EB\uAE30</span></button></div>';
   document.body.appendChild(w);
   /* [BUILD1948] 등록 — 픽커가 rec.destXY[dk]에 쓴 좌표를 회수해 목록 항목으로 이관 후 미러 재동기 */
@@ -9446,25 +9455,25 @@ function mhDestPanel(mh,forcePick){
   var _optE9=(typeof TG_OPT!=='undefined'&&TG_OPT.ext)?TG_OPT.ext.slice():[];
   if(_PA9.ext&&_optE9.indexOf(_PA9.ext)<0)_optE9.unshift(_PA9.ext);
   var rows='<table style="width:100%;border-collapse:collapse;font-size:10.5px;table-layout:fixed">'
-   +'<tr style="background:#fdeeec"><th style="padding:3px 2px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e;white-space:nowrap">\uC2DC\uC124\uBA85</th>'
-   +'<th style="padding:3px 2px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e;white-space:nowrap;width:34px">\uAD00\uC885</th>'
-   +'<th style="padding:3px 2px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e;white-space:nowrap;width:38px">\uAD00\uACBD</th>'
-   +'<th style="padding:3px 2px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e;white-space:nowrap;width:58px">\uAD00\uC218</th>'
-   +'<th style="padding:3px 2px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e;white-space:nowrap">\uC2DC\uC791\uC2DC\uC124\uBB3C</th>'
-   +'<th style="padding:5px 3px;border:1px solid #f0c5c0;width:34px"></th></tr>';
-  rows+=L.map(function(dv,ix){
+   +'<tr style="background:#fbf1ef"><th style="padding:3px 2px;border:1px solid #d99a91;font-weight:800;color:#8c2f22;white-space:nowrap">\uC2DC\uC124\uBA85</th>'
+   +'<th style="padding:3px 2px;border:1px solid #d99a91;font-weight:800;color:#8c2f22;white-space:nowrap;width:34px">\uAD00\uC885</th>'
+   +'<th style="padding:3px 2px;border:1px solid #d99a91;font-weight:800;color:#8c2f22;white-space:nowrap;width:38px">\uAD00\uACBD</th>'
+   +'<th style="padding:3px 2px;border:1px solid #d99a91;font-weight:800;color:#8c2f22;white-space:nowrap;width:58px">\uAD00\uC218</th>'
+   +'<th style="padding:3px 2px;border:1px solid #d99a91;font-weight:800;color:#8c2f22;white-space:nowrap">\uC2DC\uC791\uC2DC\uC124\uBB3C</th>'
+   +'<th style="padding:5px 3px;border:1px solid #d99a91;width:34px"></th></tr>';
+  rows+=L.map(function(dv,ix){var _wt8=(ix===0)?';border-top:2.5px solid #c0392b':'';
     var e9=(dv&&dv.ext)?dv.ext:((dv&&dv.xy)?(_extPeek9(mh.wx,mh.wy,dv.xy[0],dv.xy[1])||_PA9.ext):_PA9.ext), sp9=_extSplit9(e9);
     var c9=(dv&&dv.cnt!=null&&dv.cnt!=='')?dv.cnt:null;
     if(c9==null&&dv&&dv.xy)c9=_cntPeek9(mh.wx,mh.wy,dv.xy[0],dv.xy[1]);/* [BUILD1964] 상대 채널 계승 */
     if(c9==null)c9=((L.length===1&&_PA9.cnt!=null)?_PA9.cnt:'');
     var tag9=(dv&&dv.xy&&dv.xy.length===2&&typeof mnPosTag9==='function')?mnPosTag9(mh.wx,mh.wy,dv.xy[0],dv.xy[1]):'';
-    return '<tr>'
-      +'<td style="padding:3px 3px;border:1px solid #f3dcd9;font-weight:700;color:#b03a2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(ix+1)+'. '+_labShort9(_facNm9)+'</td>'
-      +'<td style="padding:3px 2px;border:1px solid #f3dcd9;text-align:center;color:#0f7a86;font-weight:800;white-space:nowrap">'+(sp9.kind||'-')+'</td>'
-      +'<td style="padding:3px 2px;border:1px solid #f3dcd9;text-align:center;color:#0f7a86;font-weight:800;white-space:nowrap">'+(sp9.dia||'-')+'</td>'
-      +'<td style="padding:2px;border:1px solid #f3dcd9;text-align:center">'+_cntSel9('mhDCnt',ix,c9)+'</td>'
-      +'<td style="padding:3px 3px;border:1px solid #f3dcd9;color:#8c3a30;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+_labShort9((dv&&dv.lab)||'')+'</td>'
-      +'<td style="padding:2px;border:1px solid #f3dcd9;text-align:center"><button class="mhDDelR" data-i="'+ix+'" style="background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:5px;padding:2px 4px;font-size:10px;font-weight:800;cursor:pointer">\uC0AD\uC81C</button></td></tr>';
+    return '<tr style="background:#fff'+_wt8+'">'
+      +'<td style="padding:3px 3px;border:1px solid #dcb4ad;font-weight:700;color:#b03a2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(ix+1)+'. '+_labShort9(_facNm9)+'</td>'
+      +'<td style="padding:3px 2px;border:1px solid #dcb4ad;text-align:center;color:#0f7a86;font-weight:800;white-space:nowrap">'+(sp9.kind||'-')+'</td>'
+      +'<td style="padding:3px 2px;border:1px solid #dcb4ad;text-align:center;color:#0f7a86;font-weight:800;white-space:nowrap">'+(sp9.dia||'-')+'</td>'
+      +'<td style="padding:2px;border:1px solid #dcb4ad;text-align:center">'+_cntSel9('mhDCnt',ix,c9)+'</td>'
+      +'<td style="padding:3px 3px;border:1px solid #dcb4ad;color:#8c3a30;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+_labShort9((dv&&dv.lab)||'')+'</td>'
+      +'<td style="padding:2px;border:1px solid #dcb4ad;text-align:center"><button class="mhDDelR" data-i="'+ix+'" style="background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:5px;padding:2px 4px;font-size:10px;font-weight:800;cursor:pointer">\uC0AD\uC81C</button></td></tr>';
   }).join('');
   rows+='</table>';
   if(!L.length)rows='<div style="background:#fff;border:1.5px dashed #f0c5c0;border-radius:8px;padding:12px 9px;margin:4px 0;font-size:12px;color:#9aa;text-align:center">\uC9C0\uC815\uB41C \uC5F0\uACB0 \uAD6C\uAC04\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div>';
