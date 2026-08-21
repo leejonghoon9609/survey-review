@@ -13007,7 +13007,7 @@ var ARROWS=['↑','→','↓','←'],showDirArrows=true;
    ① 길이 1m 고정  ② 관로선 주축 스냅(가로메인→위/아래, 세로메인→좌/우)
    ③ 관로선 가로지르지 않는 쪽 우선
    실시간(rtAutoTags)·전 공정 자동배치(computeLabels) 공용. */
-var _TAGLEN9=1.0;
+var _TAGLEN9=0.5;/* [BUILD1986] 1.0m → 0.5m */
 /* 관로선 주축 → 라벨 배치 축 단위벡터. 가로메인이면 [0,1](위/아래), 세로메인이면 [1,0](좌/우) */
 function _tagAxis9(vx,vy){
   if(!isFinite(vx)||!isFinite(vy)||(vx===0&&vy===0))return [0,1];
