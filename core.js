@@ -1923,11 +1923,12 @@ function autoConnectTamsa(){
   state.routingDone=true;drawGeo();
   toast('\uD0D0\uC0AC \uC790\uB3D9\uACB0\uC120: \uAD6C\uAC04 '+segs.length+'\uAC1C');
 }
+function _acStage9(){try{if(typeof IS_TANGO!=='undefined'&&IS_TANGO)return '탱고DB';if(typeof IS_POSITION!=='undefined'&&IS_POSITION)return '정위치DB';if(typeof IS_FIELD!=='undefined'&&IS_FIELD)return '측량현장';if(typeof STAGE!=='undefined'&&STAGE==='survey')return '결선DB';}catch(_e){}return '현재 공정';}/* [BUILD1936] */
 function _fldAcWarn(n,mLen,onGo){/* [BUILD1921] 중앙 빨간 경고 모달 — 취소 기본 */
   var w=document.createElement('div');w.id='fldAcWarn';
   w.style.cssText='position:fixed;inset:0;background:rgba(60,10,10,.45);z-index:14000;display:flex;align-items:center;justify-content:center;padding:16px';
   w.innerHTML='<div style="background:#fff;border:2.5px solid #d32f2f;border-radius:14px;box-shadow:0 16px 48px rgba(120,0,0,.35);width:min(440px,94vw);overflow:hidden">'
-   +'<div style="background:#d32f2f;color:#fff;padding:13px 18px;font-size:15.5px;font-weight:900;display:flex;align-items:center;gap:9px"><span style="font-size:19px">\u26A0</span>자동결선 경고 — 측량현장</div>'
+   +'<div style="background:#d32f2f;color:#fff;padding:13px 18px;font-size:15.5px;font-weight:900;display:flex;align-items:center;gap:9px"><span style="font-size:19px">\u26A0</span>자동결선 경고 — '+_acStage9()+'</div>'
    +'<div style="padding:16px 20px;font-size:14px;line-height:1.85;color:#5b2020">'
    +'기존 관로결선 <b style="color:#c62828;font-size:15px">'+n+'개('+mLen.toFixed(1)+'m)</b>가 삭제되고<br><b>직선으로 재생성</b>됩니다.<br>'
    +'<span style="color:#8a6d6d;font-size:13px">결선 수정은 결선DB 단계에서 하는 것을 권장합니다.</span></div>'
@@ -1944,7 +1945,7 @@ function _fldAcWarn(n,mLen,onGo){/* [BUILD1921] 중앙 빨간 경고 모달 — 
 }
 function autoConnect(_force){
   /* [BUILD1920→1921] 측량현장 가드 — 자동결선은 실시간 단계용. field에서 실행 시 기존 결선(결선DB 다듬은 경로)이 직선으로 재생성되는 사고 방지 */
-  if(typeof IS_FIELD!=='undefined'&&IS_FIELD&&_force!==true){
+  if(((typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO)||(typeof IS_POSITION!=='undefined'&&IS_POSITION)||(typeof STAGE!=='undefined'&&STAGE==='survey'))&&_force!==true){/* [BUILD1936] 가드 전 공정 확대 — 탱고·결선DB·정위치도 경고 */
     var _gp=0,_gt=0;(state.lines||[]).forEach(function(L){if(!L||L.free)return;if(L.layer&&L.layer!=='통신관로'&&L.layer!=='지거'&&L.layer!=='압입구간')return;_gp++;var q=L.pts||[];for(var i=1;i<q.length;i++)_gt+=Math.hypot(q[i][0]-q[i-1][0],q[i][1]-q[i-1][1]);});
     if(_gp>0){_fldAcWarn(_gp,_gt,function(){autoConnect(true);});return;}
   }
