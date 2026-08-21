@@ -8927,23 +8927,41 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
   var showPick=(fp===true)||(L.length===0);/* [BUILD1948] 0건이면 대상선택 우선 (mhDestPanel 규약) */
   function _touch(){try{if(typeof cb==='function')cb('__REFRESH__');}catch(_c){}}
   function _re(f2){mnAskDest(cur,dn,cb,rec,dk,f2,allW);}
-  /* [BUILD1958] 4벽 전체를 한 목록으로 — 벽 뱃지 + 벽별 주방향. 현재 벽은 강조 */
+  /* [BUILD1963] 표 구조 — 주방향 최상단 정렬. 관정보는 해당 벽 관 구성에서 */
   var _WN8={d1:'\uC11C',d2:'\uB3D9',d3:'\uBD81',d4:'\uB0A8'};
-  var ALL8=[],_WKS8=(allW===true)?['d1','d2','d3','d4']:[dk];/* [BUILD1959] 진입점별 범위 */
+  var _WNO8={d1:'1',d2:'2',d3:'3',d4:'4'};
+  var ALL8=[],_WKS8=(allW===true)?['d1','d2','d3','d4']:[dk];
   _WKS8.forEach(function(k){
     var LK=mnDestList(rec,k),mk=mnDestMain(rec,k);
     LK.forEach(function(dv,ix){ALL8.push({k:k,ix:ix,dv:dv,main:(ix===mk)});});
   });
-  var rows=ALL8.map(function(q,n){
-    var on=q.main,cur=(q.k===dk),dv=q.dv;
-    var bd=on?'#7cb342':'#dbe4d2', lf=on?'#2e7d32':'#dbe4d2';
-    return '<div style="display:flex;align-items:center;gap:6px;background:#fff;border:1.5px solid '+bd+';border-left:4px solid '+lf+';border-radius:8px;padding:8px 9px;margin-bottom:6px;box-shadow:0 1px 2px rgba(0,0,0,.05)'+(cur?'':';opacity:.88')+'">'
-      +((allW===true)?('<span style="flex:none;min-width:22px;text-align:center;font-size:10.5px;font-weight:800;color:'+(cur?'#33691e':'#96a396')+';background:'+(cur?'#dcedc8':'#f2f5ef')+';border-radius:5px;padding:2px 4px">'+_WN8[q.k]+'</span>'):'')
-      +'<button class="mnDMainB" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uC8FC\uBC29\uD5A5" style="flex:none;width:29px;height:25px;border-radius:6px;border:1.5px solid '+(on?'#2e7d32':'#cfd8c0')+';background:'+(on?'#2e7d32':'#fff')+';color:'+(on?'#fff':'#9aa89a')+';font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uC8FC</button>'
-      +'<span class="mnDGoR" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uAD6C\uAC04 \uBCF4\uAE30" style="flex:1;min-width:0;font-size:12.5px;font-weight:'+(on?'800':'700')+';color:'+(on?'#1b5e20':'#33691e')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer">'+(n+1)+'. '+((typeof joseoEsc==='function')?joseoEsc((dv&&dv.lab)||''):((dv&&dv.lab)||''))+'<span style="color:#9aa89a;font-weight:700">'+((_src9&&dv&&dv.xy&&dv.xy.length===2&&typeof mnPosTag9==='function')?mnPosTag9(_src9.wx,_src9.wy,dv.xy[0],dv.xy[1]):'')+'</span>'+((dv&&dv._auto)?'<span style="color:#b0bcb0;font-size:10px;font-weight:800"> \uC790\uB3D9</span>':'')+'</span>'
-      +'<button class="mnDDelR" data-k="'+q.k+'" data-i="'+q.ix+'" style="flex:none;background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uC0AD\uC81C</button></div>';
+  ALL8.sort(function(x,y){if(x.main!==y.main)return x.main?-1:1;if(x.k!==y.k)return x.k<y.k?-1:1;return x.ix-y.ix;});
+  var _WP8=_wallPipe9(rec,dk);
+  var rows='<table style="width:100%;border-collapse:collapse;font-size:10.5px;table-layout:fixed">'
+   +'<tr style="background:#eef4e6">'
+   +'<th style="padding:3px 2px;border:1px solid #cfd8c0;font-weight:800;color:#33691e;width:26px">\uC8FC</th>'
+   +((allW===true)?'<th style="padding:3px 2px;border:1px solid #cfd8c0;font-weight:800;color:#33691e;width:26px">\uBCBD</th>':'')
+   +'<th style="padding:3px 2px;border:1px solid #cfd8c0;font-weight:800;color:#33691e;width:34px">\uAD00\uC885</th>'
+   +'<th style="padding:3px 2px;border:1px solid #cfd8c0;font-weight:800;color:#33691e;width:38px">\uAD00\uACBD</th>'
+   +'<th style="padding:3px 2px;border:1px solid #cfd8c0;font-weight:800;color:#33691e;width:58px">\uAD00\uC218</th>'
+   +'<th style="padding:3px 2px;border:1px solid #cfd8c0;font-weight:800;color:#33691e">\uC5F0\uACB0\uC2DC\uC124\uBB3C</th>'
+   +'<th style="padding:3px 2px;border:1px solid #cfd8c0;width:32px"></th></tr>';
+  rows+=ALL8.map(function(q){
+    var on=q.main,dv=q.dv,WP=_wallPipe9(rec,q.k)||{};
+    var e9=(dv&&dv.ext)?_extSplit9(dv.ext):{kind:(WP.kind||''),dia:(WP.dia||'')};
+    var LKn=mnDestList(rec,q.k).length;
+    var c9=(dv&&dv.cnt!=null&&dv.cnt!=='')?dv.cnt:((LKn===1&&WP.cnt!=null)?WP.cnt:'');
+    return '<tr'+(on?' style="background:#f4faee"':'')+'>'
+      +'<td style="padding:2px;border:1px solid #e2e8db;text-align:center"><button class="mnDMainB" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uC8FC\uBC29\uD5A5" style="width:22px;height:20px;border-radius:4px;border:1.5px solid '+(on?'#2e7d32':'#cfd8c0')+';background:'+(on?'#2e7d32':'#fff')+';color:'+(on?'#fff':'#9aa89a')+';font-size:10px;font-weight:800;cursor:pointer">\uC8FC</button></td>'
+      +((allW===true)?('<td style="padding:3px 2px;border:1px solid #e2e8db;text-align:center;font-weight:800;color:#33691e;white-space:nowrap">'+_WN8[q.k]+'</td>'):'')
+      +'<td style="padding:3px 2px;border:1px solid #e2e8db;text-align:center;color:#0f7a86;font-weight:800;white-space:nowrap">'+(e9.kind||'-')+'</td>'
+      +'<td style="padding:3px 2px;border:1px solid #e2e8db;text-align:center;color:#0f7a86;font-weight:800;white-space:nowrap">'+(e9.dia||'-')+'</td>'
+      +'<td style="padding:2px;border:1px solid #e2e8db;text-align:center">'+_cntSel9('mnDCnt',ALL8.indexOf(q),c9)+'</td>'
+      +'<td class="mnDGoR" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uAD6C\uAC04 \uBCF4\uAE30" style="padding:3px 3px;border:1px solid #e2e8db;color:'+(on?'#1b5e20':'#33691e')+';font-weight:'+(on?'800':'700')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer">'+((typeof joseoEsc==='function')?joseoEsc(_labShort9((dv&&dv.lab)||'')):_labShort9((dv&&dv.lab)||''))+((dv&&dv._auto)?'<span style="color:#b0bcb0;font-size:9px;font-weight:800"> \uC790\uB3D9</span>':'')+'</td>'
+      +'<td style="padding:2px;border:1px solid #e2e8db;text-align:center"><button class="mnDDelR" data-k="'+q.k+'" data-i="'+q.ix+'" style="background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:5px;padding:2px 4px;font-size:10px;font-weight:800;cursor:pointer">\uC0AD\uC81C</button></td></tr>';
   }).join('');
-  if(!rows)rows='<div style="background:#fff;border:1.5px dashed #dbe4d2;border-radius:8px;padding:12px 9px;margin-bottom:6px;font-size:12px;color:#9aa;text-align:center">\uC9C0\uC815\uB41C \uBC29\uD5A5\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div>';
+  rows+='</table>';
+  if(!ALL8.length)rows='<div style="background:#fff;border:1.5px dashed #dbe4d2;border-radius:8px;padding:12px 9px;margin:4px 0;font-size:12px;color:#9aa;text-align:center">\uC9C0\uC815\uB41C \uBC29\uD5A5\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div>';
 
   /* [BUILD1949] 도면(보조 시설물)에서 이 벽으로 연결된 항목 — 근거 θ 표기 + [편입] */
   var _AX9=[],_TH9=null;
@@ -8968,16 +8986,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
         +'<button class="mnDJoinB" data-i="'+ax+'" style="flex:none;background:#fff;color:#1565c0;border:1.5px solid #90caf9;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uD3B8\uC785</button></div>';
     }).join('');
   }else if(badge&&L.length)auxRows=badge;
-  /* [BUILD1952] 전 벽 현황 — 다른 벽에 몇 건 있는지 한눈에, 눌러서 이동 */
-  var wallBar='';
-  try{
-    var _WN9={d1:'\uC11C',d2:'\uB3D9',d3:'\uBD81',d4:'\uB0A8'};
-    wallBar='<div style="display:flex;gap:4px;margin:2px 0 8px">'+['d1','d2','d3','d4'].map(function(k){
-      var c=(typeof mnDestCount==='function')?mnDestCount(rec,k):0;
-      var on=(k===dk);
-      return '<button class="mnDWallB" data-k="'+k+'" style="flex:1;border-radius:7px;border:1.5px solid '+(on?'#558b2f':(c?'#cfd8c0':'#e8e8e4'))+';background:'+(on?'#dcedc8':'#fff')+';color:'+(on?'#33691e':(c?'#6b7d6b':'#bbb'))+';padding:5px 2px;font-size:11px;font-weight:800;cursor:pointer">'+_WN9[k]+(c?(' '+c):'')+'</button>';
-    }).join('')+'</div>';
-  }catch(_wb9){}
+  var wallBar='';/* [BUILD1963] 벽판정 후보 바 제거 */
   var pick='<div id="mnDPick" style="display:'+(showPick?'block':'none')+';margin-bottom:9px">'
     +'<button id="mnDMh" style="width:100%;box-sizing:border-box;background:#fff;color:#1d9e75;border:1.5px solid #1d9e75;border-radius:9px;padding:11px 2px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;justify-content:center">\uD83D\uDD73&nbsp;<span style="letter-spacing:8px;margin-right:-8px">\uB9E8\uD640</span></button>'
     +'<div style="display:flex;gap:5px;margin-top:7px">'
@@ -8988,7 +8997,10 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
   w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:14dvh';
   w.innerHTML='<div style="background:#f1f8e9;border:1.5px solid #558b2f;border-radius:12px;width:min(88vw,330px);padding:13px 14px;max-height:86dvh;overflow:auto">'
     +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:9px">'
-      +'<div style="flex:1;min-width:0;font-weight:800;font-size:13.5px;color:#558b2f">'+((allW===true)?('\uC5F0\uACB0 \uB9E8\uD640 \u2014 \uC804\uCCB4 '+ALL8.length+'\uAC74<span style="font-weight:700;font-size:11px;color:#8d9c8d"> \u00B7 \uCD94\uAC00\uB294 '+dn+'\uBC29\uD5A5</span>'):('\uC5F0\uACB0 \uB9E8\uD640 \u2014 '+dn+'\uBC29\uD5A5'))+'</div>'
+      +'<div style="flex:1;min-width:0;font-weight:800;font-size:12.5px;color:#558b2f;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
+        +_WNO8[dk]+'('+_WN8[dk]+') '+((typeof mnLabel==='function')?mnLabel(rec):'')
+        +((_WP8&&_WP8.raw)?('<span style="color:#0f7a86"> \u00B7 '+_WP8.raw+'</span>'):'')
+        +((allW===true)?('<span style="font-weight:700;font-size:10.5px;color:#8d9c8d"> \u00B7 \uC804\uCCB4 '+ALL8.length+'\uAC74</span>'):'')+'</div>'
       +'<button id="mnDAdd" style="flex:none;background:#fff;color:#d32f2f;border:1.5px solid #ef9a9a;border-radius:8px;padding:5px 14px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uCD94\uAC00</button></div>'
     +pick
     +'<div id="mnDList">'+rows+auxRows+'</div>'+wallBar
@@ -9045,10 +9057,22 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     try{if(typeof tangoSelSeg==='function')tangoSelSeg(si);}catch(_g9){}
     if(typeof toast==='function')toast((si+1)+'\uAD6C\uAC04 \u2014 '+(dv.lab||''));
   };});
-  w.querySelectorAll('.mnDWallB').forEach(function(b){b.onclick=function(){
-    var k=this.getAttribute('data-k');if(k===dk)return;
-    mnAskDest('',{d1:'1',d2:'2',d3:'3',d4:'4'}[k],cb,rec,k,false,allW);
+  /* [BUILD1963] 행 관수 배분 */
+  function _mnCnt9(n,v){
+    var q=ALL8[n];if(!q)return;
+    var LK=mnDestList(rec,q.k);if(!LK[q.ix])return;
+    var num=(v===''||v==null)?null:(+String(v).replace(/[^0-9]/g,'')||null);
+    LK[q.ix].cnt=num;
+    var WP=_wallPipe9(rec,q.k);
+    if(!LK[q.ix].ext&&WP&&WP.kind)LK[q.ix].ext=_extOf9(WP.kind,WP.dia);
+    mnDestSync(rec,q.k);_touch();_re(false);
+  }
+  w.querySelectorAll('.mnDCnt').forEach(function(b){b.onchange=function(){
+    var n=+this.getAttribute('data-i');
+    if(this.value==='_c'){var ci=w.querySelector('.mnDCntC[data-i="'+n+'"]');if(ci){ci.style.display='inline-block';ci.focus();}return;}
+    _mnCnt9(n,this.value);
   };});
+  w.querySelectorAll('.mnDCntC').forEach(function(b){b.onchange=function(){_mnCnt9(+this.getAttribute('data-i'),this.value);};});
   var _bAdd=w.querySelector('#mnDAdd');if(_bAdd)_bAdd.onclick=function(){_re(true);};
   if(_aj9||_mv9){try{_touch();}catch(_t9){}
     if(typeof toast==='function')toast((_aj9?('\uB3C4\uBA74 \uC5F0\uACB0 '+_aj9+'\uAC74 \uC790\uB3D9 \uD3B8\uC785'):'')+((_aj9&&_mv9)?' \u00B7 ':'')+(_mv9?(_mv9+'\uAC74 \uBCBD \uC7AC\uBC30\uCE58'):''));}
@@ -9227,6 +9251,27 @@ function auxPipeSum9(m){
   ((m&&m.dests)||[]).forEach(function(d){if(!d)return;if(d.cnt!=null&&d.cnt!==''){n+=(+d.cnt||0);any=true;}});
   return any?n:null;
 }
+/* [BUILD1963] 라벨 규격 꼬리 제거 — '신 6H (SKT ) 수공2-1호' → '신 6H (SKT)' */
+function _labShort9(lab){
+  try{
+    var t=String(lab||'').trim();if(!t)return '';
+    var i=t.lastIndexOf(')');
+    if(i>0)return t.slice(0,i+1).replace(/\s+\)/,')');
+    return t;
+  }catch(_e){return String(lab||'');}
+}
+/* 맨홀 벽 관 구성 → {kind,dia,cnt,fill} (FC\u00D8100X5(3)) */
+function _wallPipe9(rec,dk){
+  try{
+    var wk={d1:'p1',d2:'p2',d3:'p3',d4:'p4'}[dk];
+    if(!wk||typeof mnPipeSummary!=='function')return null;
+    var t=mnPipeSummary(rec,wk)||'';
+    if(!t)return null;
+    var m=/([A-Z]{1,4})\s*[\u00D8\u2205\uFFE0]?\s*(\d{2,4})\s*[xX*\u00D7]\s*(\d{1,3})(?:\((\d{1,3})\))?/.exec(t);
+    if(!m)return {raw:t,kind:'',dia:'',cnt:null,fill:null};
+    return {raw:t,kind:m[1].toUpperCase(),dia:m[2],cnt:+m[3],fill:(m[4]!=null?+m[4]:null)};
+  }catch(_e){return null;}
+}
 /* [BUILD1961] 관수 선택 — 1~10 드롭다운 + 직접입력(_c) */
 function _cntSel9(cls,ix,cur){
   var v=(cur===''||cur==null)?'':String(cur);
@@ -9279,24 +9324,24 @@ function mhDestPanel(mh,forcePick){
   var _facNm9=_facDestTit(mh);
   var _optE9=(typeof TG_OPT!=='undefined'&&TG_OPT.ext)?TG_OPT.ext.slice():[];
   if(_PA9.ext&&_optE9.indexOf(_PA9.ext)<0)_optE9.unshift(_PA9.ext);
-  var rows='<table style="width:100%;border-collapse:collapse;font-size:11.5px">'
-   +'<tr style="background:#fdeeec"><th style="padding:5px 3px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e">\uC2DC\uC124\uBA85</th>'
-   +'<th style="padding:5px 3px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e;width:40px">\uAD00\uC885</th>'
-   +'<th style="padding:5px 3px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e;width:42px">\uAD00\uACBD</th>'
-   +'<th style="padding:5px 3px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e;width:46px">\uAD00\uC218</th>'
-   +'<th style="padding:5px 3px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e">\uC2DC\uC791\uC2DC\uC124\uBB3C</th>'
+  var rows='<table style="width:100%;border-collapse:collapse;font-size:10.5px;table-layout:fixed">'
+   +'<tr style="background:#fdeeec"><th style="padding:3px 2px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e;white-space:nowrap">\uC2DC\uC124\uBA85</th>'
+   +'<th style="padding:3px 2px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e;white-space:nowrap;width:34px">\uAD00\uC885</th>'
+   +'<th style="padding:3px 2px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e;white-space:nowrap;width:38px">\uAD00\uACBD</th>'
+   +'<th style="padding:3px 2px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e;white-space:nowrap;width:58px">\uAD00\uC218</th>'
+   +'<th style="padding:3px 2px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e;white-space:nowrap">\uC2DC\uC791\uC2DC\uC124\uBB3C</th>'
    +'<th style="padding:5px 3px;border:1px solid #f0c5c0;width:34px"></th></tr>';
   rows+=L.map(function(dv,ix){
     var e9=(dv&&dv.ext)?dv.ext:_PA9.ext, sp9=_extSplit9(e9);
     var c9=(dv&&dv.cnt!=null&&dv.cnt!=='')?dv.cnt:((L.length===1&&_PA9.cnt!=null)?_PA9.cnt:'');
     var tag9=(dv&&dv.xy&&dv.xy.length===2&&typeof mnPosTag9==='function')?mnPosTag9(mh.wx,mh.wy,dv.xy[0],dv.xy[1]):'';
     return '<tr>'
-      +'<td style="padding:5px 4px;border:1px solid #f3dcd9;font-weight:700;color:#b03a2e">'+(ix+1)+'. '+_facNm9+'</td>'
-      +'<td style="padding:5px 3px;border:1px solid #f3dcd9;text-align:center;color:#0f7a86;font-weight:800">'+(sp9.kind||'-')+'</td>'
-      +'<td style="padding:5px 3px;border:1px solid #f3dcd9;text-align:center;color:#0f7a86;font-weight:800">'+(sp9.dia||'-')+'</td>'
-      +'<td style="padding:3px;border:1px solid #f3dcd9;text-align:center">'+_cntSel9('mhDCnt',ix,c9)+'</td>'
-      +'<td style="padding:5px 4px;border:1px solid #f3dcd9;color:#8c3a30;font-weight:700">'+((dv&&dv.lab)||'')+'<span style="color:#9aa89a;font-weight:600">'+tag9+'</span></td>'
-      +'<td style="padding:3px;border:1px solid #f3dcd9;text-align:center"><button class="mhDDelR" data-i="'+ix+'" style="background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:5px;padding:3px 5px;font-size:10.5px;font-weight:800;cursor:pointer">\uC0AD\uC81C</button></td></tr>';
+      +'<td style="padding:3px 3px;border:1px solid #f3dcd9;font-weight:700;color:#b03a2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(ix+1)+'. '+_labShort9(_facNm9)+'</td>'
+      +'<td style="padding:3px 2px;border:1px solid #f3dcd9;text-align:center;color:#0f7a86;font-weight:800;white-space:nowrap">'+(sp9.kind||'-')+'</td>'
+      +'<td style="padding:3px 2px;border:1px solid #f3dcd9;text-align:center;color:#0f7a86;font-weight:800;white-space:nowrap">'+(sp9.dia||'-')+'</td>'
+      +'<td style="padding:2px;border:1px solid #f3dcd9;text-align:center">'+_cntSel9('mhDCnt',ix,c9)+'</td>'
+      +'<td style="padding:3px 3px;border:1px solid #f3dcd9;color:#8c3a30;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+_labShort9((dv&&dv.lab)||'')+'</td>'
+      +'<td style="padding:2px;border:1px solid #f3dcd9;text-align:center"><button class="mhDDelR" data-i="'+ix+'" style="background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:5px;padding:2px 4px;font-size:10px;font-weight:800;cursor:pointer">\uC0AD\uC81C</button></td></tr>';
   }).join('');
   rows+='</table>';
   if(!L.length)rows='<div style="background:#fff;border:1.5px dashed #f0c5c0;border-radius:8px;padding:12px 9px;margin:4px 0;font-size:12px;color:#9aa;text-align:center">\uC9C0\uC815\uB41C \uC5F0\uACB0 \uAD6C\uAC04\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div>';
@@ -9314,7 +9359,7 @@ function mhDestPanel(mh,forcePick){
       +'<button id="mhDJb2" style="flex:0.95;min-width:0;background:#fff;color:#8e44ad;border:1.5px solid #c39bd3;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden;display:flex;align-items:center;justify-content:center;">\uD83D\uDD0C JB/인입</button></div></div>';
   var w=document.createElement('div');w.id='mhDestModal';
   w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:14dvh';
-  w.innerHTML='<div style="background:#fdf3f1;border:1.5px solid #c0392b;border-radius:12px;width:min(88vw,330px);padding:13px 14px">'
+  w.innerHTML='<div style="background:#fdf3f1;border:1.5px solid #c0392b;border-radius:12px;width:min(94vw,410px);padding:12px 13px">'
     +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">'
       +'<div style="flex:1;min-width:0;font-weight:800;font-size:13.5px;color:#b03a2e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_facNm9+'</div>'
       +'<button id="mhDAdd" style="flex:none;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:8px;padding:5px 13px;font-weight:800;font-size:12.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;">추가</button></div>'
