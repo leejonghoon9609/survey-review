@@ -1284,6 +1284,13 @@ function drawManholes(){_orgSync();/* [1524] */
         var _bg9=el('circle',{cx:mx,cy:my,r:_r9,fill:_c9,'fill-opacity':0.22,stroke:_c9,'stroke-width':2.4,'vector-effect':'non-scaling-stroke'});
         _bg9.setAttribute('pointer-events','none');
         gMH.appendChild(_bg9);
+        /* [BUILD1981] 원에 내접하는 얇은 빨간 X — 원 테두리에 딱 붙게 (r/\u221A2) */
+        var _q9=_r9/Math.SQRT2;
+        [[-1,-1,1,1],[-1,1,1,-1]].forEach(function(v){
+          var _x9=el('line',{x1:mx+v[0]*_q9,y1:my+v[1]*_q9,x2:mx+v[2]*_q9,y2:my+v[3]*_q9,stroke:'#d32f2f','stroke-width':1,'vector-effect':'non-scaling-stroke','stroke-linecap':'round'});
+          _x9.setAttribute('pointer-events','none');
+          gMH.appendChild(_x9);
+        });
       }
     }
     if(typeof _tgMode==='function'&&_tgMode()){var _mhitR=pxToWorld()*18;var _mhit=el('circle',{cx:mx,cy:my,r:_mhitR,fill:'transparent','pointer-events':'all'});_mhit.style.cursor='pointer';_mhit.addEventListener('mouseenter',function(){_mhit.setAttribute('fill','rgba(211,47,47,0.28)');_mhit.setAttribute('stroke','#d32f2f');_mhit.setAttribute('stroke-width','2');_mhit.setAttribute('vector-effect','non-scaling-stroke');});_mhit.addEventListener('mouseleave',function(){_mhit.setAttribute('fill','transparent');_mhit.removeAttribute('stroke');});gMH.appendChild(_mhit);}
