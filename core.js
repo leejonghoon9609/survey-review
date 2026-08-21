@@ -8808,7 +8808,7 @@ function mhSheetDestOpen9(mh){
         if(typeof window.mnRerenderSheet==='function')window.mnRerenderSheet();
         if(typeof drawManholes==='function')drawManholes();
       }catch(_c){}
-    },r,dk);
+    },r,dk,false,true);/* [BUILD1959] 인출선 태그 진입 = 4벽 전체 */
   }catch(_e){}
 }
 /* [BUILD1950] 도면 연결 자동 편입 — 벽 판정된 보조 시설물을 야장 목록에 즉시 반영(중복 무시) */
@@ -8915,7 +8915,7 @@ function mnDestSync(rec,dk){
   if(m&&m.xy&&m.xy.length===2)rec.destXY[dk]=[+m.xy[0],+m.xy[1]];else delete rec.destXY[dk];
 }
 function mnDestCount(rec,dk){try{if(rec&&rec.destL&&rec.destL[dk])return rec.destL[dk].length;return (rec&&rec.dest&&rec.dest[dk])?1:0;}catch(_e){return 0;}}
-function mnAskDest(cur,dn,cb,rec,dk,fp){
+function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 전체, 기본은 해당 벽만 */
   var old=document.getElementById('mnAskModal');if(old)old.remove();
   if(!rec||!dk)return;
   var _aj9=0,_mv9=0;
@@ -8926,11 +8926,11 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
   var mainI=mnDestMain(rec,dk);
   var showPick=(fp===true)||(L.length===0);/* [BUILD1948] 0건이면 대상선택 우선 (mhDestPanel 규약) */
   function _touch(){try{if(typeof cb==='function')cb('__REFRESH__');}catch(_c){}}
-  function _re(f2){mnAskDest(cur,dn,cb,rec,dk,f2);}
+  function _re(f2){mnAskDest(cur,dn,cb,rec,dk,f2,allW);}
   /* [BUILD1958] 4벽 전체를 한 목록으로 — 벽 뱃지 + 벽별 주방향. 현재 벽은 강조 */
   var _WN8={d1:'\uC11C',d2:'\uB3D9',d3:'\uBD81',d4:'\uB0A8'};
-  var ALL8=[];
-  ['d1','d2','d3','d4'].forEach(function(k){
+  var ALL8=[],_WKS8=(allW===true)?['d1','d2','d3','d4']:[dk];/* [BUILD1959] 진입점별 범위 */
+  _WKS8.forEach(function(k){
     var LK=mnDestList(rec,k),mk=mnDestMain(rec,k);
     LK.forEach(function(dv,ix){ALL8.push({k:k,ix:ix,dv:dv,main:(ix===mk)});});
   });
@@ -8938,7 +8938,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
     var on=q.main,cur=(q.k===dk),dv=q.dv;
     var bd=on?'#7cb342':'#dbe4d2', lf=on?'#2e7d32':'#dbe4d2';
     return '<div style="display:flex;align-items:center;gap:6px;background:#fff;border:1.5px solid '+bd+';border-left:4px solid '+lf+';border-radius:8px;padding:8px 9px;margin-bottom:6px;box-shadow:0 1px 2px rgba(0,0,0,.05)'+(cur?'':';opacity:.88')+'">'
-      +'<span style="flex:none;min-width:22px;text-align:center;font-size:10.5px;font-weight:800;color:'+(cur?'#33691e':'#96a396')+';background:'+(cur?'#dcedc8':'#f2f5ef')+';border-radius:5px;padding:2px 4px">'+_WN8[q.k]+'</span>'
+      +((allW===true)?('<span style="flex:none;min-width:22px;text-align:center;font-size:10.5px;font-weight:800;color:'+(cur?'#33691e':'#96a396')+';background:'+(cur?'#dcedc8':'#f2f5ef')+';border-radius:5px;padding:2px 4px">'+_WN8[q.k]+'</span>'):'')
       +'<button class="mnDMainB" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uC8FC\uBC29\uD5A5" style="flex:none;width:29px;height:25px;border-radius:6px;border:1.5px solid '+(on?'#2e7d32':'#cfd8c0')+';background:'+(on?'#2e7d32':'#fff')+';color:'+(on?'#fff':'#9aa89a')+';font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uC8FC</button>'
       +'<span class="mnDGoR" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uAD6C\uAC04 \uBCF4\uAE30" style="flex:1;min-width:0;font-size:12.5px;font-weight:'+(on?'800':'700')+';color:'+(on?'#1b5e20':'#33691e')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer">'+(n+1)+'. '+((typeof joseoEsc==='function')?joseoEsc((dv&&dv.lab)||''):((dv&&dv.lab)||''))+'<span style="color:#9aa89a;font-weight:700">'+((_src9&&dv&&dv.xy&&dv.xy.length===2&&typeof mnPosTag9==='function')?mnPosTag9(_src9.wx,_src9.wy,dv.xy[0],dv.xy[1]):'')+'</span>'+((dv&&dv._auto)?'<span style="color:#b0bcb0;font-size:10px;font-weight:800"> \uC790\uB3D9</span>':'')+'</span>'
       +'<button class="mnDDelR" data-k="'+q.k+'" data-i="'+q.ix+'" style="flex:none;background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uC0AD\uC81C</button></div>';
@@ -8988,7 +8988,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
   w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:14dvh';
   w.innerHTML='<div style="background:#f1f8e9;border:1.5px solid #558b2f;border-radius:12px;width:min(88vw,330px);padding:13px 14px;max-height:86dvh;overflow:auto">'
     +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:9px">'
-      +'<div style="flex:1;min-width:0;font-weight:800;font-size:13.5px;color:#558b2f">\uC5F0\uACB0 \uB9E8\uD640 \u2014 \uC804\uCCB4 '+ALL8.length+'\uAC74<span style="font-weight:700;font-size:11px;color:#8d9c8d"> \u00B7 \uCD94\uAC00\uB294 '+dn+'\uBC29\uD5A5</span></div>'
+      +'<div style="flex:1;min-width:0;font-weight:800;font-size:13.5px;color:#558b2f">'+((allW===true)?('\uC5F0\uACB0 \uB9E8\uD640 \u2014 \uC804\uCCB4 '+ALL8.length+'\uAC74<span style="font-weight:700;font-size:11px;color:#8d9c8d"> \u00B7 \uCD94\uAC00\uB294 '+dn+'\uBC29\uD5A5</span>'):('\uC5F0\uACB0 \uB9E8\uD640 \u2014 '+dn+'\uBC29\uD5A5'))+'</div>'
       +'<button id="mnDAdd" style="flex:none;background:#fff;color:#d32f2f;border:1.5px solid #ef9a9a;border-radius:8px;padding:5px 14px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uCD94\uAC00</button></div>'
     +pick
     +'<div id="mnDList">'+rows+auxRows+'</div>'+wallBar
@@ -9047,7 +9047,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
   };});
   w.querySelectorAll('.mnDWallB').forEach(function(b){b.onclick=function(){
     var k=this.getAttribute('data-k');if(k===dk)return;
-    mnAskDest('',{d1:'1',d2:'2',d3:'3',d4:'4'}[k],cb,rec,k,false);
+    mnAskDest('',{d1:'1',d2:'2',d3:'3',d4:'4'}[k],cb,rec,k,false,allW);
   };});
   var _bAdd=w.querySelector('#mnDAdd');if(_bAdd)_bAdd.onclick=function(){_re(true);};
   if(_aj9||_mv9){try{_touch();}catch(_t9){}
