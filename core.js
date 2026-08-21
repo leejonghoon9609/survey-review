@@ -1287,7 +1287,7 @@ function drawManholes(){_orgSync();/* [1524] */
         /* [BUILD1981] 원에 내접하는 얇은 빨간 X — 원 테두리에 딱 붙게 (r/\u221A2) */
         var _q9=_r9/Math.SQRT2;
         [[-1,-1,1,1],[-1,1,1,-1]].forEach(function(v){
-          var _x9=el('line',{x1:mx+v[0]*_q9,y1:my+v[1]*_q9,x2:mx+v[2]*_q9,y2:my+v[3]*_q9,stroke:'#d32f2f','stroke-width':0.5,'vector-effect':'non-scaling-stroke','stroke-linecap':'butt'});
+          var _x9=el('line',{x1:mx+v[0]*_q9,y1:my+v[1]*_q9,x2:mx+v[2]*_q9,y2:my+v[3]*_q9,stroke:'#d32f2f','stroke-width':0.3,'vector-effect':'non-scaling-stroke','stroke-linecap':'butt'});
           _x9.setAttribute('pointer-events','none');
           gMH.appendChild(_x9);
         });
