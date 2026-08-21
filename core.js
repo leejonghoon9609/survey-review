@@ -9504,6 +9504,19 @@ function _mnCntShow9(rec,k,ix,WP){
     return '';
   }catch(_e){return '';}
 }
+/* [BUILD1980] 벽 단위 관수 검수 — 맨홀도 시트 방향 pill 표시용 */
+function _wallCntDone9(rec,k){
+  try{
+    if(!rec||!k)return false;
+    var LK=(typeof mnDestList==='function')?mnDestList(rec,k):[];
+    if(!LK.length)return false;
+    var WP=(typeof _wallPipe9==='function')?_wallPipe9(rec,k):null;
+    if(!WP||WP.cnt==null)return false;
+    var sm=null;
+    LK.forEach(function(d,i){var v=(typeof _mnCntShow9==='function')?_mnCntShow9(rec,k,i,WP):null;if(v!=null&&v!=='')sm=(sm||0)+(+v||0);});
+    return (sm!=null&&sm===WP.cnt);
+  }catch(_e){return false;}
+}
 /* [BUILD1979] 상대 맨홀의 맨홀도 벽 관구성에서 관수를 가져온다.
    자동배분(총계-확정분)은 숫자를 억지로 맞춰 검수를 무력화하므로 폐기.
    맨홀도에서 실측한 값을 그대로 가져와, 맞으면 맞는 것이고 틀리면 작업자가 원인을 찾는다. */
@@ -10767,9 +10780,12 @@ function mnOpenForm(rec){
     var _wpx=0;for(var _ci=0;_ci<t.length;_ci++){_wpx+=(t.charCodeAt(_ci)>0x2500?11.5:7);}
     var _lim=(rot===0?w:h)-8;
     var _tl=(_wpx>_lim)?(' textLength="'+_lim+'" lengthAdjust="spacingAndGlyphs"'):'';
-    if(rot===0)txt='<text x="'+cx+'" y="'+(cy+3.5)+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="'+(v?'#558b2f':'#a8c790')+'" pointer-events="none"'+_tl+'>'+joseoEsc(t)+'</text>';
-    else txt='<text x="'+cx+'" y="'+cy+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="'+(v?'#558b2f':'#a8c790')+'" transform="rotate('+rot+' '+cx+' '+cy+')" dominant-baseline="central" pointer-events="none"'+_tl+'>'+joseoEsc(t)+'</text>';
-    return '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="5" fill="#f1f8e9" stroke="#7cb342" stroke-width="1.2" data-act="dest" data-d="'+k+'" style="cursor:pointer"/>'+txt;
+    var _ok8=(typeof _wallCntDone9==='function')&&_wallCntDone9(rec,k);/* [BUILD1980] 관수 검수 통과 */
+    var _fc8=_ok8?'#d32f2f':(v?'#558b2f':'#a8c790');
+    if(rot===0)txt='<text x="'+cx+'" y="'+(cy+3.5)+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="'+_fc8+'" pointer-events="none"'+_tl+'>'+joseoEsc(t)+'</text>';
+    else txt='<text x="'+cx+'" y="'+cy+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="'+_fc8+'" transform="rotate('+rot+' '+cx+' '+cy+')" dominant-baseline="central" pointer-events="none"'+_tl+'>'+joseoEsc(t)+'</text>';
+    var _ring8=_ok8?('<rect x="'+(x-2.5)+'" y="'+(y-2.5)+'" width="'+(w+5)+'" height="'+(h+5)+'" rx="7" fill="none" stroke="#ffd54f" stroke-width="3"/><rect x="'+(x-4)+'" y="'+(y-4)+'" width="'+(w+8)+'" height="'+(h+8)+'" rx="8" fill="none" stroke="#6d4c00" stroke-width="1.2"/>'):'';
+    return _ring8+'<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" rx="5" fill="'+(_ok8?'#dcedc8':'#fff')+'" stroke="'+(_ok8?'#2e7d32':'#7cb342')+'" stroke-width="'+(_ok8?'1.6':'1.2')+'" data-act="dest" data-d="'+k+'" style="cursor:pointer"/>'+txt;
   }
   function wallPhoto(k,x,y,w,h,rot){var u=rec.photos&&rec.photos[k];if(!u)return '';
     var cx=x+w/2,cy=y+h/2;
