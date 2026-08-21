@@ -199,6 +199,7 @@ function buildInspData(){
   });
   _bdPts.forEach(function(bd){var bx=bd[0],by=bd[1],bL=null,bIdx=-1,bD=1e18;state.lines.forEach(function(L){if(L.layer!=='보도'||!L.pts||L.pts.length<2)return;for(var i=0;i<L.pts.length-1;i++){var a=L.pts[i],c=L.pts[i+1],dx=c[0]-a[0],dy=c[1]-a[1],L2=dx*dx+dy*dy;var t=L2?((bx-a[0])*dx+(by-a[1])*dy)/L2:0;t=Math.max(0,Math.min(1,t));var cx=a[0]+t*dx,cy=a[1]+t*dy,d=Math.hypot(bx-cx,by-cy);if(d<bD){bD=d;bL=L;bIdx=i;}}});if(bL&&bD<=8){bL.pts.splice(bIdx+1,0,[bx,by]);}});
   (state.manholes||[]).forEach(function(m){if(m._aft&&typeof restitchManhole==='function')restitchManhole(m);});
+  try{if(typeof mhFixStamp9==='function')mhFixStamp9();}catch(_fs9){}/* [BUILD1955] CSV 확정 좌표를 기준으로 박제 */
   drawGeo();
   if(state.tamsa&&typeof buildTamsaMh==='function'){nM=buildTamsaMh();}
   if(typeof drawManholes==='function')drawManholes();
@@ -1498,8 +1499,8 @@ function drawManholes(){_orgSync();/* [1524] */
       if(mode!=='pan'&&mode!=='mhplace'&&mode!=='riserplace'||viewerMode||readOnly)return;
       ev.stopPropagation();ev.preventDefault();
       if(mode!=='tgnote'&&typeof _tgMode==='function'&&_tgMode()){var _nowMh=Date.now();if(_nowMh-(mh._lastMhClick||0)<350){mh._lastMhClick=0;openLabelEdit();return;}mh._lastMhClick=_nowMh;if(typeof tgSelectMh==='function')tgSelectMh(mh.wx,mh.wy);if(typeof drawGeo==='function')drawGeo();return;}/* [1373] 특이사항 모드엔 맨홀 클릭으로 속성정보창 안 띄움 */
-      if(mh._fromCsv&&mh.type==='riser'){toast('CSV 전주입상 — 좌표 고정(라벨만 이동 가능)');return;} /* [1255→1375] 전 공정 좌표 고정 */
-      if(mh._aft||state.tamsa){toast(state.tamsa?'탐사 측량 — CSV 점 고정(이동 불가)':'후측량 맨홀 — 위치 고정(라벨만 이동 가능)');return;}
+      var _fx9=(typeof mhFixed9==='function')?mhFixed9(mh):'';/* [BUILD1955] 측량 좌표 절대고정 — 판정 일원화 */
+      if(_fx9){if(typeof toast==='function')toast('\uD83D\uDD12 '+_fx9+' \u2014 \uC88C\uD45C \uACE0\uC815(\uB77C\uBCA8\uB9CC \uC774\uB3D9 \uAC00\uB2A5)');return;}
       pushHist();
       if(mh.lx==null){mh.lx=lx;mh.ly=ly;mh._lxSeed=1;}/* [BUILD1776] \uD074\uB9AD\uB9CC\uC73C\uB85C \uBC15\uC81C \uAE08\uC9C0 */
       var w=toWorld(ev.clientX,ev.clientY);
@@ -1542,6 +1543,7 @@ window.addEventListener('pointermove',function(ev){
     state.lines.forEach(function(L){if(L.layer!=='통신관로'||!L.pts)return;L.pts.forEach(function(p){if(Math.abs(p[0]-oldWx)<1e-4&&Math.abs(p[1]-oldWy)<1e-4){p[0]=newWx;p[1]=newWy;}});});
     // 라벨도 같이 이동 (상대위치 유지)
     if(mh.lx!=null){mh._lxSeed=null;mh.lx+=newWx-mh.wx;mh.ly+=newWy-mh.wy;}
+    if((typeof mhFixed9==='function')&&mhFixed9(mh)){mhDragState=null;if(typeof toast==='function')toast('\uD83D\uDD12 \uCE21\uB7C9 \uC88C\uD45C\uB294 \uC774\uB3D9\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4');return;}/* [BUILD1955] 런타임 게이트 — 진입 우회 경로까지 차단 */
     mh.wx=newWx;mh.wy=newWy;
     drawManholes();drawGeo();
   } else {
@@ -1684,6 +1686,63 @@ function deletePoint(p){
   toast('측점 '+(p.no||'')+' 삭제');
 }
 // 맨홀 통과 결선 1개 추가 (반경 안 가장 가까운 M점 + 건너편 M점 → A·맨홀·B)
+/* ===== [BUILD1955] 측량 좌표 절대고정 계층 =====
+   원칙: CSV(실시간·후측량)·탐사로 찍힌 시설물의 wx/wy는 어떤 경로로도 변경 금지.
+   성과·정산 직결이므로 ①진입차단 ②이동중 런타임게이트 ③원좌표 자가복구 3중으로 막는다.
+   라벨(태그) 이동은 자유. */
+function mhFixed9(m){
+  try{
+    if(!m)return '';
+    if(m._fixFree9)return '';/* 예외 해제(콘솔 전용) */
+    if(typeof state!=='undefined'&&state&&state.tamsa)return '\uD0D0\uC0AC \uCE21\uB7C9 CSV \uC810';
+    if(m._aft)return '\uD6C4\uCE21\uB7C9 CSV \uC2DC\uC124\uBB3C';
+    if(m._fromCsv)return (m.type==='riser')?'CSV \uC804\uC8FC\uC785\uC0C1':'CSV \uCE21\uB7C9 \uC2DC\uC124\uBB3C';
+    if(m.insp)return '\uAC80\uC218 \uD655\uC815 \uC2DC\uC124\uBB3C';
+  }catch(_e){}
+  return '';
+}
+/* 원좌표 스탬프 — CSV 파싱 직후가 유일한 정당한 좌표 확정 시점 */
+function mhFixStamp9(){
+  var n=0;
+  try{(state.manholes||[]).forEach(function(m){
+    if(!m||m.wx==null)return;
+    if(!mhFixed9(m))return;
+    m._fx0=[+m.wx,+m.wy];n++;
+  });}catch(_e){}
+  return n;
+}
+/* 자가복구 — 어떤 경로로든 어긋났으면 되돌린다 */
+function mhFixGuard9(silent){
+  var moved=[];
+  try{
+    (state.manholes||[]).forEach(function(m){
+      if(!m||m.wx==null||!m._fx0||m._fx0.length!==2)return;
+      if(!mhFixed9(m))return;
+      var d=Math.hypot(m.wx-m._fx0[0],m.wy-m._fx0[1]);
+      if(d<0.001)return;
+      var ox=m.wx,oy=m.wy;
+      m.wx=m._fx0[0];m.wy=m._fx0[1];
+      try{if(typeof moveMhLines==='function')moveMhLines(m,ox,oy);}catch(_ml){}
+      moved.push({lab:(m.label||m.type||'?'),d:d});
+    });
+    if(moved.length){
+      try{console.warn('[\uC88C\uD45C\uACE0\uC815] '+moved.length+'\uAC74 \uC6D0\uC704\uCE58 \uBCF5\uAD6C',moved.map(function(q){return q.lab+' '+q.d.toFixed(3)+'m';}).join(' , '));}catch(_c){}
+      if(!silent&&typeof toast==='function')toast('\u26A0 \uCE21\uB7C9 \uC88C\uD45C\uB294 \uACE0\uC815\uC785\uB2C8\uB2E4 \u2014 '+moved.length+'\uAC74 \uC6D0\uC704\uCE58 \uBCF5\uAD6C');
+      try{if(typeof drawManholes==='function')drawManholes();if(typeof drawGeo==='function')drawGeo();}catch(_d){}
+    }
+  }catch(_e){}
+  return moved.length;
+}
+function mhFixInfo9(){
+  try{
+    var L=(state.manholes||[]).filter(function(m){return m&&mhFixed9(m);});
+    console.log('\uACE0\uC815 \uB300\uC0C1 '+L.length+'\uAC1C / \uC6D0\uC88C\uD45C \uAE30\uB85D '+L.filter(function(m){return !!m._fx0;}).length+'\uAC1C');
+    L.forEach(function(m){
+      var d=(m._fx0)?Math.hypot(m.wx-m._fx0[0],m.wy-m._fx0[1]):null;
+      console.log('  '+(m.label||m.type)+'  '+mhFixed9(m)+(d==null?'  [\uAE30\uC900\uC5C6\uC74C]':('  \uC5B4\uAE0B\uB0A8 '+d.toFixed(3)+'m'))); 
+    });
+  }catch(_e){}
+}
 function moveMhLines(mh,ox,oy){(state.lines||[]).forEach(function(L){if(!L.pts)return;L.pts.forEach(function(pt){if((L.mhId===mh.id||L.layer==='통신관로')&&Math.abs(pt[0]-ox)<1&&Math.abs(pt[1]-oy)<1){pt[0]=mh.wx;pt[1]=mh.wy;}});});}
 function addManholePassLine(mh){
   var MHR=4; // 맨홀·입상주 M점 관로선붙이기 반경(4m)
@@ -6239,7 +6298,8 @@ function _lnGuard9(ls,sil,onOk){
     _lnWarn9(B,C,drop,onOk);return false;
   }catch(_e){return true;}
 }
-function saveProject(cb){ if(readOnly){if(typeof cb==='function')cb();return;} var _sil=!!window._silentSave;window._silentSave=false;/* [1358] 자동저장 플래그 진입 시 캐처 */
+function saveProject(cb){ if(readOnly){if(typeof cb==='function')cb();return;} var _sil=!!window._silentSave;window._silentSave=false;
+  try{if(typeof mhFixStamp9==='function'){(state.manholes||[]).forEach(function(m){if(m&&m.wx!=null&&!m._fx0&&mhFixed9(m))m._fx0=[+m.wx,+m.wy];});}if(typeof mhFixGuard9==='function')mhFixGuard9(_sil);}catch(_fg9){}/* [BUILD1955] 측량 좌표 이탈분 저장 전 복구 *//* [1358] 자동저장 플래그 진입 시 캐처 */
   var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,rtDaily:state.rtDaily||[],trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:null/* [1491] heavy 컬럼으로 이동 */,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,depthManual:state._depthManual||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,mnList:state.mnList||[],tangoDone:state.tangoDone||null,tgCarrier:state.tgCarrier||null,mhDel:state.mhDel||null,tgNotes:state.tgNotes||null,refMhLbl:state.refMhLbl||null,hyunPts:state.hyunPts||null,csvTrash:state._csvTrash||[]/* [BUILD1867] CSV \uC0AD\uC81C\uBCF4\uAD00 \uC601\uC18D\uD654 */,rtBoardName:state.rtBoardName||null,rtBoardPos:state.rtBoardPos||null,joseoBoard:state.joseoBoard?1:null/* [BUILD1873] \ud604\ud669\ud310 \uc0ac\uc5c5\uba85\u00b7\uc704\uce58 \uc601\uc18d\ud654 */};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
   if(!state.projectName){toast('사업명을 먼저 정하세요(새 사업)');return;}if(!_lnGuard9(payload.lines,_sil,function(){window._silentSave=_sil;saveProject(cb);}))return;/* [BUILD1937] 관로선 급감 시 저장 차단 */
   payload.stage=STAGE;
