@@ -53,6 +53,24 @@ function mhKindOf(code){var c=(code||'').trim();if(/^SW$/i.test(c))return '\uD55
 // ── 폴리라인 위 앵커 계산 (지거 멘트 인출선용) ──
 function mhNumOf(code){var c=(code||'').trim().replace(/\s*JB\s*$/i,'').replace(/M(\s.*)?$/i,'').replace(/^M/,'').trim();var m=/(\d+)$/.exec(c);return m?m[1]:'';}/* [1444] */
 function polySegs(pts){var segs=[],total=0;for(var i=0;i<pts.length-1;i++){var d=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);segs.push(d);total+=d;}return {segs:segs,total:total};}
+/* [BUILD1987] 구간노트(탐사구간·압입구간·지거) 인출선 기본 위치 —
+   측점 라벨과 같은 규칙: 관로선 앵커 선분의 주축 스냅 + _TAGLEN9 + 가로지름 회피.
+   반환은 월드 오프셋 [dx,dy]. 화면(S공간)은 y 부호를 반전해서 쓴다.
+   구 하드코딩 (+1.8,-1.3 ≈ 2.22m 대각선)을 화면·DXF 양쪽에서 대체. */
+function _noteOff9(L,aw){
+  try{
+    var pts=L&&L.pts;if(!pts||pts.length<2)return [0,_TAGLEN9];
+    var ps=polySegs(pts),t=polyAnchorT(L),target=t*ps.total,acc=0,si=0;
+    for(var i=0;i<ps.segs.length;i++){si=i;if(acc+ps.segs[i]>=target)break;acc+=ps.segs[i];}
+    var a=pts[si],b=pts[si+1]||pts[si];
+    if(!a||!b)return [0,_TAGLEN9];
+    var ax=_tagAxis9(b[0]-a[0],b[1]-a[1]);
+    var c1=[ax[0]*_TAGLEN9,ax[1]*_TAGLEN9],c2=[-c1[0],-c1[1]];
+    var x1=_tagCross9(aw[0],aw[1],aw[0]+c1[0],aw[1]+c1[1],L);
+    var x2=_tagCross9(aw[0],aw[1],aw[0]+c2[0],aw[1]+c2[1],L);
+    return (x1&&!x2)?c2:c1;
+  }catch(_e){return [0,_TAGLEN9];}
+}
 function polyAnchorT(L){if(L.anchorT!=null)return L.anchorT;var pts=L.pts;if(!pts||pts.length<2)return 0;var ps=polySegs(pts);return ps.total?(ps.segs[0]*0.5)/ps.total:0;} // 기본=첫 두 점 구간 중간
 function ptOnPoly(pts,t){var ps=polySegs(pts);if(ps.total===0)return [pts[0][0],pts[0][1]];var target=t*ps.total,acc=0;for(var i=0;i<ps.segs.length;i++){if(acc+ps.segs[i]>=target){var f=ps.segs[i]?(target-acc)/ps.segs[i]:0;return [pts[i][0]+(pts[i+1][0]-pts[i][0])*f,pts[i][1]+(pts[i+1][1]-pts[i][1])*f];}acc+=ps.segs[i];}return [pts[pts.length-1][0],pts[pts.length-1][1]];}
 function projToPoly(pts,px,py){var ps=polySegs(pts);if(ps.total===0)return 0;var best=Infinity,bestT=0,acc=0;for(var i=0;i<pts.length-1;i++){var ax=pts[i][0],ay=pts[i][1],dx=pts[i+1][0]-ax,dy=pts[i+1][1]-ay,L2=dx*dx+dy*dy;var f=L2?((px-ax)*dx+(py-ay)*dy)/L2:0;if(f<0)f=0;if(f>1)f=1;var qx=ax+dx*f,qy=ay+dy*f,dist=Math.hypot(px-qx,py-qy);if(dist<best){best=dist;bestT=(acc+ps.segs[i]*f)/ps.total;}acc+=ps.segs[i];}return bestT;}
@@ -1088,7 +1106,7 @@ function drawGeo(){_orgSync();/* [1524] */if(typeof _tgCarGeomBuild==='function'
     var nc=L.layer==='탐사구간'?'#00a5cf':(L.layer==='압입구간'?'#1f6fd6':'#a07e00');   // 인출선·앵커·박스 색
     var nf=L.layer==='탐사구간'?'#007a99':(L.layer==='압입구간'?'#15489e':'#7a5f00');   // 글자 색
     var aw=ptOnPoly(L.pts,polyAnchorT(L));      // 선 위 앵커(world)
-    var s=S(aw[0],aw[1]),lx=(L.noteOff?(L.noteOff[0]-ORG.x):s[0]+1.8),ly=(L.noteOff?(L.noteOff[1]+ORG.y):s[1]-1.3);/* [1524] WF\u2192LOCAL */
+    var _no9=_noteOff9(L,aw);/* [BUILD1987] */var s=S(aw[0],aw[1]),lx=(L.noteOff?(L.noteOff[0]-ORG.x):s[0]+_no9[0]),ly=(L.noteOff?(L.noteOff[1]+ORG.y):s[1]-_no9[1]);/* [1524] WF\u2192LOCAL */
     var ld=el('line',{x1:s[0],y1:s[1],x2:lx,y2:ly,stroke:nc,'stroke-width':0.8,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);
     var anc=el('circle',{cx:s[0],cy:s[1],r:0.32,fill:nc,'pointer-events':'none'});gAnc.appendChild(anc); // 보이는 원
     var ahR=Math.max(20*pxToWorld(), 1.0); // 클릭영역: 화면 ~20px 고정 (측점 9px보다 크게 → 쉽게 잡힘)
@@ -5748,7 +5766,7 @@ EOF
     else pline(Ln.pts,lm[0],lm[1],false);
     if((Ln.layer==='지거'||Ln.layer==='압입구간'||Ln.layer==='탐사구간')&&Ln.note){/* [BUILD1835] */
       var aw=ptOnPoly(Ln.pts,polyAnchorT(Ln));
-      var nx,ny; if(Ln.noteOff){nx=Ln.noteOff[0];ny=-Ln.noteOff[1];} else {nx=aw[0]+1.8;ny=aw[1]+1.3;}
+      var nx,ny; if(Ln.noteOff){nx=Ln.noteOff[0];ny=-Ln.noteOff[1];} else {var _no9=_noteOff9(Ln,aw);nx=aw[0]+_no9[0];ny=aw[1]+_no9[1];}/* [BUILD1987] */
       var lyr=Ln.layer==='압입구간'?'PUSH':(Ln.layer==='탐사구간'?'TAMSA':'JIGER'), lc=Ln.layer==='압입구간'?5:(Ln.layer==='탐사구간'?4:2);
       var dx=nx-aw[0],dy=ny-aw[1],dl=Math.hypot(dx,dy)||1;
       if(dl>2.5){nx=aw[0]+dx/dl*2.5;ny=aw[1]+dy/dl*2.5;} // 인출선 최대 2.5m(혼자 길게 안 나오게)
@@ -13030,11 +13048,12 @@ function _pipeAxisAt9(p){
   return null;
 }
 /* 인출선이 관로선(통신관로·지거·압입)을 가로지르는지 — 자기 시작점 0.3m 이내 정점은 제외 */
-function _tagCross9(ax,ay,bx,by){
+function _tagCross9(ax,ay,bx,by,skipL){/* [BUILD1987] skipL: 자기 자신 선 제외 — 구간노트는 앵커가 선 위에 있어 자기 선을 항상 '교차'로 오판한다 */
   try{
     var ls=state.lines||[];
     for(var i=0;i<ls.length;i++){var L=ls[i];
       if(!L||!L.pts||L.pts.length<2||L.free||L.insp)continue;
+      if(skipL&&L===skipL)continue;
       if(L.layer&&L.layer!=='통신관로'&&L.layer!=='지거'&&L.layer!=='압입구간')continue;
       for(var j=0;j<L.pts.length-1;j++){var a=L.pts[j],c=L.pts[j+1];if(!a||!c)continue;
         if(Math.hypot(a[0]-ax,a[1]-ay)<0.3||Math.hypot(c[0]-ax,c[1]-ay)<0.3)continue;
@@ -13055,9 +13074,10 @@ function tagReflow9(){
     var nl0=(state.mnList||[]).length,nd0=Object.keys(state._depthByNo||{}).length;
     if(typeof pushHist==='function')pushHist();
     var before=Object.keys(state.labelOff||{}).length;
+    var nb=0;(state.lines||[]).forEach(function(L){if(L&&L.noteOff){delete L.noteOff;nb++;}});/* [BUILD1987] 구간노트 인출선도 초기화 — pts(성과)는 불변 */
     state.labelOff={};window._clSig=null;window._clLay=null;
     if(typeof drawGeo==='function')drawGeo();
-    console.log('[인출선] 재배치 — labelOff '+before+'건 초기화 → 1m 축정렬 자동배치');
+    console.log('[인출선] 재배치 — 측점라벨 '+before+'건 + 구간노트 '+nb+'건 초기화 → '+_TAGLEN9+'m 축정렬 자동배치');
     console.log('[인출선] 성과 대조  관로선 '+b0+' → '+_st9()
       +'  |  측점 '+np0+'→'+(state.points||[]).length
       +'  맨홀 '+nm0+'→'+(state.manholes||[]).length
