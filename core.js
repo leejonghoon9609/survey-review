@@ -1589,7 +1589,7 @@ function buildRisersFromCsv(){if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))stat
   arr.forEach(function(it){var rs;try{rs=parseInspCsv(it.text||'');}catch(e){rs=[];}rs.forEach(function(p){if(p.skip)return;var c=(p.code||'').trim();var _tk9=_tjTokOf(c);if(_tk9)rows.push({x:p.ex,y:p.no,no:p.name||'',code:_tk9,surface:p.surface||'',pave:p.pave||''});else if((typeof IS_FIELD!=='undefined'&&IS_FIELD)&&/^(입상|ip\s*주|ip\b|통신주입상|통신입상)/i.test(c)){var _pp9=/\(([^)]+)\)/.exec(c);rows.push({x:p.ex,y:p.no,no:p.name||'',code:'IPJU',spec:(_pp9?_pp9[1]:''),surface:p.surface||'',pave:p.pave||''});}else if((typeof IS_FIELD!=='undefined'&&IS_FIELD)&&/(입상|ip)/i.test(c)&&!/^(in|tj|ej)/i.test(c)){try{console.info('[IP주 미매칭 코드]',JSON.stringify(c),'측점',p.name||'');}catch(_l9){}}/* [1463] IP주 2점짝중점(field) *//* [1416] */});});
   if(!rows.length)return 0;
   if(state.tamsa)state.points.forEach(function(p){if(_tjTokOf(p.code))p._hideMark=true;});/* [1416] */
-  var _keepR={};(state.manholes||[]).forEach(function(m){if(m._fromCsv&&m.type==='riser'&&m._edited&&m.wx!=null)_keepR[m.wx+'_'+m.wy]=1;});state.manholes=(state.manholes||[]).filter(function(m){return !(m._fromCsv&&m.type==='riser'&&!m._edited);});   /* [1161][1483] 수정 입상 보존 */
+  var _keepR={};(state.manholes||[]).forEach(function(m){if(m._fromCsv&&m.type==='riser'&&m.wx!=null&&(m._edited||(m.dests&&m.dests.length)))_keepR[m.wx+'_'+m.wy]=1;});state.manholes=(state.manholes||[]).filter(function(m){return !(m._fromCsv&&m.type==='riser'&&!m._edited&&!(m.dests&&m.dests.length));});/* [BUILD1975] 방향(dests) 지정분은 재생성 대상에서 제외 — dests 유실 방지 */   /* [1161][1483] 수정 입상 보존 */
   state.points=(state.points||[]).filter(function(p){return !p._riserPt;});
   state.lines=(state.lines||[]).filter(function(l){return !l._riserLine;});
   var byCode={};
@@ -8731,34 +8731,68 @@ function mnPosTag9(ax,ay,bx,by){
    구간 시작부 EXITL(3m) 지점의 방위를 쓰고, 구간이 없을 때만 직선으로 폴백. */
 /* [BUILD1967] 관로선에서 직접 진출 방위 — 구간(_tgSegs)이 없는 공정(측량현장)에서도 동작 */
 function _lineExit9(src,tgt){
+  /* [BUILD1975] 갈래 선택을 '실제 도달' 기준으로 교체.
+     기존엔 3m 지점에서 목표와의 거리로 골라 북/남이 사실상 동전던지기였다(6H 오배정). */
   try{
-    if(!src||!tgt||src.wx==null)return null;
-    var EX=3.0,best=null,bd=1e9;
-    (state.lines||[]).forEach(function(L){
-      if(!L||L.free||!L.pts||L.pts.length<2)return;
-      if(L.layer&&L.layer!=='\uD1B5\uC2E0\uAD00\uB85C'&&L.layer!=='\uC9C0\uAC70'&&L.layer!=='\uC555\uC785\uAD6C\uAC04')return;
-      for(var i=0;i<L.pts.length;i++){
-        var d=Math.hypot(L.pts[i][0]-src.wx,L.pts[i][1]-src.wy);
-        if(d<bd&&d<0.5){bd=d;best={L:L,i:i};}
-      }
+    if(!src||!tgt||src.wx==null||tgt.wx==null)return null;
+    var LN=(state.lines||[]).filter(function(L){
+      if(!L||L.free||!L.pts||L.pts.length<2)return false;
+      return (!L.layer||L.layer==='\uD1B5\uC2E0\uAD00\uB85C'||L.layer==='\uC9C0\uAC70'||L.layer==='\uC555\uC785\uAD6C\uAC04');
     });
-    if(!best)return null;
-    var P=best.L.pts,i0=best.i,cand=[];
-    [1,-1].forEach(function(dir){
-      var acc=0,px=P[i0][0],py=P[i0][1],ex=null,ey=null;
-      for(var j=i0+dir;j>=0&&j<P.length;j+=dir){
-        var dd=Math.hypot(P[j][0]-px,P[j][1]-py);
-        if(dd<1e-9)continue;
-        acc+=dd;ex=P[j][0];ey=P[j][1];px=P[j][0];py=P[j][1];
+    /* 관로선 그래프 */
+    function qk(x,y){return Math.round(x*100)+'_'+Math.round(y*100);}
+    var adj={},pos={};
+    LN.forEach(function(L){for(var i=0;i<L.pts.length-1;i++){
+      var A=L.pts[i],B=L.pts[i+1],ka=qk(A[0],A[1]),kb=qk(B[0],B[1]);
+      if(ka===kb)continue;
+      pos[ka]={x:A[0],y:A[1]};pos[kb]={x:B[0],y:B[1]};
+      (adj[ka]=adj[ka]||[]).push(kb);(adj[kb]=adj[kb]||[]).push(ka);
+    }});
+    var ks=null,kd=0.5,kt=null,td=1.2;
+    for(var k in pos){
+      var ds=Math.hypot(pos[k].x-src.wx,pos[k].y-src.wy);if(ds<kd){kd=ds;ks=k;}
+      var dt=Math.hypot(pos[k].x-tgt.wx,pos[k].y-tgt.wy);if(dt<td){td=dt;kt=k;}
+    }
+    if(!ks)return null;
+    var EX=3.0;
+    function bearAt(first){
+      var acc=0,px=pos[ks].x,py=pos[ks].y,ex=null,ey=null,prev=ks,cur=first,g=0;
+      while(cur&&g++<4000){
+        var dd=Math.hypot(pos[cur].x-px,pos[cur].y-py);
+        if(dd>1e-9){acc+=dd;ex=pos[cur].x;ey=pos[cur].y;px=pos[cur].x;py=pos[cur].y;}
         if(acc>=EX)break;
+        var nx=(adj[cur]||[]).filter(function(z){return z!==prev;});
+        if(nx.length!==1)break;
+        prev=cur;cur=nx[0];
       }
-      if(ex!=null)cand.push({x:ex,y:ey,d:Math.hypot(ex-tgt.wx,ey-tgt.wy)});
-    });
-    if(!cand.length)return null;
-    cand.sort(function(a,b){return a.d-b.d;});
-    var b=Math.atan2(cand[0].y-P[i0][1],cand[0].x-P[i0][0])*180/Math.PI;
-    if(!isFinite(b))return null;
-    return {b:((b%360)+360)%360,via:'line3'};
+      if(ex==null)return null;
+      var b=Math.atan2(ey-pos[ks].y,ex-pos[ks].x)*180/Math.PI;
+      return isFinite(b)?((b%360)+360)%360:null;
+    }
+    /* 갈래별로 목표까지 실제 도달하는지 BFS */
+    function reaches(first){
+      if(!kt)return -1;
+      var seen={};seen[ks]=1;seen[first]=1;
+      var q=[[first,Math.hypot(pos[first].x-pos[ks].x,pos[first].y-pos[ks].y)]],g=0;
+      while(q.length&&g++<20000){
+        var it=q.shift();
+        if(it[0]===kt)return it[1];
+        var nb=adj[it[0]]||[];
+        for(var i=0;i<nb.length;i++){
+          if(seen[nb[i]])continue;seen[nb[i]]=1;
+          q.push([nb[i],it[1]+Math.hypot(pos[nb[i]].x-pos[it[0]].x,pos[nb[i]].y-pos[it[0]].y)]);
+        }
+      }
+      return -1;
+    }
+    var firsts=(adj[ks]||[]),best=null;
+    for(var f=0;f<firsts.length;f++){
+      var r=reaches(firsts[f]);
+      if(r<0)continue;
+      if(!best||r<best.r){var bb=bearAt(firsts[f]);if(bb!=null)best={r:r,b:bb};}
+    }
+    if(best)return {b:best.b,via:'reach'};/* 실제 도달 갈래 */
+    return null;/* 관로로 안 이어짐 → 상위에서 직선 폴백 */
   }catch(_e){return null;}
 }
 function mnExitBrg9(src,tgt){
@@ -8853,6 +8887,8 @@ function mnAutoJoin9(rec){
     if(!links.length)return 0;
     links.forEach(function(a){
       if(!a||!a.dk||!a.m||a.m.wx==null)return;
+      if(a.via!=='reach'){return;}/* [BUILD1975] 관로로 실제 이어진 것만 자동 편입 — 오배정 근절 */
+      if(mnDestBanned9(rec,a.m.wx,a.m.wy)){return;}/* [BUILD1975] 사용자가 지운 건 되살리지 않는다 */
       var LL=mnDestList(rec,a.dk),dup=false;
       LL.forEach(function(d){if(_mnDupHit9(d,a.lab,[a.m.wx,a.m.wy]))dup=true;});
       if(dup)return;
@@ -9102,6 +9138,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     var k=this.getAttribute('data-k')||dk,i=+this.getAttribute('data-i');
     if(typeof pushHist==='function'){try{pushHist();}catch(_ph){}}
     var LK=mnDestList(rec,k),mi=mnDestMain(rec,k);
+    try{var _rm9=LK[i];if(_rm9&&_rm9._auto&&_rm9.xy&&_rm9.xy.length===2)mnDestBan9(rec,_rm9.xy[0],_rm9.xy[1]);}catch(_b9){}/* [BUILD1975] */
     LK.splice(i,1);
     if(!rec.destM)rec.destM={};
     var nm=(i<mi)?(mi-1):((i===mi)?0:mi);rec.destM[k]=(nm<0?0:nm);
@@ -9110,6 +9147,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
   };});/* [BUILD1958] 벽별 삭제 */
   w.querySelectorAll('.mnDJoinB').forEach(function(b){b.onclick=function(){/* [BUILD1949] 도면 연결을 이 벽으로 편입 */
     var a=_AX9[+this.getAttribute('data-i')];if(!a||!a.m)return;
+    try{mnDestUnban9(rec,a.m.wx,a.m.wy);}catch(_u9){}/* [BUILD1975] 수동 편입은 묘비 해제 */
     try{if(!rec.destXY)rec.destXY={};rec.destXY[dk]=[a.m.wx,a.m.wy];}catch(_e){}
     _reg(a.lab);
   };});
@@ -9430,6 +9468,17 @@ function _extLink9(sx,sy,tx,ty,ext){
   }catch(_e){}
   return n;
 }
+/* [BUILD1975] 자동 편입 삭제 묘비 — rec에 얹어 mnList payload로 영속 */
+/* 좌표 배열 + 거리 판정 — 반올림 격자는 경계에서 다른 버킷이 되어 허용오차 역할을 못 한다 */
+var _BAN_R9=0.5;
+function mnDestBan9(rec,x,y){try{if(!rec||x==null)return;if(!Array.isArray(rec.destBan))rec.destBan=[];
+  for(var i=0;i<rec.destBan.length;i++){var b=rec.destBan[i];if(b&&Math.hypot(b[0]-x,b[1]-y)<_BAN_R9)return;}
+  rec.destBan.push([+x,+y]);}catch(_e){}}
+function mnDestUnban9(rec,x,y){try{if(!rec||!Array.isArray(rec.destBan)||x==null)return;
+  for(var i=rec.destBan.length-1;i>=0;i--){var b=rec.destBan[i];if(b&&Math.hypot(b[0]-x,b[1]-y)<_BAN_R9)rec.destBan.splice(i,1);}}catch(_e){}}
+function mnDestBanned9(rec,x,y){try{if(!rec||!Array.isArray(rec.destBan)||x==null)return false;
+  for(var i=0;i<rec.destBan.length;i++){var b=rec.destBan[i];if(b&&Math.hypot(b[0]-x,b[1]-y)<_BAN_R9)return true;}
+  return false;}catch(_e){return false;}}
 /* [BUILD1973] 연동 반영 후 화면 동기 — 맨홀도 시트 + 도면 버튼(완료 링·건수) */
 function _dirLinkRefresh9(){
   try{if(typeof window.mnRerenderSheet==='function')window.mnRerenderSheet();}catch(_r1){}
