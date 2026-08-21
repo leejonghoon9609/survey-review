@@ -9052,7 +9052,13 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     _WKS8.forEach(function(k){
       var LK=mnDestList(rec,k);if(!LK.length)return;
       var WP=_wallPipe9(rec,k);if(!WP||WP.cnt==null)return;
-      var sm=null;LK.forEach(function(d){if(d&&d.cnt!=null&&d.cnt!==''){sm=(sm||0)+(+d.cnt||0);}});
+      var sm=null;LK.forEach(function(d){
+        if(!d)return;
+        var v=(d.cnt!=null&&d.cnt!=='')?d.cnt:null;
+        if(v==null&&d.xy&&d.xy.length===2&&_src9&&typeof _cntPeek9==='function')v=_cntPeek9(_src9.wx,_src9.wy,d.xy[0],d.xy[1]);
+        if(v==null&&LK.length===1&&WP.cnt!=null)v=WP.cnt;
+        if(v!=null&&v!=='')sm=(sm||0)+(+v||0);
+      });/* [BUILD1976] 표시값과 동일 규칙 */
       if(sm==null)return;
       var ok=(sm===WP.cnt);if(!ok)_bad9++;
       _bars9.push('<div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;font-weight:800;padding:5px 8px;border-radius:7px;background:'+(ok?'#e8f5e9':'#ffe5e5')+';border:1px solid '+(ok?'#a5d6a7':'#ff8a80')+';color:'+(ok?'#2e7d32':'#d32f2f')+'">'
@@ -9365,8 +9371,16 @@ function auxPipeAll9(m){
   return {ext:ext,cnt:cnt,front:f};
 }
 function auxPipeSum9(m){
-  var n=0,any=false;
-  ((m&&m.dests)||[]).forEach(function(d){if(!d)return;if(d.cnt!=null&&d.cnt!==''){n+=(+d.cnt||0);any=true;}});
+  /* [BUILD1976] 화면 표시와 같은 규칙으로 합산.
+     자기 dests에 없으면 상대 채널(야장 destL) 계승값을 쓰는데, 합계가 그걸 빼먹어 '표시는 맞는데 불일치'가 났다. */
+  var n=0,any=false,L=((m&&m.dests)||[]);
+  L.forEach(function(d){
+    if(!d)return;
+    var v=(d.cnt!=null&&d.cnt!=='')?d.cnt:null;
+    if(v==null&&d.xy&&d.xy.length===2&&m&&m.wx!=null&&typeof _cntPeek9==='function')v=_cntPeek9(m.wx,m.wy,d.xy[0],d.xy[1]);
+    if(v==null&&L.length===1&&typeof auxPipeAll9==='function'){var A=auxPipeAll9(m);if(A&&A.cnt!=null)v=A.cnt;}
+    if(v!=null&&v!==''){n+=(+v||0);any=true;}
+  });
   return any?n:null;
 }
 /* ===== [BUILD1964] 관수 양방향 공유 =====
@@ -9490,7 +9504,7 @@ function _auxCntDone9(m){
   try{
     if(!m||!m.dests||!m.dests.length)return false;
     var A=auxPipeAll9(m);if(!A||A.cnt==null)return false;
-    var sm=null;m.dests.forEach(function(d){if(d&&d.cnt!=null&&d.cnt!=='')sm=(sm||0)+(+d.cnt||0);});
+    var sm=(typeof auxPipeSum9==='function')?auxPipeSum9(m):null;/* [BUILD1976] 합계 규칙 일원화 */
     return (sm!=null&&sm===A.cnt);
   }catch(_e){return false;}
 }
@@ -9501,7 +9515,14 @@ function _mhCntDone9(mh){
     ['d1','d2','d3','d4'].forEach(function(k){
       var LK=(r.destL&&r.destL[k])||[];if(!LK.length)return;
       var WP=(typeof _wallPipe9==='function')?_wallPipe9(r,k):null;if(!WP||WP.cnt==null)return;
-      var sm=null;LK.forEach(function(d){if(d&&d.cnt!=null&&d.cnt!=='')sm=(sm||0)+(+d.cnt||0);});
+      var src9=(typeof _mnMhOfRec9==='function')?_mnMhOfRec9(mh):null;
+      var sm=null;LK.forEach(function(d){
+        if(!d)return;
+        var v=(d.cnt!=null&&d.cnt!=='')?d.cnt:null;
+        if(v==null&&d.xy&&d.xy.length===2&&src9&&typeof _cntPeek9==='function')v=_cntPeek9(src9.wx,src9.wy,d.xy[0],d.xy[1]);
+        if(v==null&&LK.length===1&&WP.cnt!=null)v=WP.cnt;
+        if(v!=null&&v!=='')sm=(sm||0)+(+v||0);
+      });/* [BUILD1976] */
       if(sm==null)return;
       bars++;if(sm!==WP.cnt)bad++;
     });
