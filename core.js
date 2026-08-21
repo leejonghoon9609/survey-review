@@ -9280,28 +9280,28 @@ function mhDestPanel(mh,forcePick){
   var _optE9=(typeof TG_OPT!=='undefined'&&TG_OPT.ext)?TG_OPT.ext.slice():[];
   if(_PA9.ext&&_optE9.indexOf(_PA9.ext)<0)_optE9.unshift(_PA9.ext);
   var rows='<table style="width:100%;border-collapse:collapse;font-size:11.5px">'
-   +'<tr style="background:#eef4e6"><th style="padding:5px 3px;border:1px solid #cfd8c0;font-weight:800;color:#33691e">\uC2DC\uC124\uBA85</th>'
-   +'<th style="padding:5px 3px;border:1px solid #cfd8c0;font-weight:800;color:#33691e;width:40px">\uAD00\uC885</th>'
-   +'<th style="padding:5px 3px;border:1px solid #cfd8c0;font-weight:800;color:#33691e;width:42px">\uAD00\uACBD</th>'
-   +'<th style="padding:5px 3px;border:1px solid #cfd8c0;font-weight:800;color:#33691e;width:46px">\uAD00\uC218</th>'
-   +'<th style="padding:5px 3px;border:1px solid #cfd8c0;font-weight:800;color:#33691e">\uC2DC\uC791\uC2DC\uC124\uBB3C</th>'
-   +'<th style="padding:5px 3px;border:1px solid #cfd8c0;width:34px"></th></tr>';
+   +'<tr style="background:#fdeeec"><th style="padding:5px 3px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e">\uC2DC\uC124\uBA85</th>'
+   +'<th style="padding:5px 3px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e;width:40px">\uAD00\uC885</th>'
+   +'<th style="padding:5px 3px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e;width:42px">\uAD00\uACBD</th>'
+   +'<th style="padding:5px 3px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e;width:46px">\uAD00\uC218</th>'
+   +'<th style="padding:5px 3px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e">\uC2DC\uC791\uC2DC\uC124\uBB3C</th>'
+   +'<th style="padding:5px 3px;border:1px solid #f0c5c0;width:34px"></th></tr>';
   rows+=L.map(function(dv,ix){
     var e9=(dv&&dv.ext)?dv.ext:_PA9.ext, sp9=_extSplit9(e9);
     var c9=(dv&&dv.cnt!=null&&dv.cnt!=='')?dv.cnt:((L.length===1&&_PA9.cnt!=null)?_PA9.cnt:'');
     var tag9=(dv&&dv.xy&&dv.xy.length===2&&typeof mnPosTag9==='function')?mnPosTag9(mh.wx,mh.wy,dv.xy[0],dv.xy[1]):'';
     return '<tr>'
-      +'<td style="padding:5px 4px;border:1px solid #e2e8db;font-weight:700;color:#33691e">'+(ix+1)+'. '+_facNm9+'</td>'
-      +'<td style="padding:5px 3px;border:1px solid #e2e8db;text-align:center;color:#0f7a86;font-weight:800">'+(sp9.kind||'-')+'</td>'
-      +'<td style="padding:5px 3px;border:1px solid #e2e8db;text-align:center;color:#0f7a86;font-weight:800">'+(sp9.dia||'-')+'</td>'
-      +'<td style="padding:3px;border:1px solid #e2e8db;text-align:center">'+_cntSel9('mhDCnt',ix,c9)+'</td>'
-      +'<td style="padding:5px 4px;border:1px solid #e2e8db;color:#33691e;font-weight:700">'+((dv&&dv.lab)||'')+'<span style="color:#9aa89a;font-weight:600">'+tag9+'</span></td>'
-      +'<td style="padding:3px;border:1px solid #e2e8db;text-align:center"><button class="mhDDelR" data-i="'+ix+'" style="background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:5px;padding:3px 5px;font-size:10.5px;font-weight:800;cursor:pointer">\uC0AD\uC81C</button></td></tr>';
+      +'<td style="padding:5px 4px;border:1px solid #f3dcd9;font-weight:700;color:#b03a2e">'+(ix+1)+'. '+_facNm9+'</td>'
+      +'<td style="padding:5px 3px;border:1px solid #f3dcd9;text-align:center;color:#0f7a86;font-weight:800">'+(sp9.kind||'-')+'</td>'
+      +'<td style="padding:5px 3px;border:1px solid #f3dcd9;text-align:center;color:#0f7a86;font-weight:800">'+(sp9.dia||'-')+'</td>'
+      +'<td style="padding:3px;border:1px solid #f3dcd9;text-align:center">'+_cntSel9('mhDCnt',ix,c9)+'</td>'
+      +'<td style="padding:5px 4px;border:1px solid #f3dcd9;color:#8c3a30;font-weight:700">'+((dv&&dv.lab)||'')+'<span style="color:#9aa89a;font-weight:600">'+tag9+'</span></td>'
+      +'<td style="padding:3px;border:1px solid #f3dcd9;text-align:center"><button class="mhDDelR" data-i="'+ix+'" style="background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:5px;padding:3px 5px;font-size:10.5px;font-weight:800;cursor:pointer">\uC0AD\uC81C</button></td></tr>';
   }).join('');
   rows+='</table>';
-  if(!L.length)rows='<div style="background:#fff;border:1.5px dashed #dbe4d2;border-radius:8px;padding:12px 9px;margin:4px 0;font-size:12px;color:#9aa;text-align:center">\uC9C0\uC815\uB41C \uC5F0\uACB0 \uAD6C\uAC04\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div>';
+  if(!L.length)rows='<div style="background:#fff;border:1.5px dashed #f0c5c0;border-radius:8px;padding:12px 9px;margin:4px 0;font-size:12px;color:#9aa;text-align:center">\uC9C0\uC815\uB41C \uC5F0\uACB0 \uAD6C\uAC04\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div>';
   var _okSum9=(_PA9.cnt==null)||(_SUM9==null)||(_SUM9===_PA9.cnt);
-  var sumBar=L.length?('<div style="display:flex;align-items:center;gap:6px;margin-top:7px;font-size:11.5px;font-weight:800;padding:6px 8px;border-radius:7px;background:'+(_okSum9?'#eef7e6':'#fdecea')+';border:1px solid '+(_okSum9?'#c5dfae':'#ef9a9a')+';color:'+(_okSum9?'#33691e':'#c62828')+'">'
+  var sumBar=L.length?('<div style="display:flex;align-items:center;gap:6px;margin-top:7px;font-size:11.5px;font-weight:800;padding:6px 8px;border-radius:7px;background:'+(_okSum9?'#fdf3f1':'#fdecea')+';border:1px solid '+(_okSum9?'#f0c5c0':'#e57373')+';color:'+(_okSum9?'#b03a2e':'#c62828')+'">'
    +'<span style="flex:1">\uBC30\uBD84 \uD569\uACC4 '+((_SUM9==null)?'-':_SUM9)+' / \uCD1D '+((_PA9.cnt==null)?'-':_PA9.cnt)+'</span>'
    +'<span>'+(_okSum9?'\uC77C\uCE58':'\u26A0 \uBD88\uC77C\uCE58')+'</span></div>'):'';
 
@@ -9314,19 +9314,19 @@ function mhDestPanel(mh,forcePick){
       +'<button id="mhDJb2" style="flex:0.95;min-width:0;background:#fff;color:#8e44ad;border:1.5px solid #c39bd3;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden;display:flex;align-items:center;justify-content:center;">\uD83D\uDD0C JB/인입</button></div></div>';
   var w=document.createElement('div');w.id='mhDestModal';
   w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:14dvh';
-  w.innerHTML='<div style="background:#f1f8e9;border:1.5px solid #558b2f;border-radius:12px;width:min(88vw,330px);padding:13px 14px">'
+  w.innerHTML='<div style="background:#fdf3f1;border:1.5px solid #c0392b;border-radius:12px;width:min(88vw,330px);padding:13px 14px">'
     +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">'
-      +'<div style="flex:1;min-width:0;font-weight:800;font-size:13.5px;color:#558b2f;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_facNm9+'</div>'
+      +'<div style="flex:1;min-width:0;font-weight:800;font-size:13.5px;color:#b03a2e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_facNm9+'</div>'
       +'<button id="mhDAdd" style="flex:none;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:8px;padding:5px 13px;font-weight:800;font-size:12.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;">추가</button></div>'
-    +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:9px;background:#fff;border:1.5px solid #2e7d32;border-radius:8px;padding:7px 9px">'
-      +'<span style="flex:none;font-size:11px;font-weight:800;color:#558b2f">\uC55E\uC810 \uAD00\uC815\uBCF4</span>'
-      +'<select id="mhPExt" style="flex:1;min-width:0;font-size:12px;font-weight:800;color:#0f7a86;border:1px solid #b9c9b0;border-radius:5px;padding:4px 2px;background:#fff"><option value="">(\uC678\uAD00)</option>'+_optE9.map(function(o){return '<option'+((o===_PA9.ext)?' selected':'')+'>'+o+'</option>';}).join('')+'</select>'
-      +'<span style="flex:none;font-size:11px;font-weight:800;color:#558b2f">\uCD1D</span>'
+    +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:9px;background:#fff;border:1.5px solid #c0392b;border-radius:8px;padding:7px 9px">'
+      +'<span style="flex:none;font-size:11px;font-weight:800;color:#b03a2e">\uC55E\uC810 \uAD00\uC815\uBCF4</span>'
+      +'<select id="mhPExt" style="flex:1;min-width:0;font-size:12px;font-weight:800;color:#0f7a86;border:1px solid #e0b4ae;border-radius:5px;padding:4px 2px;background:#fff"><option value="">(\uC678\uAD00)</option>'+_optE9.map(function(o){return '<option'+((o===_PA9.ext)?' selected':'')+'>'+o+'</option>';}).join('')+'</select>'
+      +'<span style="flex:none;font-size:11px;font-weight:800;color:#b03a2e">\uCD1D</span>'
       +_cntSel9('mhPCntS',-1,((_PA9.cnt==null)?'':_PA9.cnt))
       +'</div>'
     +pick
-    +'<div style="border:1.5px solid #2e7d32;border-radius:9px;background:#fff;max-height:32dvh;overflow:auto;padding:4px 6px">'+rows+'</div>'+sumBar
-    +'<div style="display:flex;gap:7px;margin-top:11px">'+'<button id="mhDReg" style="flex:1;background:#2e7d32;color:#fff;border:0;border-radius:9px;padding:10px;font-weight:800;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">구간등록</button>'+'<button id="mhDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">닫기</button></div></div>';
+    +'<div style="border:1.5px solid #c0392b;border-radius:9px;background:#fff;max-height:32dvh;overflow:auto;padding:4px 6px">'+rows+'</div>'+sumBar
+    +'<div style="display:flex;gap:7px;margin-top:11px">'+'<button id="mhDReg" style="flex:1;background:#c0392b;color:#fff;border:0;border-radius:9px;padding:10px;font-weight:800;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">구간등록</button>'+'<button id="mhDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">닫기</button></div></div>';
   document.body.appendChild(w);
   var _ad=w.querySelector('#mhDAdd');if(_ad)_ad.onclick=function(){var pk=w.querySelector('#mhDPick');if(pk)pk.style.display=(pk.style.display==='none')?'block':'none';};
   var _b1=w.querySelector('#mhDMh2');if(_b1)_b1.onclick=function(){w.remove();_facAddDest(mh,'mh',null);};
