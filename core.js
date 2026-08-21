@@ -9200,7 +9200,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     try{_dirLinkRefresh9();}catch(_r8){}
     if(typeof toast==='function')toast(((typeof IS_TANGO!=='undefined')&&IS_TANGO)?('\uB4F1\uB85D \uC644\uB8CC'+(_n8>=0?(' \u2014 \uCD1D '+_n8+'\uAD6C\uAC04'):'')):'\uB4F1\uB85D \uC644\uB8CC');
   };
-  var _bNo=w.querySelector('#mnDNo2');if(_bNo)_bNo.onclick=function(){w.remove();};
+  var _bNo=w.querySelector('#mnDNo2');if(_bNo)_bNo.onclick=function(){w.remove();try{_dirLinkRefresh9();}catch(_c9){}};/* [BUILD1977] 닫을 때도 버튼 갱신 */
   w.onclick=function(e){if(e.target===w)w.remove();};
   /* [1066/1067] 입상 — 도면에서 직접 클릭해 고른다 */
   function pickRiser(lab){
@@ -9515,7 +9515,7 @@ function _mhCntDone9(mh){
     ['d1','d2','d3','d4'].forEach(function(k){
       var LK=(r.destL&&r.destL[k])||[];if(!LK.length)return;
       var WP=(typeof _wallPipe9==='function')?_wallPipe9(r,k):null;if(!WP||WP.cnt==null)return;
-      var src9=(typeof _mnMhOfRec9==='function')?_mnMhOfRec9(mh):null;
+      var src9=(mh&&mh.wx!=null)?mh:null;/* [BUILD1977] mh는 이미 맨홀 — _mnMhOfRec9(야장용)에 넣으면 항상 null이 되어 계승값이 통째로 빠졌다 */
       var sm=null;LK.forEach(function(d){
         if(!d)return;
         var v=(d.cnt!=null&&d.cnt!=='')?d.cnt:null;
@@ -9713,7 +9713,7 @@ function mhDestPanel(mh,forcePick){
   };}
   var _rg=w.querySelector('#mhDReg');if(_rg)_rg.onclick=function(){w.remove();/* [BUILD1941] 등록 후 자동 닫기 */var n9=_facSegApply9(mh);
     try{var _wr9=auxPipeWrite9(mh);if(_wr9&&typeof toast==='function')setTimeout(function(){toast('\uAD00\uC815\uBCF4 '+_wr9+'\uAD6C\uAC04 \uBC18\uC601(\uC678\uAD00\u00B7\uAD00\uC218)');},900);}catch(_pw9){}/* [BUILD1960] */if(typeof toast==='function')toast(n9>=0?('구간 등록 완료 — 총 '+n9+'구간'+((window._facPick9!=null&&window._facPick9>=0)?(' / '+(window._facPick9+1)+'구간 선택'):'')):'구간 등록 완료');};/* [BUILD1940] */
-  var _no=w.querySelector('#mhDNo2');if(_no)_no.onclick=function(){w.remove();};
+  var _no=w.querySelector('#mhDNo2');if(_no)_no.onclick=function(){w.remove();try{_dirLinkRefresh9();}catch(_c8){}};/* [BUILD1977] */
   w.onclick=function(e){if(e.target===w)w.remove();};
 }
 /* [BUILD 983] 맨홀도 DXF — 규격샘플 템플릿(dxf/) fetch → 마커치환 + 관 실좌표 재그리기 */
