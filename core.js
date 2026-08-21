@@ -8823,12 +8823,12 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
   function _re(f2){mnAskDest(cur,dn,cb,rec,dk,f2);}
   var rows=L.map(function(dv,ix){
     var on=(ix===mainI);
-    return '<div style="display:flex;align-items:center;gap:6px;border-bottom:1px solid #eef3e7;padding:7px 3px">'
+    return '<div style="display:flex;align-items:center;gap:7px;background:#fff;border:1.5px solid '+(on?'#7cb342':'#dbe4d2')+';border-left:4px solid '+(on?'#2e7d32':'#dbe4d2')+';border-radius:8px;padding:8px 9px;margin-bottom:6px;box-shadow:0 1px 2px rgba(0,0,0,.05)">'
       +'<button class="mnDMainB" data-i="'+ix+'" title="\uC8FC\uBC29\uD5A5" style="flex:none;width:31px;height:26px;border-radius:6px;border:1.5px solid '+(on?'#2e7d32':'#cfd8c0')+';background:'+(on?'#2e7d32':'#fff')+';color:'+(on?'#fff':'#9aa89a')+';font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uC8FC</button>'
       +'<span class="mnDGoR" data-i="'+ix+'" title="\uAD6C\uAC04 \uBCF4\uAE30" style="flex:1;min-width:0;font-size:12.5px;font-weight:'+(on?'800':'700')+';color:'+(on?'#1b5e20':'#33691e')+';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer">'+(ix+1)+'. '+((typeof joseoEsc==='function')?joseoEsc((dv&&dv.lab)||''):((dv&&dv.lab)||''))+'<span style="color:#9aa89a;font-weight:700">'+((_src9&&dv&&dv.xy&&dv.xy.length===2&&typeof mnPosTag9==='function')?mnPosTag9(_src9.wx,_src9.wy,dv.xy[0],dv.xy[1]):'')+'</span>'+((dv&&dv._auto)?'<span style="color:#b0bcb0;font-size:10px;font-weight:800"> \uC790\uB3D9</span>':'')+'</span>'
       +'<button class="mnDDelR" data-i="'+ix+'" style="flex:none;background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uC0AD\uC81C</button></div>';
   }).join('');
-  if(!rows)rows='<div style="padding:11px 3px;font-size:12px;color:#9aa">\uC9C0\uC815\uB41C \uBC29\uD5A5\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div>';
+  if(!rows)rows='<div style="background:#fff;border:1.5px dashed #dbe4d2;border-radius:8px;padding:12px 9px;margin-bottom:6px;font-size:12px;color:#9aa;text-align:center">\uC9C0\uC815\uB41C \uBC29\uD5A5\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div>';
   /* [BUILD1949] 도면(보조 시설물)에서 이 벽으로 연결된 항목 — 근거 θ 표기 + [편입] */
   var _AX9=[],_TH9=null;
   try{
@@ -8846,7 +8846,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
   var auxRows='';
   if(_AX9.length){
     auxRows=badge+_AX9.map(function(a,ax){
-      return '<div style="display:flex;align-items:center;gap:6px;border-bottom:1px dashed #dfe6d6;padding:7px 3px;background:#fafcf7">'
+      return '<div style="display:flex;align-items:center;gap:7px;background:#fff;border:1.5px dashed '+(a.low?'#ef9a9a':'#b8cdd8')+';border-left:4px solid '+(a.low?'#c62828':'#90caf9')+';border-radius:8px;padding:8px 9px;margin-bottom:6px">'
         +'<span style="flex:none;font-size:10.5px;color:'+(a.low?'#c62828':'#7d8f7d')+';font-weight:800">\u25C1\uB3C4\uBA74'+(a.low?'?':'')+'</span>'
         +'<span style="flex:1;min-width:0;font-size:12px;font-weight:700;color:#6b7d6b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+((typeof joseoEsc==='function')?joseoEsc(a.lab):a.lab)+'<span style="color:#a9b6a9">'+((_src9&&a.m&&typeof mnPosTag9==='function')?mnPosTag9(_src9.wx,_src9.wy,a.m.wx,a.m.wy):'')+'</span></span>'
         +'<button class="mnDJoinB" data-i="'+ax+'" style="flex:none;background:#fff;color:#1565c0;border:1.5px solid #90caf9;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uD3B8\uC785</button></div>';
@@ -9056,11 +9056,11 @@ function mhDestPanel(mh,forcePick){
   var L=mh.dests;
   var showPick=(forcePick===true)||(L.length===0);/* [BUILD1939] 구간 0건이면 대상 선택 화면 우선 */
   var rows=L.map(function(dv,ix){
-    return '<div style="display:flex;align-items:center;gap:7px;border-bottom:1px solid #eef3e7;padding:7px 3px">'
+    return '<div style="display:flex;align-items:center;gap:7px;background:#fff;border:1.5px solid #dbe4d2;border-left:4px solid #7cb342;border-radius:8px;padding:8px 9px;margin-bottom:6px;box-shadow:0 1px 2px rgba(0,0,0,.05)">'
       +'<span style="flex:1;min-width:0;font-size:12.5px;font-weight:700;color:#33691e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(ix+1)+'. '+((dv&&dv.lab)||'')+'<span style="color:#9aa89a">'+((dv&&dv.xy&&dv.xy.length===2&&typeof mnPosTag9==='function')?mnPosTag9(mh.wx,mh.wy,dv.xy[0],dv.xy[1]):'')+'</span></span>'
       +'<button class="mhDDelR" data-i="'+ix+'" style="flex:none;background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;">삭제</button></div>';
   }).join('');
-  if(!rows)rows='<div style="padding:11px 3px;font-size:12px;color:#9aa">지정된 연결 구간이 없습니다</div>';
+  if(!rows)rows='<div style="background:#fff;border:1.5px dashed #dbe4d2;border-radius:8px;padding:12px 9px;margin-bottom:6px;font-size:12px;color:#9aa;text-align:center">지정된 연결 구간이 없습니다</div>';
   /* [BUILD1949] 역방향 — 맨홀 야장에서 이 시설물을 지정한 건 읽기전용 표시 */
   try{
     var RV9=(typeof mnRevLinks9==='function')?mnRevLinks9(mh):[];
@@ -9069,7 +9069,7 @@ function mhDestPanel(mh,forcePick){
       var dup=false;L.forEach(function(d){if(d&&String(d.lab||'')===String(q.lab))dup=true;});return !dup;});
     if(rv9.length){
       rows+=rv9.map(function(q){
-        return '<div style="display:flex;align-items:center;gap:6px;border-bottom:1px dashed #dfe6d6;padding:7px 3px;background:#fafcf7">'
+        return '<div style="display:flex;align-items:center;gap:7px;background:#fff;border:1.5px dashed #b8cdd8;border-left:4px solid #90caf9;border-radius:8px;padding:8px 9px;margin-bottom:6px">'
           +'<span style="flex:none;font-size:10.5px;color:#7d8f7d;font-weight:800">\u25C1\uC57C\uC7A5</span>'
           +'<span style="flex:1;min-width:0;font-size:12px;font-weight:700;color:#6b7d6b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+q.lab+' <span style="color:#9aa89a">('+q.wall+'\uBCBD)</span></span></div>';
       }).join('');
