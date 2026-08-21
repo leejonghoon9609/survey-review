@@ -9131,7 +9131,9 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     if(!LK[q.ix].ext&&WP&&WP.kind)LK[q.ix].ext=_extOf9(WP.kind,WP.dia);
     try{if(_src9&&LK[q.ix].xy){_cntLink9(_src9.wx,_src9.wy,LK[q.ix].xy[0],LK[q.ix].xy[1],num);
       if(LK[q.ix].ext)_extLink9(_src9.wx,_src9.wy,LK[q.ix].xy[0],LK[q.ix].xy[1],LK[q.ix].ext);}}catch(_cl9){}/* [BUILD1964/1965] */
-    mnDestSync(rec,q.k);_touch();_re(false);
+    mnDestSync(rec,q.k);_touch();
+    try{_dirLinkRefresh9();}catch(_rf6){}/* [BUILD1973] */
+    _re(false);
   }
   w.querySelectorAll('.mnDCnt').forEach(function(b){b.onchange=function(){
     var n=+this.getAttribute('data-i');
@@ -9416,6 +9418,12 @@ function _extLink9(sx,sy,tx,ty,ext){
   }catch(_e){}
   return n;
 }
+/* [BUILD1973] 연동 반영 후 화면 동기 — 맨홀도 시트 + 도면 버튼(완료 링·건수) */
+function _dirLinkRefresh9(){
+  try{if(typeof window.mnRerenderSheet==='function')window.mnRerenderSheet();}catch(_r1){}
+  try{if(typeof drawManholes==='function')drawManholes();}catch(_r2){}
+  try{if(typeof refDrawMh==='function')refDrawMh();}catch(_r3){}
+}
 /* [BUILD1972] 도면 방향 버튼 완료 표시 — 관수 배분이 총계와 일치하면 true */
 function _auxCntDone9(m){
   try{
@@ -9575,6 +9583,7 @@ function mhDestPanel(mh,forcePick){
   var _pe=w.querySelector('#mhPExt');if(_pe)_pe.onchange=function(){
     mh._pExt=this.value;
     try{(mh.dests||[]).forEach(function(d){if(!d)return;d.ext=mh._pExt;if(d.xy)_extLink9(mh.wx,mh.wy,d.xy[0],d.xy[1],mh._pExt);});}catch(_el9){}/* [BUILD1965] 외관 연동 */
+    try{_dirLinkRefresh9();}catch(_rf9){}/* [BUILD1973] */
     if(typeof saveProject==='function')try{saveProject();}catch(_s){}mhDestPanel(mh);};
   /* [BUILD1961] 총 관수 — 드롭다운/직접입력 */
   function _cntApply9(v,setter){
@@ -9596,7 +9605,9 @@ function mhDestPanel(mh,forcePick){
     var n=(v===''||v==null)?null:(+String(v).replace(/[^0-9]/g,'')||null);
     mh.dests[ix].cnt=n;
     if(!mh.dests[ix].ext)mh.dests[ix].ext=auxPipeAll9(mh).ext;
-    try{if(mh.dests[ix].xy)_cntLink9(mh.wx,mh.wy,mh.dests[ix].xy[0],mh.dests[ix].xy[1],n);}catch(_cl8){}/* [BUILD1964] */
+    try{if(mh.dests[ix].xy){_cntLink9(mh.wx,mh.wy,mh.dests[ix].xy[0],mh.dests[ix].xy[1],n);
+      if(mh.dests[ix].ext)_extLink9(mh.wx,mh.wy,mh.dests[ix].xy[0],mh.dests[ix].xy[1],mh.dests[ix].ext);}}catch(_cl8){}/* [BUILD1964/1965] */
+    try{_dirLinkRefresh9();}catch(_rf8){}/* [BUILD1973] */
     if(typeof saveProject==='function')try{saveProject();}catch(_s3){}
     mhDestPanel(mh);
   }
@@ -9613,6 +9624,7 @@ function mhDestPanel(mh,forcePick){
     var ix=+this.getAttribute('data-i');
     if(typeof pushHist==='function'){try{pushHist();}catch(_ph2){}}
     mh.dests.splice(ix,1);
+    try{_dirLinkRefresh9();}catch(_rf7){}/* [BUILD1973] */
     var _sd9=_facSegApply9();
     if(typeof toast==='function')toast('연결 구간 삭제'+(_sd9>=0?(' / 총 '+_sd9+'구간'):''));
     mhDestPanel(mh);
