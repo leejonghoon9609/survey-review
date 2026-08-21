@@ -8669,41 +8669,44 @@ function _facAddDest(mh,kind,re){
   },null,{anchor:[mh.wx,mh.wy],barColor:'#1565c0',colorFn:function(){return '#1565c0';},msg:'연결 대상을 도면에서 클릭하세요 ('+items.length+'개)'});}catch(_pe){ok=false;}
   if(!ok){if(typeof toast==='function')toast('도면 선택을 시작할 수 없습니다');mhDestPanel(mh);}
 }
-function mhDestPanel(mh){
+function mhDestPanel(mh,forcePick){
   if(!mh)return;
   var old=document.getElementById('mhDestModal');if(old)old.remove();
   if(!mh.dests)mh.dests=[];
   var L=mh.dests;
-  var rows=L.map(function(d,i){
-    return '<div style="display:flex;align-items:center;gap:6px;border-bottom:1px solid #eef3e7;padding:6px 3px">'
-      +'<span style="flex:1;min-width:0;font-size:12.5px;font-weight:700;color:#33691e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(i+1)+'. '+((d&&d.lab)||'')+'</span>'
-      +'<button class="mhDDelR" data-i="'+i+'" style="flex:none;background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:6px;padding:3px 9px;font-size:11.5px;font-weight:800;cursor:pointer">삭제</button></div>';
+  var showPick=(forcePick===true)||(L.length===0);/* [BUILD1939] 구간 0건이면 대상 선택 화면 우선 */
+  var rows=L.map(function(dv,ix){
+    return '<div style="display:flex;align-items:center;gap:7px;border-bottom:1px solid #eef3e7;padding:7px 3px">'
+      +'<span style="flex:1;min-width:0;font-size:12.5px;font-weight:700;color:#33691e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(ix+1)+'. '+((dv&&dv.lab)||'')+'</span>'
+      +'<button class="mhDDelR" data-i="'+ix+'" style="flex:none;background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer">삭제</button></div>';
   }).join('');
   if(!rows)rows='<div style="padding:11px 3px;font-size:12px;color:#9aa">지정된 연결 구간이 없습니다</div>';
+  var pick='<div id="mhDPick" style="display:'+(showPick?'block':'none')+';margin-bottom:10px">'
+    +'<button id="mhDMh2" style="width:100%;box-sizing:border-box;background:#fff;color:#1d9e75;border:1.5px solid #1d9e75;border-radius:9px;padding:11px 2px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;justify-content:center">\uD83D\uDD73&nbsp;<span style="letter-spacing:8px;margin-right:-8px">맨홀</span></button>'
+    +'<div style="display:flex;gap:5px;margin-top:7px">'
+      +'<button id="mhDJeon2" style="flex:1;min-width:0;background:#fff;color:#7a6a3a;border:1.5px solid #b9a86a;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden">\uD83D\uDDFC 전주입상</button>'
+      +'<button id="mhDTong2" style="flex:1.15;min-width:0;background:#fff;color:#2471a3;border:1.5px solid #8fb8d6;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden">\uD83D\uDCE1 통신주입상</button>'
+      +'<button id="mhDJb2" style="flex:0.95;min-width:0;background:#fff;color:#8e44ad;border:1.5px solid #c39bd3;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden">\uD83D\uDD0C JB/인입</button></div></div>';
   var w=document.createElement('div');w.id='mhDestModal';
   w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:14dvh';
   w.innerHTML='<div style="background:#f1f8e9;border:1.5px solid #558b2f;border-radius:12px;width:min(88vw,330px);padding:13px 14px">'
-    +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:9px">'
-      +'<div style="flex:1;min-width:0;font-weight:800;font-size:13.5px;color:#558b2f;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">연결 구간 — '+_facDestTit(mh)+'</div>'
+    +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">'
+      +'<div style="flex:1;min-width:0;font-weight:800;font-size:13.5px;color:#558b2f;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">연결 구간 \u2014 '+_facDestTit(mh)+'</div>'
       +'<button id="mhDAdd" style="flex:none;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:8px;padding:5px 13px;font-weight:800;font-size:12.5px;cursor:pointer">추가</button></div>'
-    +'<div id="mhDPick" style="display:none;gap:5px;margin-bottom:9px">'
-      +'<button id="mhDMh2" style="flex:1;min-width:0;background:#fff;color:#1d9e75;border:1.5px solid #1d9e75;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden">맨홀</button>'
-      +'<button id="mhDJeon2" style="flex:1;min-width:0;background:#fff;color:#7a6a3a;border:1.5px solid #b9a86a;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden">전주입상</button>'
-      +'<button id="mhDTong2" style="flex:1.1;min-width:0;background:#fff;color:#2471a3;border:1.5px solid #8fb8d6;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden">통신주입상</button>'
-      +'<button id="mhDJb2" style="flex:0.95;min-width:0;background:#fff;color:#8e44ad;border:1.5px solid #c39bd3;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden">JB/인입</button></div>'
-    +'<div style="border:1.5px solid #2e7d32;border-radius:9px;background:#fff;max-height:34dvh;overflow:auto;padding:2px 8px">'+rows+'</div>'
+    +pick
+    +'<div style="border:1.5px solid #2e7d32;border-radius:9px;background:#fff;max-height:32dvh;overflow:auto;padding:2px 9px">'+rows+'</div>'
     +'<div style="display:flex;gap:7px;margin-top:11px"><button id="mhDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;cursor:pointer">닫기</button></div></div>';
   document.body.appendChild(w);
-  var _ad=w.querySelector('#mhDAdd');if(_ad)_ad.onclick=function(){var pk=w.querySelector('#mhDPick');pk.style.display=(pk.style.display==='none')?'flex':'none';};
+  var _ad=w.querySelector('#mhDAdd');if(_ad)_ad.onclick=function(){var pk=w.querySelector('#mhDPick');if(pk)pk.style.display=(pk.style.display==='none')?'block':'none';};
   var _b1=w.querySelector('#mhDMh2');if(_b1)_b1.onclick=function(){w.remove();_facAddDest(mh,'mh',null);};
   var _b2=w.querySelector('#mhDJeon2');if(_b2)_b2.onclick=function(){w.remove();_facAddDest(mh,'riser',/한전주|전주/);};
   var _b3=w.querySelector('#mhDTong2');if(_b3)_b3.onclick=function(){w.remove();_facAddDest(mh,'riser',/통신주/);};
   var _b4=w.querySelector('#mhDJb2');if(_b4)_b4.onclick=function(){w.remove();_facAddDest(mh,'jb',null);};
   var _dl=w.querySelectorAll('.mhDDelR');
   for(var _di=0;_di<_dl.length;_di++){_dl[_di].onclick=function(){
-    var i=+this.getAttribute('data-i');
+    var ix=+this.getAttribute('data-i');
     if(typeof pushHist==='function'){try{pushHist();}catch(_ph2){}}
-    mh.dests.splice(i,1);
+    mh.dests.splice(ix,1);
     if(typeof saveProject==='function'){try{saveProject();}catch(_sv2){}}
     if(typeof redrawAll==='function'){try{redrawAll();}catch(_rd2){}}
     if(typeof toast==='function')toast('연결 구간 삭제');
