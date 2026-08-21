@@ -9227,6 +9227,20 @@ function auxPipeSum9(m){
   ((m&&m.dests)||[]).forEach(function(d){if(!d)return;if(d.cnt!=null&&d.cnt!==''){n+=(+d.cnt||0);any=true;}});
   return any?n:null;
 }
+/* [BUILD1961] 관수 선택 — 1~10 드롭다운 + 직접입력(_c) */
+function _cntSel9(cls,ix,cur){
+  var v=(cur===''||cur==null)?'':String(cur);
+  var std=(v!==''&&/^([1-9]|10)$/.test(v));
+  var cst=(v!==''&&!std);
+  var o='<option value=""></option>';
+  for(var i=1;i<=10;i++)o+='<option value="'+i+'"'+((std&&+v===i)?' selected':'')+'>'+i+'</option>';
+  o+='<option value="_c"'+(cst?' selected':'')+'>\uC9C1\uC811\uC785\uB825</option>';
+  var idA=(ix>=0)?(' data-i="'+ix+'"'):'';
+  return '<span style="display:inline-flex;align-items:center;gap:2px">'
+    +'<select class="'+cls+'"'+idA+' style="width:'+(cst?'52':'46')+'px;text-align:center;font-size:12px;font-weight:800;color:#0f7a86;border:1px solid #b9c9b0;border-radius:4px;padding:3px 1px;background:#fff;cursor:pointer">'+o+'</select>'
+    +'<input class="'+cls+'C"'+idA+' value="'+(cst?v:'')+'" inputmode="numeric" style="display:'+(cst?'inline-block':'none')+';width:34px;text-align:center;font-size:12px;font-weight:800;color:#0f7a86;border:1px solid #b9c9b0;border-radius:4px;padding:3px 1px">'
+    +'</span>';
+}
 /* [BUILD1960] 방향별 관정보를 해당 구간의 외관·관수로 반영 */
 function auxPipeWrite9(mh){
   var n=0;
@@ -9280,7 +9294,7 @@ function mhDestPanel(mh,forcePick){
       +'<td style="padding:5px 4px;border:1px solid #e2e8db;font-weight:700;color:#33691e">'+(ix+1)+'. '+_facNm9+'</td>'
       +'<td style="padding:5px 3px;border:1px solid #e2e8db;text-align:center;color:#0f7a86;font-weight:800">'+(sp9.kind||'-')+'</td>'
       +'<td style="padding:5px 3px;border:1px solid #e2e8db;text-align:center;color:#0f7a86;font-weight:800">'+(sp9.dia||'-')+'</td>'
-      +'<td style="padding:3px;border:1px solid #e2e8db;text-align:center"><input class="mhDCnt" data-i="'+ix+'" value="'+(c9===''?'':c9)+'" inputmode="numeric" style="width:38px;text-align:center;font-size:12px;font-weight:800;color:#0f7a86;border:1px solid #b9c9b0;border-radius:4px;padding:3px 2px"></td>'
+      +'<td style="padding:3px;border:1px solid #e2e8db;text-align:center">'+_cntSel9('mhDCnt',ix,c9)+'</td>'
       +'<td style="padding:5px 4px;border:1px solid #e2e8db;color:#33691e;font-weight:700">'+((dv&&dv.lab)||'')+'<span style="color:#9aa89a;font-weight:600">'+tag9+'</span></td>'
       +'<td style="padding:3px;border:1px solid #e2e8db;text-align:center"><button class="mhDDelR" data-i="'+ix+'" style="background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:5px;padding:3px 5px;font-size:10.5px;font-weight:800;cursor:pointer">\uC0AD\uC81C</button></td></tr>';
   }).join('');
@@ -9308,7 +9322,7 @@ function mhDestPanel(mh,forcePick){
       +'<span style="flex:none;font-size:11px;font-weight:800;color:#558b2f">\uC55E\uC810 \uAD00\uC815\uBCF4</span>'
       +'<select id="mhPExt" style="flex:1;min-width:0;font-size:12px;font-weight:800;color:#0f7a86;border:1px solid #b9c9b0;border-radius:5px;padding:4px 2px;background:#fff"><option value="">(\uC678\uAD00)</option>'+_optE9.map(function(o){return '<option'+((o===_PA9.ext)?' selected':'')+'>'+o+'</option>';}).join('')+'</select>'
       +'<span style="flex:none;font-size:11px;font-weight:800;color:#558b2f">\uCD1D</span>'
-      +'<input id="mhPCnt" value="'+((_PA9.cnt==null)?'':_PA9.cnt)+'" inputmode="numeric" style="flex:none;width:40px;text-align:center;font-size:12px;font-weight:800;color:#0f7a86;border:1px solid #b9c9b0;border-radius:5px;padding:4px 2px">'
+      +_cntSel9('mhPCntS',-1,((_PA9.cnt==null)?'':_PA9.cnt))
       +'</div>'
     +pick
     +'<div style="border:1.5px solid #2e7d32;border-radius:9px;background:#fff;max-height:32dvh;overflow:auto;padding:4px 6px">'+rows+'</div>'+sumBar
@@ -9321,17 +9335,37 @@ function mhDestPanel(mh,forcePick){
   var _b4=w.querySelector('#mhDJb2');if(_b4)_b4.onclick=function(){w.remove();_facAddDest(mh,'jb',null);};
   /* [BUILD1960] 앞점 총계 편집 */
   var _pe=w.querySelector('#mhPExt');if(_pe)_pe.onchange=function(){mh._pExt=this.value;if(typeof saveProject==='function')try{saveProject();}catch(_s){}mhDestPanel(mh);};
-  var _pc=w.querySelector('#mhPCnt');if(_pc)_pc.onchange=function(){var v=(this.value||'').replace(/[^0-9]/g,'');mh._pCnt=(v===''?null:+v);if(typeof saveProject==='function')try{saveProject();}catch(_s2){}mhDestPanel(mh);};
+  /* [BUILD1961] 총 관수 — 드롭다운/직접입력 */
+  function _cntApply9(v,setter){
+    var n=(v===''||v==null)?null:(+String(v).replace(/[^0-9]/g,'')||null);
+    setter(n);
+    if(typeof saveProject==='function')try{saveProject();}catch(_s2){}
+    mhDestPanel(mh);
+  }
+  var _pcS=w.querySelector('.mhPCntS');
+  var _pcC=w.querySelector('.mhPCntSC');
+  if(_pcS)_pcS.onchange=function(){
+    if(this.value==='_c'){if(_pcC){_pcC.style.display='inline-block';_pcC.focus();}return;}
+    _cntApply9(this.value,function(n){mh._pCnt=n;});
+  };
+  if(_pcC)_pcC.onchange=function(){_cntApply9(this.value,function(n){mh._pCnt=n;});};
   /* [BUILD1960] 행별 관수 배분 */
-  var _cl=w.querySelectorAll('.mhDCnt');
-  for(var _ci2=0;_ci2<_cl.length;_ci2++){_cl[_ci2].onchange=function(){
-    var ix=+this.getAttribute('data-i');var v=(this.value||'').replace(/[^0-9]/g,'');
+  function _rowCnt9(ix,v){
     if(!mh.dests[ix])return;
-    mh.dests[ix].cnt=(v===''?null:+v);
+    var n=(v===''||v==null)?null:(+String(v).replace(/[^0-9]/g,'')||null);
+    mh.dests[ix].cnt=n;
     if(!mh.dests[ix].ext)mh.dests[ix].ext=auxPipeAll9(mh).ext;
     if(typeof saveProject==='function')try{saveProject();}catch(_s3){}
     mhDestPanel(mh);
+  }
+  var _cl=w.querySelectorAll('.mhDCnt');
+  for(var _ci2=0;_ci2<_cl.length;_ci2++){_cl[_ci2].onchange=function(){
+    var ix=+this.getAttribute('data-i');
+    if(this.value==='_c'){var ci=w.querySelector('.mhDCntC[data-i="'+ix+'"]');if(ci){ci.style.display='inline-block';ci.focus();}return;}
+    _rowCnt9(ix,this.value);
   };}
+  var _clC=w.querySelectorAll('.mhDCntC');
+  for(var _ci3=0;_ci3<_clC.length;_ci3++){_clC[_ci3].onchange=function(){_rowCnt9(+this.getAttribute('data-i'),this.value);};}
   var _dl=w.querySelectorAll('.mhDDelR');
   for(var _di=0;_di<_dl.length;_di++){_dl[_di].onclick=function(){
     var ix=+this.getAttribute('data-i');
