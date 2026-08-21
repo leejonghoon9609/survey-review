@@ -8653,6 +8653,14 @@ function mnPosTag9(ax,ay,bx,by){
     return ' \u00B7 '+_MN_D8[i]+' '+(d<10?d.toFixed(1):Math.round(d))+'m';
   }catch(_e){return '';}
 }
+/* [BUILD1951] 중복 판정 — 양쪽 좌표가 있으면 거리로만 판정.
+   좌표가 있는데도 라벨로 떨어뜨리면 이름이 같은 별개 시설물(통신주 2기)이 1기로 합쳐진다. */
+function _mnDupHit9(d,lab,xy){
+  if(!d)return false;
+  var hasA=!!(xy&&xy.length===2),hasB=!!(d.xy&&d.xy.length===2);
+  if(hasA&&hasB)return Math.hypot(d.xy[0]-xy[0],d.xy[1]-xy[1])<0.5;
+  return String(d.lab||'')===String(lab||'');
+}
 /* [BUILD1950] 두 시설물을 잇는 구간 인덱스 */
 function mnSegFind9(a,b){
   try{
@@ -8677,9 +8685,7 @@ function mnAutoJoin9(rec){
     links.forEach(function(a){
       if(!a||!a.dk||!a.m||a.m.wx==null)return;
       var LL=mnDestList(rec,a.dk),dup=false;
-      LL.forEach(function(d){if(!d)return;
-        if(d.xy&&d.xy.length===2&&Math.hypot(d.xy[0]-a.m.wx,d.xy[1]-a.m.wy)<0.5)dup=true;
-        else if(String(d.lab||'')===String(a.lab))dup=true;});
+      LL.forEach(function(d){if(_mnDupHit9(d,a.lab,[a.m.wx,a.m.wy]))dup=true;});
       if(dup)return;
       LL.push({lab:String(a.lab),xy:[a.m.wx,a.m.wy],_auto:1});
       mnDestSync(rec,a.dk);n++;
@@ -8773,9 +8779,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
     ((typeof mnAuxLinks9==='function')?mnAuxLinks9(rec):[]).forEach(function(a){
       if(!a)return;if(a.dk&&a.dk!==dk)return;/* [BUILD1950] 벽 미판정은 전 벽에 노출 */
       var dup=false;
-      L.forEach(function(d){if(!d)return;
-        if(d.xy&&d.xy.length===2&&a.m&&Math.hypot(d.xy[0]-a.m.wx,d.xy[1]-a.m.wy)<0.5)dup=true;
-        else if(String(d.lab||'')===String(a.lab))dup=true;});
+      L.forEach(function(d){if(a.m&&_mnDupHit9(d,a.lab,[a.m.wx,a.m.wy]))dup=true;});
       if(!dup)_AX9.push(a);
     });
   }catch(_ax9){}
@@ -8813,9 +8817,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
     if(!lab||lab==='__DEL__'){_re(false);return;}
     var xy=null;try{if(rec.destXY&&rec.destXY[dk]&&rec.destXY[dk].length===2)xy=[+rec.destXY[dk][0],+rec.destXY[dk][1]];}catch(_e){}
     var LL=mnDestList(rec,dk),dup=false;
-    LL.forEach(function(d){if(!d)return;
-      if(xy&&d.xy&&d.xy.length===2){if(Math.hypot(d.xy[0]-xy[0],d.xy[1]-xy[1])<0.5)dup=true;}
-      else if(String(d.lab||'')===String(lab))dup=true;});
+    LL.forEach(function(d){if(_mnDupHit9(d,lab,xy))dup=true;});
     if(dup){if(typeof toast==='function')toast('\uC774\uBBF8 \uC9C0\uC815\uB41C \uB300\uC0C1\uC785\uB2C8\uB2E4');mnDestSync(rec,dk);_re(false);return;}
     if(typeof pushHist==='function'){try{pushHist();}catch(_ph){}}
     LL.push({lab:String(lab),xy:xy});
