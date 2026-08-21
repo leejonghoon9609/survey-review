@@ -8950,9 +8950,11 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     var on=q.main,dv=q.dv,WP=_wallPipe9(rec,q.k)||{};
     var e9=(dv&&dv.ext)?_extSplit9(dv.ext):{kind:(WP.kind||''),dia:(WP.dia||'')};
     var LKn=mnDestList(rec,q.k).length;
-    var c9=(dv&&dv.cnt!=null&&dv.cnt!=='')?dv.cnt:((LKn===1&&WP.cnt!=null)?WP.cnt:'');
+    var c9=(dv&&dv.cnt!=null&&dv.cnt!=='')?dv.cnt:null;
+    if(c9==null&&_src9&&dv&&dv.xy)c9=_cntPeek9(_src9.wx,_src9.wy,dv.xy[0],dv.xy[1]);/* [BUILD1964] 상대 채널 계승 */
+    if(c9==null)c9=((LKn===1&&WP.cnt!=null)?WP.cnt:'');
     return '<tr'+(on?' style="background:#f4faee"':'')+'>'
-      +'<td style="padding:2px;border:1px solid #e2e8db;text-align:center"><button class="mnDMainB" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uC8FC\uBC29\uD5A5" style="width:22px;height:20px;border-radius:4px;border:1.5px solid '+(on?'#2e7d32':'#cfd8c0')+';background:'+(on?'#2e7d32':'#fff')+';color:'+(on?'#fff':'#9aa89a')+';font-size:10px;font-weight:800;cursor:pointer">\uC8FC</button></td>'
+      +'<td style="padding:2px;border:1px solid #e2e8db;text-align:center"><button class="mnDMainB" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uC8FC\uBC29\uD5A5" style="width:22px;height:20px;border-radius:4px;border:1.5px solid '+(on?'#2e7d32':'#cfd8c0')+';background:'+(on?'#2e7d32':'#fff')+';color:'+(on?'#fff':'#9aa89a')+';font-size:10px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;margin:0 auto;line-height:1">\uC8FC</button></td>'
       +((allW===true)?('<td style="padding:3px 2px;border:1px solid #e2e8db;text-align:center;font-weight:800;color:#33691e;white-space:nowrap">'+_WN8[q.k]+'</td>'):'')
       +'<td style="padding:3px 2px;border:1px solid #e2e8db;text-align:center;color:#0f7a86;font-weight:800;white-space:nowrap">'+(e9.kind||'-')+'</td>'
       +'<td style="padding:3px 2px;border:1px solid #e2e8db;text-align:center;color:#0f7a86;font-weight:800;white-space:nowrap">'+(e9.dia||'-')+'</td>'
@@ -8962,6 +8964,23 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
   }).join('');
   rows+='</table>';
   if(!ALL8.length)rows='<div style="background:#fff;border:1.5px dashed #dbe4d2;border-radius:8px;padding:12px 9px;margin:4px 0;font-size:12px;color:#9aa;text-align:center">\uC9C0\uC815\uB41C \uBC29\uD5A5\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div>';
+  /* [BUILD1964] 벽별 배분 합계 검증 — 관 구성 관수와 대조 */
+  var sumBar='';
+  try{
+    var _bars9=[];
+    _WKS8.forEach(function(k){
+      var LK=mnDestList(rec,k);if(!LK.length)return;
+      var WP=_wallPipe9(rec,k);if(!WP||WP.cnt==null)return;
+      var sm=null;LK.forEach(function(d){if(d&&d.cnt!=null&&d.cnt!==''){sm=(sm||0)+(+d.cnt||0);}});
+      if(sm==null)return;
+      var ok=(sm===WP.cnt);
+      _bars9.push('<div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;font-weight:800;padding:5px 8px;border-radius:7px;background:'+(ok?'#eef7e6':'#fdecea')+';border:1px solid '+(ok?'#c5dfae':'#ef9a9a')+';color:'+(ok?'#33691e':'#c62828')+'">'
+        +'<span style="flex:none">'+_WNO8[k]+'('+_WN8[k]+')</span>'
+        +'<span style="flex:1">\uBC30\uBD84 \uD569\uACC4 '+sm+' / \uCD1D '+WP.cnt+'</span>'
+        +'<span>'+(ok?'\uC77C\uCE58':'\u26A0 \uBD88\uC77C\uCE58')+'</span></div>');
+    });
+    sumBar=_bars9.join('');
+  }catch(_sb9){}
 
   /* [BUILD1949] 도면(보조 시설물)에서 이 벽으로 연결된 항목 — 근거 θ 표기 + [편입] */
   var _AX9=[],_TH9=null;
@@ -9003,7 +9022,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
         +((allW===true)?('<span style="font-weight:700;font-size:10.5px;color:#8d9c8d"> \u00B7 \uC804\uCCB4 '+ALL8.length+'\uAC74</span>'):'')+'</div>'
       +'<button id="mnDAdd" style="flex:none;background:#fff;color:#d32f2f;border:1.5px solid #ef9a9a;border-radius:8px;padding:5px 14px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uCD94\uAC00</button></div>'
     +pick
-    +'<div id="mnDList">'+rows+auxRows+'</div>'+wallBar
+    +'<div id="mnDList">'+rows+auxRows+'</div>'+sumBar+wallBar
     +'<div style="font-size:10.5px;color:#8d9c8d;margin:7px 0 9px;line-height:1.45">\u2605 \uC8FC\uBC29\uD5A5\uB9CC \uB9E8\uD640\uB3C4\u00B7\uC124\uBE44\uC0AC\uC9C4\uC5D1\uC140\u00B7\uD604\uC7A5\uC804\uC790\uC57C\uC7A5\uC5D0 \uD45C\uAE30\uB429\uB2C8\uB2E4. \uAD6C\uAC04\uC740 \uBAA9\uB85D \uC804\uCCB4\uAC00 \uC0DD\uC131\uB429\uB2C8\uB2E4.</div>'
     +'<button id="mnDNo2" style="width:100%;box-sizing:border-box;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">\uB2EB\uAE30</span></button></div>';
   document.body.appendChild(w);
@@ -9065,6 +9084,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     LK[q.ix].cnt=num;
     var WP=_wallPipe9(rec,q.k);
     if(!LK[q.ix].ext&&WP&&WP.kind)LK[q.ix].ext=_extOf9(WP.kind,WP.dia);
+    try{if(_src9&&LK[q.ix].xy)_cntLink9(_src9.wx,_src9.wy,LK[q.ix].xy[0],LK[q.ix].xy[1],num);}catch(_cl9){}/* [BUILD1964] */
     mnDestSync(rec,q.k);_touch();_re(false);
   }
   w.querySelectorAll('.mnDCnt').forEach(function(b){b.onchange=function(){
@@ -9251,6 +9271,57 @@ function auxPipeSum9(m){
   ((m&&m.dests)||[]).forEach(function(d){if(!d)return;if(d.cnt!=null&&d.cnt!==''){n+=(+d.cnt||0);any=true;}});
   return any?n:null;
 }
+/* ===== [BUILD1964] 관수 양방향 공유 =====
+   같은 쌍(맨홀 <-> 보조 시설물)의 관수는 야장 destL 과 보조 dests 어느 쪽에서 넣어도 동일하게 유지된다. */
+function _cntNear9(a,b){return (a&&b&&a.length===2&&b.length===2)?(Math.hypot(a[0]-b[0],a[1]-b[1])<0.5):false;}
+function _cntPeek9(sx,sy,tx,ty){/* 상대 채널에 이미 들어간 관수 */
+  try{
+    var v=null;
+    (state.manholes||[]).forEach(function(m){
+      if(v!=null||!m||m.wx==null||!m.dests)return;
+      var atT=_cntNear9([m.wx,m.wy],[tx,ty]),atS=_cntNear9([m.wx,m.wy],[sx,sy]);
+      if(!atT&&!atS)return;
+      var o=atT?[sx,sy]:[tx,ty];
+      m.dests.forEach(function(d){if(v==null&&d&&_cntNear9(d.xy,o)&&d.cnt!=null&&d.cnt!=='')v=d.cnt;});
+    });
+    if(v!=null)return v;
+    (state.mnList||[]).forEach(function(r){
+      if(v!=null||!r||r.delAt||r.mhId==null||!r.destL)return;
+      var mm=(typeof _mnMhOfRec9==='function')?_mnMhOfRec9(r):null;if(!mm||mm.wx==null)return;
+      var atS=_cntNear9([mm.wx,mm.wy],[sx,sy]),atT=_cntNear9([mm.wx,mm.wy],[tx,ty]);
+      if(!atS&&!atT)return;
+      var o=atS?[tx,ty]:[sx,sy];
+      ['d1','d2','d3','d4'].forEach(function(k){
+        (r.destL[k]||[]).forEach(function(d){if(v==null&&d&&_cntNear9(d.xy,o)&&d.cnt!=null&&d.cnt!=='')v=d.cnt;});
+      });
+    });
+    return v;
+  }catch(_e){return null;}
+}
+function _cntLink9(sx,sy,tx,ty,cnt){/* 두 채널 동시 반영 */
+  var n=0;
+  try{
+    (state.manholes||[]).forEach(function(m){
+      if(!m||m.wx==null||!m.dests)return;
+      var atT=_cntNear9([m.wx,m.wy],[tx,ty]),atS=_cntNear9([m.wx,m.wy],[sx,sy]);
+      if(!atT&&!atS)return;
+      var o=atT?[sx,sy]:[tx,ty];
+      m.dests.forEach(function(d){if(d&&_cntNear9(d.xy,o)&&d.cnt!==cnt){d.cnt=cnt;n++;}});
+    });
+    (state.mnList||[]).forEach(function(r){
+      if(!r||r.delAt||r.mhId==null||!r.destL)return;
+      var mm=(typeof _mnMhOfRec9==='function')?_mnMhOfRec9(r):null;if(!mm||mm.wx==null)return;
+      var atS=_cntNear9([mm.wx,mm.wy],[sx,sy]),atT=_cntNear9([mm.wx,mm.wy],[tx,ty]);
+      if(!atS&&!atT)return;
+      var o=atS?[tx,ty]:[sx,sy];
+      ['d1','d2','d3','d4'].forEach(function(k){
+        (r.destL[k]||[]).forEach(function(d){if(d&&_cntNear9(d.xy,o)&&d.cnt!==cnt){d.cnt=cnt;n++;}});
+        if(typeof mnDestSync==='function'){try{mnDestSync(r,k);}catch(_ms){}}
+      });
+    });
+  }catch(_e){}
+  return n;
+}
 /* [BUILD1963] 라벨 규격 꼬리 제거 — '신 6H (SKT ) 수공2-1호' → '신 6H (SKT)' */
 function _labShort9(lab){
   try{
@@ -9281,8 +9352,8 @@ function _cntSel9(cls,ix,cur){
   for(var i=1;i<=10;i++)o+='<option value="'+i+'"'+((std&&+v===i)?' selected':'')+'>'+i+'</option>';
   o+='<option value="_c"'+(cst?' selected':'')+'>\uC9C1\uC811\uC785\uB825</option>';
   var idA=(ix>=0)?(' data-i="'+ix+'"'):'';
-  return '<span style="display:inline-flex;align-items:center;gap:2px">'
-    +'<select class="'+cls+'"'+idA+' style="width:'+(cst?'52':'46')+'px;text-align:center;font-size:12px;font-weight:800;color:#0f7a86;border:1px solid #b9c9b0;border-radius:4px;padding:3px 1px;background:#fff;cursor:pointer">'+o+'</select>'
+  return '<span style="display:inline-flex;align-items:center;justify-content:center;gap:2px;width:100%">'
+    +'<select class="'+cls+'"'+idA+' style="margin:0 auto;width:'+(cst?'52':'46')+'px;text-align:center;font-size:12px;font-weight:800;color:#0f7a86;border:1px solid #b9c9b0;border-radius:4px;padding:3px 1px;background:#fff;cursor:pointer">'+o+'</select>'
     +'<input class="'+cls+'C"'+idA+' value="'+(cst?v:'')+'" inputmode="numeric" style="display:'+(cst?'inline-block':'none')+';width:34px;text-align:center;font-size:12px;font-weight:800;color:#0f7a86;border:1px solid #b9c9b0;border-radius:4px;padding:3px 1px">'
     +'</span>';
 }
@@ -9333,7 +9404,9 @@ function mhDestPanel(mh,forcePick){
    +'<th style="padding:5px 3px;border:1px solid #f0c5c0;width:34px"></th></tr>';
   rows+=L.map(function(dv,ix){
     var e9=(dv&&dv.ext)?dv.ext:_PA9.ext, sp9=_extSplit9(e9);
-    var c9=(dv&&dv.cnt!=null&&dv.cnt!=='')?dv.cnt:((L.length===1&&_PA9.cnt!=null)?_PA9.cnt:'');
+    var c9=(dv&&dv.cnt!=null&&dv.cnt!=='')?dv.cnt:null;
+    if(c9==null&&dv&&dv.xy)c9=_cntPeek9(mh.wx,mh.wy,dv.xy[0],dv.xy[1]);/* [BUILD1964] 상대 채널 계승 */
+    if(c9==null)c9=((L.length===1&&_PA9.cnt!=null)?_PA9.cnt:'');
     var tag9=(dv&&dv.xy&&dv.xy.length===2&&typeof mnPosTag9==='function')?mnPosTag9(mh.wx,mh.wy,dv.xy[0],dv.xy[1]):'';
     return '<tr>'
       +'<td style="padding:3px 3px;border:1px solid #f3dcd9;font-weight:700;color:#b03a2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(ix+1)+'. '+_labShort9(_facNm9)+'</td>'
@@ -9400,6 +9473,7 @@ function mhDestPanel(mh,forcePick){
     var n=(v===''||v==null)?null:(+String(v).replace(/[^0-9]/g,'')||null);
     mh.dests[ix].cnt=n;
     if(!mh.dests[ix].ext)mh.dests[ix].ext=auxPipeAll9(mh).ext;
+    try{if(mh.dests[ix].xy)_cntLink9(mh.wx,mh.wy,mh.dests[ix].xy[0],mh.dests[ix].xy[1],n);}catch(_cl8){}/* [BUILD1964] */
     if(typeof saveProject==='function')try{saveProject();}catch(_s3){}
     mhDestPanel(mh);
   }
