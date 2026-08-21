@@ -9069,7 +9069,10 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     +pick
     +'<div id="mnDList">'+rows+auxRows+'</div>'+sumBar+wallBar
     +'<div style="height:7px"></div>'/* [BUILD1966] 안내문 제거 */
-    +'<button id="mnDNo2" style="width:100%;box-sizing:border-box;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">\uB2EB\uAE30</span></button></div>';
+    +'<div style="display:flex;gap:7px">'/* [BUILD1974] 등록·닫기 반반 */
+      +'<button id="mnDReg2" style="flex:1;min-width:0;background:#2e7d32;color:#fff;border:0;border-radius:8px;padding:9px;font-weight:800;font-size:13.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center"><span style="letter-spacing:3px;margin-right:-3px">\uB4F1\uB85D</span></button>'
+      +'<button id="mnDNo2" style="flex:1;min-width:0;background:#fff;color:#555;border:1px solid #ddd;border-radius:8px;padding:9px;font-weight:700;font-size:13.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center"><span style="letter-spacing:3px;margin-right:-3px">\uB2EB\uAE30</span></button>'
+    +'</div></div>';
   document.body.appendChild(w);
   /* [BUILD1948] 등록 — 픽커가 rec.destXY[dk]에 쓴 좌표를 회수해 목록 항목으로 이관 후 미러 재동기 */
   function _reg(lab){
@@ -9144,6 +9147,15 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
   var _bAdd=w.querySelector('#mnDAdd');if(_bAdd)_bAdd.onclick=function(){_re(true);};
   if(_aj9||_mv9){try{_touch();}catch(_t9){}
     if(typeof toast==='function')toast((_aj9?('\uB3C4\uBA74 \uC5F0\uACB0 '+_aj9+'\uAC74 \uC790\uB3D9 \uD3B8\uC785'):'')+((_aj9&&_mv9)?' \u00B7 ':'')+(_mv9?(_mv9+'\uAC74 \uBCBD \uC7AC\uBC30\uCE58'):''));}
+  var _bRg=w.querySelector('#mnDReg2');if(_bRg)_bRg.onclick=function(){/* [BUILD1974] */
+    w.remove();
+    try{_touch();}catch(_t8){}
+    try{if(typeof saveProject==='function')saveProject();}catch(_s8){}
+    var _n8=-1;
+    try{if((typeof IS_TANGO!=='undefined')&&IS_TANGO&&typeof _facSegApply9==='function')_n8=_facSegApply9(_src9);}catch(_f8){}
+    try{_dirLinkRefresh9();}catch(_r8){}
+    if(typeof toast==='function')toast(((typeof IS_TANGO!=='undefined')&&IS_TANGO)?('\uB4F1\uB85D \uC644\uB8CC'+(_n8>=0?(' \u2014 \uCD1D '+_n8+'\uAD6C\uAC04'):'')):'\uB4F1\uB85D \uC644\uB8CC');
+  };
   var _bNo=w.querySelector('#mnDNo2');if(_bNo)_bNo.onclick=function(){w.remove();};
   w.onclick=function(e){if(e.target===w)w.remove();};
   /* [1066/1067] 입상 — 도면에서 직접 클릭해 고른다 */
