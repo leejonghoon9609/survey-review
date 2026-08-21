@@ -483,20 +483,20 @@ function computeLabels(){
   for(var k=0;k<n;k++){var p=pts[k];
     var o=state.labelOff&&(state.labelOff[p.no]||state.labelOff[ptNum(p)]);
     if(o){var _olx=o[0],_oly=o[1];/* [1503] 40px 상한 해제 — 놓은 자리 월드 절대좌표 그대로(DXF 동일), 인출선만 연장 */lay[k]={lx:_olx,ly:_oly,anchor:(_olx<p.x?'end':'start'),leader:true};placed.push([_olx,_oly,p.x,p.y]);continue;}
-    var pref=(k%2===0)?1:-1;var bestPos=null,bestSc=Infinity;var dists=[Math.min(L*0.225,0.5),Math.min(L*0.4,0.9),Math.min(L*0.65,1.4)];
-    var pv=pipeDirAt(p);
-    if(pv){var pl=Math.hypot(pv[0],pv[1])||1;var nx0=-pv[1]/pl,ny0=pv[0]/pl;if(ny0<0){nx0=-nx0;ny0=-ny0;}
-      var _dP=[[nx0*pref,ny0*pref,0],[-nx0*pref,-ny0*pref,4]];   // pref(번갈아) 우선, 교차나면 반대 강제
+    /* [BUILD1984] 인출선 1m 고정 · 관로선 주축 스냅(가로메인→위/아래, 세로메인→좌/우) · 관로선 가로지름 회피(score의 _BIG) */
+    var pref=(k%2===0)?1:-1;var bestPos=null,bestSc=Infinity;var _TL9=_TAGLEN9;
+    var pv=_pipeAxisAt9(p)||pipeDirAt(p);
+    if(pv){var _ax9=_tagAxis9(pv[0],pv[1]);
+      var _dP=[[_ax9[0]*pref,_ax9[1]*pref,0],[-_ax9[0]*pref,-_ax9[1]*pref,1]];   // pref(번갈아) 우선, 교차·겹침이면 반대
       for(var _dp=0;_dp<_dP.length;_dp++){var nx=_dP[_dp][0],ny=_dP[_dp][1],_pen=_dP[_dp][2];
-        for(var di=0;di<dists.length;di++){var D=dists[di];var lx=p.x+nx*D,ly=p.y+ny*D;var sc=score(lx,ly,k)+di*2+_pen;if(sc<bestSc){bestSc=sc;bestPos=[lx,ly];}}}
-    }else{var cs=candidates(p,pref);
-      for(var di=0;di<dists.length;di++){var D=dists[di];
-        for(var ci=0;ci<cs.length;ci++){var lx=p.x+cs[ci][0]*D, ly=p.y+cs[ci][1]*D;
-          var sc=score(lx,ly,k)+ci*0.4+di*2+(ci<2?0:3);
-          if(sc<bestSc){bestSc=sc;bestPos=[lx,ly];}}
-        if(bestSc<0.5)break;}
+        var lx=p.x+nx*_TL9,ly=p.y+ny*_TL9;var sc=score(lx,ly,k)+_pen;
+        if(sc<bestSc){bestSc=sc;bestPos=[lx,ly];}}
+    }else{var _c49=[[0,1],[0,-1],[1,0],[-1,0]];   // 관로선 미접속 측점 — 4방위 1m
+      for(var ci=0;ci<_c49.length;ci++){var lx=p.x+_c49[ci][0]*_TL9,ly=p.y+_c49[ci][1]*_TL9;
+        var sc=score(lx,ly,k)+ci*0.4;
+        if(sc<bestSc){bestSc=sc;bestPos=[lx,ly];}}
     }
-    if(!bestPos)bestPos=[p.x+L,p.y];
+    if(!bestPos)bestPos=[p.x,p.y+_TL9];
     lay[k]={lx:bestPos[0],ly:bestPos[1],anchor:(bestPos[0]<p.x?'end':'start'),leader:true};
     placed.push([bestPos[0],bestPos[1],p.x,p.y]);}
   window._clSig=_clSig;window._clLay=lay;
@@ -13003,6 +13003,70 @@ window.addEventListener('mousemove',function(e){var z=window._zsDrag;if(!z||!z.d
 window.addEventListener('mouseup',function(){var z=window._zsDrag;if(z&&z.drag){z.drag=false;applyZoom(z);window._zsDrag=null;}});
 /* ===== 측점사진 방향 화살표 (0=↑북 1=→동 2=↓남 3=←서) ===== */
 var ARROWS=['↑','→','↓','←'],showDirArrows=true;
+/* ===== [BUILD1984] 관정보 인출선 배치 규칙 =====
+   ① 길이 1m 고정  ② 관로선 주축 스냅(가로메인→위/아래, 세로메인→좌/우)
+   ③ 관로선 가로지르지 않는 쪽 우선
+   실시간(rtAutoTags)·전 공정 자동배치(computeLabels) 공용. */
+var _TAGLEN9=1.0;
+/* 관로선 주축 → 라벨 배치 축 단위벡터. 가로메인이면 [0,1](위/아래), 세로메인이면 [1,0](좌/우) */
+function _tagAxis9(vx,vy){
+  if(!isFinite(vx)||!isFinite(vy)||(vx===0&&vy===0))return [0,1];
+  return (Math.abs(vx)>=Math.abs(vy))?[0,1]:[1,0];
+}
+/* 측점 주변 관로선의 앞뒤 이웃 합성 방향(꺾임점에서 한쪽만 보는 pipeDirAt 보완) */
+function _pipeAxisAt9(p){
+  try{
+    var ls=state.lines||[];
+    for(var i=0;i<ls.length;i++){var L=ls[i];
+      if(!L||!L.pts||L.pts.length<2||L.free)continue;
+      if(L.layer&&L.layer!=='통신관로'&&L.layer!=='지거'&&L.layer!=='압입구간'&&L.layer!=='탐사구간')continue;
+      for(var j=0;j<L.pts.length;j++){var v=L.pts[j];if(!v)continue;
+        if(Math.abs(v[0]-p.x)<0.5&&Math.abs(v[1]-p.y)<0.5){
+          var a=L.pts[j-1]||L.pts[j],b=L.pts[j+1]||L.pts[j];
+          var dx=b[0]-a[0],dy=b[1]-a[1];
+          if(Math.hypot(dx,dy)>1e-6)return [dx,dy];
+        }}}
+  }catch(_e){}
+  return null;
+}
+/* 인출선이 관로선(통신관로·지거·압입)을 가로지르는지 — 자기 시작점 0.3m 이내 정점은 제외 */
+function _tagCross9(ax,ay,bx,by){
+  try{
+    var ls=state.lines||[];
+    for(var i=0;i<ls.length;i++){var L=ls[i];
+      if(!L||!L.pts||L.pts.length<2||L.free||L.insp)continue;
+      if(L.layer&&L.layer!=='통신관로'&&L.layer!=='지거'&&L.layer!=='압입구간')continue;
+      for(var j=0;j<L.pts.length-1;j++){var a=L.pts[j],c=L.pts[j+1];if(!a||!c)continue;
+        if(Math.hypot(a[0]-ax,a[1]-ay)<0.3||Math.hypot(c[0]-ax,c[1]-ay)<0.3)continue;
+        if(typeof segInt==='function'&&segInt([ax,ay],[bx,by],a,c))return true;}}
+  }catch(_e){}
+  return false;
+}
+/* [BUILD1984] 저장된 인출선 위치 일괄 초기화 → 새 규칙 자동배치.
+   ★건드리는 것은 state.labelOff(라벨 표시 위치) 하나뿐 —
+     측점·관로선·심도·맨홀·야장·구간은 전부 불변(대조 로그로 확인). */
+function tagReflow9(){
+  try{
+    function _st9(){var t=0,q2=0;(state.lines||[]).forEach(function(L){if(!L||L.free)return;
+      if(L.layer&&L.layer!=='통신관로'&&L.layer!=='지거'&&L.layer!=='압입구간')return;q2++;
+      var q=L.pts||[];for(var i=1;i<q.length;i++)t+=Math.hypot(q[i][0]-q[i-1][0],q[i][1]-q[i-1][1]);});
+      return q2+'선 / '+t.toFixed(1)+'m';}
+    var b0=_st9(),np0=(state.points||[]).length,nm0=(state.manholes||[]).length;
+    var nl0=(state.mnList||[]).length,nd0=Object.keys(state._depthByNo||{}).length;
+    if(typeof pushHist==='function')pushHist();
+    var before=Object.keys(state.labelOff||{}).length;
+    state.labelOff={};window._clSig=null;window._clLay=null;
+    if(typeof drawGeo==='function')drawGeo();
+    console.log('[인출선] 재배치 — labelOff '+before+'건 초기화 → 1m 축정렬 자동배치');
+    console.log('[인출선] 성과 대조  관로선 '+b0+' → '+_st9()
+      +'  |  측점 '+np0+'→'+(state.points||[]).length
+      +'  맨홀 '+nm0+'→'+(state.manholes||[]).length
+      +'  야장 '+nl0+'→'+(state.mnList||[]).length
+      +'  심도 '+nd0+'→'+Object.keys(state._depthByNo||{}).length);
+    console.log('[인출선] 도면 확인 후 [저장]. 되돌리려면 [되돌리기].');
+    if(typeof toast==='function')toast('인출선 재배치 '+before+'건 — 확인 후 [저장]');
+  }catch(e){console.warn('[인출선] 재배치 실패',e);}
+}
 function pipeDirAt(p){
   for(var i=0;i<state.lines.length;i++){var L=state.lines[i];if(!L.pts)continue;
     for(var j=0;j<L.pts.length;j++){var v=L.pts[j];
@@ -13929,13 +13993,18 @@ function rtAutoTags(rec){try{
   if(seq.length<2)return;
   var segs=[];for(var i=1;i<seq.length;i++)segs.push(Math.hypot(seq[i].x-seq[i-1].x,seq[i].y-seq[i-1].y));
   segs.sort(function(a,b){return a-b;});var med=segs[Math.floor(segs.length/2)]||4;
-  var LEN=Math.max(2.5,Math.min(8,med*1.1));
+  var LEN=_TAGLEN9;/* [BUILD1984] 1m 고정 (구: median 기반 2.5~8m 가변 — 중구난방 원인) */
   state.labelOff=state.labelOff||{};
   for(var k=0;k<seq.length;k++){var p=seq[k];
     var a=seq[Math.max(0,k-1)],b=seq[Math.min(seq.length-1,k+1)];
     var dx=b.x-a.x,dy=b.y-a.y,L2=Math.hypot(dx,dy)||1;dx/=L2;dy/=L2;
     var sd=(k%2===0)?1:-1;
-    state.labelOff[p.no]=[p.x+(-dy)*sd*LEN,p.y+dx*sd*LEN];
+    /* [BUILD1984] 관로선 주축 스냅 + 관로선 가로지르지 않는 쪽 우선 */
+    var _ax9=_tagAxis9(dx,dy);
+    var _c1=[p.x+_ax9[0]*sd*LEN,p.y+_ax9[1]*sd*LEN];
+    var _c2=[p.x-_ax9[0]*sd*LEN,p.y-_ax9[1]*sd*LEN];
+    var _x1=_tagCross9(p.x,p.y,_c1[0],_c1[1]),_x2=_tagCross9(p.x,p.y,_c2[0],_c2[1]);
+    state.labelOff[p.no]=(_x1&&!_x2)?_c2:_c1;
   }
 }catch(e){}}
 function rtSaveSoon(){if(_rtSaveTimer)clearTimeout(_rtSaveTimer);_rtSaveTimer=setTimeout(function(){_rtSaveTimer=null;if(typeof saveProject==='function'){try{window._silentSave=true;saveProject();}catch(e){}}},2500);}
