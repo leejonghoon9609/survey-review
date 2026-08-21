@@ -9010,7 +9010,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
   rows+='</table>';
   if(!ALL8.length)rows='<div style="background:#fff;border:1.5px dashed #dbe4d2;border-radius:8px;padding:12px 9px;margin:4px 0;font-size:12px;color:#9aa;text-align:center">\uC9C0\uC815\uB41C \uBC29\uD5A5\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div>';
   /* [BUILD1964] 벽별 배분 합계 검증 — 관 구성 관수와 대조 */
-  var sumBar='';
+  var sumBar='',_allOk9=false,_bad9=0;
   try{
     var _bars9=[];
     _WKS8.forEach(function(k){
@@ -9018,13 +9018,14 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
       var WP=_wallPipe9(rec,k);if(!WP||WP.cnt==null)return;
       var sm=null;LK.forEach(function(d){if(d&&d.cnt!=null&&d.cnt!==''){sm=(sm||0)+(+d.cnt||0);}});
       if(sm==null)return;
-      var ok=(sm===WP.cnt);
+      var ok=(sm===WP.cnt);if(!ok)_bad9++;
       _bars9.push('<div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;font-weight:800;padding:5px 8px;border-radius:7px;background:'+(ok?'#e8f5e9':'#ffe5e5')+';border:1px solid '+(ok?'#a5d6a7':'#ff8a80')+';color:'+(ok?'#2e7d32':'#d32f2f')+'">'
         +'<span style="flex:none">'+_WNO8[k]+'('+_WN8[k]+')</span>'
         +'<span style="flex:1">\uBC30\uBD84 \uD569\uACC4 '+sm+' / \uCD1D '+WP.cnt+'</span>'
         +'<span>'+(ok?'\uC77C\uCE58':'\u26A0 \uBD88\uC77C\uCE58')+'</span></div>');
     });
     sumBar=_bars9.join('');
+    _allOk9=(_bars9.length>0&&_bad9===0);/* [BUILD1971] */
   }catch(_sb9){}
 
   /* [BUILD1949] 도면(보조 시설물)에서 이 벽으로 연결된 항목 — 근거 θ 표기 + [편입] */
@@ -9057,7 +9058,8 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
       +'<button id="mnDJb" style="flex:0.95;min-width:0;background:#fff;color:#8e44ad;border:1.5px solid #c39bd3;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden;display:flex;align-items:center;justify-content:center">\uD83D\uDD0C JB/\uC778\uC785</button></div></div>';
   var w=document.createElement('div');w.id='mnAskModal';
   w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:14dvh';
-  w.innerHTML='<div style="background:#f1f8e9;border:1.5px solid #558b2f;border-radius:12px;width:min(88vw,330px);padding:13px 14px;max-height:86dvh;overflow:auto">'
+  var _ring8=_allOk9?';box-shadow:0 0 0 4px #ffd54f,0 0 0 7px #6d4c00':'';/* [BUILD1971] */
+  w.innerHTML='<div style="background:#f1f8e9;border:1.5px solid #558b2f;border-radius:12px;width:min(88vw,330px);padding:13px 14px;max-height:86dvh;overflow:auto'+_ring8+'">'
     +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:9px">'
       +'<div style="flex:1;min-width:0;font-weight:800;font-size:12.5px;color:#558b2f;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
         +_WNO8[dk]+'('+_WN8[dk]+') '+((typeof mnLabel==='function')?mnLabel(rec):'')
@@ -9524,7 +9526,10 @@ function mhDestPanel(mh,forcePick){
       +'<button id="mhDJb2" style="flex:0.95;min-width:0;background:#fff;color:#8e44ad;border:1.5px solid #c39bd3;border-radius:8px;padding:7px 1px;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap;overflow:hidden;display:flex;align-items:center;justify-content:center;">\uD83D\uDD0C JB/인입</button></div></div>';
   var w=document.createElement('div');w.id='mhDestModal';
   w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:14dvh';
-  w.innerHTML='<div style="background:#fdf3f1;border:1.5px solid #c0392b;border-radius:12px;width:min(92vw,368px);padding:11px 11px">'
+  /* [BUILD1971] 배분 완료(일치) 창은 외곽 링으로 구분 — 흰 배경에서도 보이도록 진한 테두리 동반 */
+  var _done9=(_SUM9!=null&&_okSum9&&L.length);
+  var _ring9=_done9?';box-shadow:0 0 0 4px #ffd54f,0 0 0 7px #6d4c00':'';
+  w.innerHTML='<div style="background:#fdf3f1;border:1.5px solid #c0392b;border-radius:12px;width:min(92vw,368px);padding:11px 11px'+_ring9+'">'
     +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">'
       +'<div style="flex:1;min-width:0;font-weight:800;font-size:13.5px;color:#b03a2e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_facNm9+'</div>'
       +'<button id="mhDAdd" style="flex:none;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:7px;padding:4px 10px;font-weight:800;font-size:11.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;">추가</button></div>'
