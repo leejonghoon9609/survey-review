@@ -9029,9 +9029,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     var _pk8=(!(dv&&dv.ext)&&_src9&&dv&&dv.xy)?_extPeek9(_src9.wx,_src9.wy,dv.xy[0],dv.xy[1]):null;
     var e9=(dv&&dv.ext)?_extSplit9(dv.ext):(_pk8?_extSplit9(_pk8):{kind:(WP.kind||''),dia:(WP.dia||'')});
     var LKn=mnDestList(rec,q.k).length;
-    var c9=(dv&&dv.cnt!=null&&dv.cnt!=='')?dv.cnt:null;
-    if(c9==null&&_src9&&dv&&dv.xy)c9=_cntPeek9(_src9.wx,_src9.wy,dv.xy[0],dv.xy[1]);/* [BUILD1964] 상대 채널 계승 */
-    if(c9==null)c9=((LKn===1&&WP.cnt!=null)?WP.cnt:'');
+    var c9=_mnCntShow9(rec,q.k,q.ix,WP);/* [BUILD1978] 표시값 산출 일원화 */
     var _gi8=ALL8.indexOf(q), _first8=(_gi8===0)||(ALL8[_gi8-1].k!==q.k), _last8=(_gi8===ALL8.length-1)||(ALL8[_gi8+1].k!==q.k);
     var _tb8=_first8?';border-top:2.5px solid #2e7d32':'', _bb8=_last8?';border-bottom:2.5px solid #2e7d32':'';
     return '<tr style="background:'+(on?'#dcedc8':'#fff')+_tb8+_bb8+'">'
@@ -9052,13 +9050,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     _WKS8.forEach(function(k){
       var LK=mnDestList(rec,k);if(!LK.length)return;
       var WP=_wallPipe9(rec,k);if(!WP||WP.cnt==null)return;
-      var sm=null;LK.forEach(function(d){
-        if(!d)return;
-        var v=(d.cnt!=null&&d.cnt!=='')?d.cnt:null;
-        if(v==null&&d.xy&&d.xy.length===2&&_src9&&typeof _cntPeek9==='function')v=_cntPeek9(_src9.wx,_src9.wy,d.xy[0],d.xy[1]);
-        if(v==null&&LK.length===1&&WP.cnt!=null)v=WP.cnt;
-        if(v!=null&&v!=='')sm=(sm||0)+(+v||0);
-      });/* [BUILD1976] 표시값과 동일 규칙 */
+      var sm=null;LK.forEach(function(d,_ci){var v=_mnCntShow9(rec,k,_ci,WP);if(v!=null&&v!=='')sm=(sm||0)+(+v||0);});/* [BUILD1978] 표시값과 동일 함수 */
       if(sm==null)return;
       var ok=(sm===WP.cnt);if(!ok)_bad9++;
       _bars9.push('<div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;font-weight:800;padding:5px 8px;border-radius:7px;background:'+(ok?'#e8f5e9':'#ffe5e5')+';border:1px solid '+(ok?'#a5d6a7':'#ff8a80')+';color:'+(ok?'#2e7d32':'#d32f2f')+'">'
@@ -9374,13 +9366,8 @@ function auxPipeSum9(m){
   /* [BUILD1976] 화면 표시와 같은 규칙으로 합산.
      자기 dests에 없으면 상대 채널(야장 destL) 계승값을 쓰는데, 합계가 그걸 빼먹어 '표시는 맞는데 불일치'가 났다. */
   var n=0,any=false,L=((m&&m.dests)||[]);
-  L.forEach(function(d){
-    if(!d)return;
-    var v=(d.cnt!=null&&d.cnt!=='')?d.cnt:null;
-    if(v==null&&d.xy&&d.xy.length===2&&m&&m.wx!=null&&typeof _cntPeek9==='function')v=_cntPeek9(m.wx,m.wy,d.xy[0],d.xy[1]);
-    if(v==null&&L.length===1&&typeof auxPipeAll9==='function'){var A=auxPipeAll9(m);if(A&&A.cnt!=null)v=A.cnt;}
-    if(v!=null&&v!==''){n+=(+v||0);any=true;}
-  });
+  var A=(typeof auxPipeAll9==='function')?auxPipeAll9(m):null;
+  L.forEach(function(d,i){var v=(typeof _auxCntShow9==='function')?_auxCntShow9(m,i,A):null;if(v!=null&&v!==''){n+=(+v||0);any=true;}});/* [BUILD1978] 표시값과 동일 함수 */
   return any?n:null;
 }
 /* ===== [BUILD1964] 관수 양방향 공유 =====
@@ -9482,6 +9469,90 @@ function _extLink9(sx,sy,tx,ty,ext){
   }catch(_e){}
   return n;
 }
+/* [BUILD1978] 보조 시설물 행 관수 표시값 */
+function _auxCntShow9(mh,ix,A){
+  try{
+    var L=(mh&&mh.dests)||[];var dv=L[ix];if(!dv)return '';
+    if(!A&&typeof auxPipeAll9==='function')A=auxPipeAll9(mh);
+    function base(d){
+      if(!d)return null;
+      if(d.cnt!=null&&d.cnt!=='')return d.cnt;
+      if(d.xy&&d.xy.length===2&&mh&&mh.wx!=null&&typeof _cntPeek9==='function'){var pv=_cntPeek9(mh.wx,mh.wy,d.xy[0],d.xy[1]);if(pv!=null)return pv;}
+      if(L.length===1&&A&&A.cnt!=null)return A.cnt;
+      return null;
+    }
+    var b=base(dv);if(b!=null)return b;
+    return '';/* [BUILD1979] 자동배분 폐기 — 검수 무력화 */
+  }catch(_e){return '';}
+}
+/* [BUILD1978] 맨홀 벽 행 관수 표시값 — 자기값 → 상대채널 → 단독시 총계 → 잔여 자동배분 */
+function _mnCntShow9(rec,k,ix,WP){
+  try{
+    var LK=mnDestList(rec,k);var dv=LK[ix];if(!dv)return '';
+    if(dv.cnt!=null&&dv.cnt!=='')return dv.cnt;
+    var src=(typeof _mnMhOfRec9==='function')?_mnMhOfRec9(rec):null;
+    if(!WP&&typeof _wallPipe9==='function')WP=_wallPipe9(rec,k);
+    function base(d){
+      if(!d)return null;
+      if(d.cnt!=null&&d.cnt!=='')return d.cnt;
+      if(d.xy&&d.xy.length===2&&src&&typeof _cntPeek9==='function'){var pv=_cntPeek9(src.wx,src.wy,d.xy[0],d.xy[1]);if(pv!=null)return pv;}
+      if(LK.length===1&&WP&&WP.cnt!=null)return WP.cnt;
+      return null;
+    }
+    var b=base(dv);if(b!=null)return b;
+    var pr=_peerWallCnt9(rec,dv);if(pr!=null)return pr;/* [BUILD1979] 상대 맨홀의 맨홀도 벽 관구성 */
+    return '';
+  }catch(_e){return '';}
+}
+/* [BUILD1979] 상대 맨홀의 맨홀도 벽 관구성에서 관수를 가져온다.
+   자동배분(총계-확정분)은 숫자를 억지로 맞춰 검수를 무력화하므로 폐기.
+   맨홀도에서 실측한 값을 그대로 가져와, 맞으면 맞는 것이고 틀리면 작업자가 원인을 찾는다. */
+function _peerWallCnt9(rec,dv){
+  try{
+    if(!rec||!dv)return null;
+    var src=(typeof _mnMhOfRec9==='function')?_mnMhOfRec9(rec):null;
+    if(!src||src.wx==null)return null;
+    var lab=String(dv.lab||'');
+    if(/\uC785\uC0C1|JB|\uC778\uC785/.test(lab))return null;
+    function _nk9(t){var v=String(t==null?'':t);if(typeof mnStripPf==='function')v=mnStripPf(v);return v.replace(/^(\uC2E0\uC124|\uAE30\uC124)/,'').replace(/\s+/g,'').toUpperCase();}/* [BUILD1979] 신설/기설 접두 제거 */
+    var recs=((typeof mnList==='function')?mnList():(state.mnList||[])).filter(function(r){return r&&!r.delAt&&r.mhId!=null&&r!==rec;});
+    var peer=null,i;
+    if(dv.xy&&dv.xy.length===2){
+      for(i=0;i<recs.length;i++){var m=_mnMhOfRec9(recs[i]);
+        if(m&&m.wx!=null&&Math.hypot(m.wx-dv.xy[0],m.wy-dv.xy[1])<0.5){peer=recs[i];break;}}
+    }
+    if(!peer){
+      var L2=_nk9(lab);
+      for(i=0;i<recs.length;i++){
+        var n2=_nk9((typeof mnLabel==='function')?mnLabel(recs[i]):'');
+        if(n2&&n2===L2){peer=recs[i];break;}}
+    }
+    if(!peer&&typeof refNormLab==='function'){
+      var key=refNormLab(lab);
+      if(key)for(i=0;i<recs.length;i++){
+        var nm=(typeof mnLabel==='function')?mnLabel(recs[i]):'';
+        if(nm&&refNormLab(nm)===key){peer=recs[i];break;}}
+    }
+    if(!peer)return null;
+    var myN=_nk9((typeof mnLabel==='function')?mnLabel(rec):'');
+    var out=null;
+    ['d1','d2','d3','d4'].forEach(function(k){
+      if(out!=null)return;
+      var LK=(peer.destL&&peer.destL[k])||[],hit=false;
+      LK.forEach(function(d){
+        if(!d||hit)return;
+        if(d.xy&&d.xy.length===2&&Math.hypot(d.xy[0]-src.wx,d.xy[1]-src.wy)<0.5){hit=true;return;}
+        var dn=_nk9(d.lab);
+        if(dn&&myN&&dn===myN)hit=true;
+      });
+      if(!hit)return;
+      var WP=(typeof _wallPipe9==='function')?_wallPipe9(peer,k):null;
+      if(WP&&WP.cnt!=null)out=WP.cnt;
+    });
+    return out;
+  }catch(_e){return null;}
+}
+
 /* [BUILD1975] 자동 편입 삭제 묘비 — rec에 얹어 mnList payload로 영속 */
 /* 좌표 배열 + 거리 판정 — 반올림 격자는 경계에서 다른 버킷이 되어 허용오차 역할을 못 한다 */
 var _BAN_R9=0.5;
@@ -9515,14 +9586,7 @@ function _mhCntDone9(mh){
     ['d1','d2','d3','d4'].forEach(function(k){
       var LK=(r.destL&&r.destL[k])||[];if(!LK.length)return;
       var WP=(typeof _wallPipe9==='function')?_wallPipe9(r,k):null;if(!WP||WP.cnt==null)return;
-      var src9=(mh&&mh.wx!=null)?mh:null;/* [BUILD1977] mh는 이미 맨홀 — _mnMhOfRec9(야장용)에 넣으면 항상 null이 되어 계승값이 통째로 빠졌다 */
-      var sm=null;LK.forEach(function(d){
-        if(!d)return;
-        var v=(d.cnt!=null&&d.cnt!=='')?d.cnt:null;
-        if(v==null&&d.xy&&d.xy.length===2&&src9&&typeof _cntPeek9==='function')v=_cntPeek9(src9.wx,src9.wy,d.xy[0],d.xy[1]);
-        if(v==null&&LK.length===1&&WP.cnt!=null)v=WP.cnt;
-        if(v!=null&&v!=='')sm=(sm||0)+(+v||0);
-      });/* [BUILD1976] */
+      var sm=null;LK.forEach(function(d,_ci){var v=_mnCntShow9(r,k,_ci,WP);if(v!=null&&v!=='')sm=(sm||0)+(+v||0);});/* [BUILD1978] 창과 동일 함수 */
       if(sm==null)return;
       bars++;if(sm!==WP.cnt)bad++;
     });
@@ -9611,9 +9675,7 @@ function mhDestPanel(mh,forcePick){
    +'<th style="padding:5px 3px;border:1px solid #d99a91;width:34px"></th></tr>';
   rows+=L.map(function(dv,ix){var _wt8=(ix===0)?';border-top:2.5px solid #c0392b':'';
     var e9=(dv&&dv.ext)?dv.ext:((dv&&dv.xy)?(_extPeek9(mh.wx,mh.wy,dv.xy[0],dv.xy[1])||_PA9.ext):_PA9.ext), sp9=_extSplit9(e9);
-    var c9=(dv&&dv.cnt!=null&&dv.cnt!=='')?dv.cnt:null;
-    if(c9==null&&dv&&dv.xy)c9=_cntPeek9(mh.wx,mh.wy,dv.xy[0],dv.xy[1]);/* [BUILD1964] 상대 채널 계승 */
-    if(c9==null)c9=((L.length===1&&_PA9.cnt!=null)?_PA9.cnt:'');
+    var c9=_auxCntShow9(mh,ix,_PA9);/* [BUILD1978] */
     var tag9=(dv&&dv.xy&&dv.xy.length===2&&typeof mnPosTag9==='function')?mnPosTag9(mh.wx,mh.wy,dv.xy[0],dv.xy[1]):'';
     return '<tr style="background:#fff'+_wt8+'">'
       +'<td style="padding:3px 3px;border:1px solid #dcb4ad;font-weight:700;color:#b03a2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(ix+1)+'. '+_labShort9(_facNm9)+'</td>'
