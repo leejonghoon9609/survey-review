@@ -8650,6 +8650,7 @@ function _facPickItems(kind,self,re){
 function _facSegApply9(){/* [BUILD1940] 연결구간 지정 → 구간 즉시 재빌드(탱고) */
   try{if(typeof saveProject==='function'){try{saveProject();}catch(_s9){}}
     if((typeof IS_TANGO!=='undefined'&&IS_TANGO)&&typeof tangoFill==='function'){try{tangoFill();}catch(_t9){}}
+    try{if(typeof tgSeg!=='undefined'&&tgSeg>=0&&typeof _tgSegs!=='undefined'&&_tgSegs&&tgSeg<_tgSegs.length&&typeof tangoSelSeg==='function')tangoSelSeg(tgSeg);}catch(_i9){}/* [BUILD1941] 속성정보창 즉시 반영 */
     if(typeof drawGeo==='function'){try{drawGeo();}catch(_g9){}}
     if(typeof redrawAll==='function'){try{redrawAll();}catch(_r9){}}
     try{return (typeof _tgSegs!=='undefined'&&_tgSegs)?_tgSegs.length:-1;}catch(_e9){return -1;}
@@ -8684,24 +8685,24 @@ function mhDestPanel(mh,forcePick){
   var rows=L.map(function(dv,ix){
     return '<div style="display:flex;align-items:center;gap:7px;border-bottom:1px solid #eef3e7;padding:7px 3px">'
       +'<span style="flex:1;min-width:0;font-size:12.5px;font-weight:700;color:#33691e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(ix+1)+'. '+((dv&&dv.lab)||'')+'</span>'
-      +'<button class="mhDDelR" data-i="'+ix+'" style="flex:none;background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer">삭제</button></div>';
+      +'<button class="mhDDelR" data-i="'+ix+'" style="flex:none;background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;">삭제</button></div>';
   }).join('');
   if(!rows)rows='<div style="padding:11px 3px;font-size:12px;color:#9aa">지정된 연결 구간이 없습니다</div>';
   var pick='<div id="mhDPick" style="display:'+(showPick?'block':'none')+';margin-bottom:10px">'
     +'<button id="mhDMh2" style="width:100%;box-sizing:border-box;background:#fff;color:#1d9e75;border:1.5px solid #1d9e75;border-radius:9px;padding:11px 2px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;justify-content:center">\uD83D\uDD73&nbsp;<span style="letter-spacing:8px;margin-right:-8px">맨홀</span></button>'
     +'<div style="display:flex;gap:5px;margin-top:7px">'
-      +'<button id="mhDJeon2" style="flex:1;min-width:0;background:#fff;color:#7a6a3a;border:1.5px solid #b9a86a;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden">\uD83D\uDDFC 전주입상</button>'
-      +'<button id="mhDTong2" style="flex:1.15;min-width:0;background:#fff;color:#2471a3;border:1.5px solid #8fb8d6;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden">\uD83D\uDCE1 통신주입상</button>'
-      +'<button id="mhDJb2" style="flex:0.95;min-width:0;background:#fff;color:#8e44ad;border:1.5px solid #c39bd3;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden">\uD83D\uDD0C JB/인입</button></div></div>';
+      +'<button id="mhDJeon2" style="flex:1;min-width:0;background:#fff;color:#7a6a3a;border:1.5px solid #b9a86a;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden;display:flex;align-items:center;justify-content:center;">\uD83D\uDDFC 전주입상</button>'
+      +'<button id="mhDTong2" style="flex:1.15;min-width:0;background:#fff;color:#2471a3;border:1.5px solid #8fb8d6;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden;display:flex;align-items:center;justify-content:center;">\uD83D\uDCE1 통신주입상</button>'
+      +'<button id="mhDJb2" style="flex:0.95;min-width:0;background:#fff;color:#8e44ad;border:1.5px solid #c39bd3;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden;display:flex;align-items:center;justify-content:center;">\uD83D\uDD0C JB/인입</button></div></div>';
   var w=document.createElement('div');w.id='mhDestModal';
   w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:14dvh';
   w.innerHTML='<div style="background:#f1f8e9;border:1.5px solid #558b2f;border-radius:12px;width:min(88vw,330px);padding:13px 14px">'
     +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">'
       +'<div style="flex:1;min-width:0;font-weight:800;font-size:13.5px;color:#558b2f;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">연결 구간 \u2014 '+_facDestTit(mh)+'</div>'
-      +'<button id="mhDAdd" style="flex:none;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:8px;padding:5px 13px;font-weight:800;font-size:12.5px;cursor:pointer">추가</button></div>'
+      +'<button id="mhDAdd" style="flex:none;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:8px;padding:5px 13px;font-weight:800;font-size:12.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;">추가</button></div>'
     +pick
     +'<div style="border:1.5px solid #2e7d32;border-radius:9px;background:#fff;max-height:32dvh;overflow:auto;padding:2px 9px">'+rows+'</div>'
-    +'<div style="display:flex;gap:7px;margin-top:11px">'+'<button id="mhDReg" style="flex:1;background:#2e7d32;color:#fff;border:0;border-radius:9px;padding:10px;font-weight:800;font-size:14px;cursor:pointer">구간등록</button>'+'<button id="mhDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;cursor:pointer">닫기</button></div></div>';
+    +'<div style="display:flex;gap:7px;margin-top:11px">'+'<button id="mhDReg" style="flex:1;background:#2e7d32;color:#fff;border:0;border-radius:9px;padding:10px;font-weight:800;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">구간등록</button>'+'<button id="mhDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">닫기</button></div></div>';
   document.body.appendChild(w);
   var _ad=w.querySelector('#mhDAdd');if(_ad)_ad.onclick=function(){var pk=w.querySelector('#mhDPick');if(pk)pk.style.display=(pk.style.display==='none')?'block':'none';};
   var _b1=w.querySelector('#mhDMh2');if(_b1)_b1.onclick=function(){w.remove();_facAddDest(mh,'mh',null);};
@@ -8717,7 +8718,7 @@ function mhDestPanel(mh,forcePick){
     if(typeof toast==='function')toast('연결 구간 삭제'+(_sd9>=0?(' / 총 '+_sd9+'구간'):''));
     mhDestPanel(mh);
   };}
-  var _rg=w.querySelector('#mhDReg');if(_rg)_rg.onclick=function(){var n9=_facSegApply9();if(typeof toast==='function')toast(n9>=0?('구간 등록 완료 — 총 '+n9+'구간'):'구간 등록 완료');};/* [BUILD1940] */
+  var _rg=w.querySelector('#mhDReg');if(_rg)_rg.onclick=function(){w.remove();/* [BUILD1941] 등록 후 자동 닫기 */var n9=_facSegApply9();if(typeof toast==='function')toast(n9>=0?('구간 등록 완료 — 총 '+n9+'구간'):'구간 등록 완료');};/* [BUILD1940] */
   var _no=w.querySelector('#mhDNo2');if(_no)_no.onclick=function(){w.remove();};
   w.onclick=function(e){if(e.target===w)w.remove();};
 }
