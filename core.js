@@ -9019,7 +9019,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
       var sm=null;LK.forEach(function(d){if(d&&d.cnt!=null&&d.cnt!==''){sm=(sm||0)+(+d.cnt||0);}});
       if(sm==null)return;
       var ok=(sm===WP.cnt);
-      _bars9.push('<div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;font-weight:800;padding:5px 8px;border-radius:7px;background:'+(ok?'#eef7e6':'#fdecea')+';border:1px solid '+(ok?'#c5dfae':'#ef9a9a')+';color:'+(ok?'#33691e':'#c62828')+'">'
+      _bars9.push('<div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;font-weight:800;padding:5px 8px;border-radius:7px;background:'+(ok?'#e8f5e9':'#ffe5e5')+';border:1px solid '+(ok?'#a5d6a7':'#ff8a80')+';color:'+(ok?'#2e7d32':'#d32f2f')+'">'
         +'<span style="flex:none">'+_WNO8[k]+'('+_WN8[k]+')</span>'
         +'<span style="flex:1">\uBC30\uBD84 \uD569\uACC4 '+sm+' / \uCD1D '+WP.cnt+'</span>'
         +'<span>'+(ok?'\uC77C\uCE58':'\u26A0 \uBD88\uC77C\uCE58')+'</span></div>');
@@ -9511,7 +9511,7 @@ function mhDestPanel(mh,forcePick){
   rows+='</table>';
   if(!L.length)rows='<div style="background:#fff;border:1.5px dashed #f0c5c0;border-radius:8px;padding:12px 9px;margin:4px 0;font-size:12px;color:#9aa;text-align:center">\uC9C0\uC815\uB41C \uC5F0\uACB0 \uAD6C\uAC04\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div>';
   var _okSum9=(_PA9.cnt==null)||(_SUM9==null)||(_SUM9===_PA9.cnt);
-  var sumBar=L.length?('<div style="display:flex;align-items:center;gap:6px;margin-top:7px;font-size:11.5px;font-weight:800;padding:6px 8px;border-radius:7px;background:'+(_okSum9?'#fdf3f1':'#fdecea')+';border:1px solid '+(_okSum9?'#f0c5c0':'#e57373')+';color:'+(_okSum9?'#b03a2e':'#c62828')+'">'
+  var sumBar=L.length?('<div style="display:flex;align-items:center;gap:6px;margin-top:7px;font-size:11.5px;font-weight:800;padding:6px 8px;border-radius:7px;background:'+((_SUM9==null)?'#fff':(_okSum9?'#e8f5e9':'#ffe5e5'))+';border:1px solid '+((_SUM9==null)?'#dcdcd8':(_okSum9?'#a5d6a7':'#ff8a80'))+';color:'+((_SUM9==null)?'#8a8a86':(_okSum9?'#2e7d32':'#d32f2f'))+'">'
    +'<span style="flex:1">\uBC30\uBD84 \uD569\uACC4 '+((_SUM9==null)?'-':_SUM9)+' / \uCD1D '+((_PA9.cnt==null)?'-':_PA9.cnt)+'</span>'
    +'<span>'+(_okSum9?'\uC77C\uCE58':'\u26A0 \uBD88\uC77C\uCE58')+'</span></div>'):'';
 
