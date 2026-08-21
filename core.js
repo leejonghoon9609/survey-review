@@ -8543,6 +8543,128 @@ function mnAskNoOwner(rec,cb){/* [1551] \uc7ac\ubc30\uce58: \uc2e0/\uae30 \ubc84
   };
   setTimeout(function(){var c=w.querySelector('#mnNoSel').value==='_c';(c?w.querySelector('#mnNoIn'):w.querySelector('#mnNmIn')).focus();},60);
 }
+/* ===== [BUILD1949] 맨홀도 시트 회전각 θ 역산 → 보조 시설물 벽(d1~d4) 자동 판정 =====
+   근거: 야장 dest가 가리키는 맨홀의 실제 방위 - 벽 고정방위(서180/동0/북90/남270) = θ
+   dest 2건 이상=확정 / 1건=후보 / 0건=사업평균 θ. 거울(반전)은 서인천 실측에서 0건이라 미적용. */
+var _MN_WA9={d1:180,d2:0,d3:90,d4:270};/* 서·동·북·남 고정(MN_SLOTS) */
+function _mnNrm9(a){a=a%360;return a<0?a+360:a;}
+function _mnMhOfRec9(r){if(!r||r.mhId==null)return null;var M=state.manholes||[];for(var i=0;i<M.length;i++){if(M[i]&&String(M[i].id)===String(r.mhId))return M[i];}return null;}
+function _mnDestXY9(r,k,lab){
+  try{if(r.destXY&&r.destXY[k]&&r.destXY[k].length===2)return{x:+r.destXY[k][0],y:+r.destXY[k][1]};}catch(_e){}
+  var M=state.manholes||[];
+  if(typeof refNormLab==='function'){var a=refNormLab(lab||'');if(a){for(var i=0;i<M.length;i++){if(M[i]&&M[i].wx!=null&&refNormLab(M[i].label||'')===a)return{x:M[i].wx,y:M[i].wy};}}}
+  var L=(''+(lab||'')).replace(/\s+/g,'').toUpperCase();if(!L)return null;
+  var rs=(state.mnList||[]).filter(function(q){return q&&!q.delAt;});
+  for(var j=0;j<rs.length;j++){
+    var ml=(((typeof mnLabel==='function')?mnLabel(rs[j]):'')+'').replace(/\s+/g,'').toUpperCase();
+    if(ml===L){var m=_mnMhOfRec9(rs[j]);if(m&&m.wx!=null)return{x:m.wx,y:m.wy};}
+  }
+  return null;
+}
+function _mnMeanAng9(v){/* 각도 평균 + 최대편차 */
+  if(!v.length)return null;
+  var sx=0,sy=0;v.forEach(function(d){sx+=Math.cos(d*Math.PI/180);sy+=Math.sin(d*Math.PI/180);});
+  var m=_mnNrm9(Math.atan2(sy,sx)*180/Math.PI),mx=0;
+  v.forEach(function(d){var e=Math.abs(_mnNrm9(d-m+180)-180);if(e>mx)mx=e;});
+  return [m,mx];
+}
+function _mnThetaRaw9(r){/* 이 야장 한 건의 θ 후보들 */
+  var src=_mnMhOfRec9(r);if(!src||src.wx==null)return [];
+  var out=[];
+  ['d1','d2','d3','d4'].forEach(function(k){
+    var LL=(r.destL&&r.destL[k]&&r.destL[k].length)?r.destL[k]:((r.dest&&r.dest[k])?[{lab:r.dest[k]}]:[]);
+    if(!LL.length)return;
+    var lab=(LL[0]&&LL[0].lab)||'';
+    if(/\uC785\uC0C1|JB|\uC778\uC785/.test(lab))return;/* 맨홀↔맨홀만 근거로 */
+    var t=_mnDestXY9(r,k,lab);if(!t)return;
+    var ar=_mnNrm9(Math.atan2(t.y-src.wy,t.x-src.wx)*180/Math.PI);
+    out.push(_mnNrm9(ar-_MN_WA9[k]));
+  });
+  return out;
+}
+function mnBizTheta9(){/* 사업 평균 θ — 확정(2건↑) 맨홀만 근거 */
+  try{
+    if(window._mnBizTh9&&window._mnBizTh9.sig===((state.mnList||[]).length+'_'+((state.manholes||[]).length)))return window._mnBizTh9.v;
+    var all=[];
+    (state.mnList||[]).filter(function(r){return r&&!r.delAt&&r.mhId!=null;}).forEach(function(r){
+      var v=_mnThetaRaw9(r);if(v.length<2)return;
+      var m=_mnMeanAng9(v);if(m&&m[1]<=25)all.push(m[0]);
+    });
+    var res=all.length?_mnMeanAng9(all)[0]:null;
+    window._mnBizTh9={sig:((state.mnList||[]).length+'_'+((state.manholes||[]).length)),v:res};
+    return res;
+  }catch(_e){return null;}
+}
+function mnTheta9(r){/* {th, kind:'확정'|'후보'|'사업평균', dev, n} | null */
+  var v=_mnThetaRaw9(r);
+  if(v.length>=2){var m=_mnMeanAng9(v);if(m&&m[1]<=25)return{th:m[0],kind:'\uD655\uC815',dev:m[1],n:v.length};}
+  if(v.length===1)return{th:v[0],kind:'\uD6C4\uBCF4',dev:0,n:1};
+  var b=mnBizTheta9();
+  if(b!=null)return{th:b,kind:'\uC0AC\uC5C5\uD3C9\uADE0',dev:0,n:0};
+  return null;
+}
+function mnWallOf9(r,fx,fy){/* 시설물 좌표 → 벽키(d1~d4) */
+  var src=_mnMhOfRec9(r);if(!src||src.wx==null)return null;
+  var T=mnTheta9(r);if(!T)return null;
+  var ar=_mnNrm9(Math.atan2(fy-src.wy,fx-src.wx)*180/Math.PI);
+  var wa=_mnNrm9(ar-T.th),best=null,bd=999;
+  ['d1','d2','d3','d4'].forEach(function(k){
+    var d=Math.abs(_mnNrm9(wa-_MN_WA9[k]+180)-180);
+    if(d<bd){bd=d;best=k;}
+  });
+  return {dk:best,dev:bd,T:T};
+}
+/* 이 야장 맨홀을 가리키는 보조 시설물(입상·JB·인입) 전수 → 벽 배정 */
+function mnAuxLinks9(r){
+  var out=[];
+  try{
+    var src=_mnMhOfRec9(r);if(!src||src.wx==null)return out;
+    var myLab=((typeof mnLabel==='function')?mnLabel(r):'')||'';
+    var myN=(typeof refNormLab==='function')?refNormLab(myLab):myLab.replace(/\s+/g,'');
+    (state.manholes||[]).forEach(function(m){
+      if(!m||m.wx==null)return;
+      var t=String(m.type||'').toLowerCase();
+      if(t!=='riser'&&t!=='jb'&&t!=='inlet')return;
+      var DL=m.dests;if(!DL||!DL.length)return;
+      var hit=false;
+      DL.forEach(function(d){
+        if(!d||hit)return;
+        if(d.xy&&d.xy.length===2&&Math.hypot(d.xy[0]-src.wx,d.xy[1]-src.wy)<0.5){hit=true;return;}
+        var dn=(typeof refNormLab==='function')?refNormLab(d.lab||''):String(d.lab||'').replace(/\s+/g,'');
+        if(dn&&myN&&dn===myN)hit=true;
+      });
+      if(!hit)return;
+      var lb='';try{lb=(typeof mhDisp==='function')?(''+mhDisp(m)):(m.label||'');}catch(_le){lb=(m.label||'');}
+      var W=mnWallOf9(r,m.wx,m.wy);
+      out.push({m:m,lab:(lb||'').trim(),dk:(W&&W.dk)||null,dev:(W&&W.dev)||0,kind:(W&&W.T&&W.T.kind)||'',th:(W&&W.T&&W.T.th)||null});
+    });
+  }catch(_e){}
+  return out;
+}
+/* 역방향 — 이 보조 시설물을 야장 dest로 지정한 맨홀 목록 */
+function mnRevLinks9(mh){
+  var out=[];
+  try{
+    if(!mh||mh.wx==null)return out;
+    var mhN='';try{mhN=(typeof mhDisp==='function')?String(mhDisp(mh)):(mh.label||'');}catch(_e){mhN=(mh.label||'');}
+    var key=(typeof refNormLab==='function')?refNormLab(mhN):mhN.replace(/\s+/g,'');
+    (state.mnList||[]).filter(function(r){return r&&!r.delAt;}).forEach(function(r){
+      ['d1','d2','d3','d4'].forEach(function(k){
+        var LL=(r.destL&&r.destL[k]&&r.destL[k].length)?r.destL[k]:((r.dest&&r.dest[k])?[{lab:r.dest[k],xy:(r.destXY&&r.destXY[k])||null}]:[]);
+        LL.forEach(function(d){
+          if(!d)return;var ok=false;
+          if(d.xy&&d.xy.length===2&&Math.hypot(d.xy[0]-mh.wx,d.xy[1]-mh.wy)<0.5)ok=true;
+          if(!ok){var dn=(typeof refNormLab==='function')?refNormLab(d.lab||''):String(d.lab||'').replace(/\s+/g,'');if(dn&&key&&dn===key)ok=true;}
+          if(!ok)return;
+          var nm=((typeof mnLabel==='function')?mnLabel(r):'')||'';
+          var wn={d1:'\uC11C',d2:'\uB3D9',d3:'\uBD81',d4:'\uB0A8'}[k]||'';
+          out.push({lab:nm,dk:k,wall:wn});
+        });
+      });
+    });
+  }catch(_e){}
+  return out;
+}
 /* ===== [BUILD1948] 야장 방향 다중 등록 + 주방향(메인) =====
    구조: rec.destL[dk]=[{lab,xy}] 전체 목록 / rec.destM[dk]=주방향 인덱스
          rec.dest[dk]·rec.destXY[dk] = 주방향 미러(파생) — 맨홀도·설비사진엑셀·현장전자야장은 이 미러만 읽으므로 무변경
@@ -8591,6 +8713,31 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
       +'<button class="mnDDelR" data-i="'+ix+'" style="flex:none;background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uC0AD\uC81C</button></div>';
   }).join('');
   if(!rows)rows='<div style="padding:11px 3px;font-size:12px;color:#9aa">\uC9C0\uC815\uB41C \uBC29\uD5A5\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div>';
+  /* [BUILD1949] 도면(보조 시설물)에서 이 벽으로 연결된 항목 — 근거 θ 표기 + [편입] */
+  var _AX9=[],_TH9=null;
+  try{
+    _TH9=(typeof mnTheta9==='function')?mnTheta9(rec):null;
+    ((typeof mnAuxLinks9==='function')?mnAuxLinks9(rec):[]).forEach(function(a){
+      if(!a||a.dk!==dk)return;
+      var dup=false;
+      L.forEach(function(d){if(!d)return;
+        if(d.xy&&d.xy.length===2&&a.m&&Math.hypot(d.xy[0]-a.m.wx,d.xy[1]-a.m.wy)<0.5)dup=true;
+        else if(String(d.lab||'')===String(a.lab))dup=true;});
+      if(!dup)_AX9.push(a);
+    });
+  }catch(_ax9){}
+  var badge='';
+  if(_TH9){var _bc9=(_TH9.kind==='\uD655\uC815')?['#1b5e20','#e8f5e9','#a5d6a7']:((_TH9.kind==='\uD6C4\uBCF4')?['#8d6e00','#fffbe6','#f0d888']:['#7a7a7a','#f4f4f2','#ddd']);
+    badge='<div style="display:flex;align-items:center;gap:5px;margin:7px 0 2px"><span style="background:'+_bc9[1]+';color:'+_bc9[0]+';border:1px solid '+_bc9[2]+';border-radius:5px;padding:2px 7px;font-size:10.5px;font-weight:800">\uBCBD\uD310\uC815 '+_TH9.kind+'</span><span style="font-size:10.5px;color:#8d9c8d">\u03B8='+_TH9.th.toFixed(0)+'\u00B0'+(_TH9.n>=2?(' \u00B7 \uADFC\uAC70 '+_TH9.n+'\uAC74 \u00B7 \uD3B8\uCC28 '+_TH9.dev.toFixed(0)+'\u00B0'):'')+'</span></div>';}
+  var auxRows='';
+  if(_AX9.length){
+    auxRows=badge+_AX9.map(function(a,ax){
+      return '<div style="display:flex;align-items:center;gap:6px;border-bottom:1px dashed #dfe6d6;padding:7px 3px;background:#fafcf7">'
+        +'<span style="flex:none;font-size:10.5px;color:#7d8f7d;font-weight:800">\u25C1\uB3C4\uBA74</span>'
+        +'<span style="flex:1;min-width:0;font-size:12px;font-weight:700;color:#6b7d6b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+((typeof joseoEsc==='function')?joseoEsc(a.lab):a.lab)+'</span>'
+        +'<button class="mnDJoinB" data-i="'+ax+'" style="flex:none;background:#fff;color:#1565c0;border:1.5px solid #90caf9;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uD3B8\uC785</button></div>';
+    }).join('');
+  }else if(badge&&L.length)auxRows=badge;
   var pick='<div id="mnDPick" style="display:'+(showPick?'block':'none')+';margin-bottom:9px">'
     +'<button id="mnDMh" style="width:100%;box-sizing:border-box;background:#fff;color:#1d9e75;border:1.5px solid #1d9e75;border-radius:9px;padding:11px 2px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;justify-content:center">\uD83D\uDD73&nbsp;<span style="letter-spacing:8px;margin-right:-8px">\uB9E8\uD640</span></button>'
     +'<div style="display:flex;gap:5px;margin-top:7px">'
@@ -8604,7 +8751,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
       +'<div style="flex:1;min-width:0;font-weight:800;font-size:13.5px;color:#558b2f">\uC5F0\uACB0 \uB9E8\uD640 \u2014 '+dn+'\uBC29\uD5A5</div>'
       +'<button id="mnDAdd" style="flex:none;background:#fff;color:#d32f2f;border:1.5px solid #ef9a9a;border-radius:8px;padding:5px 14px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uCD94\uAC00</button></div>'
     +pick
-    +'<div id="mnDList">'+rows+'</div>'
+    +'<div id="mnDList">'+rows+auxRows+'</div>'
     +'<div style="font-size:10.5px;color:#8d9c8d;margin:7px 0 9px;line-height:1.45">\u2605 \uC8FC\uBC29\uD5A5\uB9CC \uB9E8\uD640\uB3C4\u00B7\uC124\uBE44\uC0AC\uC9C4\uC5D1\uC140\u00B7\uD604\uC7A5\uC804\uC790\uC57C\uC7A5\uC5D0 \uD45C\uAE30\uB429\uB2C8\uB2E4. \uAD6C\uAC04\uC740 \uBAA9\uB85D \uC804\uCCB4\uAC00 \uC0DD\uC131\uB429\uB2C8\uB2E4.</div>'
     +'<button id="mnDNo2" style="width:100%;box-sizing:border-box;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">\uB2EB\uAE30</span></button></div>';
   document.body.appendChild(w);
@@ -8641,6 +8788,11 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
     var nm=(i<mi)?(mi-1):((i===mi)?0:mi);rec.destM[dk]=(nm<0?0:nm);
     mnDestSync(rec,dk);_touch();
     _re(false);
+  };});
+  w.querySelectorAll('.mnDJoinB').forEach(function(b){b.onclick=function(){/* [BUILD1949] 도면 연결을 이 벽으로 편입 */
+    var a=_AX9[+this.getAttribute('data-i')];if(!a||!a.m)return;
+    try{if(!rec.destXY)rec.destXY={};rec.destXY[dk]=[a.m.wx,a.m.wy];}catch(_e){}
+    _reg(a.lab);
   };});
   var _bAdd=w.querySelector('#mnDAdd');if(_bAdd)_bAdd.onclick=function(){_re(true);};
   var _bNo=w.querySelector('#mnDNo2');if(_bNo)_bNo.onclick=function(){w.remove();};
@@ -8770,6 +8922,20 @@ function mhDestPanel(mh,forcePick){
       +'<button class="mhDDelR" data-i="'+ix+'" style="flex:none;background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;">삭제</button></div>';
   }).join('');
   if(!rows)rows='<div style="padding:11px 3px;font-size:12px;color:#9aa">지정된 연결 구간이 없습니다</div>';
+  /* [BUILD1949] 역방향 — 맨홀 야장에서 이 시설물을 지정한 건 읽기전용 표시 */
+  try{
+    var RV9=(typeof mnRevLinks9==='function')?mnRevLinks9(mh):[];
+    var seenR9={};
+    var rv9=RV9.filter(function(q){var kq=q.lab+'|'+q.dk;if(seenR9[kq])return false;seenR9[kq]=1;
+      var dup=false;L.forEach(function(d){if(d&&String(d.lab||'')===String(q.lab))dup=true;});return !dup;});
+    if(rv9.length){
+      rows+=rv9.map(function(q){
+        return '<div style="display:flex;align-items:center;gap:6px;border-bottom:1px dashed #dfe6d6;padding:7px 3px;background:#fafcf7">'
+          +'<span style="flex:none;font-size:10.5px;color:#7d8f7d;font-weight:800">\u25C1\uC57C\uC7A5</span>'
+          +'<span style="flex:1;min-width:0;font-size:12px;font-weight:700;color:#6b7d6b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+q.lab+' <span style="color:#9aa89a">('+q.wall+'\uBCBD)</span></span></div>';
+      }).join('');
+    }
+  }catch(_rv9){}
   var pick='<div id="mhDPick" style="display:'+(showPick?'block':'none')+';margin-bottom:10px">'
     +'<button id="mhDMh2" style="width:100%;box-sizing:border-box;background:#fff;color:#1d9e75;border:1.5px solid #1d9e75;border-radius:9px;padding:11px 2px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;justify-content:center">\uD83D\uDD73&nbsp;<span style="letter-spacing:8px;margin-right:-8px">맨홀</span></button>'
     +'<div style="display:flex;gap:5px;margin-top:7px">'
@@ -11307,7 +11473,7 @@ function tangoSelSeg(i,noFit){if(typeof tgSyncMhFromManual==='function')tgSyncMh
 function _tgFacNode(m){var lb=(m&&m.label)||'';var nm=lb;var _pi=nm.indexOf('(');var _pj=nm.indexOf(')');if(_pi>=0&&_pj>_pi)nm=(nm.slice(0,_pi)+' '+nm.slice(_pj+1));nm=nm.replace('  ',' ').trim();if((nm.charAt(0)==='신'||nm.charAt(0)==='기')&&nm.charAt(1)===' ')nm=nm.slice(2).trim();var sp=((m.spec||'')+'').trim();if(!sp&&_pj>=0)sp=lb.slice(_pj+1).trim();return {mh:true,x:m.wx,y:m.wy,z:null,spec:sp,name:nm,riser:m.type==='riser',surface:m.surface||'',pave:m.pave||''};}
 function _tgFacNew(m){/* [BUILD1906] 신설 SK 맨홀 */if(!m)return false;if(m.type&&m.type!=='mh')return false;if(_tgMhPass(m))return false;if(((m.kind||'')+'').trim()==='기')return false;if(/^기/.test(((m.label||'')+'').trim()))return false;return true;}
 function _tgFacAux(m){/* [BUILD1906] 보조 시설물: 인입·통신주·한전주·JB·기설맨홀 */if(!m)return false;if(m.type==='jb'||m.type==='inlet'||m.type==='riser')return true;if((!m.type||m.type==='mh')&&((((m.kind||'')+'').trim()==='기')||/^기/.test(((m.label||'')+'').trim())))return true;return false;}
-function _tgDestMap(){/* [BUILD1908] 야장 dest 해석 — ①destXY 좌표 ②dest라벨→야장→mhId(기설·무번호 맨홀 해결) ③맨홀 라벨 정규화 ④보조 키워드 */var out={any:false,items:[],pairs:[]};try{var mhs=state.manholes||[];var recs=(state.mnList||[]).filter(function(r){return r&&!r.delAt;});function mhOf(r){if(!r)return null;for(var i=0;i<mhs.length;i++){if(r.mhId!=null&&mhs[i].id===r.mhId)return mhs[i];}if(typeof refNormLab==='function'&&typeof mnLabel==='function'){var bl=refNormLab(mnLabel(r)||'');if(bl){for(var j=0;j<mhs.length;j++){if(refNormLab(mhs[j].label||'')===bl)return mhs[j];}}}return null;}function byNorm(lab){if(typeof refNormLab!=='function')return null;var a=refNormLab(lab||'');if(!a)return null;for(var q=0;q<mhs.length;q++){var m=mhs[q];if((!m.type||m.type==='mh')&&refNormLab(m.label||'')===a)return m;}return null;}function viaRec(lab){if(typeof mnLabel!=='function')return null;var L=(''+(lab||'')).replace(/\s+/g,'').toUpperCase();if(!L)return null;for(var i=0;i<recs.length;i++){var ml=((mnLabel(recs[i])||'')+'').replace(/\s+/g,'').toUpperCase();if(ml&&ml===L)return mhOf(recs[i]);}return null;}function resolve(it){var tm=null;if(it.xy&&it.xy.length===2){var bd=3,bi=null;for(var j=0;j<mhs.length;j++){var m2=mhs[j];if(m2.wx==null)continue;var dd=Math.hypot(m2.wx-it.xy[0],m2.wy-it.xy[1]);if(dd<bd){bd=dd;bi=m2;}}tm=bi;}if(!tm)tm=viaRec(it.lab);if(!tm)tm=byNorm(it.lab);return tm;}recs.forEach(function(r){var d=r.dest||{};var src=mhOf(r);['d1','d2','d3','d4'].forEach(function(k){var LL9=(r.destL&&r.destL[k]&&r.destL[k].length)?r.destL[k]:((d[k])?[{lab:d[k],xy:(r.destXY&&r.destXY[k])||null}]:[]);if(!LL9.length)return;out.any=true;if(!src||src.wx==null)return;LL9.forEach(function(e9){var lv9=''+((e9&&e9.lab)||'');if(!lv9)return;var it={sx:src.wx,sy:src.wy,xy:(e9&&e9.xy&&e9.xy.length===2)?e9.xy:null,lab:lv9};it.tm=resolve(it);out.items.push(it);if(it.tm&&it.tm!==src)out.pairs.push({a:src,b:it.tm});});});/* [BUILD1948] 야장 방향 다중 — destL 전체가 구간 대상 */});mhs.forEach(function(m){if(!m||m.wx==null)return;var DL=m.dests;if(!DL||!DL.length)return;DL.forEach(function(dv){if(!dv)return;/* [BUILD1934] out.any는 야장 dest 전용 — 보조 지정이 규츙5 안전장치를 깨지 않게 */var it={sx:m.wx,sy:m.wy,xy:(dv.xy&&dv.xy.length===2)?dv.xy:null,lab:(''+(dv.lab||'')),aux:1};it.tm=resolve(it);out.items.push(it);if(it.tm&&it.tm!==m)out.pairs.push({a:m,b:it.tm,aux:1});});});/* [BUILD1934] \ubcf4\uc870 \uc2dc\uc124\ubb3c \uc5f0\uacb0\uad6c\uac04 \ud3b8\uc785 */}catch(e){}out.auxOK=function(mA,mB){if(!mA||!mB)return false;for(var i=0;i<out.pairs.length;i++){var p=out.pairs[i];if(!p.aux)continue;if((p.a===mA&&p.b===mB)||(p.a===mB&&p.b===mA))return true;}return false;};out.chk=function(mA,mB){if(!out.any)return true;if(!mA||!mB)return false;function hit(sm,tm){for(var i=0;i<out.items.length;i++){var it=out.items[i];if(Math.hypot(it.sx-sm.wx,it.sy-sm.wy)>0.5)continue;if(it.tm){if(it.tm===tm)return true;continue;}var L=(''+it.lab);if(tm.type==='jb'&&/JB/i.test(L))return true;if(tm.type==='inlet'&&/인입/.test(L))return true;if(tm.type==='riser'&&/입상/.test(L))return true;}return false;}return hit(mA,mB)||hit(mB,mA);};return out;}
+function _tgDestMap(){/* [BUILD1908] 야장 dest 해석 — ①destXY 좌표 ②dest라벨→야장→mhId(기설·무번호 맨홀 해결) ③맨홀 라벨 정규화 ④보조 키워드 */var out={any:false,items:[],pairs:[]};try{var mhs=state.manholes||[];var recs=(state.mnList||[]).filter(function(r){return r&&!r.delAt;});function mhOf(r){if(!r)return null;for(var i=0;i<mhs.length;i++){if(r.mhId!=null&&mhs[i].id===r.mhId)return mhs[i];}if(typeof refNormLab==='function'&&typeof mnLabel==='function'){var bl=refNormLab(mnLabel(r)||'');if(bl){for(var j=0;j<mhs.length;j++){if(refNormLab(mhs[j].label||'')===bl)return mhs[j];}}}return null;}function byNorm(lab){if(typeof refNormLab!=='function')return null;var a=refNormLab(lab||'');if(!a)return null;for(var q=0;q<mhs.length;q++){var m=mhs[q];if((!m.type||m.type==='mh')&&refNormLab(m.label||'')===a)return m;}return null;}function viaRec(lab){if(typeof mnLabel!=='function')return null;var L=(''+(lab||'')).replace(/\s+/g,'').toUpperCase();if(!L)return null;for(var i=0;i<recs.length;i++){var ml=((mnLabel(recs[i])||'')+'').replace(/\s+/g,'').toUpperCase();if(ml&&ml===L)return mhOf(recs[i]);}return null;}function resolve(it){var tm=null;if(it.xy&&it.xy.length===2){var bd=3,bi=null;for(var j=0;j<mhs.length;j++){var m2=mhs[j];if(m2.wx==null)continue;var dd=Math.hypot(m2.wx-it.xy[0],m2.wy-it.xy[1]);if(dd<bd){bd=dd;bi=m2;}}tm=bi;}if(!tm)tm=viaRec(it.lab);if(!tm)tm=byNorm(it.lab);return tm;}recs.forEach(function(r){var d=r.dest||{};var src=mhOf(r);['d1','d2','d3','d4'].forEach(function(k){var LL9=(r.destL&&r.destL[k]&&r.destL[k].length)?r.destL[k]:((d[k])?[{lab:d[k],xy:(r.destXY&&r.destXY[k])||null}]:[]);if(!LL9.length)return;out.any=true;if(!src||src.wx==null)return;LL9.forEach(function(e9){var lv9=''+((e9&&e9.lab)||'');if(!lv9)return;var it={sx:src.wx,sy:src.wy,xy:(e9&&e9.xy&&e9.xy.length===2)?e9.xy:null,lab:lv9};it.tm=resolve(it);out.items.push(it);if(it.tm&&it.tm!==src)out.pairs.push({a:src,b:it.tm});});});/* [BUILD1948] 야장 방향 다중 — destL 전체가 구간 대상 */});mhs.forEach(function(m){if(!m||m.wx==null)return;var DL=m.dests;if(!DL||!DL.length)return;DL.forEach(function(dv){if(!dv)return;/* [BUILD1934] out.any는 야장 dest 전용 — 보조 지정이 규츙5 안전장치를 깨지 않게 */var it={sx:m.wx,sy:m.wy,xy:(dv.xy&&dv.xy.length===2)?dv.xy:null,lab:(''+(dv.lab||'')),aux:1};it.tm=resolve(it);out.items.push(it);if(it.tm&&it.tm!==m)out.pairs.push({a:m,b:it.tm,aux:1});});});/* [BUILD1934] \ubcf4\uc870 \uc2dc\uc124\ubb3c \uc5f0\uacb0\uad6c\uac04 \ud3b8\uc785 */}catch(e){}try{var pm9={},pl9=[];out.pairs.forEach(function(p){if(!p||!p.a||!p.b)return;var MHA=state.manholes||[];var ia=(p.a.id!=null?p.a.id:('@'+MHA.indexOf(p.a))),ib=(p.b.id!=null?p.b.id:('@'+MHA.indexOf(p.b)));var k9=(String(ia)<String(ib))?(ia+'~'+ib):(ib+'~'+ia);if(pm9[k9]!=null){if(p.aux)pl9[pm9[k9]].aux=1;return;}pm9[k9]=pl9.length;pl9.push(p);});out.pairs=pl9;}catch(_dp9){}/* [BUILD1949] 동일 쌍은 한 구간 — 야장·보조 중복 지정 시 병합(aux 표식 OR 보존) */out.auxOK=function(mA,mB){if(!mA||!mB)return false;for(var i=0;i<out.pairs.length;i++){var p=out.pairs[i];if(!p.aux)continue;if((p.a===mA&&p.b===mB)||(p.a===mB&&p.b===mA))return true;}return false;};out.chk=function(mA,mB){if(!out.any)return true;if(!mA||!mB)return false;function hit(sm,tm){for(var i=0;i<out.items.length;i++){var it=out.items[i];if(Math.hypot(it.sx-sm.wx,it.sy-sm.wy)>0.5)continue;if(it.tm){if(it.tm===tm)return true;continue;}var L=(''+it.lab);if(tm.type==='jb'&&/JB/i.test(L))return true;if(tm.type==='inlet'&&/인입/.test(L))return true;if(tm.type==='riser'&&/입상/.test(L))return true;}return false;}return hit(mA,mB)||hit(mB,mA);};return out;}
 function _tgMnDestMhSet(){/* [BUILD1901] 맨홀도 dest(방향 확정 연결)에 관여하는 맨홀 집합 — destXY 좌표 우선, 라벨 정규화 폴백 */var set={};try{var mhs=state.manholes||[];var recs=(state.mnList||[]).filter(function(r){return r&&!r.delAt;});function byLab(lab){if(typeof refNormLab!=='function')return -1;var bl=refNormLab(lab||'');if(!bl)return -1;for(var i=0;i<mhs.length;i++){if(refNormLab(mhs[i].label||'')===bl)return i;}return -1;}recs.forEach(function(r){var mi=-1;for(var i=0;i<mhs.length;i++){if(r.mhId!=null&&mhs[i].id===r.mhId){mi=i;break;}}if(mi<0&&typeof mnLabel==='function')mi=byLab(mnLabel(r));var d=r.dest||{},has=false;['d1','d2','d3','d4'].forEach(function(k){var v=d[k];if(!v)return;has=true;var ti=-1;var xy=r.destXY&&r.destXY[k];if(xy&&xy.length===2){var bd=3,bi=-1;for(var j=0;j<mhs.length;j++){var m2=mhs[j];if(m2.wx==null)continue;var dd=Math.hypot(m2.wx-xy[0],m2.wy-xy[1]);if(dd<bd){bd=dd;bi=j;}}ti=bi;}if(ti<0)ti=byLab(v);if(ti>=0)set[ti]=1;});if(has&&mi>=0)set[mi]=1;});}catch(e){}return set;}
 function _tgMhPass(m){/* [BUILD1890] 명확 타사 시설물 판정(전 타입) — 소유(_own 우선, 라벨 괄호 폴백)에 SKT·SKB·SK 전무. 무표기=false */try{if(!m)return false;var o=((m._own||'')+'').trim();if(!o){var mm=/\(([^)]+)\)/.exec(m.label||'');o=mm?mm[1]:'';}if(!o)return false;var tk=o.toUpperCase().split(',').map(function(x){return x.trim();}).filter(Boolean);if(!tk.length)return false;for(var _i=0;_i<tk.length;_i++){if(tk[_i]==='SKT'||tk[_i]==='SKB'||tk[_i]==='SK')return false;}return true;}catch(e){return false;}}
 function _tgOrderFinal(segs,raws){/* [BUILD1910] 최종 구간 번호 재정렬 — 남단 시작·진행방향 좌→우→직진 DFS·분리조각 남단부터(dest 보강·규칙필터 후 순서 보정) */try{var n=segs.length;if(n<2)return;function K(nd){return Math.round(nd.x*100)+'_'+Math.round(nd.y*100);}var eps=[],i;for(i=0;i<n;i++){var sg=segs[i],A=sg[0],B=sg[sg.length-1];eps.push({a:{x:A.x,y:A.y,k:K(A)},b:{x:B.x,y:B.y,k:K(B)}});}var byK={};for(i=0;i<n;i++){(byK[eps[i].a.k]=byK[eps[i].a.k]||[]).push(i);if(eps[i].b.k!==eps[i].a.k)(byK[eps[i].b.k]=byK[eps[i].b.k]||[]).push(i);}function inner(si,atK,outward){var sg=segs[si],st=(eps[si].a.k===atK);var p0=st?sg[0]:sg[sg.length-1],p1=null,L=sg.length,q;if(st){for(q=1;q<L;q++){if(Math.hypot(sg[q].x-p0.x,sg[q].y-p0.y)>1e-6){p1=sg[q];break;}}}else{for(q=L-2;q>=0;q--){if(Math.hypot(sg[q].x-p0.x,sg[q].y-p0.y)>1e-6){p1=sg[q];break;}}}if(!p1)return 0;return outward?Math.atan2(p1.y-p0.y,p1.x-p0.x)*180/Math.PI:Math.atan2(p0.y-p1.y,p0.x-p1.x)*180/Math.PI;}var vis=[],order=[];for(i=0;i<n;i++)vis[i]=false;function south(){var bi=-1,bk=null,bx=0,by=0,first=true;for(var si=0;si<n;si++){if(vis[si])continue;[eps[si].a,eps[si].b].forEach(function(e){if(first||e.y<by-1e-9||(Math.abs(e.y-by)<=1e-9&&e.x<bx-1e-9)){first=false;bi=si;bk=e.k;bx=e.x;by=e.y;}});}return bi<0?null:{si:bi,k:bk};}while(order.length<n){var st9=south();if(!st9)break;var stack=[{si:st9.si,fromK:st9.k}];while(stack.length){var cur=stack.pop(),si=cur.si;if(vis[si])continue;vis[si]=true;order.push(si);var farK=(eps[si].a.k===cur.fromK)?eps[si].b.k:eps[si].a.k;var inD=inner(si,farK,false);var nxt=(byK[farK]||[]).filter(function(x){return !vis[x];});if(!nxt.length)continue;var sc=nxt.map(function(x){var od=inner(x,farK,true);var r=od-inD;while(r>180)r-=360;while(r<=-180)r+=360;return {x:x,cls:(r>25)?0:((r<-25)?1:2),ar:Math.abs(r)};});sc.sort(function(a,b){return (a.cls-b.cls)||(a.ar-b.ar);});for(var z=sc.length-1;z>=0;z--)stack.push({si:sc[z].x,fromK:farK});}}if(order.length!==n)return;var s2=order.map(function(o){return segs[o];}),r2=order.map(function(o){return raws[o];});for(i=0;i<n;i++){segs[i]=s2[i];raws[i]=r2[i];}}catch(e){}}
