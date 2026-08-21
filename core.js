@@ -8948,7 +8948,8 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
    +'<th style="padding:3px 2px;border:1px solid #cfd8c0;width:32px"></th></tr>';
   rows+=ALL8.map(function(q){
     var on=q.main,dv=q.dv,WP=_wallPipe9(rec,q.k)||{};
-    var e9=(dv&&dv.ext)?_extSplit9(dv.ext):{kind:(WP.kind||''),dia:(WP.dia||'')};
+    var _pk8=(!(dv&&dv.ext)&&_src9&&dv&&dv.xy)?_extPeek9(_src9.wx,_src9.wy,dv.xy[0],dv.xy[1]):null;
+    var e9=(dv&&dv.ext)?_extSplit9(dv.ext):(_pk8?_extSplit9(_pk8):{kind:(WP.kind||''),dia:(WP.dia||'')});
     var LKn=mnDestList(rec,q.k).length;
     var c9=(dv&&dv.cnt!=null&&dv.cnt!=='')?dv.cnt:null;
     if(c9==null&&_src9&&dv&&dv.xy)c9=_cntPeek9(_src9.wx,_src9.wy,dv.xy[0],dv.xy[1]);/* [BUILD1964] 상대 채널 계승 */
@@ -9084,7 +9085,8 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     LK[q.ix].cnt=num;
     var WP=_wallPipe9(rec,q.k);
     if(!LK[q.ix].ext&&WP&&WP.kind)LK[q.ix].ext=_extOf9(WP.kind,WP.dia);
-    try{if(_src9&&LK[q.ix].xy)_cntLink9(_src9.wx,_src9.wy,LK[q.ix].xy[0],LK[q.ix].xy[1],num);}catch(_cl9){}/* [BUILD1964] */
+    try{if(_src9&&LK[q.ix].xy){_cntLink9(_src9.wx,_src9.wy,LK[q.ix].xy[0],LK[q.ix].xy[1],num);
+      if(LK[q.ix].ext)_extLink9(_src9.wx,_src9.wy,LK[q.ix].xy[0],LK[q.ix].xy[1],LK[q.ix].ext);}}catch(_cl9){}/* [BUILD1964/1965] */
     mnDestSync(rec,q.k);_touch();_re(false);
   }
   w.querySelectorAll('.mnDCnt').forEach(function(b){b.onchange=function(){
@@ -9322,6 +9324,54 @@ function _cntLink9(sx,sy,tx,ty,cnt){/* 두 채널 동시 반영 */
   }catch(_e){}
   return n;
 }
+/* [BUILD1965] 외관(관종·관경)도 양방향 공유 */
+function _extPeek9(sx,sy,tx,ty){
+  try{
+    var v=null;
+    (state.manholes||[]).forEach(function(m){
+      if(v!=null||!m||m.wx==null||!m.dests)return;
+      var atT=_cntNear9([m.wx,m.wy],[tx,ty]),atS=_cntNear9([m.wx,m.wy],[sx,sy]);
+      if(!atT&&!atS)return;
+      var o=atT?[sx,sy]:[tx,ty];
+      m.dests.forEach(function(d){if(v==null&&d&&_cntNear9(d.xy,o)&&d.ext)v=d.ext;});
+    });
+    if(v!=null)return v;
+    (state.mnList||[]).forEach(function(r){
+      if(v!=null||!r||r.delAt||r.mhId==null||!r.destL)return;
+      var mm=(typeof _mnMhOfRec9==='function')?_mnMhOfRec9(r):null;if(!mm||mm.wx==null)return;
+      var atS=_cntNear9([mm.wx,mm.wy],[sx,sy]),atT=_cntNear9([mm.wx,mm.wy],[tx,ty]);
+      if(!atS&&!atT)return;
+      var o=atS?[tx,ty]:[sx,sy];
+      ['d1','d2','d3','d4'].forEach(function(k){(r.destL[k]||[]).forEach(function(d){if(v==null&&d&&_cntNear9(d.xy,o)&&d.ext)v=d.ext;});});
+    });
+    return v;
+  }catch(_e){return null;}
+}
+function _extLink9(sx,sy,tx,ty,ext){
+  var n=0;
+  try{
+    if(!ext)return 0;
+    (state.manholes||[]).forEach(function(m){
+      if(!m||m.wx==null||!m.dests)return;
+      var atT=_cntNear9([m.wx,m.wy],[tx,ty]),atS=_cntNear9([m.wx,m.wy],[sx,sy]);
+      if(!atT&&!atS)return;
+      var o=atT?[sx,sy]:[tx,ty];
+      m.dests.forEach(function(d){if(d&&_cntNear9(d.xy,o)&&d.ext!==ext){d.ext=ext;n++;}});
+    });
+    (state.mnList||[]).forEach(function(r){
+      if(!r||r.delAt||r.mhId==null||!r.destL)return;
+      var mm=(typeof _mnMhOfRec9==='function')?_mnMhOfRec9(r):null;if(!mm||mm.wx==null)return;
+      var atS=_cntNear9([mm.wx,mm.wy],[sx,sy]),atT=_cntNear9([mm.wx,mm.wy],[tx,ty]);
+      if(!atS&&!atT)return;
+      var o=atS?[tx,ty]:[sx,sy];
+      ['d1','d2','d3','d4'].forEach(function(k){
+        (r.destL[k]||[]).forEach(function(d){if(d&&_cntNear9(d.xy,o)&&d.ext!==ext){d.ext=ext;n++;}});
+        if(typeof mnDestSync==='function'){try{mnDestSync(r,k);}catch(_ms){}}
+      });
+    });
+  }catch(_e){}
+  return n;
+}
 /* [BUILD1963] 라벨 규격 꼬리 제거 — '신 6H (SKT ) 수공2-1호' → '신 6H (SKT)' */
 function _labShort9(lab){
   try{
@@ -9352,7 +9402,7 @@ function _cntSel9(cls,ix,cur){
   for(var i=1;i<=10;i++)o+='<option value="'+i+'"'+((std&&+v===i)?' selected':'')+'>'+i+'</option>';
   o+='<option value="_c"'+(cst?' selected':'')+'>\uC9C1\uC811\uC785\uB825</option>';
   var idA=(ix>=0)?(' data-i="'+ix+'"'):'';
-  return '<span style="display:inline-flex;align-items:center;justify-content:center;gap:2px;width:100%">'
+  return '<span style="display:inline-flex;align-items:center;justify-content:center;gap:2px;flex:none">'
     +'<select class="'+cls+'"'+idA+' style="margin:0 auto;width:'+(cst?'52':'46')+'px;text-align:center;font-size:12px;font-weight:800;color:#0f7a86;border:1px solid #b9c9b0;border-radius:4px;padding:3px 1px;background:#fff;cursor:pointer">'+o+'</select>'
     +'<input class="'+cls+'C"'+idA+' value="'+(cst?v:'')+'" inputmode="numeric" style="display:'+(cst?'inline-block':'none')+';width:34px;text-align:center;font-size:12px;font-weight:800;color:#0f7a86;border:1px solid #b9c9b0;border-radius:4px;padding:3px 1px">'
     +'</span>';
@@ -9403,7 +9453,7 @@ function mhDestPanel(mh,forcePick){
    +'<th style="padding:3px 2px;border:1px solid #f0c5c0;font-weight:800;color:#b03a2e;white-space:nowrap">\uC2DC\uC791\uC2DC\uC124\uBB3C</th>'
    +'<th style="padding:5px 3px;border:1px solid #f0c5c0;width:34px"></th></tr>';
   rows+=L.map(function(dv,ix){
-    var e9=(dv&&dv.ext)?dv.ext:_PA9.ext, sp9=_extSplit9(e9);
+    var e9=(dv&&dv.ext)?dv.ext:((dv&&dv.xy)?(_extPeek9(mh.wx,mh.wy,dv.xy[0],dv.xy[1])||_PA9.ext):_PA9.ext), sp9=_extSplit9(e9);
     var c9=(dv&&dv.cnt!=null&&dv.cnt!=='')?dv.cnt:null;
     if(c9==null&&dv&&dv.xy)c9=_cntPeek9(mh.wx,mh.wy,dv.xy[0],dv.xy[1]);/* [BUILD1964] 상대 채널 계승 */
     if(c9==null)c9=((L.length===1&&_PA9.cnt!=null)?_PA9.cnt:'');
@@ -9425,26 +9475,26 @@ function mhDestPanel(mh,forcePick){
 
   /* [BUILD1956] 역방향 야장 표시 제거 — 참조가 원본과 섞여 혼란을 줌 */
   var pick='<div id="mhDPick" style="display:'+(showPick?'block':'none')+';margin-bottom:10px">'
-    +'<button id="mhDMh2" style="width:100%;box-sizing:border-box;background:#fff;color:#1d9e75;border:1.5px solid #1d9e75;border-radius:9px;padding:11px 2px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;justify-content:center">\uD83D\uDD73&nbsp;<span style="letter-spacing:8px;margin-right:-8px">맨홀</span></button>'
+    +'<button id="mhDMh2" style="width:100%;box-sizing:border-box;background:#fff;color:#1d9e75;border:1.5px solid #1d9e75;border-radius:8px;padding:9px 2px;font-weight:800;font-size:13px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;justify-content:center">\uD83D\uDD73&nbsp;<span style="letter-spacing:8px;margin-right:-8px">맨홀</span></button>'
     +'<div style="display:flex;gap:5px;margin-top:7px">'
-      +'<button id="mhDJeon2" style="flex:1;min-width:0;background:#fff;color:#7a6a3a;border:1.5px solid #b9a86a;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden;display:flex;align-items:center;justify-content:center;">\uD83D\uDDFC 전주입상</button>'
-      +'<button id="mhDTong2" style="flex:1.15;min-width:0;background:#fff;color:#2471a3;border:1.5px solid #8fb8d6;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden;display:flex;align-items:center;justify-content:center;">\uD83D\uDCE1 통신주입상</button>'
-      +'<button id="mhDJb2" style="flex:0.95;min-width:0;background:#fff;color:#8e44ad;border:1.5px solid #c39bd3;border-radius:9px;padding:9px 1px;font-weight:800;font-size:11.5px;cursor:pointer;white-space:nowrap;overflow:hidden;display:flex;align-items:center;justify-content:center;">\uD83D\uDD0C JB/인입</button></div></div>';
+      +'<button id="mhDJeon2" style="flex:1;min-width:0;background:#fff;color:#7a6a3a;border:1.5px solid #b9a86a;border-radius:8px;padding:7px 1px;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap;overflow:hidden;display:flex;align-items:center;justify-content:center;">\uD83D\uDDFC 전주입상</button>'
+      +'<button id="mhDTong2" style="flex:1.15;min-width:0;background:#fff;color:#2471a3;border:1.5px solid #8fb8d6;border-radius:8px;padding:7px 1px;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap;overflow:hidden;display:flex;align-items:center;justify-content:center;">\uD83D\uDCE1 통신주입상</button>'
+      +'<button id="mhDJb2" style="flex:0.95;min-width:0;background:#fff;color:#8e44ad;border:1.5px solid #c39bd3;border-radius:8px;padding:7px 1px;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap;overflow:hidden;display:flex;align-items:center;justify-content:center;">\uD83D\uDD0C JB/인입</button></div></div>';
   var w=document.createElement('div');w.id='mhDestModal';
   w.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1330;display:flex;align-items:flex-start;justify-content:center;padding-top:14dvh';
-  w.innerHTML='<div style="background:#fdf3f1;border:1.5px solid #c0392b;border-radius:12px;width:min(94vw,410px);padding:12px 13px">'
+  w.innerHTML='<div style="background:#fdf3f1;border:1.5px solid #c0392b;border-radius:12px;width:min(92vw,368px);padding:11px 11px">'
     +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:10px">'
       +'<div style="flex:1;min-width:0;font-weight:800;font-size:13.5px;color:#b03a2e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_facNm9+'</div>'
-      +'<button id="mhDAdd" style="flex:none;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:8px;padding:5px 13px;font-weight:800;font-size:12.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;">추가</button></div>'
-    +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:9px;background:#fff;border:1.5px solid #c0392b;border-radius:8px;padding:7px 9px">'
-      +'<span style="flex:none;font-size:11px;font-weight:800;color:#b03a2e">\uC55E\uC810 \uAD00\uC815\uBCF4</span>'
-      +'<select id="mhPExt" style="flex:1;min-width:0;font-size:12px;font-weight:800;color:#0f7a86;border:1px solid #e0b4ae;border-radius:5px;padding:4px 2px;background:#fff"><option value="">(\uC678\uAD00)</option>'+_optE9.map(function(o){return '<option'+((o===_PA9.ext)?' selected':'')+'>'+o+'</option>';}).join('')+'</select>'
+      +'<button id="mhDAdd" style="flex:none;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:7px;padding:4px 10px;font-weight:800;font-size:11.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;">추가</button></div>'
+    +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:9px;background:#fff;border:1.5px solid #c0392b;border-radius:8px;padding:6px 7px">'
+      +'<span style="flex:none;font-size:10.5px;font-weight:800;color:#b03a2e">\uC55E\uC810</span>'
+      +'<select id="mhPExt" style="flex:1;min-width:0;font-size:11.5px;font-weight:800;color:#0f7a86;border:1px solid #e0b4ae;border-radius:5px;padding:3px 2px;background:#fff"><option value="">(\uC678\uAD00)</option>'+_optE9.map(function(o){return '<option'+((o===_PA9.ext)?' selected':'')+'>'+o+'</option>';}).join('')+'</select>'
       +'<span style="flex:none;font-size:11px;font-weight:800;color:#b03a2e">\uCD1D</span>'
       +_cntSel9('mhPCntS',-1,((_PA9.cnt==null)?'':_PA9.cnt))
       +'</div>'
     +pick
-    +'<div style="border:1.5px solid #c0392b;border-radius:9px;background:#fff;max-height:32dvh;overflow:auto;padding:4px 6px">'+rows+'</div>'+sumBar
-    +'<div style="display:flex;gap:7px;margin-top:11px">'+'<button id="mhDReg" style="flex:1;background:#c0392b;color:#fff;border:0;border-radius:9px;padding:10px;font-weight:800;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">구간등록</button>'+'<button id="mhDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">닫기</button></div></div>';
+    +'<div style="border:1.5px solid #c0392b;border-radius:8px;background:#fff;max-height:32dvh;overflow:auto;padding:3px 4px">'+rows+'</div>'+sumBar
+    +'<div style="display:flex;gap:7px;margin-top:11px">'+'<button id="mhDReg" style="flex:1;background:#c0392b;color:#fff;border:0;border-radius:8px;padding:8px;font-weight:800;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;">구간등록</button>'+'<button id="mhDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:8px;padding:8px;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;">닫기</button></div></div>';
   document.body.appendChild(w);
   var _ad=w.querySelector('#mhDAdd');if(_ad)_ad.onclick=function(){var pk=w.querySelector('#mhDPick');if(pk)pk.style.display=(pk.style.display==='none')?'block':'none';};
   var _b1=w.querySelector('#mhDMh2');if(_b1)_b1.onclick=function(){w.remove();_facAddDest(mh,'mh',null);};
@@ -9452,7 +9502,10 @@ function mhDestPanel(mh,forcePick){
   var _b3=w.querySelector('#mhDTong2');if(_b3)_b3.onclick=function(){w.remove();_facAddDest(mh,'riser',/통신주/);};
   var _b4=w.querySelector('#mhDJb2');if(_b4)_b4.onclick=function(){w.remove();_facAddDest(mh,'jb',null);};
   /* [BUILD1960] 앞점 총계 편집 */
-  var _pe=w.querySelector('#mhPExt');if(_pe)_pe.onchange=function(){mh._pExt=this.value;if(typeof saveProject==='function')try{saveProject();}catch(_s){}mhDestPanel(mh);};
+  var _pe=w.querySelector('#mhPExt');if(_pe)_pe.onchange=function(){
+    mh._pExt=this.value;
+    try{(mh.dests||[]).forEach(function(d){if(!d)return;d.ext=mh._pExt;if(d.xy)_extLink9(mh.wx,mh.wy,d.xy[0],d.xy[1],mh._pExt);});}catch(_el9){}/* [BUILD1965] 외관 연동 */
+    if(typeof saveProject==='function')try{saveProject();}catch(_s){}mhDestPanel(mh);};
   /* [BUILD1961] 총 관수 — 드롭다운/직접입력 */
   function _cntApply9(v,setter){
     var n=(v===''||v==null)?null:(+String(v).replace(/[^0-9]/g,'')||null);
