@@ -8606,13 +8606,14 @@ function mnTheta9(r){/* {th, kind:'확정'|'후보'|'사업평균', dev, n} | nu
 function mnWallOf9(r,fx,fy){/* 시설물 좌표 → 벽키(d1~d4) */
   var src=_mnMhOfRec9(r);if(!src||src.wx==null)return null;
   var T=mnTheta9(r);if(!T)return null;
-  var ar=_mnNrm9(Math.atan2(fy-src.wy,fx-src.wx)*180/Math.PI);
+  var _E9=(typeof mnExitBrg9==='function')?mnExitBrg9(src,{wx:fx,wy:fy}):null;/* [BUILD1952] 구간 진출 방위 우선 */
+  var ar=_E9?_mnNrm9(_E9.b):_mnNrm9(Math.atan2(fy-src.wy,fx-src.wx)*180/Math.PI);
   var wa=_mnNrm9(ar-T.th),best=null,bd=999;
   ['d1','d2','d3','d4'].forEach(function(k){
     var d=Math.abs(_mnNrm9(wa-_MN_WA9[k]+180)-180);
     if(d<bd){bd=d;best=k;}
   });
-  return {dk:best,dev:bd,T:T};
+  return {dk:best,dev:bd,T:T,via:(_E9?_E9.via:'line')};
 }
 /* 이 야장 맨홀을 가리키는 보조 시설물(입상·JB·인입) 전수 → 벽 배정 */
 function mnAuxLinks9(r){
@@ -8636,7 +8637,7 @@ function mnAuxLinks9(r){
       if(!hit)return;
       var lb='';try{lb=(typeof mhDisp==='function')?(''+mhDisp(m)):(m.label||'');}catch(_le){lb=(m.label||'');}
       var W=mnWallOf9(r,m.wx,m.wy);
-      out.push({m:m,lab:(lb||'').trim(),dk:(W&&W.dk)||null,dev:(W&&W.dev)||0,kind:(W&&W.T&&W.T.kind)||'',th:(W&&W.T&&W.T.th)||null});
+      out.push({m:m,lab:(lb||'').trim(),dk:(W&&W.dk)||null,dev:(W&&W.dev)||0,kind:(W&&W.T&&W.T.kind)||'',th:(W&&W.T&&W.T.th)||null,via:(W&&W.via)||'line',low:!!(W&&W.dev>30)});
     });
   }catch(_e){}
   return out;
@@ -8652,6 +8653,35 @@ function mnPosTag9(ax,ay,bx,by){
     var i=Math.round(a/45)%8;
     return ' \u00B7 '+_MN_D8[i]+' '+(d<10?d.toFixed(1):Math.round(d))+'m';
   }catch(_e){return '';}
+}
+/* [BUILD1952] 맨홀에서 대상으로 나가는 '구간 진출 방위'.
+   맨홀↔시설물 직선은 관로가 꺾이면 틀린 벽을 준다(6H 6구간: 직선 남서41° / 실제 남).
+   구간 시작부 EXITL(3m) 지점의 방위를 쓰고, 구간이 없을 때만 직선으로 폴백. */
+function mnExitBrg9(src,tgt){
+  try{
+    if(!src||!tgt)return null;
+    var si=(typeof mnSegFind9==='function')?mnSegFind9(src,tgt):-1;
+    if(si>=0&&typeof _tgSegs!=='undefined'&&_tgSegs&&_tgSegs[si]){
+      var sg=_tgSegs[si],n=sg.length;
+      var fwd=(Math.hypot(sg[0].x-src.wx,sg[0].y-src.wy)<=Math.hypot(sg[n-1].x-src.wx,sg[n-1].y-src.wy));
+      var seq=fwd?sg:sg.slice().reverse();
+      var EXITL=3.0,acc=0,px=seq[0].x,py=seq[0].y,ex=null,ey=null;
+      for(var i=1;i<seq.length;i++){
+        var d=Math.hypot(seq[i].x-px,seq[i].y-py);
+        if(d<1e-9)continue;
+        acc+=d;ex=seq[i].x;ey=seq[i].y;px=seq[i].x;py=seq[i].y;
+        if(acc>=EXITL)break;
+      }
+      if(ex!=null){
+        var b=Math.atan2(ey-seq[0].y,ex-seq[0].x)*180/Math.PI;
+        if(isFinite(b))return {b:((b%360)+360)%360,via:'seg'};
+      }
+    }
+  }catch(_e){}
+  try{
+    var a=Math.atan2(tgt.wy-src.wy,tgt.wx-src.wx)*180/Math.PI;
+    return {b:((a%360)+360)%360,via:'line'};
+  }catch(_e2){return null;}
 }
 /* [BUILD1951] 중복 판정 — 양쪽 좌표가 있으면 거리로만 판정.
    좌표가 있는데도 라벨로 떨어뜨리면 이름이 같은 별개 시설물(통신주 2기)이 1기로 합쳐진다. */
@@ -8696,6 +8726,31 @@ function mnAutoJoin9(rec){
     }
   }catch(_e){}
   return n;
+}
+function mnAutoFix9(rec){/* [BUILD1952] 진출방위 기준 재판정 — 자동 편입분만 벽 이동 */
+  var mv=0;
+  try{
+    if(!rec||rec.mhId==null)return 0;
+    var links=(typeof mnAuxLinks9==='function')?mnAuxLinks9(rec):[];
+    if(!links.length)return 0;
+    var byXY={};links.forEach(function(a){if(a&&a.m&&a.dk)byXY[Math.round(a.m.wx*100)+'_'+Math.round(a.m.wy*100)]=a.dk;});
+    ['d1','d2','d3','d4'].forEach(function(k){
+      var LL=(rec.destL&&rec.destL[k])?rec.destL[k]:null;if(!LL||!LL.length)return;
+      for(var i=LL.length-1;i>=0;i--){
+        var d=LL[i];
+        if(!d||!d._auto||!d.xy||d.xy.length!==2)continue;
+        var want=byXY[Math.round(d.xy[0]*100)+'_'+Math.round(d.xy[1]*100)];
+        if(!want||want===k)continue;
+        var TL=mnDestList(rec,want),dup=false;
+        TL.forEach(function(q){if(_mnDupHit9(q,d.lab,d.xy))dup=true;});
+        LL.splice(i,1);
+        if(!dup)TL.push(d);
+        mnDestSync(rec,k);mnDestSync(rec,want);mv++;
+      }
+    });
+    if(mv&&typeof mnPersistRec==='function'){try{mnPersistRec(rec);}catch(_m){}}
+  }catch(_e){}
+  return mv;
 }
 function mnAutoJoinAll9(){var t=0;try{(state.mnList||[]).filter(function(r){return r&&!r.delAt&&r.mhId!=null;}).forEach(function(r){t+=mnAutoJoin9(r);});}catch(_e){}return t;}
 /* 역방향 — 이 보조 시설물을 야장 dest로 지정한 맨홀 목록 */
@@ -8757,7 +8812,9 @@ function mnDestCount(rec,dk){try{if(rec&&rec.destL&&rec.destL[dk])return rec.des
 function mnAskDest(cur,dn,cb,rec,dk,fp){
   var old=document.getElementById('mnAskModal');if(old)old.remove();
   if(!rec||!dk)return;
-  var _aj9=0;try{if(typeof mnAutoJoin9==='function')_aj9=mnAutoJoin9(rec);}catch(_j9){}/* [BUILD1950] 자동 편입 */
+  var _aj9=0,_mv9=0;
+  try{if(typeof mnAutoFix9==='function')_mv9=mnAutoFix9(rec);}catch(_f9){}/* [BUILD1952] 진출방위 재판정 */
+  try{if(typeof mnAutoJoin9==='function')_aj9=mnAutoJoin9(rec);}catch(_j9){}/* [BUILD1950] 자동 편입 */
   var _src9=(typeof _mnMhOfRec9==='function')?_mnMhOfRec9(rec):null;
   var L=mnDestList(rec,dk);
   var mainI=mnDestMain(rec,dk);
@@ -8790,11 +8847,21 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
   if(_AX9.length){
     auxRows=badge+_AX9.map(function(a,ax){
       return '<div style="display:flex;align-items:center;gap:6px;border-bottom:1px dashed #dfe6d6;padding:7px 3px;background:#fafcf7">'
-        +'<span style="flex:none;font-size:10.5px;color:#7d8f7d;font-weight:800">\u25C1\uB3C4\uBA74</span>'
+        +'<span style="flex:none;font-size:10.5px;color:'+(a.low?'#c62828':'#7d8f7d')+';font-weight:800">\u25C1\uB3C4\uBA74'+(a.low?'?':'')+'</span>'
         +'<span style="flex:1;min-width:0;font-size:12px;font-weight:700;color:#6b7d6b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+((typeof joseoEsc==='function')?joseoEsc(a.lab):a.lab)+'<span style="color:#a9b6a9">'+((_src9&&a.m&&typeof mnPosTag9==='function')?mnPosTag9(_src9.wx,_src9.wy,a.m.wx,a.m.wy):'')+'</span></span>'
         +'<button class="mnDJoinB" data-i="'+ax+'" style="flex:none;background:#fff;color:#1565c0;border:1.5px solid #90caf9;border-radius:6px;padding:4px 10px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uD3B8\uC785</button></div>';
     }).join('');
   }else if(badge&&L.length)auxRows=badge;
+  /* [BUILD1952] 전 벽 현황 — 다른 벽에 몇 건 있는지 한눈에, 눌러서 이동 */
+  var wallBar='';
+  try{
+    var _WN9={d1:'\uC11C',d2:'\uB3D9',d3:'\uBD81',d4:'\uB0A8'};
+    wallBar='<div style="display:flex;gap:4px;margin:2px 0 8px">'+['d1','d2','d3','d4'].map(function(k){
+      var c=(typeof mnDestCount==='function')?mnDestCount(rec,k):0;
+      var on=(k===dk);
+      return '<button class="mnDWallB" data-k="'+k+'" style="flex:1;border-radius:7px;border:1.5px solid '+(on?'#558b2f':(c?'#cfd8c0':'#e8e8e4'))+';background:'+(on?'#dcedc8':'#fff')+';color:'+(on?'#33691e':(c?'#6b7d6b':'#bbb'))+';padding:5px 2px;font-size:11px;font-weight:800;cursor:pointer">'+_WN9[k]+(c?(' '+c):'')+'</button>';
+    }).join('')+'</div>';
+  }catch(_wb9){}
   var pick='<div id="mnDPick" style="display:'+(showPick?'block':'none')+';margin-bottom:9px">'
     +'<button id="mnDMh" style="width:100%;box-sizing:border-box;background:#fff;color:#1d9e75;border:1.5px solid #1d9e75;border-radius:9px;padding:11px 2px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;justify-content:center">\uD83D\uDD73&nbsp;<span style="letter-spacing:8px;margin-right:-8px">\uB9E8\uD640</span></button>'
     +'<div style="display:flex;gap:5px;margin-top:7px">'
@@ -8808,7 +8875,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
       +'<div style="flex:1;min-width:0;font-weight:800;font-size:13.5px;color:#558b2f">\uC5F0\uACB0 \uB9E8\uD640 \u2014 '+dn+'\uBC29\uD5A5</div>'
       +'<button id="mnDAdd" style="flex:none;background:#fff;color:#d32f2f;border:1.5px solid #ef9a9a;border-radius:8px;padding:5px 14px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uCD94\uAC00</button></div>'
     +pick
-    +'<div id="mnDList">'+rows+auxRows+'</div>'
+    +'<div id="mnDList">'+rows+auxRows+'</div>'+wallBar
     +'<div style="font-size:10.5px;color:#8d9c8d;margin:7px 0 9px;line-height:1.45">\u2605 \uC8FC\uBC29\uD5A5\uB9CC \uB9E8\uD640\uB3C4\u00B7\uC124\uBE44\uC0AC\uC9C4\uC5D1\uC140\u00B7\uD604\uC7A5\uC804\uC790\uC57C\uC7A5\uC5D0 \uD45C\uAE30\uB429\uB2C8\uB2E4. \uAD6C\uAC04\uC740 \uBAA9\uB85D \uC804\uCCB4\uAC00 \uC0DD\uC131\uB429\uB2C8\uB2E4.</div>'
     +'<button id="mnDNo2" style="width:100%;box-sizing:border-box;background:#fff;color:#555;border:1px solid #ddd;border-radius:9px;padding:10px;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center"><span style="letter-spacing:4px;margin-right:-4px">\uB2EB\uAE30</span></button></div>';
   document.body.appendChild(w);
@@ -8859,8 +8926,13 @@ function mnAskDest(cur,dn,cb,rec,dk,fp){
     try{if(typeof tangoSelSeg==='function')tangoSelSeg(si);}catch(_g9){}
     if(typeof toast==='function')toast((si+1)+'\uAD6C\uAC04 \u2014 '+(dv.lab||''));
   };});
+  w.querySelectorAll('.mnDWallB').forEach(function(b){b.onclick=function(){
+    var k=this.getAttribute('data-k');if(k===dk)return;
+    mnAskDest('',{d1:'1',d2:'2',d3:'3',d4:'4'}[k],cb,rec,k,false);
+  };});
   var _bAdd=w.querySelector('#mnDAdd');if(_bAdd)_bAdd.onclick=function(){_re(true);};
-  if(_aj9){try{_touch();}catch(_t9){}if(typeof toast==='function')toast('\uB3C4\uBA74 \uC5F0\uACB0 '+_aj9+'\uAC74 \uC790\uB3D9 \uD3B8\uC785');}
+  if(_aj9||_mv9){try{_touch();}catch(_t9){}
+    if(typeof toast==='function')toast((_aj9?('\uB3C4\uBA74 \uC5F0\uACB0 '+_aj9+'\uAC74 \uC790\uB3D9 \uD3B8\uC785'):'')+((_aj9&&_mv9)?' \u00B7 ':'')+(_mv9?(_mv9+'\uAC74 \uBCBD \uC7AC\uBC30\uCE58'):''));}
   var _bNo=w.querySelector('#mnDNo2');if(_bNo)_bNo.onclick=function(){w.remove();};
   w.onclick=function(e){if(e.target===w)w.remove();};
   /* [1066/1067] 입상 — 도면에서 직접 클릭해 고른다 */
