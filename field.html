@@ -262,7 +262,7 @@
   .php-split>.php-main{flex:1;min-height:0}
   .php-after .ph.php-none{color:#bbb;font-size:13px;background:#f6f6f3;flex:1}
   /* 폰 현장모드: 노출/후측량 각각 풀사이즈로 세로 스택 + 패널 스크롤 */
-  @media(max-width:760px){.viewer .php-split{flex:none}.viewer .php-split>.php-main{flex:none;height:37.5vh;min-height:250px}}/* [BUILD2004] 사진창 확대 33vh→42vh — 아래 photo-panel.open 과 반드시 짝을 맞추어야 안쪽 스크롤이 안 생긴다 *//* [BUILD1877] */
+  @media(max-width:760px){.viewer .php-split{flex:none}.viewer .php-split>.php-main{flex:none;height:37.5vh;height:calc(var(--vh9,1vh) * 37.5);min-height:250px}/* [BUILD2009] vh는 주소창 숨긴 최대높이 기준으로 고정되어 앱 복귀 시 비율이 틀어졌다 — 실제 innerHeight 기준 --vh9 로 교체(미정의 시 1vh 폴백) */}/* [BUILD2004] 사진창 확대 33vh→42vh — 아래 photo-panel.open 과 반드시 짝을 맞추어야 안쪽 스크롤이 안 생긴다 *//* [BUILD1877] */
   /* 폰 현장모드 로드뷰: 위=로드뷰 / 아래=측점사진(후측량모드처럼 풀사이즈) + 세로 스크롤 */
   @media(max-width:760px){
     .viewer #rvPanel.open{height:86vh}
@@ -292,7 +292,7 @@
   .viewer #rail,.viewer #subbar,.viewer aside.panel{display:none}
   .viewer .maincol{flex:1;min-height:0;width:100%}
   .viewer .photo-panel{width:100%!important;max-width:none!important;min-width:0!important;border-left:none;border-top:2px solid var(--line)}
-  .viewer .photo-panel.open{display:flex;flex:none;height:51vh;height:calc(max(37.5vh,250px) + 86px)}/* [BUILD2006] 2004의 증가분을 정확히 절반만 — 33→42→37.5vh / 220→280→250px *//* [BUILD2004] 33vh→42vh · 220→280px — 도면창(.maincol flex:1)은 자동으로 그만큼 줄어든다 *//* [BUILD1878] 캐벘션줄까지만 노출, 도면 최대화 */
+  .viewer .photo-panel.open{display:flex;flex:none;height:51vh;height:calc(max(37.5vh,250px) + 86px);height:calc(max(calc(var(--vh9,1vh) * 37.5),250px) + 86px)}/* [BUILD2009] 짝 유지 *//* [BUILD2006] 2004의 증가분을 정확히 절반만 — 33→42→37.5vh / 220→280→250px *//* [BUILD2004] 33vh→42vh · 220→280px — 도면창(.maincol flex:1)은 자동으로 그만큼 줄어든다 *//* [BUILD1878] 캐벘션줄까지만 노출, 도면 최대화 */
   .viewer #rvPanel.open{width:100%!important;max-width:none!important;border-left:none;border-top:2px solid var(--line);flex:none;height:50vh}
   /* 상단바 한 줄 + dev배지 숨김 */
   .viewer #buildno,.viewer #conn{display:none}
@@ -432,6 +432,27 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="지하관로 시스템">
+<script>
+/* [BUILD2009] 폰 뷰포트 실높이 추적 — 앱 전환 후 복귀·주소창 표시로 innerHeight가 바뀌어도
+   도면창:사진창 비율이 새로고침 직후와 같게 유지된다. CSS는 var(--vh9) 폴백 1vh. */
+(function(){
+  var d=document.documentElement, t=null;
+  function set(){
+    try{
+      var vv=window.visualViewport, h=(vv&&vv.height)?vv.height:window.innerHeight;
+      if(!h)return;
+      d.style.setProperty('--vh9',(h*0.01)+'px');
+    }catch(e){}
+  }
+  function kick(){ if(t)clearTimeout(t); t=setTimeout(set,60); set(); }
+  set();
+  window.addEventListener('resize',kick);
+  window.addEventListener('orientationchange',function(){setTimeout(kick,250);});
+  window.addEventListener('pageshow',kick);
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden) setTimeout(kick,50); });
+  try{ if(window.visualViewport){ visualViewport.addEventListener('resize',kick); visualViewport.addEventListener('scroll',kick); } }catch(e){}
+})();
+</script>
 </head>
 <body>
   <header>
@@ -637,6 +658,6 @@
     </div>
   </div>
 
-<script src="login.js?v=2008"></script><script src="core.js?v=2008"></script>
+<script src="login.js?v=2009"></script><script src="core.js?v=2009"></script>
 </body>
 </html>
