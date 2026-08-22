@@ -13864,7 +13864,7 @@ try{if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&window.matchMedia&&matchMe
 try{if(typeof IS_FIELD!=='undefined'&&IS_FIELD&&window.matchMedia&&matchMedia('(max-width:760px)').matches){
   var _fb9=document.getElementById('buildno'),_fw9=document.querySelector('.canvas-wrap');
   if(_fb9&&_fw9){_fw9.appendChild(_fb9);
-    _fb9.style.cssText='display:inline-block;position:absolute;left:8px;bottom:8px;z-index:49;font-size:10px;font-weight:800;color:#fff;background:rgba(192,57,43,.8);padding:2px 7px;border-radius:6px;letter-spacing:.4px;cursor:pointer';
+    _fb9.style.cssText='display:inline-flex;align-items:center;height:22px;box-sizing:border-box;position:absolute;left:8px;bottom:6px;z-index:49;font-size:11.5px;font-weight:800;color:#fff;background:rgba(192,57,43,.85);padding:0 9px;border-radius:7px;letter-spacing:.4px;cursor:pointer';/* [BUILD2016] \ubc30\uc9c0 \ud0a4\uc6b0\uace0 \ub192\uc774 22px \uace0\uc815 \u2014 \uc606 \ube44\uc728\uc870\uc808\ubc14\uc640 \uc138\ub85c \ub9de\ucda4 */
     _fb9.onclick=function(){if(!confirm('\ucd5c\uc2e0 \ube4c\ub4dc\ub85c \uc0c8\ub85c\uace0\uce68 \ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?\n(\uc800\uc7a5 \uc548 \ud55c \uc791\uc5c5\uc740 \uc0ac\ub77c\uc9d1\ub2c8\ub2e4)'))return;try{var u=new URL(location.href);u.searchParams.set('_r',Date.now());location.replace(u.toString());}catch(_fu9){location.reload();}};
   }}}catch(_fb8){}
 /* [BUILD2008] 폰 측량현장: 도면창 좌상단 특이사항 버튼 — realtime[1856~1858] 이식.
