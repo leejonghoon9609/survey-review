@@ -13738,6 +13738,15 @@ function placeCoord(){if(coordBox&&coordBox._pin)return;/* [BUILD1813] 핀 고�
 try{if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&window.matchMedia&&matchMedia('(max-width:760px)').matches){var _mc9=document.querySelector('.maincol');if(_mc9&&coordBox){_mc9.appendChild(coordBox);coordBox.style.position='absolute';coordBox.style.right='8px';coordBox.style.bottom='8px';coordBox._pin=1;}}}catch(_cp9){}
 /* [BUILD1817] 폰 실시간: BUILD 배지를 도면창 좌하단 미니 표시 — 버전 확인용 */
 try{if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&window.matchMedia&&matchMedia('(max-width:760px)').matches){var _bn9=document.getElementById('buildno'),_mc8=document.querySelector('.maincol');if(_bn9&&_mc8){_mc8.appendChild(_bn9);/* [BUILD1856] 특이사항 — realtime.html 정적 버튼(rtNoteBtn, 폰 CSS로 숨김)을 배지 위로 이동+표시강제 (id 충돌이 1853~55 실패 원인) */try{var _nb2=document.getElementById('rtNoteBtn');if(_nb2){var _cw9=document.querySelector('.canvas-wrap')||_mc8;_cw9.appendChild(_nb2);/* [BUILD1858] 되돌리기와 같은 줄(canvas-wrap top:10) 좌측 */_nb2.style.cssText='position:absolute;left:8px;top:10px;z-index:50;font-size:12.5px;font-weight:800;padding:6px 11px;border:1.5px solid #d500f2;border-radius:9px;background:#fff;color:#d500f2;box-shadow:0 2px 6px rgba(0,0,0,.16);cursor:pointer';_nb2.style.setProperty('display','inline-block','important');}}catch(_nb6){}_bn9.style.cssText='display:inline-block;position:absolute;left:8px;bottom:8px;z-index:49;font-size:10px;font-weight:800;color:#fff;background:rgba(192,57,43,.8);padding:2px 7px;border-radius:6px;letter-spacing:.4px;cursor:pointer';/* [BUILD1821] 배지 탭 = 캐시 우회 새로고침 */_bn9.onclick=function(){if(!confirm('최신 빌드로 새로고침 하시겠습니까?\n(저장 안 한 작업은 사라집니다)'))return;try{var u=new URL(location.href);u.searchParams.set('_r',Date.now());location.replace(u.toString());}catch(_u9){location.reload();}};}}}catch(_bn8){}
+/* [BUILD2001] 폰 측량현장: BUILD 배지를 도면창 좌하단에 미니 표시 + 탭하면 캐시 우회 새로고침.
+   realtime[BUILD1817/1821] 이식. ★realtime은 .maincol에 position:relative가 있지만 field는 없어서
+   .canvas-wrap(position:relative)에 붙인다 — maincol에 붙이면 absolute 기준이 없어 엉뚱한 곳에 뜬다. */
+try{if(typeof IS_FIELD!=='undefined'&&IS_FIELD&&window.matchMedia&&matchMedia('(max-width:760px)').matches){
+  var _fb9=document.getElementById('buildno'),_fw9=document.querySelector('.canvas-wrap');
+  if(_fb9&&_fw9){_fw9.appendChild(_fb9);
+    _fb9.style.cssText='display:inline-block;position:absolute;left:8px;bottom:8px;z-index:49;font-size:10px;font-weight:800;color:#fff;background:rgba(192,57,43,.8);padding:2px 7px;border-radius:6px;letter-spacing:.4px;cursor:pointer';
+    _fb9.onclick=function(){if(!confirm('\ucd5c\uc2e0 \ube4c\ub4dc\ub85c \uc0c8\ub85c\uace0\uce68 \ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?\n(\uc800\uc7a5 \uc548 \ud55c \uc791\uc5c5\uc740 \uc0ac\ub77c\uc9d1\ub2c8\ub2e4)'))return;try{var u=new URL(location.href);u.searchParams.set('_r',Date.now());location.replace(u.toString());}catch(_fu9){location.reload();}};
+  }}}catch(_fb8){}
 function coordReset(){coordBox.innerHTML='X <b>–</b>　Y <b>–</b>';placeCoord();if(gDraw)clearSvg(gDraw);}
 cwrap.addEventListener('mousemove',function(e){
   placeCoord();
