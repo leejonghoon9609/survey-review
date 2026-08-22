@@ -17079,8 +17079,11 @@ function wheelFactor(){
   var f=base+adj*0.06; if(f<1.02)f=1.02; if(f>2.4)f=2.4; return f;
 }
 (function(){try{
-  if(!((typeof IS_TANGO!=='undefined'&&IS_TANGO)||(typeof STAGE!=='undefined'&&STAGE==='survey')))return; /* [BUILD1712] 휠감도 UI: 탱고+결선 */
-  var tb=document.getElementById((typeof IS_TANGO!=='undefined'&&IS_TANGO)?'tamsaBadge':'trashProj'); if(!tb||!tb.parentNode)return;
+  var _wF9=(typeof IS_FIELD!=='undefined'&&IS_FIELD);
+  if(!((typeof IS_TANGO!=='undefined'&&IS_TANGO)||(typeof STAGE!=='undefined'&&STAGE==='survey')||_wF9))return; /* [BUILD1712] \uD720\uAC10\uB3C4 UI: \uD0B1\uACE0+\uACB0\uC120 \u2192 [BUILD2005] \uCE21\uB7C9\uD604\uC7A5 \uCD94\uAC00. wheelFactor()\uB294 \uC774\uBBF8 field \uAE30\uBCF8\uAC12 1.16\uC744 \uC9C0\uC6D0 \u2014 UI\uB9CC \uB9C9\uD600 \uC788\uC5C8\uB2E4 */
+  /* [BUILD2005] \uD3F0\uC740 \uD5E4\uB354 order\uAC00 \uCD98\uCD98\uD574 \uB07C\uC5B4\uB4E4\uBA74 \uC904\uBC14\uAFC8\uC774 \uAE68\uC9C4\uB2E4 \u2014 PC\uC5D0\uC11C\uB9CC */
+  if(_wF9&&window.matchMedia&&matchMedia('(max-width:760px)').matches)return;
+  var tb=document.getElementById((typeof IS_TANGO!=='undefined'&&IS_TANGO)?'tamsaBadge':(_wF9?'fldTrash':'trashProj')); if(!tb||!tb.parentNode)return;
   var bs='border:1px solid #c9d4de;background:#fff;border-radius:6px;width:24px;height:24px;cursor:pointer;font-size:15px;font-weight:800;color:#1565c0;line-height:1;padding:0;display:inline-flex;align-items:center;justify-content:center';
   var box=document.createElement('span');
   box.id='wheelAdjBox';
