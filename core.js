@@ -613,7 +613,7 @@ function addNoteHandle(L,t,ld,lx,ly,ax,tw){
     h.setAttribute('x',nx+0.25-pad);h.setAttribute('y',ny-0.45-pad);});
   function up(ev){if(!drag)return;drag=false;if(_lp){clearTimeout(_lp);_lp=null;}setTimeout(function(){labelDragging=false;},40);
     if(moved){L.noteOff=[nx+ORG.x,ny-ORG.y];}/* [1524] LOCAL\u2192WF */
-    else{var now=Date.now();if(now-(L._lastClick||0)<350){L._lastClick=0;if(typeof mode!=='undefined'&&mode==='tgnote'){/* [BUILD1859] 특이사항 모드: 라인 태그 더블클릭=특이사항 생성 (전 공정) */try{if(typeof pushHist==='function')pushHist();if(!state.tgNotes)state.tgNotes=[];state.tgNotes.push({x:lx,y:ly,text:''});if(typeof saveProject==='function')saveProject();drawGeo();if(typeof tgNoteEdit==='function')tgNoteEdit(state.tgNotes.length-1,ev,'new');}catch(_tn9){}}else{openLineNoteEdit(L,lx,ly);}}else{L._lastClick=now;}}
+    else{var now=Date.now();if(now-(L._lastClick||0)<350){L._lastClick=0;if(typeof mode!=='undefined'&&mode==='tgnote'){/* [BUILD1859] 특이사항 모드: 라인 태그 더블클릭=특이사항 생성 (전 공정) */try{if(typeof pushHist==='function')pushHist();if(!state.tgNotes)state.tgNotes=[];state.tgNotes.push({x:lx+ORG.x,y:ly-ORG.y,text:''});/* [BUILD2008] \u2605\uC88C\uD45C\uACC4 \uBC84\uADF8 \u2014 lx,ly\uB294 LOCAL(\uD654\uBA74)\uC778\uB370 \uadf8\ub300\ub85c \ub123\uc5b4 tgNotes\uAC00 ORG\uB9CC\ud07c(565km) \ubc16\uc5d0 \uc0dd\uc131\ub3fc \ud654\uba74\uc5d0 \uc548 \ubcf4\uc600\ub2e4. \ubc14\ub85c \uc717\uc904 L.noteOff=[nx+ORG.x,ny-ORG.y] \uc640 \uac19\uc740 LOCAL\u2192WF \uaddc\uc57d \uc801\uc6a9. \ub2e4\ub978 push \uc9c0\uc810 2\uacf3(mh.wx / best.x)\uc740 \uc6d0\ub798 \uc6d4\ub4dc\ub77c \uc815\uc0c1\uc774\uc5c8\ub2e4. [BUILD1991] \uac80\uc218\uc368\ud074\uacfc \ub3d9\uc77c \uacc4\uc5f4 */if(typeof saveProject==='function')saveProject();drawGeo();if(typeof tgNoteEdit==='function')tgNoteEdit(state.tgNotes.length-1,ev,'new');}catch(_tn9){}}else{openLineNoteEdit(L,lx,ly);}}else{L._lastClick=now;}}
     try{h.releasePointerCapture(ev.pointerId);}catch(e){}drawGeo();}
   h.addEventListener('pointerup',up);h.addEventListener('pointercancel',up);
   gPts.appendChild(h);
@@ -13786,6 +13786,23 @@ try{if(typeof IS_FIELD!=='undefined'&&IS_FIELD&&window.matchMedia&&matchMedia('(
     _fb9.style.cssText='display:inline-block;position:absolute;left:8px;bottom:8px;z-index:49;font-size:10px;font-weight:800;color:#fff;background:rgba(192,57,43,.8);padding:2px 7px;border-radius:6px;letter-spacing:.4px;cursor:pointer';
     _fb9.onclick=function(){if(!confirm('\ucd5c\uc2e0 \ube4c\ub4dc\ub85c \uc0c8\ub85c\uace0\uce68 \ud558\uc2dc\uaca0\uc2b5\ub2c8\uae4c?\n(\uc800\uc7a5 \uc548 \ud55c \uc791\uc5c5\uc740 \uc0ac\ub77c\uc9d1\ub2c8\ub2e4)'))return;try{var u=new URL(location.href);u.searchParams.set('_r',Date.now());location.replace(u.toString());}catch(_fu9){location.reload();}};
   }}}catch(_fb8){}
+/* [BUILD2008] 폰 측량현장: 도면창 좌상단 특이사항 버튼 — realtime[1856~1858] 이식.
+   기존 fldNoteBtn(사진조서 버튼을 400ms마다 추종하는 fixed 버튼)은 그대로 두고 별도 id로 추가한다.
+   ★id 충돌이 1853~55 실패 원인이었으므로 fldNoteBtn2 로 분리. */
+try{if(typeof IS_FIELD!=='undefined'&&IS_FIELD&&window.matchMedia&&matchMedia('(max-width:760px)').matches){
+  var _fw8=document.querySelector('.canvas-wrap');
+  if(_fw8&&!document.getElementById('fldNoteBtn2')){
+    var _fn8=document.createElement('button');_fn8.id='fldNoteBtn2';
+    _fn8.textContent='\u2757 \uD2B9\uC774\uC0AC\uD56D';
+    _fn8.style.cssText='position:absolute;left:8px;top:10px;z-index:50;font-size:12.5px;font-weight:800;padding:6px 11px;border:1.5px solid #d500f2;border-radius:9px;background:#fff;color:#d500f2;box-shadow:0 2px 6px rgba(0,0,0,.16);cursor:pointer';
+    _fn8.onclick=function(ev){try{ev.stopPropagation();}catch(_e){}if(typeof tgNoteToggle==='function')tgNoteToggle();
+      try{_fn8.style.background=(typeof mode!=='undefined'&&mode==='tgnote')?'#fbe9fb':'#fff';}catch(_e2){}
+      try{if(typeof renderSub==='function')renderSub();}catch(_e3){}};
+    _fw8.appendChild(_fn8);
+    /* 모드 전환 시 색 동기 — setModeUI가 rtNoteBtn만 갱신하므로 여기서 따로 */
+    try{setInterval(function(){var b=document.getElementById('fldNoteBtn2');if(b)b.style.background=(typeof mode!=='undefined'&&mode==='tgnote')?'#fbe9fb':'#fff';},500);}catch(_e4){}
+  }
+}}catch(_fn7){}
 function coordReset(){coordBox.innerHTML='X <b>–</b>　Y <b>–</b>';placeCoord();if(gDraw)clearSvg(gDraw);}
 cwrap.addEventListener('mousemove',function(e){
   placeCoord();
