@@ -16328,11 +16328,24 @@ function fldSiteSVG(rec,W,H,span,at){/* [1570] \uce21\ub7c9\ud604\uc7a5 \uc57c\u
   function P(x,y){return [(x-OX).toFixed(3),(-(y-OY)).toFixed(3)];}
   var pad=vw*0.15;function inView(px,py){return px>x0-pad&&px<x1+pad&&py>y0-pad&&py<y1+pad;}
   var kW=vw/1000,body=[];
+  /* [BUILD1993] 설비위치 미니창 — 구 판정은 "정점이 뷰 안에 있는 선"만 그렸다.
+     수치지도(백판)는 정점 간격이 넓어 뷰를 관통해도 정점이 바깥이면 통째로 스킵됐고,
+     그래서 심사 성과물(맨홀설비사진)의 설비위치 배경 좌우가 비었다.
+     → 뷰 사각형으로 clipPolyRect 클리핑: ①관통 선도 그려져 배경이 꽉 차고
+       ②뷰 밖 정점이 SVG에서 빠져 출력이 가벼워진다(맨홀 수만큼 생성되므로 체감 큼). */
+  var _cx0=x0-pad,_cx1=x1+pad,_cy0=y0-pad,_cy1=y1+pad;
   (state.lines||[]).forEach(function(L){var ps=L&&L.pts;if(!ps||ps.length<2)return;
-   var any=false;for(var q=0;q<ps.length;q++){if(inView(ps[q][0],ps[q][1])){any=true;break;}}
-   if(!any)return;
+   var bx0=1e18,bx1=-1e18,by0=1e18,by1=-1e18;
+   for(var q=0;q<ps.length;q++){var _px=ps[q][0],_py=ps[q][1];
+     if(_px<bx0)bx0=_px;if(_px>bx1)bx1=_px;if(_py<by0)by0=_py;if(_py>by1)by1=_py;}
+   if(bx1<_cx0||bx0>_cx1||by1<_cy0||by0>_cy1)return;   /* 바운딩박스가 뷰와 안 겹침 */
+   var segs;
+   try{segs=(typeof clipPolyRect==='function')?clipPolyRect(ps,_cx0,_cy0,_cx1,_cy1):[ps];}catch(_ce){segs=[ps];}
+   if(!segs||!segs.length)return;
    var isPipe=(L.layer==='\ud1b5\uc2e0\uad00\ub85c');var _hy=(L.layer==='\ub3c4\ub85c'||L.layer==='\ubcf4\ub3c4');/* [1672] \ud604\ud669\uc120=\uc5f0\ub450 */
-   body.push('<polyline points="'+ps.map(function(p){var s2=P(p[0],p[1]);return s2[0]+','+s2[1];}).join(' ')+'" fill="none" stroke="'+(isPipe?'#0033cc':(_hy?'#9ccc65':'#a3a3a3'))+'" stroke-width="'+((isPipe?7.0:(_hy?2.0:1.2))*kW)+'" stroke-linejoin="round" stroke-linecap="round"/>');});
+   var _col=(isPipe?'#0033cc':(_hy?'#9ccc65':'#a3a3a3')),_wd=((isPipe?7.0:(_hy?2.0:1.2))*kW);
+   segs.forEach(function(sp){if(!sp||sp.length<2)return;
+     body.push('<polyline points="'+sp.map(function(p){var s2=P(p[0],p[1]);return s2[0]+','+s2[1];}).join(' ')+'" fill="none" stroke="'+_col+'" stroke-width="'+_wd+'" stroke-linejoin="round" stroke-linecap="round"/>');});});
   (state.manholes||[]).forEach(function(m){if(!m||m.wx==null)return;if(!inView(m.wx,m.wy))return;
    var s2=P(m.wx,m.wy);
    if(m.type==='riser'){body.push('<circle cx="'+s2[0]+'" cy="'+s2[1]+'" r="'+(vw*0.012).toFixed(2)+'" fill="#7a52e0" fill-opacity="0.85"/>');return;}
