@@ -13638,8 +13638,47 @@ function refreshPhotoPanel(){
 function centerOnNo(no){var p=null;(state.points||[]).forEach(function(q){if(q&&String(q.no)===String(no))p=q;});if(!p||!isFinite(p.x)||!isFinite(p.y))return;try{var sp=S(p.x,p.y);vb.x=sp[0]-vb.w/2;vb.y=sp[1]-vb.h/2;if(typeof applyVB==='function')applyVB();}catch(e){}}
 function selectPoint(num){selNum=String(num);drawGeo();highlightSel();if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&!photoPanelOpen&&_rtPhotoAuto&&typeof openPhotoPanel==='function')openPhotoPanel();/* [1150] */var sel=document.getElementById('photoSel');if(sel)sel.value=String(num);if(photoPanelOpen)refreshPhotoPanel();if(typeof joseoSyncTo==='function')joseoSyncTo(num);}
 function openPhotoPanel(o){photoPanelOpen=(o==null)?!photoPanelOpen:!!o;var _pp9=document.getElementById('photoPanel');_pp9.classList.toggle('open',photoPanelOpen);if(photoPanelOpen)_pp9.style.display=''; /* [1279] 야장이 심은 인라인 none 해제(함정 X) */var _pbOn=document.getElementById('photoBtn');if(_pbOn)_pbOn.classList.toggle('on',photoPanelOpen);/* [1220] 버튼 활성 표시(스타일은 realtime 폰 CSS만) */if(photoPanelOpen&&typeof closeRvPanel==='function')closeRvPanel();if(photoPanelOpen)refreshPhotoPanel();setTimeout(function(){if(typeof fixAspect==='function')fixAspect();if(typeof applyVB==='function')applyVB();if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();if(typeof highlightSel==='function')highlightSel();if(typeof placeCoord==='function')placeCoord();},30);}
+/* [BUILD2002] ★야간보정 사진키 자가정합
+   [1927]은 "이름을 바꾸는 순간"에만 키를 옮긴다. 이미 리네임이 끝난 사업은
+   applyNightShift에서 nu===p.no 가 되어 _rn9가 비고, 사진키는 예날짜에 영영 남는다.
+   측점이 원날짜(_d0)·원번호(_nm)를 그대로 들고 있으므로 그걸로 짝을 찾는다.
+   ★사진맵은 payload가 아니라 {DB}_photos 에서 매번 로드된다 — [저장]으로는 안 남으므로
+   point_no 자체를 update 해야 영속된다. 공정별 테이블(DB=STAGE)이므로 각 공정에서 1회씩 돌면 된다. */
+function phSyncNight9(_sil){
+  var nb=0,na=0,skip=0,mv=[];
+  try{
+    (state.points||[]).forEach(function(p){
+      if(!p||p._d0==null||p._nm==null)return;
+      var ok=p._d0+'-'+p._nm; if(ok===p.no)return;
+      if(typeof photoMap!=='undefined'&&photoMap[ok]){
+        if(photoMap[p.no]){skip++;}
+        else{photoMap[p.no]=photoMap[ok];delete photoMap[ok];nb++;mv.push(['B',ok,p.no]);}
+      }
+      if(typeof afterMap!=='undefined'&&afterMap[ok]){
+        if(afterMap[p.no]){skip++;}
+        else{afterMap[p.no]=afterMap[ok];delete afterMap[ok];na++;mv.push(['A',ok,p.no]);}
+      }
+    });
+    if(nb||na){
+      /* DB point_no 갱신 — 후측량은 _A 접미 */
+      try{if(typeof online!=='undefined'&&online&&typeof sb!=='undefined'&&sb&&state.projectId){
+        mv.forEach(function(m){
+          var o=(m[0]==='A')?(m[1]+'_A'):m[1], u=(m[0]==='A')?(m[2]+'_A'):m[2];
+          try{sb.from(DB+'_photos').update({point_no:u}).eq('project_id',state.projectId).eq('point_no',o).then(function(){},function(){});}catch(_e1){}
+        });
+      }}catch(_e2){}
+      if(!_sil){
+        console.log('[사진정합] 야간보정 어긋난 키 복구 — 실시간 '+nb+'건 / 후측량 '+na+'건'+(skip?('  (양쪽 있음 '+skip+'건은 건드리지 않음)'):''));
+        try{if(typeof toast==='function')toast('사진 '+(nb+na)+'장 점번호 재정렬됨');}catch(_e3){}
+      }
+      try{if(typeof drawGeo==='function')drawGeo();}catch(_e4){}
+      try{if(typeof refreshPhotoPanel==='function'&&photoPanelOpen)refreshPhotoPanel();}catch(_e5){}
+    }else if(!_sil){console.log('[사진정합] 어긋난 키 없음'+(skip?('  (양쪽 있음 '+skip+'건)'):''));}
+  }catch(e){console.warn('phSyncNight9',e);}
+  return nb+na;
+}
 function loadPhotos(){photoMap={};afterMap={};if(!online||!state.projectId){if(photoPanelOpen)refreshPhotoPanel();return;}
-  sb.from(DB+'_photos').select('point_no,url').eq('project_id',state.projectId).then(function(res){(res.data||[]).forEach(function(r){var pn=String(r.point_no);if(/_A$/.test(pn))afterMap[pn.replace(/_A$/,'')]=r.url;else photoMap[pn]=r.url;});if(photoPanelOpen)refreshPhotoPanel();if(typeof drawGeo==='function')drawGeo();});}
+  sb.from(DB+'_photos').select('point_no,url').eq('project_id',state.projectId).then(function(res){(res.data||[]).forEach(function(r){var pn=String(r.point_no);if(/_A$/.test(pn))afterMap[pn.replace(/_A$/,'')]=r.url;else photoMap[pn]=r.url;});try{phSyncNight9();}catch(_ps9){}/* [BUILD2002] 로드 직후 자가정합 */if(photoPanelOpen)refreshPhotoPanel();if(typeof drawGeo==='function')drawGeo();});}
 function _normTxt(s){return (s||'').toString().replace(/[\s_\-]+/g,'').toLowerCase();}
 function _hashStr(s){var h=5381;for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))>>>0;return h.toString(36);}
 function safeName(s){s=(s||'').toString();return /^[A-Za-z0-9._-]+$/.test(s)?s:(s.replace(/[^A-Za-z0-9._-]+/g,'')+'_'+_hashStr(s));}
