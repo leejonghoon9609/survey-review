@@ -159,7 +159,7 @@
   .toast.show{opacity:.95}
   .coordbox{position:fixed;right:10px;bottom:10px;z-index:50;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:12px;color:var(--ink);font-variant-numeric:tabular-nums;pointer-events:none;box-shadow:0 1px 6px rgba(0,0,0,.12);line-height:1.5}
   .coordbox b{font-weight:600}
-  .coordbox .cb-near{display:block;color:var(--muted);font-size:11px;margin-top:1px}
+  .coordbox .cb-near{display:none}/* [BUILD2000] 측량현장 좌표창 한 줄로 — 근접측점·관정보 줄 숨김. 실시간[BUILD1814] 관례와 동일 */
   .recclr{padding:2px 8px;font-size:11px;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer}
   .recclr:hover{color:var(--bad);border-color:var(--bad);background:#fbeeee}
   .photoBtn{background:#eef6ef;border-color:#bcdcc0;color:#2a9e50;font-weight:600}
@@ -637,6 +637,6 @@
     </div>
   </div>
 
-<script src="login.js?v=1999"></script><script src="core.js?v=1999"></script>
+<script src="login.js?v=2000"></script><script src="core.js?v=2000"></script>
 </body>
 </html>
