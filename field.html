@@ -437,7 +437,7 @@
    vh 는 주소창 숨긴 최대높이 기준으로 고정이고, calc(var(--vh9)) 방식([2009]/[2011])도
    CSS 우선순위·파싱에 휘둘려 두 번 실패했다. → JS가 .stage 실제 높이를 재서 px 로 직접 박는다.
    FLD_SPLIT9 = 사진창이 차지할 비율(.stage 기준). 콘솔에서 바꿔 바로 확인 가능. */
-window.FLD_SPLIT9 = (function(){try{var v=parseFloat(localStorage.getItem('fldSplit9'));return (v>0.15&&v<0.85)?v:0.418;}catch(e){return 0.418;}})();/* [BUILD2014] 실측 기본값 41.8%(체부2 실측) + 사용자가 맞춘 값 localStorage 유지 */
+window.FLD_SPLIT9 = (function(){try{var v=parseFloat(localStorage.getItem('fldSplit9'));return (v>0.15&&v<0.85)?v:0.468;}catch(e){return 0.468;}})();/* [BUILD2015] 기본 46.8% — 사용자가 폰에서 직접 맞춘 값 *//* [BUILD2014] 실측 기본값 41.8%(체부2 실측) + 사용자가 맞춘 값 localStorage 유지 */
 window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
 (function(){
   var t=null;
@@ -471,15 +471,15 @@ window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
       if(document.getElementById('fldSplitBar9'))return;
       var cw=document.querySelector('.canvas-wrap'); if(!cw)return;
       var w=document.createElement('div'); w.id='fldSplitBar9';
-      w.style.cssText='position:absolute;left:8px;bottom:34px;z-index:60;display:flex;align-items:center;gap:4px;'
-        +'background:rgba(255,255,255,.94);border:1.5px solid #1565c0;border-radius:8px;padding:3px 6px;'
-        +'font-size:11px;font-weight:800;color:#1565c0;box-shadow:0 2px 6px rgba(0,0,0,.18)';
+      w.style.cssText='position:absolute;left:96px;bottom:6px;z-index:60;display:flex;align-items:center;gap:4px;'
+        +'background:rgba(255,255,255,.94);border:1.5px solid #1565c0;border-radius:8px;padding:2px 5px;'
+        +'font-size:10.5px;font-weight:800;color:#1565c0;box-shadow:0 2px 6px rgba(0,0,0,.18)';/* [BUILD2015] BUILD 배지 오른쪽(도면 좌하단 줄)으로 이동 */
       var bs='border:1px solid #90b4d8;background:#fff;color:#1565c0;border-radius:5px;width:24px;height:22px;'
         +'font-size:14px;font-weight:800;line-height:1;padding:0;cursor:pointer';
       w.innerHTML='<button id="fsMinus" style="'+bs+'">\u2212</button>'
-        +'<b id="fsVal" style="min-width:38px;text-align:center">'+(window.FLD_SPLIT9*100).toFixed(1)+'%</b>'
+        +'<b id="fsVal" style="min-width:36px;text-align:center">'+(window.FLD_SPLIT9*100).toFixed(1)+'%</b>'
         +'<button id="fsPlus" style="'+bs+'">+</button>'
-        +'<button id="fsHide" style="'+bs+';width:20px;font-size:11px">\u00d7</button>';
+        +'<button id="fsHide" style="'+bs+';width:18px;font-size:11px" title="\uc811\uae30">\u25c0</button>';
       cw.appendChild(w);
       function upd(){var e=document.getElementById('fsVal');if(e)e.textContent=(window.FLD_SPLIT9*100).toFixed(1)+'%';}
       function step(d){var v=Math.round((window.FLD_SPLIT9+d)*1000)/1000;
@@ -487,7 +487,19 @@ window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
         window.FLD_SPLIT9=v; try{localStorage.setItem('fldSplit9',String(v));}catch(e){} apply(); upd();}
       document.getElementById('fsMinus').onclick=function(e){e.stopPropagation();step(-0.01);};
       document.getElementById('fsPlus').onclick=function(e){e.stopPropagation();step(0.01);};
-      document.getElementById('fsHide').onclick=function(e){e.stopPropagation();w.remove();};
+      /* [BUILD2015] \u00d7(\uc0ad\uc81c) \u2192 \uc811\uae30/\ud3bc\uce58\uae30. \uc811\uc73c\uba74 \uc791\uc740 \ud0ed\ub9cc \ub0a8\uace0 \ub2e4\uc2dc \ub204\ub974\uba74 \ud3bc\uccd0\uc9c4\ub2e4 */
+      var _fold=false;
+      function paint(){
+        var ids=['fsMinus','fsVal','fsPlus'];
+        ids.forEach(function(id){var e=document.getElementById(id);if(e)e.style.display=_fold?'none':'';});
+        var hb=document.getElementById('fsHide');
+        if(hb)hb.textContent=_fold?'\u25b6':'\u25c0';
+        w.style.padding=_fold?'2px 3px':'2px 5px';
+      }
+      document.getElementById('fsHide').onclick=function(e){e.stopPropagation();_fold=!_fold;
+        try{localStorage.setItem('fldSplitFold9',_fold?'1':'0');}catch(_e){} paint();};
+      try{_fold=(localStorage.getItem('fldSplitFold9')==='1');}catch(_e){}
+      paint();
     }catch(e){}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){kick();bar();}); else {kick();bar();}
@@ -503,6 +515,95 @@ window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
       var pp=document.querySelector('.photo-panel');
       if(pp)mo.observe(pp,{attributes:true,attributeFilter:['class','style']});
     });}catch(e){}
+})();
+</script>
+<script>
+/* [BUILD2015] 사진 확대축소 — 실시간(#zoomImg)·후측량(.zoomImgA) 공통.
+   .zoomwrap 안에서만 동작하므로 도면 팬/줌과 충돌하지 않는다.
+   핀치(두 손가락) / 더블탭 2배 토글 / 확대 중 한 손가락 드래그 이동 / 휠(PC). */
+(function(){
+  var MAX=6, MIN=1;
+  function st(img){ if(!img._z9)img._z9={s:1,x:0,y:0}; return img._z9; }
+  function apply(img){
+    var z=st(img);
+    if(z.s<=MIN+0.001){z.s=1;z.x=0;z.y=0;}
+    /* 이동 범위 제한 — 이미지가 화면 밖으로 완전히 나가지 않게 */
+    try{
+      var w=img.parentNode.clientWidth, h=img.parentNode.clientHeight;
+      var mx=Math.max(0,(w*z.s-w)/2), my=Math.max(0,(h*z.s-h)/2);
+      if(z.x>mx)z.x=mx; if(z.x<-mx)z.x=-mx;
+      if(z.y>my)z.y=my; if(z.y<-my)z.y=-my;
+    }catch(e){}
+    img.style.transform='translate('+z.x+'px,'+z.y+'px) scale('+z.s+')';
+    img.style.transformOrigin='center center';
+    img.style.cursor=(z.s>1)?'grab':'zoom-in';
+    var wr=img.parentNode;
+    if(wr)wr.style.touchAction=(z.s>1)?'none':'';
+  }
+  function bind(img){
+    if(!img||img._zb9)return; img._zb9=1;
+    img.style.transition='transform .08s linear';
+    var pts={}, base=0, bs=1, drag=null, lastTap=0, pinched=0;
+    function dist(){var k=Object.keys(pts);if(k.length<2)return 0;
+      var a=pts[k[0]],b=pts[k[1]];return Math.hypot(a.x-b.x,a.y-b.y);}
+    img.addEventListener('pointerdown',function(e){
+      pts[e.pointerId]={x:e.clientX,y:e.clientY};
+      try{img.setPointerCapture(e.pointerId);}catch(_e){}
+      if(Object.keys(pts).length===2){base=dist();bs=st(img).s;drag=null;lastTap=0;pinched=1;e.preventDefault();return;}/* [BUILD2015] \ud540\uce58 \uc911\uc5d0\ub294 \ub354\ube14\ud0ed \ud310\uc815 \ubb34\ud6a8\ud654 */
+      var now=Date.now();
+      if(pinched){ /* [BUILD2015] 핀치 직후 첫 탭은 더블탭이 아니다 */
+        pinched=0; lastTap=0;
+        if(st(img).s>1){drag={x:e.clientX,y:e.clientY,ox:st(img).x,oy:st(img).y};e.preventDefault();}
+        return;
+      }
+      if(now-lastTap<300){ /* 더블탭 */
+        e.preventDefault();
+        var z=st(img); z.s=(z.s>1.05)?1:2; z.x=0; z.y=0; apply(img); lastTap=0; drag=null; return;
+      }
+      lastTap=now;
+      if(st(img).s>1){drag={x:e.clientX,y:e.clientY,ox:st(img).x,oy:st(img).y};e.preventDefault();}
+    });
+    img.addEventListener('pointermove',function(e){
+      if(!pts[e.pointerId])return;
+      pts[e.pointerId]={x:e.clientX,y:e.clientY};
+      if(Object.keys(pts).length>=2&&base>0){
+        e.preventDefault();
+        var d=dist(); if(!d)return;
+        var z=st(img); z.s=Math.max(MIN,Math.min(MAX,bs*(d/base))); apply(img); return;
+      }
+      if(drag){e.preventDefault();var z=st(img);
+        z.x=drag.ox+(e.clientX-drag.x); z.y=drag.oy+(e.clientY-drag.y); apply(img);}
+    });
+    function up(e){ delete pts[e.pointerId];
+      if(Object.keys(pts).length<2)base=0;
+      if(!Object.keys(pts).length){drag=null;if(pinched)setTimeout(function(){pinched=0;},350);} }
+    img.addEventListener('pointerup',up);
+    img.addEventListener('pointercancel',up);
+    img.addEventListener('dblclick',function(e){e.preventDefault();
+      var z=st(img); z.s=(z.s>1.05)?1:2; z.x=0; z.y=0; apply(img);});
+    img.addEventListener('wheel',function(e){e.preventDefault();
+      var z=st(img); z.s=Math.max(MIN,Math.min(MAX,z.s*(e.deltaY>0?0.88:1.14))); apply(img);},{passive:false});
+    apply(img);
+  }
+  function scan(){
+    try{
+      var L=document.querySelectorAll('.zoomwrap img.ph');
+      for(var i=0;i<L.length;i++)bind(L[i]);
+    }catch(e){}
+  }
+  window.phZoomReset9=function(){try{
+    var L=document.querySelectorAll('.zoomwrap img.ph');
+    for(var i=0;i<L.length;i++){L[i]._z9={s:1,x:0,y:0};apply(L[i]);}
+  }catch(e){}};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scan); else scan();
+  /* 사진 패널은 innerHTML 로 매번 새로 그려지므로 감시해서 재바인딩 */
+  try{
+    var mo=new MutationObserver(function(){scan();});
+    function obs(){var b=document.getElementById('photoBody')||document.body;
+      if(b)mo.observe(b,{childList:true,subtree:true});}
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',obs); else obs();
+  }catch(e){}
+  setInterval(scan,1200);
 })();
 </script>
 </head>
@@ -710,6 +811,6 @@ window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
     </div>
   </div>
 
-<script src="login.js?v=2014"></script><script src="core.js?v=2014"></script>
+<script src="login.js?v=2015"></script><script src="core.js?v=2015"></script>
 </body>
 </html>
