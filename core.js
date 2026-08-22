@@ -8638,7 +8638,7 @@ function mnHostOpen(){
   pn.classList.add('open');pn.style.display='flex';pn.innerHTML='';
   return pn;
 }
-function mnHostClose(){try{setTimeout(function(){if(typeof refDrawMh==='function')refDrawMh();},0);}catch(e){}   /* [1094] */
+function mnHostClose(){try{setTimeout(function(){if(typeof refDrawMh==='function')refDrawMh();if(typeof drawManholes==='function')drawManholes();},0);}catch(e){}   /* [1094] *//* [BUILD1999] 닫을 때도 즉시 지워지도록 — mnUiOpen()이 false가 된 뒤 재렌더 */
   var pn=document.getElementById('mnPanel');if(pn){pn.classList.remove('open');pn.style.display='none';pn.innerHTML='';}try{if(typeof _tgMhSplit==='function')_tgMhSplit(false);}catch(_e){}/* [1688] \ub2eb\uae30 \uc2dc \uc18d\uc131\ucc3d \uc624\ub978\ucabd \ubcf5\uc6d0 */}
 /* [1030] 사업 전환 시 맨홀야장 UI 전부 닫기 — 이전 사업 내용이 화면에 남아 혼동되는 문제 방지 */
 function mnCloseAll(){
@@ -8735,7 +8735,7 @@ function mnMobilePick(){/* [1636] 폰 — 도면에서 야장 맨홀 선택(초�
 function mnOpenList(){
   if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
   var host=mnHostOpen();
-  try{setTimeout(function(){if(typeof refDrawMh==='function')refDrawMh();},0);}catch(e){}   /* [1094] 야장 열면 맨홀원 다시 표시 */
+  try{setTimeout(function(){if(typeof refDrawMh==='function')refDrawMh();if(typeof drawManholes==='function')drawManholes();},0);}catch(e){}   /* [1094] 야장 열면 맨홀원 다시 표시 *//* [BUILD1999] refDrawMh는 REF 결선 맨홀 전용 — [1262] 야장 표시 원은 drawManholes 안에 있어 팬/줌 전까지 안 뜨던 문제 */
   var old=document.getElementById('mnListModal');if(old)old.remove();
   var mob=(typeof isMobileDevice==='function'&&isMobileDevice());
   /* [1012] 7일 지난 휴지통 항목 완전삭제 */
