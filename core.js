@@ -690,6 +690,8 @@ function mkLabel(svgX,svgY,text,opt){
     +'font-size:'+(function(){var _p9=(opt.px||13);if((((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO)))&&_p9<12)_p9=12;_p9=_p9*((viewerMode&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD))?0.7:1);if(opt.grp==='pt'&&typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&window.matchMedia&&matchMedia('(max-width:760px)').matches)if(!opt.half)_p9=_p9*5.62;/* [BUILD1840] 20% 축소 *//* [BUILD1839] half는 월드락 계수로 *//* [BUILD1838] 50% 추가 · 보강판 유지 *//* [BUILD1831] 50% 추가 · 보강판 절반 유지 *//* [BUILD1827] 30% 추가 *//* [BUILD1824] 20% 추가 확대 *//* [BUILD1820] 폰 실시간: 점번호·날짜·관정보 라벨 2배 */var _nsc9=(opt.grp==='depth'||opt.grp==='depthchk');var _G5=(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO)));var _TG5=(typeof IS_TANGO!=='undefined'&&IS_TANGO);var _wl5=(_G5&&(_nsc9||opt.grp==='tamsapt'||opt.grp==='pt'||opt.grp==='mh'||opt.grp==='riser'))||(!!opt.half&&typeof IS_REALTIME!=='undefined'&&IS_REALTIME);/* [BUILD1836] 실시간 보강판 월드고정 *//* [1666] tango pt/depth \uc6d4\ub4dc\ub77d \ud574\uc81c \u2014 \ub9e8\ud640\uc815\ubcf4\ucc98\ub7fc \ud654\uba74\uace0\uc815(\uc77c\uad00) *//* [1653] tango 관정보·점번호·심도 현장식 월드락(field 동일 계수) */var _k5=_wl5?(((_G5&&(opt.grp==='mh'||opt.grp==='riser'))||(!!opt.half&&typeof IS_REALTIME!=='undefined'&&IS_REALTIME))?0.12:0.01015):0;/* [BUILD1839] 보강판=맨홀급 */d._bpx=(_nsc9&&!_wl5)?null:_p9;d._wlk=_k5||null;var _sf9=1;if(_k5){var _uW5=((typeof pxToWorld==='function'&&pxToWorld())||0.06);return _p9*(_k5/_uW5);}/* [1517] mh·riser 포함 *//* [1500] 30% 추가축소 *//* [1497] 0.4배=DXF TH0.5m 근사 *//* [1496] 관정보·점번호·심도=월드잠금(DXF동일) */if(_nsc9)return _p9;/* [1490] 심도 항상 고정 */if((((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO)))){var _u9=((typeof pxToWorld==='function'&&pxToWorld())||0.06);if(_u9>0.12)_sf9=0.12/_u9;}/* [1477] */return _p9*_sf9;})()+'px;color:'/* [1453] 폰트 하한 12px *//* [1451] field 텍스트 0.7 축소 해제 */+(opt.fill||'#333')+';'
     +'font-weight:'+(opt.weight||'400')+';white-space:nowrap;pointer-events:none;'+'text-shadow:-1.2px -1.2px 0 #fff,1.2px -1.2px 0 #fff,-1.2px 1.2px 0 #fff,1.2px 1.2px 0 #fff,0 0 2px #fff,0 0 3px #fff;'
     +'transform:translate('+(anchor==='end'?'-100%':(anchor==='middle'?'-50%':'0'))+',-50%)'+(opt.rot?(' rotate('+opt.rot+'deg)'):'')+';line-height:1;';
+  /* [BUILD1991] box 옵션 — 검수 경고처럼 반드시 눈에 띄어야 하는 라벨용 색 배지(흰 도면에 묻히지 않게) */
+  if(opt.box){d.style.background=opt.box;d.style.padding='3px 8px';d.style.borderRadius='5px';d.style.textShadow='none';d.style.border='2px solid #ffffff';d.style.boxShadow='0 0 0 2px '+opt.box+', 0 2px 6px rgba(0,0,0,.45)';d.style.letterSpacing='0.3px';}
   placeLabelDiv(d);
   if(lblOverlay)lblOverlay.appendChild(d);
   return d;
@@ -2015,11 +2017,12 @@ function drawMarks(){ clearSvg(gMark); clearLabels('mk');
     var insp=(m.near==='관공수'||m.near==='중복'||m.near==='끝점'); // 검수 오류 서클(자동검출)
     var sh=m.type==='cir'?el('ellipse',{cx:m.cx-ORG.x,cy:m.cy+ORG.y,rx:m.rx,ry:m.ry}):el('rect',{x:m.x-ORG.x,y:m.y+ORG.y,width:m.w,height:m.h,rx:0.4});/* [1524] */
     var fillCol=m.soft?'#ffb74d':(insp?'#f4c400':(m.near==='특이사항'?'#87ceeb':MKCOL[m.status])); var strokeCol=m.soft?'#f57c00':(m.near==='특이사항'?'#1565c0':MKCOL[m.status]);
-    sh.setAttribute('fill',fillCol);sh.setAttribute('fill-opacity',insp?0.25:(m.near==='특이사항'?0.32:0.13));sh.setAttribute('stroke',strokeCol);sh.setAttribute('stroke-width',m.near==='특이사항'?3.2:2);sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');
+    /* [BUILD1991] 중복·끝점 써클을 확실히 눈에 띄게 */var _hi9=(m.near==='\uc911\ubcf5'||m.near==='\ub05d\uc810');if(_hi9){fillCol=(m.near==='\uc911\ubcf5')?'#ff1744':'#8e24aa';strokeCol=fillCol;}sh.setAttribute('fill',fillCol);sh.setAttribute('fill-opacity',_hi9?0.30:(insp?0.25:(m.near==='특이사항'?0.32:0.13)));sh.setAttribute('stroke',strokeCol);sh.setAttribute('stroke-width',_hi9?5:(m.near==='특이사항'?3.2:2));sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');
     gMark.appendChild(sh); m.el=sh;
     if(m.seg){var ln=el('line',{x1:m.seg[0][0]-ORG.x,y1:m.seg[0][1]+ORG.y,x2:m.seg[1][0]-ORG.x,y2:m.seg[1][1]+ORG.y,stroke:'#16a34a','stroke-width':2.6,'stroke-dasharray':'6 4','stroke-linecap':'butt','vector-effect':'non-scaling-stroke','pointer-events':'none'});gMark.appendChild(ln);} // 20m 초과 구간 = 초록 점선
-    if(m.num!=null&&m.num!=='')mkLabel(m.cx-ORG.x, m.cy+ORG.y, String(m.num), {fill:m.soft?'#f57c00':'#c0392b',weight:'800',anchor:'middle',grp:'mk',px:15}); // 오류 번호(써클 중앙) — 써클 지우면 같이 사라짐
-    if(m.near==='중복'&&m.cnt){mkLabel(m.cx, m.cy-(m.ry||0.7)-0.35, m.cnt+'선', {fill:'#d32f2f',weight:'700',anchor:'middle',grp:'mk',px:14});}
+    if(m.near==='\ub05d\uc810')mkLabel(m.cx-ORG.x, m.cy+ORG.y-(m.ry||0.7)-0.55, '\u26A0 \ub05d\uc810 '+(m.num||''), {fill:'#ffffff',weight:'900',anchor:'middle',grp:'mk',px:26,box:'#6a1b9a'});/* [BUILD1991] */
+    else if(m.num!=null&&m.num!=='')mkLabel(m.cx-ORG.x, m.cy+ORG.y, String(m.num), {fill:m.soft?'#f57c00':'#c0392b',weight:'800',anchor:'middle',grp:'mk',px:15}); // 오류 번호(써클 중앙) — 써클 지우면 같이 사라짐
+    if(m.near==='중복'&&m.cnt){/* [BUILD1991] ORG 누락 수정 + 크게·강조 */mkLabel(m.cx-ORG.x, m.cy+ORG.y-(m.ry||0.7)-0.55, '\u26A0 \uC911\ubcf5 '+(m.cnt+1)+'\uC120', {fill:'#ffffff',weight:'900',anchor:'middle',grp:'mk',px:26,box:'#d32f2f'});}
     if(m.near==='특이사항'&&m.note){var _pd=(typeof nearestPipeDir==='function'&&nearestPipeDir(m.cx,m.cy,999))||[0,1,0];var _off=(m.rx||1.4)+0.9;var _tx=m.cx+_pd[0]*_off, _ty=m.cy+_pd[1]*_off;var _anc=_pd[0]>=0?'start':'end';mkLabel(_tx, _ty, m.note, {fill:'#d32f2f',weight:'800',anchor:_anc,grp:'mk',px:((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))?16:Math.max(14,Math.min(28,1.2/((typeof pxToWorld==='function'&&pxToWorld())||0.06)))});}
   });
   renderRecs();
@@ -2486,7 +2489,7 @@ function inspectDupLines(){
   if(!dups.length){drawMarks();updMeta();showModal({title:'중복선 검수 결과',tone:'ok',body:'<b style="font-size:16px">중복 0</b><br>중복된 관로선이 없습니다.',buttons:[{label:'확인'}]});return;}
   pushHist();
   var totalExtra=0;
-  dups.forEach(function(d){var sm=S(d.mid[0],d.mid[1]);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:1.19,ry:1.19,status:'bad',near:'중복',cnt:d.n-1});totalExtra+=d.n-1;});
+  dups.forEach(function(d){state.markups.push({type:'cir',cx:d.mid[0],cy:-d.mid[1],rx:1.19,ry:1.19,status:'bad',near:'중복',cnt:d.n-1});totalExtra+=d.n-1;});/* [BUILD1991] 좌표계 수정 */
   drawMarks();updMeta();
   showModal({title:'중복선 검수 결과',tone:'bad',
     body:'중복 <b style="color:#d32f2f;font-size:16px">'+dups.length+'곳 · '+totalExtra+'선</b> 발견했습니다.<br>도면에서 빨간 써클 위치를 확인하세요.<br>(빈 곳을 끌어 도면을 이동할 수 있어요)<br><br>중복된 선을 삭제하고 <b>1선만</b> 남길까요?',
@@ -2595,8 +2598,9 @@ function inspectPipeCount(){
         cl.forEach(function(k,j){var ang=2*Math.PI*j/cl.length-Math.PI/2;arr[k].wx=cx+Math.cos(ang)*SP;arr[k].wy=cy+Math.sin(ang)*SP;}); } }
   }
   spread(issues); spread(soft);
-  issues.forEach(function(it,i){var sm=S(it.wx,it.wy);var sg=it.seg?[S(it.seg[0][0],it.seg[0][1]),S(it.seg[1][0],it.seg[1][1])]:null;state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:R,ry:R,status:'bad',near:'관공수',msg:it.msg,num:i+1,seg:sg});});
-  soft.forEach(function(it){var sm=S(it.wx,it.wy);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:R,ry:R,status:'bad',near:'관공수',soft:true,msg:it.msg,num:'?'});});
+  /* [BUILD1991] 좌표계 수정 — cx=월드x, cy=-월드y */
+  issues.forEach(function(it,i){var sg=it.seg?[[it.seg[0][0],-it.seg[0][1]],[it.seg[1][0],-it.seg[1][1]]]:null;state.markups.push({type:'cir',cx:it.wx,cy:-it.wy,rx:R,ry:R,status:'bad',near:'관공수',msg:it.msg,num:i+1,seg:sg});});
+  soft.forEach(function(it){state.markups.push({type:'cir',cx:it.wx,cy:-it.wy,rx:R,ry:R,status:'bad',near:'관공수',soft:true,msg:it.msg,num:'?'});});
   drawMarks();updMeta();
   var redList=issues.map(function(it,i){return (i+1)+'. '+it.msg;}).join('<br>');
   var softList=soft.map(function(it){return '• '+it.msg;}).join('<br>');
@@ -2628,7 +2632,8 @@ function inspectEndpoints(){
   });
   if(!bad.length){drawMarks();updMeta();showModal({title:'끝점 검수 결과',tone:'ok',body:'<b style="font-size:16px">정상</b><br>모든 선의 끝점이 CSV 측점에 붙어 있습니다.',buttons:[{label:'확인'}]});return;}
   pushHist();
-  bad.forEach(function(pt){var sm=S(pt[0],pt[1]);state.markups.push({type:'cir',cx:sm[0],cy:sm[1],rx:1.33,ry:1.33,status:'bad',near:'끝점'});});
+  /* [BUILD1991] markups 좌표 규약은 cx=월드x, cy=-월드y (수동 마크업·특이사항과 동일). S()로 화면좌표를 넣으면 drawMarks가 ORG를 한 번 더 빼서 써클이 엉뚱한 곳에 그려진다. */
+  bad.forEach(function(pt,_bi){state.markups.push({type:'cir',cx:pt[0],cy:-pt[1],rx:1.33,ry:1.33,status:'bad',near:'끝점',num:_bi+1});});
   drawMarks();updMeta();
   showModal({title:'끝점 검수 결과',tone:'bad',
     body:'끝점이 CSV 측점에 안 붙은 곳 <b style="color:#d32f2f;font-size:16px">'+bad.length+'곳</b> 발견했습니다.<br>빨간 써클 위치를 확인하세요.',
