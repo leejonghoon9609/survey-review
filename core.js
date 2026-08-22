@@ -1091,6 +1091,7 @@ function openBpEdit(z){
 var _XH_R9=0.10;      /* 반원 반지름(m) — 원본 실측 */
 var _XH_EPS9=0.001;   /* 측점 동일 판정(1mm) */
 var _XH_MIN9=0.0;     /* [BUILD1989] 0 = 임계 없음. 크로스면 무조건 표시(누락은 심사 감점). 1mm 차이라도 얕은 쪽에 배치 */
+var _XH_NEAR9=0.001;  /* [BUILD1990] 근접 크로스 — 수학적 교차가 없어도 두 선분이 이 거리 이내로 스치면 크로스(좌표 소수 3자리 = 사실상 같은 점) */
 var _XH_SEG9=12;      /* 호 근사 분할 수 — 짝수라야 정점이 호의 정상을 지나 돌출=R 이 정확(원본에도 13점 사례 있음) */
 var _XH_LAY9={'통신관로':1,'지거':1,'압입구간':1};
 
@@ -1135,6 +1136,18 @@ function _xhInt9(p1,p2,p3,p4){
   if(t<-1e-9||t>1+1e-9||u<-1e-9||u>1+1e-9)return null;
   return {x:x1+t*(x2-x1),y:y1+t*(y2-y1),t:t,u:u};
 }
+/* [BUILD1990] 두 선분의 최근접점 — 교차하지 않고 스칠 때 사용 */
+function _xhNear9(p1,p2,p3,p4){
+  var ux=p2[0]-p1[0],uy=p2[1]-p1[1],vx=p4[0]-p3[0],vy=p4[1]-p3[1];
+  var wx=p1[0]-p3[0],wy=p1[1]-p3[1];
+  var a=ux*ux+uy*uy,b=ux*vx+uy*vy,c=vx*vx+vy*vy,d=ux*wx+uy*wy,e=vx*wx+vy*wy;
+  var D=a*c-b*b,sc,tc;
+  if(D<1e-12){sc=0;tc=(b>c?d/b:e/c);}
+  else{sc=(b*e-c*d)/D;tc=(a*e-b*d)/D;}
+  sc=Math.max(0,Math.min(1,sc));tc=Math.max(0,Math.min(1,tc));
+  var ax=p1[0]+sc*ux,ay=p1[1]+sc*uy,bx=p3[0]+tc*vx,by=p3[1]+tc*vy;
+  return {x:(ax+bx)/2,y:(ay+by)/2,t:sc,u:tc,d:Math.hypot(ax-bx,ay-by)};
+}
 /* 전체 크로스 검출 → {li: [{si, x, y, t, side}]} */
 function _xhCalc9(){
   var out={},L=state.lines||[];
@@ -1156,13 +1169,20 @@ function _xhCalc9(){
         for(var j2=0;j2<LB.pts.length-1;j2++){
           var A1p=LA.pts[i2],A2p=LA.pts[i2+1],B1p=LB.pts[j2],B2p=LB.pts[j2+1];
           var ip=_xhInt9(A1p,A2p,B1p,B2p);
-          if(!ip)continue;
+          if(!ip){/* [BUILD1990] 교차가 없어도 1mm 이내로 스치면 크로스 — 좌표 반올림으로 간발의 차 어긋난 실제 크로스를 놓치지 않게 */
+            var nr=_xhNear9(A1p,A2p,B1p,B2p);
+            if(!nr||nr.d>_XH_NEAR9)continue;
+            if(nr.t<=1e-9||nr.t>=1-1e-9||nr.u<=1e-9||nr.u>=1-1e-9)continue;  /* 끝점끼리 맞닿음 = 접속 */
+            ip=nr;
+          }
           /* 측점과 정확히 일치 → 접속 */
           if(PS[_xhKey9(ip.x,ip.y)])continue;
-          /* 두 선이 정점을 공유 → 접속 */
+          /* 두 선이 정점을 공유 → 접속. 단 [BUILD1990] 교차점이 "그 공유 정점"일 때만.
+             분기점을 공유한 두 관로가 다른 지점에서 다시 만나면 그건 크로스다. */
           var shared=false;
           [A1p,A2p].forEach(function(pa){[B1p,B2p].forEach(function(pb){
-            if(Math.hypot(pa[0]-pb[0],pa[1]-pb[1])<=_XH_EPS9)shared=true;});});
+            if(Math.hypot(pa[0]-pb[0],pa[1]-pb[1])<=_XH_EPS9
+               &&Math.hypot(ip.x-pa[0],ip.y-pa[1])<=_XH_EPS9)shared=true;});});
           if(shared)continue;
           /* 심도 보간 → 얕은 쪽에 hop */
           var dA=_xhDepAt9(A1p,A2p,ip.t),dB=_xhDepAt9(B1p,B2p,ip.u);
@@ -1244,7 +1264,7 @@ function xhopInfo9(){
   console.log('[크로스] '+n+'개 — 선별 '+JSON.stringify(Object.keys(M).map(function(k){return k+':'+M[k].length;})));
   for(var k2 in M)M[k2].forEach(function(h){
     console.log('   ('+h.x.toFixed(3)+', '+h.y.toFixed(3)+')  '+k2+'번선  key='+h.key);});
-  console.log('삭제묘비 '+Object.keys(state.xhopDel||{}).length+' / 뒤집기 '+Object.keys(state.xhopFlip||{}).length);
+  console.log('삭제묘비 '+Object.keys(state.xhopDel||{}).length+' / 뒤집기 '+Object.keys(state.xhopFlip||{}).length+'  | 반지름'+_XH_R9+'m 근접임계'+_XH_NEAR9+'m');
   return n;
 }
 function xhopFlip9(key){state.xhopFlip=state.xhopFlip||{};if(state.xhopFlip[key])delete state.xhopFlip[key];else state.xhopFlip[key]=1;window._XH_SIG9=null;if(typeof drawGeo==='function')drawGeo();}
