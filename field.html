@@ -437,7 +437,7 @@
    vh 는 주소창 숨긴 최대높이 기준으로 고정이고, calc(var(--vh9)) 방식([2009]/[2011])도
    CSS 우선순위·파싱에 휘둘려 두 번 실패했다. → JS가 .stage 실제 높이를 재서 px 로 직접 박는다.
    FLD_SPLIT9 = 사진창이 차지할 비율(.stage 기준). 콘솔에서 바꿔 바로 확인 가능. */
-window.FLD_SPLIT9 = 0.455;
+window.FLD_SPLIT9 = (function(){try{var v=parseFloat(localStorage.getItem('fldSplit9'));return (v>0.15&&v<0.85)?v:0.418;}catch(e){return 0.418;}})();/* [BUILD2014] 실측 기본값 41.8%(체부2 실측) + 사용자가 맞춘 값 localStorage 유지 */
 window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
 (function(){
   var t=null;
@@ -459,12 +459,38 @@ window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
     }catch(e){}
   }
   function kick(){ apply(); if(t)clearTimeout(t); t=setTimeout(apply,80); setTimeout(apply,300); }
-  window.fldSplit9=function(r){ if(r!=null)window.FLD_SPLIT9=r; apply();
+  window.fldSplit9=function(r){ if(r!=null){window.FLD_SPLIT9=r;try{localStorage.setItem('fldSplit9',String(r));}catch(e){}} apply();
     try{var pp=document.querySelector('.photo-panel'),st=document.querySelector('.stage');
       console.log('[분할] 비율 '+(window.FLD_SPLIT9*100).toFixed(1)+'%  stage='+st.getBoundingClientRect().height.toFixed(0)
         +'px  사진창='+pp.getBoundingClientRect().height.toFixed(0)+'px');}catch(e){}
   };
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',kick); else kick();
+  /* [BUILD2014] \ud3f0\uc5d0\uc11c \uc9c1\uc811 \ube44\uc728 \ub9de\ucd94\ub294 \uc784\uc2dc \ubc84\ud2bc \u2014 \ud655\uc815\ub418\uba74 \ub2e4\uc74c \ube4c\ub4dc\uc5d0\uc11c \uc81c\uac70 */
+  function bar(){
+    try{
+      if(!window.matchMedia||!matchMedia('(max-width:760px)').matches)return;
+      if(document.getElementById('fldSplitBar9'))return;
+      var cw=document.querySelector('.canvas-wrap'); if(!cw)return;
+      var w=document.createElement('div'); w.id='fldSplitBar9';
+      w.style.cssText='position:absolute;left:8px;bottom:34px;z-index:60;display:flex;align-items:center;gap:4px;'
+        +'background:rgba(255,255,255,.94);border:1.5px solid #1565c0;border-radius:8px;padding:3px 6px;'
+        +'font-size:11px;font-weight:800;color:#1565c0;box-shadow:0 2px 6px rgba(0,0,0,.18)';
+      var bs='border:1px solid #90b4d8;background:#fff;color:#1565c0;border-radius:5px;width:24px;height:22px;'
+        +'font-size:14px;font-weight:800;line-height:1;padding:0;cursor:pointer';
+      w.innerHTML='<button id="fsMinus" style="'+bs+'">\u2212</button>'
+        +'<b id="fsVal" style="min-width:38px;text-align:center">'+(window.FLD_SPLIT9*100).toFixed(1)+'%</b>'
+        +'<button id="fsPlus" style="'+bs+'">+</button>'
+        +'<button id="fsHide" style="'+bs+';width:20px;font-size:11px">\u00d7</button>';
+      cw.appendChild(w);
+      function upd(){var e=document.getElementById('fsVal');if(e)e.textContent=(window.FLD_SPLIT9*100).toFixed(1)+'%';}
+      function step(d){var v=Math.round((window.FLD_SPLIT9+d)*1000)/1000;
+        if(v<0.20)v=0.20; if(v>0.75)v=0.75;
+        window.FLD_SPLIT9=v; try{localStorage.setItem('fldSplit9',String(v));}catch(e){} apply(); upd();}
+      document.getElementById('fsMinus').onclick=function(e){e.stopPropagation();step(-0.01);};
+      document.getElementById('fsPlus').onclick=function(e){e.stopPropagation();step(0.01);};
+      document.getElementById('fsHide').onclick=function(e){e.stopPropagation();w.remove();};
+    }catch(e){}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){kick();bar();}); else {kick();bar();}
   window.addEventListener('load',kick);
   window.addEventListener('resize',kick);
   window.addEventListener('orientationchange',function(){setTimeout(kick,250);});
@@ -684,6 +710,6 @@ window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
     </div>
   </div>
 
-<script src="login.js?v=2013"></script><script src="core.js?v=2013"></script>
+<script src="login.js?v=2014"></script><script src="core.js?v=2014"></script>
 </body>
 </html>
