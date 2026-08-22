@@ -1090,7 +1090,7 @@ function openBpEdit(z){
    캐드 원본(동천3지구 준공 DXF) hop 9개와 좌표 일치 검증 완료. */
 var _XH_R9=0.10;      /* 반원 반지름(m) — 원본 실측 */
 var _XH_EPS9=0.001;   /* 측점 동일 판정(1mm) */
-var _XH_MIN9=0.05;    /* 심도차 무시 임계(m) */
+var _XH_MIN9=0.0;     /* [BUILD1989] 0 = 임계 없음. 크로스면 무조건 표시(누락은 심사 감점). 1mm 차이라도 얕은 쪽에 배치 */
 var _XH_SEG9=12;      /* 호 근사 분할 수 — 짝수라야 정점이 호의 정상을 지나 돌출=R 이 정확(원본에도 13점 사례 있음) */
 var _XH_LAY9={'통신관로':1,'지거':1,'압입구간':1};
 
@@ -1167,11 +1167,11 @@ function _xhCalc9(){
           /* 심도 보간 → 얕은 쪽에 hop */
           var dA=_xhDepAt9(A1p,A2p,ip.t),dB=_xhDepAt9(B1p,B2p,ip.u);
           var on;
-          if(dA!=null&&dB!=null){
-            if(Math.abs(dA-dB)<_XH_MIN9)continue;   /* 오판 방지 — 생략 */
-            on=(dA<dB)?idx[a]:idx[b];               /* 얕은 쪽 */
+          /* [BUILD1989] 크로스는 무조건 표시 — 누락이 심사 감점. 심도는 배치(어느 선에 얹을지)에만 쓴다. */
+          if(dA!=null&&dB!=null&&Math.abs(dA-dB)>_XH_MIN9){
+            on=(dA<dB)?idx[a]:idx[b];               /* 1mm라도 얕은 쪽 */
           }else{
-            on=idx[b];                              /* 심도 없음 → 무조건 표시(뒤에 그린 선) */
+            on=idx[b];                              /* 심도 없음·동일 → 뒤에 그린 선(작업자가 xhopFlip9로 조정) */
           }
           var key=_xhKey9(ip.x,ip.y);
           if(state.xhopDel&&state.xhopDel[key])continue;         /* 삭제 묘비 */
