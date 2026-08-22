@@ -1491,7 +1491,7 @@ function drawManholes(){_orgSync();/* [1524] */
     var s=S(mh.wx,mh.wy);
     var mx=s[0], my=s[1];
     /* [1262] field 전용 — 야장 UI 열림 시: 야장 연결 맨홀=초록 배경 원, 선택(열린 야장)=마젠타 (REF refDrawMh 미러) */
-    if((typeof IS_FIELD!=='undefined'&&IS_FIELD)&&!isRiser&&typeof mnUiOpen==='function'&&mnUiOpen()){
+    if(((typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO))&&!isRiser&&typeof mnUiOpen==='function'&&mnUiOpen()){/* [BUILD1998] 탱고DB에도 야장 표시 원 확대 — mnUiOpen()은 공정 무관(mnPanel/mnListModal/mnFormModal 표시 여부)이라 게이트만 막고 있었다 */
       var _rec9=null;try{mnList().forEach(function(r){if(!_rec9&&r&&!r.delAt&&r.mhId===mh.id)_rec9=r;});}catch(_hr){}
       if(_rec9){
         var _selMh9=(typeof window!=='undefined'&&window._fldSelMhId===mh.id);
