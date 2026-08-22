@@ -13,7 +13,7 @@
   *{box-sizing:border-box;margin:0;padding:0}
   .ptin::placeholder{color:#d2d2d2;opacity:1}
   :root{--line:#e3e3e0;--ink:#1c1c1a;--muted:#6b6b66;--bg:#fafaf8;--ok:#2a9e50;--bad:#d32f2f;--accent:#1f6fd6}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);background:var(--bg);height:100vh;height:100dvh;height:calc(var(--vh9,1vh) * 100)/* [BUILD2011] ★근본 원인 — body가 100vh 고정이라 앱 복귀 시 주소창이 나타나면 body가 실제 화면보다 커져 내부 flex 배분이 통째로 어긋난다. [2009]는 .php-main만 고쳐 효과가 없었다. dvh → --vh9 순으로 덮어쓴다 */;display:flex;flex-direction:column;overflow:hidden}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);background:var(--bg);height:100vh;height:100dvh/* [BUILD2013] --vh9 제거 — 더 이상 설정하지 않는다. dvh 미지원 브라우저는 100vh 폴백이고, 분할 비율은 fldSplit9()가 stage 실측으로 보정한다 *//* [BUILD2011] ★근본 원인 — body가 100vh 고정이라 앱 복귀 시 주소창이 나타나면 body가 실제 화면보다 커져 내부 flex 배분이 통째로 어긋난다. [2009]는 .php-main만 고쳐 효과가 없었다. dvh → --vh9 순으로 덮어쓴다 */;display:flex;flex-direction:column;overflow:hidden}
   header{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:9px 14px;border-bottom:1px solid var(--line);background:#fff}
   /* [1219] ?open= 사업 필터 칩: 헤더 끝으로 보내 기존 버튼 줄배치 보존 (realtime은 자체 규칙) */
   #projFilterChip{order:99;max-width:170px}
@@ -262,7 +262,7 @@
   .php-split>.php-main{flex:1;min-height:0}
   .php-after .ph.php-none{color:#bbb;font-size:13px;background:#f6f6f3;flex:1}
   /* 폰 현장모드: 노출/후측량 각각 풀사이즈로 세로 스택 + 패널 스크롤 */
-  @media(max-width:760px){.viewer .php-split{flex:none}.viewer .php-split>.php-main{flex:none;height:37.5vh;height:37.5dvh;height:calc(var(--vh9,1vh) * 37.5);min-height:250px}/* [BUILD2009] vh는 주소창 숨긴 최대높이 기준으로 고정되어 앱 복귀 시 비율이 틀어졌다 — 실제 innerHeight 기준 --vh9 로 교체(미정의 시 1vh 폴백) */}/* [BUILD2004] 사진창 확대 33vh→42vh — 아래 photo-panel.open 과 반드시 짝을 맞추어야 안쪽 스크롤이 안 생긴다 *//* [BUILD1877] */
+  @media(max-width:760px){.viewer .php-split{flex:none}.viewer .php-split>.php-main{flex:none;height:33vh;min-height:200px}/* [BUILD2013] 실제 높이는 fldSplit9()가 px로 지정(!important) — 여긴 초기 폴백 *//* [BUILD2009] vh는 주소창 숨긴 최대높이 기준으로 고정되어 앱 복귀 시 비율이 틀어졌다 — 실제 innerHeight 기준 --vh9 로 교체(미정의 시 1vh 폴백) */}/* [BUILD2004] 사진창 확대 33vh→42vh — 아래 photo-panel.open 과 반드시 짝을 맞추어야 안쪽 스크롤이 안 생긴다 *//* [BUILD1877] */
   /* 폰 현장모드 로드뷰: 위=로드뷰 / 아래=측점사진(후측량모드처럼 풀사이즈) + 세로 스크롤 */
   @media(max-width:760px){
     .viewer #rvPanel.open{height:86vh}
@@ -292,7 +292,7 @@
   .viewer #rail,.viewer #subbar,.viewer aside.panel{display:none}
   .viewer .maincol{flex:1;min-height:0;width:100%}
   .viewer .photo-panel{width:100%!important;max-width:none!important;min-width:0!important;border-left:none;border-top:2px solid var(--line)}
-  .viewer .photo-panel.open{display:flex;flex:none;height:51vh;height:calc(max(37.5vh,250px) + 86px);height:calc(max(calc(var(--vh9,1vh) * 37.5),250px) + 86px)}/* [BUILD2009] 짝 유지 *//* [BUILD2006] 2004의 증가분을 정확히 절반만 — 33→42→37.5vh / 220→280→250px *//* [BUILD2004] 33vh→42vh · 220→280px — 도면창(.maincol flex:1)은 자동으로 그만큼 줄어든다 *//* [BUILD1878] 캐벘션줄까지만 노출, 도면 최대화 */
+  .viewer .photo-panel.open{display:flex;flex:none;height:45vh}/* [BUILD2013] 초기 폴백 — fldSplit9()가 덮어쓴다 *//* [BUILD2009] 짝 유지 *//* [BUILD2006] 2004의 증가분을 정확히 절반만 — 33→42→37.5vh / 220→280→250px *//* [BUILD2004] 33vh→42vh · 220→280px — 도면창(.maincol flex:1)은 자동으로 그만큼 줄어든다 *//* [BUILD1878] 캐벘션줄까지만 노출, 도면 최대화 */
   .viewer #rvPanel.open{width:100%!important;max-width:none!important;border-left:none;border-top:2px solid var(--line);flex:none;height:50vh}
   /* 상단바 한 줄 + dev배지 숨김 */
   .viewer #buildno,.viewer #conn{display:none}
@@ -433,24 +433,50 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="지하관로 시스템">
 <script>
-/* [BUILD2009] 폰 뷰포트 실높이 추적 — 앱 전환 후 복귀·주소창 표시로 innerHeight가 바뀌어도
-   도면창:사진창 비율이 새로고침 직후와 같게 유지된다. CSS는 var(--vh9) 폴백 1vh. */
+/* [BUILD2013] ★폰 도면창:사진창 비율 고정.
+   vh 는 주소창 숨긴 최대높이 기준으로 고정이고, calc(var(--vh9)) 방식([2009]/[2011])도
+   CSS 우선순위·파싱에 휘둘려 두 번 실패했다. → JS가 .stage 실제 높이를 재서 px 로 직접 박는다.
+   FLD_SPLIT9 = 사진창이 차지할 비율(.stage 기준). 콘솔에서 바꿔 바로 확인 가능. */
+window.FLD_SPLIT9 = 0.455;
+window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
 (function(){
-  var d=document.documentElement, t=null;
-  function set(){
+  var t=null;
+  function apply(){
     try{
-      var vv=window.visualViewport, h=(vv&&vv.height)?vv.height:window.innerHeight;
-      if(!h)return;
-      d.style.setProperty('--vh9',(h*0.01)+'px');
+      if(!window.matchMedia||!matchMedia('(max-width:760px)').matches)return;
+      var pp=document.querySelector('.photo-panel');
+      var st=document.querySelector('.stage');
+      if(!pp||!st)return;
+      if(!pp.classList.contains('open')){pp.style.removeProperty('height');return;}
+      var H=st.getBoundingClientRect().height;
+      if(!H||H<200)return;
+      var h=Math.round(H*window.FLD_SPLIT9);
+      if(h>H-140)h=H-140;    /* 도면창 최소 140px */
+      if(h<140)h=140;        /* 사진창 최소 140px */
+      pp.style.setProperty('height',h+'px','important');
+      var pm=pp.querySelector('.php-split>.php-main')||pp.querySelector('.php-main');
+      if(pm)pm.style.setProperty('height',(h-window.FLD_HEAD9)+'px','important');
     }catch(e){}
   }
-  function kick(){ if(t)clearTimeout(t); t=setTimeout(set,60); set(); }
-  set();
+  function kick(){ apply(); if(t)clearTimeout(t); t=setTimeout(apply,80); setTimeout(apply,300); }
+  window.fldSplit9=function(r){ if(r!=null)window.FLD_SPLIT9=r; apply();
+    try{var pp=document.querySelector('.photo-panel'),st=document.querySelector('.stage');
+      console.log('[분할] 비율 '+(window.FLD_SPLIT9*100).toFixed(1)+'%  stage='+st.getBoundingClientRect().height.toFixed(0)
+        +'px  사진창='+pp.getBoundingClientRect().height.toFixed(0)+'px');}catch(e){}
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',kick); else kick();
+  window.addEventListener('load',kick);
   window.addEventListener('resize',kick);
   window.addEventListener('orientationchange',function(){setTimeout(kick,250);});
   window.addEventListener('pageshow',kick);
-  document.addEventListener('visibilitychange',function(){ if(!document.hidden) setTimeout(kick,50); });
-  try{ if(window.visualViewport){ visualViewport.addEventListener('resize',kick); visualViewport.addEventListener('scroll',kick); } }catch(e){}
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(kick,60);});
+  try{if(window.visualViewport){visualViewport.addEventListener('resize',kick);}}catch(e){}
+  /* 사진창 열림/닫힘도 추종 */
+  try{var mo=new MutationObserver(kick);
+    document.addEventListener('DOMContentLoaded',function(){
+      var pp=document.querySelector('.photo-panel');
+      if(pp)mo.observe(pp,{attributes:true,attributeFilter:['class','style']});
+    });}catch(e){}
 })();
 </script>
 </head>
@@ -658,6 +684,6 @@
     </div>
   </div>
 
-<script src="login.js?v=2012"></script><script src="core.js?v=2012"></script>
+<script src="login.js?v=2013"></script><script src="core.js?v=2013"></script>
 </body>
 </html>
