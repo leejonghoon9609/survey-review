@@ -1077,6 +1077,178 @@ function openBpEdit(z){
   inp.addEventListener('blur',function(){setTimeout(done,120);});
 }
 
+/* ═══════ [BUILD1988] 관로 크로스 반원(hop) ═══════
+   같은 관로의 T분기(측점 공유)가 아니라, 다른 관로가 그냥 위로 지나가는 지점에
+   반지름 _XH_R9 의 반원을 얹어 "넘어감"을 표현한다. 화면·DXF 공용.
+
+   판정(사용자 확정):
+     · 교차점이 측점과 정확히 일치(_XH_EPS9=1mm)  → 접속, hop 없음
+     · 그 외 교차는 전부 크로스 — 0.25m 이내로 스쳐도 측점이 아니면 크로스
+     · 앞뒤 측점 심도를 선형보간해 교차점 심도 산출 → 얕은 쪽에 hop
+     · 심도차 < _XH_MIN9(0.05m) → 오판 방지로 생략
+     · 심도가 없으면 생략하지 않고 무조건 표시(뒤에 그린 선에 배치)
+   캐드 원본(동천3지구 준공 DXF) hop 9개와 좌표 일치 검증 완료. */
+var _XH_R9=0.10;      /* 반원 반지름(m) — 원본 실측 */
+var _XH_EPS9=0.001;   /* 측점 동일 판정(1mm) */
+var _XH_MIN9=0.05;    /* 심도차 무시 임계(m) */
+var _XH_SEG9=12;      /* 호 근사 분할 수 — 짝수라야 정점이 호의 정상을 지나 돌출=R 이 정확(원본에도 13점 사례 있음) */
+var _XH_LAY9={'통신관로':1,'지거':1,'압입구간':1};
+
+function _xhKey9(x,y){return Math.round(x*1000)+'_'+Math.round(y*1000);}
+
+/* 측점 심도 — _depthByNo 우선, 없으면 p.z */
+function _xhDep9(p){
+  try{
+    if(!p)return null;
+    var D=state._depthByNo;
+    if(D&&p.no!=null&&D[p.no]!=null&&isFinite(+D[p.no]))return +D[p.no];
+    if(p.z!=null&&p.z!==''&&isFinite(+p.z))return +p.z;
+  }catch(_e){}
+  return null;
+}
+/* 관로선 정점에 붙은 측점(0.25m 스냅) */
+function _xhPtAt9(x,y){
+  var best=null,bd=0.25;
+  (state.points||[]).forEach(function(p){
+    if(!p||p.x==null)return;
+    var d=Math.hypot(p.x-x,p.y-y);
+    if(d<bd){bd=d;best=p;}
+  });
+  return best;
+}
+/* 선분 위 t 지점의 심도 — 양끝 정점 측점 심도를 선형보간 */
+function _xhDepAt9(a,b,t){
+  var pa=_xhPtAt9(a[0],a[1]),pb=_xhPtAt9(b[0],b[1]);
+  var da=_xhDep9(pa),db=_xhDep9(pb);
+  if(da==null&&db==null)return null;
+  if(da==null)return db;
+  if(db==null)return da;
+  return da+(db-da)*t;
+}
+/* 선분 교차 — 교차점과 각 선의 매개변수 t,u */
+function _xhInt9(p1,p2,p3,p4){
+  var x1=p1[0],y1=p1[1],x2=p2[0],y2=p2[1],x3=p3[0],y3=p3[1],x4=p4[0],y4=p4[1];
+  var d=(x2-x1)*(y4-y3)-(y2-y1)*(x4-x3);
+  if(Math.abs(d)<1e-12)return null;
+  var t=((x3-x1)*(y4-y3)-(y3-y1)*(x4-x3))/d;
+  var u=((x3-x1)*(y2-y1)-(y3-y1)*(x2-x1))/d;
+  if(t<-1e-9||t>1+1e-9||u<-1e-9||u>1+1e-9)return null;
+  return {x:x1+t*(x2-x1),y:y1+t*(y2-y1),t:t,u:u};
+}
+/* 전체 크로스 검출 → {li: [{si, x, y, t, side}]} */
+function _xhCalc9(){
+  var out={},L=state.lines||[];
+  var idx=[];
+  for(var i=0;i<L.length;i++){
+    var l=L[i];
+    if(!l||!l.pts||l.pts.length<2||l.base||l.crop||l.insp)continue;
+    if(!_XH_LAY9[l.layer])continue;
+    idx.push(i);
+  }
+  /* 측점 좌표 집합(정확 일치 판정용) */
+  var PS={};
+  (state.points||[]).forEach(function(p){if(p&&p.x!=null)PS[_xhKey9(p.x,p.y)]=1;});
+
+  for(var a=0;a<idx.length;a++){
+    for(var b=a+1;b<idx.length;b++){
+      var LA=L[idx[a]],LB=L[idx[b]];
+      for(var i2=0;i2<LA.pts.length-1;i2++){
+        for(var j2=0;j2<LB.pts.length-1;j2++){
+          var A1p=LA.pts[i2],A2p=LA.pts[i2+1],B1p=LB.pts[j2],B2p=LB.pts[j2+1];
+          var ip=_xhInt9(A1p,A2p,B1p,B2p);
+          if(!ip)continue;
+          /* 측점과 정확히 일치 → 접속 */
+          if(PS[_xhKey9(ip.x,ip.y)])continue;
+          /* 두 선이 정점을 공유 → 접속 */
+          var shared=false;
+          [A1p,A2p].forEach(function(pa){[B1p,B2p].forEach(function(pb){
+            if(Math.hypot(pa[0]-pb[0],pa[1]-pb[1])<=_XH_EPS9)shared=true;});});
+          if(shared)continue;
+          /* 심도 보간 → 얕은 쪽에 hop */
+          var dA=_xhDepAt9(A1p,A2p,ip.t),dB=_xhDepAt9(B1p,B2p,ip.u);
+          var on;
+          if(dA!=null&&dB!=null){
+            if(Math.abs(dA-dB)<_XH_MIN9)continue;   /* 오판 방지 — 생략 */
+            on=(dA<dB)?idx[a]:idx[b];               /* 얕은 쪽 */
+          }else{
+            on=idx[b];                              /* 심도 없음 → 무조건 표시(뒤에 그린 선) */
+          }
+          var key=_xhKey9(ip.x,ip.y);
+          if(state.xhopDel&&state.xhopDel[key])continue;         /* 삭제 묘비 */
+          if(state.xhopFlip&&state.xhopFlip[key])on=(on===idx[a])?idx[b]:idx[a];  /* 뒤집기 */
+          var si=(on===idx[a])?i2:j2, tt=(on===idx[a])?ip.t:ip.u;
+          (out[on]=out[on]||[]).push({si:si,x:ip.x,y:ip.y,t:tt,key:key});
+        }
+      }
+    }
+  }
+  return out;
+}
+/* 캐시 — lines/points/심도가 안 바뀌면 재계산 안 함 */
+function _xhSig9(){
+  var n=0,f=0,L=state.lines||[];
+  for(var i=0;i<L.length;i++){var l=L[i];if(!l||!l.pts||!_XH_LAY9[l.layer])continue;n++;f+=l.pts.length+l.pts[0][0];}
+  return n+':'+f.toFixed(1)+':'+((state.points||[]).length)
+    +':'+Object.keys(state._depthByNo||{}).length
+    +':'+Object.keys(state.xhopDel||{}).length+':'+Object.keys(state.xhopFlip||{}).length;
+}
+function _xhGet9(){
+  try{
+    var sg=_xhSig9();
+    if(window._XH_SIG9!==sg){window._XH_SIG9=sg;window._XH_MAP9=_xhCalc9();}
+    return window._XH_MAP9||{};
+  }catch(_e){return {};}
+}
+/* 반원 정점 생성 — 선분 진행방향 기준, 좌(CCW)로 볼록 */
+function _xhArc9(a,b,cx,cy){
+  var vx=b[0]-a[0],vy=b[1]-a[1],vl=Math.hypot(vx,vy)||1;
+  var ux=vx/vl,uy=vy/vl;                 /* 진행 단위벡터 */
+  var nx=-uy,ny=ux;                      /* 좌 법선 */
+  var R=_XH_R9,o=[];
+  for(var k=0;k<=_XH_SEG9;k++){
+    var th=Math.PI/2-Math.PI*k/_XH_SEG9;   /* +90° → -90° */
+    o.push([cx+ux*(R*Math.sin(th))*-1+nx*(R*Math.cos(th)), cy+uy*(R*Math.sin(th))*-1+ny*(R*Math.cos(th))]);
+  }
+  /* 진행방향 순서로 정렬(뒤→앞이면 뒤집기) */
+  var d0=(o[0][0]-a[0])*ux+(o[0][1]-a[1])*uy, d1=(o[o.length-1][0]-a[0])*ux+(o[o.length-1][1]-a[1])*uy;
+  if(d0>d1)o.reverse();
+  return o;
+}
+/* L.pts 에 hop 정점을 삽입한 새 배열 반환 (원본 불변). hop 없으면 원본 그대로 */
+function _xhPts9(L,li){
+  try{
+    var M=_xhGet9()[li];
+    if(!M||!M.length)return L.pts;
+    var by={};
+    M.forEach(function(h){(by[h.si]=by[h.si]||[]).push(h);});
+    var out=[],P=L.pts;
+    for(var i=0;i<P.length-1;i++){
+      out.push(P[i]);
+      var hs=by[i];
+      if(hs&&hs.length){
+        hs.sort(function(x,y){return x.t-y.t;});
+        for(var k=0;k<hs.length;k++){
+          var arc=_xhArc9(P[i],P[i+1],hs[k].x,hs[k].y);
+          for(var q=0;q<arc.length;q++)out.push(arc[q]);
+        }
+      }
+    }
+    out.push(P[P.length-1]);
+    return out;
+  }catch(_e){return L.pts;}
+}
+/* 진단 */
+function xhopInfo9(){
+  var M=_xhGet9(),n=0;
+  for(var k in M)n+=M[k].length;
+  console.log('[크로스] '+n+'개 — 선별 '+JSON.stringify(Object.keys(M).map(function(k){return k+':'+M[k].length;})));
+  for(var k2 in M)M[k2].forEach(function(h){
+    console.log('   ('+h.x.toFixed(3)+', '+h.y.toFixed(3)+')  '+k2+'번선  key='+h.key);});
+  console.log('삭제묘비 '+Object.keys(state.xhopDel||{}).length+' / 뒤집기 '+Object.keys(state.xhopFlip||{}).length);
+  return n;
+}
+function xhopFlip9(key){state.xhopFlip=state.xhopFlip||{};if(state.xhopFlip[key])delete state.xhopFlip[key];else state.xhopFlip[key]=1;window._XH_SIG9=null;if(typeof drawGeo==='function')drawGeo();}
+function xhopDel9(key){state.xhopDel=state.xhopDel||{};if(state.xhopDel[key])delete state.xhopDel[key];else state.xhopDel[key]=1;window._XH_SIG9=null;if(typeof drawGeo==='function')drawGeo();}
 function drawGeo(){_orgSync();/* [1524] */if(typeof _tgCarGeomBuild==='function')try{_tgCarGeomBuild();}catch(_cg){}/* [1327] */
   (function(){var _tb=document.getElementById('tamsaBadge');if(_tb)_tb.style.display=state.tamsa?'':'none';})();
   clearSvg(gGeo); clearSvg(gPts); clearSvg(gHit); clearSvg(gAnc); clearLabels('pt');clearLabels('depth');clearLabels('depthchk');clearLabels('tgnote');clearLabels('ptag');
@@ -1090,11 +1262,11 @@ function drawGeo(){_orgSync();/* [1524] */if(typeof _tgCarGeomBuild==='function'
   // ★ 백판은 화면영역 컬링으로 그림(drawBackdrop) — 화면 밖 백판은 안 그려 줌/팬 가벼움(BUILD509)
   drawBackdrop();
   // 앱 레이어·crop 라인만 개별(색·굵기·dash 다양, 클릭 필요)
-  ((typeof _tgCarLines==='function')?_tgCarLines(state.lines):state.lines).forEach(function(L){if(bpOff&&L.base)return;/* [1329] 엣지 분할 필터 */
+  ((typeof _tgCarLines==='function')?_tgCarLines(state.lines):state.lines).forEach(function(L,_LI9){if(bpOff&&L.base)return;/* [1329] 엣지 분할 필터 */
     if(!(LINECOL[L.layer]||L.crop))return;      // 백판은 위 통합 path로 처리됨
     if(L.crop&&(typeof LV!=='undefined')&&LV.bizbox===0)return;   /* [1092] 사업정보 끔 → 크롭 테두리도 같이 */
     var def=LINECOL[L.layer]||{c:"#bbb",w:1.2};if(L.color)def={c:L.color,w:def.w,dash:def.dash};if(L.free)def={c:def.c,w:def.w,dash:"7 5"};/* [BUILD1846] 위치표시=점선 */if(L.crop)def={c:"#000",w:1.4};
-    var pts=(function(){var _G9=(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)));var _o9=[],_P9=L.pts,_i9,_a9,_b9;for(_i9=0;_i9<_P9.length;_i9++){_a9=_P9[_i9];if(_G9&&_i9>0){_b9=_P9[_i9-1];var _dx9=_a9[0]-_b9[0],_dy9=_a9[1]-_b9[1],_dl9=Math.hypot(_dx9,_dy9);if(_dl9>5){var _n9=Math.ceil(_dl9/5);/* [1518] 50m→5m — 깊은 줌 컸링 커버 */for(var _k9=1;_k9<_n9;_k9++){var _t9=_k9/_n9,_sI9=S(_b9[0]+_dx9*_t9,_b9[1]+_dy9*_t9);_o9.push(_sI9[0]+','+_sI9[1]);}}}var _s9=S(_a9[0],_a9[1]);_o9.push(_s9[0]+','+_s9[1]);}return _o9.join(' ');})();/* [1494] 50m \ucd08\uacfc \uc138\uadf8 \ubcf4\uac04\uc810 \uc0bd\uc785 \u2014 Chromium vector-effect \ucef8\ub9c1 \ud68c\ud53c(\ud654\uba74 \ub3d9\uc77c) */
+    var pts=(function(){var _G9=(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)));var _o9=[],_P9=((typeof _xhPts9==='function')?_xhPts9(L,_LI9):L.pts),_i9,_a9,_b9;/* [BUILD1988] 크로스 반원 삽입 */for(_i9=0;_i9<_P9.length;_i9++){_a9=_P9[_i9];if(_G9&&_i9>0){_b9=_P9[_i9-1];var _dx9=_a9[0]-_b9[0],_dy9=_a9[1]-_b9[1],_dl9=Math.hypot(_dx9,_dy9);if(_dl9>5){var _n9=Math.ceil(_dl9/5);/* [1518] 50m→5m — 깊은 줌 컸링 커버 */for(var _k9=1;_k9<_n9;_k9++){var _t9=_k9/_n9,_sI9=S(_b9[0]+_dx9*_t9,_b9[1]+_dy9*_t9);_o9.push(_sI9[0]+','+_sI9[1]);}}}var _s9=S(_a9[0],_a9[1]);_o9.push(_s9[0]+','+_s9[1]);}return _o9.join(' ');})();/* [1494] 50m \ucd08\uacfc \uc138\uadf8 \ubcf4\uac04\uc810 \uc0bd\uc785 \u2014 Chromium vector-effect \ucef8\ub9c1 \ud68c\ud53c(\ud654\uba74 \ub3d9\uc77c) */
     var pl=el('polyline',{points:pts,fill:'none',stroke:def.c,'stroke-width':def.w,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':def.dash?'butt':'round'});
     if(def.dash)pl.setAttribute('stroke-dasharray',def.dash);
     if(L.insp)pl.setAttribute('class','insp-line');/* [1489][1520] 원복 — 검증된 방식(월드폭은 float32 정밀도 붕괴로 불가) */
@@ -5761,9 +5933,10 @@ EOF
   var baseLines=state.lines.filter(function(l){return (l.base||!appLay[l.layer])&&l.pts&&l.pts.length>=2&&!l.insp;});
   state.lines.forEach(function(_L){if(_L.insp&&_L.pts&&_L.pts.length>=2&&!((typeof LV!=='undefined')&&LV.hyun===0))pline(_L.pts,'HYUN',4,false);});
   (state.hyunPts||[]).forEach(function(_hp){if((typeof LV!=='undefined')&&LV.hyun===0)return;var _hcol=({b:4,d:5,s:8,bd:1,db:1})[(_hp[2]||'').toLowerCase()]||3;insert('SD901',_hp[0],_hp[1],0.3,'\ud604\ud669',_hcol);});
-  state.lines.forEach(function(Ln){if(!Ln.pts||Ln.pts.length<2)return;if(Ln.base||!appLay[Ln.layer])return;var lm=LM[Ln.layer]||['PIPE',1];
-    if(Ln.layer==='압입구간'){pline(Ln.pts,'PUSH',5,false,'DASHED');}else if(Ln.free){var _lmF=LM[Ln.layer]||['PIPE',1];pline(Ln.pts,_lmF[0],_lmF[1],false,'DASHED');}/* [BUILD1846] */ // 압입=DASHED 선종 1폴리라인(첨부2 스타일, 가는 점선)
-    else pline(Ln.pts,lm[0],lm[1],false);
+  state.lines.forEach(function(Ln,_LI9){if(!Ln.pts||Ln.pts.length<2)return;if(Ln.base||!appLay[Ln.layer])return;var lm=LM[Ln.layer]||['PIPE',1];
+    var _XP9=(typeof _xhPts9==='function')?_xhPts9(Ln,_LI9):Ln.pts;/* [BUILD1988] 크로스 반원 */
+    if(Ln.layer==='압입구간'){pline(_XP9,'PUSH',5,false,'DASHED');}else if(Ln.free){var _lmF=LM[Ln.layer]||['PIPE',1];pline(_XP9,_lmF[0],_lmF[1],false,'DASHED');}/* [BUILD1846] */ // 압입=DASHED 선종 1폴리라인(첨부2 스타일, 가는 점선)
+    else pline(_XP9,lm[0],lm[1],false);
     if((Ln.layer==='지거'||Ln.layer==='압입구간'||Ln.layer==='탐사구간')&&Ln.note){/* [BUILD1835] */
       var aw=ptOnPoly(Ln.pts,polyAnchorT(Ln));
       var nx,ny; if(Ln.noteOff){nx=Ln.noteOff[0];ny=-Ln.noteOff[1];} else {var _no9=_noteOff9(Ln,aw);nx=aw[0]+_no9[0];ny=aw[1]+_no9[1];}/* [BUILD1987] */
