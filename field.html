@@ -303,10 +303,21 @@
   .viewer #viewerBar select{font-size:12.5px;padding:4px 6px;flex:none;max-width:130px}#proj{max-width:46vw;min-width:220px}
   .viewer #modeToggle{font-size:12.5px;padding:5px 9px;white-space:nowrap;flex:none}
   /* 사진 헤더 한 줄 + 업로드/닫기 숨김 */
-  .viewer .php-head{flex-wrap:nowrap;overflow-x:auto;gap:5px;padding:6px 9px}
+  .viewer .php-head{flex-wrap:nowrap;overflow-x:auto;gap:5px;padding:6px 9px;scrollbar-width:none}/* [BUILD2019] */
   .viewer .php-head h3{display:none}
   .viewer #photoUp{display:none}/* [1263] photoClose 숨김 해제 — 특이사항 오른쪽 닫기 */
-  .viewer .php-head button,.viewer .php-head select{font-size:12px;padding:4px 7px;white-space:nowrap;flex:none}
+  .viewer .php-head button,.viewer .php-head select{font-size:10px;padding:3px 4px;white-space:nowrap;flex:none}/* [BUILD2019] 폰 앞 버튼 축소 — [2018]은 min-width:761px 블록에 넣어 폰에 안 먹었다 */
+    .viewer .php-head{padding:5px 7px;gap:4px}
+    .viewer .php-head #photoSel{max-width:86px;font-size:9.5px;padding:2px 3px}
+    .viewer .php-head #dirToggle,.viewer .php-head #fldStakePhTgl,.viewer .php-head #photoLinkBtn{font-size:9px;padding:2px 3px}
+    /* [BUILD2019] 긴 라벨 축약 — 촬영버튼 자리 43px 확보 */
+    .viewer .php-head #fldStakePhTgl{max-width:74px;overflow:hidden;text-overflow:ellipsis}
+    .viewer .php-head #dirToggle{max-width:56px;overflow:hidden}
+    .viewer .php-head #photoSel{max-width:74px}
+    .viewer .php-head #aftPhotoUp{display:none}/* [BUILD2019] 폰에선 업로드 대신 촬영 버튼을 쓴다 — 자리 확보 */
+    .viewer .php-head #photoClose{font-size:11px;padding:2px 5px}
+    /* [BUILD2019] 후측량 촬영 — 빨간 배경·큰 세로크기·잘림 방지 */
+    .viewer .php-head #fldAftCap9{order:9;margin-left:auto;margin-right:0;flex:none;font-size:11.5px;font-weight:900;padding:0 9px;height:32px;line-height:1;display:inline-flex;align-items:center;justify-content:center;background:#d32f2f!important;color:#fff!important;border:1.5px solid #b71c1c!important;border-radius:9px;box-shadow:0 2px 5px rgba(211,47,47,.35)}
   .viewer #fldAftCap9{background:#eafaf0;color:#16a34a;border-color:#16a34a;font-weight:800}
   .viewer #fldAftCap9:active{background:#16a34a;color:#fff}
   /* 선택측점 사진만 크게 */
@@ -836,6 +847,6 @@ window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
     </div>
   </div>
 
-<script src="login.js?v=2018"></script><script src="core.js?v=2018"></script>
+<script src="login.js?v=2019"></script><script src="core.js?v=2019"></script>
 </body>
 </html>
