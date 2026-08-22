@@ -13,7 +13,7 @@
   *{box-sizing:border-box;margin:0;padding:0}
   .ptin::placeholder{color:#d2d2d2;opacity:1}
   :root{--line:#e3e3e0;--ink:#1c1c1a;--muted:#6b6b66;--bg:#fafaf8;--ok:#2a9e50;--bad:#d32f2f;--accent:#1f6fd6}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);background:var(--bg);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);background:var(--bg);height:100vh;height:100dvh;height:calc(var(--vh9,1vh) * 100)/* [BUILD2011] ★근본 원인 — body가 100vh 고정이라 앱 복귀 시 주소창이 나타나면 body가 실제 화면보다 커져 내부 flex 배분이 통째로 어긋난다. [2009]는 .php-main만 고쳐 효과가 없었다. dvh → --vh9 순으로 덮어쓴다 */;display:flex;flex-direction:column;overflow:hidden}
   header{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:9px 14px;border-bottom:1px solid var(--line);background:#fff}
   /* [1219] ?open= 사업 필터 칩: 헤더 끝으로 보내 기존 버튼 줄배치 보존 (realtime은 자체 규칙) */
   #projFilterChip{order:99;max-width:170px}
@@ -262,7 +262,7 @@
   .php-split>.php-main{flex:1;min-height:0}
   .php-after .ph.php-none{color:#bbb;font-size:13px;background:#f6f6f3;flex:1}
   /* 폰 현장모드: 노출/후측량 각각 풀사이즈로 세로 스택 + 패널 스크롤 */
-  @media(max-width:760px){.viewer .php-split{flex:none}.viewer .php-split>.php-main{flex:none;height:37.5vh;height:calc(var(--vh9,1vh) * 37.5);min-height:250px}/* [BUILD2009] vh는 주소창 숨긴 최대높이 기준으로 고정되어 앱 복귀 시 비율이 틀어졌다 — 실제 innerHeight 기준 --vh9 로 교체(미정의 시 1vh 폴백) */}/* [BUILD2004] 사진창 확대 33vh→42vh — 아래 photo-panel.open 과 반드시 짝을 맞추어야 안쪽 스크롤이 안 생긴다 *//* [BUILD1877] */
+  @media(max-width:760px){.viewer .php-split{flex:none}.viewer .php-split>.php-main{flex:none;height:37.5vh;height:37.5dvh;height:calc(var(--vh9,1vh) * 37.5);min-height:250px}/* [BUILD2009] vh는 주소창 숨긴 최대높이 기준으로 고정되어 앱 복귀 시 비율이 틀어졌다 — 실제 innerHeight 기준 --vh9 로 교체(미정의 시 1vh 폴백) */}/* [BUILD2004] 사진창 확대 33vh→42vh — 아래 photo-panel.open 과 반드시 짝을 맞추어야 안쪽 스크롤이 안 생긴다 *//* [BUILD1877] */
   /* 폰 현장모드 로드뷰: 위=로드뷰 / 아래=측점사진(후측량모드처럼 풀사이즈) + 세로 스크롤 */
   @media(max-width:760px){
     .viewer #rvPanel.open{height:86vh}
@@ -658,6 +658,6 @@
     </div>
   </div>
 
-<script src="login.js?v=2010"></script><script src="core.js?v=2010"></script>
+<script src="login.js?v=2011"></script><script src="core.js?v=2011"></script>
 </body>
 </html>
