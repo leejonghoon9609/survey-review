@@ -16809,16 +16809,50 @@ function svCsv(points,projName,ymd){
   var blob=new Blob(['\uFEFF'+rows.join('\r\n')],{type:'text/csv;charset=utf-8'});
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(projName||'사업')+'_'+ymd+'.csv';document.body.appendChild(a);a.click();a.remove();
 }
-function svPhotoDl(items){ /* 일별 사진 일괄 다운로드(순차 fetch→blob) */
+/* [BUILD2003] 사진 일괄 다운로드 — 낱장 → ZIP.
+   JSZip은 전 HTML에 이미 로드돼 있다(jszip@3.10.1) — 추가 의존성 없음.
+   items=[{no,url}] / zipName=파일명 / _sub=true면 날짜별 폴더로 묶는다(전체 받기용). */
+function svPhotoZip(items,zipName,_sub){
   if(!items||!items.length){toast('해당 날짜 사진이 없습니다');return;}
-  toast('사진 '+items.length+'장 다운로드 시작…');
+  if(typeof JSZip==='undefined'){toast('압축 모듈 없음 — 낱장으로 받습니다');return svPhotoDlEach(items);}
+  var zip=new JSZip(), tot=items.length, done=0, ok=0, fail=0;
+  var nm=String(zipName||'사진').replace(/[\\/:*?"<>|]/g,'_');
+  toast('사진 '+tot+'장 압축 중…');
+  var i=0;(function nx(){
+    if(i>=tot){
+      if(!ok){toast('받은 사진이 없습니다 ('+fail+'장 실패)');return;}
+      toast('압축 마무리 중… '+ok+'장');
+      zip.generateAsync({type:'blob'}).then(function(b){
+        var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=nm+'.zip';
+        document.body.appendChild(a);a.click();
+        setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},400);
+        toast('✓ '+nm+'.zip — '+ok+'장'+(fail?(' · 실패 '+fail):''));
+      })['catch'](function(){toast('압축 실패 — 낱장으로 받습니다');svPhotoDlEach(items);});
+      return;
+    }
+    var it=items[i++];
+    fetch(it.url).then(function(r){return r.blob();}).then(function(b){
+      var base=String(it.no).replace(/[\\/:*?"<>|]/g,'_');
+      var d=base.split('-')[0], path=(_sub&&/^[0-9]{6}$/.test(d))?(d+'/'+base+'.jpg'):(base+'.jpg');
+      /* 동명 방지 — 같은 이름이 있으면 _2, _3 */
+      if(zip.file(path)){var k=2;while(zip.file(path.replace(/\.jpg$/,'_'+k+'.jpg')))k++;path=path.replace(/\.jpg$/,'_'+k+'.jpg');}
+      zip.file(path,b);ok++;
+    })['catch'](function(){fail++;}).then(function(){
+      done++; if(done%10===0||done===tot)toast('사진 받는 중 '+done+' / '+tot);
+      setTimeout(nx,40);
+    });
+  })();
+}
+function svPhotoDlEach(items){ /* 낱장 폴백(구 동작) */
+  if(!items||!items.length){toast('해당 날짜 사진이 없습니다');return;}
   var i=0;(function nx(){ if(i>=items.length){toast('사진 '+items.length+'장 다운로드 완료');return;}
     var it=items[i++];
     fetch(it.url).then(function(r){return r.blob();}).then(function(b){
       var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=String(it.no).replace(/[\\/:*?"<>|]/g,'_')+'.jpg';document.body.appendChild(a);a.click();a.remove();setTimeout(nx,350);
-    }).catch(function(){setTimeout(nx,120);});
+    })['catch'](function(){setTimeout(nx,120);});
   })();
 }
+function svPhotoDl(items,zipName,_sub){ return svPhotoZip(items,zipName,_sub); }
 function svPopup(title,accent){
   var id='svDailyPop';var old=document.getElementById(id);if(old)old.remove();
   var pop=document.createElement('div');pop.id=id;
@@ -16859,7 +16893,25 @@ function svDailyTable(container,points,lines,rtDaily,projName,phByDate){
   h+='</tbody></table><div id="svDailyTot" style="text-align:right;font-size:12.5px;color:#c0392b;font-weight:800;padding:7px 4px 0">관로거리 합계 '+(+tot.toFixed(1))+'m</div>';/* [1236] 빨강 */
   container.innerHTML=h;
   [].forEach.call(container.querySelectorAll('.svd-csv'),function(b){b.onclick=function(){svCsv(points,projName,b.getAttribute('data-d'));};});
-  [].forEach.call(container.querySelectorAll('.svd-ph'),function(b){b.onclick=function(){svPhotoDl((phByDate&&phByDate[b.getAttribute('data-d')])||[]);};});
+  [].forEach.call(container.querySelectorAll('.svd-ph'),function(b){b.onclick=function(){
+    var _d=b.getAttribute('data-d');
+    /* [BUILD2003] 날짜별 ZIP — 파일명 "사업명_20YY-MM-DD_사진" */
+    svPhotoZip((phByDate&&phByDate[_d])||[], (projName||'사진')+'_20'+_d.slice(0,2)+'-'+_d.slice(2,4)+'-'+_d.slice(4,6)+'_사진', false);
+  };});
+  /* [BUILD2003] 전체 사진 ZIP — 날짜별 하위폴더로 묶는다 */
+  try{
+    var _tt=container.querySelector('#svDailyTot');
+    if(_tt&&phByDate){
+      var _all=[],_dk;for(_dk in phByDate)(phByDate[_dk]||[]).forEach(function(x){_all.push(x);});
+      if(_all.length){
+        var _ab=document.createElement('button');
+        _ab.textContent='전체 사진 '+_all.length+'장 ZIP';
+        _ab.style.cssText='margin-left:10px;background:#7c3aed;border:1px solid #6d28d9;color:#fff;border-radius:7px;padding:5px 12px;font-weight:800;font-size:12px;cursor:pointer';
+        _ab.onclick=function(){svPhotoZip(_all,(projName||'사진')+'_전체사진',true);};
+        _tt.appendChild(_ab);
+      }
+    }
+  }catch(_az3){}
 }
 function svPhotosByDate(rows){ var m={}; (rows||[]).forEach(function(r){var no=String(r.point_no||'');var d=no.split('-')[0];if(!/^[0-9]{6}$/.test(d))return;(m[d]=m[d]||[]).push({no:no,url:r.url});}); return m; }
 function svRtDailyOpen(){ /* 같은 base의 실시간(_S) 성과 원격 열람 */
