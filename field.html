@@ -262,7 +262,7 @@
   .php-split>.php-main{flex:1;min-height:0}
   .php-after .ph.php-none{color:#bbb;font-size:13px;background:#f6f6f3;flex:1}
   /* 폰 현장모드: 노출/후측량 각각 풀사이즈로 세로 스택 + 패널 스크롤 */
-  @media(max-width:760px){.viewer .php-split{flex:none}.viewer .php-split>.php-main{flex:none;height:33vh;min-height:220px}}/* [BUILD1877] */
+  @media(max-width:760px){.viewer .php-split{flex:none}.viewer .php-split>.php-main{flex:none;height:42vh;min-height:280px}}/* [BUILD2004] 사진창 확대 33vh→42vh — 아래 photo-panel.open 과 반드시 짝을 맞추어야 안쪽 스크롤이 안 생긴다 *//* [BUILD1877] */
   /* 폰 현장모드 로드뷰: 위=로드뷰 / 아래=측점사진(후측량모드처럼 풀사이즈) + 세로 스크롤 */
   @media(max-width:760px){
     .viewer #rvPanel.open{height:86vh}
@@ -292,7 +292,7 @@
   .viewer #rail,.viewer #subbar,.viewer aside.panel{display:none}
   .viewer .maincol{flex:1;min-height:0;width:100%}
   .viewer .photo-panel{width:100%!important;max-width:none!important;min-width:0!important;border-left:none;border-top:2px solid var(--line)}
-  .viewer .photo-panel.open{display:flex;flex:none;height:47vh;height:calc(max(33vh,220px) + 86px)}/* [BUILD1878] 캐벘션줄까지만 노출, 도면 최대화 */
+  .viewer .photo-panel.open{display:flex;flex:none;height:56vh;height:calc(max(42vh,280px) + 86px)}/* [BUILD2004] 33vh→42vh · 220→280px — 도면창(.maincol flex:1)은 자동으로 그만큼 줄어든다 *//* [BUILD1878] 캐벘션줄까지만 노출, 도면 최대화 */
   .viewer #rvPanel.open{width:100%!important;max-width:none!important;border-left:none;border-top:2px solid var(--line);flex:none;height:50vh}
   /* 상단바 한 줄 + dev배지 숨김 */
   .viewer #buildno,.viewer #conn{display:none}
@@ -637,6 +637,6 @@
     </div>
   </div>
 
-<script src="login.js?v=2003"></script><script src="core.js?v=2003"></script>
+<script src="login.js?v=2004"></script><script src="core.js?v=2004"></script>
 </body>
 </html>
