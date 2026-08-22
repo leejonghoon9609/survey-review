@@ -7807,7 +7807,7 @@ bind('modeToggle',function(){if(IS_FIELD){location.href='survey.html';}else if(I
 bind('vPhoto',function(){openPhotoPanel();});
 bind('vMap',toggleBgMap);
 bind('vRv',toggleRvPick);
-bind('vNote2',toggleNoteMode);
+bind('fldAftCap9',function(){/* [BUILD2018] \ud6c4\uce21\ub7c9 \ucd2c\uc601 \u2014 afterCap \uacfc \ub3d9\uc77c \ud30c\uc774\ud504\ub77c\uc778(fAfter \u2192 uploadAfterPhoto) */try{var no=selNum;if(no==null||no===''){var sel=document.getElementById('photoSel');if(sel&&sel.value)no=sel.value;}if(no==null||no===''){toast('\uba3c\uc800 \uce21\uc810\uc744 \uc120\ud0dd\ud558\uc138\uc694');return;}if(typeof online!=='undefined'&&!online){toast('\ub85c\uceec \ubaa8\ub4dc \u2014 \uc0ac\uc9c4 \uc800\uc7a5 \ubd88\uac00');return;}if(!state.projectId){toast('\uba3c\uc800 \uc0ac\uc5c5\uc744 \uc800\uc7a5\ud558\uc138\uc694');return;}afterTargetNum=String(no);var f=document.getElementById('fAfter');if(f){f.value='';f.click();}}catch(_ac9){}});
 var _vproj=document.getElementById('vproj');if(_vproj)_vproj.addEventListener('change',function(){if(this.value)loadProject(this.value);});
 
 /* ===== 결선완료 사업 ===== */
