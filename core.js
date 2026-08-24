@@ -9781,10 +9781,27 @@ function _auxCntShow9(mh,ix,A){
 }
 /* [BUILD1978] 맨홀 벽 행 관수 표시값 — 자기값 → 상대채널 → 단독시 총계 → 잔여 자동배분 */
 /* [BUILD2036] \uBC29\uD5A5 \uAC08\uB798 \uC55E\uC810 \uAD00\uC815\uBCF4 \u2014 \uB9E8\uD640\u2192\uB300\uC0C1 \uBC29\uC704 \u00B145\u00B0 \uB0B4 \uCD5C\uADFC\uC811 \uAD00\uC815\uBCF4 \uCE21\uC810 */
+function _lblMh9(wx,wy,lab){/* [BUILD2041] \uB77C\uBCA8\uB85C \uB300\uC0C1 \uB9E8\uD640 \uC88C\uD45C \uD574\uC11D \u2014 xy \uBBF8\uB4F1\uB85D \uD56D\uBAA9 \uAD6C\uC81C */
+  try{
+    if(!lab)return null;
+    function nz(t){t=String(t||'');try{if(typeof mnStripPf==='function')t=mnStripPf(t);}catch(_a){}return t.replace(/\s+/g,'').toUpperCase();}
+    var q=nz(lab);if(!q)return null;
+    var bm=null,bd=1e9;
+    (state.manholes||[]).forEach(function(m){
+      if(!m||m.wx==null)return;if(m.type&&m.type!=='mh')return;
+      var lb=nz(m.label);if(!lb)return;
+      if(lb.indexOf(q)<0&&q.indexOf(lb)<0)return;
+      var d=Math.hypot(m.wx-wx,m.wy-wy);
+      if(d>0.3&&d<bd){bd=d;bm=m;}
+    });
+    return (bm&&bd<80)?[bm.wx,bm.wy]:null;
+  }catch(_e){return null;}
+}
 function _dirFrontXY9(wx,wy,dv){/* [BUILD2040] 1\uC21C\uC704: \uAD6C\uAC04 \uACBD\uB85C\uB97C \uB530\uB77C \uCCAB \uAD00\uC815\uBCF4 \uCE21\uC810(\uAFBE\uC784 \uBB34\uAD00) / 2\uC21C\uC704: \uBC29\uC704\uAC01 \u00B140\u00B0 \uD3F4\uBC31 */
   try{
     if(wx==null||wy==null||!dv)return null;
     var tx=(dv.xy&&dv.xy.length===2)?+dv.xy[0]:null, ty=(dv.xy&&dv.xy.length===2)?+dv.xy[1]:null;
+    if(tx==null&&dv&&dv.lab){var _lm9=_lblMh9(wx,wy,dv.lab);if(_lm9){tx=_lm9[0];ty=_lm9[1];}}/* [BUILD2041] */
     function codeAt(nd){
       var pr=null,P=state.points||[];
       for(var p=0;p<P.length;p++){var pt=P[p];if(!pt||pt.x==null)continue;
@@ -9839,11 +9856,13 @@ function _mnDirFront9(rec,dv){
 function _mnPeerBack9(rec,dv){
   try{
     var src=(typeof _mnMhOfRec9==='function')?_mnMhOfRec9(rec):null;
-    if(!src||!dv||!dv.xy||dv.xy.length!==2)return null;
+    if(!src||!dv)return null;
+    var _txy9=(dv.xy&&dv.xy.length===2)?dv.xy:((dv.lab&&typeof _lblMh9==='function')?_lblMh9(src.wx,src.wy,dv.lab):null);
+    if(!_txy9)return null;/* [BUILD2041] */
     var pm=null,pd=1e9;
     (state.manholes||[]).forEach(function(m){
       if(!m||m.wx==null)return;if(m.type&&m.type!=='mh')return;
-      var d=Math.hypot(m.wx-dv.xy[0],m.wy-dv.xy[1]);
+      var d=Math.hypot(m.wx-_txy9[0],m.wy-_txy9[1]);
       if(d<pd){pd=d;pm=m;}
     });
     if(!pm||pd>2.5)return null;/* [BUILD2039] \uB9E8\uD640\uB3C4 \uD655\uC815 \uC2A4\uB0C5 \uAD00\uB840 2.5m */
