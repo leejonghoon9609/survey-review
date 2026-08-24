@@ -13836,6 +13836,7 @@ function refreshPhotoPanel(){
     var _bu=photoMap[selNum]||(_bn!=null?photoMap[_bn]:null);
     body.innerHTML=paneImg(selNum,'노출관로측량',true,_cap)
       +(_bu?'<div class="php-main" style="margin-top:8px"><div class="cap"><span>현황판</span></div><div class="ph php-none" id="rtBoardBox">현황판 생성 중…</div></div>':'');
+    try{if(window.matchMedia&&matchMedia('(max-width:760px)').matches){var _c9=body.querySelector('.php-main .cap');if(_c9&&!_c9.querySelector('.rtRecapCap9')){var _rb9=document.createElement('button');_rb9.className='rtRecapCap9';_rb9.innerHTML='\uD83D\uDCF7 \uC7AC\uCD2C\uC601';_rb9.onclick=function(){if(typeof rtRecapture==='function')rtRecapture();};_rb9.style.cssText='flex:none;margin-left:6px;background:#EA002C;color:#fff;border:0;border-radius:7px;padding:3px 10px;font-size:11.5px;font-weight:800;cursor:pointer';_c9.appendChild(_rb9);}}}catch(_rc9){}/* [BUILD2073] \ud3f0: \uc7ac\ucd2c\uc601=\uce74\uc158\ud589 \uc624\ub978\ucabd \ub05d(\uc644\ub8cc\uc0ac\uc9c4 \uc606) */
     /* [1139] 원본에도 뷰어 제스처 (기존 setupZoom 대신) — id 변경으로 이중배선 방지 */
     (function(){var zi=document.getElementById('zoomImg');if(zi){zi.id='rtOrigImg';rtViewZoom(zi);}})();
     if(_bu){(function(_no,_u){
