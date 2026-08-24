@@ -631,7 +631,13 @@ function rtOpenCsvModal(){/* [BUILD1869] \ub85c\ub529\ucc3d \uc7ac\uad6c\uc131: 
   var old=document.getElementById('rtCsvModal');if(old)old.remove();
   var days={},total=0;((typeof state!=='undefined'&&state.points)||[]).forEach(function(pt){if(!pt||!pt._csv||!pt.no)return;var d=String(pt.no).split('-')[0];days[d]=(days[d]||0)+1;total++;});
   var keys=Object.keys(days).sort();/* [BUILD1870] \ub4dc\ub86d\uc874 \ub0b4 \ub0a0\uc9dc\ubcc4 \ubaa9\ub85d */
-  var listH=keys.map(function(d){return '<div style="display:flex;justify-content:space-between;padding:3px 18px;font-size:12.5px;color:#445"><b>'+d+'</b><span style="font-weight:800;color:#c0392b">'+days[d]+'\uc810</span></div>';}).join('');
+  var _row9=function(d){return '<div style="display:flex;justify-content:space-between;padding:3px 18px;font-size:12.5px;color:#445"><b>'+d+'</b><span style="font-weight:800;color:#c0392b">'+days[d]+'\uc810</span></div>';};
+  var _td9=(function(){var d=new Date();function p2(n){return('0'+n).slice(-2);}return String(d.getFullYear()).slice(2)+p2(d.getMonth()+1)+p2(d.getDate());})();
+  var _curK9=keys.filter(function(d){return d===_td9;}),_pstK9=keys.filter(function(d){return d!==_td9;});
+  var _pSum9=0;_pstK9.forEach(function(d){_pSum9+=days[d];});
+  var listH=_curK9.map(_row9).join('')
+   +(_pstK9.length?('<div style="padding:4px 14px"><button type="button" onclick="var e=document.getElementById(\'rtCsvPast9\');var on=e.style.display===\'none\';e.style.display=on?\'block\':\'none\';this.querySelector(\'span\').textContent=on?\'\u25B4\':\'\u25BE\';event.stopPropagation();" style="width:100%;background:#f4f6fb;border:1px solid #c3ccd6;border-radius:8px;padding:6px;font-size:12px;font-weight:800;color:#39506e;cursor:pointer">\uD83D\uDCC1 \uC9C0\uB09C CSV '+_pstK9.length+'\uC77C \u00B7 '+_pSum9+'\uC810 <span>\u25BE</span></button></div>'
+   +'<div id="rtCsvPast9" style="display:none">'+_pstK9.map(_row9).join('')+'</div>'):'');/* [BUILD2059] \ub2f9\uc77c\ub9cc \ud45c\uc2dc, \uacfc\uac70 \ub0a0\uc9dc \uc811\uae30 */
   var wrap=document.createElement('div');wrap.id='rtCsvModal';
   wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center';
   wrap.innerHTML='<div style="background:#fff;border-radius:14px;width:min(92vw,300px);display:flex;flex-direction:column;overflow:hidden">'
@@ -856,6 +862,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2058"></script><script src="core.js?v=2058"></script>
+<script src="login.js?v=2059"></script><script src="core.js?v=2059"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
