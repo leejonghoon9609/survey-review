@@ -862,7 +862,7 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2070"></script><script src="core.js?v=2070"></script>
+<script src="login.js?v=2071"></script><script src="core.js?v=2071"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)">
 <script>
 /* [BUILD2070] 폰 도면:사진 비율 — 무한재적용(진동) 근본 차단: 재진입 가드+변경시에만 쓰기+클램프 캐시 */
@@ -917,11 +917,11 @@ window.RT_SPLIT9=(function(){try{var v=parseFloat(localStorage.getItem('rtSplit9
   function boot(){kick();bar();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
   window.addEventListener('load',kick);
-  window.addEventListener('resize',reset);
+  window.addEventListener('resize',kick);/* [BUILD2071] 제스처 중 주소창 변동=재쓰기 금지(값 동일시 무동작) — 줌 버벅임 해결 */
   window.addEventListener('orientationchange',function(){setTimeout(reset,250);});
   window.addEventListener('pageshow',reset);
   document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(reset,60);});
-  try{if(window.visualViewport)visualViewport.addEventListener('resize',reset);}catch(e){}
+  try{if(window.visualViewport)visualViewport.addEventListener('resize',kick);}catch(e){}/* [BUILD2071] */
   /* 패널 열림/닫힘 추종 — class 변경만 감시(style 변경 감시 제거: 자기 쓰기 재유발 차단) */
   try{var mo=new MutationObserver(function(){kick();});
     function ob(){var pp=document.getElementById('photoPanel');if(pp)mo.observe(pp,{attributes:true,attributeFilter:['class']});}
