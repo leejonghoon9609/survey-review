@@ -864,7 +864,7 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2075"></script><script src="core.js?v=2075"></script>
+<script src="login.js?v=2076"></script><script src="core.js?v=2076"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)">
 <script>
 /* [BUILD2070] 폰 도면:사진 비율 — 무한재적용(진동) 근본 차단: 재진입 가드+변경시에만 쓰기+클램프 캐시 */
@@ -930,6 +930,25 @@ window.RT_SPLIT9=(function(){try{var v=parseFloat(localStorage.getItem('rtSplit9
     document.getElementById('rsPlus').onclick=function(){rtSplit9(Math.min(0.82,window.RT_SPLIT9+0.02));upd();};
     document.getElementById('rsHide').onclick=function(){var hid=w.getAttribute('data-h')==='1';w.setAttribute('data-h',hid?'0':'1');for(var i=0;i<w.children.length-1;i++)w.children[i].style.display=hid?'':'none';this.textContent=hid?'\u25c0':'\u25b6';};
   }catch(e){}}
+  /* [BUILD2076] 현장 진단 — BUILD 배지를 1초간 꾹 누르면 실측 숫자 표시 */
+  function diag9(){try{
+    var pp=document.getElementById('photoPanel'),bd=document.getElementById('photoBody');
+    var phs=pp?pp.querySelectorAll('.php-main .ph'):[];
+    var vv=(window.visualViewport?visualViewport.height:window.innerHeight)|0;
+    var L=['빌드: '+(document.getElementById('buildno')||{}).textContent,
+      '화면(vv/ih): '+vv+' / '+(window.innerHeight|0),
+      '패널열림: '+(pp?pp.classList.contains('open'):'-')+'  패널높이: '+(pp?(pp.getBoundingClientRect().height|0):'-')+'  패널바닥: '+(pp?(pp.getBoundingClientRect().bottom|0):'-')];
+    if(bd)L.push('본문 스크롤: 보임 '+(bd.clientHeight|0)+' / 내용 '+(bd.scrollHeight|0)+' / 위치 '+(bd.scrollTop|0)+' / overflow '+getComputedStyle(bd).overflowY);
+    for(var i=0;i<phs.length;i++){var e=phs[i],r=e.getBoundingClientRect(),cs=getComputedStyle(e);
+      L.push('사진'+(i+1)+'['+e.tagName+']: 표시높이 '+(r.height|0)+'  maxH '+cs.maxHeight+'  fit '+cs.objectFit+'  바닥 '+(r.bottom|0)+(r.bottom>vv+1?' ★화면밖':' (화면안)'));}
+    alert(L.join('\n'));
+  }catch(e){alert('진단 오류: '+e.message);}}
+  (function(){var t9=null;
+    function arm(){var b=document.getElementById('buildno');if(!b||b._dg9)return;b._dg9=1;
+      b.addEventListener('pointerdown',function(){t9=setTimeout(function(){t9=null;diag9();},900);});
+      ['pointerup','pointercancel','pointerleave'].forEach(function(ev){b.addEventListener(ev,function(){if(t9){clearTimeout(t9);t9=null;}});});}
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(arm,400);});else setTimeout(arm,400);
+  })();
   function boot(){kick();bar();
     try{var cw=document.querySelector('.canvas-wrap');
       if(cw&&!cw._pz9){cw._pz9=1;
