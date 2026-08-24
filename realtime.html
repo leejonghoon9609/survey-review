@@ -466,8 +466,8 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   .php-body{display:block!important;overflow-y:auto!important;scroll-snap-type:y proximity!important;-webkit-overflow-scrolling:touch!important;padding-bottom:16px!important}/* [BUILD2069] 마지막 캡션 여유 */
   .php-main{flex:none!important;min-height:0!important;margin-bottom:10px!important;display:block!important;scroll-snap-align:start!important;scroll-snap-stop:normal!important}
   /* [BUILD1808] 사진 높이를 패널 48vh 기준으로 재계산 — 헤더+캡션 공제 후 한 화면 표시 */
-  .php-main .zoomwrap,.php-main .ph{height:auto!important;max-height:none!important;width:100%!important}/* [BUILD2067] 원비율 전체표시 — 45vh 고정 폐기(현황판 짤림 해결), 패널 높이는 비율바·스크롤 담당 */
-  .php-main .zoomwrap .ph{height:auto!important;max-width:100%!important}
+  .php-main .zoomwrap,.php-main .ph{height:auto!important;max-height:var(--rtph9,56vh)!important;width:100%!important;object-fit:contain!important}/* [BUILD2074] 사진=패널 가시높이 맞춤(contain) — 세로사진도 통째 표시, 비율바로 확대 가능 */
+  .php-main .zoomwrap .ph{height:auto!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important}
 }
 
 /* ===== [BUILD 825] 실시간 사진패널 헤더 한 줄 ===== */
@@ -864,7 +864,7 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2073"></script><script src="core.js?v=2073"></script>
+<script src="login.js?v=2074"></script><script src="core.js?v=2074"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)">
 <script>
 /* [BUILD2070] 폰 도면:사진 비율 — 무한재적용(진동) 근본 차단: 재진입 가드+변경시에만 쓰기+클램프 캐시 */
@@ -888,12 +888,13 @@ window.RT_SPLIT9=(function(){try{var v=parseFloat(localStorage.getItem('rtSplit9
       if(h!==_lastH){
         pp.style.setProperty('height',h+'px','important');
         pp.style.setProperty('flex','0 0 auto','important');
+        pp.style.setProperty('--rtph9',Math.max(160,h-110)+'px');/* [BUILD2074] 사진 가시높이(헤더·캡션 공제) */
         _lastH=h;
         try{
           var vh=(window.visualViewport?visualViewport.height:window.innerHeight);
           var over=pp.getBoundingClientRect().bottom-vh;
           if(over>1){var h2=Math.max(140,h-Math.ceil(over));_clampMax=h2;
-            if(h2!==h){pp.style.setProperty('height',h2+'px','important');_lastH=h2;}}
+            if(h2!==h){pp.style.setProperty('height',h2+'px','important');pp.style.setProperty('--rtph9',Math.max(160,h2-110)+'px');_lastH=h2;}}
         }catch(_c){}
       }
     }catch(e){}
