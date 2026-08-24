@@ -632,15 +632,15 @@ if(m){m.remove();if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen){ev.stop
 },true);})();
 function rtOpenCsvModal(){/* [BUILD1869] \ub85c\ub529\ucc3d \uc7ac\uad6c\uc131: \ub4dc\ub86d\uc874 \uac15\uc870 + \uc0ad\uc81c\ubaa9\ub85d \ubd84\ub9ac */
   var old=document.getElementById('rtCsvModal');if(old)old.remove();
-  var days={},total=0;((typeof state!=='undefined'&&state.points)||[]).forEach(function(pt){if(!pt||!pt._csv||!pt.no)return;var d=String(pt.no).split('-')[0];days[d]=(days[d]||0)+1;total++;});
+  var days={},total=0;window._rtNum9={};((typeof state!=='undefined'&&state.points)||[]).forEach(function(pt){if(!pt||!pt._csv||!pt.no)return;var d=String(pt.no).split('-')[0];days[d]=(days[d]||0)+1;var _nm=String(pt.no).slice(d.length+1);(_rtNum9[d]=_rtNum9[d]||[]).push(_nm);total++;});
   var keys=Object.keys(days).sort();/* [BUILD1870] \ub4dc\ub86d\uc874 \ub0b4 \ub0a0\uc9dc\ubcc4 \ubaa9\ub85d */
   var _row9=function(d){return '<div style="display:flex;justify-content:space-between;padding:3px 18px;font-size:12.5px;color:#445"><b>'+d+'</b><span style="font-weight:800;color:#c0392b">'+days[d]+'\uc810</span></div>';};
   var _td9=(function(){var d=new Date();function p2(n){return('0'+n).slice(-2);}return String(d.getFullYear()).slice(2)+p2(d.getMonth()+1)+p2(d.getDate());})();
   var _curK9=keys.filter(function(d){return d===_td9;}),_pstK9=keys.filter(function(d){return d!==_td9;});
   var _pSum9=0;_pstK9.forEach(function(d){_pSum9+=days[d];});
   var listH=_curK9.map(_row9).join('')
-   +(_pstK9.length?('<div style="padding:4px 14px"><button type="button" onclick="var e=document.getElementById(\'rtCsvPast9\');var on=e.style.display===\'none\';e.style.display=on?\'block\':\'none\';this.querySelector(\'span\').textContent=on?\'\u25B4\':\'\u25BE\';event.stopPropagation();" style="width:100%;background:#f4f6fb;border:1px solid #c3ccd6;border-radius:8px;padding:6px;font-size:12px;font-weight:800;color:#39506e;cursor:pointer">\uD83D\uDCC1 \uC9C0\uB09C CSV '+_pstK9.length+'\uC77C \u00B7 '+_pSum9+'\uC810 <span>\u25BE</span></button></div>'
-   +'<div id="rtCsvPast9" style="display:none">'+_pstK9.map(_row9).join('')+'</div>'):'');/* [BUILD2059] \ub2f9\uc77c\ub9cc \ud45c\uc2dc, \uacfc\uac70 \ub0a0\uc9dc \uc811\uae30 */
+   +(_pstK9.length?('<div style="padding:4px 14px"><button type="button" onclick="var e=document.getElementById(\'rtCsvPast9\');var on=e.style.display===\'none\';e.style.display=on?\'block\':\'none\';this.querySelector(\'span\').textContent=on?\'\u25B4\':\'\u25BE\';event.stopPropagation();" style="width:100%;background:#f4f6fb;border:1px solid #c3ccd6;border-radius:8px;padding:6px;font-size:12px;font-weight:800;color:#39506e;cursor:pointer">\uD83D\uDCC1 \uC9C0\uB09C CSV '+_pstK9.length+'\uAC74 \u00B7 \uCE21\uC810 '+_pSum9+'\uC810 <span>\u25BE</span></button></div>'
+   +'<div id="rtCsvPast9" style="display:none;margin:0 10px">'+(function(){var _rng9=function(d){var L=((window._rtNum9&&_rtNum9[d])||[]).map(function(x){var m=/^(\d+)/.exec(String(x));return m?+m[1]:null;}).filter(function(v){return v!=null;});if(!L.length){var A=((window._rtNum9&&_rtNum9[d])||[]).slice().sort();return A.length?(A[0]+' ~ '+A[A.length-1]):'-';}return Math.min.apply(null,L)+' ~ '+Math.max.apply(null,L);};var th='border-bottom:1.5px solid #c3ccd6;padding:4px 2px;font-size:11px;color:#39506e;background:#f4f6fb';var td='border-bottom:1px solid #eef1f5;padding:4px 2px;font-size:12px';return '<table style="width:100%;border-collapse:collapse;text-align:center"><tr><th style="'+th+'">\uB0A0\uC9DC</th><th style="'+th+'">\uCE21\uC810\uC218</th><th style="'+th+'">\uCE21\uC810\uBC88\uD638</th></tr>'+_pstK9.map(function(d){return '<tr><td style="'+td+';font-weight:800;color:#445">'+d+'</td><td style="'+td+';font-weight:800;color:#c0392b">'+days[d]+'\uC810</td><td style="'+td+';color:#1f6fd6;font-weight:700">'+_rng9(d)+'</td></tr>';}).join('')+'</table>';})()+'</div>'):'');/* [BUILD2061] \ud45c: \ub0a0\uc9dc/\uce21\uc810\uc218/\ubc88\ud638\ubc94\uc704 *//* [BUILD2059] \ub2f9\uc77c\ub9cc \ud45c\uc2dc, \uacfc\uac70 \ub0a0\uc9dc \uc811\uae30 */
   var wrap=document.createElement('div');wrap.id='rtCsvModal';
   wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center';
   wrap.innerHTML='<div style="background:#fff;border-radius:14px;width:min(92vw,300px);display:flex;flex-direction:column;overflow:hidden">'
@@ -860,7 +860,7 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2060"></script><script src="core.js?v=2060"></script>
+<script src="login.js?v=2061"></script><script src="core.js?v=2061"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)">
 <script>
 /* [BUILD2060] 폰 도면창:사진창 비율 조절 — 측량현장 fldSplit9 이식(rtSplit9) */
