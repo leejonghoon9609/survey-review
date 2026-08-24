@@ -14748,7 +14748,7 @@ function rtAddGps(no,lat,lon){
 }
 function rtCenterOn(wx,wy){try{var _s=S(wx,wy);vb.x=_s[0]-vb.w/2;vb.y=_s[1]-vb.h/2;if(typeof applyVB==='function')applyVB();if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();if(typeof highlightSel==='function')highlightSel();}catch(e){}}
 var _rtWatchId=null,_rtLastPos=null;
-function rtStartWatch(){if(!navigator.geolocation||_rtWatchId!=null)return;try{_rtWatchId=navigator.geolocation.watchPosition(function(pos){_rtLastPos={lat:pos.coords.latitude,lon:pos.coords.longitude,acc:pos.coords.accuracy,t:Date.now()};},function(e){},{enableHighAccuracy:true,timeout:20000,maximumAge:3000});}catch(e){}}
+function rtStartWatch(){if(!navigator.geolocation||_rtWatchId!=null)return;try{_rtWatchId=navigator.geolocation.watchPosition(function(pos){_rtLastPos={lat:pos.coords.latitude,lon:pos.coords.longitude,acc:pos.coords.accuracy,t:Date.now()};},function(e){try{rtStopWatch();}catch(_w9){}setTimeout(rtStartWatch,8000);/* [BUILD2055] 감시 사망 시 자동 재시작 — 권한 허용 직후 새로고침 없이 복구 */},{enableHighAccuracy:true,timeout:20000,maximumAge:3000});}catch(e){}}
 function rtStopWatch(){if(_rtWatchId!=null&&navigator.geolocation){try{navigator.geolocation.clearWatch(_rtWatchId);}catch(e){}_rtWatchId=null;}}
 function rtGetLoc(no){
   if(_rtLastPos&&(Date.now()-_rtLastPos.t)<60000){rtAddGps(no,_rtLastPos.lat,_rtLastPos.lon);/* [BUILD1865] 12s→60s */if(typeof toast==='function')toast('측점 '+no+' 위치 표시(파란점)');return;}
@@ -14763,7 +14763,7 @@ function rtGetLoc(no){
       rtAddGps(no,pos.coords.latitude,pos.coords.longitude);
       toast('측점 '+no+' 위치 표시(파란점)');
     },function(err2){
-      if(_rtLastPos){rtAddGps(no,_rtLastPos.lat,_rtLastPos.lon);toast('측점 '+no+' 위치 표시(지연좌표 — 대략적)');return;}/* [BUILD1865] 마지막 위치라도 사용 */toast('⚠ 위치 못 받음 — 사진은 저장됨 (사진창 드롭다운 ⚠'+no+'로 확인 가능)');
+      if(_rtLastPos){rtAddGps(no,_rtLastPos.lat,_rtLastPos.lon);toast('측점 '+no+' 위치 표시(지연좌표 — 대략적)');return;}/* [BUILD1865] 마지막 위치라도 사용 */var _rc9=({1:'권한 거부됨 — 사이트 위치권한 확인',2:'위치 확인 불가 — 실내/GPS 신호 없음, Wi-Fi 켜기',3:'시간 초과 — 하늘 보이는 곳에서 재시도'})[err2&&err2.code]||'원인 미상';toast('⚠ 위치 못 받음 ['+_rc9+'] — 사진은 저장됨 (사진창 ⚠'+no+')');/* [BUILD2055] 실패 사유 표시 */
     },{enableHighAccuracy:true,timeout:15000,maximumAge:0});
   },{enableHighAccuracy:false,timeout:6000,maximumAge:60000});
 }
