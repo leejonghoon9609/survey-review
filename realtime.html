@@ -862,27 +862,44 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2069"></script><script src="core.js?v=2069"></script>
+<script src="login.js?v=2070"></script><script src="core.js?v=2070"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)">
 <script>
-/* [BUILD2060] 폰 도면창:사진창 비율 조절 — 측량현장 fldSplit9 이식(rtSplit9) */
+/* [BUILD2070] 폰 도면:사진 비율 — 무한재적용(진동) 근본 차단: 재진입 가드+변경시에만 쓰기+클램프 캐시 */
 window.RT_SPLIT9=(function(){try{var v=parseFloat(localStorage.getItem('rtSplit9'));return (v>0.15&&v<0.85)?v:0.45;}catch(e){return 0.45;}})();
 (function(){
-  var t=null;
-  function apply(){try{
-    if(!window.matchMedia||!matchMedia('(max-width:760px)').matches)return;
-    var pp=document.getElementById('photoPanel'),st=document.querySelector('.stage');
-    if(!pp||!st)return;
-    if(!pp.classList.contains('open')){pp.style.removeProperty('height');pp.style.removeProperty('flex');return;}
-    var H=st.getBoundingClientRect().height;if(!H||H<200)return;
-    var h=Math.round(H*window.RT_SPLIT9);if(h>H-140)h=H-140;if(h<140)h=140;
-    pp.style.setProperty('height',h+'px','important');
-    pp.style.setProperty('flex','0 0 auto','important');
-    try{var _vh9=(window.visualViewport?visualViewport.height:window.innerHeight);var _r9=pp.getBoundingClientRect();var _ov9=_r9.bottom-_vh9;if(_ov9>1){h=Math.max(140,h-Math.ceil(_ov9));pp.style.setProperty('height',h+'px','important');}}catch(_cl9){}/* [BUILD2069] 실뷰포트 클램프 — 패널 바닥 항상 화면 안 */
-    /* [BUILD2067] 사진 높이 강제 제거 — 원비율 유지 */
-  }catch(e){}}
-  function kick(){apply();if(t)clearTimeout(t);t=setTimeout(apply,80);setTimeout(apply,300);}
-  window.rtSplit9=function(r){if(r!=null){window.RT_SPLIT9=r;try{localStorage.setItem('rtSplit9',String(r));}catch(e){}}apply();};
+  var t=null,_busy=false,_lastH=null,_clampMax=null;
+  function apply(){
+    if(_busy)return;_busy=true;
+    try{
+      if(!window.matchMedia||!matchMedia('(max-width:760px)').matches)return;
+      var pp=document.getElementById('photoPanel'),st=document.querySelector('.stage');
+      if(!pp||!st)return;
+      if(!pp.classList.contains('open')){
+        if(_lastH!==null){pp.style.removeProperty('height');pp.style.removeProperty('flex');_lastH=null;}
+        return;
+      }
+      var H=st.getBoundingClientRect().height;if(!H||H<200)return;
+      var h=Math.round(H*window.RT_SPLIT9);
+      if(h>H-140)h=H-140;if(h<140)h=140;
+      if(_clampMax!=null&&h>_clampMax)h=_clampMax;
+      if(h!==_lastH){
+        pp.style.setProperty('height',h+'px','important');
+        pp.style.setProperty('flex','0 0 auto','important');
+        _lastH=h;
+        try{
+          var vh=(window.visualViewport?visualViewport.height:window.innerHeight);
+          var over=pp.getBoundingClientRect().bottom-vh;
+          if(over>1){var h2=Math.max(140,h-Math.ceil(over));_clampMax=h2;
+            if(h2!==h){pp.style.setProperty('height',h2+'px','important');_lastH=h2;}}
+        }catch(_c){}
+      }
+    }catch(e){}
+    finally{setTimeout(function(){_busy=false;},60);}
+  }
+  function kick(){apply();if(t)clearTimeout(t);t=setTimeout(apply,120);}
+  function reset(){_clampMax=null;_lastH=null;kick();}
+  window.rtSplit9=function(r){if(r!=null){window.RT_SPLIT9=r;try{localStorage.setItem('rtSplit9',String(r));}catch(e){}}_clampMax=null;_lastH=null;apply();};
   function bar(){try{
     if(!window.matchMedia||!matchMedia('(max-width:760px)').matches)return;
     if(document.getElementById('rtSplitBar9'))return;
@@ -899,12 +916,17 @@ window.RT_SPLIT9=(function(){try{var v=parseFloat(localStorage.getItem('rtSplit9
   }catch(e){}}
   function boot(){kick();bar();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
-  window.addEventListener('load',kick);window.addEventListener('resize',kick);
-  window.addEventListener('orientationchange',function(){setTimeout(kick,250);});
-  window.addEventListener('pageshow',kick);
-  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(kick,60);});
-  try{if(window.visualViewport)visualViewport.addEventListener('resize',kick);}catch(e){}
-  try{var mo=new MutationObserver(kick);document.addEventListener('DOMContentLoaded',function(){var pp=document.getElementById('photoPanel');if(pp)mo.observe(pp,{attributes:true,attributeFilter:['class','style']});});}catch(e){}
+  window.addEventListener('load',kick);
+  window.addEventListener('resize',reset);
+  window.addEventListener('orientationchange',function(){setTimeout(reset,250);});
+  window.addEventListener('pageshow',reset);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(reset,60);});
+  try{if(window.visualViewport)visualViewport.addEventListener('resize',reset);}catch(e){}
+  /* 패널 열림/닫힘 추종 — class 변경만 감시(style 변경 감시 제거: 자기 쓰기 재유발 차단) */
+  try{var mo=new MutationObserver(function(){kick();});
+    function ob(){var pp=document.getElementById('photoPanel');if(pp)mo.observe(pp,{attributes:true,attributeFilter:['class']});}
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ob);else ob();
+  }catch(e){}
 })();
 </script>
 </body>
