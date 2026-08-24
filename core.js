@@ -95,7 +95,7 @@ function _orgSync(){try{var p=null;
  if(typeof cv!=='undefined'&&cv){try{cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);}catch(_v){}}
 }catch(_e){}}
 function S(x,y){return [x-ORG.x,ORG.y-y];}      // \ud654\uba74\uc88c\ud45c(\ubd81\ucabd \uc704) \u2014 [1524] \uc6d0\uc810 \ub85c\uceec
-function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1800);}
+function toast(m,ms){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._tt9);t._tt9=setTimeout(function(){t.classList.remove('show');},ms||1800);/* [BUILD2056] 지속시간 인자+연속호출 타이머 정리 */}
 // 커스텀 팝업: 드래그 이동 가능, 항상 앞, 도면(팝업 밖)은 그대로 조작 가능(non-blocking)
 function parseDepthL(txt){
   var lines=txt.replace(/\r/g,'').split('\n').filter(function(l){return l.trim().length;});
@@ -14763,7 +14763,7 @@ function rtGetLoc(no){
       rtAddGps(no,pos.coords.latitude,pos.coords.longitude);
       toast('측점 '+no+' 위치 표시(파란점)');
     },function(err2){
-      if(_rtLastPos){rtAddGps(no,_rtLastPos.lat,_rtLastPos.lon);toast('측점 '+no+' 위치 표시(지연좌표 — 대략적)');return;}/* [BUILD1865] 마지막 위치라도 사용 */var _rc9=({1:'권한 거부됨 — 사이트 위치권한 확인',2:'위치 확인 불가 — 실내/GPS 신호 없음, Wi-Fi 켜기',3:'시간 초과 — 하늘 보이는 곳에서 재시도'})[err2&&err2.code]||'원인 미상';toast('⚠ 위치 못 받음 ['+_rc9+'] — 사진은 저장됨 (사진창 ⚠'+no+')');/* [BUILD2055] 실패 사유 표시 */
+      if(_rtLastPos){rtAddGps(no,_rtLastPos.lat,_rtLastPos.lon);toast('측점 '+no+' 위치 표시(지연좌표 — 대략적)');return;}/* [BUILD1865] 마지막 위치라도 사용 */var _rc9=({1:'권한 거부됨 — 사이트 위치권한 확인',2:'위치 확인 불가 — 실내/GPS 신호 없음, Wi-Fi 켜기',3:'시간 초과 — 하늘 보이는 곳에서 재시도'})[err2&&err2.code]||'원인 미상';toast('⚠ 위치 못 받음 ['+_rc9+'] — 사진은 저장됨 (사진창 ⚠'+no+')',9000);/* [BUILD2055] 실패 사유 표시 */
     },{enableHighAccuracy:true,timeout:15000,maximumAge:0});
   },{enableHighAccuracy:false,timeout:6000,maximumAge:60000});
 }
