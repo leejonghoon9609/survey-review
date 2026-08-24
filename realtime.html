@@ -864,7 +864,7 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2074"></script><script src="core.js?v=2074"></script>
+<script src="login.js?v=2075"></script><script src="core.js?v=2075"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)">
 <script>
 /* [BUILD2070] 폰 도면:사진 비율 — 무한재적용(진동) 근본 차단: 재진입 가드+변경시에만 쓰기+클램프 캐시 */
@@ -888,15 +888,28 @@ window.RT_SPLIT9=(function(){try{var v=parseFloat(localStorage.getItem('rtSplit9
       if(h!==_lastH){
         pp.style.setProperty('height',h+'px','important');
         pp.style.setProperty('flex','0 0 auto','important');
-        pp.style.setProperty('--rtph9',Math.max(160,h-110)+'px');/* [BUILD2074] 사진 가시높이(헤더·캡션 공제) */
         _lastH=h;
         try{
           var vh=(window.visualViewport?visualViewport.height:window.innerHeight);
           var over=pp.getBoundingClientRect().bottom-vh;
           if(over>1){var h2=Math.max(140,h-Math.ceil(over));_clampMax=h2;
-            if(h2!==h){pp.style.setProperty('height',h2+'px','important');pp.style.setProperty('--rtph9',Math.max(160,h2-110)+'px');_lastH=h2;}}
+            if(h2!==h){pp.style.setProperty('height',h2+'px','important');_lastH=h2;}}
         }catch(_c){}
       }
+      /* [BUILD2075] 사진 잘림 종결 — CSS 의존 제거, 요소에 픽셀 직접 지정(인라인 !important) */
+      try{
+        var ph9=Math.max(160,(_lastH||h)-110);
+        var bd9=pp.querySelector('.php-body');
+        if(bd9){bd9.style.setProperty('overflow-y','auto','important');bd9.style.setProperty('min-height','0','important');bd9.style.setProperty('flex','1 1 auto','important');}
+        pp.querySelectorAll('.php-main').forEach(function(e){e.style.setProperty('height','auto','important');e.style.setProperty('max-height','none','important');e.style.setProperty('overflow','visible','important');});
+        pp.querySelectorAll('.php-main .zoomwrap').forEach(function(e){e.style.setProperty('height','auto','important');e.style.setProperty('max-height',ph9+'px','important');});
+        pp.querySelectorAll('.php-main .ph').forEach(function(e){
+          e.style.setProperty('width','100%','important');
+          e.style.setProperty('height','auto','important');
+          e.style.setProperty('max-height',ph9+'px','important');
+          e.style.setProperty('object-fit','contain','important');
+        });
+      }catch(_ph){}
     }catch(e){}
     finally{setTimeout(function(){_busy=false;},60);}
   }
@@ -934,7 +947,8 @@ window.RT_SPLIT9=(function(){try{var v=parseFloat(localStorage.getItem('rtSplit9
   try{if(window.visualViewport)visualViewport.addEventListener('resize',kick);}catch(e){}/* [BUILD2071] */
   /* 패널 열림/닫힘 추종 — class 변경만 감시(style 변경 감시 제거: 자기 쓰기 재유발 차단) */
   try{var mo=new MutationObserver(function(){kick();});
-    function ob(){var pp=document.getElementById('photoPanel');if(pp)mo.observe(pp,{attributes:true,attributeFilter:['class']});}
+    function ob(){var pp=document.getElementById('photoPanel');if(pp)mo.observe(pp,{attributes:true,attributeFilter:['class']});
+      var bd=document.getElementById('photoBody');if(bd)mo.observe(bd,{childList:true,subtree:true});/* [BUILD2075] 사진 재렌더 추적 — style 감시 아님(루프 없음) */}
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ob);else ob();
   }catch(e){}
 })();
