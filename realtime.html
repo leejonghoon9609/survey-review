@@ -13,7 +13,7 @@
   *{box-sizing:border-box;margin:0;padding:0}
   .ptin::placeholder{color:#d2d2d2;opacity:1}
   :root{--line:#e3e3e0;--ink:#1c1c1a;--muted:#6b6b66;--bg:#fafaf8;--ok:#2a9e50;--bad:#d32f2f;--accent:#1f6fd6}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);background:var(--bg);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);background:var(--bg);height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}/* [BUILD2069] dvh — 주소창/네비 표시 시 하단 잘림 해결(field 2011 이식) */
   header{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:9px 14px;border-bottom:1px solid var(--line);background:#fff}
   header>button,header>select{padding:4px 7px;font-size:11.5px}
   header h1{font-size:14px;font-weight:600;margin-right:6px}
@@ -463,7 +463,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   .php-main .cap{font-size:12px!important}
   /* [1138] 원본+현황판 반갈림 방지 — flex 분할 대신 세로 흐름+스크롤,
      각 사진은 예전 한 장 크기(패널 높이) 그대로 */
-  .php-body{display:block!important;overflow-y:auto!important;scroll-snap-type:y proximity!important;-webkit-overflow-scrolling:touch!important}
+  .php-body{display:block!important;overflow-y:auto!important;scroll-snap-type:y proximity!important;-webkit-overflow-scrolling:touch!important;padding-bottom:16px!important}/* [BUILD2069] 마지막 캡션 여유 */
   .php-main{flex:none!important;min-height:0!important;margin-bottom:10px!important;display:block!important;scroll-snap-align:start!important;scroll-snap-stop:normal!important}
   /* [BUILD1808] 사진 높이를 패널 48vh 기준으로 재계산 — 헤더+캡션 공제 후 한 화면 표시 */
   .php-main .zoomwrap,.php-main .ph{height:auto!important;max-height:none!important;width:100%!important}/* [BUILD2067] 원비율 전체표시 — 45vh 고정 폐기(현황판 짤림 해결), 패널 높이는 비율바·스크롤 담당 */
@@ -862,7 +862,7 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2068"></script><script src="core.js?v=2068"></script>
+<script src="login.js?v=2069"></script><script src="core.js?v=2069"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)">
 <script>
 /* [BUILD2060] 폰 도면창:사진창 비율 조절 — 측량현장 fldSplit9 이식(rtSplit9) */
@@ -878,6 +878,7 @@ window.RT_SPLIT9=(function(){try{var v=parseFloat(localStorage.getItem('rtSplit9
     var h=Math.round(H*window.RT_SPLIT9);if(h>H-140)h=H-140;if(h<140)h=140;
     pp.style.setProperty('height',h+'px','important');
     pp.style.setProperty('flex','0 0 auto','important');
+    try{var _vh9=(window.visualViewport?visualViewport.height:window.innerHeight);var _r9=pp.getBoundingClientRect();var _ov9=_r9.bottom-_vh9;if(_ov9>1){h=Math.max(140,h-Math.ceil(_ov9));pp.style.setProperty('height',h+'px','important');}}catch(_cl9){}/* [BUILD2069] 실뷰포트 클램프 — 패널 바닥 항상 화면 안 */
     /* [BUILD2067] 사진 높이 강제 제거 — 원비율 유지 */
   }catch(e){}}
   function kick(){apply();if(t)clearTimeout(t);t=setTimeout(apply,80);setTimeout(apply,300);}
