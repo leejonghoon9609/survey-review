@@ -9316,6 +9316,21 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     });
     sumBar=_bars9.join('');
     _allOk9=(_bars9.length>0&&_bad9===0);/* [BUILD1971] */
+    try{/* [BUILD2036] \uAD50\uCC28\uAC80\uC218 \u2014 \uC0C1\uB300 \uB9E8\uD640 \uC5ED\uBC29\uD5A5 \uAD00\uC218 \uB300\uC870 */
+      var _xb9=[];
+      ALL8.forEach(function(q){
+        var pb=(typeof _mnPeerBack9==='function')?_mnPeerBack9(rec,q.dv):null;
+        if(!pb||pb.cnt==null)return;
+        var mv=_mnCntShow9(rec,q.k,q.ix);var me=((mv===''||mv==null)?null:+mv);
+        if(me==null)return;
+        var okx=(me===pb.cnt);if(!okx)_bad9++;
+        _xb9.push('<div style="display:flex;gap:6px;align-items:center;margin-top:4px;font-size:10.5px;font-weight:800;padding:4px 8px;border-radius:7px;background:'+(okx?'#e8f5e9':'#ffe5e5')+';border:1px solid '+(okx?'#a5d6a7':'#ff8a80')+';color:'+(okx?'#2e7d32':'#d32f2f')+'">'
+          +'<span style="flex:none">'+_WNO8[q.k]+'('+_WN8[q.k]+') \uAD50\uCC28</span>'
+          +'<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+me+' \u2194 '+pb.lab+' '+pb.cnt+'</span>'
+          +'<span>'+(okx?'\uC77C\uCE58':'\u26A0 \uBD88\uC77C\uCE58')+'</span></div>');
+      });
+      if(_xb9.length){sumBar+=_xb9.join('');_allOk9=_allOk9&&(_bad9===0);}
+    }catch(_xb8){}
   }catch(_sb9){}
 
   /* [BUILD1949] 도면(보조 시설물)에서 이 벽으로 연결된 항목 — 근거 θ 표기 + [편입] */
@@ -9353,7 +9368,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:9px">'
       +'<div style="flex:1;min-width:0;font-weight:800;font-size:12.5px;color:#558b2f;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
         +_WNO8[dk]+'('+_WN8[dk]+') '+((typeof mnLabel==='function')?mnLabel(rec):'')
-        +((_WP8&&_WP8.raw)?('<span style="color:#0f7a86"> \u00B7 '+_WP8.raw+'</span>'):'')
+        +((allW===true)?(function(){try{var _t9=0,_h9=false,_kk9='',_dd9='';ALL8.forEach(function(q){var v=_mnCntShow9(rec,q.k,q.ix);if(v!==''&&v!=null){_t9+=(+v||0);_h9=true;}if(!_kk9){var W9=_wallPipe9(rec,q.k)||{};if(W9.kind){_kk9=W9.kind;_dd9=W9.dia||'';}}});if(!_kk9){_kk9='FC';}return _h9?('<span style="color:#0f7a86"> \u00B7 '+_kk9+'\u00D8'+(_dd9||'')+'X'+_t9+'</span>'):'';}catch(_t8){return '';}})():((_WP8&&_WP8.raw)?('<span style="color:#0f7a86"> \u00B7 '+_WP8.raw+'</span>'):''))/* [BUILD2036] \uC81C\uBAA9=\uB098\uAC00\uB294 \uAD00 \uCD1D\uD569 */
         +((allW===true)?('<span style="font-weight:700;font-size:10.5px;color:#8d9c8d"> \u00B7 \uC804\uCCB4 '+ALL8.length+'\uAC74</span>'):'')+'</div>'
       +'<button id="mnDAdd" style="flex:none;background:#fff;color:#d32f2f;border:1.5px solid #ef9a9a;border-radius:8px;padding:5px 14px;font-size:12px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center">\uCD94\uAC00</button></div>'
     +pick
@@ -9743,6 +9758,52 @@ function _auxCntShow9(mh,ix,A){
   }catch(_e){return '';}
 }
 /* [BUILD1978] 맨홀 벽 행 관수 표시값 — 자기값 → 상대채널 → 단독시 총계 → 잔여 자동배분 */
+/* [BUILD2036] \uBC29\uD5A5 \uAC08\uB798 \uC55E\uC810 \uAD00\uC815\uBCF4 \u2014 \uB9E8\uD640\u2192\uB300\uC0C1 \uBC29\uC704 \u00B145\u00B0 \uB0B4 \uCD5C\uADFC\uC811 \uAD00\uC815\uBCF4 \uCE21\uC810 */
+function _mnDirFront9(rec,dv){
+  try{
+    var src=(typeof _mnMhOfRec9==='function')?_mnMhOfRec9(rec):null;
+    if(!src||src.wx==null||!dv||!dv.xy||dv.xy.length!==2)return null;
+    var ang=Math.atan2(dv.xy[1]-src.wy,dv.xy[0]-src.wx);
+    var best=null,bd=1e9;
+    (state.points||[]).forEach(function(pt){
+      if(!pt||pt.x==null)return;
+      var pr=(typeof _pipeParse9==='function')?_pipeParse9(pt.code):null;
+      if(!pr||pr.cnt==null)return;
+      var dx=pt.x-src.wx,dy=pt.y-src.wy,d=Math.hypot(dx,dy);
+      if(d<0.3||d>25)return;
+      var da=Math.abs(Math.atan2(dy,dx)-ang);if(da>Math.PI)da=2*Math.PI-da;
+      if(da>Math.PI*40/180)return;/* \u00B140\u00B0 */
+      if(d<bd){bd=d;best=pr;}
+    });
+    return best;
+  }catch(_e){return null;}
+}
+/* [BUILD2036] \uC0C1\uB300 \uB9E8\uD640 \uC5ED\uBC29\uD5A5 \uAD00\uC218 \u2014 \uAD50\uCC28\uAC80\uC218\uC6A9 */
+function _mnPeerBack9(rec,dv){
+  try{
+    var src=(typeof _mnMhOfRec9==='function')?_mnMhOfRec9(rec):null;
+    if(!src||!dv||!dv.xy||dv.xy.length!==2)return null;
+    var pm=null,pd=1e9;
+    (state.manholes||[]).forEach(function(m){
+      if(!m||m.wx==null)return;if(m.type&&m.type!=='mh')return;
+      var d=Math.hypot(m.wx-dv.xy[0],m.wy-dv.xy[1]);
+      if(d<pd){pd=d;pm=m;}
+    });
+    if(!pm||pd>0.8)return null;
+    var r2=(typeof mhSheetRec9==='function')?mhSheetRec9(pm):null;
+    if(!r2)return null;
+    var out=null;
+    ['d1','d2','d3','d4'].forEach(function(k){
+      if(out)return;
+      var L2=(typeof mnDestList==='function')?mnDestList(r2,k):[];
+      for(var i=0;i<L2.length;i++){var e=L2[i];
+        if(e&&e.xy&&e.xy.length===2&&Math.hypot(e.xy[0]-src.wx,e.xy[1]-src.wy)<0.8){
+          var v=(typeof _mnCntShow9==='function')?_mnCntShow9(r2,k,i):'';
+          out={rec:r2,k:k,ix:i,cnt:((v===''||v==null)?null:+v),lab:((typeof mnLabel==='function')?mnLabel(r2):'')};return;}}
+    });
+    return out;
+  }catch(_e){return null;}
+}
 function _mnCntShow9(rec,k,ix,WP){
   try{
     var LK=mnDestList(rec,k);var dv=LK[ix];if(!dv)return '';
@@ -9757,6 +9818,7 @@ function _mnCntShow9(rec,k,ix,WP){
       return null;
     }
     var b=base(dv);if(b!=null)return b;
+    var fp9=(typeof _mnDirFront9==='function')?_mnDirFront9(rec,dv):null;if(fp9&&fp9.cnt!=null)return fp9.cnt;/* [BUILD2036] \uAE30\uBCF8=\uC55E\uC810 \uAD00\uC218 */
     var pr=_peerWallCnt9(rec,dv);if(pr!=null)return pr;/* [BUILD1979] 상대 맨홀의 맨홀도 벽 관구성 */
     return '';
   }catch(_e){return '';}
