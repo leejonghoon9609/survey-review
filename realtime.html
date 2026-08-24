@@ -466,8 +466,8 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   .php-body{display:block!important;overflow-y:auto!important;scroll-snap-type:y proximity!important;-webkit-overflow-scrolling:touch!important}
   .php-main{flex:none!important;min-height:0!important;margin-bottom:10px!important;display:block!important;scroll-snap-align:start!important;scroll-snap-stop:normal!important}
   /* [BUILD1808] 사진 높이를 패널 48vh 기준으로 재계산 — 헤더+캡션 공제 후 한 화면 표시 */
-  .php-main .zoomwrap,.php-main .ph{height:calc(45vh - 138px)!important;max-height:none!important;width:100%!important}/* [BUILD1815] 4.5비율 기준 */
-  .php-main .zoomwrap .ph{height:100%!important}
+  .php-main .zoomwrap,.php-main .ph{height:auto!important;max-height:none!important;width:100%!important}/* [BUILD2067] 원비율 전체표시 — 45vh 고정 폐기(현황판 짤림 해결), 패널 높이는 비율바·스크롤 담당 */
+  .php-main .zoomwrap .ph{height:auto!important;max-width:100%!important}
 }
 
 /* ===== [BUILD 825] 실시간 사진패널 헤더 한 줄 ===== */
@@ -862,7 +862,7 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2066"></script><script src="core.js?v=2066"></script>
+<script src="login.js?v=2067"></script><script src="core.js?v=2067"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)">
 <script>
 /* [BUILD2060] 폰 도면창:사진창 비율 조절 — 측량현장 fldSplit9 이식(rtSplit9) */
@@ -878,7 +878,7 @@ window.RT_SPLIT9=(function(){try{var v=parseFloat(localStorage.getItem('rtSplit9
     var h=Math.round(H*window.RT_SPLIT9);if(h>H-140)h=H-140;if(h<140)h=140;
     pp.style.setProperty('height',h+'px','important');
     pp.style.setProperty('flex','0 0 auto','important');
-    pp.querySelectorAll('.php-main .ph').forEach(function(e){if(!e.closest('.zoomwrap'))e.style.setProperty('height',(h-138)+'px','important');});
+    /* [BUILD2067] 사진 높이 강제 제거 — 원비율 유지 */
   }catch(e){}}
   function kick(){apply();if(t)clearTimeout(t);t=setTimeout(apply,80);setTimeout(apply,300);}
   window.rtSplit9=function(r){if(r!=null){window.RT_SPLIT9=r;try{localStorage.setItem('rtSplit9',String(r));}catch(e){}}apply();};
