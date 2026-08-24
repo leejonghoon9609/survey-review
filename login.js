@@ -1,4 +1,4 @@
-/* ===== 대원항업 로그인/작업자 선택 (login.js) — 포털+앱 공용 · BUILD 2051 ===== */
+/* ===== 대원항업 로그인/작업자 선택 (login.js) — 포털+앱 공용 · BUILD 2052 ===== */
 var STAFF=[{dept:'관리자',admin:true,people:[['이종훈','실장'],['송규헌','차장']]},{dept:'총무부',people:[['조윤미','차장'],['황현희','과장']]},{dept:'사업관리',people:[['남윤지','과장'],['조은주','과장'],['선한슬','주임']]},{dept:'사업관리(현장)',people:[['박영범','과장'],['최진복','과장'],['황창하','대리'],['김경호','대리']]},{dept:'측량부',people:[['이형석','상무'],['라상윤','대리'],['김민재','대리'],['서재형','대리'],['이찬규','대리'],['김도현','주임'],['이윤용','주임'],['조성준','주임'],['정세호','주임'],['곽귀민','사원'],['지현우','사원']]},{dept:'측량부(DB)',people:[['김성한','부장'],['채청민','사원']]}];
 /* [BUILD1795] 로그인 암호 — djb2 해시(평문 미노출) */
 var _PWH={'이종훈':2081305499,'송규헌':2413987888,'라상윤':2314995716,'*':2088290635};/* [BUILD1871] */
@@ -33,7 +33,7 @@ function pickWorker(){
     '<button id="_wkAdmOk" style="width:100%;background:#EA002C;color:#fff;border:0;border-radius:9px;padding:12px;font-weight:800;font-size:13px;cursor:pointer">\uD83D\uDD12 \uad00\ub9ac\uc790\ub85c \uc811\uc18d</button>'+
     '<div style="display:flex;align-items:center;gap:8px;margin:24px 0;color:#b8c0c8;font-size:11px"><span style="flex:1;height:1px;background:#e8ebee"></span>\ub610\ub294 \uc9c1\uc6d0\uc73c\ub85c \uc811\uc18d<span style="flex:1;height:1px;background:#e8ebee"></span></div>'+
     '<select id="_wkEmp" style="width:100%;box-sizing:border-box;font-size:13px;padding:10px;border:1px solid #ccc;border-radius:9px;margin-bottom:13px"><option value="">\u2014 \uc9c1\uc6d0 \uc120\ud0dd \u2014</option>'+emp+'</select>'+
-    '<button id="_wkEmpOk" style="width:100%;background:#FFF3CC;color:#8a6a00;border:1px solid #f0d260;border-radius:9px;padding:12px;font-weight:800;font-size:13px;cursor:pointer">\uD83D\uDC64 \uc9c1\uc6d0/\ud300\uc7a5\uc73c\ub85c \uc811\uc18d</button>';
+    '<button id="_wkEmpOk" style="width:100%;background:#FFF3CC;color:#8a6a00;border:1px solid #f0d260;border-radius:9px;padding:12px;font-weight:800;font-size:13px;cursor:pointer">\uD83D\uDC64 \uc9c1\uc6d0/\ud300\uc7a5\uc73c\ub85c \uc811\uc18d</button>'+'<div id="_wkAutoOff" style="margin-top:14px;text-align:center;font-size:11px;color:#9aa4b0;text-decoration:underline;cursor:pointer">\uc774 \uae30\uae30 \uc790\ub3d9\ub85c\uadf8\uc778 \ud574\uc81c</div>';
   ov.appendChild(box);document.body.appendChild(ov);
   function done(v){ if(!v)return; setWorker(v); document.body.removeChild(ov); }
   function _askPw(v,btn){var ex=box.querySelector('#_wkPwRow');if(ex)ex.remove();
@@ -42,14 +42,14 @@ function pickWorker(){
     ip.style.cssText='flex:1;min-width:0;width:100%;box-sizing:border-box;font-size:14px;padding:9px 8px;border:1.5px solid #1f4e9e;border-radius:9px;outline:none';
     var ok=document.createElement('button');ok.textContent='확인';
     ok.style.cssText='flex:0 0 auto;white-space:nowrap;background:#4da3ff;color:#fff;border:0;border-radius:9px;padding:0 14px;font-weight:800;font-size:13px;cursor:pointer';
-    var go=function(){if(_pwOk(v,ip.value)){done(v);}else{alert('암호가 올바르지 않습니다');ip.value='';ip.focus();}};
+    var go=function(){if(_pwOk(v,ip.value)){try{localStorage.setItem('_wkAuto9',JSON.stringify({n:v,h:_pwHash((''+ip.value).trim())}));}catch(_s9){}done(v);}else{alert('암호가 올바르지 않습니다');ip.value='';ip.focus();}};
     ok.onclick=go;ip.addEventListener('keydown',function(e){if(e.key==='Enter')go();});
     row.appendChild(ip);row.appendChild(ok);btn.parentNode.insertBefore(row,btn.nextSibling);ip.focus();}
 
   box.querySelector('#_wkAdmOk').onclick=function(){ var v=box.querySelector('#_wkAdm').value; if(!v){alert('\uad00\ub9ac\uc790\ub97c \uc120\ud0dd\ud558\uc138\uc694');return;} _askPw(v,this); };
-  box.querySelector('#_wkEmpOk').onclick=function(){ var v=box.querySelector('#_wkEmp').value; if(!v){alert('\uc9c1\uc6d0\uc744 \uc120\ud0dd\ud558\uc138\uc694');return;} _askPw(v,this); };
+  box.querySelector('#_wkEmpOk').onclick=function(){ var v=box.querySelector('#_wkEmp').value; if(!v){alert('\uc9c1\uc6d0\uc744 \uc120\ud0dd\ud558\uc138\uc694');return;} _askPw(v,this); };var _ao9=box.querySelector('#_wkAutoOff');if(_ao9)_ao9.onclick=function(){try{localStorage.removeItem('_wkAuto9');}catch(_r9){}alert('\uc790\ub3d9\ub85c\uadf8\uc778\uc774 \ud574\uc81c\ub418\uc5c8\uc2b5\ub2c8\ub2e4');};
 }
-try{ updWorkerChip(); if(!ME) setTimeout(pickWorker, 400); }catch(e){}
+try{ updWorkerChip(); if(!ME){var _au9=null;try{_au9=JSON.parse(localStorage.getItem('_wkAuto9')||'null');}catch(_a9){}if(_au9&&_au9.n&&((_PWH[_au9.n]!=null?_PWH[_au9.n]:_PWH['*'])===_au9.h)){setWorker(_au9.n);}else setTimeout(pickWorker, 400);} }catch(e){}/* [BUILD2052] \uae30\uae30 \uc790\ub3d9\ub85c\uadf8\uc778 \u2014 \uc554\ud638 1\ud68c \uc131\uacf5 \uc2dc \uc800\uc7a5, \ud574\uc2dc \ubd88\uc77c\uce58(\uc554\ud638\ubcc0\uacbd)\ub294 \uc790\ub3d9 \ubb34\ud6a8 */
 
 /* [BUILD 1062] header BUILD badge auto-sync with script ?v= (prevents manual mismatch) */
 (function(){
