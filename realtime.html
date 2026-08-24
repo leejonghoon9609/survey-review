@@ -471,9 +471,11 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
 
 /* ===== [BUILD 825] 실시간 사진패널 헤더 한 줄 ===== */
 @media(max-width:760px){
-  .photo-panel .php-head{flex-wrap:nowrap!important;overflow-x:auto!important;gap:4px!important;padding:6px 8px!important;align-items:center!important}
-  .photo-panel .php-head button,.photo-panel .php-head select{font-size:10px!important;padding:3px 6px!important;white-space:nowrap!important;flex:none!important;border-radius:6px!important}
-  .photo-panel .php-head select{max-width:110px!important}
+  /* [BUILD2058] 폰 사진창 헤더 2행: 1행=측점사진(가로,축소)+측점선택 / 2행=버튼 한 줄 */
+  .photo-panel .php-head{flex-wrap:wrap!important;overflow:visible!important;gap:4px!important;padding:6px 8px!important;align-items:center!important}
+  .photo-panel .php-head h3{display:block!important;order:1;flex:none!important;font-size:11px!important;white-space:nowrap!important;margin:0!important}
+  .photo-panel .php-head select{order:2;flex:1 1 auto!important;min-width:0!important;max-width:none!important;font-size:11px!important;padding:3px 6px!important;white-space:nowrap!important;border-radius:6px!important}
+  .photo-panel .php-head button{order:3;flex:none!important;font-size:10px!important;padding:3px 5px!important;white-space:nowrap!important;border-radius:6px!important}
 }
   #rtWireBar{display:none;gap:4px;padding:7px 8px;flex-wrap:nowrap;overflow-x:auto;background:#f4f8fc;border-top:1px solid #b5d4f4;border-bottom:1px solid #b5d4f4;align-items:center;justify-content:flex-start}
   #rtWireDone{margin-left:auto;font-size:14px;padding:8px 18px;background:#16a34a;color:#fff;border:0;border-radius:9px;font-weight:800;box-shadow:0 2px 6px rgba(0,0,0,.2)}/* [1221] */
@@ -854,6 +856,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2057"></script><script src="core.js?v=2057"></script>
+<script src="login.js?v=2058"></script><script src="core.js?v=2058"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
