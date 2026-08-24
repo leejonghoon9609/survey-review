@@ -445,7 +445,7 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   /* [BUILD1807] 폰 사진창 확대 40→48vh — 노출관로 사진 하단 잘림 해결 */
   .photo-panel.open{display:flex!important;flex:4.5 1 0!important;height:auto!important;min-height:0!important}
   /* [BUILD1811] 폰: 관정보 라벨(L-code)만 확대 — 점번호 15px 유지 */
-  .lbl-pt .L-code{font-size:17.79%!important}/* [BUILD2046] 폰 관정보=PC 비율 — 부모 5.62배 확대 상쇄(1/5.62), 점번호·날짜는 확대 유지 */
+  .lbl-pt .L-code{font-size:1em!important}/* [BUILD2047] 관정보=점번호·날짜와 동일 크기 — 전체 2배는 core 폰 계수 2.0이 담당 */
   /* [BUILD1813] 폰: 좌표창 반투명 + 글자 흐림 — 도면 방해 최소화 */
   .coordbox{background:rgba(255,255,255,.5)!important;border-color:rgba(0,0,0,.1)!important;box-shadow:none!important;color:rgba(30,41,59,.55)!important}
   .coordbox b{color:rgba(30,41,59,.6)!important;font-weight:600!important}
@@ -854,6 +854,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2046"></script><script src="core.js?v=2046"></script>
+<script src="login.js?v=2047"></script><script src="core.js?v=2047"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
