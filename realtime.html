@@ -711,7 +711,7 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
       <div class="php-head">
         <h3>측점 사진</h3>
         <button id="dirToggle" class="dirtgl on">🧭 방향 ON</button>
-        <select id="photoSel"><option value="">측점 선택…</option></select>
+        <select id="photoSel"><option value="">측점 선택…</option></select><button id="rtPtDel9" onclick="rtPtDelUI()" style="background:#fdeaea;border:1.5px solid #EA002C;color:#EA002C;font-weight:800;border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer">🗑 측점삭제</button><button id="rtPtRst9" onclick="rtPtRstUI()" style="background:#e8f5e9;border:1.5px solid #1e7e34;color:#1e7e34;font-weight:800;border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer">♻ 복구</button>
         <button id="photoLinkBtn" class="linkon">🔗 연동</button>
         <button id="vNote2" class="vw">⚠ 특이사항</button>
         <button id="rtRecap" onclick="rtRecapture()" style="background:#EA002C;color:#fff;border:0;border-radius:6px;font-weight:700">📷 재촬영</button><button id="photoUp">사진 업로드</button>
@@ -854,6 +854,6 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2056"></script><script src="core.js?v=2056"></script>
+<script src="login.js?v=2057"></script><script src="core.js?v=2057"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)"></body>
 </html>
