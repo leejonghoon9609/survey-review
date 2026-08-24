@@ -864,7 +864,7 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2076"></script><script src="core.js?v=2076"></script>
+<script src="login.js?v=2077"></script><script src="core.js?v=2077"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)">
 <script>
 /* [BUILD2070] 폰 도면:사진 비율 — 무한재적용(진동) 근본 차단: 재진입 가드+변경시에만 쓰기+클램프 캐시 */
@@ -896,24 +896,27 @@ window.RT_SPLIT9=(function(){try{var v=parseFloat(localStorage.getItem('rtSplit9
             if(h2!==h){pp.style.setProperty('height',h2+'px','important');_lastH=h2;}}
         }catch(_c){}
       }
-      /* [BUILD2075] 사진 잘림 종결 — CSS 의존 제거, 요소에 픽셀 직접 지정(인라인 !important) */
-      try{
-        var ph9=Math.max(160,(_lastH||h)-110);
-        var bd9=pp.querySelector('.php-body');
-        if(bd9){bd9.style.setProperty('overflow-y','auto','important');bd9.style.setProperty('min-height','0','important');bd9.style.setProperty('flex','1 1 auto','important');}
-        pp.querySelectorAll('.php-main').forEach(function(e){e.style.setProperty('height','auto','important');e.style.setProperty('max-height','none','important');e.style.setProperty('overflow','visible','important');});
-        pp.querySelectorAll('.php-main .zoomwrap').forEach(function(e){e.style.setProperty('height','auto','important');e.style.setProperty('max-height',ph9+'px','important');});
-        pp.querySelectorAll('.php-main .ph').forEach(function(e){
-          e.style.setProperty('width','100%','important');
-          e.style.setProperty('height','auto','important');
-          e.style.setProperty('max-height',ph9+'px','important');
-          e.style.setProperty('object-fit','contain','important');
-        });
-      }catch(_ph){}
     }catch(e){}
     finally{setTimeout(function(){_busy=false;},60);}
   }
-  function kick(){apply();if(t)clearTimeout(t);t=setTimeout(apply,120);}
+  function sizePh9(){try{
+    if(!window.matchMedia||!matchMedia('(max-width:760px)').matches)return;
+    var pp=document.getElementById('photoPanel');
+    if(!pp||!pp.classList.contains('open'))return;
+    var vh=(window.visualViewport?visualViewport.height:window.innerHeight)||600;
+    var cap=Math.max(150,Math.round(vh*0.34));/* [BUILD2077] 사진=화면 34% 고정 — 현황판 무조건 한 화면 */
+    var bd=pp.querySelector('.php-body');
+    if(bd){bd.style.setProperty('overflow-y','auto','important');bd.style.setProperty('min-height','0','important');bd.style.setProperty('flex','1 1 auto','important');}
+    pp.querySelectorAll('.php-main').forEach(function(e){e.style.setProperty('height','auto','important');e.style.setProperty('max-height','none','important');e.style.setProperty('overflow','visible','important');});
+    pp.querySelectorAll('.php-main .zoomwrap').forEach(function(e){e.style.setProperty('height','auto','important');e.style.setProperty('max-height',cap+'px','important');});
+    pp.querySelectorAll('.php-main .ph').forEach(function(e){
+      e.style.setProperty('width','100%','important');
+      e.style.setProperty('height','auto','important');
+      e.style.setProperty('max-height',cap+'px','important');
+      e.style.setProperty('object-fit','contain','important');
+    });
+  }catch(_s9){}}
+  function kick(){apply();sizePh9();if(t)clearTimeout(t);t=setTimeout(function(){apply();sizePh9();},120);}
   function reset(){_clampMax=null;_lastH=null;kick();}
   window.rtSplit9=function(r){if(r!=null){window.RT_SPLIT9=r;try{localStorage.setItem('rtSplit9',String(r));}catch(e){}}_clampMax=null;_lastH=null;apply();};
   function bar(){try{
