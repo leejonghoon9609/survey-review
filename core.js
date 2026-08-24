@@ -1710,7 +1710,7 @@ function drawManholes(){_orgSync();/* [1524] */
     }
 
     // 라벨 텍스트 — 파란 밑줄 중앙 바로 위에 (글자가 밑줄을 덮지 않게 위로)
-    var mhLbl=mkLabel(txtCx, uly-EM*0.55, mhDisp(mh), {fill:MHC,weight:'600',anchor:'middle',grp:(isRiser?'riser':'mh'),px:_mhPx});if(mhLbl)mhLbl._mSync={mh:mh,t:'l'};if(mhLbl&&(mh.type==='riser'||mh.type==='jb'||mh.type==='inlet')&&((typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO))&&!(viewerMode&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD))&&!readOnly){/* [BUILD1968] 측량현장은 viewerMode=true 로 도므로 field 예외(파일 내 기존 관례와 동일) */ /* [BUILD1938] JB·인입 포함 — drawManholes의 isRiser는 riser 전용 */try{var _dn9=((mh.dests&&mh.dests.length)||0);var _dbx9=isRight?(ulx2+EM*0.22):(ulx2-EM*0.22);var _dbl9=mkLabel(_dbx9,uly-EM*0.55,(_dn9?('\ubc29\ud5a5'+_dn9):'\ubc29\ud5a5'),{fill:'#d32f2f',weight:'800',anchor:(isRight?'start':'end'),grp:(isRiser?'riser':'mh'),px:_mhPx});if(_dbl9){_dbl9._mSync={mh:mh,t:'db'};var _dk9=(typeof _auxCntDone9==='function')&&_auxCntDone9(mh);/* [BUILD1972] */_dbl9.style.background=(_dk9?'#ffe0dc':'#fff');_dbl9.style.border='1px solid #d32f2f';if(_dk9)_dbl9.style.boxShadow='0 0 0 2.5px #ffd54f,0 0 0 4px #6d4c00';_dbl9.style.padding='0px 3px';_dbl9.style.borderRadius='3px';_dbl9.style.textShadow='none';_dbl9.style.pointerEvents='auto';_dbl9.style.cursor='pointer';_dbl9.style.touchAction='none';_dbl9.addEventListener('pointerdown',function(ev){ev.stopPropagation();ev.preventDefault();if(typeof mhDestPanel==='function')mhDestPanel(mh);});}}catch(_db9){}}/* [BUILD1934] \ubcf4\uc870 \uc2dc\uc124\ubb3c \ubc29\ud5a5 \ubc84\ud2bc */if(mhLbl&&(!mh.type||mh.type==='mh')&&((typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO))&&!(viewerMode&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD))&&!readOnly){/* [BUILD1968] 측량현장은 viewerMode=true 로 도므로 field 예외(파일 내 기존 관례와 동일) */ /* [BUILD1957] 맨홀 태그 방향 버튼(연두) — 맨홀도 야장 dest 직결 */try{var _sn9=(typeof mhSheetDestCount9==='function')?mhSheetDestCount9(mh):0;var _sbx9=isRight?(ulx2+EM*0.22):(ulx2-EM*0.22);var _sbl9=mkLabel(_sbx9,uly-EM*0.55,(_sn9?('\ubc29\ud5a5'+_sn9):'\ubc29\ud5a5'),{fill:'#33691e',weight:'800',anchor:(isRight?'start':'end'),grp:'mh',px:_mhPx});if(_sbl9){_sbl9._mSync={mh:mh,t:'db'};var _sk9=(typeof _mhCntDone9==='function')&&_mhCntDone9(mh);/* [BUILD1972] */_sbl9.style.background=(_sk9?'#dcedc8':'#fff');_sbl9.style.border='1px solid #558b2f';if(_sk9)_sbl9.style.boxShadow='0 0 0 2.5px #ffd54f,0 0 0 4px #6d4c00';_sbl9.style.padding='0px 3px';_sbl9.style.borderRadius='3px';_sbl9.style.textShadow='none';_sbl9.style.pointerEvents='auto';_sbl9.style.cursor='pointer';_sbl9.style.touchAction='none';_sbl9.addEventListener('pointerdown',function(ev){ev.stopPropagation();ev.preventDefault();if(typeof mhSheetDestOpen9==='function')mhSheetDestOpen9(mh);});}}catch(_sb9){}}if(mhLbl&&typeof IS_REALTIME!=='undefined'&&IS_REALTIME){mhLbl._bpx=12;mhLbl._wlk=0.12;mhLbl.style.fontSize=(12*(0.12/U))+'px';}try{if(!(typeof LV!=='undefined'&&LV.tgnote===0)){var _nq9=-1,_nts9=state.tgNotes||[];for(var _q9=0;_q9<_nts9.length;_q9++){if(_nts9[_q9].mh&&Math.abs(_nts9[_q9].x-mh.wx)<0.5&&Math.abs(_nts9[_q9].y-mh.wy)<0.5){_nq9=_q9;break;}}if(_nq9>=0){var _lns9=(_nts9[_nq9].text||'').split('\n').filter(function(t){return (''+t).trim()!=='';});for(var _li9=0;_li9<_lns9.length;_li9++){(function(qi,li,txt){var _aw9=0;try{if(mhLbl&&mhLbl.offsetWidth)_aw9=mhLbl.offsetWidth*U;}catch(_m9){}if(!_aw9){var _ds9=(typeof mhDisp==='function')?(''+mhDisp(mh)):'';for(var _wc9=0;_wc9<_ds9.length;_wc9++){_aw9+=(_ds9.charCodeAt(_wc9)>127?EM*0.95:EM*0.5);}}var _nlx9=txtCx-_aw9/2;/* [1410] 라벨 실측 폭 정렬 */var _nl9=mkLabel(_nlx9, uly+EM*(0.65+li*1.0), txt, {fill:'#ff00e6',weight:'700',anchor:'start',grp:'tgnotemh',px:_mhPx});/* [1374] 왼쪽 정렬 */if(_nl9){_nl9._wlk=0.12;_nl9.style.fontSize=((_nl9._bpx||12)*(0.12/U))+'px';}if(_nl9&&(!viewerMode||(typeof IS_FIELD!=='undefined'&&IS_FIELD))&&!readOnly){_nl9.style.pointerEvents='auto';_nl9.style.cursor='pointer';_nl9.addEventListener('pointerdown',function(ev){ev.stopPropagation();ev.preventDefault();if(mode==='delall2'){if(typeof pushHist==='function')pushHist();var _ls=(state.tgNotes[qi].text||'').split('\n').filter(function(t){return (''+t).trim()!=='';});_ls.splice(li,1);if(!_ls.length)state.tgNotes.splice(qi,1);else state.tgNotes[qi].text=_ls.join('\n');if(typeof saveProject==='function')saveProject();drawGeo();drawManholes();if(typeof toast==='function')toast('특이사항 삭제');_da2Off();return;}var _nw9=Date.now();var _L9=window._tgNoteLT;var _k9='m'+qi+'_'+li;if(_L9&&_L9.idx===_k9&&(_nw9-_L9.t)<400){window._tgNoteLT=null;tgNoteEdit(qi,ev,li);return;}window._tgNoteLT={idx:_k9,t:_nw9};});_nl9.addEventListener('mouseenter',function(){if(mode==='delall2'){this.style.background='rgba(211,47,47,0.28)';this.style.outline='1.5px solid #d32f2f';this.style.borderRadius='3px';}});_nl9.addEventListener('mouseleave',function(){this.style.background='';this.style.outline='';});}})(_nq9,_li9,_lns9[_li9]);}}}}catch(_n9){}/* [1370] 여러 줄 스택 *//* [1368] 맨홀 태그 아래 추가정보 */
+    var mhLbl=mkLabel(txtCx, uly-EM*0.55, mhDisp(mh), {fill:MHC,weight:'600',anchor:'middle',grp:(isRiser?'riser':'mh'),px:_mhPx});if(mhLbl)mhLbl._mSync={mh:mh,t:'l'};if(mhLbl&&(mh.type==='riser'||mh.type==='jb'||mh.type==='inlet')&&((typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO))&&!(viewerMode&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD))&&!readOnly){/* [BUILD1968] 측량현장은 viewerMode=true 로 도므로 field 예외(파일 내 기존 관례와 동일) */ /* [BUILD1938] JB·인입 포함 — drawManholes의 isRiser는 riser 전용 */try{var _dn9=((mh.dests&&mh.dests.length)||0);var _dbx9=isRight?(ulx2+EM*0.22):(ulx2-EM*0.22);var _dbl9=mkLabel(_dbx9,uly-EM*0.55,(_dn9?('\ubc29\ud5a5'+_dn9):'\ubc29\ud5a5'),{fill:'#d32f2f',weight:'800',anchor:(isRight?'start':'end'),grp:(isRiser?'riser':'mh'),px:_mhPx});if(_dbl9){_dbl9._mSync={mh:mh,t:'db'};var _dk9=(typeof _auxCntDone9==='function')&&_auxCntDone9(mh);/* [BUILD1972] */_dbl9.style.background=(_dk9?'#ffe0dc':'#fff');_dbl9.style.border='1px solid #d32f2f';if(_dk9)_dbl9.style.boxShadow='0 0 0 2.5px #ffd54f,0 0 0 4px #6d4c00';try{var _ba9=(typeof _auxChkBad9==='function')?_auxChkBad9(mh):[];if(_ba9&&_ba9.length){_dbl9.style.background='#ffe5e5';_dbl9.style.border='1.5px solid #d32f2f';_dbl9.style.boxShadow='0 0 0 2.5px #ff8a80,0 0 0 4px #b71c1c';_dbl9.textContent=_dbl9.textContent+' \u26A0'+_ba9.join('\u00B7');}}catch(_by9){}_dbl9.style.padding='0px 3px';_dbl9.style.borderRadius='3px';_dbl9.style.textShadow='none';_dbl9.style.pointerEvents='auto';_dbl9.style.cursor='pointer';_dbl9.style.touchAction='none';_dbl9.addEventListener('pointerdown',function(ev){ev.stopPropagation();ev.preventDefault();if(typeof mhDestPanel==='function')mhDestPanel(mh);});}}catch(_db9){}}/* [BUILD1934] \ubcf4\uc870 \uc2dc\uc124\ubb3c \ubc29\ud5a5 \ubc84\ud2bc */if(mhLbl&&(!mh.type||mh.type==='mh')&&((typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO))&&!(viewerMode&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD))&&!readOnly){/* [BUILD1968] 측량현장은 viewerMode=true 로 도므로 field 예외(파일 내 기존 관례와 동일) */ /* [BUILD1957] 맨홀 태그 방향 버튼(연두) — 맨홀도 야장 dest 직결 */try{var _sn9=(typeof mhSheetDestCount9==='function')?mhSheetDestCount9(mh):0;var _sbx9=isRight?(ulx2+EM*0.22):(ulx2-EM*0.22);var _sbl9=mkLabel(_sbx9,uly-EM*0.55,(_sn9?('\ubc29\ud5a5'+_sn9):'\ubc29\ud5a5'),{fill:'#33691e',weight:'800',anchor:(isRight?'start':'end'),grp:'mh',px:_mhPx});if(_sbl9){_sbl9._mSync={mh:mh,t:'db'};var _sk9=(typeof _mhCntDone9==='function')&&_mhCntDone9(mh);/* [BUILD1972] */_sbl9.style.background=(_sk9?'#dcedc8':'#fff');_sbl9.style.border='1px solid #558b2f';if(_sk9)_sbl9.style.boxShadow='0 0 0 2.5px #ffd54f,0 0 0 4px #6d4c00';try{var _rc9=(typeof mhSheetRec9==='function')?mhSheetRec9(mh):null;var _bd9=(_rc9&&typeof _mhChkBad9==='function')?_mhChkBad9(_rc9):[];if(_bd9&&_bd9.length){_sbl9.style.background='#ffe5e5';_sbl9.style.border='1.5px solid #d32f2f';_sbl9.style.boxShadow='0 0 0 2.5px #ff8a80,0 0 0 4px #b71c1c';_sbl9.textContent=_sbl9.textContent+' \u26A0'+_bd9.join('\u00B7');}}catch(_bx9){}_sbl9.style.padding='0px 3px';_sbl9.style.borderRadius='3px';_sbl9.style.textShadow='none';_sbl9.style.pointerEvents='auto';_sbl9.style.cursor='pointer';_sbl9.style.touchAction='none';_sbl9.addEventListener('pointerdown',function(ev){ev.stopPropagation();ev.preventDefault();if(typeof mhSheetDestOpen9==='function')mhSheetDestOpen9(mh);});}}catch(_sb9){}}if(mhLbl&&typeof IS_REALTIME!=='undefined'&&IS_REALTIME){mhLbl._bpx=12;mhLbl._wlk=0.12;mhLbl.style.fontSize=(12*(0.12/U))+'px';}try{if(!(typeof LV!=='undefined'&&LV.tgnote===0)){var _nq9=-1,_nts9=state.tgNotes||[];for(var _q9=0;_q9<_nts9.length;_q9++){if(_nts9[_q9].mh&&Math.abs(_nts9[_q9].x-mh.wx)<0.5&&Math.abs(_nts9[_q9].y-mh.wy)<0.5){_nq9=_q9;break;}}if(_nq9>=0){var _lns9=(_nts9[_nq9].text||'').split('\n').filter(function(t){return (''+t).trim()!=='';});for(var _li9=0;_li9<_lns9.length;_li9++){(function(qi,li,txt){var _aw9=0;try{if(mhLbl&&mhLbl.offsetWidth)_aw9=mhLbl.offsetWidth*U;}catch(_m9){}if(!_aw9){var _ds9=(typeof mhDisp==='function')?(''+mhDisp(mh)):'';for(var _wc9=0;_wc9<_ds9.length;_wc9++){_aw9+=(_ds9.charCodeAt(_wc9)>127?EM*0.95:EM*0.5);}}var _nlx9=txtCx-_aw9/2;/* [1410] 라벨 실측 폭 정렬 */var _nl9=mkLabel(_nlx9, uly+EM*(0.65+li*1.0), txt, {fill:'#ff00e6',weight:'700',anchor:'start',grp:'tgnotemh',px:_mhPx});/* [1374] 왼쪽 정렬 */if(_nl9){_nl9._wlk=0.12;_nl9.style.fontSize=((_nl9._bpx||12)*(0.12/U))+'px';}if(_nl9&&(!viewerMode||(typeof IS_FIELD!=='undefined'&&IS_FIELD))&&!readOnly){_nl9.style.pointerEvents='auto';_nl9.style.cursor='pointer';_nl9.addEventListener('pointerdown',function(ev){ev.stopPropagation();ev.preventDefault();if(mode==='delall2'){if(typeof pushHist==='function')pushHist();var _ls=(state.tgNotes[qi].text||'').split('\n').filter(function(t){return (''+t).trim()!=='';});_ls.splice(li,1);if(!_ls.length)state.tgNotes.splice(qi,1);else state.tgNotes[qi].text=_ls.join('\n');if(typeof saveProject==='function')saveProject();drawGeo();drawManholes();if(typeof toast==='function')toast('특이사항 삭제');_da2Off();return;}var _nw9=Date.now();var _L9=window._tgNoteLT;var _k9='m'+qi+'_'+li;if(_L9&&_L9.idx===_k9&&(_nw9-_L9.t)<400){window._tgNoteLT=null;tgNoteEdit(qi,ev,li);return;}window._tgNoteLT={idx:_k9,t:_nw9};});_nl9.addEventListener('mouseenter',function(){if(mode==='delall2'){this.style.background='rgba(211,47,47,0.28)';this.style.outline='1.5px solid #d32f2f';this.style.borderRadius='3px';}});_nl9.addEventListener('mouseleave',function(){this.style.background='';this.style.outline='';});}})(_nq9,_li9,_lns9[_li9]);}}}}catch(_n9){}/* [1370] 여러 줄 스택 *//* [1368] 맨홀 태그 아래 추가정보 */
     // 라벨 div에 직접 더블클릭(수정) — 오버레이라 글자 위에서 바로 동작
     mhLbl.style.pointerEvents='auto';
     mhLbl.style.cursor='text';mhLbl.style.userSelect='none';mhLbl.style.webkitUserSelect='none';mhLbl.style.webkitTouchCallout='none';(function(){var _mLp=null,_mX=0,_mY=0;mhLbl.addEventListener('pointerdown',function(ev){if(mode!=='pan')return;_mX=ev.clientX;_mY=ev.clientY;if(_mLp)clearTimeout(_mLp);_mLp=setTimeout(function(){_mLp=null;openLabelEdit();},600);});mhLbl.addEventListener('pointermove',function(ev){if(_mLp&&(Math.abs(ev.clientX-_mX)+Math.abs(ev.clientY-_mY)>8)){clearTimeout(_mLp);_mLp=null;}});mhLbl.addEventListener('pointerup',function(){if(_mLp){clearTimeout(_mLp);_mLp=null;}});mhLbl.addEventListener('pointercancel',function(){if(_mLp){clearTimeout(_mLp);_mLp=null;}});})();
@@ -9881,6 +9881,66 @@ function _mnPeerBack9(rec,dv){
     return out;
   }catch(_e){return null;}
 }
+/* [BUILD2042] \uBCF4\uC870 \uC2DC\uC124\uBB3C \uC5ED\uBC29\uD5A5 \uAD00\uC218(\uAD50\uCC28\uAC80\uC218) */
+function _auxPeerBack9(mh,dv){
+  try{
+    if(!mh||mh.wx==null||!dv)return null;
+    var txy=(dv.xy&&dv.xy.length===2)?dv.xy:((dv.lab&&typeof _lblMh9==='function')?_lblMh9(mh.wx,mh.wy,dv.lab):null);
+    if(!txy)return null;
+    var pm=null,pd=1e9;
+    (state.manholes||[]).forEach(function(m){if(!m||m.wx==null)return;if(m.type&&m.type!=='mh')return;var d=Math.hypot(m.wx-txy[0],m.wy-txy[1]);if(d<pd){pd=d;pm=m;}});
+    if(!pm||pd>2.5)return null;
+    var r2=(typeof mhSheetRec9==='function')?mhSheetRec9(pm):null;if(!r2)return null;
+    var out=null;
+    ['d1','d2','d3','d4'].forEach(function(k){
+      if(out)return;
+      var L2=(typeof mnDestList==='function')?mnDestList(r2,k):[];
+      for(var i=0;i<L2.length;i++){var e=L2[i];
+        if(e&&e.xy&&e.xy.length===2&&Math.hypot(e.xy[0]-mh.wx,e.xy[1]-mh.wy)<2.5){
+          var v=(typeof _mnCntShow9==='function')?_mnCntShow9(r2,k,i):'';
+          out={cnt:((v===''||v==null)?null:+v),lab:((typeof mnLabel==='function')?mnLabel(r2):'')};return;}}
+    });
+    return out;
+  }catch(_e){return null;}
+}
+/* [BUILD2042] \uBD88\uC77C\uCE58 \uBAA9\uB85D \u2014 \uB9E8\uD640: 1\uCC28\u00B7\uD569\uACC4\u00B7\uAD50\uCC28 / \uBC29\uD5A5 \uD14D\uC2A4\uD2B8\uC6A9 */
+function _wallChkBad9(rec,k){
+  try{
+    var WP=(typeof _wallPipe9==='function')?_wallPipe9(rec,k):null;
+    var LK=(typeof mnDestList==='function')?mnDestList(rec,k):[];
+    if(!LK.length)return false;
+    var mk=(typeof mnDestMain==='function')?mnDestMain(rec,k):0;var dvm=LK[(mk>=0&&mk<LK.length)?mk:0];
+    if(WP&&WP.cnt!=null&&dvm){var fp=(typeof _mnDirFront9==='function')?_mnDirFront9(rec,dvm):null;
+      if(fp&&fp.cnt!=null){if(!(fp.kind===WP.kind&&String(fp.dia)===String(WP.dia)&&fp.cnt===WP.cnt))return true;}}
+    if(WP&&WP.cnt!=null){var sm=null;LK.forEach(function(d,i){var v=(typeof _mnCntShow9==='function')?_mnCntShow9(rec,k,i,WP):'';if(v!==''&&v!=null)sm=(sm||0)+(+v||0);});
+      if(sm!=null&&sm!==WP.cnt)return true;}
+    for(var i=0;i<LK.length;i++){var pv=(typeof _mnCntShow9==='function')?_mnCntShow9(rec,k,i,WP):'';var me=((pv===''||pv==null)?null:+pv);
+      if(me==null)continue;var pb=(typeof _mnPeerBack9==='function')?_mnPeerBack9(rec,LK[i]):null;
+      if(pb&&pb.cnt!=null&&pb.cnt!==me)return true;}
+    return false;
+  }catch(_e){return false;}
+}
+function _mhChkBad9(rec){
+  try{
+    var WN={d1:'\uC11C',d2:'\uB3D9',d3:'\uBD81',d4:'\uB0A8'},NO={d1:'1',d2:'2',d3:'3',d4:'4'};
+    var out=[];['d1','d2','d3','d4'].forEach(function(k){if(_wallChkBad9(rec,k))out.push(NO[k]+WN[k]);});
+    return out;
+  }catch(_e){return [];}
+}
+function _auxChkBad9(mh){
+  try{
+    var out=[];var L=(mh&&mh.dests)||[];if(!L.length)return out;
+    var A=(typeof auxPipeAll9==='function')?auxPipeAll9(mh):null;
+    var sm=null;
+    L.forEach(function(dv,ix){var v=(typeof _auxCntShow9==='function')?_auxCntShow9(mh,ix,A):'';var me=((v===''||v==null)?null:+v);
+      if(me!=null)sm=(sm||0)+me;
+      var pb=(typeof _auxPeerBack9==='function')?_auxPeerBack9(mh,dv):null;
+      if(pb&&pb.cnt!=null&&me!=null&&pb.cnt!==me){var lb=String((dv&&dv.lab)||'').replace(/\s+/g,'');if(lb.length>7)lb=lb.slice(0,7);out.push(lb||'\uAD50\uCC28');}
+    });
+    if(A&&A.cnt!=null&&sm!=null&&sm!==A.cnt)out.push('\uD569\uACC4');
+    return out;
+  }catch(_e){return [];}
+}
 function _mnCntShow9(rec,k,ix,WP){
   try{
     var LK=mnDestList(rec,k);var dv=LK[ix];if(!dv)return '';
@@ -10100,6 +10160,18 @@ function mhDestPanel(mh,forcePick){
   var sumBar=L.length?('<div style="display:flex;align-items:center;gap:6px;margin-top:7px;font-size:11.5px;font-weight:800;padding:6px 8px;border-radius:7px;background:'+((_SUM9==null)?'#fff':(_okSum9?'#e8f5e9':'#ffe5e5'))+';border:1px solid '+((_SUM9==null)?'#dcdcd8':(_okSum9?'#a5d6a7':'#ff8a80'))+';color:'+((_SUM9==null)?'#8a8a86':(_okSum9?'#2e7d32':'#d32f2f'))+'">'
    +'<span style="flex:1">\uBC30\uBD84 \uD569\uACC4 '+((_SUM9==null)?'-':_SUM9)+' / \uCD1D '+((_PA9.cnt==null)?'-':_PA9.cnt)+'</span>'
    +'<span>'+(_okSum9?'\uC77C\uCE58':'\u26A0 \uBD88\uC77C\uCE58')+'</span></div>'):'';
+  try{/* [BUILD2042] \uBCF4\uC870 \uAD50\uCC28\uAC80\uC218 */
+    var _xa9='';L.forEach(function(dv,ix){
+      var v=(typeof _auxCntShow9==='function')?_auxCntShow9(mh,ix,_PA9):'';var me=((v===''||v==null)?null:+v);
+      var pb=(typeof _auxPeerBack9==='function')?_auxPeerBack9(mh,dv):null;
+      if(!pb||pb.cnt==null||me==null)return;
+      var okx=(me===pb.cnt);
+      _xa9+='<div style="display:flex;gap:6px;align-items:center;margin-top:5px;font-size:10.5px;font-weight:800;padding:4px 8px;border-radius:7px;background:'+(okx?'#e8f5e9':'#ffe5e5')+';border:1px solid '+(okx?'#a5d6a7':'#ff8a80')+';color:'+(okx?'#2e7d32':'#d32f2f')+'">'
+        +'<span style="flex:none">\uAD50\uCC28</span>'
+        +'<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+me+' \u2194 '+(pb.lab||'')+' '+pb.cnt+'</span>'
+        +'<span>'+(okx?'\uC77C\uCE58':'\u26A0 \uBD88\uC77C\uCE58')+'</span></div>';
+    });sumBar+=_xa9;
+  }catch(_xa8){}
 
   /* [BUILD1956] 역방향 야장 표시 제거 — 참조가 원본과 섞여 혼란을 줌 */
   var pick='<div id="mhDPick" style="display:'+(showPick?'block':'none')+';margin-bottom:10px">'
@@ -11173,11 +11245,11 @@ function mnOpenForm(rec){
     var t=v?(((typeof mnStripPf==='function')?mnStripPf(v):v)+(_dn8>1?(' +'+(_dn8-1)):'')):'방향';
     var cx=x+w/2,cy=y+h/2,txt;
     /* [1591] \uae34 \ud14d\uc2a4\ud2b8 \uc790\ub3d9 \uc555\ucd95 \u2014 \uac00\ub85c pill\uc740 w, \uc138\ub85c(\ud68c\uc804) pill\uc740 h \uae30\uc900 (\ud45c\ucc30 [1552] \ubc29\uc2dd) */
-    var _wpx=0;for(var _ci=0;_ci<t.length;_ci++){_wpx+=(t.charCodeAt(_ci)>0x2500?11.5:7);}
+    var _bd8=(typeof _wallChkBad9==='function')&&_wallChkBad9(rec,k);if(_bd8){t='\u26A0'+t;}/* [BUILD2042] */var _wpx=0;for(var _ci=0;_ci<t.length;_ci++){_wpx+=(t.charCodeAt(_ci)>0x2500?11.5:7);}
     var _lim=(rot===0?w:h)-8;
     var _tl=(_wpx>_lim)?(' textLength="'+_lim+'" lengthAdjust="spacingAndGlyphs"'):'';
     var _ok8=(typeof _wallCntDone9==='function')&&_wallCntDone9(rec,k);/* [BUILD1980] 관수 검수 통과 */
-    var _fc8=_ok8?'#d32f2f':(v?'#558b2f':'#a8c790');
+    var _fc8=_bd8?'#d32f2f':(_ok8?'#d32f2f':(v?'#558b2f':'#a8c790'));
     if(rot===0)txt='<text x="'+cx+'" y="'+(cy+3.5)+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="'+_fc8+'" pointer-events="none"'+_tl+'>'+joseoEsc(t)+'</text>';
     else txt='<text x="'+cx+'" y="'+cy+'" text-anchor="middle" font-size="11.5" font-weight="800" fill="'+_fc8+'" transform="rotate('+rot+' '+cx+' '+cy+')" dominant-baseline="central" pointer-events="none"'+_tl+'>'+joseoEsc(t)+'</text>';
     var _ring8=_ok8?('<rect x="'+(x-2.5)+'" y="'+(y-2.5)+'" width="'+(w+5)+'" height="'+(h+5)+'" rx="7" fill="none" stroke="#ffd54f" stroke-width="3"/><rect x="'+(x-4)+'" y="'+(y-4)+'" width="'+(w+8)+'" height="'+(h+8)+'" rx="8" fill="none" stroke="#6d4c00" stroke-width="1.2"/>'):'';
