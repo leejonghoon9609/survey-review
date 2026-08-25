@@ -15053,6 +15053,8 @@ function rtRecapture(){
   if(selNum==null){toast('먼저 측점을 선택하세요 (점 클릭)');return;}
   if(typeof online!=='undefined'&&!online){toast('로컬 모드 — 사진 저장 불가');return;}
   if(!state.projectId){toast('먼저 "저장"으로 사업을 저장한 뒤 촬영하세요');return;}
+  var _jgr9=/^([0-9]{6})-([0-9]+)-[1-4]$/.exec(String(selNum));
+  if(_jgr9&&typeof rtJgStart9==='function'){rtJgStart9(_jgr9[1],_jgr9[2]);return;}/* [BUILD2130] 지거점 재촬영 = 선택 팝업(사진 있으니 GPS 재수집 없이 사진만 교체) */
   if(!confirm('측점 '+selNum+' 사진을 다시 촬영할까요? (기존 사진 덮어씀)'))return;
   rtPendingNo=String(selNum);rtPendingReshoot=true;
   var inp=document.getElementById('rtCamInput');if(inp){inp.value='';inp.click();}
