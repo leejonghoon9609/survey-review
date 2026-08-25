@@ -13665,7 +13665,7 @@ function paneAfter(no,label){var p=no!=null?pointByNo(no):null;var bn=p?ptNum(p)
 /* [1136] 현황판 합성 — 원본 사진 아래에 표(공사명/번호/관경/날짜)를 좌하단에 그린 복사본.
    저장은 원본 그대로, 표시용으로만 즉석 생성(캐시). 실시간측량 전용 */
 var _rtBoardCache={};
-function rtBoardGeom(W,H){var bw=Math.round(W*0.31),rh=Math.round(H*0.042);return {bw:bw,rh:rh,bh:rh*4,lw:Math.round(bw*0.27)};}/* [BUILD2103] 폭 31%(과거 30% 잔상 커버)·행 4.2% 유지 */
+function rtBoardGeom(W,H){var bw=Math.round(W*0.275),rh=Math.round(H*0.042);return {bw:bw,rh:rh,bh:rh*4,lw:Math.round(bw*0.27)};}/* [BUILD2105] 폭 27.5%(31%에서 증가분 절반 축소) */
 /* pos={fx,fy}=표 좌상단(이미지 비율 0~1). 없으면 좌하단. nocache=드래그 중 임시렌더 */
 function rtBoardURL(no,url,cb,pos,nocache){
   if(!url){cb(null);return;}
