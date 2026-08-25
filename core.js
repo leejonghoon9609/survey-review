@@ -12533,7 +12533,7 @@ async function joseoBuildWb(projectName, recs, perPage){
   var wb=new ExcelJS.Workbook(); await wb.xlsx.load(tplBuf);
   var ws=wb.worksheets[0];
   var BLK=[]; for(var r=3;r<=19;r++){ var row=[]; for(var c=1;c<=7;c++){ var s=ws.getCell(r,c); row.push({style:s.style,value:s.value}); } BLK.push({h:ws.getRow(r).height,row:row}); }
-  joseoSetv(ws,'B2',projectName||'');
+  joseoSetv(ws,'B2',(typeof joseoCleanName9==='function'?joseoCleanName9(projectName):projectName)||'');/* [BUILD2104] 시스템 이니셜 제거 */
   for(var i=0;i<recs.length;i++){ var S=3+i*17; if(i>=1) joseoStampBlk(ws,S,BLK); joseoFillBlk(ws,S,recs[i]); joseoAddPhotosBlk(wb,ws,S,recs[i]); }
   // G열(폼 오른쪽 외곽선) 굵기 통일 — 2번째 블록 이후도 medium (병합셀은 마스터셀에 적용됨)
   var joseoLastRow=2+recs.length*17;
@@ -13212,6 +13212,24 @@ async function joseoDownloadAll(){
     joseoProg('완료 ✓',1); setTimeout(joseoProgHide,1500);
   }catch(e){ toast('ZIP 생성 실패: '+(e&&e.message||e)); joseoProgHide(); }
 }
+function joseoCleanName9(s){return String(s||'').replace(/(_(?:S|A|B|T|TT))+\s*$/i,'').trim();}/* [BUILD2104] _S/_A/_B/_T/_TT 꼬리 반복 제거 */
+async function joseoDownloadMerged9(){ /* [BUILD2104] 통합조서 — 전 날짜 한 엑셀 */
+  if(!joseoState){toast('조서 패널을 먼저 여세요');return;}
+  try{
+    var dates=joseoState.dates||[],all=[];
+    for(var di=0;di<dates.length;di++){var dk=dates[di];(joseoState.groups[dk]||[]).forEach(function(pp){all.push(pp);});}
+    if(!all.length){toast('조서 대상 측점이 없습니다');return;}
+    var recs=all.map(joseoRec);
+    joseoProg('통합조서 사진 수집 중…',0.05);
+    await joseoFetchPhotos(recs,function(dn,tt){joseoProg('사진 '+dn+'/'+tt,0.05+0.75*(dn/Math.max(1,tt)));});
+    joseoProg('엑셀 생성 중…',0.85);
+    var wb=await joseoBuildWb(state.projectName,recs,JOSEO_PER_PAGE);
+    var buf=await wb.xlsx.writeBuffer();
+    joseoSaveBlob(buf,((state.projectName||'조서'))+'_통합조서.xlsx');
+    joseoProg('완료 ✓ — '+recs.length+'점 / '+dates.length+'일',1);setTimeout(joseoProgHide,1800);
+  }catch(e){toast('통합조서 실패: '+(e&&e.message||e));joseoProgHide();}
+}
+
 
 // 사진 방향 화살표 클릭 → 90° 회전 (사진 패널·로드뷰 패널 공통)
 document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.dirArrow');if(!b)return;e.stopPropagation();e.preventDefault();var p=pointByNo(b.getAttribute('data-num'));if(!p)return;cyclePhotoDir(p);b.textContent=ARROWS[getPhotoDir(p)];drawGeo();},true);

@@ -349,6 +349,10 @@
   #bpToggle{background:#fff;border:1px solid #d81b60;color:#d81b60;font-weight:700}
   #bpToggle:not(.off){background:#fde7f1}
 }
+
+.jz-panel .php-head button{font-size:11.5px!important;padding:4px 8px!important;border-radius:7px!important}
+.jz-panel .php-head h3{font-size:13.5px!important}
+/* [BUILD2104] 조서 헤더 버튼 축소 */
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b62c4">
@@ -439,7 +443,7 @@
       <div class="php-head">
         <h3>실시간 사진조서</h3>
         <button id="joseoLinkBtn" class="jz-link">🔗 연동</button>
-        <button id="joseoDoneBtn" class="jz-done">✅ 완료등록</button><button id="jzEstTgl" type="button" onclick="window._jzEst9=!window._jzEst9;this.textContent=window._jzEst9?'💰 견적서용':'📋 조서용';this.style.background=window._jzEst9?'#fff3e0':'#fdeaea';this.style.color=window._jzEst9?'#b26a00':'#c0392b';this.style.borderColor=window._jzEst9?'#e0a300':'#e8a0a0';try{window.joseoState=null;}catch(e){}if(typeof openJoseoPanel==='function')openJoseoPanel();" style="background:#fdeaea;color:#c0392b;border:1.5px solid #e8a0a0;border-radius:8px;padding:5px 10px;font-weight:800;font-size:12.5px;cursor:pointer" title="조서용=후측량 사진만 / 견적서용=실시간 사진을 후측량 칸에 복제">📋 조서용</button>
+        <button id="joseoDoneBtn" class="jz-done">✅ 완료등록</button><button id="jzEstTgl" type="button" onclick="window._jzEst9=!window._jzEst9;this.textContent=window._jzEst9?'💰 견적서용':'📋 조서용';this.style.background=window._jzEst9?'#fff3e0':'#fdeaea';this.style.color=window._jzEst9?'#b26a00':'#c0392b';this.style.borderColor=window._jzEst9?'#e0a300':'#e8a0a0';try{window.joseoState=null;}catch(e){}if(typeof openJoseoPanel==='function')openJoseoPanel();" style="background:#fdeaea;color:#c0392b;border:1.5px solid #e8a0a0;border-radius:8px;padding:5px 10px;font-weight:800;font-size:12.5px;cursor:pointer" title="조서용=후측량 사진만 / 견적서용=실시간 사진을 후측량 칸에 복제">📋 조서용</button><button id="jzMergeBtn" type="button" onclick="if(typeof joseoDownloadMerged9==='function')joseoDownloadMerged9()" style="background:#eef8f1;color:#1d7a46;border:1.5px solid #9fd4b3;border-radius:8px;padding:5px 10px;font-weight:800;font-size:12.5px;cursor:pointer" title="전 날짜를 하나의 엑셀로">📑 통합조서</button>
         <div style="margin-left:auto;display:flex;gap:6px;align-items:center;position:relative">
           <button onclick="joseoDownloadAll()" class="jz-dlall">📦 전체 ZIP</button>
           <button id="joseoDlDate" class="jz-dldate">📥 날자별 다운로드 ▾</button>
@@ -555,6 +559,6 @@
     </div>
   </div>
 
-<script src="login.js?v=2103"></script><script src="core.js?v=2103"></script>
+<script src="login.js?v=2104"></script><script src="core.js?v=2104"></script>
 </body>
 </html>
