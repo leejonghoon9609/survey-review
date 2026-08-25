@@ -12488,7 +12488,7 @@ function joseoPoints(){
   return (state.points||[]).filter(function(p){
     if(!p||!p.no) return false;
     /* [1122] 맨홀 측점도 조서 포함 — 노출관로/후측량 사진 방식 그대로 적용 */
-    if(/보강판/.test((p.no||'')+'|'+(p.code||''))) return false;                 // 보강판 제외
+    var _bp9=String((p.no||'')+'|'+(p._nm||'')+'|'+(p.code||'')+'|'+(p._tcode||'')).replace(/\s+/g,'');if(/보강판/.test(_bp9)) return false; /* [BUILD2107] 이름·원이름·코드·원코드 어디에 있어도 제외(공백 변형 포함) */
     return true;
   });
 }
