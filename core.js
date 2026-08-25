@@ -12496,6 +12496,19 @@ function joseoPoints(){
 function joseoGroups(){
   var g={}; joseoPoints().forEach(function(p){ var dk=joseoDate(p.no); if(!dk) return; (g[dk]=g[dk]||[]).push(p); });
   Object.keys(g).forEach(function(dk){ g[dk].sort(function(a,b){ return (parseFloat(ptNum(a))||0)-(parseFloat(ptNum(b))||0); }); });
+  /* [BUILD2125] 지거 날짜 그룹 — photoMap 키 날짜-N-K(1~4) 스캔 → 'YYYY-MM-DD_지거' 탭. 항목은 지거 번호 단위(기준점 측점 좌표·코드 연결) */
+  try{
+    var _pm9=(typeof photoMap!=='undefined'&&photoMap)?photoMap:{};var _jg9={};
+    for(var _k9 in _pm9){var _m9=/^([0-9]{6})-([0-9]+)-([1-4])$/.exec(_k9);if(_m9)(_jg9[_m9[1]]=_jg9[_m9[1]]||{})[_m9[2]]=1;}
+    Object.keys(_jg9).forEach(function(d6){
+      var dk=joseoDate(d6+'-0')+'_지거';var arr=[];
+      Object.keys(_jg9[d6]).sort(function(a,b){return (+a)-(+b);}).forEach(function(n){
+        var bp=(typeof pointByNo==='function')?pointByNo(d6+'-'+n):null;
+        arr.push({no:d6+'-'+n,_jg:true,x:bp?bp.x:null,y:bp?bp.y:null,code:bp?(bp.code||''):'',depth:bp?bp.depth:null});
+      });
+      if(arr.length)g[dk]=arr;
+    });
+  }catch(_je9){}
   return g;
 }
 function joseoRec(p){
@@ -13110,8 +13123,47 @@ function joseoPhotoUpload(no,kind,f){
       });
     })['catch'](function(e){console.error('joseoPhotoUpload',e);toast('업로드 실패: '+((e&&e.message)||e));});
 }
+/* [BUILD2125] 지거 조서 화면 양식 — 헤더표(기존 카드와 동일) + 사진 4칸(공사시 근경/원경/이격기준점/포장후 관로위치). 사진변경은 기존 joseoPhotoPick(exp) 재활용 */
+function joseoRenderJg9(dk){
+  var box=document.getElementById('joseoPreview'); if(!box)return;
+  var dstr=String(dk).replace(/_지거$/,'');
+  var html='<div class="jz-proj">사업명 : '+joseoEsc(state.projectName||'')+' <span style="color:#7a52e0;font-weight:800">[지거]</span></div>';
+  var CAPS=['공사시 근경','공사시 원경','이격기준점','포장후 관로위치'];
+  (joseoState.groups[dk]||[]).forEach(function(p){
+    var n=String(p.no).split('-')[1]||'';
+    var jb=(state.rtJgBoard9&&state.rtJgBoard9[n])||{};
+    var pc=(typeof joseoParseCode==='function')?joseoParseCode(p.code||''):{mat:'',dia:''};
+    var mat=(jb.mat||pc.mat||'');var dia=(jb.dia||pc.dia||'');
+    var gap='',dep='';if(jb.ds){var _d=String(jb.ds).split('/');gap=(_d[0]||'').trim();dep=(_d[1]||'').trim();}
+    if(!dep&&p.depth!=null&&p.depth!=='')dep=String(p.depth);
+    var xN=(p.y!=null&&p.y!==''&&isFinite(+p.y))?(+p.y).toFixed(3):'';
+    var yE=(p.x!=null&&p.x!==''&&isFinite(+p.x))?(+p.x).toFixed(3):'';
+    var cells='';
+    for(var k=1;k<=4;k++){
+      var key=String(p.no)+'-'+k;
+      var u=(typeof photoMap!=='undefined'&&photoMap)?photoMap[key]:null;
+      cells+='<div class="jz-pc">'+(u?('<img src="'+joseoEsc(u)+'">'):'<div class="ne">'+CAPS[k-1]+' 사진 없음</div>')
+        +'<div class="jz-cap" style="position:relative">'+CAPS[k-1]+' ('+n+'-'+k+')'
+        +'<button data-jzchg="exp" data-jzno="'+joseoEsc(key)+'" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:2px 9px;border:1px solid #7a52e0;background:#fff;color:#7a52e0;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer">사진변경</button></div></div>';
+      if(k===2)cells+='</div><div class="jz-ph2">';
+    }
+    html+='<div class="jz-card" data-no="'+joseoEsc(p.no)+'">'
+      +'<table class="jz-tbl">'
+      +'<colgroup><col style="width:17%"><col style="width:16.5%"><col style="width:16.5%"><col style="width:12.5%"><col style="width:12.5%"><col style="width:12.5%"><col style="width:12.5%"></colgroup>'
+      +'<tr><td class="lbl">측량날짜</td><td class="val" colspan="2">'+joseoEsc(joseoDateK(dstr))+'</td><td class="lbl">측점명</td><td class="val" colspan="3">'+joseoEsc(n)+'</td></tr>'
+      +'<tr><td class="lbl" colspan="2">좌표(GRS80)</td><td class="lbl" rowspan="2">시설물종류</td><td class="lbl" rowspan="2">재질</td><td class="lbl" rowspan="2">관경</td><td class="lbl" rowspan="2">이격거리</td><td class="lbl" rowspan="2">심도</td></tr>'
+      +'<tr><td class="lbl">X(N)</td><td class="lbl">Y(E)</td></tr>'
+      +'<tr><td class="val">'+joseoEsc(xN)+'</td><td class="val">'+joseoEsc(yE)+'</td><td class="val">통신</td><td class="val">'+joseoEsc(mat)+'</td><td class="val">'+((dia||'').split(/[,\s]+/).filter(function(_t){return _t;}).map(function(_t){return '<span style="white-space:nowrap">'+joseoEsc(_t)+'</span>';}).join('<br>'))+'</td><td class="val">'+joseoEsc(gap)+'</td><td class="val">'+joseoEsc(dep)+'</td></tr>'
+      +'</table>'
+      +'<div class="jz-ph2">'+cells+'</div>'
+      +'</div>';
+  });
+  box.innerHTML=html;
+  [].forEach.call(box.querySelectorAll('button[data-jzchg]'),function(b){b.onclick=function(ev){ev.stopPropagation();if(typeof joseoPhotoPick==='function')joseoPhotoPick(b.getAttribute('data-jzno'),'exp');};});
+}
 function joseoRenderPreview(dk){
   var box=document.getElementById('joseoPreview'); if(!box)return;
+  if(/_지거$/.test(String(dk))){joseoRenderJg9(dk);return;}/* [BUILD2125] 지거 탭 분기 */
   var recs=(joseoState.groups[dk]||[]).map(joseoRec);
   var html='<div class="jz-proj">사업명 : '+joseoEsc(state.projectName||'')+'</div>';
   recs.forEach(function(r){
@@ -13346,14 +13398,14 @@ function expandPhotoFiles(list){
   if(typeof JSZip==='undefined'){toast('압축 모듈 로딩 실패 — 사진만 처리');return Promise.resolve(out);}
   toast('압축 푸는 중…');
   return Promise.all(zips.map(function(zf){
-    var dm=(zf.name||'').match(/(\d{6})/);var zdate=dm?dm[1]:'';
+    var dm=(zf.name||'').match(/(\d{6})/);var zdate=dm?dm[1]:'';var _isJg9=/지거/.test(zf.name||'');/* [BUILD2125] 지거 ZIP 표식 */
     return JSZip.loadAsync(zf).then(function(zip){
       var jobs=[];
       zip.forEach(function(path,entry){
         if(entry.dir)return;var base=path.split('/').pop();
         if(/^thumbs\.db$/i.test(base)||/__macosx/i.test(path))return;
         if(!/\.(jpe?g|png)$/i.test(base))return;
-        jobs.push(entry.async('blob').then(function(blob){var file=new File([blob],base,{type:'image/jpeg'});file._relpath=path;file._zipdate=zdate;return file;}));
+        jobs.push(entry.async('blob').then(function(blob){var file=new File([blob],base,{type:'image/jpeg'});file._relpath=path;file._zipdate=zdate;file._jgzip=_isJg9;return file;}));
       });
       return Promise.all(jobs);
     });
@@ -14187,6 +14239,7 @@ function resolvePhotoNo(f){
   var pool=(state.points||[]);
   var dpool=date?pool.filter(function(p){return _dateOfPt(p)===date;}):[];
   var cand=(date&&dpool.length)?dpool:pool;
+  if((f._jgzip||/지거/.test(rel))&&date&&/^\d+-[1-4]$/.test(base))return {no:date+'-'+base,matched:true};/* [BUILD2125] 지거 ZIP: N-K.jpg → 날짜-N-K 직결 */
   if(/^\d+$/.test(base)){
     // 순수 숫자 → 번호 매칭
     if(date){var no=date+'-'+base;if(pointByNo(no))return {no:no,matched:true};}
