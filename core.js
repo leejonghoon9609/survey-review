@@ -13854,7 +13854,7 @@ function rtJgBoardEdit9(num){
   var bizCur=(state.rtBoardName&&String(state.rtBoardName).trim())||bizBase;
   var ov=document.createElement('div');ov.id='rtJgEdOv9';
   ov.style.cssText='position:fixed;inset:0;background:rgba(15,20,30,.55);z-index:100001;display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box;overflow:auto';
-  var TB='border-radius:9px;font-weight:800;font-size:13px;cursor:pointer;touch-action:manipulation;text-align:center';
+  var TB='border-radius:9px;font-weight:800;font-size:13px;cursor:pointer;touch-action:manipulation;text-align:center;display:flex;align-items:center;justify-content:center';/* [BUILD2124] 폰 버튼 텍스트 가운데 — 2050 보강판 처방 */
   var SEC='border-radius:12px;padding:10px 10px 8px;margin-bottom:10px;text-align:center';/* [BUILD2123] 섹션 연한 배경 + 전체 가운데 정렬 */
   var LBL='font-size:12px;font-weight:800;color:#555;margin-bottom:6px;text-align:center';
   var card=document.createElement('div');
@@ -13881,9 +13881,9 @@ function rtJgBoardEdit9(num){
     +'<div style="'+SEC+';background:#eefaf0">'
     +'<div style="'+LBL+'">거리 / 심도 (m)</div>'
     +'<div style="display:flex;gap:6px;align-items:center;justify-content:center">'
-    +'<input id="rtJgDs1_9" inputmode="decimal" placeholder="거리" value="'+dsA.replace(/"/g,'&quot;')+'" style="flex:1;min-width:0;padding:8px;border:1.5px solid #cfe6d6;border-radius:9px;font-size:13.5px;text-align:center;background:#fff">'
+    +'<input id="rtJgDs1_9" inputmode="decimal" placeholder="거리" value="'+dsA.replace(/"/g,'&quot;')+'" style="flex:1;min-width:0;padding:8px;border:2px solid #e02b2b;border-radius:9px;font-size:13.5px;text-align:center;background:#fff">'
     +'<span style="font-weight:800;color:#98a1ad">/</span>'
-    +'<input id="rtJgDs2_9" inputmode="decimal" placeholder="심도" value="'+dsB.replace(/"/g,'&quot;')+'" style="flex:1;min-width:0;padding:8px;border:1.5px solid #cfe6d6;border-radius:9px;font-size:13.5px;text-align:center;background:#fff">'
+    +'<input id="rtJgDs2_9" inputmode="decimal" placeholder="심도" value="'+dsB.replace(/"/g,'&quot;')+'" style="flex:1;min-width:0;padding:8px;border:2px solid #e02b2b;border-radius:9px;font-size:13.5px;text-align:center;background:#fff">'
     +'</div></div>'
     +'<div style="display:flex;gap:8px;justify-content:center">'
     +'<button type="button" id="rtJgEdCancel9" style="flex:1;padding:11px 0;'+TB+';border:1px solid #dfe3e8;background:#f5f6f8;color:#333;font-size:14px">취소</button>'
