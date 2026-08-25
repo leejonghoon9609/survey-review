@@ -13175,7 +13175,8 @@ function joseoPhotoPick(no,kind){
 function joseoPhotoUpload(no,kind,f){
   var lab=(kind==='aft')?'후측량':'실시간';
   toast(lab+' 사진 업로드 중…');
-  compressImage(f,1600,0.8).then(function(blob){
+  var _cj9=(/^[0-9]{6}-[0-9]+-[1-4]$/.test(String(no))&&typeof rtCompressLandscape==='function')?rtCompressLandscape(f,1600,0.8):compressImage(f,1600,0.8);/* [BUILD2131] 지거 사진 무조건 가로 저장 */
+  _cj9.then(function(blob){
       var pno=(kind==='aft')?(no+'_A'):no;
       var path=state.projectId+'/'+safeName(pno)+'.jpg';
       return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
@@ -14344,7 +14345,8 @@ function uploadPhotos(files){
     var r=resolvePhotoNo(f);
     if(!r){unmatched++;done++;finish();return;}
     if(!r.matched)unmatched++;var no=r.no;
-    compressImage(f,1600,0.8).then(function(blob){
+    var _cp9=(/^[0-9]{6}-[0-9]+-[1-4]$/.test(String(no))&&typeof rtCompressLandscape==='function')?rtCompressLandscape(f,1600,0.8):compressImage(f,1600,0.8);/* [BUILD2131] 지거 사진 무조건 가로 저장 */
+    _cp9.then(function(blob){
       var path=state.projectId+'/'+safeName(no)+'.jpg';
       return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
         if(up.error)throw up.error;
