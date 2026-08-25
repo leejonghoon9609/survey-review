@@ -14846,7 +14846,10 @@ function _rtDayDup9(d){/* [BUILD2114] 날짜 단위 중복 — ZIP 유무와 무
   try{
     var M=state.rtRawMeta9||{};
     var rk=(typeof _rtRawKey9==='function')?_rtRawKey9(d):null;
-    if(rk&&M[rk]&&M[rk].dup)return M[rk].dup;
+    /* [BUILD2116] rk가 진짜 '자기 원시'인지 — 정확 일치 또는 그 날짜 측점의 원본날짜(_d0)와 일치(야간 귀속)일 때만 인정. 잡 누적으로 이웃 파일이 ±1 매칭된 경우는 타 원시로 취급해 중복 검사 대상 */
+    var own=false;
+    if(rk){if(rk===String(d))own=true;else{(state.points||[]).forEach(function(p){if(own||!p||!p.no)return;if(String(p.no).split('-')[0]!==String(d))return;if(String(p._d0||'')===String(rk))own=true;});}}
+    if(own&&M[rk]&&M[rk].dup)return M[rk].dup;
     var keys=[];
     (state.points||[]).forEach(function(p){
       if(!p||!p.no)return;if(String(p.no).split('-')[0]!==String(d))return;
@@ -14855,7 +14858,7 @@ function _rtDayDup9(d){/* [BUILD2114] 날짜 단위 중복 — ZIP 유무와 무
     });
     if(!keys.length)return null;
     for(var k in M){
-      if(k===rk)continue;var fp=M[k]&&M[k].fp;
+      if(own&&k===rk)continue;var fp=M[k]&&M[k].fp;/* [BUILD2116] 자기 원시일 때만 제외 */
       if(!fp||!fp.length||fp.length<keys.length)continue;
       var set={};fp.forEach(function(h){set[h]=1;});
       var all=true;for(var i=0;i<keys.length;i++){if(!set[keys[i]]){all=false;break;}}
