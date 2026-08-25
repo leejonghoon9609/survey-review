@@ -13880,6 +13880,13 @@ function refreshPhotoPanel(){
     if(_rc){var _m=/^([A-Za-z가-힣]+)\s*(.*)$/.exec(_rc);var _gj=_m?_m[1]:_rc;var _gk=_m?(_m[2]||'').trim():'';_cap+=' · '+_gj+(_gk?' · '+_gk:'');}
     var _bp=_rp, _bn=_bp?ptNum(_bp):null;
     var _bu=photoMap[selNum]||(_bn!=null?photoMap[_bn]:null);
+    var _jgm9=/^([0-9]{6})-([0-9]+)-([123])$/.exec(String(selNum));
+    if(_jgm9){/* [BUILD2119] 지거 3장 세로 통합 — 아무 장이나 선택해도 근경·원경·이격기준점 한 번에 */
+      var _JL9=['근경','원경','이격기준점'];var _h9='';
+      for(var _ji9=1;_ji9<=3;_ji9++){var _no9=_jgm9[1]+'-'+_jgm9[2]+'-'+_ji9;_h9+=paneImg(_no9,'지거',true,'지거 '+_jgm9[2]+' · '+_JL9[_ji9-1]+' / '+_no9);}
+      body.innerHTML=_h9;_bu=null;/* 현황판 생략 */
+      [].forEach.call(body.querySelectorAll('img#zoomImg'),function(_zi9,_ix9){_zi9.id='rtJgImg9_'+_ix9;try{rtViewZoom(_zi9);}catch(_z9){}});
+    }else
     body.innerHTML=paneImg(selNum,'노출관로측량',true,_cap)
       +(_bu?'<div class="php-main" style="margin-top:8px"><div class="cap"><span>현황판</span></div><div class="ph php-none" id="rtBoardBox">현황판 생성 중…</div></div>':'');
     try{if(window.matchMedia&&matchMedia('(max-width:760px)').matches){var _c9=body.querySelector('.php-main .cap');if(_c9&&!_c9.querySelector('.rtRecapCap9')){var _rb9=document.createElement('button');_rb9.className='rtRecapCap9';_rb9.innerHTML='\uD83D\uDCF7 \uC7AC\uCD2C\uC601';_rb9.onclick=function(){if(typeof rtRecapture==='function')rtRecapture();};_rb9.style.cssText='flex:none;margin-left:6px;background:#EA002C;color:#fff;border:0;border-radius:7px;padding:3px 10px;font-size:11.5px;font-weight:800;cursor:pointer';_c9.appendChild(_rb9);}}}catch(_rc9){}/* [BUILD2073] \ud3f0: \uc7ac\ucd2c\uc601=\uce74\uc158\ud589 \uc624\ub978\ucabd \ub05d(\uc644\ub8cc\uc0ac\uc9c4 \uc606) */
@@ -14332,7 +14339,7 @@ try{
 
 /* ===== [BUILD 815] 실시간측량 측점 촬영 (날짜 자동 + 번호 자동제안·수정가능) ===== */
 function rtToday(){var d=new Date();function p(n){return('0'+n).slice(-2);}return String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate());}function rtWorkDay(){var d=new Date();var real=rtToday();var tm=d.getHours()*60+d.getMinutes();var ns=state.nightShift;var work=(ns&&ns.on&&ns.cut!=null&&tm<ns.cut)?prevDayYMD(real):real;return {real:real,work:work,tm:tm};}
-function rtNextNo(day){var mx=0;var re=new RegExp('^'+day+'-(\\d+)$');try{Object.keys((typeof photoMap!=='undefined'&&photoMap)?photoMap:{}).forEach(function(k){var m=re.exec(k);if(m)mx=Math.max(mx,parseInt(m[1],10));});}catch(e){}(state.points||[]).forEach(function(p){var m=re.exec(p.no||'');if(m)mx=Math.max(mx,parseInt(m[1],10));});return mx+1;}
+function rtNextNo(day){var mx=0;var re=new RegExp('^'+day+'-(\\d+)(?:-[123])?$');/* [BUILD2119] 지거 N-1~3도 같은 번호 시퀀스 — 지거 1 완료 후 다음 제안 2 */try{Object.keys((typeof photoMap!=='undefined'&&photoMap)?photoMap:{}).forEach(function(k){var m=re.exec(k);if(m)mx=Math.max(mx,parseInt(m[1],10));});}catch(e){}(state.points||[]).forEach(function(p){var m=re.exec(p.no||'');if(m)mx=Math.max(mx,parseInt(m[1],10));});return mx+1;}
 var rtPendingNo=null;var rtPendingMeta=null;var rtPendingReshoot=false;   /* [1145] 재촬영=사진만 교체, 위치 불변 */
 function rtCapture(){
   if(typeof online!=='undefined'&&!online){toast('로컬 모드 — 사진 저장 불가');return;}
@@ -14352,7 +14359,7 @@ function rtShowNumPopup(day,sug,onOk){
   card.innerHTML=
     '<div style="height:6px;background:linear-gradient(90deg,#EA002C 0%,#FF7A00 55%,#FFC61A 100%)"></div>'+
     '<div style="padding:22px 24px">'+
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px"><span style="font-weight:800;font-size:18px;color:#1f2d3d">\uD83D\uDCF7 \uCE21\uC810 \uCD2C\uC601</span>'+((window.matchMedia&&matchMedia('(max-width:760px)').matches)?'<button type="button" id="rtJgBtn" style="border:1.5px solid #7c3aed;background:#f5f0ff;color:#7c3aed;border-radius:9px;padding:5px 12px;font-weight:800;font-size:13px;cursor:pointer;touch-action:manipulation">\uD83D\uDCD0 지거</button>':'')+'</div>'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px"><span style="font-weight:800;font-size:18px;color:#1f2d3d">\uD83D\uDCF7 \uCE21\uC810 \uCD2C\uC601</span>'+((window.matchMedia&&matchMedia('(max-width:760px)').matches)?'<button type="button" id="rtJgBtn" style="border:2px solid #e02b2b;background:#ffd83d;color:#7a1414;border-radius:9px;padding:5px 12px;font-weight:800;font-size:13px;cursor:pointer;touch-action:manipulation">\uD83D\uDCD0 지거</button>':'')+'</div>'+
       '<div style="font-size:12px;color:#9aa4b0;margin-bottom:15px">\uC624\uB298 '+day+' \u00B7 \uCE21\uC810 \uBC88\uD638\uB97C \uD655\uC778/\uC218\uC815\uD558\uC138\uC694</div>'+
       '<input id="rtNumInp" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" name="rtptno9" value="'+sug+'" style="width:100%;box-sizing:border-box;font-size:18px;font-weight:800;text-align:center;padding:9px;border:2px solid #f0c9c9;border-radius:9px;color:#EA002C;outline:none;margin-bottom:12px">'+((window.matchMedia&&matchMedia('(max-width:760px)').matches)?('<div style="display:flex;gap:7px;margin-bottom:12px">'+'<button type="button" data-k9="\uBCF4\uAC15\uD310 \uC2DC\uC791" style="flex:1;padding:6px 0;font-size:13px;font-weight:800;border:2px solid #d9a659;border-radius:10px;background:#fff7e6;color:#8a5a00;cursor:pointer;touch-action:manipulation;text-align:center;display:flex;align-items:center;justify-content:center">\uBCF4\uAC15\uD310 \uC2DC\uC791</button>'+'<button type="button" data-k9="\uBCF4\uAC15\uD310 \uB05D" style="flex:1;padding:6px 0;font-size:13px;font-weight:800;border:2px solid #1d4ed8;border-radius:10px;background:#eef4ff;color:#1d4ed8;cursor:pointer;touch-action:manipulation;text-align:center;display:flex;align-items:center;justify-content:center">\uBCF4\uAC15\uD310 \uB05D</button>'+'</div>'):'')+
       '<div style="display:flex;gap:8px">'+
@@ -14370,45 +14377,58 @@ function rtShowNumPopup(day,sug,onOk){
   inp.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('rtNumOk').click();}else if(e.key==='Escape'){close();}};
   ov.onclick=function(e){if(e.target===ov)close();};
 }
-/* [BUILD2118] 지거측량 3장 연속 촬영 — GPS 불가 지역 스타프 측량. N-1 근경 / N-2 원경 / N-3 이격기준점.
-   기존 rtPendingNo→rtCamInput→rtCamPicked 경로 그대로 재활용(fall-through). GPS 위치수집은 첫 장(N-1)에서만, 2·3장은 rtPendingReshoot=true로 사진만. */
+/* [BUILD2118→2119] 지거측량 3장 촬영 — GPS 불가 지역 스타프 측량. N-1 근경 / N-2 원경 / N-3 이격기준점.
+   [2119] 순서 자유 선택형: 노란 팝업에서 작업자가 원하는 장을 눌러 촬영, 찍은 장 ✓ 표시, 3장 완료 시 자동 종료. 버튼 가운데 정렬.
+   기존 rtPendingNo→rtCamInput→rtCamPicked 경로 재활용(fall-through). GPS 위치수집은 시퀀스 중 첫 촬영 1회만. */
 var _rtJg9=null;
 var _RT_JG_LBL9=['근경','원경','이격기준점'];
-function rtJgStart9(day,n){_rtJg9={day:day,n:n,k:1};rtJgShoot9();}
-function rtJgShoot9(){
+function rtJgStart9(day,n){_rtJg9={day:day,n:n,k:0,gps:false};_rtJg9.gps=(rtJgHas9(1)||rtJgHas9(2)||rtJgHas9(3));rtJgPop9();}
+function rtJgHas9(k){if(!_rtJg9)return false;var no=_rtJg9.day+'-'+_rtJg9.n+'-'+k;return !!(typeof photoMap!=='undefined'&&photoMap&&photoMap[no]);}
+function rtJgShoot9(k){
   if(!_rtJg9)return;
-  var no=_rtJg9.day+'-'+_rtJg9.n+'-'+_rtJg9.k;
+  _rtJg9.k=k;
+  var no=_rtJg9.day+'-'+_rtJg9.n+'-'+k;
   var _wi=rtWorkDay();
   rtPendingNo=no;
-  rtPendingMeta=(_rtJg9.k===1)?{_d0:_wi.real,_tm:_wi.tm,_nm:_rtJg9.n+'-1'}:null;
-  rtPendingReshoot=(_rtJg9.k!==1);
-  toast('\uD83D\uDCD0 지거 '+_rtJg9.n+' — '+_rtJg9.k+'/3 '+_RT_JG_LBL9[_rtJg9.k-1]+' 촬영');
+  rtPendingMeta=(!_rtJg9.gps)?{_d0:_wi.real,_tm:_wi.tm,_nm:_rtJg9.n+'-'+k}:null;
+  rtPendingReshoot=!!_rtJg9.gps;
+  toast('\uD83D\uDCD0 지거 '+_rtJg9.n+' — '+_RT_JG_LBL9[k-1]+'('+_rtJg9.n+'-'+k+') 촬영');
   var inp=document.getElementById('rtCamInput');if(inp){inp.value='';inp.click();}
 }
 function rtJgAfter9(no){
   if(!_rtJg9)return;
   if(no!==_rtJg9.day+'-'+_rtJg9.n+'-'+_rtJg9.k)return;
-  if(_rtJg9.k>=3){toast('\uD83D\uDCD0 지거 '+_rtJg9.n+' — 3장 완료 (근경·원경·이격기준점)');_rtJg9=null;return;}
-  _rtJg9.k++;rtJgNextPop9();
+  _rtJg9.gps=true;
+  if(rtJgHas9(1)&&rtJgHas9(2)&&rtJgHas9(3)){
+    toast('\uD83D\uDCD0 지거 '+_rtJg9.n+' — 3장 완료 (근경·원경·이격기준점)');
+    var ov=document.getElementById('rtJgOv9');if(ov&&ov.parentNode)ov.parentNode.removeChild(ov);
+    _rtJg9=null;return;
+  }
+  rtJgPop9();
 }
-function rtJgNextPop9(){/* 폰 카메라는 사용자 제스처 필요 — 다음 장은 버튼 탭으로 연다 */
+function rtJgPop9(){/* 순서 자유 선택 팝업 — 노란 배경, 버튼 가운데 정렬 */
   if(!_rtJg9)return;
   var old=document.getElementById('rtJgOv9');if(old&&old.parentNode)old.parentNode.removeChild(old);
-  var lbl=_RT_JG_LBL9[_rtJg9.k-1];
   var ov=document.createElement('div');ov.id='rtJgOv9';
   ov.style.cssText='position:fixed;inset:0;background:rgba(15,20,30,.5);z-index:100000;display:flex;align-items:center;justify-content:center;padding-bottom:185px;box-sizing:border-box';
-  ov.innerHTML='<div style="background:#fff;border-radius:16px;width:280px;max-width:88vw;box-shadow:0 24px 70px rgba(0,0,0,.4);overflow:hidden">'
-    +'<div style="height:6px;background:linear-gradient(90deg,#7c3aed,#a78bfa)"></div>'
-    +'<div style="padding:20px 22px">'
-    +'<div style="font-weight:800;font-size:17px;color:#1f2d3d;margin-bottom:4px">\uD83D\uDCD0 지거 '+_rtJg9.n+'</div>'
-    +'<div style="font-size:12.5px;color:#9aa4b0;margin-bottom:14px">'+(_rtJg9.k-1)+'/3 완료 — 다음: '+_rtJg9.n+'-'+_rtJg9.k+' '+lbl+'</div>'
-    +'<div style="display:flex;gap:8px">'
-    +'<button type="button" id="rtJgStop9" style="flex:1;padding:11px;border:1px solid #dfe3e8;background:#f5f6f8;color:#333;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;touch-action:manipulation">중단</button>'
-    +'<button type="button" id="rtJgGo9" style="flex:2;padding:11px;border:0;background:#7c3aed;color:#fff;border-radius:10px;font-weight:800;font-size:15px;cursor:pointer;touch-action:manipulation">\uD83D\uDCF7 '+lbl+' 촬영</button>'
-    +'</div></div></div>';
+  var bs='display:flex;align-items:center;justify-content:center;gap:6px;width:206px;padding:11px 0;border-radius:10px;font-weight:800;font-size:14.5px;cursor:pointer;touch-action:manipulation';
+  var done=(rtJgHas9(1)?1:0)+(rtJgHas9(2)?1:0)+(rtJgHas9(3)?1:0);
+  var rows='';
+  for(var k=1;k<=3;k++){
+    var d=rtJgHas9(k);
+    rows+='<button type="button" class="rtJgShot9" data-k="'+k+'" style="'+bs+';border:'+(d?'1.5px solid #b7a63a;background:#f6efc8;color:#8a7c22':'0;background:#7c3aed;color:#fff')+'">'+(d?'\u2713 ':'\uD83D\uDCF7 ')+_RT_JG_LBL9[k-1]+' 촬영 ('+_rtJg9.n+'-'+k+')'+(d?' \u00B7 재촬영':'')+'</button>';
+  }
+  ov.innerHTML='<div style="background:#fff3b0;border:2px solid #e0a800;border-radius:16px;width:292px;max-width:90vw;box-shadow:0 24px 70px rgba(0,0,0,.4);overflow:hidden">'
+    +'<div style="height:6px;background:linear-gradient(90deg,#e02b2b,#ff9800)"></div>'
+    +'<div style="padding:18px 20px;display:flex;flex-direction:column;align-items:center;gap:8px">'
+    +'<div style="font-weight:800;font-size:17px;color:#5a4a00">\uD83D\uDCD0 지거 '+_rtJg9.n+'</div>'
+    +'<div style="font-size:12px;color:#8a7c22;margin-bottom:2px">'+done+'/3 완료 — 순서 상관없이 눌러 촬영</div>'
+    +rows
+    +'<button type="button" id="rtJgStop9" style="'+bs+';width:132px;border:1px solid #c9b76a;background:#fffbe6;color:#6b5d1a;margin-top:4px">닫기</button>'
+    +'</div></div>';
   document.body.appendChild(ov);
-  document.getElementById('rtJgStop9').onclick=function(){if(ov.parentNode)ov.parentNode.removeChild(ov);_rtJg9=null;toast('지거 촬영 중단');};
-  document.getElementById('rtJgGo9').onclick=function(){if(ov.parentNode)ov.parentNode.removeChild(ov);rtJgShoot9();};
+  [].forEach.call(ov.querySelectorAll('.rtJgShot9'),function(b){b.onclick=function(){if(ov.parentNode)ov.parentNode.removeChild(ov);rtJgShoot9(parseInt(b.getAttribute('data-k'),10));};});
+  document.getElementById('rtJgStop9').onclick=function(){if(ov.parentNode)ov.parentNode.removeChild(ov);_rtJg9=null;};
 }
 /* [1164] 실시간측량 노출관로 전용 — 세로 사진은 90° 회전해 무조건 가로 저장. compressImage(공용)는 안 건드림 */
 function rtCompressLandscape(file,maxW,q){return new Promise(function(res,rej){var img=new Image(),u=URL.createObjectURL(file);img.onload=function(){URL.revokeObjectURL(u);var iw=img.width,ih=img.height;var rot=(ih>iw);/* 세로면 시계방향 90° 회전 */var w=rot?ih:iw,h=rot?iw:ih;if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}var c=document.createElement('canvas');c.width=w;c.height=h;var ctx=c.getContext('2d');if(rot){ctx.translate(w,0);ctx.rotate(Math.PI/2);/* 회전 후 원본을 그림: 대상은 (h_dst x w_dst)=(w x h) 공간에 원본(iw x ih) 스케일 */ctx.drawImage(img,0,0,h,w);}else{ctx.drawImage(img,0,0,w,h);}c.toBlob(function(b){b?res(b):rej(new Error('blob'));},'image/jpeg',q);};img.onerror=function(){rej(new Error('img'));};img.src=u;});}
