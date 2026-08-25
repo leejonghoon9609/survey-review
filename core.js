@@ -14418,9 +14418,9 @@ function rtDailyTodayFill(){ /* [BUILD1915] 날짜별 목록+체크박스 — �
   var dset={};dset[ymd]=1;for(var k1 in dm.dist)dset[k1]=1;for(var k2 in recs)dset[k2]=1;for(var k3 in ptBy)dset[k3]=1;
   var dates=Object.keys(dset).sort();
   var prev=null;try{prev={};[].forEach.call(el.querySelectorAll('.rtdChk'),function(c){prev[c.getAttribute('data-d')]=c.checked;});if(!Object.keys(prev).length)prev=null;}catch(_p){prev=null;}
-  var h='<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#fdf0f0;color:#a12b2b">'
-   +'<th style="padding:7px 4px;border-bottom:1px solid #edd;width:24px"></th>'
-   +'<th style="padding:7px 6px;border-bottom:1px solid #edd">날짜</th><th style="border-bottom:1px solid #edd">사업명</th><th style="border-bottom:1px solid #edd">작업자</th><th style="border-bottom:1px solid #edd;text-align:right">거리(m)</th><th style="border-bottom:1px solid #edd;text-align:right">측점</th><th style="border-bottom:1px solid #edd;text-align:right">결선</th><th style="border-bottom:1px solid #edd">사진</th><th style="border-bottom:1px solid #edd">원시</th><th style="border-bottom:1px solid #edd">CSV</th></tr></thead><tbody>';
+  var h='<table style="width:100%;border-collapse:collapse;font-size:13px;border:1.5px solid #cf8f8f"><thead><tr style="background:#fdf0f0;color:#a12b2b">'
+   +'<th style="padding:7px 4px;border-bottom:1.5px solid #d9a3a3;width:24px"></th>'
+   +'<th style="padding:7px 6px;border-bottom:1.5px solid #d9a3a3">날짜</th><th style="border-bottom:1.5px solid #d9a3a3">사업명</th><th style="border-bottom:1.5px solid #d9a3a3">작업자</th><th style="border-bottom:1.5px solid #d9a3a3;text-align:right">거리(m)</th><th style="border-bottom:1.5px solid #d9a3a3;text-align:right">측점</th><th style="border-bottom:1.5px solid #d9a3a3;text-align:right">결선</th><th style="border-bottom:1.5px solid #d9a3a3">사진</th><th style="border-bottom:1.5px solid #d9a3a3">원시</th><th style="border-bottom:1.5px solid #d9a3a3">CSV</th></tr></thead><tbody>';
   for(var di=dates.length-1;di>=0;di--){var d=dates[di],r=recs[d]||null;
     var dist=+((dm.dist[d]||0).toFixed(1)),seg=dm.seg[d]||0,np=ptBy[d]||0,ph=phBy[d]||0;
     var chk=prev?!!prev[d]:(d===ymd);
@@ -14434,7 +14434,7 @@ function rtDailyTodayFill(){ /* [BUILD1915] 날짜별 목록+체크박스 — �
      +'<td style="text-align:right">'+np+'</td>'
      +'<td style="text-align:right">'+seg+'</td>'
      +'<td style="text-align:center"><button class="rtdRowPh" data-d="'+d+'" style="background:'+(ph?'#7c3aed':'#e8e8e2')+';color:'+(ph?'#fff':'#999')+';border:0;border-radius:6px;padding:4px 9px;font-weight:700;font-size:12px;cursor:pointer">'+ph+'장</button></td>'
-     +'<td style="text-align:center">'+((state.rtRawMeta9&&state.rtRawMeta9[d])?('<button class="rtdRowRaw9" data-d="'+d+'" style="background:#fff7e6;color:#8a5a00;border:1px solid #d9a659;border-radius:6px;padding:4px 8px;font-weight:800;font-size:11px;cursor:pointer">ZIP</button>'):'<span style="color:#c9ccd2">-</span>')+'</td>'+'<td style="text-align:center"><button class="rtdRowCsv" data-d="'+d+'" style="'+((state.rtRawMeta9&&state.rtRawMeta9[d])?'background:#1565c0;color:#fff;border:0':'background:#fff;color:#1565c0;border:1px solid #1565c0')+';border-radius:6px;padding:4px 7px;font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap">야간보정</button></td>'/* [BUILD2090] */
+     +(function(){var rk=(typeof _rtRawKey9==='function')?_rtRawKey9(d):null;return '<td style="text-align:center">'+(rk?('<button class="rtdRowRaw9" data-d="'+rk+'" style="background:#fff7e6;color:#8a5a00;border:1px solid #d9a659;border-radius:6px;padding:4px 8px;font-weight:800;font-size:11px;cursor:pointer">ZIP</button>'):'<span style="color:#c9ccd2">-</span>')+'</td>'+'<td style="text-align:center"><button class="rtdRowCsv" data-d="'+d+'" data-rk="'+(rk||'')+'" style="'+(rk?'background:#1565c0;color:#fff;border:0':'background:#fff;color:#1565c0;border:1px solid #1565c0')+';border-radius:6px;padding:4px 7px;font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap">야간보정</button></td>';})()/* [BUILD2091] \uc720\uc5f0\ud0a4 */
      +'</tr>';}
   h+='</tbody></table>';
   var tpts=ptBy[ymd]||0,tph=phBy[ymd]||0,tdist=+((dm.dist[ymd]||0).toFixed(1)),tseg=dm.seg[ymd]||0;
@@ -14444,8 +14444,8 @@ function rtDailyTodayFill(){ /* [BUILD1915] 날짜별 목록+체크박스 — �
    +'</div>';
   h+='<div style="display:flex;gap:7px;margin-top:9px"><button id="rtAllCsv9" style="flex:1;background:#fff;color:#8a5a00;border:1.5px solid #d9a659;border-radius:8px;padding:8px 2px;font-weight:800;font-size:12px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center">CSV(\uC6D0\uC2DC)</button><button id="rtAllNight9" style="flex:1;background:#fff;color:#1565c0;border:1.5px solid #1565c0;border-radius:8px;padding:8px 2px;font-weight:800;font-size:12px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center">CSV(\uC57C\uAC04\uBCF4\uC815)</button><button id="rtAllPh9" style="flex:1;background:#fff;color:#7a52e0;border:1.5px solid #7a52e0;border-radius:8px;padding:8px 2px;font-weight:800;font-size:12px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center">\uC0AC\uC9C4 \uD1B5\uD569\uBCF8(ZIP)</button></div>';/* [BUILD2090] 3\uBC84\uD2BC */
   el.innerHTML=h;
-  try{var _ac9=el.querySelector('#rtAllCsv9');if(_ac9)_ac9.onclick=function(){rtDailyCsv(null);};var _an9=el.querySelector('#rtAllNight9');if(_an9)_an9.onclick=function(){rtDailyCsv(null,true);};var _ap9=el.querySelector('#rtAllPh9');if(_ap9)_ap9.onclick=function(){var _it=[];try{for(var _k in photoMap)_it.push({no:_k,url:photoMap[_k]});}catch(_e){}if(!_it.length){toast('\uC0AC\uC9C4\uC774 \uC5C6\uC2B5\uB2C8\uB2E4');return;}if(typeof svPhotoZip==='function')svPhotoZip(_it,(state.projectName||'\uC0AC\uC9C4')+'_\uC804\uCCB4\uC0AC\uC9C4',true);};}catch(_dl9){}
-  [].forEach.call(el.querySelectorAll('.rtdRowCsv'),function(b){b.onclick=function(){var d=b.getAttribute('data-d');if(state.rtRawMeta9&&state.rtRawMeta9[d]&&typeof rtRawDl9==='function'){rtRawDl9(d,'night');}else{rtDailyCsv(d,true);}};});[].forEach.call(el.querySelectorAll('.rtdRowRaw9'),function(b){b.onclick=function(){if(typeof rtRawDl9==='function')rtRawDl9(b.getAttribute('data-d'),'zip');};});/* [BUILD2090] */
+  try{var _ac9=el.querySelector('#rtAllCsv9');if(_ac9)_ac9.onclick=function(){if(typeof rtRawAllZip9==='function')rtRawAllZip9();};/* [BUILD2091] \uc6d0\uc2dc \ud1b5\ud569 ZIP */var _an9=el.querySelector('#rtAllNight9');if(_an9)_an9.onclick=function(){rtDailyCsv(null,true);};var _ap9=el.querySelector('#rtAllPh9');if(_ap9)_ap9.onclick=function(){var _it=[];try{for(var _k in photoMap)_it.push({no:_k,url:photoMap[_k]});}catch(_e){}if(!_it.length){toast('\uC0AC\uC9C4\uC774 \uC5C6\uC2B5\uB2C8\uB2E4');return;}if(typeof svPhotoZip==='function')svPhotoZip(_it,(state.projectName||'\uC0AC\uC9C4')+'_\uC804\uCCB4\uC0AC\uC9C4',true);};}catch(_dl9){}
+  [].forEach.call(el.querySelectorAll('.rtdRowCsv'),function(b){b.onclick=function(){var rk=b.getAttribute('data-rk');if(rk&&typeof rtRawDl9==='function'){rtRawDl9(rk,'night');}else{rtDailyCsv(b.getAttribute('data-d'),true);}};});[].forEach.call(el.querySelectorAll('.rtdRowRaw9'),function(b){b.onclick=function(){if(typeof rtRawDl9==='function')rtRawDl9(b.getAttribute('data-d'),'zip');};});/* [BUILD2090] */
   [].forEach.call(el.querySelectorAll('.rtdRowPh'),function(b){b.onclick=function(){var d=b.getAttribute('data-d');var _it=[];try{var _pm2=(typeof photoMap!=='undefined'&&photoMap)?photoMap:{};for(var _k2 in _pm2)if(_k2.indexOf(d+'-')===0)_it.push({no:_k2,url:_pm2[_k2]});}catch(_e2){}if(typeof svPhotoDl==='function')svPhotoDl(_it);};});
 }
 function _rtDailyChecked(){var out=[];[].forEach.call(document.querySelectorAll('#rtDailyToday .rtdChk'),function(c){if(c.checked)out.push(c.getAttribute('data-d'));});return out;}
@@ -14749,6 +14749,36 @@ function rtRawZipUp9(file){
       }
     });
   }).catch(function(e){toast('ZIP 처리 오류: '+(e&&e.message||e));});
+}
+
+function _rtRawKey9(d){try{var M=state.rtRawMeta9||{};if(M[d])return d;
+  var t=new Date('20'+String(d).slice(0,2)+'-'+String(d).slice(2,4)+'-'+String(d).slice(4,6)+'T00:00:00').getTime();
+  for(var k in M){var kt=new Date('20'+k.slice(0,2)+'-'+k.slice(2,4)+'-'+k.slice(4,6)+'T00:00:00').getTime();
+    if(isFinite(kt)&&Math.abs(kt-t)<=86400000)return k;}
+}catch(_e){}return null;}
+function rtRawAllZip9(){ /* [BUILD2091] 등록된 일별 원시 ZIP 전체 → 통합 ZIP */
+  var M=(typeof state!=='undefined'&&state.rtRawMeta9)||{};var keys=Object.keys(M).sort();
+  if(!keys.length){toast('보관된 원시 ZIP이 없습니다 — 원시 ZIP으로 업로드한 날짜만 포함됩니다');return;}
+  if(typeof JSZip==='undefined'){toast('압축 모듈 없음 — 새로고침(Ctrl+Shift+R)');return;}
+  if(typeof sb==='undefined'||!state.projectId){toast('사업이 저장되어 있어야 합니다');return;}
+  toast('원시 성과 '+keys.length+'일치 수집 중…');
+  var zip=new JSZip(),i=0,ok=0,fail=0;
+  (function nx(){
+    if(i>=keys.length){
+      if(!ok){toast('받은 원시가 없습니다 ('+fail+'일 실패)');return;}
+      zip.generateAsync({type:'blob'}).then(function(b){
+        var a=document.createElement('a');a.href=URL.createObjectURL(b);
+        a.download=((state.projectName||'사업')+'_원시성과통합.zip').replace(/[\\/:*?"<>|]/g,'_');
+        document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},400);
+        toast('✓ 원시성과통합.zip — '+ok+'일'+(fail?(' · 실패 '+fail):''),4000);
+      });return;
+    }
+    var k=keys[i++];var url=sb.storage.from('photos').getPublicUrl(state.projectId+'/raw_'+k+'.zip').data.publicUrl+'?t='+Date.now();
+    fetch(url).then(function(r){if(!r.ok)throw 0;return r.blob();}).then(function(b){
+      var zn=((M[k]&&M[k].zn)||('원시.zip')).replace(/[\\/:*?"<>|]/g,'_');
+      zip.file('20'+k+'_'+zn,b);ok++;
+    })['catch'](function(){fail++;}).then(function(){setTimeout(nx,30);});
+  })();
 }
 function rtRawDl9(ymd,kind){ /* kind: 'zip'|'night' */
   if(typeof sb==='undefined'||!state.projectId){toast('사업이 저장되어 있어야 합니다');return;}
