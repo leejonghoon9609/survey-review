@@ -14480,7 +14480,7 @@ function rtDailyTodayFill(){ /* [BUILD1915] 날짜별 목록+체크박스 — �
      +'<td style="text-align:right">'+np+'</td>'
      +'<td style="text-align:right">'+seg+'</td>'
      +'<td style="text-align:center"><button class="rtdRowPh" data-d="'+d+'" style="background:'+(ph?'#7c3aed':'#e8e8e2')+';color:'+(ph?'#fff':'#999')+';border:0;border-radius:6px;padding:4px 9px;font-weight:700;font-size:12px;cursor:pointer">'+ph+'장</button></td>'
-     +(function(){var rk=(typeof _rtRawKey9==='function')?_rtRawKey9(d):null;var _dp=(rk&&state.rtRawMeta9&&state.rtRawMeta9[rk]&&state.rtRawMeta9[rk].dup)||null;var _dl=_dp?_rtDupLbl9(_dp):'';return '<td style="text-align:center">'+(_dp?('<button class="rtdRowDup9" data-l="'+_dl+'" style="background:#e8f0fd;color:#1565c0;border:1px solid #9db9e8;border-radius:6px;padding:4px 6px;font-weight:800;font-size:10.5px;cursor:not-allowed;white-space:nowrap">중복</button>'):(rk?('<button class="rtdRowRaw9" data-d="'+rk+'" style="background:#fff7e6;color:#8a5a00;border:1px solid #d9a659;border-radius:6px;padding:4px 8px;font-weight:800;font-size:11px;cursor:pointer">ZIP</button>'):'<span style="color:#c9ccd2">-</span>'))+'</td>'+'<td style="text-align:center">'+(_dp?('<button class="rtdRowDup9" data-l="'+_dl+'" style="background:#fff;color:#1565c0;border:1px dashed #9db9e8;border-radius:6px;padding:4px 5px;font-weight:800;font-size:10.5px;cursor:not-allowed;white-space:nowrap">'+_dl+' 중복</button>'):('<button class="rtdRowCsv" data-d="'+d+'" data-rk="'+(rk||'')+'" style="'+(rk?'background:#1565c0;color:#fff;border:0':'background:#fff;color:#1565c0;border:1px solid #1565c0')+';border-radius:6px;padding:4px 7px;font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap">야간보정</button>'))+'</td>';})()/* [BUILD2111] \uc911\ubcf5 \ud45c\uc2dc */
+     +(function(){var rk=(typeof _rtRawKey9==='function')?_rtRawKey9(d):null;var _dp=(typeof _rtDayDup9==='function')?_rtDayDup9(d):((rk&&state.rtRawMeta9&&state.rtRawMeta9[rk]&&state.rtRawMeta9[rk].dup)||null);/* [BUILD2114] \ub0a0\uc9dc \ub2e8\uc704 */var _dl=_dp?_rtDupLbl9(_dp):'';return '<td style="text-align:center">'+(_dp?('<button class="rtdRowDup9" data-l="'+_dl+'" style="background:#e8f0fd;color:#1565c0;border:1px solid #9db9e8;border-radius:6px;padding:4px 6px;font-weight:800;font-size:10.5px;cursor:not-allowed;white-space:nowrap">중복</button>'):(rk?('<button class="rtdRowRaw9" data-d="'+rk+'" style="background:#fff7e6;color:#8a5a00;border:1px solid #d9a659;border-radius:6px;padding:4px 8px;font-weight:800;font-size:11px;cursor:pointer">ZIP</button>'):'<span style="color:#c9ccd2">-</span>'))+'</td>'+'<td style="text-align:center">'+(_dp?('<button class="rtdRowDup9" data-l="'+_dl+'" style="background:#fff;color:#1565c0;border:1px dashed #9db9e8;border-radius:6px;padding:4px 5px;font-weight:800;font-size:10.5px;cursor:not-allowed;white-space:nowrap">'+_dl+' 중복</button>'):('<button class="rtdRowCsv" data-d="'+d+'" data-rk="'+(rk||'')+'" style="'+(rk?'background:#1565c0;color:#fff;border:0':'background:#fff;color:#1565c0;border:1px solid #1565c0')+';border-radius:6px;padding:4px 7px;font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap">야간보정</button>'))+'</td>';})()/* [BUILD2111] \uc911\ubcf5 \ud45c\uc2dc */
      +'</tr>';}
   h+='</tbody></table>';
   var tpts=ptBy[ymd]||0,tph=phBy[ymd]||0,tdist=+((dm.dist[ymd]||0).toFixed(1)),tseg=dm.seg[ymd]||0;
@@ -14840,6 +14840,30 @@ function rtRawAllZip9(){ /* [BUILD2096] 원시 통합 — 한 번만 압축: 날
   })();
 }
 
+
+function _rtH9(str){var h=5381;for(var i=0;i<str.length;i++){h=((h<<5)+h+str.charCodeAt(i))|0;}return h;}
+function _rtDayDup9(d){/* [BUILD2114] 날짜 단위 중복 — ZIP 유무와 무관, 그 날짜 측점(_raw)이 타 원시에 전부 포함되면 그 원시 ymd 반환 */
+  try{
+    var M=state.rtRawMeta9||{};
+    var rk=(typeof _rtRawKey9==='function')?_rtRawKey9(d):null;
+    if(rk&&M[rk]&&M[rk].dup)return M[rk].dup;
+    var keys=[];
+    (state.points||[]).forEach(function(p){
+      if(!p||!p.no)return;if(String(p.no).split('-')[0]!==String(d))return;
+      if(p._raw==null||p._raw==='')return;
+      var c=String(p._raw).split(',');if(c.length>9)keys.push(_rtH9(String(c[0]).trim()+'|'+String(c[9]).trim()));
+    });
+    if(!keys.length)return null;
+    for(var k in M){
+      if(k===rk)continue;var fp=M[k]&&M[k].fp;
+      if(!fp||!fp.length||fp.length<keys.length)continue;
+      var set={};fp.forEach(function(h){set[h]=1;});
+      var all=true;for(var i=0;i<keys.length;i++){if(!set[keys[i]]){all=false;break;}}
+      if(all)return k;
+    }
+  }catch(_e){}
+  return null;
+}
 function _rtFp9(bytes){/* [BUILD2111] 원시 CSV 행 지문(이름|시작시각 해시) */
   try{
     var txt=new TextDecoder('euc-kr').decode(bytes);
