@@ -12591,6 +12591,11 @@ async function jgBuildWb9(projectName,recs){
   }
   ws.pageSetup.margins={left:0.2,right:0.2,top:0.3,bottom:0.3,header:0.2,footer:0.2};
   ws.pageSetup.fitToPage=false;
+  /* [BUILD2134] 실시간 조서와 동일 규격 — 열폭(사진 가로 크기 일치)·페이지설정(용지·배율 100·DPI 1200) */
+  var _CW9=[13.998633,13.998633,11.316211,9.798633,10.032422,10.032422,9.564844];
+  for(var _cw=0;_cw<7;_cw++){try{ws.getColumn(_cw+1).width=_CW9[_cw];}catch(_we){}}
+  ws.pageSetup.paperSize=9;ws.pageSetup.orientation='portrait';ws.pageSetup.scale=100;
+  ws.pageSetup.horizontalDpi=1200;ws.pageSetup.verticalDpi=1200;
   try{ws.pageSetup.printArea='A1:G'+(H9*recs.length);}catch(_pa){}
   for(var b=1;b<recs.length;b++){try{ws.getRow(b*H9).addPageBreak();}catch(_pb){}}
   return wb;
@@ -14666,7 +14671,7 @@ function rtShowNumPopup(day,sug,onOk){
    기존 rtPendingNo→rtCamInput→rtCamPicked 경로 재활용(fall-through). GPS 위치수집은 시퀀스 중 첫 촬영 1회만. */
 var _rtJg9=null;
 var _RT_JG_LBL9=['근경','원경','이격기준점'];
-function rtJgStart9(day,n){_rtJg9={day:day,n:n,k:0,gps:false};_rtJg9.gps=(rtJgHas9(1)||rtJgHas9(2)||rtJgHas9(3));rtJgPop9();}
+function rtJgStart9(day,n){_rtJg9={day:day,n:n,k:0,gps:false,done:{}};_rtJg9.gps=(rtJgHas9(1)||rtJgHas9(2)||rtJgHas9(3));rtJgPop9();}/* [BUILD2133] done=이번 세션에서 찍은 장 */
 function rtJgHas9(k){if(!_rtJg9)return false;var no=_rtJg9.day+'-'+_rtJg9.n+'-'+k;return !!(typeof photoMap!=='undefined'&&photoMap&&photoMap[no]);}
 function rtJgShoot9(k){
   if(!_rtJg9)return;
@@ -14683,8 +14688,13 @@ function rtJgAfter9(no){
   if(!_rtJg9)return;
   if(no!==_rtJg9.day+'-'+_rtJg9.n+'-'+_rtJg9.k)return;
   _rtJg9.gps=true;
-  if(rtJgHas9(1)&&rtJgHas9(2)&&rtJgHas9(3))toast('\uD83D\uDCD0 지거 '+_rtJg9.n+' — 3장 완료 (닫기 전까지 재촬영 가능)');
-  rtJgPop9();/* [BUILD2132] 자동 종료 제거 — 닫기 누르기 전까지 계속 촬영/재촬영 */
+  _rtJg9.done=_rtJg9.done||{};_rtJg9.done[_rtJg9.k]=1;
+  if(_rtJg9.done[1]&&_rtJg9.done[2]&&_rtJg9.done[3]){/* [BUILD2133] 이번 세션에서 3장 모두 촬영 → 자동 종료. 일부만 재촬영이면 팝업 유지(닫기로 종료) */
+    toast('\uD83D\uDCD0 지거 '+_rtJg9.n+' — 3장 완료');
+    var ov=document.getElementById('rtJgOv9');if(ov&&ov.parentNode)ov.parentNode.removeChild(ov);
+    _rtJg9=null;return;
+  }
+  rtJgPop9();
 }
 function rtJgPop9(){/* 순서 자유 선택 팝업 — 노란 배경, 버튼 가운데 정렬 */
   if(!_rtJg9)return;
