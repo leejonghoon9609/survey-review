@@ -14683,12 +14683,8 @@ function rtJgAfter9(no){
   if(!_rtJg9)return;
   if(no!==_rtJg9.day+'-'+_rtJg9.n+'-'+_rtJg9.k)return;
   _rtJg9.gps=true;
-  if(rtJgHas9(1)&&rtJgHas9(2)&&rtJgHas9(3)){
-    toast('\uD83D\uDCD0 지거 '+_rtJg9.n+' — 3장 완료 (근경·원경·이격기준점)');
-    var ov=document.getElementById('rtJgOv9');if(ov&&ov.parentNode)ov.parentNode.removeChild(ov);
-    _rtJg9=null;return;
-  }
-  rtJgPop9();
+  if(rtJgHas9(1)&&rtJgHas9(2)&&rtJgHas9(3))toast('\uD83D\uDCD0 지거 '+_rtJg9.n+' — 3장 완료 (닫기 전까지 재촬영 가능)');
+  rtJgPop9();/* [BUILD2132] 자동 종료 제거 — 닫기 누르기 전까지 계속 촬영/재촬영 */
 }
 function rtJgPop9(){/* 순서 자유 선택 팝업 — 노란 배경, 버튼 가운데 정렬 */
   if(!_rtJg9)return;
