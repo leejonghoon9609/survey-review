@@ -485,6 +485,18 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   .php-main .zoomwrap{height:auto!important;max-height:34vh!important;overflow:hidden!important}
   .php-main{height:auto!important;max-height:none!important}
   .php-body{overflow-y:auto!important;min-height:0!important}
+  /* [BUILD2093] 폰 일별 완료성과 등록 — 압축 정렬 */
+  #rtDailyPop{width:96vw!important;top:64px!important;max-height:80vh!important}
+  #rtDailyPop #rtDailyHead{font-size:13px!important;padding:9px 10px!important;white-space:nowrap!important}
+  #rtDailyPop table{font-size:10.5px!important}
+  #rtDailyPop th{padding:5px 2px!important;font-size:10px!important;white-space:nowrap!important}
+  #rtDailyPop td{padding:5px 2px!important;font-size:10.5px!important;white-space:nowrap!important}
+  #rtDailyPop td[style*='max-width:90px']{max-width:58px!important}
+  #rtDailyPop .rtdRowPh,#rtDailyPop .rtdRowCsv,#rtDailyPop .rtdRowRaw9{font-size:9.5px!important;padding:2px 4px!important;border-radius:5px!important}
+  #rtDailyPop input.rtdChk{width:13px!important;height:13px!important}
+  #rtDailyPop #rtAllCsv9,#rtDailyPop #rtAllNight9,#rtDailyPop #rtAllPh9{font-size:10.5px!important;padding:6px 1px!important;border-radius:7px!important}
+  #rtDailyPop #rtDailyNightBtn{font-size:11px!important;padding:5px 8px!important}
+  #rtDailyPop #rtDailyNightCut{width:88px!important;font-size:11px!important}
   .canvas-wrap,.canvas-wrap *{touch-action:none!important}/* [BUILD2072] 도면 위 어떤 요소에 손가락이 닿아도 브라우저 핀치 차단 — 동시 두손가락 확대 안 되던 원인 */
 
 }
@@ -870,7 +882,7 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2092"></script><script src="core.js?v=2092"></script>
+<script src="login.js?v=2093"></script><script src="core.js?v=2093"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)">
 <script>
 /* [BUILD2070] 폰 도면:사진 비율 — 무한재적용(진동) 근본 차단: 재진입 가드+변경시에만 쓰기+클램프 캐시 */
