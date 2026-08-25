@@ -14488,9 +14488,9 @@ function rtDailyTodayFill(){ /* [BUILD1915] 날짜별 목록+체크박스 — �
    +'오늘 — 측점 <b>'+tpts+'</b>개 · 사진 <b>'+tph+'</b>장 · 결선 <b>'+tseg+'</b>구간 · 관로거리 <b style="color:#c0392b">'+tdist+'m</b>'
    +((!tpts&&!tdist)?'<br><span style="color:#999;font-size:12px">오늘 날짜 데이터가 없습니다 — 과거 날짜는 체크 후 등록하세요.</span>':'')
    +'</div>';
-  h+='<div style="display:flex;gap:7px;margin-top:9px"><button id="rtAllCsv9" style="flex:1;background:#fff;color:#8a5a00;border:1.5px solid #d9a659;border-radius:8px;padding:8px 2px;font-weight:800;font-size:12px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center">CSV(\uC6D0\uC2DC)</button><button id="rtAllNight9" style="flex:1;background:#fff;color:#1565c0;border:1.5px solid #1565c0;border-radius:8px;padding:8px 2px;font-weight:800;font-size:12px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center">CSV(\uC57C\uAC04\uBCF4\uC815)</button><button id="rtAllPh9" style="flex:1;background:#fff;color:#7a52e0;border:1.5px solid #7a52e0;border-radius:8px;padding:8px 2px;font-weight:800;font-size:12px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center">\uC0AC\uC9C4 \uD1B5\uD569\uBCF8(ZIP)</button></div>';/* [BUILD2090] 3\uBC84\uD2BC */
+  h+='<div style="display:flex;gap:7px;margin-top:9px"><button id="rtAllCsv9" style="flex:1;background:#fff;color:#8a5a00;border:1.5px solid #d9a659;border-radius:8px;padding:8px 2px;font-weight:800;font-size:12px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center">CSV(\uC6D0\uC2DC)</button><button id="rtAllNight9" style="flex:1;background:#fff;color:#1565c0;border:1.5px solid #1565c0;border-radius:8px;padding:8px 2px;font-weight:800;font-size:12px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center">CSV(\uC57C\uAC04\uBCF4\uC815)</button><button id="rtAllPh9" style="flex:1;background:#fff;color:#7a52e0;border:1.5px solid #7a52e0;border-radius:8px;padding:8px 2px;font-weight:800;font-size:12px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center">\uC0AC\uC9C4 \uD1B5\uD569\uBCF8(ZIP)</button><button id="rtDupScanBtn9" style="flex:0 0 auto;background:#e8f0fd;color:#1565c0;border:1.5px solid #9db9e8;border-radius:8px;padding:8px 8px;font-weight:800;font-size:11.5px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center">\uC911\uBCF5 \uAC80\uC0AC</button></div>';/* [BUILD2112] */
   el.innerHTML=h;
-  try{var _ac9=el.querySelector('#rtAllCsv9');if(_ac9)_ac9.onclick=function(){if(typeof rtRawAllZip9==='function')rtRawAllZip9();};/* [BUILD2091] \uc6d0\uc2dc \ud1b5\ud569 ZIP */var _an9=el.querySelector('#rtAllNight9');if(_an9)_an9.onclick=function(){rtDailyCsv(null,true);};var _ap9=el.querySelector('#rtAllPh9');if(_ap9)_ap9.onclick=function(){var _it=[];try{for(var _k in photoMap)_it.push({no:_k,url:photoMap[_k]});}catch(_e){}if(!_it.length){toast('\uC0AC\uC9C4\uC774 \uC5C6\uC2B5\uB2C8\uB2E4');return;}if(typeof svPhotoZip==='function')svPhotoZip(_it,(state.projectName||'\uC0AC\uC9C4')+'_\uC804\uCCB4\uC0AC\uC9C4',true);};}catch(_dl9){}
+  try{var _ac9=el.querySelector('#rtAllCsv9');if(_ac9)_ac9.onclick=function(){if(typeof rtRawAllZip9==='function')rtRawAllZip9();};/* [BUILD2091] \uc6d0\uc2dc \ud1b5\ud569 ZIP */var _an9=el.querySelector('#rtAllNight9');if(_an9)_an9.onclick=function(){rtDailyCsv(null,true);};var _ds9=el.querySelector('#rtDupScanBtn9');if(_ds9)_ds9.onclick=function(){if(typeof rtDupScan9==='function')rtDupScan9();};var _ap9=el.querySelector('#rtAllPh9');if(_ap9)_ap9.onclick=function(){var _it=[];try{for(var _k in photoMap)_it.push({no:_k,url:photoMap[_k]});}catch(_e){}if(!_it.length){toast('\uC0AC\uC9C4\uC774 \uC5C6\uC2B5\uB2C8\uB2E4');return;}if(typeof svPhotoZip==='function')svPhotoZip(_it,(state.projectName||'\uC0AC\uC9C4')+'_\uC804\uCCB4\uC0AC\uC9C4',true);};}catch(_dl9){}
   [].forEach.call(el.querySelectorAll('.rtdRowCsv'),function(b){b.onclick=function(){var rk=b.getAttribute('data-rk');if(rk&&typeof rtRawDl9==='function'){rtRawDl9(rk,'night');}else{rtDailyCsv(b.getAttribute('data-d'),true);}};});[].forEach.call(el.querySelectorAll('.rtdRowRaw9'),function(b){b.onclick=function(){if(typeof rtRawDl9==='function')rtRawDl9(b.getAttribute('data-d'),'zip');};});[].forEach.call(el.querySelectorAll('.rtdRowDup9'),function(b){b.onclick=function(){toast(b.getAttribute('data-l')+' 원시에 전부 포함되어 있습니다 — 다운로드는 그 날짜에서');};});/* [BUILD2111] */
   [].forEach.call(el.querySelectorAll('.rtdRowPh'),function(b){b.onclick=function(){var d=b.getAttribute('data-d');var _it=[];try{var _pm2=(typeof photoMap!=='undefined'&&photoMap)?photoMap:{};for(var _k2 in _pm2)if(_k2.indexOf(d+'-')===0)_it.push({no:_k2,url:_pm2[_k2]});}catch(_e2){}if(typeof svPhotoDl==='function')svPhotoDl(_it);};});
 }
@@ -14865,6 +14865,45 @@ function _rtDupChk9(ymd){/* 새 ymd 기준 양방향 부분집합 판정 → met
   }catch(_e){}
 }
 function _rtDupLbl9(ymd){var m=String(ymd||'');return m.length===6?((+m.slice(2,4))+'/'+(+m.slice(4,6))):m;}
+
+function rtDupScan9(){ /* [BUILD2112] 보관 원시 전량 지문 보충 + 전면 중복 재판정 */
+  var M=(typeof state!=='undefined'&&state.rtRawMeta9)||{};var ks=Object.keys(M).sort();
+  if(!ks.length){toast('보관된 원시 ZIP이 없습니다');return;}
+  if(typeof JSZip==='undefined'){toast('압축 모듈 없음 — 새로고침');return;}
+  if(typeof sb==='undefined'||!state.projectId){toast('사업이 저장되어 있어야 합니다');return;}
+  toast('중복 검사 시작 — '+ks.length+'일 지문 확인…');
+  var i=0,fetched=0,fail=0;
+  (function nx(){
+    if(i>=ks.length){finish();return;}
+    var k=ks[i++];
+    if(M[k]&&M[k].fp&&M[k].fp.length){setTimeout(nx,0);return;}
+    var url=sb.storage.from('photos').getPublicUrl(state.projectId+'/raw_'+k+'.zip').data.publicUrl+'?t='+Date.now();
+    fetch(url).then(function(r){if(!r.ok)throw 0;return r.blob();})
+    .then(function(b){return JSZip.loadAsync(b);})
+    .then(function(zip){var ent=null;zip.forEach(function(pth,e){if(!e.dir&&/\.csv$/i.test(pth)&&!ent)ent=e;});
+      if(!ent)throw 0;return ent.async('uint8array');})
+    .then(function(bytes){M[k]=M[k]||{};M[k].fp=_rtFp9(bytes);fetched++;})
+    ['catch'](function(){fail++;})
+    .then(function(){toast('지문 '+i+'/'+ks.length+'…');setTimeout(nx,60);});
+  })();
+  function finish(){
+    ks.forEach(function(k){if(M[k])delete M[k].dup;});
+    var marks=[];
+    for(var a=0;a<ks.length;a++){var A=M[ks[a]];if(!A||!A.fp||!A.fp.length)continue;
+      var best=null;
+      for(var b=0;b<ks.length;b++){if(a===b)continue;var B=M[ks[b]];if(!B||!B.fp||!B.fp.length)continue;
+        if(A.fp.length>B.fp.length)continue;
+        var set={};B.fp.forEach(function(h){set[h]=1;});
+        var inB=A.fp.every(function(h){return set[h];});
+        if(inB){if(!best||B.fp.length>M[best].fp.length)best=ks[b];}
+      }
+      if(best){A.dup=best;marks.push(_rtDupLbl9(ks[a])+'\u2282'+_rtDupLbl9(best));}
+    }
+    try{saveProject();}catch(_sv){}
+    try{var el=document.getElementById('rtDailyToday');if(el&&typeof rtDailyTodayFill==='function')rtDailyTodayFill();}catch(_rf){}
+    toast(marks.length?('\u2713 중복 '+marks.length+'일: '+marks.join(', ')+(fail?(' · 지문실패 '+fail):'')):('중복 없음 — 서로 포함 관계가 아닙니다'+(fail?(' · 지문실패 '+fail+'일'):'')),6000);
+  }
+}
 function rtRawZipUpMany9(files){/* [BUILD2110] 원시 ZIP 다중 — 순차 처리 */
   var arr=[].slice.call(files||[]).filter(function(f){return f&&/\.zip$/i.test(f.name||'');});
   if(!arr.length)return;
