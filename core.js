@@ -17733,15 +17733,16 @@ function wheelFactor(){
 }
 (function(){try{
   var _wF9=(typeof IS_FIELD!=='undefined'&&IS_FIELD);
-  if(!((typeof IS_TANGO!=='undefined'&&IS_TANGO)||(typeof STAGE!=='undefined'&&STAGE==='survey')||_wF9))return; /* [BUILD1712] \uD720\uAC10\uB3C4 UI: \uD0B1\uACE0+\uACB0\uC120 \u2192 [BUILD2005] \uCE21\uB7C9\uD604\uC7A5 \uCD94\uAC00. wheelFactor()\uB294 \uC774\uBBF8 field \uAE30\uBCF8\uAC12 1.16\uC744 \uC9C0\uC6D0 \u2014 UI\uB9CC \uB9C9\uD600 \uC788\uC5C8\uB2E4 */
+  var _wR9=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME);/* [BUILD2117] 실시간 PC 전용 휠감도 */
+  if(!((typeof IS_TANGO!=='undefined'&&IS_TANGO)||(typeof STAGE!=='undefined'&&STAGE==='survey')||_wF9||_wR9))return; /* [BUILD1712] \uD720\uAC10\uB3C4 UI: \uD0B1\uACE0+\uACB0\uC120 \u2192 [BUILD2005] \uCE21\uB7C9\uD604\uC7A5 \uCD94\uAC00. wheelFactor()\uB294 \uC774\uBBF8 field \uAE30\uBCF8\uAC12 1.16\uC744 \uC9C0\uC6D0 \u2014 UI\uB9CC \uB9C9\uD600 \uC788\uC5C8\uB2E4 */
   /* [BUILD2005] \uD3F0\uC740 \uD5E4\uB354 order\uAC00 \uCD98\uCD98\uD574 \uB07C\uC5B4\uB4E4\uBA74 \uC904\uBC14\uAFC8\uC774 \uAE68\uC9C4\uB2E4 \u2014 PC\uC5D0\uC11C\uB9CC */
-  if(_wF9&&window.matchMedia&&matchMedia('(max-width:760px)').matches)return;
-  var tb=document.getElementById((typeof IS_TANGO!=='undefined'&&IS_TANGO)?'tamsaBadge':(_wF9?'fldTrash':'trashProj')); if(!tb||!tb.parentNode)return;
+  if((_wF9||_wR9)&&window.matchMedia&&matchMedia('(max-width:760px)').matches)return;/* [BUILD2117] 실시간·현장 폰 제외 */
+  var tb=document.getElementById((typeof IS_TANGO!=='undefined'&&IS_TANGO)?'tamsaBadge':(_wF9?'fldTrash':(_wR9?'globalbtns':'trashProj'))); if(!tb||!tb.parentNode)return;/* [BUILD2117] 실시간=globalbtns 형제(display:contents라 renderSub 재작성에 안 지워짐) */
   var bs='border:1px solid #c9d4de;background:#fff;border-radius:6px;width:24px;height:24px;cursor:pointer;font-size:15px;font-weight:800;color:#1565c0;line-height:1;padding:0;display:inline-flex;align-items:center;justify-content:center';
   var box=document.createElement('span');
   box.id='wheelAdjBox';
   box.style.cssText='margin-left:14px;font-size:12.5px;font-weight:700;color:#555;display:inline-flex;align-items:center;gap:6px;vertical-align:middle'
-    +(_wF9?';order:2;flex:none':'');
+    +(_wF9?';order:2;flex:none':(_wR9?';order:12;flex:none':''));/* [BUILD2117] 앞으로(order:12) 바로 뒤 */
   /* [BUILD2007] \u2605\uCE21\uB7C9\uD604\uC7A5\uC740 #fieldBar\uAC00 display:contents \uB77C \uC790\uC2DD\uC774 header\uC758 flex \uC544\uC774\uD15C\uC774 \uB418\uACE0 \uAC01\uC790 order\uB97C \uAC16\uB294\uB2E4.
      order \uC5C6\uC774 \uB123\uC73C\uBA74 order:0 \uC774\uB77C homeBtn(order:1)\uBCF4\uB2E4 \uC55E\uC73C\uB85C \uD280\uC5B4\uB098\uAC04\uB2E4([2005] \uC624\uBC30\uCE58).
      fldTrash\uC640 \uAC19\uC740 order:2 \uB97C \uC8FC\uACE0 DOM\uC0C1 \uadf8 \ub2e4\uc74c\uc5d0 \ub123\uc73c\uba74 [\uc0ad\uc81c\ubaa9\ub85d] \ubc14\ub85c \ub4a4\uc5d0 \uc628\ub2e4. */
