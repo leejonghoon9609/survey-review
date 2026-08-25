@@ -12505,7 +12505,7 @@ function joseoRec(p){
     y: (p.x!=null&&p.x!=='')?(+p.x).toFixed(3):'',                              // Y(E)=동=p.x
     facility: biz.facility||'', mat: pc.mat, dia: pc.dia, gap:'직접측량', depth:(p.depth!=null&&p.depth!=='')?String(p.depth):((state._depthByNo&&state._depthByNo[p.no]!=null&&isFinite(+state._depthByNo[p.no]))?(Math.round(state._depthByNo[p.no]*100)/100).toFixed(2):''), /* [1255] 자동심도 폴백 */
     expUrl: photoMap[p.no]||photoMap[ptNum(p)]||null,
-    aftUrl: afterMap[p.no]||afterMap[ptNum(p)]||((typeof IS_REALTIME!=='undefined'&&IS_REALTIME)?(photoMap[p.no]||photoMap[ptNum(p)]||null):null),/* [BUILD2097] 실시간: 후측량 칸에 실시간 사진 복제(견적서용) */
+    aftUrl: afterMap[p.no]||afterMap[ptNum(p)]||(((typeof IS_REALTIME!=='undefined'&&IS_REALTIME)||window._jzEst9)?(photoMap[p.no]||photoMap[ptNum(p)]||null):null),/* [BUILD2100] 실시간 상시 + 결선DB 견적서용 토글 시 실시간 사진 복제 */
     expBuf:null, aftBuf:null
   };
 }
@@ -12540,6 +12540,7 @@ async function joseoBuildWb(projectName, recs, perPage){
   for(var gr=3;gr<=joseoLastRow;gr++){ var gc=ws.getCell(gr,7); var gb=gc.border||{}; gc.border={top:gb.top,left:gb.left,bottom:gb.bottom,right:{style:'medium',color:{argb:'FF000000'}}}; }
   ws.pageSetup.margins={left:0.2,right:0.2,top:0.3,bottom:0.3,header:0.2,footer:0.2};
   ws.pageSetup.fitToPage=false;
+  try{ws.pageSetup.printArea='A1:G'+ws.rowCount;}catch(_pa9){}/* [BUILD2100] 인쇄영역 G열 고정 — 페이지 범위선 한 칸 초과 해결 */
   var K=perPage||JOSEO_PER_PAGE, N=recs.length;
   for(var m=K;m<N;m+=K){ ws.getRow(2+m*17).addPageBreak(); }
   return wb;
