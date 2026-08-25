@@ -13812,7 +13812,7 @@ function rtJgBoardTable9(cx,W,H,pos,no){
   var d6=String(no).slice(0,6);
   var date=/^[0-9]{6}$/.test(d6)?('20'+d6.slice(0,2)+'.'+d6.slice(2,4)+'.'+d6.slice(4,6)):'';
   var jb=(state.rtJgBoard9&&state.rtJgBoard9[String(num)])||{};
-  var rows=[['사업명',name],['재 질',jb.mat||''],['관 경',jb.dia||''],['번 호',num],['거리 / 심도',jb.ds||''],['일 자',date]];
+  var rows=[['사업명',name],['번 호',num],['재 질',jb.mat||''],['관 경',jb.dia||''],['거리 / 심도',jb.ds||''],['일 자',date]];/* [BUILD2123] 순서 확정 */
   var g=rtJgBoardGeom9(W,H);
   var bw=g.bw, rh=g.rh, lw=g.lw, nR=6;
   var x0=pos?Math.round(pos.fx*W):0;
@@ -13850,28 +13850,41 @@ function rtJgBoardEdit9(num){
   var matBtn=(MATS.indexOf((jb.mat||'').trim())>=0)?(jb.mat||'').trim():'';
   var matIn=matBtn?'':((jb.mat||'').trim());
   var dsA='',dsB='';if(jb.ds){var _dp=String(jb.ds).split('/');dsA=(_dp[0]||'').trim();dsB=(_dp[1]||'').trim();}
+  var bizBase=(typeof rtShortName==='function')?rtShortName(state.projectName||''):(state.projectName||'');
+  var bizCur=(state.rtBoardName&&String(state.rtBoardName).trim())||bizBase;
   var ov=document.createElement('div');ov.id='rtJgEdOv9';
   ov.style.cssText='position:fixed;inset:0;background:rgba(15,20,30,.55);z-index:100001;display:flex;align-items:center;justify-content:center;padding:12px;box-sizing:border-box;overflow:auto';
   var TB='border-radius:9px;font-weight:800;font-size:13px;cursor:pointer;touch-action:manipulation;text-align:center';
+  var SEC='border-radius:12px;padding:10px 10px 8px;margin-bottom:10px;text-align:center';/* [BUILD2123] 섹션 연한 배경 + 전체 가운데 정렬 */
+  var LBL='font-size:12px;font-weight:800;color:#555;margin-bottom:6px;text-align:center';
   var card=document.createElement('div');
-  card.style.cssText='background:#fff;border-radius:16px;width:322px;max-width:94vw;box-shadow:0 24px 70px rgba(0,0,0,.4);overflow:hidden';
+  card.style.cssText='background:#fff;border-radius:16px;width:322px;max-width:94vw;box-shadow:0 24px 70px rgba(0,0,0,.4);overflow:hidden;text-align:center';
   function matB(v){var on=(v===matBtn);return '<button type="button" class="rtJgMat9" data-v="'+v+'" style="flex:1;padding:9px 0;'+TB+';border:'+(on?'2px solid #e02b2b;background:#fde8e8;color:#c0392b':'1.5px solid #c9d0d8;background:#fff;color:#444')+'">'+v+'</button>';}
   card.innerHTML='<div style="height:6px;background:linear-gradient(90deg,#e02b2b,#ff9800)"></div>'
-    +'<div style="padding:16px 18px">'
+    +'<div style="padding:16px 16px 14px">'
     +'<div style="font-weight:800;font-size:16.5px;color:#1f2d3d;text-align:center;margin-bottom:2px">\uD83D\uDCD0 지거 '+num+' 현황판</div>'
     +'<div style="font-size:11.5px;color:#98a1ad;text-align:center;margin-bottom:12px">입력하면 지거 '+num+' 사진 3장에 모두 적용됩니다</div>'
-    +'<div style="font-size:12px;font-weight:800;color:#555;margin-bottom:5px">재질</div>'
-    +'<div style="display:flex;gap:6px;justify-content:center;margin-bottom:6px">'+MATS.map(matB).join('')+'</div>'
-    +'<input id="rtJgMatIn9" placeholder="직접입력 (예: PE)" value="'+matIn.replace(/"/g,'&quot;')+'" style="width:100%;box-sizing:border-box;padding:8px;border:1.5px solid #dfe3e8;border-radius:9px;font-size:13px;text-align:center;margin-bottom:12px">'
-    +'<div style="font-size:12px;font-weight:800;color:#555;margin-bottom:5px">관경 <span style="font-weight:600;color:#98a1ad">(100/50 × 관수, 또는 직접입력)</span></div>'
-    +'<div id="rtJgDiaRows9"></div>'
-    +'<div style="display:flex;justify-content:center;margin-bottom:12px"><button type="button" id="rtJgDiaAdd9" style="padding:6px 14px;'+TB+';border:1.5px dashed #b7c0cc;background:#f7f9fb;color:#5a6c80">+ 관경 추가</button></div>'
-    +'<div style="font-size:12px;font-weight:800;color:#555;margin-bottom:5px">거리 / 심도 (m)</div>'
-    +'<div style="display:flex;gap:6px;align-items:center;justify-content:center;margin-bottom:14px">'
-    +'<input id="rtJgDs1_9" inputmode="decimal" placeholder="거리" value="'+dsA.replace(/"/g,'&quot;')+'" style="flex:1;min-width:0;padding:8px;border:1.5px solid #dfe3e8;border-radius:9px;font-size:13.5px;text-align:center">'
-    +'<span style="font-weight:800;color:#98a1ad">/</span>'
-    +'<input id="rtJgDs2_9" inputmode="decimal" placeholder="심도" value="'+dsB.replace(/"/g,'&quot;')+'" style="flex:1;min-width:0;padding:8px;border:1.5px solid #dfe3e8;border-radius:9px;font-size:13.5px;text-align:center">'
+    +'<div style="'+SEC+';background:#f5f6f8">'
+    +'<div style="'+LBL+'">사업명</div>'
+    +'<input id="rtJgBiz9" value="'+String(bizCur).replace(/"/g,'&quot;')+'" style="width:100%;box-sizing:border-box;padding:8px;border:1.5px solid #dfe3e8;border-radius:9px;font-size:13.5px;font-weight:700;text-align:center;background:#fff">'
     +'</div>'
+    +'<div style="'+SEC+';background:#fdf1ec">'
+    +'<div style="'+LBL+'">재질</div>'
+    +'<div style="display:flex;gap:6px;justify-content:center;margin-bottom:6px">'+MATS.map(matB).join('')+'</div>'
+    +'<input id="rtJgMatIn9" placeholder="직접입력 (예: PE)" value="'+matIn.replace(/"/g,'&quot;')+'" style="width:100%;box-sizing:border-box;padding:8px;border:1.5px solid #e8d8ce;border-radius:9px;font-size:13px;text-align:center;background:#fff">'
+    +'</div>'
+    +'<div style="'+SEC+';background:#eef4fb">'
+    +'<div style="'+LBL+'">관경 <span style="font-weight:600;color:#98a1ad">(100/50 × 관수, 또는 직접입력)</span></div>'
+    +'<div id="rtJgDiaRows9"></div>'
+    +'<div style="display:flex;justify-content:center"><button type="button" id="rtJgDiaAdd9" style="padding:6px 14px;'+TB+';border:1.5px dashed #9fb6d4;background:#fff;color:#4a6c96">+ 관경 추가</button></div>'
+    +'</div>'
+    +'<div style="'+SEC+';background:#eefaf0">'
+    +'<div style="'+LBL+'">거리 / 심도 (m)</div>'
+    +'<div style="display:flex;gap:6px;align-items:center;justify-content:center">'
+    +'<input id="rtJgDs1_9" inputmode="decimal" placeholder="거리" value="'+dsA.replace(/"/g,'&quot;')+'" style="flex:1;min-width:0;padding:8px;border:1.5px solid #cfe6d6;border-radius:9px;font-size:13.5px;text-align:center;background:#fff">'
+    +'<span style="font-weight:800;color:#98a1ad">/</span>'
+    +'<input id="rtJgDs2_9" inputmode="decimal" placeholder="심도" value="'+dsB.replace(/"/g,'&quot;')+'" style="flex:1;min-width:0;padding:8px;border:1.5px solid #cfe6d6;border-radius:9px;font-size:13.5px;text-align:center;background:#fff">'
+    +'</div></div>'
     +'<div style="display:flex;gap:8px;justify-content:center">'
     +'<button type="button" id="rtJgEdCancel9" style="flex:1;padding:11px 0;'+TB+';border:1px solid #dfe3e8;background:#f5f6f8;color:#333;font-size:14px">취소</button>'
     +'<button type="button" id="rtJgEdSave9" style="flex:2;padding:11px 0;'+TB+';border:0;background:#e02b2b;color:#fff;font-size:15px">저장</button>'
@@ -13880,20 +13893,23 @@ function rtJgBoardEdit9(num){
   var rowsEl=document.getElementById('rtJgDiaRows9');
   function addRow(val){
     if(rowsEl.querySelectorAll('.rtJgDiaRow9').length>=4)return;
-    var pv='',cv='4',dv='';
+    var pv='',cv='',dv='';/* [BUILD2123] 신규 줄 관수 기본 '-' */
     var m=/^(100|50)\s*[xX\u00D7]\s*([0-9]{1,2})$/.exec((val||'').trim());
     if(m){pv=m[1];cv=m[2];}else if(val){dv=(val||'').trim();}
     var row=document.createElement('div');row.className='rtJgDiaRow9';row.setAttribute('data-p',pv);
     row.style.cssText='display:flex;gap:5px;align-items:center;justify-content:center;margin-bottom:6px';
-    var op='';for(var q=1;q<=10;q++)op+='<option value="'+q+'"'+(String(q)===cv?' selected':'')+'>×'+q+'</option>';
+    var op='<option value=""'+(cv===''?' selected':'')+'>\u2212</option>';
+    for(var q=1;q<=10;q++)op+='<option value="'+q+'"'+(String(q)===cv?' selected':'')+'>\u00D7'+q+'</option>';
     row.innerHTML='<button type="button" class="rtJgDp9" data-v="100" style="width:48px;padding:8px 0;'+TB+';border:'+(pv==='100'?'2px solid #e02b2b;background:#fde8e8;color:#c0392b':'1.5px solid #c9d0d8;background:#fff;color:#444')+'">100</button>'
       +'<button type="button" class="rtJgDp9" data-v="50" style="width:44px;padding:8px 0;'+TB+';border:'+(pv==='50'?'2px solid #e02b2b;background:#fde8e8;color:#c0392b':'1.5px solid #c9d0d8;background:#fff;color:#444')+'">50</button>'
-      +'<select class="rtJgDc9" style="padding:8px 3px;border:1.5px solid #dfe3e8;border-radius:9px;font-size:13px;font-weight:700">'+op+'</select>'
-      +'<input class="rtJgDi9" placeholder="직접 (예: 80x2)" value="'+dv.replace(/"/g,'&quot;')+'" style="flex:1;min-width:0;padding:8px 6px;border:1.5px solid #dfe3e8;border-radius:9px;font-size:12.5px;text-align:center">';
+      +'<select class="rtJgDc9" style="padding:8px 3px;border:1.5px solid #dfe3e8;border-radius:9px;font-size:13px;font-weight:700;background:#fff">'+op+'</select>'
+      +'<input class="rtJgDi9" placeholder="직접 (예: 80x2)" value="'+dv.replace(/"/g,'&quot;')+'" style="flex:1;min-width:0;padding:8px 6px;border:1.5px solid #dfe3e8;border-radius:9px;font-size:12.5px;text-align:center;background:#fff">';
     rowsEl.appendChild(row);
     [].forEach.call(row.querySelectorAll('.rtJgDp9'),function(b){b.onclick=function(){
-      row.setAttribute('data-p',b.getAttribute('data-v'));
-      [].forEach.call(row.querySelectorAll('.rtJgDp9'),function(b2){var on=(b2===b);b2.style.border=on?'2px solid #e02b2b':'1.5px solid #c9d0d8';b2.style.background=on?'#fde8e8':'#fff';b2.style.color=on?'#c0392b':'#444';});
+      var v=b.getAttribute('data-v');
+      var nv=(row.getAttribute('data-p')===v)?'':v;/* [BUILD2123] 다시 누르면 해제 */
+      row.setAttribute('data-p',nv);
+      [].forEach.call(row.querySelectorAll('.rtJgDp9'),function(b2){var on=(b2.getAttribute('data-v')===nv);b2.style.border=on?'2px solid #e02b2b':'1.5px solid #c9d0d8';b2.style.background=on?'#fde8e8':'#fff';b2.style.color=on?'#c0392b':'#444';});
     };});
   }
   var _ds=(jb.dia||'').split(',').map(function(t){return t.trim();}).filter(function(t){return t;});
@@ -13901,7 +13917,7 @@ function rtJgBoardEdit9(num){
   for(var _di=2;_di<_ds.length;_di++)addRow(_ds[_di]);
   document.getElementById('rtJgDiaAdd9').onclick=function(){addRow('');};
   [].forEach.call(card.querySelectorAll('.rtJgMat9'),function(b){b.onclick=function(){
-    var was=(b.getAttribute('data-v')===matBtn);matBtn=was?'':b.getAttribute('data-v');
+    var was=(b.getAttribute('data-v')===matBtn);matBtn=was?'':b.getAttribute('data-v');/* 다시 누르면 해제 */
     [].forEach.call(card.querySelectorAll('.rtJgMat9'),function(b2){var on=(b2.getAttribute('data-v')===matBtn);b2.style.border=on?'2px solid #e02b2b':'1.5px solid #c9d0d8';b2.style.background=on?'#fde8e8':'#fff';b2.style.color=on?'#c0392b':'#444';});
   };});
   function close(){if(ov.parentNode)ov.parentNode.removeChild(ov);}
@@ -13913,10 +13929,12 @@ function rtJgBoardEdit9(num){
     [].forEach.call(rowsEl.querySelectorAll('.rtJgDiaRow9'),function(row){
       var di=(row.querySelector('.rtJgDi9').value||'').trim();
       if(di){vals.push(di);return;}
-      var pv=row.getAttribute('data-p');
-      if(pv)vals.push(pv+'x'+row.querySelector('.rtJgDc9').value);
+      var pv=row.getAttribute('data-p');var cnt=row.querySelector('.rtJgDc9').value;
+      if(pv&&cnt)vals.push(pv+'x'+cnt);/* [BUILD2123] 관수 '-'면 그 줄 미입력 */
     });
     var a=(document.getElementById('rtJgDs1_9').value||'').trim(),b=(document.getElementById('rtJgDs2_9').value||'').trim();
+    var nb=(document.getElementById('rtJgBiz9').value||'').trim();/* [BUILD2123] 사업명 — 공용 현황판 사업명(rtBoardName)과 동일 저장소 */
+    if(!nb||nb===bizBase){delete state.rtBoardName;}else{state.rtBoardName=nb;}
     state.rtJgBoard9=state.rtJgBoard9||{};
     state.rtJgBoard9[num]={mat:mat,dia:vals.join(', '),ds:(a&&b)?(a+' / '+b):(a||b||'')};
     try{if(typeof saveProject==='function')saveProject();}catch(_sv){}
