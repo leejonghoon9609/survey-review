@@ -13213,20 +13213,46 @@ async function joseoDownloadAll(){
   }catch(e){ toast('ZIP 생성 실패: '+(e&&e.message||e)); joseoProgHide(); }
 }
 function joseoCleanName9(s){return String(s||'').replace(/(_(?:S|A|B|T|TT))+\s*$/i,'').trim();}/* [BUILD2104] _S/_A/_B/_T/_TT 꼬리 반복 제거 */
-async function joseoDownloadMerged9(){ /* [BUILD2104] 통합조서 — 전 날짜 한 엑셀 */
+async function joseoDownloadMerged9(){ /* [BUILD2106] 통합조서 — 한 파일·날짜별 시트(탭) */
   if(!joseoState){toast('조서 패널을 먼저 여세요');return;}
   try{
-    var dates=joseoState.dates||[],all=[];
-    for(var di=0;di<dates.length;di++){var dk=dates[di];(joseoState.groups[dk]||[]).forEach(function(pp){all.push(pp);});}
-    if(!all.length){toast('조서 대상 측점이 없습니다');return;}
-    var recs=all.map(joseoRec);
-    joseoProg('통합조서 사진 수집 중…',0.05);
-    await joseoFetchPhotos(recs,function(dn,tt){joseoProg('사진 '+dn+'/'+tt,0.05+0.75*(dn/Math.max(1,tt)));});
-    joseoProg('엑셀 생성 중…',0.85);
-    var wb=await joseoBuildWb(state.projectName,recs,JOSEO_PER_PAGE);
+    var dates=joseoState.dates||[];
+    if(!dates.length){toast('조서 날짜가 없습니다');return;}
+    var tplBuf=await joseoGetTemplate();
+    var wb=new ExcelJS.Workbook();await wb.xlsx.load(tplBuf);
+    var ws0=wb.worksheets[0];
+    var BLK=[];for(var r=3;r<=19;r++){var row=[];for(var c=1;c<=7;c++){var sc=ws0.getCell(r,c);row.push({style:sc.style,value:sc.value});}BLK.push({h:ws0.getRow(r).height,row:row});}
+    var HD=[];for(var r2=1;r2<=2;r2++){var row2=[];for(var c2=1;c2<=7;c2++){var sc2=ws0.getCell(r2,c2);row2.push({style:sc2.style,value:sc2.value});}HD.push({h:ws0.getRow(r2).height,row:row2});}
+    var merges0=[];try{merges0=(ws0.model&&ws0.model.merges)?ws0.model.merges.slice():[];}catch(_mg){}
+    var widths=[];for(var ci=1;ci<=8;ci++){widths.push(ws0.getColumn(ci).width);}
+    var madeTabs=0;
+    for(var di=0;di<dates.length;di++){
+      var dk=dates[di];
+      var recs=(joseoState.groups[dk]||[]).map(joseoRec);
+      if(!recs.length)continue;
+      joseoProg('('+(di+1)+'/'+dates.length+') '+dk+' 사진 수집…',0.05+0.75*(di/dates.length));
+      await joseoFetchPhotos(recs);
+      var nm=String(dk).replace(/-/g,'.').slice(0,28);
+      var ws=wb.addWorksheet(nm);madeTabs++;
+      widths.forEach(function(w,ix){if(w)ws.getColumn(ix+1).width=w;});
+      for(var hr=0;hr<2;hr++){var nr=ws.getRow(hr+1);nr.height=HD[hr].h;for(var hc=0;hc<7;hc++){var nc=nr.getCell(hc+1);nc.style=HD[hr].row[hc].style;nc.value=HD[hr].row[hc].value;}}
+      merges0.forEach(function(mg){var mm=/^[A-G](\d+):[A-G](\d+)$/.exec(mg);if(mm&&+mm[1]<=2&&+mm[2]<=2){try{ws.mergeCells(mg);}catch(_m2){}}});
+      joseoSetv(ws,'B2',(typeof joseoCleanName9==='function'?joseoCleanName9(state.projectName):state.projectName)||'');
+      for(var i2=0;i2<recs.length;i2++){var S=3+i2*17;joseoStampBlk(ws,S,BLK);joseoFillBlk(ws,S,recs[i2]);joseoAddPhotosBlk(wb,ws,S,recs[i2]);}
+      var last=2+recs.length*17;
+      for(var gr=3;gr<=last;gr++){var gc=ws.getCell(gr,7);var gb=gc.border||{};gc.border={top:gb.top,left:gb.left,bottom:gb.bottom,right:{style:'medium',color:{argb:'FF000000'}}};}
+      ws.pageSetup.margins={left:0.2,right:0.2,top:0.3,bottom:0.3,header:0.2,footer:0.2};
+      ws.pageSetup.fitToPage=false;
+      try{ws.pageSetup.printArea='A1:G'+ws.rowCount;}catch(_p2){}
+      var K=JOSEO_PER_PAGE,N=recs.length;
+      for(var m2=K;m2<N;m2+=K){ws.getRow(2+m2*17).addPageBreak();}
+    }
+    if(!madeTabs){toast('조서 대상 측점이 없습니다');return;}
+    try{wb.removeWorksheet(ws0.id);}catch(_rm){}
+    joseoProg('엑셀 저장 중…',0.9);
     var buf=await wb.xlsx.writeBuffer();
     joseoSaveBlob(buf,((state.projectName||'조서'))+'_통합조서.xlsx');
-    joseoProg('완료 ✓ — '+recs.length+'점 / '+dates.length+'일',1);setTimeout(joseoProgHide,1800);
+    joseoProg('완료 ✓ — 날짜 탭 '+madeTabs+'개',1);setTimeout(joseoProgHide,1800);
   }catch(e){toast('통합조서 실패: '+(e&&e.message||e));joseoProgHide();}
 }
 
