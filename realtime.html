@@ -662,6 +662,7 @@ function rtOpenCsvModal(){/* [BUILD1869] \ub85c\ub529\ucc3d \uc7ac\uad6c\uc131: 
     +'<div style="display:flex;flex-direction:column;gap:8px;padding:0 14px 14px">'
     +'<button type="button" id="rtCsvNightBtn" style="background:#fff;color:#4f46e5;border:1.5px solid #4f46e5;border-radius:10px;padding:9px;font-weight:800;font-size:13.5px;cursor:pointer"></button>'
     +'<div style="display:flex;align-items:center;gap:5px;justify-content:center;font-size:11px;color:#4f46e5;font-weight:700;white-space:nowrap">새벽 컷 <input type="time" id="rtCsvNightCut" style="border:1px solid #c7cbe8;border-radius:6px;padding:2px 4px;font-size:11px;color:#4f46e5;font-weight:700;width:78px"> 이전 → 전날 귀속</div>'
+    +'<button type="button" id="rtRawZipBtn" style="background:#fff7e6;color:#8a5a00;border:1.5px solid #d9a659;border-radius:10px;padding:10px;font-weight:800;font-size:13.5px;cursor:pointer;text-align:center">\uD83D\uDCE6 \uC6D0\uC2DC ZIP \uC5C5\uB85C\uB4DC(\uC6D0\uBCF8\u00B7\uC57C\uAC04\uBCF4\uC815 \uBCF4\uAD00)</button>'+'<input type="file" id="rtRawZipInp" accept=".zip" style="display:none">'/* [BUILD2085] */
     +'<div style="display:flex;gap:8px"><button type="button" id="rtCsvUp" style="flex:1;background:#fff;color:#1f6fd6;border:1.5px solid #1f6fd6;border-radius:10px;padding:10px 4px;font-weight:800;font-size:13.5px;cursor:pointer;text-align:center">\uc9c1\uc811 \ub85c\ub529</button><button type="button" id="rtCsvDelBtn" style="flex:1;background:#fff;color:#d32f2f;border:1.5px solid #f2b8b5;border-radius:10px;padding:10px 4px;font-weight:800;font-size:13.5px;cursor:pointer;text-align:center">CSV\ubcc4 \uc0ad\uc81c</button></div>'/* [BUILD2084] \ud55c \uc904 \ubc30\uce58 */
     +'</div></div>';
   document.body.appendChild(wrap);
@@ -671,6 +672,7 @@ function rtOpenCsvModal(){/* [BUILD1869] \ub85c\ub529\ucc3d \uc7ac\uad6c\uc131: 
   document.getElementById('rtCsvUp').onclick=_pick9;
   document.getElementById('rtCsvDz').onclick=_pick9;
   document.getElementById('rtCsvDelBtn').onclick=function(){wrap.remove();rtOpenCsvDelList();};
+  (function(){var b=document.getElementById('rtRawZipBtn'),i=document.getElementById('rtRawZipInp');if(b&&i){b.onclick=function(){i.click();};i.onchange=function(){var f=this.files&&this.files[0];this.value='';if(!f)return;wrap.remove();if(typeof rtRawZipUp9==='function')rtRawZipUp9(f);};}})();/* [BUILD2085] */
   (function(){var _nb9=document.getElementById('rtCsvNightBtn');if(!_nb9)return;_nb9.onclick=function(){if(typeof rtNightBtnToggle==='function')rtNightBtnToggle();};if(typeof rtNightPaint==='function')rtNightPaint(_nb9);})();/* [BUILD1914] */
   (function(){var _ci9=document.getElementById('rtCsvNightCut');if(!_ci9)return;if(typeof rtNightCutVal==='function')_ci9.value=rtNightCutVal();_ci9.onchange=function(){if(typeof rtNightCutChange==='function')rtNightCutChange(this.value);};})();/* [BUILD1927] */
   /* [BUILD1868] CSV \ub4dc\ub798\uadf8&\ub4dc\ub86d \u2014 fCsv change \ud30c\uc774\ud504\ub77c\uc778 \uc7ac\uc0ac\uc6a9, [1869] \ud558\uc774\ub77c\uc774\ud2b8=\ub4dc\ub86d\uc874 */
@@ -868,7 +870,7 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2084"></script><script src="core.js?v=2084"></script>
+<script src="login.js?v=2085"></script><script src="core.js?v=2085"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)">
 <script>
 /* [BUILD2070] 폰 도면:사진 비율 — 무한재적용(진동) 근본 차단: 재진입 가드+변경시에만 쓰기+클램프 캐시 */
