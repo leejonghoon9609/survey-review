@@ -13804,6 +13804,37 @@ function rtBoardTable(cx,W,H,pos,no){
     cx.fillText(rows[i][1],x0+lw+pad,yy+rh/2);
   }
 }
+/* [BUILD2121] 지거 현황판 6행 — 사업명·번호·일자 자동 / 재질·관경·거리심도는 작업자 입력(설정 UI 차기, state.rtJgBoard9[지거번호]={mat,dia,ds} 예정) */
+function rtJgBoardGeom9(W,H){var bw=Math.round(W*0.275),rh=Math.round(H*0.042);return {bw:bw,rh:rh,bh:rh*6,lw:Math.round(bw*0.34)};}
+function rtJgBoardTable9(cx,W,H,pos,no){
+  var name=(state.rtBoardName&&String(state.rtBoardName).trim())||rtShortName(state.projectName||'');
+  var seg=String(no).split('-');var num=(seg.length>2)?seg[1]:(seg[1]||'');
+  var d6=String(no).slice(0,6);
+  var date=/^[0-9]{6}$/.test(d6)?('20'+d6.slice(0,2)+'.'+d6.slice(2,4)+'.'+d6.slice(4,6)):'';
+  var jb=(state.rtJgBoard9&&state.rtJgBoard9[String(num)])||{};
+  var rows=[['사업명',name],['재 질',jb.mat||''],['관 경',jb.dia||''],['번 호',num],['거리 / 심도',jb.ds||''],['일 자',date]];
+  var g=rtJgBoardGeom9(W,H);
+  var bw=g.bw, rh=g.rh, lw=g.lw, nR=6;
+  var x0=pos?Math.round(pos.fx*W):0;
+  var y0=pos?Math.round(pos.fy*H):(H-rh*nR);
+  x0=Math.max(0,Math.min(W-bw,x0));y0=Math.max(0,Math.min(H-rh*nR,y0));
+  var pad=Math.round(rh*0.28);
+  cx.fillStyle='#fff';cx.fillRect(x0,y0,bw,rh*nR);
+  cx.strokeStyle='#000';cx.lineWidth=Math.max(2,Math.round(H*0.0018));
+  cx.textBaseline='middle';
+  function fitText(t,maxW,baseF){var f=baseF;cx.font='700 '+f+'px sans-serif';while(f>8&&cx.measureText(t).width>maxW){f--;cx.font='700 '+f+'px sans-serif';}}
+  var baseF=Math.round(rh*0.52);
+  for(var i=0;i<nR;i++){
+    var yy=y0+rh*i;
+    cx.strokeRect(x0,yy,lw,rh);
+    cx.strokeRect(x0+lw,yy,bw-lw,rh);
+    cx.fillStyle='#000';
+    fitText(rows[i][0],lw-pad*2,baseF);
+    cx.fillText(rows[i][0],x0+pad,yy+rh/2);
+    fitText(rows[i][1],bw-lw-pad*2,baseF);
+    cx.fillText(rows[i][1],x0+lw+pad,yy+rh/2);
+  }
+}
 /* [1139] object-fit:contain 레터박스 보정 — 화면좌표 ↔ 원본픽셀 매핑 */
 function _imMap(im){var r=im.getBoundingClientRect(),W=im.naturalWidth||im.width,H=im.naturalHeight||im.height;var sc=Math.min(r.width/W,r.height/H)||1;return {r:r,W:W,H:H,sc:sc,ox:r.left+(r.width-W*sc)/2,oy:r.top+(r.height-H*sc)/2};}
 /* [1139] 실시간측량 사진 뷰어 — PC:휠확대+드래그이동 / 폰:두손가락핑치+한손가락이동(확대상태) / 더블클릭 리셋.
@@ -13884,8 +13915,20 @@ function refreshPhotoPanel(){
     if(_jgm9){/* [BUILD2119] 지거 3장 세로 통합 — 아무 장이나 선택해도 근경·원경·이격기준점 한 번에 */
       var _JL9=['근경','원경','이격기준점'];var _h9='';
       for(var _ji9=1;_ji9<=3;_ji9++){var _no9=_jgm9[1]+'-'+_jgm9[2]+'-'+_ji9;_h9+=paneImg(_no9,'지거',true,'지거 '+_jgm9[2]+' · '+_JL9[_ji9-1]+' / '+_no9);}
-      body.innerHTML=_h9;_bu=null;/* 현황판 생략 */
-      [].forEach.call(body.querySelectorAll('img#zoomImg'),function(_zi9,_ix9){_zi9.id='rtJgImg9_'+_ix9;try{rtViewZoom(_zi9);}catch(_z9){}});
+      body.innerHTML=_h9;_bu=null;
+      /* [BUILD2121] 각 장에 지거 현황판 즉석 합성 — 원본 무손(표시 시 캔버스), 별도 현황판 카드 없이 사진 자체에 */
+      (function(){var _mains9=body.querySelectorAll('.php-main');
+        for(var _sh9=1;_sh9<=3;_sh9++){
+          var _mn9=_mains9[_sh9-1];if(!_mn9)continue;
+          var _im9=_mn9.querySelector('.zoomwrap img');if(!_im9)continue;
+          _im9.id='rtJgImg9_'+_sh9;
+          (function(im,sno){
+            var ph=new Image();ph.crossOrigin='anonymous';
+            ph.onload=function(){try{var W=ph.naturalWidth,H=ph.naturalHeight;var c=document.createElement('canvas');c.width=W;c.height=H;c.className='ph';var ctx=c.getContext('2d');ctx.drawImage(ph,0,0);if(typeof rtJgBoardTable9==='function')rtJgBoardTable9(ctx,W,H,null,sno);if(im.parentNode)im.parentNode.replaceChild(c,im);try{rtViewZoom(c);}catch(_v9){}}catch(_c9){try{rtViewZoom(im);}catch(_v8){}}};
+            ph.onerror=function(){try{rtViewZoom(im);}catch(_v7){}};
+            ph.src=im.src;
+          })(_im9,_jgm9[1]+'-'+_jgm9[2]+'-'+_sh9);
+        }})();
     }else
     body.innerHTML=paneImg(selNum,'노출관로측량',true,_cap)
       +(_bu?'<div class="php-main" style="margin-top:8px"><div class="cap"><span>현황판</span></div><div class="ph php-none" id="rtBoardBox">현황판 생성 중…</div></div>':'');
