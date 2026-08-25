@@ -13003,9 +13003,13 @@ function joseoRegisterDone(){ /* [1275] 토글 */
   toast(fd.joseo?'실시간 사진조서 등록완료 ✓ — 최종본은 [전체 ZIP]/[날짜별 다운로드]로 받으세요':'실시간 사진조서 미등록으로 변경 — 최종성과 창에 반영됨');
 }
 (function(){
-  var bt=document.getElementById('joseoBoardTgl');/* [BUILD1875] 현황판/원본 토글 */
-  function _jbSync(){if(!bt)return;var on=!!state.joseoBoard;bt.textContent=on?'현황판':'원본';bt.style.background=on?'#d32f2f':'#FFC61A';bt.style.color=on?'#fff':'#6b5300';bt.style.borderColor=on?'#d32f2f':'#d9a800';/* [BUILD1876] */}
-  if(bt){window._jbSync9=_jbSync;bt.onclick=function(){state.joseoBoard=!state.joseoBoard;_jbSync();try{if(online&&state.projectId)saveProject();}catch(_e){}try{if(typeof joseoState!=='undefined'&&joseoState.cur)joseoRenderPreview(joseoState.cur);}catch(_e2){}try{if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();}catch(_e3){}/* [BUILD1916] */toast(state.joseoBoard?'실시간 측량점: 현황판 합성 표시':'실시간 측량점: 사진 원본 표시');};_jbSync();}
+  var bt=document.getElementById('joseoBoardTgl');var bt2=document.getElementById('joseoBoardTgl2');/* [BUILD1875→2126] 현황판/원본 토글 — 조서 헤더판 동기화 */
+  function _jbOne(b){if(!b)return;var on=!!state.joseoBoard;b.textContent=on?'현황판':'원본';b.style.background=on?'#d32f2f':'#FFC61A';b.style.color=on?'#fff':'#6b5300';b.style.borderColor=on?'#d32f2f':'#d9a800';}
+  function _jbSync(){_jbOne(bt);_jbOne(bt2);/* [BUILD1876] */}
+  var _jbClick9=function(){state.joseoBoard=!state.joseoBoard;_jbSync();try{if(online&&state.projectId)saveProject();}catch(_e){}try{if(typeof joseoState!=='undefined'&&joseoState.cur)joseoRenderPreview(joseoState.cur);}catch(_e2){}try{if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();}catch(_e3){}/* [BUILD1916] */toast(state.joseoBoard?'실시간 측량점: 현황판 합성 표시':'실시간 측량점: 사진 원본 표시');};
+  if(bt){window._jbSync9=_jbSync;bt.onclick=_jbClick9;}
+  if(bt2){window._jbSync9=_jbSync;bt2.onclick=_jbClick9;}
+  if(bt||bt2)_jbSync();
   var lb=document.getElementById('joseoLinkBtn');
   if(lb) lb.onclick=function(){ joseoLink=!joseoLink; this.textContent=joseoLink?'🔗 연동':'🔓 미연동'; this.classList.toggle('off',!joseoLink); toast(joseoLink?'측점↔조서 연동 ON (점 클릭=조서 이동)':'조서 연동 OFF'); };
   var db=document.getElementById('joseoDoneBtn');
@@ -13142,7 +13146,7 @@ function joseoRenderJg9(dk){
     for(var k=1;k<=4;k++){
       var key=String(p.no)+'-'+k;
       var u=(typeof photoMap!=='undefined'&&photoMap)?photoMap[key]:null;
-      cells+='<div class="jz-pc">'+(u?('<img src="'+joseoEsc(u)+'">'):'<div class="ne">'+CAPS[k-1]+' 사진 없음</div>')
+      cells+='<div class="jz-pc">'+(u?('<img src="'+joseoEsc(u)+'" data-jzk="'+joseoEsc(key)+'">'):'<div class="ne">'+CAPS[k-1]+' 사진 없음</div>')
         +'<div class="jz-cap" style="position:relative">'+CAPS[k-1]+' ('+n+'-'+k+')'
         +'<button data-jzchg="exp" data-jzno="'+joseoEsc(key)+'" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:2px 9px;border:1px solid #7a52e0;background:#fff;color:#7a52e0;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer">사진변경</button></div></div>';
       if(k===2)cells+='</div><div class="jz-ph2">';
@@ -13160,6 +13164,7 @@ function joseoRenderJg9(dk){
   });
   box.innerHTML=html;
   [].forEach.call(box.querySelectorAll('button[data-jzchg]'),function(b){b.onclick=function(ev){ev.stopPropagation();if(typeof joseoPhotoPick==='function')joseoPhotoPick(b.getAttribute('data-jzno'),'exp');};});
+  if(state.joseoBoard){[].forEach.call(box.querySelectorAll('img[data-jzk]'),function(im){var k=im.getAttribute('data-jzk');var u=im.getAttribute('src');if(!k||!u)return;rtBoardURL(k,u,function(du){if(du)im.src=du;},(state.rtBoardPos&&state.rtBoardPos[k])||null);});}/* [BUILD2126] 지거 현황판 합성 표시 */
 }
 function joseoRenderPreview(dk){
   var box=document.getElementById('joseoPreview'); if(!box)return;
@@ -13756,7 +13761,7 @@ function rtBoardURL(no,url,cb,pos,nocache){
       var W=img.naturalWidth,H=img.naturalHeight;
       var cv2=document.createElement('canvas');cv2.width=W;cv2.height=H;
       var cx=cv2.getContext('2d');cx.drawImage(img,0,0);
-      rtBoardTable(cx,W,H,pos,no);
+      if(/^[0-9]{6}-[0-9]+-[1-4]$/.test(String(no))&&typeof rtJgBoardTable9==='function')rtJgBoardTable9(cx,W,H,pos,no);else rtBoardTable(cx,W,H,pos,no);/* [BUILD2126] 지거 키 → 지거 6행 현황판 */
       var du=cv2.toDataURL('image/jpeg',0.9);
       if(!nocache)_rtBoardCache[key]=du;
       cb(du);
