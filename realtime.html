@@ -869,7 +869,7 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2078"></script><script src="core.js?v=2078"></script>
+<script src="login.js?v=2079"></script><script src="core.js?v=2079"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)">
 <script>
 /* [BUILD2070] 폰 도면:사진 비율 — 무한재적용(진동) 근본 차단: 재진입 가드+변경시에만 쓰기+클램프 캐시 */
@@ -978,6 +978,25 @@ window.RT_SPLIT9=(function(){try{var v=parseFloat(localStorage.getItem('rtSplit9
       var bd=document.getElementById('photoBody');if(bd)mo.observe(bd,{childList:true,subtree:true});/* [BUILD2075] 사진 재렌더 추적 — style 감시 아님(루프 없음) */}
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ob);else ob();
   }catch(e){}
+})();
+</script>
+<script>
+/* [BUILD2079] 폰 body 높이 = 실측 픽셀 고정 — dvh를 못 믿는 웹뷰(카톡 인앱 등)에서 패널 바닥이 화면 밖으로 나가던 문제 종결. 회전해야 고쳐지던 증상의 근본 원인 제거 */
+(function(){
+  var last=0;
+  function fit(){try{
+    if(!window.matchMedia||!matchMedia('(max-width:760px)').matches){if(last){document.body.style.removeProperty('height');last=0;}return;}
+    var h=window.innerHeight||0;
+    if(h>200&&h!==last){document.body.style.setProperty('height',h+'px','important');last=h;}
+  }catch(e){}}
+  fit();
+  window.addEventListener('load',fit);
+  window.addEventListener('resize',fit);
+  window.addEventListener('orientationchange',function(){setTimeout(fit,250);setTimeout(fit,600);});
+  window.addEventListener('pageshow',fit);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(fit,80);});
+  try{if(window.visualViewport)visualViewport.addEventListener('resize',fit);}catch(e){}
+  setTimeout(fit,300);setTimeout(fit,1000);setTimeout(fit,2500);
 })();
 </script>
 </body>
