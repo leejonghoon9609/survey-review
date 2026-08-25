@@ -286,7 +286,7 @@
   /* [1194] PC 전용 — 헤더 2줄: 백판/결선완료사업/준공도면 + 사진/지도/로드뷰를 아랫줄로 (모바일 무영향) */
   #hdrBrk{display:none}
   @media(min-width:761px){#phr2{display:contents}.php-head #dirToggle{order:1}.php-head #photoSel{order:2}.php-head #rtPtDel9{order:3}.php-head #rtPtRst9{order:4}.php-head #photoLinkBtn{order:5}.php-head #vNote2{order:6}.php-head #rtRecap{order:7}.php-head #photoUp{order:8}.php-head #photoClose{order:9}}/* [BUILD2060] PC 기존 순서 유지 */
-  @media(min-width:761px){#rtDailyPop table{font-size:12px!important}#rtDailyPop th{white-space:nowrap!important;padding:6px 5px!important;font-size:11.5px!important}#rtDailyPop td{padding:6px 4px!important;white-space:nowrap!important}#rtDailyPop td[style*='max-width:90px']{max-width:110px!important}#rtDailyPop .rtdRowPh,#rtDailyPop .rtdRowCsv,#rtDailyPop .rtdRowRaw9{font-size:11px!important;padding:3px 7px!important}#rtDailyPop #rtAllCsv9,#rtDailyPop #rtAllNight9,#rtDailyPop #rtAllPh9{font-size:12px!important;padding:7px 2px!important}#rtDailyPop #rtDailyDelBtn,#rtDailyPop #rtDailyClose{font-size:13px!important;padding:8px 16px!important}}/* [BUILD2094] PC 일별등록 압축 정렬 */
+  @media(min-width:761px){#rtDailyPop table{font-size:12px!important}#rtDailyPop th{white-space:nowrap!important;padding:6px 5px!important;font-size:11.5px!important}#rtDailyPop td{padding:6px 4px!important;white-space:nowrap!important}#rtDailyPop .rtdRowPh,#rtDailyPop .rtdRowCsv,#rtDailyPop .rtdRowRaw9{font-size:11px!important;padding:3px 7px!important}#rtDailyPop #rtAllCsv9,#rtDailyPop #rtAllNight9,#rtDailyPop #rtAllPh9{font-size:12px!important;padding:7px 2px!important}#rtDailyPop #rtDailyDelBtn,#rtDailyPop #rtDailyClose{font-size:13px!important;padding:8px 16px!important}}/* [BUILD2094] PC 일별등록 압축 정렬 */
   @media(min-width:761px){
     #hdrBrk{display:block;flex-basis:100%;height:0;order:8}
     /* [1203] 아랫줄 그룹 순서: 파랑(결선완료사업·준공도면)→노랑(지우기·거리산출)→빨강(되돌리기~백판), 그룹 간격=거리산출 폭 */
@@ -492,7 +492,6 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   #rtDailyPop table{font-size:10.5px!important}
   #rtDailyPop th{padding:5px 2px!important;font-size:10px!important;white-space:nowrap!important}
   #rtDailyPop td{padding:5px 2px!important;font-size:10.5px!important;white-space:nowrap!important}
-  #rtDailyPop td[style*='max-width:90px']{max-width:58px!important}
   #rtDailyPop .rtdRowPh,#rtDailyPop .rtdRowCsv,#rtDailyPop .rtdRowRaw9{font-size:9.5px!important;padding:2px 4px!important;border-radius:5px!important}
   #rtDailyPop input.rtdChk{width:13px!important;height:13px!important}
   #rtDailyPop #rtAllCsv9,#rtDailyPop #rtAllNight9,#rtDailyPop #rtAllPh9{font-size:10.5px!important;padding:6px 1px!important;border-radius:7px!important}
@@ -883,7 +882,7 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2094"></script><script src="core.js?v=2094"></script>
+<script src="login.js?v=2095"></script><script src="core.js?v=2095"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)">
 <script>
 /* [BUILD2070] 폰 도면:사진 비율 — 무한재적용(진동) 근본 차단: 재진입 가드+변경시에만 쓰기+클램프 캐시 */

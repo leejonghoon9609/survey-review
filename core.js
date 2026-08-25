@@ -14420,7 +14420,7 @@ function rtDailyTodayFill(){ /* [BUILD1915] 날짜별 목록+체크박스 — �
   var prev=null;try{prev={};[].forEach.call(el.querySelectorAll('.rtdChk'),function(c){prev[c.getAttribute('data-d')]=c.checked;});if(!Object.keys(prev).length)prev=null;}catch(_p){prev=null;}
   var h='<table style="width:100%;border-collapse:collapse;font-size:13px;border:1.5px solid #cf8f8f"><thead><tr style="background:#fdf0f0;color:#a12b2b">'
    +'<th style="padding:7px 4px;border-bottom:1.5px solid #d9a3a3;width:24px"></th>'
-   +'<th style="padding:7px 6px;border-bottom:1.5px solid #d9a3a3">날짜</th><th style="border-bottom:1.5px solid #d9a3a3">사업명</th><th style="border-bottom:1.5px solid #d9a3a3">작업자</th><th style="border-bottom:1.5px solid #d9a3a3;text-align:right">거리(m)</th><th style="border-bottom:1.5px solid #d9a3a3;text-align:right">측점</th><th style="border-bottom:1.5px solid #d9a3a3;text-align:right">결선</th><th style="border-bottom:1.5px solid #d9a3a3">사진</th><th style="border-bottom:1.5px solid #d9a3a3">원시</th><th style="border-bottom:1.5px solid #d9a3a3">CSV</th></tr></thead><tbody>';
+   +'<th style="padding:7px 6px;border-bottom:1.5px solid #d9a3a3">날짜</th><th style="border-bottom:1.5px solid #d9a3a3">작업자</th><th style="border-bottom:1.5px solid #d9a3a3;text-align:right">거리(m)</th><th style="border-bottom:1.5px solid #d9a3a3;text-align:right">측점</th><th style="border-bottom:1.5px solid #d9a3a3;text-align:right">결선</th><th style="border-bottom:1.5px solid #d9a3a3">사진</th><th style="border-bottom:1.5px solid #d9a3a3">원시</th><th style="border-bottom:1.5px solid #d9a3a3">CSV</th></tr></thead><tbody>';
   for(var di=dates.length-1;di>=0;di--){var d=dates[di],r=recs[d]||null;
     var dist=+((dm.dist[d]||0).toFixed(1)),seg=dm.seg[d]||0,np=ptBy[d]||0,ph=phBy[d]||0;
     var chk=prev?!!prev[d]:(d===ymd);
@@ -14428,7 +14428,7 @@ function rtDailyTodayFill(){ /* [BUILD1915] 날짜별 목록+체크박스 — �
      +'<td style="text-align:center;padding:6px 4px"><input type="checkbox" class="rtdChk" data-d="'+d+'"'+(chk?' checked':'')+' style="width:15px;height:15px;cursor:pointer"></td>'
      +'<td style="padding:8px 6px;font-weight:700;font-size:12px;color:'+(r?'#c0392b':'#98a1ad')+';white-space:nowrap">20'+d.slice(0,2)+'-'+d.slice(2,4)+'-'+d.slice(4,6)
      +(r?' <span style="font-size:10px;color:#0f6e56;font-weight:800">등록됨 ✓'+((r.at||'').slice(11,16)?(' '+(r.at||'').slice(11,16)):'')+'</span>':' <span style="font-size:10px;color:#b9b9b2">(미등록)</span>')+'</td>'
-     +'<td style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px" title="'+(state.projectName||'')+'">'+(state.projectName||'')+'</td>'
+     /* [BUILD2095] 사업명 열 제거 */
      +'<td style="text-align:center;'+(r?'':'color:#98a1ad')+'">'+((r&&r.worker)||((typeof ME!=='undefined'&&ME)||'-'))+'</td>'
      +'<td style="text-align:right;font-weight:800;color:#c0392b">'+dist+'</td>'
      +'<td style="text-align:right">'+np+'</td>'
