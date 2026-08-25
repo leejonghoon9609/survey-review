@@ -510,6 +510,13 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
 @media (orientation:landscape) and (pointer:coarse) and (max-width:1000px){
   #rail{position:fixed!important;left:0;top:0;bottom:0;width:250px!important;max-width:82vw!important;z-index:9000!important;transform:translateX(-104%);transition:transform .25s;box-shadow:2px 0 18px rgba(0,0,0,.3);overflow-y:auto!important}
   body.rtrailopen #rail{transform:translateX(0)}
+  /* [BUILD2138] 가로 폰 헤더 압축 정렬 — 좁아진 폭에서 버튼이 제멋대로 감기지 않게 */
+  header{gap:4px!important;padding:4px 6px!important;align-items:center}
+  header button,header select,header .wk{font-size:11px!important;padding:3px 6px!important;white-space:nowrap;flex:none;margin:0!important}
+  header #proj{max-width:170px;min-width:0}
+  #hdrBrk{display:none!important}
+  #globalbtns button{margin-left:0!important}
+  .subhint,#doneSummary{display:none!important}
 }
 </style>
 <style>@media (max-width:900px){#rtNoteBtn{display:none!important}}</style>
@@ -888,7 +895,7 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2137"></script><script src="core.js?v=2137"></script>
+<script src="login.js?v=2138"></script><script src="core.js?v=2138"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)">
 <script>
 /* [BUILD2070] 폰 도면:사진 비율 — 무한재적용(진동) 근본 차단: 재진입 가드+변경시에만 쓰기+클램프 캐시 */
