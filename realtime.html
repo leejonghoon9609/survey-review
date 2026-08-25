@@ -517,6 +517,11 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   #hdrBrk{display:none!important}
   #globalbtns button{margin-left:0!important}
   .subhint,#doneSummary{display:none!important}
+  /* [BUILD2139] 가로 폰 서브바 — 세로 폰과 동일하게 한 줄 고정(사업등록·일별완료성과 등록·완료성과(전체) 순서 그대로), 우측은 CSV·촬영 예약폭 */
+  .subbar{min-height:0!important;padding:4px 165px 4px 6px!important;gap:4px!important;flex-wrap:nowrap!important;overflow-x:auto!important;align-items:center}
+  .subbar button{padding:5px 9px!important;font-size:11.5px!important;white-space:nowrap!important;flex:none;margin:0!important}
+  #rtTopBtns{top:4px!important;right:6px!important;gap:5px!important}
+  #rtNoteBtn,#rtCsvBtn,#rtShoot{padding:5px 9px!important;font-size:12px!important}
 }
 </style>
 <style>@media (max-width:900px){#rtNoteBtn{display:none!important}}</style>
@@ -895,7 +900,7 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2138"></script><script src="core.js?v=2138"></script>
+<script src="login.js?v=2139"></script><script src="core.js?v=2139"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)">
 <script>
 /* [BUILD2070] 폰 도면:사진 비율 — 무한재적용(진동) 근본 차단: 재진입 가드+변경시에만 쓰기+클램프 캐시 */
