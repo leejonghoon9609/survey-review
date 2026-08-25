@@ -14172,12 +14172,18 @@ function refreshPhotoPanel(){
     // 결선 DB: 원래대로 — 선택측점 사진 + 위/아래 측점 썸네일
     var nbs=neighborsOf(selNum),up=nbs.up,down=nbs.down;
     var n1=up?up.no:null,n2=down?down.no:null;
-    if(viewerMode){body.innerHTML=paneImg(selNum,'선택측점 사진',true);}
+    var _jgv9=/^([0-9]{6})-([0-9]+)-([1-4])$/.exec(String(selNum));/* [BUILD2127] 지거점 전용 배치 */
+    if(_jgv9){
+      var _jb9=_jgv9[1]+'-'+_jgv9[2];n1=_jb9+'-2';n2=_jb9+'-3';
+      body.innerHTML=paneImg(_jb9+'-1','지거',true,'지거 '+_jgv9[2]+' · 근경 / '+_jb9+'-1')
+        +'<div class="php-row">'+paneImg(n1,'원경',false,'원경 / '+n1)+paneImg(n2,'이격기준점',false,'이격기준점 / '+n2)+'</div>';
+    }
+    else if(viewerMode){body.innerHTML=paneImg(selNum,'선택측점 사진',true);}
     else{body.innerHTML=paneImg(selNum,'선택측점 사진',true)+'<div class="php-row">'+paneImg(n1,'위 측점',false)+paneImg(n2,'아래 측점',false)+'</div>';}
     if(state.joseoBoard&&typeof rtBoardURL==='function'){/* [BUILD1916] 결선DB 측점사진 현황판 합성 — 조서[1195]와 동일 */
       (function(){
         function _bd9(no,img){if(no==null||!img)return;var u=img.getAttribute('src');if(!u)return;rtBoardURL(no,u,function(du){if(du)img.src=du;},(state.rtBoardPos&&state.rtBoardPos[no]));}
-        _bd9(selNum,body.querySelector('.php-main img.ph'));
+        _bd9(_jgv9?(_jgv9[1]+'-'+_jgv9[2]+'-1'):selNum,body.querySelector('.php-main img.ph'));/* [BUILD2127] 지거 메인=근경 키 */
         var _sp9=body.querySelectorAll('.php-sub');var _no9=[n1,n2];
         for(var _q9=0;_q9<_sp9.length&&_q9<_no9.length;_q9++)_bd9(_no9[_q9],_sp9[_q9].querySelector('img.ph'));
       })();
@@ -14791,7 +14797,7 @@ function rtRegToSurvey(){ /* [1216] 대상 테이블 = survey_projects/survey_ph
   });
   sb.from("survey_projects").select("id,name,payload").then(function(res){
     var rows=((res&&res.data)||[]).filter(function(r){var pl0=r.payload||{};return !pl0.delAt&&(pl0.stage||'survey')==='survey'&&baseName(r.name)===base;});
-    var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,rtDaily:state.rtDaily||[],trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:state.finalCsv||null,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,depthManual:state._depthManual||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,tgSegLabelOff:state.tgSegLabelOff||null,mnList:state.mnList||[],tangoDone:state.tangoDone||null,tgCarrier:state.tgCarrier||null,mhDel:state.mhDel||null,tgNotes:state.tgNotes||null,refCrop:state.refCrop||null/* [BUILD1994] 사업 영역 인계 */,bpFull:state.bpFull||[],bpTexts:state.bpTexts||[]/* [BUILD1997] 백판 원본 인계 — 탱고·정위치 사본에서도 재크롭 복구가 되도록. payload로 넘어오지만 다음 저장 때 saveProject가 heavy 컬럼으로 자동 이사시킨다([1491] finalCsv와 동일 관례) */,hyunPts:state.hyunPts||null};
+    var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,rtDaily:state.rtDaily||[],trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:state.finalCsv||null,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,depthManual:state._depthManual||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,tgSegLabelOff:state.tgSegLabelOff||null,mnList:state.mnList||[],tangoDone:state.tangoDone||null,tgCarrier:state.tgCarrier||null,mhDel:state.mhDel||null,tgNotes:state.tgNotes||null,refCrop:state.refCrop||null/* [BUILD1994] 사업 영역 인계 */,bpFull:state.bpFull||[],bpTexts:state.bpTexts||[]/* [BUILD1997] 백판 원본 인계 — 탱고·정위치 사본에서도 재크롭 복구가 되도록. payload로 넘어오지만 다음 저장 때 saveProject가 heavy 컬럼으로 자동 이사시킨다([1491] finalCsv와 동일 관례) */,hyunPts:state.hyunPts||null,rtJgBoard9:state.rtJgBoard9||null,rtBoardName:state.rtBoardName||null,rtBoardPos:state.rtBoardPos||null/* [BUILD2127] 지거 현황판 입력·사업명·위치 인계 */};
     payload.stage='survey';payload.routingDone=false;
     var _photos=function(toId){
       sb.from(STAGE+"_photos").select("point_no,url").eq('project_id',state.projectId).then(function(pr){
