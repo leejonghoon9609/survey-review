@@ -12542,6 +12542,72 @@ function joseoAddPhotosBlk(wb,ws,S,p){
   if(p.expBuf){ var id=wb.addImage({buffer:p.expBuf,extension:'jpeg'}); ws.addImage(id,'A'+top+':C'+bot); }
   if(p.aftBuf){ var id2=wb.addImage({buffer:p.aftBuf,extension:'jpeg'}); ws.addImage(id2,'D'+top+':G'+bot); }
 }
+/* [BUILD2129] 지거 조서 엑셀 — 지거조서_템플릿.xlsx(A1:G34 블록, 사진 4칸) 사용. 조서 화면(joseoRenderJg9)과 동일한 데이터 소스(rtJgBoard9 우선, 기준점 좌표·코드 폴백) */
+var JG_TPL_URL=encodeURI('지거조서_템플릿.xlsx');var _jgTplBuf=null;
+function jgGetTemplate9(){
+  if(_jgTplBuf)return Promise.resolve(_jgTplBuf);
+  return fetch(JG_TPL_URL).then(function(r){if(!r.ok)throw new Error('지거조서_템플릿.xlsx 로드 실패('+r.status+') — GitHub 레포 루트에 올렸는지 확인');return r.arrayBuffer();}).then(function(b){_jgTplBuf=b;return b;});
+}
+var JG_BM9=['A1:G1','B2:G2','B3:C3','E3:G3','A4:B4','C4:C5','D4:D5','E4:E5','F4:F5','G4:G5','D7:G7','A8:C18','D8:G18','A20:C20','D20:G20','A22:C32','D22:G32','A34:C34','D34:G34'];
+function jgRec9(p,dstr){
+  var n=String(p.no).split('-')[1]||'';
+  var jb=(state.rtJgBoard9&&state.rtJgBoard9[n])||{};
+  var pc=(typeof joseoParseCode==='function')?joseoParseCode(p.code||''):{mat:'',dia:''};
+  var gap='',dep='';if(jb.ds){var _d=String(jb.ds).split('/');gap=(_d[0]||'').trim();dep=(_d[1]||'').trim();}
+  if(!dep&&p.depth!=null&&p.depth!=='')dep=String(p.depth);
+  return {no:p.no,name:n,date:dstr,
+    x:(p.y!=null&&p.y!==''&&isFinite(+p.y))?(+p.y).toFixed(3):'',
+    y:(p.x!=null&&p.x!==''&&isFinite(+p.x))?(+p.x).toFixed(3):'',
+    mat:(jb.mat||pc.mat||''),dia:(jb.dia||pc.dia||''),gap:gap,depth:dep,
+    keys:[String(p.no)+'-1',String(p.no)+'-2',String(p.no)+'-3',String(p.no)+'-4'],bufs:[null,null,null,null]};
+}
+async function jgFetchPhotos9(recs,onProg){
+  var jobs=[];recs.forEach(function(r){r.keys.forEach(function(k,i){var u=(typeof photoMap!=='undefined'&&photoMap)?photoMap[k]:null;if(u)jobs.push({r:r,i:i,k:k,u:u});});});
+  for(var q=0;q<jobs.length;q++){var j=jobs[q];
+    j.r.bufs[j.i]=await (state.joseoBoard?joseoBoardBuf(j.k,j.u):joseoFetchBuf(j.u));
+    if(onProg)onProg(q+1,jobs.length);}
+}
+async function jgBuildWb9(projectName,recs){
+  var tplBuf=await jgGetTemplate9();
+  var wb=new ExcelJS.Workbook();await wb.xlsx.load(tplBuf);
+  var ws=wb.worksheets[0];
+  var H9=34;
+  var BLK=[];for(var r=1;r<=H9;r++){var row=[];for(var c=1;c<=7;c++){var cc=ws.getCell(r,c);row.push({style:cc.style,value:cc.value});}BLK.push({h:ws.getRow(r).height,row:row});}
+  var nm=(typeof joseoCleanName9==='function'?joseoCleanName9(projectName):projectName)||'';
+  for(var i=0;i<recs.length;i++){
+    var off=i*H9,S=1+off;
+    if(i>=1){for(var k=0;k<BLK.length;k++){var tr=S+k;ws.getRow(tr).height=BLK[k].h;for(var c2=1;c2<=7;c2++){var t=ws.getCell(tr,c2);t.style=BLK[k].row[c2-1].style;t.value=BLK[k].row[c2-1].value;}}
+      JG_BM9.forEach(function(mm){try{ws.mergeCells(joseoShift(mm,off));}catch(_e){}});}
+    var rc=recs[i];
+    joseoSetv(ws,'B'+(2+off),nm);
+    joseoSetv(ws,'B'+(3+off),joseoDateK(rc.date));
+    joseoSetv(ws,'E'+(3+off),rc.name);
+    joseoSetv(ws,'A'+(6+off),rc.x);joseoSetv(ws,'B'+(6+off),rc.y);
+    joseoSetv(ws,'C'+(6+off),'통신');
+    joseoSetv(ws,'D'+(6+off),rc.mat);joseoSetv(ws,'E'+(6+off),rc.dia);
+    joseoSetv(ws,'F'+(6+off),rc.gap);joseoSetv(ws,'G'+(6+off),rc.depth);
+    var RG=[['A'+(8+off)+':C'+(18+off)],['D'+(8+off)+':G'+(18+off)],['A'+(22+off)+':C'+(32+off)],['D'+(22+off)+':G'+(32+off)]];
+    for(var pi=0;pi<4;pi++){if(rc.bufs[pi]){var id=wb.addImage({buffer:rc.bufs[pi],extension:'jpeg'});ws.addImage(id,RG[pi][0]);}}
+  }
+  ws.pageSetup.margins={left:0.2,right:0.2,top:0.3,bottom:0.3,header:0.2,footer:0.2};
+  ws.pageSetup.fitToPage=false;
+  try{ws.pageSetup.printArea='A1:G'+(H9*recs.length);}catch(_pa){}
+  for(var b=1;b<recs.length;b++){try{ws.getRow(b*H9).addPageBreak();}catch(_pb){}}
+  return wb;
+}
+async function jgDownloadDate9(dk){
+  var dstr=String(dk).replace(/_지거$/,'');
+  var recs=(joseoState.groups[dk]||[]).map(function(p){return jgRec9(p,dstr);});
+  if(!recs.length){toast('지거 항목이 없습니다');return;}
+  joseoProg('지거 사진 불러오는 중…',0.05);
+  await jgFetchPhotos9(recs,function(d,t){joseoProg('사진 '+d+'/'+t,t?(d/t*0.7):0.5);});
+  joseoProg('지거 조서 생성 중…',0.85);
+  var wb=await jgBuildWb9(state.projectName,recs);
+  var buf=await wb.xlsx.writeBuffer();
+  var nm=(typeof joseoCleanName9==='function'?joseoCleanName9(state.projectName):state.projectName)||'조서';
+  joseoSaveBlob(buf,nm+'_'+dstr.replace(/-/g,'')+'_지거.xlsx');/* [BUILD2129] 파일명도 사업명만(_A 등 꼬리 제거) */
+  joseoProg('완료 ✓',1);setTimeout(joseoProgHide,1200);
+}
 async function joseoBuildWb(projectName, recs, perPage){
   var tplBuf=await joseoGetTemplate();
   var wb=new ExcelJS.Workbook(); await wb.xlsx.load(tplBuf);
@@ -13215,7 +13281,9 @@ function joseoRenderPreview(dk){
 async function joseoDownloadDate(forceDk){
   if(!joseoState)return;
   try{
-    var dk=forceDk||joseoState.cur, recs=(joseoState.groups[dk]||[]).map(joseoRec);
+    var dk=forceDk||joseoState.cur;
+    if(/_지거$/.test(String(dk))){await jgDownloadDate9(dk);return;}/* [BUILD2129] 지거 탭 → 지거조서 템플릿 */
+    var recs=(joseoState.groups[dk]||[]).map(joseoRec);
     joseoProg('사진 불러오는 중…',0.05);
     await joseoFetchPhotos(recs,function(d,t){ joseoProg('사진 '+d+'/'+t, t?(d/t*0.7):0.5); });
     joseoProg('엑셀 생성 중…',0.85);
