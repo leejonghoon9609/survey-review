@@ -7473,7 +7473,7 @@ function openAsbuilt(){
     }
   }).catch(function(){try{win.document.body.innerHTML='<div style="padding:24px;font:15px sans-serif;color:#eee;line-height:1.7">도면을 창 안에서 열지 못했습니다(접근 제한).<br><br><a href="'+a.url+'" target="_blank" style="color:#9cf">여기를 눌러 새 탭에서 열기</a></div>';}catch(e){window.open(a.url,'_blank');}});
 }
-document.getElementById('rcCsvBtn').onclick=function(){document.getElementById('fCsv').click();};document.getElementById('rcAftBtn').onclick=function(){if(typeof openFinalCsvUpload==='function')openFinalCsvUpload();else document.getElementById('fAft').click();};var _clrAft=document.getElementById('clrAft');if(_clrAft)_clrAft.onclick=function(){state.finalCsv=[];if(state.fieldDone)state.fieldDone.csv=false;state.depthGround=null;state._depthManual=null;/* [1541] */state._depthAlign=null;if(online&&state.projectId)saveProject();if(typeof refreshFieldBar==='function')refreshFieldBar();var st=document.getElementById('rcAft');if(st)st.textContent='복구후 후측량 (.csv)';var o=document.getElementById('rcAftOut');if(o)o.textContent='';this.style.display='none';toast('심도 데이터 삭제');};(function(){if(!IS_TANGO&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD)){var c=document.getElementById('regAftCard');if(c)c.style.display='none';}})(); /* [1246] field도 표시(탱고 동일) — realtime은 계속 숨김 */
+document.getElementById('rcCsvBtn').onclick=function(){if(typeof IS_REALTIME==='undefined'||!IS_REALTIME){document.getElementById('fCsv').click();return;}var i9=document.getElementById('rcRawInp9');if(!i9){i9=document.createElement('input');i9.type='file';i9.id='rcRawInp9';i9.accept='.zip,.csv,.txt';i9.multiple=true;i9.style.display='none';document.body.appendChild(i9);i9.onchange=function(){var fs=[].slice.call(this.files||[]);this.value='';if(!fs.length)return;var zips=fs.filter(function(f){return /\.zip$/i.test(f.name||'');});var csvs=fs.filter(function(f){return /\.(csv|txt)$/i.test(f.name||'');});if(zips.length&&typeof rtRawZipUpMany9==='function')rtRawZipUpMany9(zips);if(csvs.length){var fc=document.getElementById('fCsv');if(fc){try{var dt=new DataTransfer();csvs.forEach(function(f){dt.items.add(f);});fc.files=dt.files;fc.dispatchEvent(new Event('change',{bubbles:true}));}catch(_d9){toast('CSV 주입 실패 — 드롭으로 올려주세요');}}}};}i9.click();};/* [BUILD2110] 직접 로딩=원시 ZIP·CSV 다중 */document.getElementById('rcAftBtn').onclick=function(){if(typeof openFinalCsvUpload==='function')openFinalCsvUpload();else document.getElementById('fAft').click();};var _clrAft=document.getElementById('clrAft');if(_clrAft)_clrAft.onclick=function(){state.finalCsv=[];if(state.fieldDone)state.fieldDone.csv=false;state.depthGround=null;state._depthManual=null;/* [1541] */state._depthAlign=null;if(online&&state.projectId)saveProject();if(typeof refreshFieldBar==='function')refreshFieldBar();var st=document.getElementById('rcAft');if(st)st.textContent='복구후 후측량 (.csv)';var o=document.getElementById('rcAftOut');if(o)o.textContent='';this.style.display='none';toast('심도 데이터 삭제');};(function(){if(!IS_TANGO&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD)){var c=document.getElementById('regAftCard');if(c)c.style.display='none';}})(); /* [1246] field도 표시(탱고 동일) — realtime은 계속 숨김 */
 document.getElementById('rcDxfBtn').onclick=function(){document.getElementById('fDxf').click();};
 document.getElementById('rcPhoBtn').onclick=function(){document.getElementById('fRegPhotos').click();};
 (function(){
@@ -7505,7 +7505,7 @@ function setupDrop(zid,onfiles){var z=document.getElementById(zid);if(!z)return;
   z.addEventListener('dragleave',function(e){e.preventDefault();e.stopPropagation();z.classList.remove('over');});
   z.addEventListener('drop',function(e){e.preventDefault();e.stopPropagation();z.classList.remove('over');var fs=e.dataTransfer&&e.dataTransfer.files;if(fs&&fs.length)onfiles(fs);});
 }
-setupDrop('dropCsv',function(fs){if(regOpen()){if(state.tamsa&&typeof regAddCsvFilesTamsa==='function')regAddCsvFilesTamsa(fs);else regAddCsvFiles(fs);}else loadCsvFile(fs[0]);});/* [1355] 탐사 탭 분기 */
+setupDrop('dropCsv',function(fs){if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){var _z9=[],_r9=[];for(var zi=0;zi<fs.length;zi++){(/\.zip$/i.test(fs[zi].name||'')?_z9:_r9).push(fs[zi]);}if(_z9.length){if(typeof rtRawZipUpMany9==='function')rtRawZipUpMany9(_z9);if(!_r9.length)return;fs=_r9;}}/* [BUILD2110] 등록카드 원시 ZIP */if(regOpen()){if(state.tamsa&&typeof regAddCsvFilesTamsa==='function')regAddCsvFilesTamsa(fs);else regAddCsvFiles(fs);}else loadCsvFile(fs[0]);});/* [1355] 탐사 탭 분기 */
 setupDrop('dropDxf',function(fs){loadDxfFiles(fs);});/* [1350] */
 setupDrop('dropPho',function(fs){regAddPhotos(fs);});setupDrop('dropAft',function(fs){loadAfterCsv(fs[0]);});
 document.getElementById('dropCsv').addEventListener('click',function(){document.getElementById('fCsv').click();});document.getElementById('dropAft').addEventListener('click',function(){document.getElementById('fAft').click();});
@@ -14754,8 +14754,8 @@ function rtRawZipUp9(file){
   if(typeof IS_REALTIME==='undefined'||!IS_REALTIME){toast('실시간측량 전용 기능입니다');return;}
   if(!file){return;}
   if(typeof JSZip==='undefined'){toast('압축 모듈 없음 — 새로고침(Ctrl+Shift+R)');return;}
-  toast('원시 ZIP 여는 중…');
-  JSZip.loadAsync(file).then(function(zip){
+  toast('원시 ZIP 여는 중… ('+(file.name||'')+')');
+  return JSZip.loadAsync(file).then(function(zip){
     var ent=null;
     zip.forEach(function(path,e){if(!e.dir&&/\.csv$/i.test(path)&&!ent)ent=e;});
     if(!ent){toast('ZIP 안에서 CSV를 찾지 못했습니다');return;}
@@ -14836,6 +14836,16 @@ function rtRawAllZip9(){ /* [BUILD2096] 원시 통합 — 한 번만 압축: 날
         })();
       });
     })['catch'](function(){fail++;}).then(function(){setTimeout(nx,20);});
+  })();
+}
+function rtRawZipUpMany9(files){/* [BUILD2110] 원시 ZIP 다중 — 순차 처리 */
+  var arr=[].slice.call(files||[]).filter(function(f){return f&&/\.zip$/i.test(f.name||'');});
+  if(!arr.length)return;
+  if(arr.length>1)toast('원시 ZIP '+arr.length+'건 — 순차 처리 시작');
+  var i=0;(function nx(){
+    if(i>=arr.length){if(arr.length>1)toast('\u2713 원시 ZIP '+arr.length+'건 처리 완료',4000);return;}
+    var f=arr[i++];var pr=null;try{pr=rtRawZipUp9(f);}catch(_e){}
+    Promise.resolve(pr)['catch'](function(){}).then(function(){setTimeout(nx,700);});
   })();
 }
 function rtRawDl9(ymd,kind){ /* kind: 'zip'|'night' */

@@ -674,7 +674,7 @@ function rtOpenCsvModal(){/* [BUILD1869] \ub85c\ub529\ucc3d \uc7ac\uad6c\uc131: 
     +'<div style="display:flex;flex-direction:column;gap:8px;padding:0 14px 14px">'
     +'<button type="button" id="rtCsvNightBtn" style="background:#fff;color:#4f46e5;border:1.5px solid #4f46e5;border-radius:10px;padding:9px;font-weight:800;font-size:13.5px;cursor:pointer"></button>'
     +'<div style="display:flex;align-items:center;gap:5px;justify-content:center;font-size:11px;color:#4f46e5;font-weight:700;white-space:nowrap">새벽 컷 <input type="time" id="rtCsvNightCut" style="border:1px solid #c7cbe8;border-radius:6px;padding:2px 5px;font-size:12px;color:#4f46e5;font-weight:700;width:105px;min-width:105px;text-align:center"> 이전 → 전날 귀속</div>'
-    +'<input type="file" id="rtRawZipInp" accept=".zip,.csv,.txt" style="display:none">'/* [BUILD2088] \uD1B5\uD569 \uB85C\uB529 \uC785\uB825 */
+    +'<input type="file" id="rtRawZipInp" accept=".zip,.csv,.txt" multiple style="display:none">'/* [BUILD2088] \uD1B5\uD569 \uB85C\uB529 \uC785\uB825 */
     +'<div style="display:flex;gap:8px"><button type="button" id="rtCsvUp" style="flex:1;background:#fff;color:#1f6fd6;border:1.5px solid #1f6fd6;border-radius:10px;padding:10px 4px;font-weight:800;font-size:13.5px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center">\uc9c1\uc811\ub85c\ub529(\uc6d0\uc2dc)</button><button type="button" id="rtCsvDelBtn" style="flex:1;background:#fff;color:#d32f2f;border:1.5px solid #f2b8b5;border-radius:10px;padding:10px 4px;font-weight:800;font-size:13.5px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center">\uc6d0\uc2dc \uc0ad\uc81c</button></div>'/* [BUILD2084] \ud55c \uc904 \ubc30\uce58 */
     +'</div></div>';
   document.body.appendChild(wrap);
@@ -684,7 +684,7 @@ function rtOpenCsvModal(){/* [BUILD1869] \ub85c\ub529\ucc3d \uc7ac\uad6c\uc131: 
   document.getElementById('rtCsvUp').onclick=function(){var i=document.getElementById('rtRawZipInp');if(i)i.click();else _pick9();};/* [BUILD2088] \uC9C1\uC811\uB85C\uB529=\uC6D0\uC2DC ZIP+CSV \uD1B5\uD569 */
   document.getElementById('rtCsvDz').onclick=_pick9;
   document.getElementById('rtCsvDelBtn').onclick=function(){wrap.remove();rtOpenCsvDelList();};
-  (function(){var i=document.getElementById('rtRawZipInp');if(!i)return;i.onchange=function(){var f=this.files&&this.files[0];this.value='';if(!f)return;if(/\.zip$/i.test(f.name)){wrap.remove();if(typeof rtRawZipUp9==='function')rtRawZipUp9(f);return;}var fc=document.getElementById('fCsv');if(!fc)return;try{var dt=new DataTransfer();dt.items.add(f);fc.files=dt.files;wrap.remove();fc.dispatchEvent(new Event('change',{bubbles:true}));}catch(_d9){toast('\uc774 \ube0c\ub77c\uc6b0\uc800\ub294 \ubbf8\uc9c0\uc6d0 \u2014 \ub4dc\ub86d\uc73c\ub85c \uc62c\ub824\uc8fc\uc138\uc694');}};})();/* [BUILD2088] */
+  (function(){var i=document.getElementById('rtRawZipInp');if(!i)return;i.onchange=function(){var fs=[].slice.call(this.files||[]);this.value='';if(!fs.length)return;var zips=fs.filter(function(f){return /\.zip$/i.test(f.name||'');});var csvs=fs.filter(function(f){return /\.(csv|txt)$/i.test(f.name||'');});if(zips.length){wrap.remove();if(typeof rtRawZipUpMany9==='function')rtRawZipUpMany9(zips);}if(csvs.length){var fc=document.getElementById('fCsv');if(fc){try{var dt=new DataTransfer();csvs.forEach(function(f){dt.items.add(f);});fc.files=dt.files;if(!zips.length)wrap.remove();fc.dispatchEvent(new Event('change',{bubbles:true}));}catch(_d9){toast('\uc774 \ube0c\ub77c\uc6b0\uc800\ub294 \ubbf8\uc9c0\uc6d0 \u2014 \ub4dc\ub86d\uc73c\ub85c \uc62c\ub824\uc8fc\uc138\uc694');}}}};/* [BUILD2110] \ub2e4\uc911 */})();/* [BUILD2088] */
   (function(){var _nb9=document.getElementById('rtCsvNightBtn');if(!_nb9)return;_nb9.onclick=function(){if(typeof rtNightBtnToggle==='function')rtNightBtnToggle();};if(typeof rtNightPaint==='function')rtNightPaint(_nb9);})();/* [BUILD1914] */
   (function(){var _ci9=document.getElementById('rtCsvNightCut');if(!_ci9)return;if(typeof rtNightCutVal==='function')_ci9.value=rtNightCutVal();_ci9.onchange=function(){if(typeof rtNightCutChange==='function')rtNightCutChange(this.value);};})();/* [BUILD1927] */
   /* [BUILD1868] CSV \ub4dc\ub798\uadf8&\ub4dc\ub86d \u2014 fCsv change \ud30c\uc774\ud504\ub77c\uc778 \uc7ac\uc0ac\uc6a9, [1869] \ud558\uc774\ub77c\uc774\ud2b8=\ub4dc\ub86d\uc874 */
@@ -693,7 +693,7 @@ function rtOpenCsvModal(){/* [BUILD1869] \ub85c\ub529\ucc3d \uc7ac\uad6c\uc131: 
   wrap.addEventListener('dragleave',function(e){if(!wrap.contains(e.relatedTarget))hl(false);});
   wrap.addEventListener('drop',function(e){e.preventDefault();e.stopPropagation();hl(false);
     var fs=(e.dataTransfer&&e.dataTransfer.files)||[];if(!fs.length)return;
-    var _zips9=[];for(var zi=0;zi<fs.length;zi++){if(/\.zip$/i.test(fs[zi].name))_zips9.push(fs[zi]);}if(_zips9.length){wrap.remove();if(_zips9.length>1&&typeof toast==='function')toast('ZIP \uC5EC\uB7EC \uAC1C \uC911 \uCCAB \uD30C\uC77C\uB9CC \uCC98\uB9AC\uD569\uB2C8\uB2E4');if(typeof rtRawZipUp9==='function')rtRawZipUp9(_zips9[0]);return;}/* [BUILD2086] \uB4DC\uB86D\uC874 ZIP */var ok=[];for(var i=0;i<fs.length;i++){if(/\.(csv|txt)$/i.test(fs[i].name))ok.push(fs[i]);}
+    var _zips9=[];for(var zi=0;zi<fs.length;zi++){if(/\.zip$/i.test(fs[zi].name))_zips9.push(fs[zi]);}if(_zips9.length){wrap.remove();if(typeof rtRawZipUpMany9==='function')rtRawZipUpMany9(_zips9);else if(typeof rtRawZipUp9==='function')rtRawZipUp9(_zips9[0]);return;}/* [BUILD2110] \ub2e4\uc911 *//* [BUILD2086] \uB4DC\uB86D\uC874 ZIP */var ok=[];for(var i=0;i<fs.length;i++){if(/\.(csv|txt)$/i.test(fs[i].name))ok.push(fs[i]);}
     if(!ok.length){if(typeof toast==='function')toast('CSV \ud30c\uc77c\ub9cc \uc5c5\ub85c\ub4dc\ub429\ub2c8\ub2e4 (.csv/.txt)');return;}
     var f=document.getElementById('fCsv');if(!f)return;
     try{var dt=new DataTransfer();ok.forEach(function(x){dt.items.add(x);});f.files=dt.files;}catch(_d9){if(typeof toast==='function')toast('\uc774 \ube0c\ub77c\uc6b0\uc800\ub294 \ub4dc\ub798\uadf8 \uc5c5\ub85c\ub4dc \ubbf8\uc9c0\uc6d0 \u2014 \ubc84\ud2bc\uc744 \uc774\uc6a9\ud558\uc138\uc694');return;}
@@ -882,7 +882,7 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2109"></script><script src="core.js?v=2109"></script>
+<script src="login.js?v=2110"></script><script src="core.js?v=2110"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)">
 <script>
 /* [BUILD2070] 폰 도면:사진 비율 — 무한재적용(진동) 근본 차단: 재진입 가드+변경시에만 쓰기+클램프 캐시 */
