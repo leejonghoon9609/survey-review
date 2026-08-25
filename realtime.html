@@ -480,6 +480,11 @@ header #buildno{font-size:11px!important;padding:2px 7px!important}
   .photo-panel .php-head #rtRecap{display:none!important}
   .photo-panel .php-head #photoClose{order:99;margin-left:auto!important;font-size:12px!important;padding:3px 7px!important}
   #phr2{display:contents}
+  /* [BUILD2078] 사진 고정 상한 34vh — JS·타이밍 무관, 순수 CSS로 항상 적용(회전해야 고쳐지던 문제 종결) */
+  .php-main .ph{width:100%!important;height:auto!important;max-height:34vh!important;object-fit:contain!important;object-position:top center!important}
+  .php-main .zoomwrap{height:auto!important;max-height:34vh!important;overflow:hidden!important}
+  .php-main{height:auto!important;max-height:none!important}
+  .php-body{overflow-y:auto!important;min-height:0!important}
   .canvas-wrap,.canvas-wrap *{touch-action:none!important}/* [BUILD2072] 도면 위 어떤 요소에 손가락이 닿아도 브라우저 핀치 차단 — 동시 두손가락 확대 안 되던 원인 */
 
 }
@@ -864,7 +869,7 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2077"></script><script src="core.js?v=2077"></script>
+<script src="login.js?v=2078"></script><script src="core.js?v=2078"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)">
 <script>
 /* [BUILD2070] 폰 도면:사진 비율 — 무한재적용(진동) 근본 차단: 재진입 가드+변경시에만 쓰기+클램프 캐시 */
