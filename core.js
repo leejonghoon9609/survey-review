@@ -14756,28 +14756,40 @@ function _rtRawKey9(d){try{var M=state.rtRawMeta9||{};if(M[d])return d;
   for(var k in M){var kt=new Date('20'+k.slice(0,2)+'-'+k.slice(2,4)+'-'+k.slice(4,6)+'T00:00:00').getTime();
     if(isFinite(kt)&&Math.abs(kt-t)<=86400000)return k;}
 }catch(_e){}return null;}
-function rtRawAllZip9(){ /* [BUILD2091] 등록된 일별 원시 ZIP 전체 → 통합 ZIP */
+function rtRawAllZip9(){ /* [BUILD2096] 원시 통합 — 한 번만 압축: 날짜/등록명/원본내용 폴더로 전개 */
   var M=(typeof state!=='undefined'&&state.rtRawMeta9)||{};var keys=Object.keys(M).sort();
   if(!keys.length){toast('보관된 원시 ZIP이 없습니다 — 원시 ZIP으로 업로드한 날짜만 포함됩니다');return;}
   if(typeof JSZip==='undefined'){toast('압축 모듈 없음 — 새로고침(Ctrl+Shift+R)');return;}
   if(typeof sb==='undefined'||!state.projectId){toast('사업이 저장되어 있어야 합니다');return;}
   toast('원시 성과 '+keys.length+'일치 수집 중…');
-  var zip=new JSZip(),i=0,ok=0,fail=0;
+  var out=new JSZip(),i=0,ok=0,fail=0;
   (function nx(){
     if(i>=keys.length){
       if(!ok){toast('받은 원시가 없습니다 ('+fail+'일 실패)');return;}
-      zip.generateAsync({type:'blob'}).then(function(b){
+      out.generateAsync({type:'blob'}).then(function(b){
         var a=document.createElement('a');a.href=URL.createObjectURL(b);
         a.download=((state.projectName||'사업')+'_원시성과통합.zip').replace(/[\\/:*?"<>|]/g,'_');
         document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},400);
-        toast('✓ 원시성과통합.zip — '+ok+'일'+(fail?(' · 실패 '+fail):''),4000);
+        toast('✓ 원시성과통합.zip — '+ok+'일 (날짜/등록명 폴더)'+(fail?(' · 실패 '+fail):''),4500);
       });return;
     }
-    var k=keys[i++];var url=sb.storage.from('photos').getPublicUrl(state.projectId+'/raw_'+k+'.zip').data.publicUrl+'?t='+Date.now();
-    fetch(url).then(function(r){if(!r.ok)throw 0;return r.blob();}).then(function(b){
-      var zn=((M[k]&&M[k].zn)||('원시.zip')).replace(/[\\/:*?"<>|]/g,'_');
-      zip.file('20'+k+'_'+zn,b);ok++;
-    })['catch'](function(){fail++;}).then(function(){setTimeout(nx,30);});
+    var kk=keys[i++];
+    var url=sb.storage.from('photos').getPublicUrl(state.projectId+'/raw_'+kk+'.zip').data.publicUrl+'?t='+Date.now();
+    fetch(url).then(function(r){if(!r.ok)throw 0;return r.blob();})
+    .then(function(b){return JSZip.loadAsync(b);})
+    .then(function(src){
+      var zn=String((M[kk]&&M[kk].zn)||('원시_'+kk+'.zip')).replace(/\.zip$/i,'').replace(/[\\/:*?"<>|]/g,'_');
+      var base='20'+kk+'/'+zn+'/';
+      var ents=[];src.forEach(function(pth,e){if(!e.dir)ents.push({p:pth,e:e});});
+      var i2=0;
+      return new Promise(function(res,rej){
+        (function nx2(){
+          if(i2>=ents.length){ok++;res();return;}
+          var it=ents[i2++];
+          it.e.async('uint8array').then(function(u8){out.file(base+it.p,u8);setTimeout(nx2,0);})['catch'](rej);
+        })();
+      });
+    })['catch'](function(){fail++;}).then(function(){setTimeout(nx,20);});
   })();
 }
 function rtRawDl9(ymd,kind){ /* kind: 'zip'|'night' */
