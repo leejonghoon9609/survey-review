@@ -14480,7 +14480,7 @@ function rtDailyTodayFill(){ /* [BUILD1915] 날짜별 목록+체크박스 — �
      +'<td style="text-align:right">'+np+'</td>'
      +'<td style="text-align:right">'+seg+'</td>'
      +'<td style="text-align:center"><button class="rtdRowPh" data-d="'+d+'" style="background:'+(ph?'#7c3aed':'#e8e8e2')+';color:'+(ph?'#fff':'#999')+';border:0;border-radius:6px;padding:4px 9px;font-weight:700;font-size:12px;cursor:pointer">'+ph+'장</button></td>'
-     +(function(){var rk=(typeof _rtRawKey9==='function')?_rtRawKey9(d):null;return '<td style="text-align:center">'+(rk?('<button class="rtdRowRaw9" data-d="'+rk+'" style="background:#fff7e6;color:#8a5a00;border:1px solid #d9a659;border-radius:6px;padding:4px 8px;font-weight:800;font-size:11px;cursor:pointer">ZIP</button>'):'<span style="color:#c9ccd2">-</span>')+'</td>'+'<td style="text-align:center"><button class="rtdRowCsv" data-d="'+d+'" data-rk="'+(rk||'')+'" style="'+(rk?'background:#1565c0;color:#fff;border:0':'background:#fff;color:#1565c0;border:1px solid #1565c0')+';border-radius:6px;padding:4px 7px;font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap">야간보정</button></td>';})()/* [BUILD2091] \uc720\uc5f0\ud0a4 */
+     +(function(){var rk=(typeof _rtRawKey9==='function')?_rtRawKey9(d):null;var _dp=(rk&&state.rtRawMeta9&&state.rtRawMeta9[rk]&&state.rtRawMeta9[rk].dup)||null;var _dl=_dp?_rtDupLbl9(_dp):'';return '<td style="text-align:center">'+(_dp?('<button class="rtdRowDup9" data-l="'+_dl+'" style="background:#e8f0fd;color:#1565c0;border:1px solid #9db9e8;border-radius:6px;padding:4px 6px;font-weight:800;font-size:10.5px;cursor:not-allowed;white-space:nowrap">중복</button>'):(rk?('<button class="rtdRowRaw9" data-d="'+rk+'" style="background:#fff7e6;color:#8a5a00;border:1px solid #d9a659;border-radius:6px;padding:4px 8px;font-weight:800;font-size:11px;cursor:pointer">ZIP</button>'):'<span style="color:#c9ccd2">-</span>'))+'</td>'+'<td style="text-align:center">'+(_dp?('<button class="rtdRowDup9" data-l="'+_dl+'" style="background:#fff;color:#1565c0;border:1px dashed #9db9e8;border-radius:6px;padding:4px 5px;font-weight:800;font-size:10.5px;cursor:not-allowed;white-space:nowrap">'+_dl+' 중복</button>'):('<button class="rtdRowCsv" data-d="'+d+'" data-rk="'+(rk||'')+'" style="'+(rk?'background:#1565c0;color:#fff;border:0':'background:#fff;color:#1565c0;border:1px solid #1565c0')+';border-radius:6px;padding:4px 7px;font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap">야간보정</button>'))+'</td>';})()/* [BUILD2111] \uc911\ubcf5 \ud45c\uc2dc */
      +'</tr>';}
   h+='</tbody></table>';
   var tpts=ptBy[ymd]||0,tph=phBy[ymd]||0,tdist=+((dm.dist[ymd]||0).toFixed(1)),tseg=dm.seg[ymd]||0;
@@ -14491,7 +14491,7 @@ function rtDailyTodayFill(){ /* [BUILD1915] 날짜별 목록+체크박스 — �
   h+='<div style="display:flex;gap:7px;margin-top:9px"><button id="rtAllCsv9" style="flex:1;background:#fff;color:#8a5a00;border:1.5px solid #d9a659;border-radius:8px;padding:8px 2px;font-weight:800;font-size:12px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center">CSV(\uC6D0\uC2DC)</button><button id="rtAllNight9" style="flex:1;background:#fff;color:#1565c0;border:1.5px solid #1565c0;border-radius:8px;padding:8px 2px;font-weight:800;font-size:12px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center">CSV(\uC57C\uAC04\uBCF4\uC815)</button><button id="rtAllPh9" style="flex:1;background:#fff;color:#7a52e0;border:1.5px solid #7a52e0;border-radius:8px;padding:8px 2px;font-weight:800;font-size:12px;cursor:pointer;text-align:center;display:flex;align-items:center;justify-content:center">\uC0AC\uC9C4 \uD1B5\uD569\uBCF8(ZIP)</button></div>';/* [BUILD2090] 3\uBC84\uD2BC */
   el.innerHTML=h;
   try{var _ac9=el.querySelector('#rtAllCsv9');if(_ac9)_ac9.onclick=function(){if(typeof rtRawAllZip9==='function')rtRawAllZip9();};/* [BUILD2091] \uc6d0\uc2dc \ud1b5\ud569 ZIP */var _an9=el.querySelector('#rtAllNight9');if(_an9)_an9.onclick=function(){rtDailyCsv(null,true);};var _ap9=el.querySelector('#rtAllPh9');if(_ap9)_ap9.onclick=function(){var _it=[];try{for(var _k in photoMap)_it.push({no:_k,url:photoMap[_k]});}catch(_e){}if(!_it.length){toast('\uC0AC\uC9C4\uC774 \uC5C6\uC2B5\uB2C8\uB2E4');return;}if(typeof svPhotoZip==='function')svPhotoZip(_it,(state.projectName||'\uC0AC\uC9C4')+'_\uC804\uCCB4\uC0AC\uC9C4',true);};}catch(_dl9){}
-  [].forEach.call(el.querySelectorAll('.rtdRowCsv'),function(b){b.onclick=function(){var rk=b.getAttribute('data-rk');if(rk&&typeof rtRawDl9==='function'){rtRawDl9(rk,'night');}else{rtDailyCsv(b.getAttribute('data-d'),true);}};});[].forEach.call(el.querySelectorAll('.rtdRowRaw9'),function(b){b.onclick=function(){if(typeof rtRawDl9==='function')rtRawDl9(b.getAttribute('data-d'),'zip');};});/* [BUILD2090] */
+  [].forEach.call(el.querySelectorAll('.rtdRowCsv'),function(b){b.onclick=function(){var rk=b.getAttribute('data-rk');if(rk&&typeof rtRawDl9==='function'){rtRawDl9(rk,'night');}else{rtDailyCsv(b.getAttribute('data-d'),true);}};});[].forEach.call(el.querySelectorAll('.rtdRowRaw9'),function(b){b.onclick=function(){if(typeof rtRawDl9==='function')rtRawDl9(b.getAttribute('data-d'),'zip');};});[].forEach.call(el.querySelectorAll('.rtdRowDup9'),function(b){b.onclick=function(){toast(b.getAttribute('data-l')+' 원시에 전부 포함되어 있습니다 — 다운로드는 그 날짜에서');};});/* [BUILD2111] */
   [].forEach.call(el.querySelectorAll('.rtdRowPh'),function(b){b.onclick=function(){var d=b.getAttribute('data-d');var _it=[];try{var _pm2=(typeof photoMap!=='undefined'&&photoMap)?photoMap:{};for(var _k2 in _pm2)if(_k2.indexOf(d+'-')===0)_it.push({no:_k2,url:_pm2[_k2]});}catch(_e2){}if(typeof svPhotoDl==='function')svPhotoDl(_it);};});
 }
 function _rtDailyChecked(){var out=[];[].forEach.call(document.querySelectorAll('#rtDailyToday .rtdChk'),function(c){if(c.checked)out.push(c.getAttribute('data-d'));});return out;}
@@ -14786,7 +14786,8 @@ function rtRawZipUp9(file){
           if(!u2)return;
           if(u2.error){toast('보정 CSV 보관 실패: '+u2.error.message);return;}
           state.rtRawMeta9=state.rtRawMeta9||{};
-          state.rtRawMeta9[ymd]={zn:(file.name||''),size:file.size||0,at:new Date().toISOString(),night:srg.changed,cut:cut};
+          state.rtRawMeta9[ymd]={zn:(file.name||''),size:file.size||0,at:new Date().toISOString(),night:srg.changed,cut:cut,fp:(typeof _rtFp9==='function'?_rtFp9(bytes):[])};/* [BUILD2111] 지문 */
+          if(typeof _rtDupChk9==='function')_rtDupChk9(ymd);
           try{saveProject();}catch(_sv){}
           toast('\uD83D\uDCE6 보관 완료 — 원본 ZIP + 야간보정 CSV('+srg.changed+'행 귀속, 컷 '+cut+')',4500);
         });
@@ -14803,7 +14804,7 @@ function _rtRawKey9(d){try{var M=state.rtRawMeta9||{};if(M[d])return d;
     if(isFinite(kt)&&Math.abs(kt-t)<=86400000)return k;}
 }catch(_e){}return null;}
 function rtRawAllZip9(){ /* [BUILD2096] 원시 통합 — 한 번만 압축: 날짜/등록명/원본내용 폴더로 전개 */
-  var M=(typeof state!=='undefined'&&state.rtRawMeta9)||{};var keys=Object.keys(M).sort();
+  var M=(typeof state!=='undefined'&&state.rtRawMeta9)||{};var keys=Object.keys(M).filter(function(k){return !(M[k]&&M[k].dup);}).sort();/* [BUILD2111] 중복 제외 */
   if(!keys.length){toast('보관된 원시 ZIP이 없습니다 — 원시 ZIP으로 업로드한 날짜만 포함됩니다');return;}
   if(typeof JSZip==='undefined'){toast('압축 모듈 없음 — 새로고침(Ctrl+Shift+R)');return;}
   if(typeof sb==='undefined'||!state.projectId){toast('사업이 저장되어 있어야 합니다');return;}
@@ -14838,6 +14839,32 @@ function rtRawAllZip9(){ /* [BUILD2096] 원시 통합 — 한 번만 압축: 날
     })['catch'](function(){fail++;}).then(function(){setTimeout(nx,20);});
   })();
 }
+
+function _rtFp9(bytes){/* [BUILD2111] 원시 CSV 행 지문(이름|시작시각 해시) */
+  try{
+    var txt=new TextDecoder('euc-kr').decode(bytes);
+    var lines=txt.split(/\r?\n/),out=[];
+    function h9(str){var h=5381;for(var i=0;i<str.length;i++){h=((h<<5)+h+str.charCodeAt(i))|0;}return h;}
+    for(var li=1;li<lines.length;li++){var L=lines[li];if(!L||!L.trim())continue;
+      var c=L.split(',');if(c.length<10)continue;
+      out.push(h9(String(c[0]).trim()+'|'+String(c[9]).trim()));}
+    return out;
+  }catch(_e){return [];}
+}
+function _rtDupChk9(ymd){/* 새 ymd 기준 양방향 부분집합 판정 → meta.dup 마킹 */
+  try{
+    var M=state.rtRawMeta9||{};var me=M[ymd];if(!me||!me.fp||!me.fp.length)return;
+    var mySet={};me.fp.forEach(function(h){mySet[h]=1;});
+    for(var k in M){if(k===ymd)continue;var o=M[k];if(!o||!o.fp||!o.fp.length)continue;
+      var oInMe=o.fp.every(function(h){return mySet[h];});
+      if(oInMe&&o.fp.length<=me.fp.length){o.dup=ymd;continue;}
+      var oSet={};o.fp.forEach(function(h){oSet[h]=1;});
+      var meInO=me.fp.every(function(h){return oSet[h];});
+      if(meInO&&me.fp.length<=o.fp.length){me.dup=k;}
+    }
+  }catch(_e){}
+}
+function _rtDupLbl9(ymd){var m=String(ymd||'');return m.length===6?((+m.slice(2,4))+'/'+(+m.slice(4,6))):m;}
 function rtRawZipUpMany9(files){/* [BUILD2110] 원시 ZIP 다중 — 순차 처리 */
   var arr=[].slice.call(files||[]).filter(function(f){return f&&/\.zip$/i.test(f.name||'');});
   if(!arr.length)return;
