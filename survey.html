@@ -161,7 +161,10 @@
   .photo-panel{width:37%;min-width:480px;max-width:44%;background:#fff;border-left:1px solid var(--line);display:none;flex-direction:column;flex:none}
   .linkon{background:#eef6ef;border-color:#bcdcc0;color:#2a9e50;font-weight:600}
   .photo-panel.open{display:flex}
-  .jz-panel .php-head{flex-wrap:wrap;gap:6px}
+  .jz-panel .php-head{flex-wrap:nowrap;gap:4px;padding:7px 9px}/* [BUILD2128] 한 줄 고정 */
+  .jz-panel .php-head h3{white-space:nowrap;flex:none}
+  .jz-panel .php-head button{padding:2px 5px!important;font-size:10.5px!important;white-space:nowrap;flex:none}
+  .jz-panel .php-head>div{gap:4px!important}
   .jz-dlall{background:#eef6ff;border:1px solid #2563eb;color:#2563eb;border-radius:7px;padding:3px 6px;font-size:11.5px;font-weight:700;cursor:pointer}
   .jz-dldate{background:#e7faf5;border:1px solid #0d9488;color:#0d9488;border-radius:7px;padding:3px 6px;font-size:11.5px;font-weight:700;cursor:pointer}
   .jz-tabs{display:flex;flex-wrap:wrap;gap:6px;padding:8px;border-bottom:1px solid var(--line);max-height:84px;overflow-y:auto}
@@ -351,7 +354,7 @@
 }
 
 .jz-panel .php-head button{font-size:11.5px!important;padding:4px 8px!important;border-radius:7px!important}
-.jz-panel .php-head h3{font-size:13.5px!important}
+.jz-panel .php-head h3{font-size:12px!important}
 /* [BUILD2104] 조서 헤더 버튼 축소 */
 </style>
 <link rel="manifest" href="manifest.webmanifest">
@@ -446,7 +449,7 @@
         <button id="joseoDoneBtn" class="jz-done">✅ 완료등록</button><button id="jzEstTgl" type="button" onclick="window._jzEst9=!window._jzEst9;this.textContent=window._jzEst9?'💰 견적서용':'📋 조서용';this.style.background=window._jzEst9?'#fff3e0':'#fdeaea';this.style.color=window._jzEst9?'#b26a00':'#c0392b';this.style.borderColor=window._jzEst9?'#e0a300':'#e8a0a0';try{window.joseoState=null;}catch(e){}if(typeof openJoseoPanel==='function')openJoseoPanel();" style="background:#fdeaea;color:#c0392b;border:1.5px solid #e8a0a0;border-radius:8px;padding:3px 7px;font-weight:800;font-size:11.5px;cursor:pointer" title="조서용=후측량 사진만 / 견적서용=실시간 사진을 후측량 칸에 복제">📋 조서용</button><button id="jzMergeBtn" type="button" onclick="if(typeof joseoDownloadMerged9==='function')joseoDownloadMerged9()" style="background:#eef8f1;color:#1d7a46;border:1.5px solid #9fd4b3;border-radius:8px;padding:3px 7px;font-weight:800;font-size:11.5px;cursor:pointer" title="전 날짜를 하나의 엑셀로">📑 통합조서</button><button id="joseoBoardTgl2" title="조서 사진: 현황판 합성/원본 전환 (지거점은 지거 현황판)" style="border:1.5px solid #d9a800;background:#FFC61A;color:#6b5300;border-radius:8px;padding:3px 8px;font-weight:800;font-size:11.5px;cursor:pointer">원본</button>
         <div style="margin-left:auto;display:flex;gap:6px;align-items:center;position:relative">
           <button onclick="joseoDownloadAll()" class="jz-dlall">📦 전체 ZIP</button>
-          <button id="joseoDlDate" class="jz-dldate">📥 날자별 다운로드 ▾</button>
+          <button id="joseoDlDate" class="jz-dldate">📥 날자별 ▾</button>
           <div id="joseoDateMenu" class="jz-datemenu"></div>
           <button onclick="closeJoseoPanel()">✕</button>
         </div>
@@ -559,6 +562,6 @@
     </div>
   </div>
 
-<script src="login.js?v=2127"></script><script src="core.js?v=2127"></script>
+<script src="login.js?v=2128"></script><script src="core.js?v=2128"></script>
 </body>
 </html>
