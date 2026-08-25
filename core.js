@@ -12505,7 +12505,7 @@ function joseoRec(p){
     y: (p.x!=null&&p.x!=='')?(+p.x).toFixed(3):'',                              // Y(E)=동=p.x
     facility: biz.facility||'', mat: pc.mat, dia: pc.dia, gap:'직접측량', depth:(p.depth!=null&&p.depth!=='')?String(p.depth):((state._depthByNo&&state._depthByNo[p.no]!=null&&isFinite(+state._depthByNo[p.no]))?(Math.round(state._depthByNo[p.no]*100)/100).toFixed(2):''), /* [1255] 자동심도 폴백 */
     expUrl: photoMap[p.no]||photoMap[ptNum(p)]||null,
-    aftUrl: afterMap[p.no]||afterMap[ptNum(p)]||null,
+    aftUrl: afterMap[p.no]||afterMap[ptNum(p)]||((typeof IS_REALTIME!=='undefined'&&IS_REALTIME)?(photoMap[p.no]||photoMap[ptNum(p)]||null):null),/* [BUILD2097] 실시간: 후측량 칸에 실시간 사진 복제(견적서용) */
     expBuf:null, aftBuf:null
   };
 }
