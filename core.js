@@ -14784,9 +14784,38 @@ function rtRawDl9(ymd,kind){ /* kind: 'zip'|'night' */
   if(typeof sb==='undefined'||!state.projectId){toast('사업이 저장되어 있어야 합니다');return;}
   var path=state.projectId+'/raw_'+ymd+(kind==='night'?'_night.csv':'.zip');
   var url=sb.storage.from('photos').getPublicUrl(path).data.publicUrl+'?t='+Date.now();
-  var a=document.createElement('a');a.href=url;
-  a.download=((state.projectName||'사업')+'_'+ymd+(kind==='night'?'_야간보정.csv':'_원시.zip')).replace(/[\\/:*?"<>|]/g,'_');
-  document.body.appendChild(a);a.click();a.remove();
+  if(kind==='night'){
+    var a=document.createElement('a');a.href=url;
+    a.download=((state.projectName||'사업')+'_'+ymd+'_야간보정.csv').replace(/[\\/:*?"<>|]/g,'_');
+    document.body.appendChild(a);a.click();a.remove();return;
+  }
+  /* [BUILD2092] 원시 일별 ZIP: 날짜/등록파일명/원본내용 폴더 구조로 재포장(내용 바이트 무결) */
+  if(typeof JSZip==='undefined'){toast('압축 모듈 없음 — 새로고침(Ctrl+Shift+R)');return;}
+  toast('원시 ZIP 준비 중…');
+  fetch(url).then(function(r){if(!r.ok)throw new Error('보관본 없음');return r.blob();})
+  .then(function(b){return JSZip.loadAsync(b);})
+  .then(function(src){
+    var meta=(state.rtRawMeta9&&state.rtRawMeta9[ymd])||{};
+    var zn=String(meta.zn||('원시_'+ymd+'.zip')).replace(/\.zip$/i,'').replace(/[\\/:*?"<>|]/g,'_');
+    var base='20'+ymd+'/'+zn+'/';
+    var out=new JSZip(),ents=[];
+    src.forEach(function(pth,e){if(!e.dir)ents.push({p:pth,e:e});});
+    var i2=0;
+    return new Promise(function(res,rej){
+      (function nx(){
+        if(i2>=ents.length){res(out);return;}
+        var it=ents[i2++];
+        it.e.async('uint8array').then(function(u8){out.file(base+it.p,u8);setTimeout(nx,0);})['catch'](rej);
+      })();
+    });
+  })
+  .then(function(out){return out.generateAsync({type:'blob'});})
+  .then(function(b){
+    var a=document.createElement('a');a.href=URL.createObjectURL(b);
+    a.download=((state.projectName||'사업')+'_20'+ymd+'_원시.zip').replace(/[\\/:*?"<>|]/g,'_');
+    document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},400);
+    toast('✓ 원시 ZIP — 날짜/등록명/성과 폴더 구조',3500);
+  })['catch'](function(e){toast('원시 다운 오류: '+(e&&e.message||e));});
 }
 /* ===== [BUILD2085] 끝 ===== */
 /* ===== 삭제/재촬영 끝 ===== */
