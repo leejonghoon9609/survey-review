@@ -651,20 +651,34 @@ function rtOpenCsvModal(){/* [BUILD1869] \ub85c\ub529\ucc3d \uc7ac\uad6c\uc131: 
    +'<div id="rtCsvPast9" style="display:none;margin:0 10px">'+(function(){var _rng9=function(d){var L=((window._rtNum9&&_rtNum9[d])||[]).map(function(x){var m=/^(\d+)/.exec(String(x));return m?+m[1]:null;}).filter(function(v){return v!=null;});if(!L.length){var A=((window._rtNum9&&_rtNum9[d])||[]).slice().sort();return A.length?(A[0]+' ~ '+A[A.length-1]):'-';}return Math.min.apply(null,L)+' ~ '+Math.max.apply(null,L);};var th='border-bottom:1.5px solid #c3ccd6;padding:4px 2px;font-size:11px;color:#39506e;background:#f4f6fb';var td='border-bottom:1px solid #eef1f5;padding:4px 2px;font-size:12px';return '<table style="width:100%;border-collapse:collapse;text-align:center"><tr><th style="'+th+'">\uB0A0\uC9DC</th><th style="'+th+'">\uCE21\uC810\uC218</th><th style="'+th+'">\uCE21\uC810\uBC88\uD638</th><th style="'+th+'">\uB2E4\uC6B4</th></tr>'+_pstK9.map(function(d){return '<tr><td style="'+td+';font-weight:800;color:#445">'+d+'</td><td style="'+td+';font-weight:800;color:#c0392b">'+days[d]+'\uC810</td><td style="'+td+';color:#1f6fd6;font-weight:700">'+_rng9(d)+'</td><td style="'+td+'"><button type="button" onclick="if(typeof rtDailyCsv===\'function\')rtDailyCsv(\''+d+'\');event.stopPropagation();" style="border:1px solid #1565c0;background:#fff;color:#1565c0;border-radius:6px;padding:1px 8px;font-size:12px;font-weight:800;cursor:pointer">\u2b07</button></td></tr>';}).join('')+'</table>';})()+'</div>'):'');/* [BUILD2061] \ud45c: \ub0a0\uc9dc/\uce21\uc810\uc218/\ubc88\ud638\ubc94\uc704 *//* [BUILD2059] \ub2f9\uc77c\ub9cc \ud45c\uc2dc, \uacfc\uac70 \ub0a0\uc9dc \uc811\uae30 */
   var wrap=document.createElement('div');wrap.id='rtCsvModal';
   wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center';
-  wrap.innerHTML='<div style="background:#fff;border-radius:14px;width:min(92vw,300px);display:flex;flex-direction:column;overflow:hidden">'
-    +'<div style="padding:13px 14px 6px;font-weight:800;font-size:15px;text-align:center;position:relative">CSV \ub85c\ub529<span id="rtCsvX" style="position:absolute;right:10px;top:9px;color:#aaa;font-size:17px;cursor:pointer;padding:2px 6px">\u2715</span></div>'
-    +'<div id="rtCsvDz" style="margin:4px 14px 10px;border:2px dashed #c3ccd6;border-radius:12px;padding:16px 8px;text-align:center;cursor:pointer">'
-      +'<div style="color:#1f6fd6;font-size:26px;line-height:1">\u2b07</div>'
-      +'<div style="font-weight:800;font-size:14.5px;margin:8px 0 4px">\uce21\uc810 \ucd1d '+total+'\uac1c \ub85c\ub529\ub428</div>'
-      +(keys.length?'<div style="max-height:130px;overflow-y:auto;margin:0 6px;border-top:1px solid #eef1f5;border-bottom:1px solid #eef1f5;padding:4px 0">'+listH+'</div>':'')
-      +'<div style="color:#9aa5b1;font-size:12px;margin-top:6px">\ud30c\uc77c\uc744 \ub04c\uc5b4\ub2e4 \ub193\uae30</div>'
+  wrap.innerHTML='<div style="background:#f7f8fa;border-radius:14px;width:min(92vw,330px);max-height:88vh;overflow-y:auto;display:flex;flex-direction:column;overflow-x:hidden">'
+    +'<div style="height:6px;background:linear-gradient(90deg,#1f6fd6,#2ecc71,#4f46e5);flex:none"></div>'
+    +'<div style="padding:11px 14px 8px;font-weight:800;font-size:15px;text-align:center;position:relative;background:#fff;border-bottom:1px solid #edf0f4">\uD83D\uDCC4 CSV \ub85c\ub529<span id="rtCsvX" style="position:absolute;right:10px;top:8px;color:#aaa;font-size:17px;cursor:pointer;padding:2px 6px">\u2715</span></div>'
+    /* [\uD30C\uB791] \uB4F1\uB85D \uD604\uD669 */
+    +'<div style="margin:10px 12px 0;border:1px solid #bcd3f2;border-left:4px solid #1f6fd6;background:#f4f8ff;border-radius:10px;padding:7px 6px 6px">'
+      +'<div style="font-size:11px;font-weight:800;color:#1f6fd6;margin:0 6px 5px">\uD83D\uDCCA \uB4F1\uB85D \uD604\uD669 \u2014 \uCE21\uC810 \uCD1D <span style="font-size:13px">'+total+'</span>\uAC1C</div>'
+      +(keys.length?('<div style="max-height:150px;overflow-y:auto;background:#fff;border:1px solid #e3ecf7;border-radius:8px;padding:4px 0">'+listH+'</div>'):'<div style="color:#9aa5b1;font-size:12px;text-align:center;padding:8px 0">\uB4F1\uB85D\uB41C CSV\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4</div>')
     +'</div>'
-    +'<div style="display:flex;flex-direction:column;gap:8px;padding:0 14px 14px">'
-    +'<button type="button" id="rtCsvNightBtn" style="background:#fff;color:#4f46e5;border:1.5px solid #4f46e5;border-radius:10px;padding:9px;font-weight:800;font-size:13.5px;cursor:pointer"></button>'
-    +'<div style="display:flex;align-items:center;gap:5px;justify-content:center;font-size:11px;color:#4f46e5;font-weight:700;white-space:nowrap">새벽 컷 <input type="time" id="rtCsvNightCut" style="border:1px solid #c7cbe8;border-radius:6px;padding:2px 4px;font-size:11px;color:#4f46e5;font-weight:700;width:78px"> 이전 → 전날 귀속</div>'
-    +'<button type="button" id="rtCsvUp" style="background:#fff;color:#1f6fd6;border:1.5px solid #1f6fd6;border-radius:10px;padding:11px;font-weight:800;font-size:14.5px;cursor:pointer">\uc9c1\uc811 \ub85c\ub529</button>'
-    +'<button type="button" id="rtCsvDelBtn" style="background:#fff;color:#d32f2f;border:1.5px solid #f2b8b5;border-radius:10px;padding:9px;font-weight:700;font-size:13px;cursor:pointer">CSV\ubcc4 \uc0ad\uc81c</button>'
-    +'</div></div>';
+    /* [\uCD08\uB85D] \uBD88\uB7EC\uC624\uAE30 */
+    +'<div style="margin:9px 12px 0;border:1px solid #bfe3c6;border-left:4px solid #2e7d32;background:#f2fbf4;border-radius:10px;padding:7px 6px 8px">'
+      +'<div style="font-size:11px;font-weight:800;color:#2e7d32;margin:0 6px 5px">\u2B06 CSV \uBD88\uB7EC\uC624\uAE30</div>'
+      +'<div id="rtCsvDz" style="border:2px dashed #8fcf9b;border-radius:9px;padding:9px 6px;text-align:center;cursor:pointer;background:#fff">'
+        +'<span style="color:#2e7d32;font-size:16px;vertical-align:middle">\u2B07</span> <span style="color:#5c6b60;font-size:12px;font-weight:700">\uD30C\uC77C\uC744 \uB04C\uC5B4\uB2E4 \uB193\uAE30</span>'
+      +'</div>'
+      +'<button type="button" id="rtCsvUp" style="width:100%;margin-top:7px;background:#2e7d32;color:#fff;border:0;border-radius:9px;padding:10px;font-weight:800;font-size:14px;cursor:pointer">\uD83D\uDCC2 \uC9C1\uC811 \uB85C\uB529</button>'
+    +'</div>'
+    /* [\uBCF4\uB77C] \uC57C\uAC04\uBCF4\uC815 */
+    +'<div style="margin:9px 12px 0;border:1px solid #cfcbf0;border-left:4px solid #4f46e5;background:#f5f4ff;border-radius:10px;padding:7px 6px 8px">'
+      +'<div style="font-size:11px;font-weight:800;color:#4f46e5;margin:0 6px 5px">\uD83C\uDF19 \uC57C\uAC04\uBCF4\uC815</div>'
+      +'<button type="button" id="rtCsvNightBtn" style="width:100%;background:#fff;color:#4f46e5;border:1.5px solid #4f46e5;border-radius:9px;padding:8px;font-weight:800;font-size:13px;cursor:pointer"></button>'
+      +'<div style="display:flex;align-items:center;gap:5px;justify-content:center;font-size:11px;color:#4f46e5;font-weight:700;white-space:nowrap;margin-top:6px">\uc0c8\ubcbd \ucef7 <input type="time" id="rtCsvNightCut" style="border:1px solid #c7cbe8;border-radius:6px;padding:2px 4px;font-size:11px;color:#4f46e5;font-weight:700;width:78px;background:#fff"> \uc774\uc804 \u2192 \uc804\ub0a0 \uadc0\uc18d</div>'
+    +'</div>'
+    /* [\uBE68\uAC15] \uAD00\uB9AC */
+    +'<div style="margin:9px 12px 12px;border:1px solid #f2c9c6;border-left:4px solid #d32f2f;background:#fdf3f3;border-radius:10px;padding:7px 6px 8px">'
+      +'<div style="font-size:11px;font-weight:800;color:#d32f2f;margin:0 6px 5px">\uD83D\uDDD1 \uAD00\uB9AC</div>'
+      +'<button type="button" id="rtCsvDelBtn" style="width:100%;background:#fff;color:#d32f2f;border:1.5px solid #e99;border-radius:9px;padding:8px;font-weight:800;font-size:13px;cursor:pointer">CSV\ubcc4 \uc0ad\uc81c</button>'
+    +'</div>'
+  +'</div>';/* [BUILD2081] 4\uC0C9 \uC139\uC158 \uC7AC\uAD6C\uC131 \u2014 \uD604\uD669(\uD30C\uB791)/\uBD88\uB7EC\uC624\uAE30(\uCD08\uB85D)/\uC57C\uAC04\uBCF4\uC815(\uBCF4\uB77C)/\uAD00\uB9AC(\uBE68\uAC15) */
   document.body.appendChild(wrap);
   wrap.addEventListener('click',function(e){if(e.target===wrap)wrap.remove();});
   document.getElementById('rtCsvX').onclick=function(){wrap.remove();};
@@ -869,7 +883,7 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2080"></script><script src="core.js?v=2080"></script>
+<script src="login.js?v=2081"></script><script src="core.js?v=2081"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)">
 <script>
 /* [BUILD2070] 폰 도면:사진 비율 — 무한재적용(진동) 근본 차단: 재진입 가드+변경시에만 쓰기+클램프 캐시 */
