@@ -12596,6 +12596,7 @@ async function jgBuildWb9(projectName,recs){
   for(var _cw=0;_cw<7;_cw++){try{ws.getColumn(_cw+1).width=_CW9[_cw];}catch(_we){}}
   ws.pageSetup.paperSize=9;ws.pageSetup.orientation='portrait';ws.pageSetup.scale=100;
   ws.pageSetup.horizontalDpi=1200;ws.pageSetup.verticalDpi=1200;
+  ws.views=[{workbookViewId:0,style:'pageBreakPreview',zoomScale:60,zoomScaleNormal:100}];/* [BUILD2136] 열 때 페이지나누기 미리보기·60% — 실시간 조서와 동일 */
   try{ws.pageSetup.printArea='A1:G'+(H9*recs.length);}catch(_pa){}
   for(var b=1;b<recs.length;b++){try{ws.getRow(b*H9).addPageBreak();}catch(_pb){}}
   return wb;
