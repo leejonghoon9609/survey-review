@@ -1886,6 +1886,31 @@ cv.addEventListener('pointerdown',function(ev){
   if(typeof toast==='function')toast('현황 타점 삭제');
   if(typeof _da2Off==='function')_da2Off();
 });
+/* [BUILD2168] 지거 인출선/태그 부착 모드 — 지거선 근접 호버 마젠타 원 + 클릭 부착 */
+function _jgTagFind9(ev){var w=toWorld(ev.clientX,ev.clientY);var wx=w[0]-ORG.x,wy=w[1]+ORG.y;var best=null,bd=1e18;
+  (state.lines||[]).forEach(function(Ln){if(!Ln||Ln.layer!=='지거'||!Ln.pts||Ln.pts.length<2)return;for(var i2=1;i2<Ln.pts.length;i2++){var a=S(Ln.pts[i2-1][0],Ln.pts[i2-1][1]),b=S(Ln.pts[i2][0],Ln.pts[i2][1]);var d=segDist(wx,wy,a[0],a[1],b[0],b[1]);if(d<bd){bd=d;best=Ln;}}});
+  return {L:best,d:bd,wx:wx,wy:wy};}
+cv.addEventListener('pointermove',function(ev){
+  var hv=document.getElementById('jgTagHov9');
+  if(!window._jgTagOn9||mode!=='pan'){if(hv)hv.remove();return;}
+  var f=_jgTagFind9(ev);
+  if(f.L&&f.d<vb.w*0.04){var t=projToPoly(f.L.pts.map(function(pp){return S(pp[0],pp[1]);}),f.wx,f.wy);var aw=ptOnPoly(f.L.pts,t),sp=S(aw[0],aw[1]);
+    if(!hv||!hv.parentNode){hv=el('circle',{id:'jgTagHov9',fill:'none',stroke:'#e91ec4','stroke-width':3,'stroke-dasharray':'4 3','vector-effect':'non-scaling-stroke','pointer-events':'none'});gAnc.appendChild(hv);}
+    hv.setAttribute('cx',sp[0]);hv.setAttribute('cy',sp[1]);hv.setAttribute('r',0.35);
+  }else if(hv)hv.remove();
+},true);
+cv.addEventListener('pointerdown',function(ev){
+  if(!window._jgTagOn9||mode!=='pan')return;
+  var f=_jgTagFind9(ev);
+  if(!f.L||f.d>vb.w*0.04){toast('지거선 가까이에서 클릭하세요');return;}
+  ev.stopImmediatePropagation();ev.preventDefault();
+  pushHist();
+  if(!f.L.note)f.L.note='지거구간';
+  try{f.L.anchorT=projToPoly(f.L.pts.map(function(pp){return S(pp[0],pp[1]);}),f.wx,f.wy);}catch(_a9){}
+  window._jgTagOn9=false;var hv=document.getElementById('jgTagHov9');if(hv)hv.remove();
+  drawGeo();updMeta();if(typeof saveProject==='function'){try{saveProject();}catch(_sv9){}}
+  toast('지거 인출선·태그 부착 완료 — 태그 더블클릭으로 내용 수정');
+},true);
 /* [BUILD2150] 지거 그리기(측점 연결) — 근접 스냅 후보(측점·기존 지거점) 선택전 황금 점선 원 */
 cv.addEventListener('pointermove',function(ev){
   var _kill9=function(){if(window._jgHov9){try{window._jgHov9.remove();}catch(_r){}window._jgHov9=null;}};
@@ -6183,7 +6208,31 @@ function delHoverHighlight(cw){var _cl=SL(cw);/* [1524] */clearSvg(gDraw);var be
     if(mb>=0){var m=state.markups[mb];var sh=m.type==='cir'?el('ellipse',{cx:m.cx-ORG.x,cy:m.cy+ORG.y,rx:m.rx,ry:m.ry}):el('rect',{x:m.x-ORG.x,y:m.y+ORG.y,width:m.w,height:m.h,rx:0.4});/* [1524] */sh.setAttribute('fill','none');sh.setAttribute('stroke',MKCOL[m.status]||'#d32f2f');sh.setAttribute('stroke-width',7);sh.setAttribute('stroke-opacity',0.55);sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');gDraw.appendChild(sh);}
   }
 }
+function jgfNext9(){var d=new Date();var _d9=String(d.getFullYear()).slice(2)+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);var mx=0;(state.points||[]).forEach(function(q){if(q&&q._jgf9){var m=new RegExp('^'+_d9+'-([0-9]+)$').exec(String(q.no||''));if(m)mx=Math.max(mx,parseInt(m[1],10)||0);}});return mx+1;}
+function jgDrawPick9(bult){/* [BUILD2168] 후측량 지거 팝업 — 중립 톤, 번호 지정 + 그리기/태그 부착 */
+  var old=document.getElementById('jgDrawPick9');if(old)old.remove();
+  var ov=document.createElement('div');ov.id='jgDrawPick9';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(20,28,40,.45);z-index:100000;display:flex;align-items:center;justify-content:center';
+  var nx=jgfNext9();
+  ov.innerHTML='<div style="background:#fff;border:1.5px solid #b8c4d0;border-radius:14px;width:300px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden;text-align:center">'
+   +'<div style="height:6px;background:linear-gradient(90deg,#546e7a,#90a4ae)"></div>'
+   +'<div style="padding:16px 18px">'
+   +'<div style="font-size:16px;font-weight:800;color:#2b3a4a;margin-bottom:2px">지거선 그리기</div>'
+   +'<div style="font-size:12px;color:#8a97a5;margin-bottom:12px">측점번호 확인 후 작업을 선택하세요</div>'
+   +'<div style="font-size:12px;font-weight:800;color:#556677;margin-bottom:5px">측점번호 (지거)</div>'
+   +'<input id="jgDpNo9" type="text" inputmode="numeric" value="'+nx+'" style="width:110px;box-sizing:border-box;font-size:17px;font-weight:800;text-align:center;padding:8px;border:1.5px solid #b8c4d0;border-radius:9px;color:#2b3a4a;outline:none;margin-bottom:12px">'
+   +'<button id="jgDpDraw9" style="display:block;width:100%;padding:11px 10px;margin-bottom:8px;border:1.5px solid #1a7a5e;border-radius:10px;background:#eafaf3;color:#1a7a5e;font-weight:800;font-size:15px;cursor:pointer">지거선 그리기<div style="font-size:11px;font-weight:600;color:#4d8f79;margin-top:2px">화면 클릭으로 구간 표시 — 측점·지거점 근접 시 스냅</div></button>'
+   +'<button id="jgDpTag9" style="display:block;width:100%;padding:11px 10px;margin-bottom:8px;border:1.5px solid #b8860b;border-radius:10px;background:#fffbe8;color:#8a6b00;font-weight:800;font-size:15px;cursor:pointer">지거 인출선/태그 넣기<div style="font-size:11px;font-weight:600;color:#a58a2d;margin-top:2px">지거선(또는 그 측점)을 클릭해 인출선·태그 부착</div></button>'
+   +'<button id="jgDpX9" style="border:none;background:none;color:#8a97a5;font-size:12.5px;font-weight:700;cursor:pointer;margin-top:2px">취소</button>'
+   +'</div></div>';
+  document.body.appendChild(ov);
+  ov.addEventListener('pointerdown',function(e){if(e.target===ov)ov.remove();});
+  document.getElementById('jgDpX9').onclick=function(){ov.remove();};
+  document.getElementById('jgDpDraw9').onclick=function(){var v=parseInt((document.getElementById('jgDpNo9').value||'').trim(),10);window._jgStartNo9=(v>0)?v:null;ov.remove();startDraw('지거',bult,'free');};
+  document.getElementById('jgDpTag9').onclick=function(){ov.remove();window._jgTagOn9=true;mode='pan';if(typeof setModeUI==='function')setModeUI();toast('지거 인출선/태그: 부착할 지거선(또는 그 측점) 위를 클릭하세요');};
+}
 function _rtDrawPick(layer,bult){/* [BUILD1843] 지거/압입/탐사 그리기 방식 선택창 */
+  if(layer==='지거'&&typeof STAGE!=='undefined'&&STAGE==='survey'){jgDrawPick9(bult);return;}/* [BUILD2168] 후측량 지거 전용 팝업 */
   var _old=document.getElementById('rtDrawPick');if(_old)_old.remove();
   var ov=document.createElement('div');ov.id='rtDrawPick';
   ov.style.cssText='position:fixed;inset:0;background:rgba(60,10,10,.38);z-index:9999;display:flex;align-items:center;justify-content:center';
@@ -6201,15 +6250,15 @@ function _rtDrawPick(layer,bult){/* [BUILD1843] 지거/압입/탐사 그리기 �
   document.getElementById('rtDpFree').onclick=function(){ov.remove();startDraw(layer,bult,'free');};
 }
 function startDraw(layer,bult,pick){if(!pick&&((typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&(layer==='지거'||layer==='압입구간'||layer==='탐사구간'))||(typeof STAGE!=='undefined'&&STAGE==='survey'&&layer==='지거'))){_rtDrawPick(layer,bult);return;}/* [BUILD1843→2148] 후측량 지거선도 방식 선택(측점 연결/위치 표시) */window._drawFree=(pick==='free');drawLayer=layer||'통신관로';window._drawBult=!!bult;/* [1511] */mode='line';setModeUI();lineDraft=[];clearSvg(gDraft);clearSvg(gDraw);toast((drawLayer==='지거'?'지거선':(drawLayer==='압입구간'?'압입구간':(drawLayer==='탐사구간'?'탐사구간':'관로선')))+' 그리기: '+(window._drawFree?'화면 아무 곳이나 클릭(측점 무관)':'점 클릭')+' → Enter/Space 또는 "완료" (되돌리기=한 점 취소)');}
-function finishDraw(){if(lineDraft&&lineDraft.length>=2){pushHist();var rec={layer:drawLayer,pts:lineDraft.slice()};if(window._drawFree)rec.free=1;/* [BUILD1843] 표시용 — 측점 로직 제외 */if(window._drawBult){rec.color='#e6b800';rec.bult=1;}/* [1511] 불탐관로선=노랑 */if(drawLayer==='지거'){rec.note='지거구간';}/* [BUILD2152] 기본 태그 — 번호 입력 시 점(번호 : N) 양식으로 전환 */
+function finishDraw(){if(lineDraft&&lineDraft.length>=2){pushHist();var rec={layer:drawLayer,pts:lineDraft.slice()};if(window._drawFree)rec.free=1;/* [BUILD1843] 표시용 — 측점 로직 제외 */if(window._drawBult){rec.color='#e6b800';rec.bult=1;}/* [1511] 불탐관로선=노랑 *//* [BUILD2168] 지거선 자동 태그 폐지 — 태그·인출선은 [지거 인출선/태그 넣기]로 수동 부착 */
     if(drawLayer==='지거'&&window._drawFree&&typeof STAGE!=='undefined'&&STAGE==='survey'){/* [BUILD2153] 위치표시=간접측량 — 각 정점을 노란 지거 측점으로 생성(태그=날짜-점번호, 인출선 자동) */
       var _d9=(function(){var d=new Date();return String(d.getFullYear()).slice(2)+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);})();
-      var _mx9=0;(state.points||[]).forEach(function(q){if(q&&q._jgf9){var m=new RegExp('^'+_d9+'-([0-9]+)$').exec(String(q.no||''));if(m)_mx9=Math.max(_mx9,parseInt(m[1],10)||0);}});
+      var _mx9=0;(state.points||[]).forEach(function(q){if(q&&q._jgf9){var m=new RegExp('^'+_d9+'-([0-9]+)$').exec(String(q.no||''));if(m)_mx9=Math.max(_mx9,parseInt(m[1],10)||0);}});if(window._jgStartNo9>0)_mx9=window._jgStartNo9-1;window._jgStartNo9=null;/* [BUILD2168] 팝업 지정 시작 번호 */
       state.points=state.points||[];
       rec.pts.forEach(function(v){
         if((state.points||[]).some(function(q){return q&&Math.hypot((q.x||0)-v[0],(q.y||0)-v[1])<0.05;}))return;/* [BUILD2156] 기존 측점(시설물 포함)·지거점 정점엔 생성 안 함 — 선만 연결 */
         if((state.manholes||[]).some(function(mh){return mh&&isFinite(mh.wx)&&Math.hypot(mh.wx-v[0],mh.wy-v[1])<0.05;}))return;/* 맨홀·입상·인입·JB 등 심벌 */
-        _mx9++;state.points.push({no:_d9+'-'+_mx9,x:v[0],y:v[1],code:'지거',_jgf9:1});
+        do{_mx9++;}while((state.points||[]).some(function(q){return q&&String(q.no)===(_d9+'-'+_mx9);}));state.points.push({no:_d9+'-'+_mx9,x:v[0],y:v[1],code:'지거',_jgf9:1});/* [BUILD2168] 중복 번호 건너뛰기 */
       });
     }else if(drawLayer==='압입구간'){rec.note='압입구간 ';}else if(drawLayer==='탐사구간'){rec.note='탐사구간 ';}/* [BUILD1835] */state.lines.push(rec);if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&rec.layer==='통신관로'&&typeof rtAutoTags==='function')rtAutoTags(rec);}lineDraft=null;previewLine=null;clearSvg(gDraft);clearSvg(gDraw);mode='pan';setModeUI();drawGeo();updMeta();}
 function clearLines(){pushHist();state.lines=state.lines.filter(function(l){return l.layer!=='통신관로';});drawGeo();updMeta();toast('결선 모두 삭제');}
