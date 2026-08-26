@@ -1343,7 +1343,7 @@ function drawGeo(){_orgSync();/* [1524] */if(typeof _tgCarGeomBuild==='function'
     if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){(function(pno){hit.addEventListener('pointerdown',function(ev){if(mode!=='pan')return;var self=this,sx=ev.clientX,sy=ev.clientY;if(self._lp){clearTimeout(self._lp);self._lp=null;}var end=function(){if(self._lp){clearTimeout(self._lp);self._lp=null;}window.removeEventListener('pointerup',end,true);window.removeEventListener('pointercancel',end,true);window.removeEventListener('pointermove',mv,true);};var mv=function(e){if(Math.abs(e.clientX-sx)+Math.abs(e.clientY-sy)>10)end();};window.addEventListener('pointerup',end,true);window.addEventListener('pointercancel',end,true);window.addEventListener('pointermove',mv,true);self._lp=setTimeout(function(){self._lp=null;self._lpFired=true;window.removeEventListener('pointerup',end,true);window.removeEventListener('pointercancel',end,true);window.removeEventListener('pointermove',mv,true);if(typeof rtPointMenu==='function')rtPointMenu(pno);},1000);});})(p.no);}
     var L=lay[i],ls=S(L.lx,L.ly),off=L.anchor==='start'?0.15:-0.15;
     var ld=null;if(L.leader&&!bpHide){ld=el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':1.3,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);}
-    var nt=mkLabel(ls[0]+off, ls[1], p.no, {fill:'#1a7a3a',weight:'400',anchor:L.anchor,grp:'pt',px:15});
+    var nt=mkLabel(ls[0]+off, ls[1], p.no, {fill:'#1a7a3a',weight:'400',anchor:L.anchor,grp:'pt',px:((typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&!(window.matchMedia&&matchMedia('(max-width:760px)').matches))?9.75:15)});/* [BUILD2185] 실시간 PC 측점라벨(날짜·번호·관정보) 35% 축소 */
     if(p._jgf9){nt.style.pointerEvents='auto';nt.style.cursor='pointer';nt.title='더블클릭: 지거 점번호 수정';(function(_pn9){nt.addEventListener('dblclick',function(ev){ev.stopPropagation();ev.preventDefault();if(typeof rtEditNo==='function')rtEditNo(_pn9);});})(p.no);}/* [BUILD2164] 지거 측점 태그 더블클릭 → 번호 수정(rtEditNo 재활용) */
     // 윗줄 날짜-번호에서 번호(마지막 - 뒤)만 빨간색
     var noStr=(p.no||''), dpos=noStr.lastIndexOf('-');
@@ -1354,7 +1354,7 @@ function drawGeo(){_orgSync();/* [1524] */if(typeof _tgCarGeomBuild==='function'
       var code=(state.tamsa?tamsaTag(p):(p.code||'')).trim();
       if(isTpoint(p)){sub.innerHTML=code.replace(/(^|\s)(T)(?=\s|\d|$)/,'$1<span style="color:#1d4ed8;font-weight:700">T</span>');}
       else{sub.textContent=code;}
-      sub.style.cssText='color:#0f7a86;font-weight:400;margin-top:2px;'+((typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&!(window.matchMedia&&matchMedia('(max-width:760px)').matches))?'font-size:65%;':'');/* [BUILD2184] 실시간 PC 관정보 35% 축소 */
+      sub.style.cssText='color:#0f7a86;font-weight:400;margin-top:2px;';/* [BUILD2185] 65%는 라벨 전체(px)에서 적용 — 이중 축소 방지 */
       nt.appendChild(sub);
     }
     var _dp=state.tamsa?((p.z!=null&&isFinite(p.z))?p.z:null):(state._depthByNo&&state._depthByNo[p.no]);
