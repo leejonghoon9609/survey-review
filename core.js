@@ -6208,7 +6208,21 @@ function delHoverHighlight(cw){var _cl=SL(cw);/* [1524] */clearSvg(gDraw);var be
     if(mb>=0){var m=state.markups[mb];var sh=m.type==='cir'?el('ellipse',{cx:m.cx-ORG.x,cy:m.cy+ORG.y,rx:m.rx,ry:m.ry}):el('rect',{x:m.x-ORG.x,y:m.y+ORG.y,width:m.w,height:m.h,rx:0.4});/* [1524] */sh.setAttribute('fill','none');sh.setAttribute('stroke',MKCOL[m.status]||'#d32f2f');sh.setAttribute('stroke-width',7);sh.setAttribute('stroke-opacity',0.55);sh.setAttribute('vector-effect','non-scaling-stroke');sh.setAttribute('pointer-events','none');gDraw.appendChild(sh);}
   }
 }
-function jgfNext9(){var d=new Date();var _d9=String(d.getFullYear()).slice(2)+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);var mx=0;(state.points||[]).forEach(function(q){if(q&&q._jgf9){var m=new RegExp('^'+_d9+'-([0-9]+)$').exec(String(q.no||''));if(m)mx=Math.max(mx,parseInt(m[1],10)||0);}});return mx+1;}
+function jgMigrate9(){/* [BUILD2187] 지거 측점 번호 날짜-N → 날짜-N-1 (멱등, 실시간·후측량) */
+  try{
+    if(!((typeof IS_REALTIME!=='undefined'&&IS_REALTIME)||(typeof STAGE!=='undefined'&&STAGE==='survey')))return 0;
+    var n=0;(state.points||[]).forEach(function(pt){
+      if(!pt||!pt._jgf9)return;var m=/^(\d{6})-(\d+)$/.exec(String(pt.no||''));if(!m)return;
+      var t=pt.no+'-1';
+      if((state.points||[]).some(function(q){return q&&q!==pt&&String(q.no)===t;}))return;
+      if(typeof selNum!=='undefined'&&String(selNum)===String(pt.no))selNum=t;
+      pt.no=t;n++;
+    });
+    if(n){console.log('[지거정합] 측점 번호 N→N-1 리네임 '+n+'건');if(typeof toast==='function')toast('지거 측점 번호 정규화 '+n+'건 (N → N-1)');try{if(state.projectId&&typeof saveProject==='function')saveProject();}catch(_s){}}
+    return n;
+  }catch(e){return 0;}
+}
+function jgfNext9(){var d=new Date();var _d9=String(d.getFullYear()).slice(2)+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);var mx=0;(state.points||[]).forEach(function(q){if(q&&q._jgf9){var m=new RegExp('^'+_d9+'-([0-9]+)(?:-1)?$')/* [BUILD2187] N·N-1 모두 */.exec(String(q.no||''));if(m)mx=Math.max(mx,parseInt(m[1],10)||0);}});return mx+1;}
 function jgDrawPick9(bult){/* [BUILD2168] 후측량 지거 팝업 — 중립 톤, 번호 지정 + 그리기/태그 부착 */
   var old=document.getElementById('jgDrawPick9');if(old)old.remove();
   var ov=document.createElement('div');ov.id='jgDrawPick9';
@@ -6257,14 +6271,14 @@ function startDraw(layer,bult,pick){if(!pick&&((typeof IS_REALTIME!=='undefined'
 function finishDraw(){if(lineDraft&&lineDraft.length>=2){pushHist();var rec={layer:drawLayer,pts:lineDraft.slice()};if(window._drawFree)rec.free=1;/* [BUILD1843] 표시용 — 측점 로직 제외 */if(window._drawBult){rec.color='#e6b800';rec.bult=1;}/* [1511] 불탐관로선=노랑 *//* [BUILD2168] 지거선 자동 태그 폐지 — 태그·인출선은 [지거 인출선/태그 넣기]로 수동 부착 */
     if(drawLayer==='지거'&&window._drawFree&&((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_REALTIME!=='undefined'&&IS_REALTIME))){/* [BUILD2153→2174] 위치표시=간접측량 — 후측량·실시간 공용, 정점마다 지거 측점 생성 */
       var _d9=(function(){var d=new Date();return String(d.getFullYear()).slice(2)+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);})();
-      var _mx9=0;(state.points||[]).forEach(function(q){if(q&&q._jgf9){var m=new RegExp('^'+_d9+'-([0-9]+)$').exec(String(q.no||''));if(m)_mx9=Math.max(_mx9,parseInt(m[1],10)||0);}});if(window._jgStartNo9>0)_mx9=window._jgStartNo9-1;window._jgStartNo9=null;/* [BUILD2168] 팝업 지정 시작 번호 */
+      var _mx9=0;(state.points||[]).forEach(function(q){if(q&&q._jgf9){var m=new RegExp('^'+_d9+'-([0-9]+)(?:-1)?$')/* [BUILD2187] N·N-1 모두 */.exec(String(q.no||''));if(m)_mx9=Math.max(_mx9,parseInt(m[1],10)||0);}});if(window._jgStartNo9>0)_mx9=window._jgStartNo9-1;window._jgStartNo9=null;/* [BUILD2168] 팝업 지정 시작 번호 */
       state.points=state.points||[];
       rec.pts.forEach(function(v){
         if((state.points||[]).some(function(q){return q&&Math.hypot((q.x||0)-v[0],(q.y||0)-v[1])<0.05;}))return;/* [BUILD2156] 기존 측점(시설물 포함)·지거점 정점엔 생성 안 함 — 선만 연결 */
         if((state.manholes||[]).some(function(mh){return mh&&isFinite(mh.wx)&&Math.hypot(mh.wx-v[0],mh.wy-v[1])<0.05;}))return;/* 맨홀·입상·인입·JB 등 심벌 */
-        do{_mx9++;}while((state.points||[]).some(function(q){return q&&!q._jgf9&&String(q.no)===(_d9+'-'+_mx9);}));/* 비지거 실측점과 충돌 시에만 건너뛰기 */
-        state.points=(state.points||[]).filter(function(q){return !(q&&q._jgf9&&String(q.no)===(_d9+'-'+_mx9));});/* [BUILD2176] 지정 번호 재그리기 — 같은 번호의 기존 지거 측점은 새 위치로 대체(사진 매칭 유지) */
-        state.points.push({no:_d9+'-'+_mx9,x:v[0],y:v[1],code:'지거',_jgf9:1});
+        do{_mx9++;}while((state.points||[]).some(function(q){return q&&!q._jgf9&&String(q.no)===(_d9+'-'+_mx9+'-1');}));/* 비지거 실측점과 충돌 시에만 건너뛰기 */
+        state.points=(state.points||[]).filter(function(q){return !(q&&q._jgf9&&(String(q.no)===(_d9+'-'+_mx9)||String(q.no)===(_d9+'-'+_mx9+'-1')));});/* [BUILD2176] 지정 번호 재그리기 — 같은 번호의 기존 지거 측점은 새 위치로 대체(사진 매칭 유지) */
+        state.points.push({no:_d9+'-'+_mx9+'-1',x:v[0],y:v[1],code:'지거',_jgf9:1});/* [BUILD2187] 지거 측점 번호=N-1 — GPS/CSV 번호와 분리 */
       });
     }else if(drawLayer==='압입구간'){rec.note='압입구간 ';}else if(drawLayer==='탐사구간'){rec.note='탐사구간 ';}/* [BUILD1835] */state.lines.push(rec);if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&rec.layer==='통신관로'&&typeof rtAutoTags==='function')rtAutoTags(rec);}lineDraft=null;previewLine=null;clearSvg(gDraft);clearSvg(gDraw);mode='pan';setModeUI();drawGeo();updMeta();}
 function clearLines(){pushHist();state.lines=state.lines.filter(function(l){return l.layer!=='통신관로';});drawGeo();updMeta();toast('결선 모두 삭제');}
@@ -6694,7 +6708,7 @@ function _loadProjectRaw(id,ro,cb){ if(!online||!id)return; try{if(typeof mnClos
     if(res.error||!res.data){toast('불러오기 실패');return;}if(typeof _tgStageBackup==='function'&&state.tgStore&&(state._pointsOrig||state._linesOrig||state._depthOrig))_tgStageBackup();if(typeof _tgStageOut==='function')_tgStageOut();var _xp=document.getElementById('tangoPanel');if(_xp)_xp.style.display='none';var _xi=document.getElementById('tgInfoPanel');if(_xi)_xi.style.display='none';if(typeof tgPanelLayout==='function')tgPanelLayout(false);if(typeof tgUpdateBtn==='function')tgUpdateBtn(false);if(typeof tgSeg!=='undefined')tgSeg=-1;if(typeof _segFix!=='undefined')_segFix=null;if(typeof _segAdd!=='undefined')_segAdd=null;if(typeof _tgSegs!=='undefined')_tgSegs=null;if(typeof mode!=='undefined'&&mode&&mode.indexOf('tg')===0){mode='pan';if(typeof setModeUI==='function')setModeUI();}state.tgSegLabelOff={};['tgSegHLG','tgSegHLF','tgSegHL'].forEach(function(_xid){var _xe=document.getElementById(_xid);if(_xe)_xe.remove();});
     var p=res.data.payload||{};state.projectId=res.data.id;
     try{var _hv=res.data.heavy;try{state.bpFull=(_hv&&_hv.bpFull)?_hv.bpFull:[];state.bpTexts=(_hv&&_hv.bpTexts)?_hv.bpTexts:[];}catch(_bf4){state.bpFull=[];state.bpTexts=[];}/* [BUILD1996] 백판 원본 복원 — 없으면 빈 배열(사업 전환 유출 차단) */if(_hv&&_hv.finalCsv!==undefined){p.finalCsv=_hv.finalCsv;window._hvSaved=res.data.id+'#'+((_hv.finalCsv||[]).map(function(f){return (f.name||'')+':'+((f.text||'').length);}).join('|'));}else{window._hvSaved=null;}}catch(_h3){window._hvSaved=null;}/* [1491] heavy 병합 — 구사업은 다음 저장때 자동 이사 */state.projectName=res.data.name;state.loadedStage=p.stage||'survey';state._importSrc=[];
-    state.points=p.points||[];state.gpsPts=p.gpsPts||[];state.tangoEdit=p.tangoEdit||null;if(p.tangoManual)state.tangoManual=p.tangoManual;state.tgStore=p.tgStore||null;state.tgSegLabelOff=p.tgSegLabelOff||{};/* [BUILD2029] \uAD6C\uAC04\uB77C\uBCA8 \uC624\uD504\uC14B \uC601\uC18D */if(!state.tgStore&&(p.tangoEdit||p.tangoManual)){state.tgStore={tango:{edit:p.tangoEdit,manual:p.tangoManual||{},segDel:{}}};}_tgCtx='tango';try{if((!state.bpFull||!state.bpFull.length)&&p.bpFull&&p.bpFull.length){state.bpFull=p.bpFull;state.bpTexts=p.bpTexts||[];}}catch(_bf5){}/* [BUILD1997] 인계본은 payload에 백판 원본이 실려 온다 — heavy가 비어 있을 때만 채운다(heavy 우선) */state.refCrop=p.refCrop||null;state.tgAddSegs=p.tgAddSegs||[];try{if(typeof refCropBtn==='function')refCropBtn();}catch(_rc94){}/* [BUILD1994] 크롭 영역·구간추가 복원 — 미존재 시 초기화(사업 전환 유출 차단) */state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];try{state._lnBase9=null;_lnBaseSet9(state.lines);}catch(_lb8){}/* [BUILD1937] */state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];if(typeof _mhIdFix==='function')_mhIdFix();/* [1554] */state.bpzones=p.bpzones||[];state.roadZones=p.roadZones||[];state.depthCheck=p.depthCheck||[];if(typeof classifyRoad==='function')classifyRoad();state.depthGround=p.depthGround||null;state._depthManual=p.depthManual||null;/* [1541] */state._depthAlign=null;state.titleBlock=p.titleBlock||null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.tangoDone=p.tangoDone||null;state.tgCarrier=p.tgCarrier||null;state.mhDel=p.mhDel||null;state.tgNotes=p.tgNotes||[];state.refMhLbl=p.refMhLbl||{};/* [1461] */state._csvTrash=p.csvTrash||[];state.rtCsvHead9=p.rtCsvHead9||{};state.rtRawMeta9=p.rtRawMeta9||{};state.rtJgBoard9=p.rtJgBoard9||{};/* [BUILD2122] */state.phoTrash9=p.phoTrash9||[];/* [BUILD2179] */
+    state.points=p.points||[];state.gpsPts=p.gpsPts||[];state.tangoEdit=p.tangoEdit||null;if(p.tangoManual)state.tangoManual=p.tangoManual;state.tgStore=p.tgStore||null;state.tgSegLabelOff=p.tgSegLabelOff||{};/* [BUILD2029] \uAD6C\uAC04\uB77C\uBCA8 \uC624\uD504\uC14B \uC601\uC18D */if(!state.tgStore&&(p.tangoEdit||p.tangoManual)){state.tgStore={tango:{edit:p.tangoEdit,manual:p.tangoManual||{},segDel:{}}};}_tgCtx='tango';try{if((!state.bpFull||!state.bpFull.length)&&p.bpFull&&p.bpFull.length){state.bpFull=p.bpFull;state.bpTexts=p.bpTexts||[];}}catch(_bf5){}/* [BUILD1997] 인계본은 payload에 백판 원본이 실려 온다 — heavy가 비어 있을 때만 채운다(heavy 우선) */state.refCrop=p.refCrop||null;state.tgAddSegs=p.tgAddSegs||[];try{if(typeof refCropBtn==='function')refCropBtn();}catch(_rc94){}/* [BUILD1994] 크롭 영역·구간추가 복원 — 미존재 시 초기화(사업 전환 유출 차단) */state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];try{state._lnBase9=null;_lnBaseSet9(state.lines);}catch(_lb8){}/* [BUILD1937] */state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];if(typeof _mhIdFix==='function')_mhIdFix();/* [1554] */state.bpzones=p.bpzones||[];state.roadZones=p.roadZones||[];state.depthCheck=p.depthCheck||[];if(typeof classifyRoad==='function')classifyRoad();state.depthGround=p.depthGround||null;state._depthManual=p.depthManual||null;/* [1541] */state._depthAlign=null;state.titleBlock=p.titleBlock||null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.tangoDone=p.tangoDone||null;state.tgCarrier=p.tgCarrier||null;state.mhDel=p.mhDel||null;state.tgNotes=p.tgNotes||[];state.refMhLbl=p.refMhLbl||{};/* [1461] */state._csvTrash=p.csvTrash||[];state.rtCsvHead9=p.rtCsvHead9||{};state.rtRawMeta9=p.rtRawMeta9||{};state.rtJgBoard9=p.rtJgBoard9||{};/* [BUILD2122] */state.phoTrash9=p.phoTrash9||[];/* [BUILD2179] */try{if(typeof jgMigrate9==='function')jgMigrate9();}catch(_jm9){}/* [BUILD2187] */
   try{if(typeof STAGE!=='undefined'&&STAGE==='survey'&&state.points&&state.points.length){/* [BUILD2156] 과거 사업 소급 — 시설물 좌표와 겹친 지거점 정리 */
     var _b4=state.points.length;
     state.points=state.points.filter(function(q){
@@ -12741,7 +12755,7 @@ function joseoGroups(){
     Object.keys(_jg9).forEach(function(d6){
       var dk=joseoDate(d6+'-0')+'_지거';var arr=[];
       Object.keys(_jg9[d6]).sort(function(a,b){return (+a)-(+b);}).forEach(function(n){
-        var bp=(typeof pointByNo==='function')?pointByNo(d6+'-'+n):null;
+        var bp=(typeof pointByNo==='function')?(pointByNo(d6+'-'+n+'-1')||pointByNo(d6+'-'+n)):null;/* [BUILD2187] */
         if(!bp&&typeof jgCodeNum9==='function')bp=(state.points||[]).filter(function(q){return q&&jgCodeNum9(q)===String(n);})[0]||null;/* [BUILD2165] 후측량 CSV 코드 'N 지거' 기준점 좌표 연결 */
         arr.push({no:d6+'-'+n,_jg:true,x:bp?bp.x:null,y:bp?bp.y:null,code:bp?(bp.code||''):'',depth:bp?bp.depth:null});
       });
@@ -15703,6 +15717,8 @@ function rtEditNo(no){
   var day=(no||'').split('-')[0];var cur=(no||'').split('-').slice(1).join('-');
   var nv=prompt('측점 번호 수정 (오늘 '+day+')\n실제 측점번호로 고치세요',cur);
   if(nv===null)return;nv=(nv||'').trim();if(!nv||nv===cur)return;
+  var _tp9=(typeof pointByNo==='function')?pointByNo(no):null;var _isJg9=!!(_tp9&&_tp9._jgf9);
+  if(_isJg9&&/^\d+$/.test(nv)){nv=nv+'-1';if(nv===cur)return;}/* [BUILD2187] 지거 측점 번호부=N-1 강제 */
   var newNo=day+'-'+nv;
   var dup=(state.gpsPts||[]).some(function(g){return g.no===newNo;})||(typeof pointByNo==='function'&&pointByNo(newNo));
   if(dup){toast('이미 있는 번호입니다: '+newNo);return;}
@@ -15713,6 +15729,12 @@ function rtEditNo(no){
   if(typeof online!=='undefined'&&online&&state.projectId){
     try{sb.from(DB+'_photos').update({point_no:newNo}).eq('project_id',state.projectId).eq('point_no',no).then(function(r){if(r&&r.error){toast('사진 번호 이동 실패: '+r.error.message);}else{try{var _op=state.projectId+'/'+safeName(no)+'.jpg',_np=state.projectId+'/'+safeName(newNo)+'.jpg';sb.storage.from('photos').move(_op,_np).then(function(mv){if(!mv||!mv.error){var _u=sb.storage.from('photos').getPublicUrl(_np).data.publicUrl+'?t='+Date.now();if(typeof photoMap!=='undefined')photoMap[newNo]=_u;sb.from(DB+'_photos').update({url:_u}).eq('project_id',state.projectId).eq('point_no',newNo).then(function(){});if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();}});}catch(_me){}}});}catch(e){}
   }
+  try{var _om9=/^(\d{6})-(\d+)-1$/.exec(String(no)),_nm9=/^(\d{6})-(\d+)-1$/.exec(String(newNo));
+  if(_isJg9&&_om9&&_nm9){[2,3,4].forEach(function(K){
+    var ok9=_om9[1]+'-'+_om9[2]+'-'+K,nk9=_nm9[1]+'-'+_nm9[2]+'-'+K;
+    if(typeof photoMap!=='undefined'&&photoMap[ok9]){photoMap[nk9]=photoMap[ok9];delete photoMap[ok9];
+      if(typeof online!=='undefined'&&online&&state.projectId){try{sb.from(DB+'_photos').update({point_no:nk9}).eq('project_id',state.projectId).eq('point_no',ok9).then(function(){});}catch(_k9){}}}
+  });}}catch(_js9){}/* [BUILD2187] 지거 사진 세트 동반 이동 */
   if(String(selNum)===String(no))selNum=newNo;
   if(typeof drawGeo==='function')drawGeo();
   if(typeof highlightSel==='function')highlightSel();
