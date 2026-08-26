@@ -1344,6 +1344,7 @@ function drawGeo(){_orgSync();/* [1524] */if(typeof _tgCarGeomBuild==='function'
     var L=lay[i],ls=S(L.lx,L.ly),off=L.anchor==='start'?0.15:-0.15;
     var ld=null;if(L.leader&&!bpHide){ld=el('line',{x1:s[0],y1:s[1],x2:ls[0],y2:ls[1],stroke:'#999','stroke-width':1.3,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);}
     var nt=mkLabel(ls[0]+off, ls[1], p.no, {fill:'#1a7a3a',weight:'400',anchor:L.anchor,grp:'pt',px:15});
+    if(p._jgf9){nt.style.pointerEvents='auto';nt.style.cursor='pointer';nt.title='더블클릭: 지거 점번호 수정';(function(_pn9){nt.addEventListener('dblclick',function(ev){ev.stopPropagation();ev.preventDefault();if(typeof rtEditNo==='function')rtEditNo(_pn9);});})(p.no);}/* [BUILD2164] 지거 측점 태그 더블클릭 → 번호 수정(rtEditNo 재활용) */
     // 윗줄 날짜-번호에서 번호(마지막 - 뒤)만 빨간색
     var noStr=(p.no||''), dpos=noStr.lastIndexOf('-');
     if(isBp)nt.innerHTML='<span class="L-bp" style="color:#b8860b;font-weight:700">'+noStr+'</span>';else if(dpos>=0)nt.innerHTML='<span class="L-date">'+noStr.slice(0,dpos+1)+'</span><span class="L-no" style="color:#d32f2f;font-weight:700">'+noStr.slice(dpos+1)+'</span>';else nt.innerHTML='<span class="L-no">'+noStr+'</span>';
