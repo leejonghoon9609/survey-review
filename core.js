@@ -6215,7 +6215,7 @@ function jgDrawPick9(bult){/* [BUILD2168] 후측량 지거 팝업 — 중립 톤
   ov.style.cssText='position:fixed;inset:0;background:rgba(20,28,40,.45);z-index:100000;display:flex;align-items:center;justify-content:center';
   var nx=jgfNext9();
   ov.innerHTML='<div style="background:#fffbe6;border:1.5px solid #e0d29a;border-radius:14px;width:310px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden;text-align:center">'
-   +'<div style="height:6px;background:linear-gradient(90deg,#546e7a,#90a4ae)"></div>'
+   +'<div style="height:6px;background:linear-gradient(90deg,#b71c1c,#e02b2b)"></div>'
    +'<div style="padding:16px 18px">'
    +'<div style="font-size:16px;font-weight:800;color:#2b3a4a;margin-bottom:2px">지거선 그리기</div>'
    +'<div style="font-size:12px;color:#8a97a5;margin-bottom:12px">측점번호 확인 후 작업을 선택하세요</div>'
@@ -6224,10 +6224,10 @@ function jgDrawPick9(bult){/* [BUILD2168] 후측량 지거 팝업 — 중립 톤
    +'<div style="font-size:12px;font-weight:800;color:#556677;margin-bottom:5px">측점번호 (지거)</div>'
    +'<input id="jgDpNo9" type="text" inputmode="numeric" value="'+nx+'" style="width:110px;box-sizing:border-box;font-size:17px;font-weight:800;text-align:center;padding:8px;border:1.5px solid #d4c374;border-radius:9px;background:#fff;color:#2b3a4a;outline:none">'
    +'</div>'
-   +'<button id="jgDpTag9" style="flex:1;min-width:0;padding:9px 6px;border:1.5px solid #c9a227;border-radius:9px;background:#fff;color:#8a6b00;font-weight:800;font-size:13.5px;cursor:pointer;white-space:nowrap">지거 태그넣기</button>'
+   +'<button id="jgDpTag9" style="flex:1;min-width:0;padding:9px 6px;border:1.5px solid #c9a227;border-radius:9px;background:#fff;color:#8a6b00;font-weight:800;font-size:13.5px;cursor:pointer;white-space:nowrap;text-align:center">지거 태그넣기</button>'
    +'</div>'
-   +'<button id="jgDpDraw9" style="display:block;width:100%;padding:11px 10px;margin-bottom:8px;border:1.5px solid #607d8b;border-radius:10px;background:#fff;color:#37474f;font-weight:800;font-size:15px;cursor:pointer;overflow:hidden">지거선 그리기<div style="font-size:10.5px;font-weight:600;color:#78909c;margin-top:2px;white-space:nowrap">화면 클릭 — 측점·지거점 스냅</div></button>'
-   +'<button id="jgDpX9" style="border:none;background:none;color:#8a97a5;font-size:12.5px;font-weight:700;cursor:pointer;margin-top:2px">취소</button>'
+   +'<button id="jgDpDraw9" style="display:block;width:100%;padding:11px 10px;margin-bottom:8px;border:2.5px solid #37474f;border-radius:10px;background:#fff;color:#37474f;font-weight:800;font-size:15px;cursor:pointer;overflow:hidden">지거선 그리기<div style="font-size:10.5px;font-weight:600;color:#78909c;margin-top:2px;white-space:nowrap">화면 클릭 — 측점·지거점 스냅</div></button>'
+   +'<button id="jgDpX9" style="border:1.5px solid #b8c4d0;border-radius:8px;background:#fff;color:#5b6b7a;font-size:12.5px;font-weight:700;cursor:pointer;margin-top:2px;padding:6px 22px">취소</button>'
    +'</div></div>';
   document.body.appendChild(ov);
   ov.addEventListener('pointerdown',function(e){if(e.target===ov)ov.remove();});
