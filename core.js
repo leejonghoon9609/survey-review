@@ -1303,7 +1303,7 @@ function drawGeo(){_orgSync();/* [1524] */if(typeof _tgCarGeomBuild==='function'
     var aw=ptOnPoly(L.pts,polyAnchorT(L));      // 선 위 앵커(world)
     var _no9=_noteOff9(L,aw);/* [BUILD1987] */var s=S(aw[0],aw[1]),lx=(L.noteOff?(L.noteOff[0]-ORG.x):s[0]+_no9[0]),ly=(L.noteOff?(L.noteOff[1]+ORG.y):s[1]-_no9[1]);/* [1524] WF\u2192LOCAL */
     var ld=el('line',{x1:s[0],y1:s[1],x2:lx,y2:ly,stroke:nc,'stroke-width':0.8,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);
-    var anc=el('circle',{cx:s[0],cy:s[1],r:0.32,fill:nc,'pointer-events':'none'});gAnc.appendChild(anc); // 보이는 원
+    var anc=el('circle',{cx:s[0],cy:s[1],r:(L&&L.layer==='지거'?0.08:0.32),fill:nc,'pointer-events':'none'});gAnc.appendChild(anc); // 보이는 원 [BUILD2150] 지거=측점 반 크기
     var ahR=Math.max(20*pxToWorld(), 1.0); // 클릭영역: 화면 ~20px 고정 (측점 9px보다 크게 → 쉽게 잡힘)
     var ah=el('circle',{cx:s[0],cy:s[1],r:ahR,fill:'transparent','pointer-events':'all'});ah.style.cursor='move';gAnc.appendChild(ah); // 클릭 잡기용 큰 투명 원
     addAnchorHandle(L,ah,anc,ld);
@@ -1879,6 +1879,16 @@ cv.addEventListener('pointerdown',function(ev){
   if(typeof toast==='function')toast('현황 타점 삭제');
   if(typeof _da2Off==='function')_da2Off();
 });
+/* [BUILD2150] 지거 그리기(측점 연결) — 근접 스냅 후보(측점·기존 지거점) 선택전 황금 점선 원 */
+cv.addEventListener('pointermove',function(ev){
+  var _kill9=function(){if(window._jgHov9){try{window._jgHov9.remove();}catch(_r){}window._jgHov9=null;}};
+  if(mode!=='line'||drawLayer!=='지거'||window._drawFree){_kill9();return;}
+  var w=toWorld(ev.clientX,ev.clientY);var nm=nearestSnapWorld(w[0],w[1]);
+  if(nm.pt&&nm.d<vb.w*0.04){var sp=S(nm.pt[0],nm.pt[1]);
+    if(!window._jgHov9||!window._jgHov9.parentNode){window._jgHov9=el('circle',{fill:'none',stroke:'#c9920a','stroke-width':3,'vector-effect':'non-scaling-stroke','stroke-dasharray':'4 3','pointer-events':'none'});gAnc.appendChild(window._jgHov9);}
+    window._jgHov9.setAttribute('cx',sp[0]);window._jgHov9.setAttribute('cy',sp[1]);window._jgHov9.setAttribute('r',Math.max(10*pxToWorld(),0.35));
+  }else _kill9();
+});
 /* [1635] 지우기(통합) 선택전 표시 — 근접 타점 빨간 강조 원 */
 cv.addEventListener('pointermove',function(ev){
   var rm=function(){if(window._hyHiEl){try{window._hyHiEl.remove();}catch(_r){}window._hyHiEl=null;}};
@@ -2236,6 +2246,7 @@ function nearestSnapWorld(wx,wy){wx-=ORG.x;wy+=ORG.y;/* [1524] */var bd=1e18,pt=
   state.points.forEach(function(p){var s=S(p.x,p.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;pt=[p.x,p.y];}});
   (state.manholes||[]).forEach(function(mh){var s=S(mh.wx,mh.wy);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;pt=[mh.wx,mh.wy];}});
   try{if(window._drawBult&&mode==='line'&&typeof _fldTamsaPts==='function'){_fldTamsaPts().forEach(function(q){var s=S(q.x,q.y);var d=(s[0]-wx)*(s[0]-wx)+(s[1]-wy)*(s[1]-wy);if(d<bd){bd=d;pt=[q.x,q.y];}});}}catch(_t){}/* [1512] 불탐 그리기 중 노란측점 스냅 */
+  try{if(mode==='line'&&drawLayer==='지거'){(state.lines||[]).forEach(function(Ln){if(!Ln||Ln.layer!=='지거'||!Ln.pts)return;Ln.pts.forEach(function(v){var sv=S(v[0],v[1]);var dv=(sv[0]-wx)*(sv[0]-wx)+(sv[1]-wy)*(sv[1]-wy);if(dv<bd){bd=dv;pt=[v[0],v[1]];}});});}}catch(_jg){}/* [BUILD2150] 지거 점끼리 스냅 */
   return {pt:pt,d:Math.sqrt(bd)};}
 function autoConnectTamsa(){
   if(state.points.length<2){toast('\uCE21\uB7C9\uC810\uC744 \uBA3C\uC800 \uC62C\uB824\uC8FC\uC138\uC694');return;}
