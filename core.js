@@ -1354,7 +1354,7 @@ function drawGeo(){_orgSync();/* [1524] */if(typeof _tgCarGeomBuild==='function'
       var code=(state.tamsa?tamsaTag(p):(p.code||'')).trim();
       if(isTpoint(p)){sub.innerHTML=code.replace(/(^|\s)(T)(?=\s|\d|$)/,'$1<span style="color:#1d4ed8;font-weight:700">T</span>');}
       else{sub.textContent=code;}
-      sub.style.cssText='color:#0f7a86;font-weight:400;margin-top:2px;';
+      sub.style.cssText='color:#0f7a86;font-weight:400;margin-top:2px;'+((typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&!(window.matchMedia&&matchMedia('(max-width:760px)').matches))?'font-size:65%;':'');/* [BUILD2184] 실시간 PC 관정보 35% 축소 */
       nt.appendChild(sub);
     }
     var _dp=state.tamsa?((p.z!=null&&isFinite(p.z))?p.z:null):(state._depthByNo&&state._depthByNo[p.no]);
@@ -14598,28 +14598,65 @@ function resolvePhotoNo(f){
   if(im.length===1)return {no:im[0].no,matched:true};
   return null; // 글자인데 못 찾음(또는 중복) → 미매칭
 }
+/* [BUILD2183] 사진 업로드 진행 바 */
+function phProgShow9(done,total,fail,unm){
+  var el=document.getElementById('phProg9');
+  if(!el){
+    el=document.createElement('div');el.id='phProg9';
+    el.style.cssText='position:fixed;top:56px;left:50%;transform:translateX(-50%);z-index:100005;background:#fff;border:1px solid #d8dee6;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.25);padding:10px 14px;width:min(340px,88vw);font-size:13px';
+    el.innerHTML='<div id="phProgTxt9" style="font-weight:800;color:#1f2d3d;margin-bottom:7px">\uD83D\uDCE4 사진 업로드 준비…</div>'
+      +'<div style="height:9px;background:#eef1f5;border-radius:6px;overflow:hidden"><div id="phProgBar9" style="height:100%;width:0%;background:linear-gradient(90deg,#2f80ed,#56ccf2);transition:width .25s"></div></div>'
+      +'<div id="phProgSub9" style="margin-top:5px;font-size:11.5px;color:#8a94a3"></div>';
+    document.body.appendChild(el);
+  }
+  var pct=total?Math.round(done*100/total):0;
+  var t=document.getElementById('phProgTxt9');if(t)t.textContent='\uD83D\uDCE4 사진 업로드 '+done+'/'+total+'장 ('+pct+'%)';
+  var b=document.getElementById('phProgBar9');if(b)b.style.width=pct+'%';
+  var sub=document.getElementById('phProgSub9');
+  if(sub)sub.textContent=((fail?('실패 '+fail+'장'):'')+(fail&&unm?' · ':'')+(unm?('미매칭 '+unm+'장'):''))||'창을 닫아도 업로드는 계속됩니다';
+  return el;
+}
+function phProgDone9(ok,total,fail,unm){
+  var el=document.getElementById('phProg9');if(!el)return;
+  var t=document.getElementById('phProgTxt9');
+  var b=document.getElementById('phProgBar9');
+  if(b){b.style.width='100%';b.style.background=fail?'linear-gradient(90deg,#e53935,#ff7043)':'linear-gradient(90deg,#27ae60,#6fcf97)';}
+  if(t)t.textContent=(fail?'⚠ ':'✅ ')+'사진 업로드 완료 '+ok+'/'+total+'장'+(fail?(' · 실패 '+fail):'')+(unm?(' · 미매칭 '+unm):'');
+  var sub=document.getElementById('phProgSub9');if(sub)sub.textContent=fail?'실패분은 같은 사진을 다시 넣으면 됩니다':'';
+  setTimeout(function(){var e=document.getElementById('phProg9');if(e)e.remove();},fail?7000:2600);
+}
 function uploadPhotos(files){
   if(!online){toast('로컬 모드 — 사진 저장 불가');return;}
   if(!state.projectId){toast('먼저 "저장"으로 현장을 저장한 뒤 사진을 올려주세요');return;}
-  var arr=[].slice.call(files);if(!arr.length)return;toast('사진 '+arr.length+'장 업로드 중…');
-  var done=0,ok=0,unmatched=0,total=arr.length;
-  function finish(){if(done<total)return;var msg=ok+'/'+total+'장 업로드 완료';if(unmatched)msg+=' · 미매칭 '+unmatched+'장(측점 없음)';toast(msg);if(photoPanelOpen)refreshPhotoPanel();}
-  arr.forEach(function(f){
-    var r=resolvePhotoNo(f);
-    if(!r){unmatched++;done++;finish();return;}
-    if(!r.matched)unmatched++;var no=r.no;
-    var _cp9=(/^[0-9]{6}-[0-9]+-[1-4]$/.test(String(no))&&typeof rtCompressLandscape==='function')?rtCompressLandscape(f,1600,0.8):compressImage(f,1600,0.8);/* [BUILD2131] 지거 사진 무조건 가로 저장 */
-    _cp9.then(function(blob){
-      var path=state.projectId+'/'+safeName(no)+'.jpg';
-      return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
-        if(up.error)throw up.error;
-        var url=sb.storage.from('photos').getPublicUrl(path).data.publicUrl+'?t='+Date.now();
-        return sb.from(DB+'_photos').delete().eq('project_id',state.projectId).eq('point_no',no).then(function(){
-          return sb.from(DB+'_photos').insert({project_id:state.projectId,point_no:no,url:url}).then(function(ins){if(ins.error)throw ins.error;photoMap[no]=url;ok++;if(typeof drawGeo==='function')drawGeo();});
+  var arr=[].slice.call(files);if(!arr.length)return;
+  var done=0,ok=0,unmatched=0,fail=0,total=arr.length;
+  phProgShow9(0,total,0,0);
+  function finish(){if(done<total)return;var msg=ok+'/'+total+'장 업로드 완료';if(unmatched)msg+=' · 미매칭 '+unmatched+'장(측점 없음)';if(fail)msg+=' · 실패 '+fail+'장';toast(msg);phProgDone9(ok,total,fail,unmatched);if(photoPanelOpen)refreshPhotoPanel();try{if(typeof regOpen==='function'&&regOpen()&&typeof updRegStatus==='function')updRegStatus();}catch(_ur9){}}
+  function one(f){
+    return Promise.resolve().then(function(){
+      var r=resolvePhotoNo(f);
+      if(!r){unmatched++;return;}
+      if(!r.matched)unmatched++;var no=r.no;
+      var _cp9=(/^[0-9]{6}-[0-9]+-[1-4]$/.test(String(no))&&typeof rtCompressLandscape==='function')?rtCompressLandscape(f,1600,0.8):compressImage(f,1600,0.8);/* [BUILD2131] 지거 사진 무조건 가로 저장 */
+      return _cp9.then(function(blob){
+        var path=state.projectId+'/'+safeName(no)+'.jpg';
+        return sb.storage.from('photos').upload(path,blob,{upsert:true,contentType:'image/jpeg'}).then(function(up){
+          if(up.error)throw up.error;
+          var url=sb.storage.from('photos').getPublicUrl(path).data.publicUrl+'?t='+Date.now();
+          return sb.from(DB+'_photos').delete().eq('project_id',state.projectId).eq('point_no',no).then(function(){
+            return sb.from(DB+'_photos').insert({project_id:state.projectId,point_no:no,url:url}).then(function(ins){if(ins.error)throw ins.error;photoMap[no]=url;ok++;if(typeof drawGeo==='function')drawGeo();});
+          });
         });
-      });
-    }).catch(function(err){console.error('photo upload',no,err);}).then(function(){done++;finish();});
-  });
+      }).catch(function(err){fail++;console.error('photo upload',no,err);});
+    });
+  }
+  var idx=0;/* [BUILD2183] 동시 4장 큐 — 대량 동시 전송으로 인한 520·메모리 폭주 방지 */
+  function next(){
+    if(idx>=total)return;
+    var f=arr[idx++];
+    one(f).then(function(){done++;phProgShow9(done,total,fail,unmatched);finish();next();});
+  }
+  for(var _c9=0;_c9<4&&_c9<total;_c9++)next();
 }
 /* 후측량 사진 — 단일 촬영/업로드 (point_no = 번호_A) */
 function uploadAfterPhoto(file,num){
