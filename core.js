@@ -603,7 +603,7 @@ function openPtEdit(p,ls){
 }
 function addNoteHandle(L,t,ld,lx,ly,ax,tw){
   var bb;try{bb=t.getBBox();}catch(e){bb=null;}
-  var pad=0.4,bw=bb?bb.width:String(L.note).length*0.42,bh=bb?bb.height:0.85,bx=bb?bb.x:lx+0.25,by=bb?bb.y:ly-0.45;
+  var pad=(L&&L.layer==='지거')?0.12:0.4,bw=bb?bb.width:String(L.note).length*0.42,bh=bb?bb.height:0.85,bx=bb?bb.x:lx+0.25,by=bb?bb.y:ly-0.45;/* [BUILD2152] 지거 박스 여백 축소 */
   var hc=L.layer==='탐사구간'?'#00a5cf':(L.layer==='압입구간'?'#1f6fd6':'#a07e00'), hc2=L.layer==='탐사구간'?'#007a99':(L.layer==='압입구간'?'#15489e':'#7a5f00');/* [BUILD1837] */
   var h=el('rect',{x:bx-pad,y:by-pad,width:bw+2*pad,height:bh+2*pad,rx:0.3,fill:'transparent',stroke:((typeof LV!=='undefined'&&LV&&LV.tagbox===0)?'none':hc),'stroke-width':0.7,'stroke-dasharray':'1.6 1.6','vector-effect':'non-scaling-stroke','pointer-events':'all'});h.style.cursor='move';/* [BUILD1861] 박제 제거 — 런타임 게이트로 이관 */
   var drag=false,moved=false,nx=lx,ny=ly,_lp=null,_lpX=0,_lpY=0;
@@ -6194,7 +6194,7 @@ function _rtDrawPick(layer,bult){/* [BUILD1843] 지거/압입/탐사 그리기 �
   document.getElementById('rtDpFree').onclick=function(){ov.remove();startDraw(layer,bult,'free');};
 }
 function startDraw(layer,bult,pick){if(!pick&&((typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&(layer==='지거'||layer==='압입구간'||layer==='탐사구간'))||(typeof STAGE!=='undefined'&&STAGE==='survey'&&layer==='지거'))){_rtDrawPick(layer,bult);return;}/* [BUILD1843→2148] 후측량 지거선도 방식 선택(측점 연결/위치 표시) */window._drawFree=(pick==='free');drawLayer=layer||'통신관로';window._drawBult=!!bult;/* [1511] */mode='line';setModeUI();lineDraft=[];clearSvg(gDraft);clearSvg(gDraw);toast((drawLayer==='지거'?'지거선':(drawLayer==='압입구간'?'압입구간':(drawLayer==='탐사구간'?'탐사구간':'관로선')))+' 그리기: '+(window._drawFree?'화면 아무 곳이나 클릭(측점 무관)':'점 클릭')+' → Enter/Space 또는 "완료" (되돌리기=한 점 취소)');}
-function finishDraw(){if(lineDraft&&lineDraft.length>=2){pushHist();var rec={layer:drawLayer,pts:lineDraft.slice()};if(window._drawFree)rec.free=1;/* [BUILD1843] 표시용 — 측점 로직 제외 */if(window._drawBult){rec.color='#e6b800';rec.bult=1;}/* [1511] 불탐관로선=노랑 */if(drawLayer==='지거'){rec.note='점(번호 :  )';}else if(drawLayer==='압입구간'){rec.note='압입구간 ';}else if(drawLayer==='탐사구간'){rec.note='탐사구간 ';}/* [BUILD1835] */state.lines.push(rec);if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&rec.layer==='통신관로'&&typeof rtAutoTags==='function')rtAutoTags(rec);}lineDraft=null;previewLine=null;clearSvg(gDraft);clearSvg(gDraw);mode='pan';setModeUI();drawGeo();updMeta();}
+function finishDraw(){if(lineDraft&&lineDraft.length>=2){pushHist();var rec={layer:drawLayer,pts:lineDraft.slice()};if(window._drawFree)rec.free=1;/* [BUILD1843] 표시용 — 측점 로직 제외 */if(window._drawBult){rec.color='#e6b800';rec.bult=1;}/* [1511] 불탐관로선=노랑 */if(drawLayer==='지거'){rec.note='지거구간';}/* [BUILD2152] 기본 태그 — 번호 입력 시 점(번호 : N) 양식으로 전환 */else if(drawLayer==='압입구간'){rec.note='압입구간 ';}else if(drawLayer==='탐사구간'){rec.note='탐사구간 ';}/* [BUILD1835] */state.lines.push(rec);if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&rec.layer==='통신관로'&&typeof rtAutoTags==='function')rtAutoTags(rec);}lineDraft=null;previewLine=null;clearSvg(gDraft);clearSvg(gDraw);mode='pan';setModeUI();drawGeo();updMeta();}
 function clearLines(){pushHist();state.lines=state.lines.filter(function(l){return l.layer!=='통신관로';});drawGeo();updMeta();toast('결선 모두 삭제');}
 // 수치지도 백판 전체 삭제 (앱 레이어=통신관로·지거·압입·주입상인출선 외 모두 = 백판)
 function clearBaseMap(){
