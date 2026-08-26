@@ -7510,7 +7510,35 @@ function setupDrop(zid,onfiles){var z=document.getElementById(zid);if(!z)return;
   z.addEventListener('dragleave',function(e){e.preventDefault();e.stopPropagation();z.classList.remove('over');});
   z.addEventListener('drop',function(e){e.preventDefault();e.stopPropagation();z.classList.remove('over');var fs=e.dataTransfer&&e.dataTransfer.files;if(fs&&fs.length)onfiles(fs);});
 }
-setupDrop('dropCsv',function(fs){if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){var _z9=[],_r9=[];for(var zi=0;zi<fs.length;zi++){(/\.zip$/i.test(fs[zi].name||'')?_z9:_r9).push(fs[zi]);}if(_z9.length){if(typeof rtRawZipUpMany9==='function')rtRawZipUpMany9(_z9);if(!_r9.length)return;fs=_r9;}}/* [BUILD2110] 등록카드 원시 ZIP */if(regOpen()){if(state.tamsa&&typeof regAddCsvFilesTamsa==='function')regAddCsvFilesTamsa(fs);else regAddCsvFiles(fs);}else loadCsvFile(fs[0]);});/* [1355] 탐사 탭 분기 */
+/* [BUILD2147] 후측량 등록: 원시 ZIP(.zip) → 내부 CSV 추출 후 기존 CSV 파이프라인 fall-through */
+function svRawZipToCsv9(zips,done){
+  var out=[],left=zips.length;
+  if(!left){done(out);return;}
+  zips.forEach(function(zf){
+    JSZip.loadAsync(zf).then(function(zip){
+      var jobs=[];
+      zip.forEach(function(path,entry){
+        if(entry.dir)return;
+        if(!/\.csv$/i.test(path))return;
+        var base=path.split('/').pop();
+        jobs.push(entry.async('blob').then(function(blob){out.push(new File([blob],base,{type:'text/csv'}));}));
+      });
+      return Promise.all(jobs);
+    })['catch'](function(e){try{toast('ZIP 해제 오류: '+(zf.name||'')+' — '+(e&&e.message||e));}catch(_t){}})
+    .then(function(){left--;if(left<=0){
+      /* 같은 원시의 원본과 야간보정본이 함께 있으면 야간보정본만 채택(중복 로딩 방지) */
+      var names={};out.forEach(function(f){names[f.name]=1;});
+      done(out.filter(function(f){return !names[f.name.replace(/\.csv$/i,'_night.csv')];}));
+    }});
+  });
+}
+function svCsvDispatch9(fs){/* 기존 분기 그대로 */
+  if(regOpen()){if(state.tamsa&&typeof regAddCsvFilesTamsa==='function')regAddCsvFilesTamsa(fs);else regAddCsvFiles(fs);}
+  else loadCsvFile(fs[0]);
+}
+setupDrop('dropCsv',function(fs){if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){var _z9=[],_r9=[];for(var zi=0;zi<fs.length;zi++){(/\.zip$/i.test(fs[zi].name||'')?_z9:_r9).push(fs[zi]);}if(_z9.length){if(typeof rtRawZipUpMany9==='function')rtRawZipUpMany9(_z9);if(!_r9.length)return;fs=_r9;}}else{var _z8=[],_c8=[];for(var z8=0;z8<fs.length;z8++){(/\.zip$/i.test(fs[z8].name||'')?_z8:_c8).push(fs[z8]);}
+  if(_z8.length){svRawZipToCsv9(_z8,function(csvs){var all=_c8.concat(csvs);if(!all.length){toast('ZIP 안에 CSV가 없습니다');return;}toast('원시 ZIP에서 CSV '+csvs.length+'개 추출');svCsvDispatch9(all);});return;}
+}/* [BUILD2110→2147] 등록카드 원시 ZIP — 후측량도 지원 */svCsvDispatch9(fs);});/* [1355] 탐사 탭 분기 */
 setupDrop('dropDxf',function(fs){loadDxfFiles(fs);});/* [1350] */
 setupDrop('dropPho',function(fs){regAddPhotos(fs);});setupDrop('dropAft',function(fs){loadAfterCsv(fs[0]);});
 document.getElementById('dropCsv').addEventListener('click',function(){document.getElementById('fCsv').click();});document.getElementById('dropAft').addEventListener('click',function(){document.getElementById('fAft').click();});
@@ -13517,7 +13545,10 @@ function openCsvList(){
   ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};
   document.body.appendChild(ov);
 }
-document.getElementById('fCsv').addEventListener('change',function(e){var fs=e.target.files;if(regOpen()||IS_REALTIME){if(state.tamsa&&!(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)&&typeof regAddCsvFilesTamsa==='function')regAddCsvFilesTamsa(fs);else regAddCsvFiles(fs);}else loadCsvFile(fs[0]);e.target.value='';});/* [1355] */document.getElementById('fAft').addEventListener('change',function(e){[].forEach.call(e.target.files,function(f){loadAfterCsv(f);});e.target.value='';});
+document.getElementById('fCsv').addEventListener('change',function(e){var fs=e.target.files;
+  if(!(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)&&typeof svRawZipToCsv9==='function'){var _z8=[],_c8=[];for(var z8=0;z8<fs.length;z8++){(/\.zip$/i.test(fs[z8].name||'')?_z8:_c8).push(fs[z8]);}
+    if(_z8.length){svRawZipToCsv9(_z8,function(csvs){var all=_c8.concat(csvs);if(!all.length){toast('ZIP 안에 CSV가 없습니다');return;}toast('원시 ZIP에서 CSV '+csvs.length+'개 추출');svCsvDispatch9(all);});e.target.value='';return;}}/* [BUILD2147] */
+  if(regOpen()||IS_REALTIME){if(state.tamsa&&!(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)&&typeof regAddCsvFilesTamsa==='function')regAddCsvFilesTamsa(fs);else regAddCsvFiles(fs);}else loadCsvFile(fs[0]);e.target.value='';});/* [1355] */document.getElementById('fAft').addEventListener('change',function(e){[].forEach.call(e.target.files,function(f){loadAfterCsv(f);});e.target.value='';});
 function loadDxfFile(f){loadDxfFiles(f?[f]:[]);}
 function loadDxfFiles(fs){fs=Array.prototype.slice.call(fs||[]).filter(Boolean);if(!fs.length)return;/* [1350] 다중 병합 + [1371] 1/5000 지원 */
  var done=0,addLn=0,addTx=0,err=0,clip=0,is5kAny=false;
