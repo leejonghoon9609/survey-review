@@ -6236,7 +6236,7 @@ function jgDrawPick9(bult){/* [BUILD2168] 후측량 지거 팝업 — 중립 톤
   document.getElementById('jgDpTag9').onclick=function(){ov.remove();window._jgTagOn9=true;mode='pan';if(typeof setModeUI==='function')setModeUI();toast('지거 인출선/태그: 부착할 지거선(또는 그 측점) 위를 클릭하세요');};
 }
 function _rtDrawPick(layer,bult){/* [BUILD1843] 지거/압입/탐사 그리기 방식 선택창 */
-  if(layer==='지거'&&typeof STAGE!=='undefined'&&STAGE==='survey'){jgDrawPick9(bult);return;}/* [BUILD2168] 후측량 지거 전용 팝업 */
+  if(layer==='지거'&&((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_REALTIME!=='undefined'&&IS_REALTIME))){jgDrawPick9(bult);return;}/* [BUILD2168→2174] 후측량·실시간 지거 공용 팝업 */
   var _old=document.getElementById('rtDrawPick');if(_old)_old.remove();
   var ov=document.createElement('div');ov.id='rtDrawPick';
   ov.style.cssText='position:fixed;inset:0;background:rgba(60,10,10,.38);z-index:9999;display:flex;align-items:center;justify-content:center';
@@ -6255,7 +6255,7 @@ function _rtDrawPick(layer,bult){/* [BUILD1843] 지거/압입/탐사 그리기 �
 }
 function startDraw(layer,bult,pick){if(!pick&&((typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&(layer==='지거'||layer==='압입구간'||layer==='탐사구간'))||(typeof STAGE!=='undefined'&&STAGE==='survey'&&layer==='지거'))){_rtDrawPick(layer,bult);return;}/* [BUILD1843→2148] 후측량 지거선도 방식 선택(측점 연결/위치 표시) */window._drawFree=(pick==='free');drawLayer=layer||'통신관로';window._drawBult=!!bult;/* [1511] */mode='line';setModeUI();lineDraft=[];clearSvg(gDraft);clearSvg(gDraw);toast((drawLayer==='지거'?'지거선':(drawLayer==='압입구간'?'압입구간':(drawLayer==='탐사구간'?'탐사구간':'관로선')))+' 그리기: '+(window._drawFree?'화면 아무 곳이나 클릭(측점 무관)':'점 클릭')+' → Enter/Space 또는 "완료" (되돌리기=한 점 취소)');}
 function finishDraw(){if(lineDraft&&lineDraft.length>=2){pushHist();var rec={layer:drawLayer,pts:lineDraft.slice()};if(window._drawFree)rec.free=1;/* [BUILD1843] 표시용 — 측점 로직 제외 */if(window._drawBult){rec.color='#e6b800';rec.bult=1;}/* [1511] 불탐관로선=노랑 *//* [BUILD2168] 지거선 자동 태그 폐지 — 태그·인출선은 [지거 인출선/태그 넣기]로 수동 부착 */
-    if(drawLayer==='지거'&&window._drawFree&&typeof STAGE!=='undefined'&&STAGE==='survey'){/* [BUILD2153] 위치표시=간접측량 — 각 정점을 노란 지거 측점으로 생성(태그=날짜-점번호, 인출선 자동) */
+    if(drawLayer==='지거'&&window._drawFree&&((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_REALTIME!=='undefined'&&IS_REALTIME))){/* [BUILD2153→2174] 위치표시=간접측량 — 후측량·실시간 공용, 정점마다 지거 측점 생성 */
       var _d9=(function(){var d=new Date();return String(d.getFullYear()).slice(2)+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);})();
       var _mx9=0;(state.points||[]).forEach(function(q){if(q&&q._jgf9){var m=new RegExp('^'+_d9+'-([0-9]+)$').exec(String(q.no||''));if(m)_mx9=Math.max(_mx9,parseInt(m[1],10)||0);}});if(window._jgStartNo9>0)_mx9=window._jgStartNo9-1;window._jgStartNo9=null;/* [BUILD2168] 팝업 지정 시작 번호 */
       state.points=state.points||[];
@@ -14773,7 +14773,7 @@ try{
 
 /* ===== [BUILD 815] 실시간측량 측점 촬영 (날짜 자동 + 번호 자동제안·수정가능) ===== */
 function rtToday(){var d=new Date();function p(n){return('0'+n).slice(-2);}return String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate());}function rtWorkDay(){var d=new Date();var real=rtToday();var tm=d.getHours()*60+d.getMinutes();var ns=state.nightShift;var work=(ns&&ns.on&&ns.cut!=null&&tm<ns.cut)?prevDayYMD(real):real;return {real:real,work:work,tm:tm};}
-function rtNextNo(day){var mx=0;var re=new RegExp('^'+day+'-(\\d+)(?:\\s.*)?$');/* [BUILD2146] GPS 측점 시퀀스 — 지거(N-K)는 별도 시퀀스로 분리(GPS 불가 지역·CSV 없음), 보강판 레거시 키는 포함 */try{Object.keys((typeof photoMap!=='undefined'&&photoMap)?photoMap:{}).forEach(function(k){var m=re.exec(k);if(m)mx=Math.max(mx,parseInt(m[1],10));});}catch(e){}(state.points||[]).forEach(function(p){var m=re.exec(p.no||'');if(m)mx=Math.max(mx,parseInt(m[1],10));});return mx+1;}
+function rtNextNo(day){var mx=0;var re=new RegExp('^'+day+'-(\\d+)(?:\\s.*)?$');/* [BUILD2146] GPS 측점 시퀀스 — 지거(N-K)는 별도 시퀀스로 분리(GPS 불가 지역·CSV 없음), 보강판 레거시 키는 포함 */try{Object.keys((typeof photoMap!=='undefined'&&photoMap)?photoMap:{}).forEach(function(k){var m=re.exec(k);if(m)mx=Math.max(mx,parseInt(m[1],10));});}catch(e){}(state.points||[]).forEach(function(p){if(p&&p._jgf9)return;/* [BUILD2174] 지거 측점은 GPS 순번에서 제외 */var m=re.exec(p.no||'');if(m)mx=Math.max(mx,parseInt(m[1],10));});return mx+1;}
 var rtPendingNo=null;var rtPendingMeta=null;var rtPendingReshoot=false;   /* [1145] 재촬영=사진만 교체, 위치 불변 */
 /* [BUILD2143] 빨간 경고 팝업 — 동일 번호 신규촬영 차단 안내 */
 function rtWarnPop9(title,msg){
