@@ -6644,7 +6644,7 @@ function _lnGuard9(ls,sil,onOk){
 }
 function saveProject(cb){ if(readOnly){if(typeof cb==='function')cb();return;} var _sil=!!window._silentSave;window._silentSave=false;
   try{if(typeof mhFixStamp9==='function'){(state.manholes||[]).forEach(function(m){if(m&&m.wx!=null&&!m._fx0&&mhFixed9(m))m._fx0=[+m.wx,+m.wy];});}if(typeof mhFixGuard9==='function')mhFixGuard9(_sil);}catch(_fg9){}/* [BUILD1955] 측량 좌표 이탈분 저장 전 복구 *//* [1358] 자동저장 플래그 진입 시 캐처 */
-  var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,rtDaily:state.rtDaily||[],trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:null/* [1491] heavy 컬럼으로 이동 */,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,depthManual:state._depthManual||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,tgSegLabelOff:state.tgSegLabelOff||null,mnList:state.mnList||[],tangoDone:state.tangoDone||null,tgCarrier:state.tgCarrier||null,mhDel:state.mhDel||null,tgNotes:state.tgNotes||null,refCrop:state.refCrop||null/* [BUILD1994] 크롭 영역 영속 — 미저장이라 재로드 시 REF 가림막이 풀려 '바깥이 살아난' 것처럼 보였음 */,tgAddSegs:state.tgAddSegs||[]/* [BUILD1994] 구간추가 영속 — payload·tgStore 어디에도 없어 새로고침 시 소실됐음 */,refMhLbl:state.refMhLbl||null,hyunPts:state.hyunPts||null,csvTrash:state._csvTrash||[],rtCsvHead9:state.rtCsvHead9||null/* [BUILD2068] 원본 CSV 헤더 영속 */,rtRawMeta9:state.rtRawMeta9||null,rtJgBoard9:state.rtJgBoard9||null/* [BUILD2122] 지거 현황판 입력 *//* [BUILD2085] 원시ZIP 메타 *//* [BUILD1867] CSV \uC0AD\uC81C\uBCF4\uAD00 \uC601\uC18D\uD654 */,rtBoardName:state.rtBoardName||null,rtBoardPos:state.rtBoardPos||null,joseoBoard:state.joseoBoard?1:null/* [BUILD1873] \ud604\ud669\ud310 \uc0ac\uc5c5\uba85\u00b7\uc704\uce58 \uc601\uc18d\ud654 */};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
+  var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,rtDaily:state.rtDaily||[],trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:null/* [1491] heavy 컬럼으로 이동 */,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,depthManual:state._depthManual||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,tgSegLabelOff:state.tgSegLabelOff||null,mnList:state.mnList||[],tangoDone:state.tangoDone||null,tgCarrier:state.tgCarrier||null,mhDel:state.mhDel||null,tgNotes:state.tgNotes||null,refCrop:state.refCrop||null/* [BUILD1994] 크롭 영역 영속 — 미저장이라 재로드 시 REF 가림막이 풀려 '바깥이 살아난' 것처럼 보였음 */,tgAddSegs:state.tgAddSegs||[]/* [BUILD1994] 구간추가 영속 — payload·tgStore 어디에도 없어 새로고침 시 소실됐음 */,refMhLbl:state.refMhLbl||null,hyunPts:state.hyunPts||null,csvTrash:state._csvTrash||[],rtCsvHead9:state.rtCsvHead9||null/* [BUILD2068] 원본 CSV 헤더 영속 */,rtRawMeta9:state.rtRawMeta9||null,rtJgBoard9:state.rtJgBoard9||null/* [BUILD2122] 지거 현황판 입력 */,phoTrash9:state.phoTrash9||null/* [BUILD2179] 사진 휴지통 *//* [BUILD2085] 원시ZIP 메타 *//* [BUILD1867] CSV \uC0AD\uC81C\uBCF4\uAD00 \uC601\uC18D\uD654 */,rtBoardName:state.rtBoardName||null,rtBoardPos:state.rtBoardPos||null,joseoBoard:state.joseoBoard?1:null/* [BUILD1873] \ud604\ud669\ud310 \uc0ac\uc5c5\uba85\u00b7\uc704\uce58 \uc601\uc18d\ud654 */};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
   if(!state.projectName){toast('사업명을 먼저 정하세요(새 사업)');return;}if(!_lnGuard9(payload.lines,_sil,function(){window._silentSave=_sil;saveProject(cb);}))return;/* [BUILD1937] 관로선 급감 시 저장 차단 */
   payload.stage=STAGE;
   if(state.loadedStage&&state.loadedStage!==STAGE){state.projectId=null;} // 다운스트림 분리: 다른 단계 사업은 처음 저장 시 새 사본 생성(원본 보호)
@@ -6694,7 +6694,7 @@ function _loadProjectRaw(id,ro,cb){ if(!online||!id)return; try{if(typeof mnClos
     if(res.error||!res.data){toast('불러오기 실패');return;}if(typeof _tgStageBackup==='function'&&state.tgStore&&(state._pointsOrig||state._linesOrig||state._depthOrig))_tgStageBackup();if(typeof _tgStageOut==='function')_tgStageOut();var _xp=document.getElementById('tangoPanel');if(_xp)_xp.style.display='none';var _xi=document.getElementById('tgInfoPanel');if(_xi)_xi.style.display='none';if(typeof tgPanelLayout==='function')tgPanelLayout(false);if(typeof tgUpdateBtn==='function')tgUpdateBtn(false);if(typeof tgSeg!=='undefined')tgSeg=-1;if(typeof _segFix!=='undefined')_segFix=null;if(typeof _segAdd!=='undefined')_segAdd=null;if(typeof _tgSegs!=='undefined')_tgSegs=null;if(typeof mode!=='undefined'&&mode&&mode.indexOf('tg')===0){mode='pan';if(typeof setModeUI==='function')setModeUI();}state.tgSegLabelOff={};['tgSegHLG','tgSegHLF','tgSegHL'].forEach(function(_xid){var _xe=document.getElementById(_xid);if(_xe)_xe.remove();});
     var p=res.data.payload||{};state.projectId=res.data.id;
     try{var _hv=res.data.heavy;try{state.bpFull=(_hv&&_hv.bpFull)?_hv.bpFull:[];state.bpTexts=(_hv&&_hv.bpTexts)?_hv.bpTexts:[];}catch(_bf4){state.bpFull=[];state.bpTexts=[];}/* [BUILD1996] 백판 원본 복원 — 없으면 빈 배열(사업 전환 유출 차단) */if(_hv&&_hv.finalCsv!==undefined){p.finalCsv=_hv.finalCsv;window._hvSaved=res.data.id+'#'+((_hv.finalCsv||[]).map(function(f){return (f.name||'')+':'+((f.text||'').length);}).join('|'));}else{window._hvSaved=null;}}catch(_h3){window._hvSaved=null;}/* [1491] heavy 병합 — 구사업은 다음 저장때 자동 이사 */state.projectName=res.data.name;state.loadedStage=p.stage||'survey';state._importSrc=[];
-    state.points=p.points||[];state.gpsPts=p.gpsPts||[];state.tangoEdit=p.tangoEdit||null;if(p.tangoManual)state.tangoManual=p.tangoManual;state.tgStore=p.tgStore||null;state.tgSegLabelOff=p.tgSegLabelOff||{};/* [BUILD2029] \uAD6C\uAC04\uB77C\uBCA8 \uC624\uD504\uC14B \uC601\uC18D */if(!state.tgStore&&(p.tangoEdit||p.tangoManual)){state.tgStore={tango:{edit:p.tangoEdit,manual:p.tangoManual||{},segDel:{}}};}_tgCtx='tango';try{if((!state.bpFull||!state.bpFull.length)&&p.bpFull&&p.bpFull.length){state.bpFull=p.bpFull;state.bpTexts=p.bpTexts||[];}}catch(_bf5){}/* [BUILD1997] 인계본은 payload에 백판 원본이 실려 온다 — heavy가 비어 있을 때만 채운다(heavy 우선) */state.refCrop=p.refCrop||null;state.tgAddSegs=p.tgAddSegs||[];try{if(typeof refCropBtn==='function')refCropBtn();}catch(_rc94){}/* [BUILD1994] 크롭 영역·구간추가 복원 — 미존재 시 초기화(사업 전환 유출 차단) */state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];try{state._lnBase9=null;_lnBaseSet9(state.lines);}catch(_lb8){}/* [BUILD1937] */state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];if(typeof _mhIdFix==='function')_mhIdFix();/* [1554] */state.bpzones=p.bpzones||[];state.roadZones=p.roadZones||[];state.depthCheck=p.depthCheck||[];if(typeof classifyRoad==='function')classifyRoad();state.depthGround=p.depthGround||null;state._depthManual=p.depthManual||null;/* [1541] */state._depthAlign=null;state.titleBlock=p.titleBlock||null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.tangoDone=p.tangoDone||null;state.tgCarrier=p.tgCarrier||null;state.mhDel=p.mhDel||null;state.tgNotes=p.tgNotes||[];state.refMhLbl=p.refMhLbl||{};/* [1461] */state._csvTrash=p.csvTrash||[];state.rtCsvHead9=p.rtCsvHead9||{};state.rtRawMeta9=p.rtRawMeta9||{};state.rtJgBoard9=p.rtJgBoard9||{};/* [BUILD2122] */
+    state.points=p.points||[];state.gpsPts=p.gpsPts||[];state.tangoEdit=p.tangoEdit||null;if(p.tangoManual)state.tangoManual=p.tangoManual;state.tgStore=p.tgStore||null;state.tgSegLabelOff=p.tgSegLabelOff||{};/* [BUILD2029] \uAD6C\uAC04\uB77C\uBCA8 \uC624\uD504\uC14B \uC601\uC18D */if(!state.tgStore&&(p.tangoEdit||p.tangoManual)){state.tgStore={tango:{edit:p.tangoEdit,manual:p.tangoManual||{},segDel:{}}};}_tgCtx='tango';try{if((!state.bpFull||!state.bpFull.length)&&p.bpFull&&p.bpFull.length){state.bpFull=p.bpFull;state.bpTexts=p.bpTexts||[];}}catch(_bf5){}/* [BUILD1997] 인계본은 payload에 백판 원본이 실려 온다 — heavy가 비어 있을 때만 채운다(heavy 우선) */state.refCrop=p.refCrop||null;state.tgAddSegs=p.tgAddSegs||[];try{if(typeof refCropBtn==='function')refCropBtn();}catch(_rc94){}/* [BUILD1994] 크롭 영역·구간추가 복원 — 미존재 시 초기화(사업 전환 유출 차단) */state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];try{state._lnBase9=null;_lnBaseSet9(state.lines);}catch(_lb8){}/* [BUILD1937] */state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];if(typeof _mhIdFix==='function')_mhIdFix();/* [1554] */state.bpzones=p.bpzones||[];state.roadZones=p.roadZones||[];state.depthCheck=p.depthCheck||[];if(typeof classifyRoad==='function')classifyRoad();state.depthGround=p.depthGround||null;state._depthManual=p.depthManual||null;/* [1541] */state._depthAlign=null;state.titleBlock=p.titleBlock||null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.tangoDone=p.tangoDone||null;state.tgCarrier=p.tgCarrier||null;state.mhDel=p.mhDel||null;state.tgNotes=p.tgNotes||[];state.refMhLbl=p.refMhLbl||{};/* [1461] */state._csvTrash=p.csvTrash||[];state.rtCsvHead9=p.rtCsvHead9||{};state.rtRawMeta9=p.rtRawMeta9||{};state.rtJgBoard9=p.rtJgBoard9||{};/* [BUILD2122] */state.phoTrash9=p.phoTrash9||[];/* [BUILD2179] */
   try{if(typeof STAGE!=='undefined'&&STAGE==='survey'&&state.points&&state.points.length){/* [BUILD2156] 과거 사업 소급 — 시설물 좌표와 겹친 지거점 정리 */
     var _b4=state.points.length;
     state.points=state.points.filter(function(q){
@@ -7359,7 +7359,9 @@ function updRegStatus(){
   if(nb){d.textContent='백판 '+nb+'개 라인 로딩됨';d.classList.add('done');}
   else{d.textContent='백판 도면 (.dxf)';d.classList.remove('done');}
   var p=document.getElementById('rcPho');
-  if(pendingPhotos&&pendingPhotos.length){p.textContent='사진 '+pendingPhotos.length+'장 선택됨';p.classList.add('done');}
+  var _upn9=0;try{if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&typeof photoMap!=='undefined'&&photoMap)_upn9=Object.keys(photoMap).length;}catch(_ue9){}/* [BUILD2179] 업로드 완료 사진 수 */
+  if(pendingPhotos&&pendingPhotos.length){p.textContent='사진 '+pendingPhotos.length+'장 선택됨'+(_upn9?(' · 업로드 '+_upn9+'장'):'');p.classList.add('done');}
+  else if(_upn9){p.textContent='사진 '+_upn9+'장 로딩됨';p.classList.add('done');}
   else{p.textContent='사진 (파일명=측점번호)';p.classList.remove('done');}
   if(state.points&&state.points.length&&typeof crsCheck==='function')crsCheck();
   var _tg=function(id,on){var b=document.getElementById(id);if(b)b.style.display=on?'inline-block':'none';};
@@ -7376,7 +7378,7 @@ function updRegStatus(){
   }
 if(_cnt){var _nL=0,_nH=0,_nM=0;(typeof finalCsvArr==='function'?finalCsvArr():[]).forEach(function(it){var _pp=(typeof parseInspCsv==='function')?parseInspCsv(it.text||''):[];_pp.forEach(function(p){if(p.skip)return;if(p.code==='l')_nL++;else if(p.code==='SKTM'||(typeof isMhCode==='function'&&isMhCode(p.code)))_nM++;else if(p.code==='B'||p.code==='D'||p.code==='BD')_nH++;});});/* [1354] */_cnt.textContent=(_nL||_nH||_nM)?('측점 '+_nL+'점 · 현황 '+_nH+'점 · 맨홀 '+_nM+'개'):'';}if(state.depthGround&&state.depthGround.length){var _r=(typeof computeDepth==='function')?computeDepth():{avg:0,ok:0,total:state.depthGround.length};if(_st)_st.textContent='복구후 '+state.depthGround.length+'점 등록됨'+((typeof finalCsvArr==='function'&&finalCsvArr().length)?(' ('+finalCsvArr().length+'CSV)'):'');if(_o&&_r)_o.textContent='✅ 평균심도 '+(_r.avg||0).toFixed(2)+'m · '+_r.ok+'/'+_r.total+'점 매칭';}})();
   _tg('clrDxf', (state.lines||[]).filter(function(l){return l.base;}).length>0);
-  _tg('clrPho', !!(pendingPhotos&&pendingPhotos.length));
+  _tg('clrPho', !!(pendingPhotos&&pendingPhotos.length)||_upn9>0);/* [BUILD2179] */
   if(typeof updRegStatusTamsa==='function')updRegStatusTamsa(); /* [1310] 탐사 카드 로딩상태 항상 동기화 */
 }
 function _openRegNow(){
@@ -7391,7 +7393,7 @@ function _openRegNow(){
   updRegStatus();
   setTimeout(function(){document.getElementById('regName').focus();},30);
 }
-function clearForNew(){state.tamsa=false;state.projectId=null;state.projectName='';state.refCrop=null;state.tgAddSegs=[];state.bpFull=[];state.bpTexts=[];/* [BUILD1996] 백판 원본도 초기화 */try{if(typeof refCropBtn==='function')refCropBtn();}catch(_cn94){}/* [BUILD1994] 새 사업 시 크롭 영역 초기화 — 이전 사업 크롭이 REF·사업정보박스에 그대로 적용되던 유출 차단 */state.points=[];state.routingDone=false;state.asbuilt=null;state.nightShift=null;state.fieldDone=null;state.bizInfo=null;if(typeof fillBizInfo==='function')fillBizInfo({});if(typeof refreshFieldBar==='function')refreshFieldBar();if(typeof setReadOnly==='function')setReadOnly(false);(state.markups||[]).forEach(function(m){if(m.el)m.el.remove();});state.markups=[];state.lines=[];state.manholes=[];state.photoDir={};photoMap={};afterMap={};selNum=null;state.labelOff={};if(typeof IS_TANGO!=='undefined'&&IS_TANGO){state.tangoEdit=null;state._tgCmpRemote=null;state._tgCmpRemoteOrig=null;state._pointsOrig=null;state._linesOrig=null;state._depthOrig=null;state._depthByNo={};state.tangoDone=null;state.tgCarrier=null;state.mhDel=null;state.tgNotes=null;state.tangoManual=null;state.tgFixSegs=[];state.tgAddSegs=[];state.tgSegDel={};state.tgSegLabelOff={};state.tgStore=null;state.titleBlock=null;try{if(typeof _tgSegs!=='undefined')_tgSegs=[];if(typeof tgSeg!=='undefined')tgSeg=-1;if(window._tgSegRaw)window._tgSegRaw=[];if(typeof _tgUndo!=='undefined')_tgUndo=[];if(typeof _tgRedo!=='undefined')_tgRedo=[];if(typeof _tgCarMode!=='undefined')_tgCarMode=null;}catch(_tc){}}/* [1326] 새 사업 시 탱고 잔재 초기화 */clearSvg(gSel);clearSvg(gMH);redrawAll();updMeta();}
+function clearForNew(){state.tamsa=false;state.projectId=null;state.projectName='';state.refCrop=null;state.tgAddSegs=[];state.bpFull=[];state.bpTexts=[];/* [BUILD1996] 백판 원본도 초기화 */try{if(typeof refCropBtn==='function')refCropBtn();}catch(_cn94){}/* [BUILD1994] 새 사업 시 크롭 영역 초기화 — 이전 사업 크롭이 REF·사업정보박스에 그대로 적용되던 유출 차단 */state.points=[];state.routingDone=false;state.asbuilt=null;state.nightShift=null;state.fieldDone=null;state.bizInfo=null;if(typeof fillBizInfo==='function')fillBizInfo({});if(typeof refreshFieldBar==='function')refreshFieldBar();if(typeof setReadOnly==='function')setReadOnly(false);(state.markups||[]).forEach(function(m){if(m.el)m.el.remove();});state.markups=[];state.lines=[];state.manholes=[];state.photoDir={};photoMap={};afterMap={};selNum=null;state.phoTrash9=[];/* [BUILD2179] */state.labelOff={};if(typeof IS_TANGO!=='undefined'&&IS_TANGO){state.tangoEdit=null;state._tgCmpRemote=null;state._tgCmpRemoteOrig=null;state._pointsOrig=null;state._linesOrig=null;state._depthOrig=null;state._depthByNo={};state.tangoDone=null;state.tgCarrier=null;state.mhDel=null;state.tgNotes=null;state.tangoManual=null;state.tgFixSegs=[];state.tgAddSegs=[];state.tgSegDel={};state.tgSegLabelOff={};state.tgStore=null;state.titleBlock=null;try{if(typeof _tgSegs!=='undefined')_tgSegs=[];if(typeof tgSeg!=='undefined')tgSeg=-1;if(window._tgSegRaw)window._tgSegRaw=[];if(typeof _tgUndo!=='undefined')_tgUndo=[];if(typeof _tgRedo!=='undefined')_tgRedo=[];if(typeof _tgCarMode!=='undefined')_tgCarMode=null;}catch(_tc){}}/* [1326] 새 사업 시 탱고 잔재 초기화 */clearSvg(gSel);clearSvg(gMH);redrawAll();updMeta();}
 function regStartWarn(){
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;z-index:1001;background:rgba(0,0,0,.42);display:flex;align-items:center;justify-content:center';
@@ -7581,7 +7583,9 @@ document.getElementById('rcPhoBtn').onclick=function(){document.getElementById('
   var c3=document.getElementById('clrDxf');if(c3)c3.onclick=function(){state.lines=(state.lines||[]).filter(function(l){return !l.base;});state.baseTexts=[];drawGeo();updMeta();updRegStatus();toast('수치지도(백판) 제거됨');};
 })();
 function openPhotoList(){
-  if(!pendingPhotos||!pendingPhotos.length){toast('선택된 사진이 없습니다');return;}
+  if(!pendingPhotos||!pendingPhotos.length){
+    if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&typeof photoMap!=='undefined'&&photoMap&&(Object.keys(photoMap).length||(state.phoTrash9&&state.phoTrash9.length))){rtUpPhoList9();return;}/* [BUILD2179] 업로드 사진 목록 */
+    toast('선택된 사진이 없습니다');return;}
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center';
   var box=document.createElement('div');
@@ -7592,6 +7596,92 @@ function openPhotoList(){
     [].forEach.call(box.querySelectorAll('.ppl-x'),function(b){b.onclick=function(){var i=+this.getAttribute('data-i');pendingPhotos.splice(i,1);updRegStatus();if(!pendingPhotos.length){pendingPhotos=null;ov.remove();toast('사진 전부 제거됨');return;}render();};});
     box.querySelector('#pplClose').onclick=function(){ov.remove();};
     box.querySelector('#pplAll').onclick=function(){pendingPhotos=null;updRegStatus();ov.remove();toast('선택 사진 전부 제거됨');};
+  }
+  render();
+  ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};
+  document.body.appendChild(ov);
+}
+/* [BUILD2179] 업로드 사진 날짜별 목록·삭제(3일 휴지통 복구) — 실시간 전용 */
+function _phoDay9(k){var m=/^(\d{6})-/.exec(String(k));return m?m[1]:'기타';}
+function _phoDayLbl9(d){return /^\d{6}$/.test(d)?(d.slice(2,4)+'/'+d.slice(4,6)+' ('+d+')'):d;}
+function _phoPurge9(){/* 3일 지난 휴지통 — 스토리지까지 완전 삭제(재업로드된 키는 파일 보존) */
+  var T=state.phoTrash9||[];if(!T.length)return;
+  var lim=Date.now()-3*24*3600*1000,keep=[],gone=[];
+  T.forEach(function(t){(t&&t.at>lim)?keep.push(t):gone.push(t);});
+  if(!gone.length)return;
+  state.phoTrash9=keep;
+  if(online&&state.projectId&&typeof sb!=='undefined'){
+    var paths=gone.filter(function(t){return t&&t.no&&!(photoMap&&photoMap[t.no]);}).map(function(t){return state.projectId+'/'+safeName(t.no)+'.jpg';});
+    if(paths.length)try{sb.storage.from('photos').remove(paths).then(function(){});}catch(_pg9){}
+  }
+}
+function rtPhoDelDay9(day,cb){
+  var ks=Object.keys(photoMap||{}).filter(function(k){return _phoDay9(k)===day;});
+  if(!ks.length){cb&&cb();return;}
+  state.phoTrash9=state.phoTrash9||[];
+  ks.forEach(function(k){state.phoTrash9.push({no:k,url:photoMap[k],at:Date.now()});delete photoMap[k];});
+  if(typeof drawGeo==='function')drawGeo();
+  if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();
+  if(typeof updRegStatus==='function')updRegStatus();
+  if(typeof saveProject==='function')saveProject();
+  if(online&&state.projectId&&typeof sb!=='undefined'){
+    sb.from(DB+'_photos')['delete']().eq('project_id',state.projectId)['in']('point_no',ks)
+      .then(function(){toast('사진 '+ks.length+'장 삭제 — 3일 내 복구 가능');cb&&cb();})
+      ['catch'](function(e){console.error('phoDel',e);toast('삭제 오류: '+(e&&e.message||e));cb&&cb();});
+  }else{toast('사진 '+ks.length+'장 삭제 — 3일 내 복구 가능');cb&&cb();}
+}
+function rtPhoRestoreDay9(day,cb){
+  var T=state.phoTrash9||[],mine=T.filter(function(t){return t&&_phoDay9(t.no)===day;});
+  if(!mine.length){cb&&cb();return;}
+  var rest=T.filter(function(t){return !(t&&_phoDay9(t.no)===day);});
+  var ins=[],skip=0;
+  mine.forEach(function(t){
+    if(photoMap&&photoMap[t.no]){skip++;return;}/* 같은 번호로 재촬영된 사진이 있으면 보존 */
+    photoMap[t.no]=t.url;
+    ins.push({project_id:state.projectId,point_no:t.no,url:t.url});
+  });
+  state.phoTrash9=rest;
+  if(typeof drawGeo==='function')drawGeo();
+  if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();
+  if(typeof updRegStatus==='function')updRegStatus();
+  if(typeof saveProject==='function')saveProject();
+  var done=function(){toast('사진 '+ins.length+'장 복구'+(skip?(' · '+skip+'장 건너뜀(재촬영 존재)'):''));cb&&cb();};
+  if(ins.length&&online&&state.projectId&&typeof sb!=='undefined'){
+    sb.from(DB+'_photos').insert(ins).then(done)['catch'](function(e){console.error('phoRestore',e);toast('복구 오류: '+(e&&e.message||e));cb&&cb();});
+  }else done();
+}
+function rtUpPhoList9(){
+  _phoPurge9();
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center';
+  var box=document.createElement('div');
+  box.style.cssText='background:#fff;border-radius:12px;max-width:460px;width:88%;max-height:74vh;display:flex;flex-direction:column;box-shadow:0 8px 30px rgba(0,0,0,.25)';
+  function render(){
+    var G={};Object.keys(photoMap||{}).forEach(function(k){var d=_phoDay9(k);(G[d]=G[d]||[]).push(k);});
+    var days=Object.keys(G).sort(),tot=Object.keys(photoMap||{}).length;
+    var rows=days.map(function(d){
+      return '<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid #f2f2f2;font-size:13px">'
+        +'<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_phoDayLbl9(d)+' <b style="color:#1a7a3a">'+G[d].length+'장</b></span>'
+        +'<button data-d="'+d+'" data-arm="0" class="upl-x" style="flex:none;border:1px solid #e3b4ae;background:#fff;color:#c0392b;border-radius:6px;padding:3px 10px;font-size:12px;cursor:pointer">✕ 삭제</button></div>';
+    }).join('');
+    if(!days.length)rows='<div style="color:#999;font-size:12px;padding:16px;text-align:center">업로드된 사진이 없습니다</div>';
+    var TG={};(state.phoTrash9||[]).forEach(function(t){if(!t)return;var d=_phoDay9(t.no);(TG[d]=TG[d]||[]).push(t);});
+    var tds=Object.keys(TG).sort();
+    var trows=tds.map(function(d){
+      return '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #f6f6f6;font-size:12.5px;color:#666">'
+        +'<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_phoDayLbl9(d)+' '+TG[d].length+'장</span>'
+        +'<button data-d="'+d+'" class="upl-r" style="flex:none;border:1px solid #bcd8c4;background:#fff;color:#1a7a3a;border-radius:6px;padding:3px 10px;font-size:12px;cursor:pointer">↩ 복구</button></div>';
+    }).join('');
+    box.innerHTML='<div style="display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid #eee"><b style="flex:1;font-size:15px">업로드 사진 ('+tot+'장)</b><button id="uplClose" style="border:none;background:#f2f2f2;border-radius:7px;padding:5px 11px;cursor:pointer">닫기</button></div>'
+      +'<div style="overflow:auto">'+rows
+      +(tds.length?('<div style="padding:8px 12px 4px;font-size:12px;font-weight:800;color:#c0392b;background:#fff7f6;border-top:1px solid #f0dcd9">🗑 휴지통 — 3일 내 복구 가능</div>'+trows):'')
+      +'</div>';
+    [].forEach.call(box.querySelectorAll('.upl-x'),function(b){b.onclick=function(){
+      if(this.getAttribute('data-arm')!=='1'){this.setAttribute('data-arm','1');this.textContent='정말 삭제?';this.style.background='#c0392b';this.style.color='#fff';return;}
+      rtPhoDelDay9(this.getAttribute('data-d'),render);
+    };});
+    [].forEach.call(box.querySelectorAll('.upl-r'),function(b){b.onclick=function(){rtPhoRestoreDay9(this.getAttribute('data-d'),render);};});
+    var c=box.querySelector('#uplClose');if(c)c.onclick=function(){ov.remove();};
   }
   render();
   ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};
@@ -13575,7 +13665,7 @@ function toggleBgMap(){
   });
 }
 bind('bgBtn',toggleBgMap);
-bind('newProj',function(){var n=prompt('새 사업명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.routingDone=false;setReadOnly(false);state.manholes=[];state.photoDir={};photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 사업: '+n+' (CSV 업로드 후 저장)');});
+bind('newProj',function(){var n=prompt('새 사업명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.routingDone=false;setReadOnly(false);state.manholes=[];state.photoDir={};photoMap={};afterMap={};selNum=null;state.phoTrash9=[];/* [BUILD2179] */state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 사업: '+n+' (CSV 업로드 후 저장)');});
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){pushHist();if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)pickProject(e.target.value);});
 function loadCsvFile(f){if(!f)return;var rd=new FileReader();rd.onload=function(){state.tamsa=false;state.markups.forEach(function(m){if(m.el)m.el.remove();});state.points=parseCsv(decodeBuf(rd.result),f.name);state.lines=[];state.markups=[];state.manholes=[];state.projectId=null;state.routingDone=false;var _nrz=(typeof buildRisersFromCsv==='function')?buildRisersFromCsv():0;setReadOnly(false);state.projectName=f.name.replace(/\.[^.]+$/,'');var ps=document.getElementById('proj');if(ps)ps.value='';photoMap={};afterMap={};selNum=null;state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();drawGeo();drawMarks();drawManholes();fitView();updMeta();if(regOpen())updRegStatus();toast('새 CSV: 측량점 '+state.points.length+'개'+(_nrz?(' · 전주입상 '+_nrz+'개 자동생성'):'')+' (결선·검수 초기화)');};rd.readAsArrayBuffer(f);}
