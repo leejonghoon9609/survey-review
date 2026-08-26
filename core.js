@@ -13789,7 +13789,7 @@ function loadSample(){
 /* init */
 /* ====== 측점 사진 ====== */
 var photoMap={}, afterMap={}, afterTargetNum=null, selNum=null, photoPanelOpen=false, photoLink=true;
-var _rtPhotoAuto=true;   /* [1150] 측점 선택 시 사진창 자동 열림 — X로 한번 닫으면 이후 사진 버튼으로만 */
+var _rtPhotoAuto=false;   /* [1150→2180] 사진보기 모드는 사진 버튼으로만 시작 — 측점 클릭 자동 오픈 기본 OFF */
 var gSel=document.createElementNS(SVGNS,'g'); gSel.setAttribute('pointer-events','none'); cv.appendChild(gSel);
 /* [1095] 마우스를 측점 근처로 가져가면 ‘지금 고르려는 측점’을 마젠타 원으로 미리 보여준다 */
 var gHov=document.createElementNS(SVGNS,'g'); gHov.setAttribute('pointer-events','none'); cv.appendChild(gHov);
@@ -13800,7 +13800,7 @@ function hoverPt(p){
     _hovPt=p||null;
     if(typeof clearSvg==='function')clearSvg(gHov);
     if(!p)return;
-    var s=S(p.x,p.y), r=((typeof IS_REALTIME!=='undefined'&&IS_REALTIME)?13*pxToWorld():Math.max(0.35, 13*pxToWorld()));   /* 항상 화면 13px — 축소해도 동일 */
+    var s=S(p.x,p.y), r=((typeof IS_REALTIME!=='undefined'&&IS_REALTIME)?0.8:Math.max(0.35, 13*pxToWorld()));/* [BUILD2180] 실시간 호버 원 월드고정 0.8 */   /* 항상 화면 13px — 축소해도 동일 */
     gHov.appendChild(el('circle',{cx:s[0],cy:s[1],r:r,fill:'none',stroke:'#d500f2',
       'stroke-width':2.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));
   }catch(e){}
@@ -14619,7 +14619,7 @@ function uploadAfterPhoto(file,num){
     });
   }).then(function(){toast('후측량 사진 업로드 완료');if(photoPanelOpen)refreshPhotoPanel();}).catch(function(err){console.error('after upload',num,err);toast('후측량 사진 업로드 실패');});
 }
-bind('photoBtn',function(){openPhotoPanel();});
+bind('photoBtn',function(){openPhotoPanel();_rtPhotoAuto=photoPanelOpen;/* [BUILD2180] 사진보기 모드 시작/종료 */});
 document.getElementById('photoClose').onclick=function(){openPhotoPanel(false);_rtPhotoAuto=false;};   /* [1150] */
 document.getElementById('photoUp').onclick=function(){document.getElementById('fPhotos').click();};
 document.getElementById('photoLinkBtn').onclick=function(){photoLink=!photoLink;this.textContent=photoLink?'🔗 연동':'🔓 미연동';this.classList.toggle('linkon',photoLink);toast(photoLink?'도면↔사진 연동 ON (점 클릭=사진)':'연동 OFF (점 클릭해도 사진 고정)');};
