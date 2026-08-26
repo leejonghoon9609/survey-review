@@ -14135,7 +14135,8 @@ function rtViewZoom(img,opts){
 function refreshPhotoPanel(){
   var sel=document.getElementById('photoSel'),nos=sortedNos();
   var _ex9=[];if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){var _tr9={};(state._trash||[]).forEach(function(t){if(t&&t.no!=null)_tr9[String(t.no)]=1;});for(var _k9 in photoMap){if(_tr9[String(_k9)])continue;if(nos.indexOf(_k9)<0&&nos.indexOf(String(_k9))<0)_ex9.push(_k9);}_ex9.sort();/* [BUILD2057] 휴지통 측점 사진 숨김 */}/* [BUILD1865] 좌표 없는 촬영분 확인용 */
-  sel.innerHTML='<option value="">측점 선택…</option>'+nos.map(function(n){return '<option value="'+n+'">'+n+'</option>';}).join('')+_ex9.map(function(n){return '<option value="'+n+'">⚠ '+n+' (위치없음)</option>';}).join('');
+  var _bl9=function(n){try{if(typeof IS_REALTIME==='undefined'||!IS_REALTIME)return n;var g=(state.gpsPts||[]).filter(function(q){return String(q.no)===String(n);})[0];if(g&&g._bp)return n+' '+g._bp;var pp=(state.points||[]).filter(function(q){return String(q.no)===String(n);})[0];if(pp&&pp.code&&String(pp.code).trim().indexOf('보강판')===0)return n+' '+String(pp.code).trim();}catch(_b9){}return n;};/* [BUILD2143] 보강판 코드 병기 */
+  sel.innerHTML='<option value="">측점 선택…</option>'+nos.map(function(n){return '<option value="'+n+'">'+_bl9(n)+'</option>';}).join('')+_ex9.map(function(n){return '<option value="'+n+'">⚠ '+n+' (위치없음)</option>';}).join('');
   if(selNum!=null)sel.value=String(selNum);
   var body=document.getElementById('photoBody');
   if(selNum==null){body.innerHTML='<div style="color:#999;font-size:12px;padding:14px;text-align:center;line-height:1.7">측점을 선택하세요.<br>(위 드롭다운 또는 도면에서 점 클릭)<br>또는 <b>사진 업로드</b>로 일괄 등록</div>';return;}
@@ -14631,6 +14632,23 @@ try{
 function rtToday(){var d=new Date();function p(n){return('0'+n).slice(-2);}return String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate());}function rtWorkDay(){var d=new Date();var real=rtToday();var tm=d.getHours()*60+d.getMinutes();var ns=state.nightShift;var work=(ns&&ns.on&&ns.cut!=null&&tm<ns.cut)?prevDayYMD(real):real;return {real:real,work:work,tm:tm};}
 function rtNextNo(day){var mx=0;var re=new RegExp('^'+day+'-(\\d+)(?:-[1-4])?(?:\\s.*)?$');/* [BUILD2119→2142] 지거 N-1~4·보강판(레거시 'N 보강판 …' 포함)도 같은 번호 시퀀스 — 순번 계속 증가 */try{Object.keys((typeof photoMap!=='undefined'&&photoMap)?photoMap:{}).forEach(function(k){var m=re.exec(k);if(m)mx=Math.max(mx,parseInt(m[1],10));});}catch(e){}(state.points||[]).forEach(function(p){var m=re.exec(p.no||'');if(m)mx=Math.max(mx,parseInt(m[1],10));});return mx+1;}
 var rtPendingNo=null;var rtPendingMeta=null;var rtPendingReshoot=false;   /* [1145] 재촬영=사진만 교체, 위치 불변 */
+/* [BUILD2143] 빨간 경고 팝업 — 동일 번호 신규촬영 차단 안내 */
+function rtWarnPop9(title,msg){
+  var old=document.getElementById('rtWarnOv9');if(old&&old.parentNode)old.parentNode.removeChild(old);
+  var ov=document.createElement('div');ov.id='rtWarnOv9';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(60,10,10,.55);z-index:100002;display:flex;align-items:center;justify-content:center;padding-bottom:160px;box-sizing:border-box';
+  ov.innerHTML='<div style="background:#fff;border:2.5px solid #e02b2b;border-radius:16px;width:300px;max-width:90vw;box-shadow:0 24px 70px rgba(120,0,0,.5);overflow:hidden">'
+    +'<div style="height:7px;background:linear-gradient(90deg,#b71c1c,#e02b2b)"></div>'
+    +'<div style="padding:18px 20px;text-align:center">'
+    +'<div style="font-size:30px;line-height:1;margin-bottom:8px">\u26A0\uFE0F</div>'
+    +'<div style="font-weight:800;font-size:16px;color:#b71c1c;margin-bottom:6px">'+title+'</div>'
+    +'<div style="font-size:13px;color:#7a3030;line-height:1.6;margin-bottom:14px">'+msg+'</div>'
+    +'<div style="display:flex;justify-content:center"><button type="button" id="rtWarnOk9" style="display:flex;align-items:center;justify-content:center;width:140px;padding:11px 0;border:0;background:#e02b2b;color:#fff;border-radius:10px;font-weight:800;font-size:15px;cursor:pointer;touch-action:manipulation">확인</button></div>'
+    +'</div></div>';
+  document.body.appendChild(ov);
+  document.getElementById('rtWarnOk9').onclick=function(){if(ov.parentNode)ov.parentNode.removeChild(ov);};
+  ov.onclick=function(e){if(e.target===ov&&ov.parentNode)ov.parentNode.removeChild(ov);};
+}
 function rtCapture(){
   if(typeof online!=='undefined'&&!online){toast('로컬 모드 — 사진 저장 불가');return;}
   if(!state.projectId){toast('먼저 "저장"으로 사업을 저장한 뒤 촬영하세요');return;}
@@ -14669,7 +14687,7 @@ function rtShowNumPopup(day,sug,onOk){
   function close(){if(ov.parentNode)ov.parentNode.removeChild(ov);}
   document.getElementById('rtNumCancel').onclick=close;
   document.getElementById('rtNumOk').onclick=function(){var v=(inp.value||'').trim().replace(/\s*보강판.*$/,'').trim();if(!v){inp.focus();return;}
-    if(typeof photoMap!=='undefined'&&photoMap&&photoMap[day+'-'+v]){alert('측점 '+v+'번 사진이 이미 있습니다.\n덮어쓰기는 사진창의 [\uD83D\uDD34 재촬영] 버튼으로만 하세요.');return;}/* [BUILD2142] 신규촬영 덮어쓰기 차단 */
+    if(typeof photoMap!=='undefined'&&photoMap&&photoMap[day+'-'+v]){if(typeof rtWarnPop9==='function')rtWarnPop9('측점 '+v+'번 사진이 이미 있습니다','덮어쓰기는 사진창의 [\uD83D\uDD34 재촬영] 버튼으로만 하세요');else alert('측점 '+v+'번 사진이 이미 있습니다');return;}/* [BUILD2142→2143] 빨간 경고창 */
     close();onOk(v,_bp9);};
   var _jg9=document.getElementById('rtJgBtn');if(_jg9)_jg9.onclick=function(){var v=(inp.value||'').trim();if(!v){inp.focus();return;}close();if(typeof rtJgStart9==='function')rtJgStart9(day,v);};/* [BUILD2118] 지거 3장 연속 촬영 진입 */
   inp.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('rtNumOk').click();}else if(e.key==='Escape'){close();}};
