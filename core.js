@@ -13768,7 +13768,7 @@ function highlightSel(){clearSvg(gSel);if(selNum==null)return;
   [nbs.up,nbs.down].forEach(function(q){if(q){var sy=S(q.x,q.y);gSel.appendChild(el('circle',{cx:sy[0],cy:sy[1],r:0.224,fill:'none',stroke:'#ffcc00','stroke-width':1.4,'vector-effect':'non-scaling-stroke'}));}});
   var _fldSel=(typeof IS_FIELD!=='undefined'&&IS_FIELD);var _selC=_fldSel?'#12b312':'#e11d1d'; /* [1257] field=초록(관로선 빨강과 구분)·확대 — survey·tango 빨강 유지 */
   var _u9=pxToWorld();
-  var s=S(p.x,p.y),_sr=_fldSel?2.1:Math.max(0.5,18*_u9); /* [1281] field 월드 고정 2.1 — 후측량 등록 원과 동일 형식(줌에도 도면과 함께) */
+  var s=S(p.x,p.y),_sr=_fldSel?2.1:0.45; /* [1281→BUILD2161] survey·탱고도 월드 고정 0.45 — 화면비례(18px)라 줌 상태별로 널뛰던 문제 제거, 도면과 함께 스케일 */
   /* [1122] 원 + 중심 얇은 X — 로컬원점 그룹으로 묶어 float32 어긋남 예방(함정 A) */
   var _sg=document.createElementNS(SVGNS,'g');
   var _sx=Math.round(s[0]),_sy=Math.round(s[1]);
