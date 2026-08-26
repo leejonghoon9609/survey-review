@@ -12998,7 +12998,7 @@ var norm=function(t){return (''+t).toUpperCase().split(',').map(function(x){retu
 var want=norm(q);var hits=[];(state.manholes||[]).forEach(function(m){if(m.wx==null)return;var mm=/\(([^)]+)\)/.exec(m.label||'');if(!mm)return;if(norm(mm[1])===want)hits.push(m);});
 if(!hits.length){if(typeof toast==='function')toast('('+want+') 맨홀 없음');return;}
 var NS='http://www.w3.org/2000/svg';g=document.createElementNS(NS,'g');g.id='tgOwnFindG';
-hits.forEach(function(m){var sp=S(m.wx,m.wy);var c=document.createElementNS(NS,'circle');c.setAttribute('cx',sp[0]);c.setAttribute('cy',sp[1]);c.setAttribute('r',(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)?1:2);/* [BUILD2177] 실시간: 맨홀 선택 원 반경 절반 */c.setAttribute('fill','rgba(255,0,255,.10)');c.setAttribute('stroke','#f0f');c.setAttribute('stroke-width',0.28);c.setAttribute('stroke-dasharray','1.2 0.8');c.setAttribute('pointer-events','none');g.appendChild(c);});
+hits.forEach(function(m){var sp=S(m.wx,m.wy);var c=document.createElementNS(NS,'circle');c.setAttribute('cx',sp[0]);c.setAttribute('cy',sp[1]);c.setAttribute('r',2);c.setAttribute('fill','rgba(255,0,255,.10)');c.setAttribute('stroke','#f0f');c.setAttribute('stroke-width',0.28);c.setAttribute('stroke-dasharray','1.2 0.8');c.setAttribute('pointer-events','none');g.appendChild(c);});
 cv.appendChild(g);
 var nm=hits.slice(0,5).map(function(m){return (m.label||'').replace(/\s*\(.*\)$/,'');}).join(', ');
 if(typeof toast==='function')toast('('+want+') 맨홀 '+hits.length+'개: '+nm+(hits.length>5?' …':'')+' — 다시 누르면 해제');
@@ -13803,11 +13803,12 @@ function neighborsOf(sel){var selP=pointByNo(sel),up=null,down=null;if(!selP)ret
   else{var ups=[],downs=[];state.points.forEach(function(q){if(q.no===sel)return;var d=Math.hypot(q.x-selP.x,q.y-selP.y);(q.y>selP.y?ups:downs).push({q:q,d:d});});ups.sort(function(a,b){return a.d-b.d;});downs.sort(function(a,b){return a.d-b.d;});if(ups[0])up=ups[0].q;if(downs[0])down=downs[0].q;}
   return {up:up,down:down};}
 function highlightSel(){clearSvg(gSel);if(selNum==null)return;
+  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&!(typeof photoPanelOpen!=='undefined'&&photoPanelOpen))return;/* [BUILD2178] 실시간: 사진창 닫힘 시 선택 원 숨김 */
   /* [1131] 파란 GPS점 초록 원은 조서와 무관 — 조서 가드보다 먼저 처리(실시간측량엔 조서 없음) */
   /* [1146] 초록 원+중심X 공용 헬퍼 — GPS 파란점과 실시간 CSV 측점 양쪽에서 사용 */
   function _greenSel(wx,wy){
     var _ggs=S(wx,wy);
-    var _u9g=((typeof pxToWorld==='function')?pxToWorld():0.05);var _rt9=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME);var _gr=_rt9?1.6:Math.max(0.95,16*_u9g),_gxr=_gr*0.7071;/* [BUILD1851] 1.4→1.6m */var _gcl9=_rt9?'#f0f':'#12b312';/* [BUILD1841] 월드2m 상수(측점과 동비율)+마젠타 */
+    var _u9g=((typeof pxToWorld==='function')?pxToWorld():0.05);var _rt9=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME);var _gr=_rt9?0.8:Math.max(0.95,16*_u9g),_gxr=_gr*0.7071;/* [BUILD1851→2178] 실시간 1.6→0.8(절반) */var _gcl9=_rt9?'#f0f':'#12b312';/* [BUILD1841] 월드2m 상수(측점과 동비율)+마젠타 */
     var _gsg=document.createElementNS(SVGNS,'g');
     var _gsx=Math.round(_ggs[0]),_gsy=Math.round(_ggs[1]);
     _gsg.setAttribute('transform','translate('+_gsx+','+_gsy+')');
