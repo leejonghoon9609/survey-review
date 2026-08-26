@@ -6262,7 +6262,9 @@ function finishDraw(){if(lineDraft&&lineDraft.length>=2){pushHist();var rec={lay
       rec.pts.forEach(function(v){
         if((state.points||[]).some(function(q){return q&&Math.hypot((q.x||0)-v[0],(q.y||0)-v[1])<0.05;}))return;/* [BUILD2156] 기존 측점(시설물 포함)·지거점 정점엔 생성 안 함 — 선만 연결 */
         if((state.manholes||[]).some(function(mh){return mh&&isFinite(mh.wx)&&Math.hypot(mh.wx-v[0],mh.wy-v[1])<0.05;}))return;/* 맨홀·입상·인입·JB 등 심벌 */
-        do{_mx9++;}while((state.points||[]).some(function(q){return q&&String(q.no)===(_d9+'-'+_mx9);}));state.points.push({no:_d9+'-'+_mx9,x:v[0],y:v[1],code:'지거',_jgf9:1});/* [BUILD2168] 중복 번호 건너뛰기 */
+        do{_mx9++;}while((state.points||[]).some(function(q){return q&&!q._jgf9&&String(q.no)===(_d9+'-'+_mx9);}));/* 비지거 실측점과 충돌 시에만 건너뛰기 */
+        state.points=(state.points||[]).filter(function(q){return !(q&&q._jgf9&&String(q.no)===(_d9+'-'+_mx9));});/* [BUILD2176] 지정 번호 재그리기 — 같은 번호의 기존 지거 측점은 새 위치로 대체(사진 매칭 유지) */
+        state.points.push({no:_d9+'-'+_mx9,x:v[0],y:v[1],code:'지거',_jgf9:1});
       });
     }else if(drawLayer==='압입구간'){rec.note='압입구간 ';}else if(drawLayer==='탐사구간'){rec.note='탐사구간 ';}/* [BUILD1835] */state.lines.push(rec);if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&rec.layer==='통신관로'&&typeof rtAutoTags==='function')rtAutoTags(rec);}lineDraft=null;previewLine=null;clearSvg(gDraft);clearSvg(gDraw);mode='pan';setModeUI();drawGeo();updMeta();}
 function clearLines(){pushHist();state.lines=state.lines.filter(function(l){return l.layer!=='통신관로';});drawGeo();updMeta();toast('결선 모두 삭제');}
