@@ -13717,7 +13717,7 @@ function expandPhotoFiles(list){
   if(typeof JSZip==='undefined'){toast('압축 모듈 로딩 실패 — 사진만 처리');return Promise.resolve(out);}
   toast('압축 푸는 중…');
   return Promise.all(zips.map(function(zf){
-    var dm=(zf.name||'').match(/(\d{6})/);var zdate=dm?dm[1]:'';var _isJg9=/지거/.test(zf.name||'');/* [BUILD2125] 지거 ZIP 표식 */
+    var dm=(zf.name||'').match(/20(\d{6})/)||(zf.name||'').match(/(\d{6})/);var zdate=dm?dm[1]:'';/* [BUILD2182] 8자리 날짜 우선 */var _isJg9=/지거/.test(zf.name||'');/* [BUILD2125] 지거 ZIP 표식 */
     return JSZip.loadAsync(zf).then(function(zip){
       var jobs=[];
       zip.forEach(function(path,entry){
@@ -14577,7 +14577,7 @@ function _dateOfPt(p){var m=/^(\d{6})-/.exec(p.no||'');return m?m[1]:'';}
 function resolvePhotoNo(f){
   var base=f.name.replace(/\.[^.]+$/,'').trim();if(!base)return null;
   var rel=f.webkitRelativePath||f._relpath||'',date='';
-  if(rel){var parts=rel.split('/');for(var i=parts.length-2;i>=0;i--){var m=(parts[i]||'').match(/(\d{6})/);if(m){date=m[1];break;}}}
+  if(rel){var parts=rel.split('/');for(var i=parts.length-2;i>=0;i--){var m=(parts[i]||'').match(/20(\d{6})/)||(parts[i]||'').match(/(\d{6})/);if(m){date=m[1];break;}}}/* [BUILD2182] */
   if(!date&&f._zipdate)date=f._zipdate;
   var pool=(state.points||[]);
   var dpool=date?pool.filter(function(p){return _dateOfPt(p)===date;}):[];
