@@ -1304,7 +1304,7 @@ function drawGeo(){_orgSync();/* [1524] */if(typeof _tgCarGeomBuild==='function'
     var _no9=_noteOff9(L,aw);/* [BUILD1987] */var s=S(aw[0],aw[1]),lx=(L.noteOff?(L.noteOff[0]-ORG.x):s[0]+_no9[0]),ly=(L.noteOff?(L.noteOff[1]+ORG.y):s[1]-_no9[1]);/* [1524] WF\u2192LOCAL */
     var ld=el('line',{x1:s[0],y1:s[1],x2:lx,y2:ly,stroke:nc,'stroke-width':0.8,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);
     var anc=el('circle',{cx:s[0],cy:s[1],r:(L&&L.layer==='지거'?0.08:0.32),fill:nc,'pointer-events':'none'});gAnc.appendChild(anc); // 보이는 원 [BUILD2150] 지거=측점 반 크기
-    var ahR=(L&&L.layer==='지거')?Math.max(9*pxToWorld(),0.15):Math.max(20*pxToWorld(), 1.0); /* [BUILD2155] 지거 앵커 클릭영역 축소(~9px) — 이웃 앵커 오인식 방지 */
+    var ahR=(L&&L.layer==='지거')?0.18:Math.max(20*pxToWorld(), 1.0); /* [BUILD2155→2157] 지거 앵커 클릭영역 = 월드 고정 0.18(포인트 크기만큼) — 줌아웃 렌더 후 줌인 시 비대해지던 문제 제거 */
     var ah=el('circle',{cx:s[0],cy:s[1],r:ahR,fill:'transparent','pointer-events':'all'});ah.style.cursor='move';gAnc.appendChild(ah); // 클릭 잡기용 큰 투명 원
     addAnchorHandle(L,ah,anc,ld);
     var t=el('text',{x:lx+0.25,y:ly+0.2,'font-size':(L&&L.layer==='지거'?0.38:1.43),fill:nf,'font-weight':'600','text-anchor':'start','pointer-events':'none'});t.textContent=L.note;gPts.appendChild(t);/* [BUILD2149] 지거 태그 축소 — 관정보 대비 약 2배 체감(압입·탐사는 종전) */
