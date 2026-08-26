@@ -6224,9 +6224,9 @@ function jgDrawPick9(bult){/* [BUILD2168] 후측량 지거 팝업 — 중립 톤
    +'<div style="font-size:12px;font-weight:800;color:#556677;margin-bottom:5px">측점번호 (지거)</div>'
    +'<input id="jgDpNo9" type="text" inputmode="numeric" value="'+nx+'" style="width:110px;box-sizing:border-box;font-size:17px;font-weight:800;text-align:center;padding:8px;border:1.5px solid #d4c374;border-radius:9px;background:#fff;color:#2b3a4a;outline:none">'
    +'</div>'
-   +'<button id="jgDpTag9" style="flex:1;min-width:0;padding:9px 6px;border:1.5px solid #b8860b;border-radius:9px;background:#fff3c4;color:#8a6b00;font-weight:800;font-size:13.5px;cursor:pointer;white-space:nowrap">지거 태그넣기</button>'
+   +'<button id="jgDpTag9" style="flex:1;min-width:0;padding:9px 6px;border:1.5px solid #c9a227;border-radius:9px;background:#fff;color:#8a6b00;font-weight:800;font-size:13.5px;cursor:pointer;white-space:nowrap">지거 태그넣기</button>'
    +'</div>'
-   +'<button id="jgDpDraw9" style="display:block;width:100%;padding:11px 10px;margin-bottom:8px;border:1.5px solid #1a7a5e;border-radius:10px;background:#eafaf3;color:#1a7a5e;font-weight:800;font-size:15px;cursor:pointer">지거선 그리기<div style="font-size:11px;font-weight:600;color:#4d8f79;margin-top:2px">화면 클릭으로 구간 표시 — 측점·지거점 근접 시 스냅</div></button>'
+   +'<button id="jgDpDraw9" style="display:block;width:100%;padding:11px 10px;margin-bottom:8px;border:1.5px solid #607d8b;border-radius:10px;background:#fff;color:#37474f;font-weight:800;font-size:15px;cursor:pointer;overflow:hidden">지거선 그리기<div style="font-size:10.5px;font-weight:600;color:#78909c;margin-top:2px;white-space:nowrap">화면 클릭 — 측점·지거점 스냅</div></button>'
    +'<button id="jgDpX9" style="border:none;background:none;color:#8a97a5;font-size:12.5px;font-weight:700;cursor:pointer;margin-top:2px">취소</button>'
    +'</div></div>';
   document.body.appendChild(ov);
