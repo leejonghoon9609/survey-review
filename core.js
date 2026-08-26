@@ -7650,6 +7650,21 @@ function rtPhoRestoreDay9(day,cb){
     sb.from(DB+'_photos').insert(ins).then(done)['catch'](function(e){console.error('phoRestore',e);toast('복구 오류: '+(e&&e.message||e));cb&&cb();});
   }else done();
 }
+function rtPhoDelAll9(cb){/* [BUILD2181] 업로드 사진 전체 삭제 — 3일 휴지통 */
+  var ks=Object.keys(photoMap||{});
+  if(!ks.length){cb&&cb();return;}
+  state.phoTrash9=state.phoTrash9||[];
+  ks.forEach(function(k){state.phoTrash9.push({no:k,url:photoMap[k],at:Date.now()});delete photoMap[k];});
+  if(typeof drawGeo==='function')drawGeo();
+  if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();
+  if(typeof updRegStatus==='function')updRegStatus();
+  if(typeof saveProject==='function')saveProject();
+  if(online&&state.projectId&&typeof sb!=='undefined'){
+    sb.from(DB+'_photos')['delete']().eq('project_id',state.projectId)['in']('point_no',ks)
+      .then(function(){toast('사진 전체 '+ks.length+'장 삭제 — 3일 내 복구 가능');cb&&cb();})
+      ['catch'](function(e){console.error('phoDelAll',e);toast('삭제 오류: '+(e&&e.message||e));cb&&cb();});
+  }else{toast('사진 전체 '+ks.length+'장 삭제 — 3일 내 복구 가능');cb&&cb();}
+}
 function rtUpPhoList9(){
   _phoPurge9();
   var ov=document.createElement('div');
@@ -7675,12 +7690,17 @@ function rtUpPhoList9(){
     box.innerHTML='<div style="display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid #eee"><b style="flex:1;font-size:15px">업로드 사진 ('+tot+'장)</b><button id="uplClose" style="border:none;background:#f2f2f2;border-radius:7px;padding:5px 11px;cursor:pointer">닫기</button></div>'
       +'<div style="overflow:auto">'+rows
       +(tds.length?('<div style="padding:8px 12px 4px;font-size:12px;font-weight:800;color:#c0392b;background:#fff7f6;border-top:1px solid #f0dcd9">🗑 휴지통 — 3일 내 복구 가능</div>'+trows):'')
-      +'</div>';
+      +'</div>'
+      +(tot?'<div style="padding:10px 14px;border-top:1px solid #eee;text-align:right"><button id="uplAll" data-arm="0" style="border:1px solid #e3b4ae;background:#fff;color:#c0392b;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer">🗑 전체 삭제 ('+tot+'장)</button></div>':'');/* [BUILD2181] */
     [].forEach.call(box.querySelectorAll('.upl-x'),function(b){b.onclick=function(){
       if(this.getAttribute('data-arm')!=='1'){this.setAttribute('data-arm','1');this.textContent='정말 삭제?';this.style.background='#c0392b';this.style.color='#fff';return;}
       rtPhoDelDay9(this.getAttribute('data-d'),render);
     };});
     [].forEach.call(box.querySelectorAll('.upl-r'),function(b){b.onclick=function(){rtPhoRestoreDay9(this.getAttribute('data-d'),render);};});
+    var _ab9=box.querySelector('#uplAll');if(_ab9)_ab9.onclick=function(){
+      if(this.getAttribute('data-arm')!=='1'){this.setAttribute('data-arm','1');this.textContent='정말 전체 삭제?';this.style.background='#c0392b';this.style.color='#fff';return;}
+      rtPhoDelAll9(render);
+    };/* [BUILD2181] */
     var c=box.querySelector('#uplClose');if(c)c.onclick=function(){ov.remove();};
   }
   render();
