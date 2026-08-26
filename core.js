@@ -1304,7 +1304,7 @@ function drawGeo(){_orgSync();/* [1524] */if(typeof _tgCarGeomBuild==='function'
     var _no9=_noteOff9(L,aw);/* [BUILD1987] */var s=S(aw[0],aw[1]),lx=(L.noteOff?(L.noteOff[0]-ORG.x):s[0]+_no9[0]),ly=(L.noteOff?(L.noteOff[1]+ORG.y):s[1]-_no9[1]);/* [1524] WF\u2192LOCAL */
     var ld=el('line',{x1:s[0],y1:s[1],x2:lx,y2:ly,stroke:nc,'stroke-width':0.8,'vector-effect':'non-scaling-stroke','stroke-dasharray':'2 1.5','pointer-events':'none'});gPts.appendChild(ld);
     var anc=el('circle',{cx:s[0],cy:s[1],r:(L&&L.layer==='지거'?0.08:0.32),fill:nc,'pointer-events':'none'});gAnc.appendChild(anc); // 보이는 원 [BUILD2150] 지거=측점 반 크기
-    var ahR=Math.max(20*pxToWorld(), 1.0); // 클릭영역: 화면 ~20px 고정 (측점 9px보다 크게 → 쉽게 잡힘)
+    var ahR=(L&&L.layer==='지거')?Math.max(9*pxToWorld(),0.15):Math.max(20*pxToWorld(), 1.0); /* [BUILD2155] 지거 앵커 클릭영역 축소(~9px) — 이웃 앵커 오인식 방지 */
     var ah=el('circle',{cx:s[0],cy:s[1],r:ahR,fill:'transparent','pointer-events':'all'});ah.style.cursor='move';gAnc.appendChild(ah); // 클릭 잡기용 큰 투명 원
     addAnchorHandle(L,ah,anc,ld);
     var t=el('text',{x:lx+0.25,y:ly+0.2,'font-size':(L&&L.layer==='지거'?0.38:1.43),fill:nf,'font-weight':'600','text-anchor':'start','pointer-events':'none'});t.textContent=L.note;gPts.appendChild(t);/* [BUILD2149] 지거 태그 축소 — 관정보 대비 약 2배 체감(압입·탐사는 종전) */
@@ -1882,7 +1882,7 @@ cv.addEventListener('pointerdown',function(ev){
 /* [BUILD2150] 지거 그리기(측점 연결) — 근접 스냅 후보(측점·기존 지거점) 선택전 황금 점선 원 */
 cv.addEventListener('pointermove',function(ev){
   var _kill9=function(){if(window._jgHov9){try{window._jgHov9.remove();}catch(_r){}window._jgHov9=null;}};
-  if(mode!=='line'||drawLayer!=='지거'||window._drawFree){_kill9();return;}
+  if(mode!=='line'||drawLayer!=='지거'){_kill9();return;}/* [BUILD2155] 위치표시에서도 호버 표시 */
   var w=toWorld(ev.clientX,ev.clientY);var nm=nearestSnapWorld(w[0],w[1]);
   if(nm.pt&&nm.d<vb.w*0.04){var sp=S(nm.pt[0],nm.pt[1]);
     if(!window._jgHov9||!window._jgHov9.parentNode){window._jgHov9=el('circle',{fill:'none',stroke:'#c9920a','stroke-width':3,'vector-effect':'non-scaling-stroke','stroke-dasharray':'4 3','pointer-events':'none'});gAnc.appendChild(window._jgHov9);}
@@ -6156,7 +6156,7 @@ function renderDraft(){clearSvg(gDraft);previewLine=null;if(!lineDraft)return;
   var col=(window._drawBult?'#e6b800':((LINECOL[drawLayer]||{}).c||'#d92b2b')), lw=(LINECOL[drawLayer]||{}).w||1.6;/* [1511] */
   for(var i=1;i<lineDraft.length;i++){var a=S(lineDraft[i-1][0],lineDraft[i-1][1]),b=S(lineDraft[i][0],lineDraft[i][1]);
     gDraft.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:col,'stroke-width':(window._drawFree?lw+1:lw),'stroke-dasharray':(window._drawFree?'7 5':'4 3'),'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}/* [BUILD1844] 위치표시=실선 */
-  lineDraft.forEach(function(p){var s=S(p[0],p[1]);if(window._drawFree){gDraft.appendChild(el('circle',{cx:s[0],cy:s[1],r:Math.max(0.3,7*((typeof pxToWorld==='function'&&pxToWorld())||0.06)),fill:'#f2b400',stroke:'#b8860b','stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}else{gDraft.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#1f6fd6','stroke-width':8,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}});/* [BUILD1844] 위치표시 클릭점=노란 원 */
+  lineDraft.forEach(function(p){var s=S(p[0],p[1]);if(window._drawFree){if(drawLayer==='지거'){gDraft.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:'#e6a800','stroke-width':2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}else gDraft.appendChild(el('circle',{cx:s[0],cy:s[1],r:Math.max(0.3,7*((typeof pxToWorld==='function'&&pxToWorld())||0.06)),fill:'#f2b400',stroke:'#b8860b','stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));/* [BUILD2155] 지거=측점 사각 미리보기 */}else{gDraft.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#1f6fd6','stroke-width':8,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}});/* [BUILD1844] 위치표시 클릭점=노란 원 */
   /* [1192] 마지막 확정점 초록 점선원+X — 다음 점 확정 시 재렌더로 자동 이동, 완료/시작 시 자동 제거 */
   if(lineDraft.length){var _lgp=lineDraft[lineDraft.length-1];if(typeof _draftGreen==='function')_draftGreen(_lgp[0],_lgp[1]);}
   drawIndicators(null);}
@@ -6314,7 +6314,7 @@ cv.addEventListener('pointerdown',function(e){
   else if(mode==='roaddel'){var wi=toWorld(e.clientX,e.clientY),wx=wi[0],wy=-wi[1];if(state.roadZones){for(var ri=state.roadZones.length-1;ri>=0;ri--){if(roadPtInPoly([wx,wy],state.roadZones[ri].poly)){if(typeof pushHist==='function')pushHist();state.roadZones.splice(ri,1);classifyRoad();if(typeof saveProject==='function')saveProject();drawGeo();toast('\uB3C4\uB85C\uBA74 \uC0AD\uC81C');return;}}}return;}
   else if(mode==='roadvtxadd'){var wi=toWorld(e.clientX,e.clientY),wx=wi[0],wy=-wi[1];if(state.roadZones){var bz=-1,bv=-1,bd=1e18;for(var zi2=0;zi2<state.roadZones.length;zi2++){var pl=state.roadZones[zi2].poly;for(var vi2=0;vi2<pl.length;vi2++){var a=pl[vi2],b=pl[(vi2+1)%pl.length];var dd=distSegW(wx,wy,a,b);if(dd<bd){bd=dd;bz=zi2;bv=vi2;}}}if(bz>=0&&bd<pxToWorld()*15){if(typeof pushHist==='function')pushHist();state.roadZones[bz].poly.splice(bv+1,0,[wx,wy]);classifyRoad();if(typeof saveProject==='function')saveProject();drawGeo();toast('\uC815\uC810 \uC0BD\uC785');return;}}return;}
   else if(mode==='ptdel'){return;} // 측점삭제: 빈 곳 클릭은 무시(측점 클릭은 hit 핸들러가 삭제)
-  else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);if(window._drawFree){var _fp9=[w[0],-w[1]];pendAct=function(){lineDraft.push(_fp9);renderDraft();};startPanFrom(e);return;}/* [BUILD1845] toWorld y부호 보정(월드좌표로 저장) *//* [BUILD1843] 위치표시: 스냅 없이 자유 타점 */var ns=nearestSnapWorld(w[0],w[1]);
+  else if(mode==='line'){var w=toWorld(e.clientX,e.clientY);if(window._drawFree){var _fp9=[w[0],-w[1]];if(drawLayer==='지거'){var _ns9=nearestSnapWorld(w[0],w[1]);if(_ns9.pt&&_ns9.d<vb.w*0.04)_fp9=[_ns9.pt[0],_ns9.pt[1]];}/* [BUILD2155] 위치표시도 근접 스냅(측점·지거점 중심) */pendAct=function(){lineDraft.push(_fp9);renderDraft();};startPanFrom(e);return;}/* [BUILD1845] toWorld y부호 보정(월드좌표로 저장) *//* [BUILD1843] 위치표시: 스냅 없이 자유 타점 */var ns=nearestSnapWorld(w[0],w[1]);
     var snapTol=(drawLayer==='지거')?Math.max(pxToWorld()*14,0.25):vb.w*0.04;
     var _ok=(ns.pt&&ns.d<snapTol),_pt=_ok?[ns.pt[0],ns.pt[1]]:null;
     pendAct=function(){if(_pt){lineDraft.push(_pt);renderDraft();}else if(typeof toast==='function')toast('측점 위를 클릭하세요 — 측점끼리만 연결됩니다');};
