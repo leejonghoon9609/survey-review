@@ -1898,6 +1898,11 @@ cv.addEventListener('pointermove',function(ev){
 function deletePoint(p){
   var i=(state.points||[]).indexOf(p); if(i<0)return;
   pushHist();
+  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&typeof rtTrashWithPhotos9==='function'){/* [BUILD2145] 실시간: 지우기(통합)도 사진 동반 휴지통(3일 보관·복구 가능) */
+    var _a9=rtTrashWithPhotos9([p.no]);var _t9={};_a9.forEach(function(n){_t9[String(n)]=1;});
+    if(state.gpsPts)state.gpsPts=state.gpsPts.filter(function(g){return !_t9[String(g.no)];});
+    try{if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')setTimeout(refreshPhotoPanel,0);}catch(_r9){}
+  }
   state.points.splice(i,1);
   if(p._riserPt){state.mhDel=state.mhDel||{};state.mhDel[p.x+'_'+p.y]=1;}/* [1514] CSV 유래 원천점 삭제=묘비 영구 */
   var app={'통신관로':1,'지거':1,'압입구간':1,'주입상인출선':1,'탐사구간':1};
@@ -15078,9 +15083,11 @@ function rtSaveSoon(){if(_rtSaveTimer)clearTimeout(_rtSaveTimer);_rtSaveTimer=se
 
 /* ===== [BUILD 827] 측점 삭제(롱프레스) + 재촬영 ===== */
 function rtDeletePoint(no){
-  if(!confirm('측점 '+no+' 을(를) 삭제할까요?\n(3일 보관 후 완전삭제 — ♻ 복구 버튼으로 복원 가능)'))return;if(typeof pushHist==='function')pushHist();state._trash=state._trash||[];state._trash.push(_rtTrashItem9(no));/* [BUILD2057] 좌표 스냅샷 보관 */
-  if(state.gpsPts)state.gpsPts=state.gpsPts.filter(function(g){return g.no!==no;});
-  if(state.points)state.points=state.points.filter(function(p){return p.no!==no;});
+  if(!confirm('측점 '+no+' 을(를) 삭제할까요? (사진 포함)\n(3일 보관 후 완전삭제 — ♻ 복구 버튼으로 복원 가능)'))return;if(typeof pushHist==='function')pushHist();
+  var _all9=rtTrashWithPhotos9([no]);/* [BUILD2145] 사진 동반 + 지거 1~4 확장 */
+  var _s9={};_all9.forEach(function(n){_s9[String(n)]=1;});
+  if(state.gpsPts)state.gpsPts=state.gpsPts.filter(function(g){return !_s9[String(g.no)];});
+  if(state.points)state.points=state.points.filter(function(p){return !_s9[String(p.no)];});
   if(String(selNum)===String(no)){selNum=null;if(typeof gSel!=='undefined'&&typeof clearSvg==='function')clearSvg(gSel);}
   if(typeof drawGeo==='function')drawGeo();
   if(typeof saveProject==='function'){try{saveProject();}catch(e){}}
@@ -15099,10 +15106,21 @@ function rtRecapture(){
 }
 
 function _rtTrashItem9(no){var _g=(state.gpsPts||[]).filter(function(g){return String(g.no)===String(no);})[0]||null;var _p=(state.points||[]).filter(function(p){return String(p.no)===String(no);})[0]||null;var _u=(typeof photoMap!=='undefined'&&photoMap&&photoMap[no])||null;return {no:no,at:new Date().toISOString(),g:_g?JSON.parse(JSON.stringify(_g)):null,p:_p?JSON.parse(JSON.stringify(_p)):null,u:_u};/* [BUILD2137] 사진 URL 동봉 — 복구용 */}
+/* [BUILD2145] 삭제 공용 헬퍼 — 지거 확장(1~4) + 휴지통(사진 URL 동봉, 3일 보관 후 자동 완전삭제) + photoMap/DB 즉시 제거 */
+function rtTrashWithPhotos9(sel){
+  state._trash=state._trash||[];
+  var all=[];
+  (sel||[]).forEach(function(no){no=String(no);if(all.indexOf(no)<0)all.push(no);
+    var m=/^([0-9]{6})-([0-9]+)-[1-4]$/.exec(no);
+    if(m){for(var k=1;k<=4;k++){var kk=m[1]+'-'+m[2]+'-'+k;if(all.indexOf(kk)<0)all.push(kk);}}});
+  all.forEach(function(no){state._trash.push(_rtTrashItem9(no));
+    if(typeof photoMap!=='undefined'&&photoMap&&photoMap[no]){delete photoMap[no];
+      try{if(typeof online!=='undefined'&&online&&typeof sb!=='undefined'&&state.projectId)sb.from(DB+'_photos')['delete']().eq('project_id',state.projectId).eq('point_no',no).then(function(){});}catch(_pd9){}}});
+  return all;
+}
 function _rtOv9(title,rows,btnLabel,btnBg,onGo){var old=document.getElementById('rtPtOv9');if(old)old.remove();var ov=document.createElement('div');ov.id='rtPtOv9';ov.style.cssText='position:fixed;inset:0;background:rgba(15,20,30,.5);z-index:100002;display:flex;align-items:center;justify-content:center';var card=document.createElement('div');card.style.cssText='background:#fff;border-radius:14px;width:320px;max-width:92vw;max-height:74vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 70px rgba(0,0,0,.4)';card.innerHTML='<div style="height:6px;background:linear-gradient(90deg,#EA002C,#FF7A00,#FFC61A)"></div>'+'<div style="padding:13px 16px 8px;font-weight:800;font-size:15px;color:#1f2d3d">'+title+'</div>'+'<div id="rtPtList9" style="flex:1;overflow-y:auto;padding:0 12px">'+(rows||'<div style="color:#999;font-size:12px;padding:16px;text-align:center">항목이 없습니다</div>')+'</div>'+'<div style="display:flex;gap:8px;padding:12px 14px"><button id="rtPtCancel9" style="flex:1;padding:11px;border:1px solid #dfe3e8;background:#f5f6f8;color:#333;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer">취소</button><button id="rtPtGo9" style="flex:2;padding:11px;border:0;background:'+btnBg+';color:#fff;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer">'+btnLabel+' (0)</button></div>';ov.appendChild(card);document.body.appendChild(ov);var close=function(){if(ov.parentNode)ov.remove();};document.getElementById('rtPtCancel9').onclick=close;ov.onclick=function(e){if(e.target===ov)close();};var go=document.getElementById('rtPtGo9');var upd=function(){var n=card.querySelectorAll('.rtptchk9:checked').length;go.textContent=btnLabel+' ('+n+')';};card.addEventListener('change',upd);go.onclick=function(){var sel=[];card.querySelectorAll('.rtptchk9:checked').forEach(function(c){sel.push(c.getAttribute('data-no'));});if(!sel.length){toast('측점을 선택하세요');return;}onGo(sel,close);};return card;}
 function rtPtDelUI(){var nos=(typeof sortedNos==='function')?sortedNos():[];var _tr9={};(state._trash||[]).forEach(function(t){if(t&&t.no!=null)_tr9[String(t.no)]=1;});var ex=[];for(var k in photoMap){if(_tr9[String(k)])continue;if(nos.indexOf(k)<0&&nos.indexOf(String(k))<0)ex.push(k);}ex.sort();var rows=nos.map(function(n){return '<label style="display:flex;align-items:center;gap:9px;padding:9px 4px;border-bottom:1px solid #f0f2f5;font-size:14px;font-weight:600;color:#1f2d3d"><input type="checkbox" class="rtptchk9" data-no="'+n+'" style="width:19px;height:19px">'+n+'</label>';}).join('')+ex.map(function(n){return '<label style="display:flex;align-items:center;gap:9px;padding:9px 4px;border-bottom:1px solid #f0f2f5;font-size:14px;color:#8a5a00"><input type="checkbox" class="rtptchk9" data-no="'+n+'" style="width:19px;height:19px">⚠ '+n+' (위치없음)</label>';}).join('');_rtOv9('🗑 측점 삭제 — 선택 후 아래 삭제',rows,'선택 삭제','#EA002C',function(sel,close){if(!confirm('선택한 측점 '+sel.length+'개를 삭제할까요?\n(3일 보관 후 사진까지 완전삭제 — ♻ 복구 가능)'))return;if(typeof pushHist==='function')pushHist();state._trash=state._trash||[];
-var _all9=[];sel.forEach(function(no){if(_all9.indexOf(String(no))<0)_all9.push(String(no));var _jm9=/^([0-9]{6})-([0-9]+)-[1-4]$/.exec(String(no));if(_jm9){for(var _jk9=1;_jk9<=4;_jk9++){var _kk9=_jm9[1]+'-'+_jm9[2]+'-'+_jk9;if(_all9.indexOf(_kk9)<0)_all9.push(_kk9);}}});/* [BUILD2137] 지거 측점 삭제 = 그 지거 사진 1~4 동반 */
-_all9.forEach(function(no){state._trash.push(_rtTrashItem9(no));if(typeof photoMap!=='undefined'&&photoMap&&photoMap[no]){delete photoMap[no];try{if(typeof online!=='undefined'&&online&&typeof sb!=='undefined'&&state.projectId)sb.from(DB+'_photos')['delete']().eq('project_id',state.projectId).eq('point_no',no).then(function(){});}catch(_pd9){}}});/* [BUILD2137] 사진 즉시 숨김(DB 행 제거) — 파일은 3일 보관 후 purge, 복구 시 재등록 */
+var _all9=rtTrashWithPhotos9(sel);/* [BUILD2137→2145] 공용 헬퍼 */
 var _s9={};_all9.forEach(function(n){_s9[String(n)]=1;});var sel=_all9;if(state.gpsPts)state.gpsPts=state.gpsPts.filter(function(g){return !_s9[String(g.no)];});if(state.points)state.points=state.points.filter(function(p){return !_s9[String(p.no)];});if(selNum!=null&&_s9[String(selNum)]){selNum=null;try{clearSvg(gSel);}catch(_c9){}}close();if(typeof drawGeo==='function')drawGeo();try{saveProject();}catch(_sv9){}if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();toast('🗑 측점 '+sel.length+'개 삭제 — 3일 보관, ♻ 복구 가능',4000);});}
 function rtPtRstUI(){var now=Date.now(),items=(state._trash||[]).filter(function(t){return t&&t.no!=null&&(now-new Date(t.at||0).getTime())<=3*86400000;});var rows=items.map(function(t){var left=3*86400000-(now-new Date(t.at||0).getTime());var d=Math.floor(left/86400000),h=Math.floor((left%86400000)/3600000);var rem=(d>0?(d+'일 '):'')+h+'시간 남음';var tag=(t.g||t.p)?'':' <span style="color:#c0392b;font-size:11px">(사진만)</span>';return '<label style="display:flex;align-items:center;gap:9px;padding:9px 4px;border-bottom:1px solid #f0f2f5;font-size:14px;font-weight:600;color:#1f2d3d"><input type="checkbox" class="rtptchk9" data-no="'+t.no+'" style="width:19px;height:19px"><span style="flex:1">'+t.no+tag+'</span><span style="font-size:11px;color:#7a8896">'+rem+'</span></label>';}).join('');_rtOv9('♻ 삭제 측점 복구 (3일 보관분)',rows,'선택 복구','#1e7e34',function(sel,close){var _s9={};sel.forEach(function(n){_s9[String(n)]=1;});if(typeof pushHist==='function')pushHist();var rest=[],back=0;(state._trash||[]).forEach(function(t){if(t&&_s9[String(t.no)]){if(t.g){state.gpsPts=state.gpsPts||[];if(!state.gpsPts.some(function(g){return String(g.no)===String(t.no);}))state.gpsPts.push(t.g);}if(t.p){state.points=state.points||[];if(!state.points.some(function(p){return String(p.no)===String(t.no);}))state.points.push(t.p);}if(t.u&&typeof photoMap!=='undefined'){photoMap[t.no]=t.u;try{if(typeof online!=='undefined'&&online&&typeof sb!=='undefined'&&state.projectId)sb.from(DB+'_photos').insert({project_id:state.projectId,point_no:t.no,url:t.u}).then(function(){});}catch(_pi9){}}/* [BUILD2137] 사진 복원 */back++;}else rest.push(t);});state._trash=rest;close();if(typeof drawGeo==='function')drawGeo();try{saveProject();}catch(_sv9){}if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();toast('♻ 측점 '+back+'개 복구됨',3500);});}
 /* [BUILD2057] 사진창 다중 측점삭제(3일 보관)·복구 — 실시간 전용 */
