@@ -14760,7 +14760,7 @@ function _rtLineLen(){var t=0;(state.lines||[]).forEach(function(L){if(!L||!L.pt
 /* [1207] 관로선 구간을 측점 날짜로 귀속(양끝 매칭, 늦은 날짜 우선) → 일별 관로거리·구간수 */
 function rtDailyDistMap(){
   var tol=0.25, pts=state.points||[], dist={}, seg={};
-  function dateAt(x,y){var bd=tol,best=null;for(var i=0;i<pts.length;i++){var p=pts[i];if(!p||!isFinite(p.x))continue;var d=Math.hypot(p.x-x,p.y-y);if(d<bd){bd=d;best=p;}}return best?(best._d0||(''+best.no).split('-')[0]):null;}
+  function dateAt(x,y){var bd=tol,best=null;for(var i=0;i<pts.length;i++){var p=pts[i];if(!p||!isFinite(p.x))continue;var d=Math.hypot(p.x-x,p.y-y);if(d<bd){bd=d;best=p;}}return best?((''+best.no).split('-')[0]||best._d0):null;/* [BUILD2140] 귀속일 우선 */}
   (state.lines||[]).forEach(function(L){if(!L||!L.pts)return;if(L.free)return;/* [BUILD1843] */if(L.layer&&L.layer!=='통신관로'&&L.layer!=='지거'&&L.layer!=='압입구간')return;/* [1209] 관로·지거·압입만 */for(var i=1;i<L.pts.length;i++){
     var a=L.pts[i-1],b=L.pts[i];var da=dateAt(a[0],a[1]),db=dateAt(b[0],b[1]);
     var d=(da&&db)?(da>db?da:db):(da||db); if(!d)continue;
@@ -14811,7 +14811,7 @@ function rtDailyTodayFill(){ /* [BUILD1915] 날짜별 목록+체크박스 — �
   var el=document.getElementById('rtDailyToday');if(!el)return;
   var ymd=_rtTodayYMD();var dm=rtDailyDistMap();
   var recs={};(state.rtDaily||[]).forEach(function(r){if(r&&r.date)recs[r.date]=r;});
-  var ptBy={};(state.points||[]).forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0&&/^[0-9]{6}$/.test(d0))ptBy[d0]=(ptBy[d0]||0)+1;});
+  var ptBy={};(state.points||[]).forEach(function(p){var d0=p&&((''+p.no).split('-')[0]||p._d0);if(d0&&/^[0-9]{6}$/.test(d0))ptBy[d0]=(ptBy[d0]||0)+1;});/* [BUILD2140] 야간보정 귀속일 우선 — 새벽 측점이 전날 행에 합산 */
   var phBy={};try{var pm=(typeof photoMap!=='undefined'&&photoMap)?photoMap:{};for(var k in pm){var pd=String(k).split('-')[0];if(/^[0-9]{6}$/.test(pd))phBy[pd]=(phBy[pd]||0)+1;}}catch(_e){}
   var dset={};dset[ymd]=1;for(var k1 in dm.dist)dset[k1]=1;for(var k2 in recs)dset[k2]=1;for(var k3 in ptBy)dset[k3]=1;
   var dates=Object.keys(dset).sort();
@@ -17802,7 +17802,7 @@ function _projFilterChip(){
    ============================================================ */
 function svDistMap(points,lines){
   var tol=0.25, pts=points||[], dist={}, seg={};
-  function dateAt(x,y){var bd=tol,best=null;for(var i=0;i<pts.length;i++){var p=pts[i];if(!p||!isFinite(p.x))continue;var d=Math.hypot(p.x-x,p.y-y);if(d<bd){bd=d;best=p;}}return best?(best._d0||(''+best.no).split('-')[0]):null;}
+  function dateAt(x,y){var bd=tol,best=null;for(var i=0;i<pts.length;i++){var p=pts[i];if(!p||!isFinite(p.x))continue;var d=Math.hypot(p.x-x,p.y-y);if(d<bd){bd=d;best=p;}}return best?((''+best.no).split('-')[0]||best._d0):null;/* [BUILD2140] 귀속일 우선 */}
   (lines||[]).forEach(function(L){if(!L||!L.pts)return;if(L.free)return;/* [BUILD1843] */if(L.layer&&L.layer!=='통신관로'&&L.layer!=='지거'&&L.layer!=='압입구간')return;for(var i=1;i<L.pts.length;i++){
     var a=L.pts[i-1],b=L.pts[i];var da=dateAt(a[0],a[1]),db=dateAt(b[0],b[1]);
     var d=(da&&db)?(da>db?da:db):(da||db); if(!d)continue;
