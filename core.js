@@ -12998,7 +12998,7 @@ var norm=function(t){return (''+t).toUpperCase().split(',').map(function(x){retu
 var want=norm(q);var hits=[];(state.manholes||[]).forEach(function(m){if(m.wx==null)return;var mm=/\(([^)]+)\)/.exec(m.label||'');if(!mm)return;if(norm(mm[1])===want)hits.push(m);});
 if(!hits.length){if(typeof toast==='function')toast('('+want+') 맨홀 없음');return;}
 var NS='http://www.w3.org/2000/svg';g=document.createElementNS(NS,'g');g.id='tgOwnFindG';
-hits.forEach(function(m){var sp=S(m.wx,m.wy);var c=document.createElementNS(NS,'circle');c.setAttribute('cx',sp[0]);c.setAttribute('cy',sp[1]);c.setAttribute('r',2);c.setAttribute('fill','rgba(255,0,255,.10)');c.setAttribute('stroke','#f0f');c.setAttribute('stroke-width',0.28);c.setAttribute('stroke-dasharray','1.2 0.8');c.setAttribute('pointer-events','none');g.appendChild(c);});
+hits.forEach(function(m){var sp=S(m.wx,m.wy);var c=document.createElementNS(NS,'circle');c.setAttribute('cx',sp[0]);c.setAttribute('cy',sp[1]);c.setAttribute('r',(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)?1:2);/* [BUILD2177] 실시간: 맨홀 선택 원 반경 절반 */c.setAttribute('fill','rgba(255,0,255,.10)');c.setAttribute('stroke','#f0f');c.setAttribute('stroke-width',0.28);c.setAttribute('stroke-dasharray','1.2 0.8');c.setAttribute('pointer-events','none');g.appendChild(c);});
 cv.appendChild(g);
 var nm=hits.slice(0,5).map(function(m){return (m.label||'').replace(/\s*\(.*\)$/,'');}).join(', ');
 if(typeof toast==='function')toast('('+want+') 맨홀 '+hits.length+'개: '+nm+(hits.length>5?' …':'')+' — 다시 누르면 해제');
