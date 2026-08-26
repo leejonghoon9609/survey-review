@@ -14133,6 +14133,7 @@ function rtViewZoom(img,opts){
   ap();
 }
 function refreshPhotoPanel(){
+  if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&!state._bpMig9){state._bpMig9=true;try{rtBpMigrate9();}catch(_mg9){}}/* [BUILD2144] 레거시 보강판 키 자동 정규화(세션 1회) */
   var sel=document.getElementById('photoSel'),nos=sortedNos();
   var _ex9=[];if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){var _tr9={};(state._trash||[]).forEach(function(t){if(t&&t.no!=null)_tr9[String(t.no)]=1;});for(var _k9 in photoMap){if(_tr9[String(_k9)])continue;if(nos.indexOf(_k9)<0&&nos.indexOf(String(_k9))<0)_ex9.push(_k9);}_ex9.sort();/* [BUILD2057] 휴지통 측점 사진 숨김 */}/* [BUILD1865] 좌표 없는 촬영분 확인용 */
   var _bl9=function(n){try{if(typeof IS_REALTIME==='undefined'||!IS_REALTIME)return n;var g=(state.gpsPts||[]).filter(function(q){return String(q.no)===String(n);})[0];if(g&&g._bp)return n+' '+g._bp;var pp=(state.points||[]).filter(function(q){return String(q.no)===String(n);})[0];if(pp&&pp.code&&String(pp.code).trim().indexOf('보강판')===0)return n+' '+String(pp.code).trim();}catch(_b9){}return n;};/* [BUILD2143] 보강판 코드 병기 */
@@ -15424,6 +15425,28 @@ function tm5186(lat,lon){
   var E=FE+k0*N*(A+(1-T+C)*A*A*A/6+(5-18*T+T*T+72*C-58*ep2)*Math.pow(A,5)/120);
   var No=FN+k0*(M-M0+N*Math.tan(phi)*(A*A/2+(5-T+9*C+4*C*C)*Math.pow(A,4)/24+(61-58*T+T*T+600*C-330*ep2)*Math.pow(A,6)/720));
   return [No,E]; /* [Northing(X), Easting(Y)] */
+}
+/* [BUILD2144] 레거시 보강판 사진키 정규화 — '날짜-N 보강판 시작' → '날짜-N'(키) + _bp 코드. CSV 이름(숫자) 매칭 복원. 숫자 키가 이미 있으면 충돌로 보존 */
+function rtBpMigrate9(){
+  if(typeof photoMap==='undefined'||!photoMap)return 0;
+  var n=0;
+  Object.keys(photoMap).forEach(function(k){
+    var m=/^([0-9]{6}-[0-9]+)\s+(보강판.*)$/.exec(String(k));
+    if(!m)return;
+    var base=m[1],code=m[2].trim();
+    if(photoMap[base])return;/* 충돌 — 손대지 않음 */
+    photoMap[base]=photoMap[k];delete photoMap[k];n++;
+    try{if(typeof online!=='undefined'&&online&&typeof sb!=='undefined'&&state.projectId)sb.from(DB+'_photos').update({point_no:base}).eq('project_id',state.projectId).eq('point_no',k).then(function(){});}catch(_db9){}
+    (state.gpsPts||[]).forEach(function(g){if(g&&String(g.no)===String(k)){g.no=base;g._bp=g._bp||code;}});
+  });
+  (state.gpsPts||[]).forEach(function(g){/* 사진 없이 점만 레거시 이름인 경우도 정규화 */
+    var m=g&&/^([0-9]{6}-[0-9]+)\s+(보강판.*)$/.exec(String(g.no));
+    if(!m)return;var base=m[1];
+    if((state.gpsPts||[]).some(function(q){return q!==g&&String(q.no)===base;}))return;
+    g.no=base;g._bp=g._bp||m[2].trim();n++;
+  });
+  if(n>0){try{toast('보강판 측점 '+n+'건 — 새 규칙(번호+코드)으로 정규화');}catch(_t9){}try{rtSaveSoon();}catch(_s9){}}
+  return n;
 }
 function rtAddGps(no,lat,lon){
   try{
