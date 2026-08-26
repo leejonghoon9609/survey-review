@@ -1307,7 +1307,7 @@ function drawGeo(){_orgSync();/* [1524] */if(typeof _tgCarGeomBuild==='function'
     var ahR=Math.max(20*pxToWorld(), 1.0); // 클릭영역: 화면 ~20px 고정 (측점 9px보다 크게 → 쉽게 잡힘)
     var ah=el('circle',{cx:s[0],cy:s[1],r:ahR,fill:'transparent','pointer-events':'all'});ah.style.cursor='move';gAnc.appendChild(ah); // 클릭 잡기용 큰 투명 원
     addAnchorHandle(L,ah,anc,ld);
-    var t=el('text',{x:lx+0.25,y:ly+0.2,'font-size':(L&&L.layer==='지거'?0.75:1.43),fill:nf,'font-weight':'600','text-anchor':'start','pointer-events':'none'});t.textContent=L.note;gPts.appendChild(t);/* [BUILD2149] 지거 태그 축소 — 관정보 대비 약 2배 체감(압입·탐사는 종전) */
+    var t=el('text',{x:lx+0.25,y:ly+0.2,'font-size':(L&&L.layer==='지거'?0.38:1.43),fill:nf,'font-weight':'600','text-anchor':'start','pointer-events':'none'});t.textContent=L.note;gPts.appendChild(t);/* [BUILD2149] 지거 태그 축소 — 관정보 대비 약 2배 체감(압입·탐사는 종전) */
     // 인출선이 붙는 쪽: 앵커가 태그보다 오른쪽이면 태그 오른쪽 끝에서, 왼쪽이면 태그 왼쪽에서
     var tbb;try{tbb=t.getBBox();}catch(e){tbb=null;}
     var tw=tbb?tbb.width:(L.note||'').length*0.42;
