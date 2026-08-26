@@ -14636,7 +14636,7 @@ try{
 
 /* ===== [BUILD 815] 실시간측량 측점 촬영 (날짜 자동 + 번호 자동제안·수정가능) ===== */
 function rtToday(){var d=new Date();function p(n){return('0'+n).slice(-2);}return String(d.getFullYear()).slice(2)+p(d.getMonth()+1)+p(d.getDate());}function rtWorkDay(){var d=new Date();var real=rtToday();var tm=d.getHours()*60+d.getMinutes();var ns=state.nightShift;var work=(ns&&ns.on&&ns.cut!=null&&tm<ns.cut)?prevDayYMD(real):real;return {real:real,work:work,tm:tm};}
-function rtNextNo(day){var mx=0;var re=new RegExp('^'+day+'-(\\d+)(?:-[1-4])?(?:\\s.*)?$');/* [BUILD2119→2142] 지거 N-1~4·보강판(레거시 'N 보강판 …' 포함)도 같은 번호 시퀀스 — 순번 계속 증가 */try{Object.keys((typeof photoMap!=='undefined'&&photoMap)?photoMap:{}).forEach(function(k){var m=re.exec(k);if(m)mx=Math.max(mx,parseInt(m[1],10));});}catch(e){}(state.points||[]).forEach(function(p){var m=re.exec(p.no||'');if(m)mx=Math.max(mx,parseInt(m[1],10));});return mx+1;}
+function rtNextNo(day){var mx=0;var re=new RegExp('^'+day+'-(\\d+)(?:\\s.*)?$');/* [BUILD2146] GPS 측점 시퀀스 — 지거(N-K)는 별도 시퀀스로 분리(GPS 불가 지역·CSV 없음), 보강판 레거시 키는 포함 */try{Object.keys((typeof photoMap!=='undefined'&&photoMap)?photoMap:{}).forEach(function(k){var m=re.exec(k);if(m)mx=Math.max(mx,parseInt(m[1],10));});}catch(e){}(state.points||[]).forEach(function(p){var m=re.exec(p.no||'');if(m)mx=Math.max(mx,parseInt(m[1],10));});return mx+1;}
 var rtPendingNo=null;var rtPendingMeta=null;var rtPendingReshoot=false;   /* [1145] 재촬영=사진만 교체, 위치 불변 */
 /* [BUILD2143] 빨간 경고 팝업 — 동일 번호 신규촬영 차단 안내 */
 function rtWarnPop9(title,msg){
@@ -14695,7 +14695,7 @@ function rtShowNumPopup(day,sug,onOk){
   document.getElementById('rtNumOk').onclick=function(){var v=(inp.value||'').trim().replace(/\s*보강판.*$/,'').trim();if(!v){inp.focus();return;}
     if(typeof photoMap!=='undefined'&&photoMap&&photoMap[day+'-'+v]){if(typeof rtWarnPop9==='function')rtWarnPop9('측점 '+v+'번 사진이 이미 있습니다','덮어쓰기는 사진창의 [\uD83D\uDD34 재촬영] 버튼으로만 하세요');else alert('측점 '+v+'번 사진이 이미 있습니다');return;}/* [BUILD2142→2143] 빨간 경고창 */
     close();onOk(v,_bp9);};
-  var _jg9=document.getElementById('rtJgBtn');if(_jg9)_jg9.onclick=function(){var v=(inp.value||'').trim();if(!v){inp.focus();return;}close();if(typeof rtJgStart9==='function')rtJgStart9(day,v);};/* [BUILD2118] 지거 3장 연속 촬영 진입 */
+  var _jg9=document.getElementById('rtJgBtn');if(_jg9)_jg9.onclick=function(){var v=(inp.value||'').trim();var use=(v&&v!==String(sug))?v:((typeof rtJgNextNo9==='function')?String(rtJgNextNo9(day)):v);if(!use){inp.focus();return;}close();if(typeof rtJgStart9==='function')rtJgStart9(day,use);};/* [BUILD2118→2146] 지거는 자체 순번(1부터) 자동 — 번호를 직접 고친 경우만 그 값 사용 */
   inp.onkeydown=function(e){if(e.key==='Enter'){e.preventDefault();document.getElementById('rtNumOk').click();}else if(e.key==='Escape'){close();}};
   ov.onclick=function(e){if(e.target===ov)close();};
 }
@@ -14704,6 +14704,12 @@ function rtShowNumPopup(day,sug,onOk){
    기존 rtPendingNo→rtCamInput→rtCamPicked 경로 재활용(fall-through). GPS 위치수집은 시퀀스 중 첫 촬영 1회만. */
 var _rtJg9=null;
 var _RT_JG_LBL9=['근경','원경','이격기준점'];
+function rtJgNextNo9(day){/* [BUILD2146] 지거 자체 순번 — GPS 불가 지역이라 CSV 없음, 지거는 1부터 순차 */
+  var mx=0;var re=new RegExp('^'+day+'-([0-9]+)-[1-4]$');
+  try{Object.keys((typeof photoMap!=='undefined'&&photoMap)||{}).forEach(function(k){var m=re.exec(k);if(m)mx=Math.max(mx,parseInt(m[1],10)||0);});}catch(_e){}
+  (state.gpsPts||[]).forEach(function(g){var m=re.exec(String(g&&g.no||''));if(m)mx=Math.max(mx,parseInt(m[1],10)||0);});
+  return mx+1;
+}
 function rtJgStart9(day,n){_rtJg9={day:day,n:n,k:0,gps:false,done:{}};_rtJg9.gps=(rtJgHas9(1)||rtJgHas9(2)||rtJgHas9(3));rtJgPop9();}/* [BUILD2133] done=이번 세션에서 찍은 장 */
 function rtJgHas9(k){if(!_rtJg9)return false;var no=_rtJg9.day+'-'+_rtJg9.n+'-'+k;return !!(typeof photoMap!=='undefined'&&photoMap&&photoMap[no]);}
 function rtJgShoot9(k){
