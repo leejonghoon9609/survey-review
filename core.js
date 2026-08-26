@@ -15487,7 +15487,7 @@ function rtRawZipUp9(file){
           if(typeof _rtDupChk9==='function')_rtDupChk9(ymd);
           try{saveProject();}catch(_sv){}
           toast('\uD83D\uDCE6 보관 완료 — 원본 ZIP + 야간보정 CSV('+srg.changed+'행 귀속, 컷 '+cut+')',4500);
-        });
+        })['catch'](function(e){console.error('[원시보관]',ymd,e);toast('⚠ 원시 보관 오류('+ymd+'): '+(e&&(e.message||e.error_description||e.statusCode)||e),8000);});/* [BUILD2186] 보관 체인 실패 표면화 */
       }else{
         toast('로딩 완료 — 사업 저장 후 다시 올리면 원본/보정본이 서버에 보관됩니다',4500);
       }
