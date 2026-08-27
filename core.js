@@ -8875,7 +8875,7 @@ function _fldExPhotoAuto(cb){ /* [1302] field 전용 — 결선DB 완료성과(_
   var sv=document.getElementById('fldSave');if(sv)sv.onclick=function(){saveProject();};
   var c=document.getElementById('fldCsv');if(c)c.onclick=openFinalCsvUpload;
   var j=document.getElementById('fldJoseo');if(j)j.onclick=openJoseoPanel;
-  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){if(typeof mnOpenList==='function')mnOpenList();};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){fldDoneRegList();}; /* [1286] 결선DB 최종성과 목록 */var _frl=document.getElementById('fldRefLoad');if(_frl){if(typeof IS_POSITION!=='undefined'&&IS_POSITION){_frl.textContent='📥 현장결선 추가분 반영';_frl.onclick=function(){posDiffPull9();};/* [BUILD2198] */var _fh9=document.getElementById('fldRefHint');if(_fh9)_fh9.textContent='열 때 현장 결선 자동 반영 · 작업 후 추가분은 버튼으로 선택 반영(원본 불변)';}else{_frl.onclick=function(){if(typeof refOpen==='function')refOpen();};}}/* [BUILD2195] */try{var _ftr=document.getElementById('fldTerr');if(_ftr){_ftr.onclick=function(){
+  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){if(typeof mnOpenList==='function')mnOpenList();};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){fldDoneRegList();}; /* [1286] 결선DB 최종성과 목록 */var _frl=document.getElementById('fldRefLoad');if(_frl){if(typeof IS_POSITION!=='undefined'&&IS_POSITION){_frl.textContent='📥 현장결선 추가분 반영';_frl.onclick=function(){posDiffPull9();};/* [BUILD2198] */var _fh9=document.getElementById('fldRefHint');if(_fh9)_fh9.textContent='열 때 현장 결선 자동 반영 · 작업 후 추가분은 버튼으로 선택 반영(원본 불변)';/* [BUILD2201] SD 미리보기 3단 토글 버튼 + 툴바 줄내림(정위치 전용) */try{if(_fh9&&!document.getElementById('posSD9Btn')){var _sb9=document.createElement('button');_sb9.id='posSD9Btn';_sb9.className='fbtn';_sb9.textContent='\uD83D\uDCD0 SD 미리보기';_sb9.style.cssText='border:1.5px solid #6d28d9;color:#6d28d9;background:#fff;font-weight:800;padding:9px 12px;font-size:13px;border-radius:8px';_sb9.onclick=function(){posSdToggle9();};_fh9.parentNode.insertBefore(_sb9,_fh9.nextSibling);var _bk9=document.createElement('div');_bk9.id='hdrBreakP9';_bk9.className='hdr-break';_fh9.parentNode.insertBefore(_bk9,_sb9.nextSibling);var _st9=document.createElement('style');_st9.textContent='@media(min-width:761px){.viewer #posSD9Btn{order:9;margin-left:10px}.viewer #hdrBreakP9{order:9}}@media(max-width:760px){#posSD9Btn,#hdrBreakP9{display:none!important}}';document.head.appendChild(_st9);}}catch(_sb2){}}else{_frl.onclick=function(){if(typeof refOpen==='function')refOpen();};}}/* [BUILD2195] */try{var _ftr=document.getElementById('fldTerr');if(_ftr){_ftr.onclick=function(){
     if(typeof REF!=='undefined'&&REF&&REF.ents&&typeof refTerrCount==='function'&&refTerrCount()){refTerrToggle();return;}
     /* [1290] 완료결선 없으면 사업등록 수치지도(BP) 토글 */
     if(typeof bpOff==='undefined')window.bpOff=false;
@@ -18968,129 +18968,225 @@ function _posShiftEntities(tpl,dx,dy){
   out.push(code);if(val!==undefined)out.push(val);i+=2;}
  return out.join('\r\n');}
 /* --- \uba54\uc778 --- */
-function posExportDxf(){
- if(typeof JSZip==='undefined'){toast('\uc555\ucd95 \ubaa8\ub4c8 \uc5c6\uc74c \u2014 \uc0c8\ub85c\uace0\uce68(Ctrl+Shift+R)');return;}
- var TL='\uD1B5\uC2E0\uAD00\uB85C';
+/* ===== [BUILD2201] SD 장면 모델 공유 — posScene9(빌더) → posExportDxf(DXF)·posDrawSD9(화면) 이중화 금지 ===== */
+function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 기록 순서와 동일) */
+ var TL='통신관로';
  var pipes=(state.lines||[]).filter(function(l){return l.layer===TL&&!l.insp&&l.pts&&l.pts.length>=2;});
- if(!pipes.length){toast('\ud1b5\uc2e0\uad00\ub85c \uc5c6\uc74c \u2014 \uc815\uc704\uce58 \ub300\uc0c1 \ub370\uc774\ud130\ub97c \ud655\uc778\ud558\uc138\uc694');return;}
- toast('\uc815\uc704\uce58 DXF \uc0dd\uc131 \uc911\u2026');
+ if(!pipes.length)return null;
+ /* 표고 맵 (finalCsv 재파싱: 이름→Z레벨) */
+ var elev={};
+ try{(state.finalCsv||[]).forEach(function(fc){var rows=(fc.text||'').replace(/\r/g,'').split('\n');if(!rows.length)return;var head=splitCsvLine(rows[0]).map(function(s){return s.trim();});function col(){for(var a=0;a<arguments.length;a++){var ii=head.indexOf(arguments[a]);if(ii>=0)return ii;}return -1;}var ciN=col('이름','번호'),ciZ=col('Z(레벨)','Z','z');if(ciN<0||ciZ<0)return;for(var r9=1;r9<rows.length;r9++){var f=splitCsvLine(rows[r9]);var nm=(f[ciN]||'').trim(),zv=parseFloat(f[ciZ]);if(nm&&!isNaN(zv))elev[nm]=zv;}});}catch(_ee){}
+ /* 현황선 세그먼트 (이격거리 기준) */
+ var hyun=[];(state.lines||[]).forEach(function(l){if(l.layer===TL||!l.pts)return;for(var i=0;i<l.pts.length-1;i++)hyun.push([l.pts[i],l.pts[i+1]]);});
+ function distSeg(px,py,a,b){var vx=b[0]-a[0],vy=b[1]-a[1],L2=vx*vx+vy*vy;if(!L2)return Math.hypot(px-a[0],py-a[1]);var t=Math.max(0,Math.min(1,((px-a[0])*vx+(py-a[1])*vy)/L2));return Math.hypot(px-(a[0]+t*vx),py-(a[1]+t*vy));}
+ function hyunDist(px,py){var bd=null;for(var i=0;i<hyun.length;i++){var d=distSeg(px,py,hyun[i][0],hyun[i][1]);if(bd==null||d<bd)bd=d;}return bd;}
+ /* 측점 매칭: 관로 정점 ↔ state.points (0.3m) */
+ function ptAt(x,y){var ps=state.points||[];for(var i=0;i<ps.length;i++){if(Math.abs(ps[i].x-x)<0.3&&Math.abs(ps[i].y-y)<0.3)return ps[i];}return null;}
+ function mhAt(x,y){var ms=state.manholes||[];for(var i=0;i<ms.length;i++){if(ms[i].wx!=null&&Math.abs(ms[i].wx-x)<0.6&&Math.abs(ms[i].wy-y)<0.6)return ms[i];}return null;}
+ /* 제원 공통값 */
+ var tb=state.titleBlock||{};var yy=(function(){var d=(state.bizInfo&&state.bizInfo.date)||'';var m=/20(\d\d)/.exec(d);return m?('20'+m[1]):(''+(new Date()).getFullYear());})();
+ var outer=(tb.outer||'FC(￠100)');var om=/([A-Za-z]+)\D*(\d+)/.exec(outer)||[];var oKind=om[1]||'FC',oDia=om[2]||'100';
+ var gy=parseInt(tb.gyeol,10)||1,gd=parseInt(tb.gdan,10)||1;var gongsu=gy*gd;
+ var naeg=0;try{var tm=state.tangoManual||{};for(var k in tm){if(tm[k]&&tm[k].naegwan){naeg=parseInt(tm[k].naegwan,10)||0;break;}}}catch(_n){}
+ /* 도엽 버킷 */
+ var SH={};function shget(x,y){var c=_posSheetOf(x,y);if(!c)return null;if(!SH[c.no])SH[c.no]={cell:c,items:[],boxes:[]};return SH[c.no];}
+ function addBox(S,x0,y0,x1,y1){S.boxes.push([Math.min(x0,x1),Math.min(y0,y1),Math.max(x0,x1),Math.max(y0,y1)]);}
+ function hitBox(S,x0,y0,x1,y1){var a=[Math.min(x0,x1),Math.min(y0,y1),Math.max(x0,x1),Math.max(y0,y1)];for(var i=0;i<S.boxes.length;i++){var b=S.boxes[i];if(a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1])return true;}return false;}
+ /* 1) 관로 SD001 — 세그먼트 중점 도엽 배정 */
+ pipes.forEach(function(l){var cur=null,buf=[];
+  function flush(){if(cur&&buf.length>=2)cur.items.push({t:'pl',lay:'SD001',pts:buf,cl:0});buf=[];}
+  for(var i=0;i<l.pts.length-1;i++){var a=l.pts[i],b=l.pts[i+1];var S=shget((a[0]+b[0])/2,(a[1]+b[1])/2);if(!S)continue;
+   if(S!==cur){flush();cur=S;buf=[a.slice(0,2)];}
+   buf.push(b.slice(0,2));}
+  flush();});
+ /* 2) 측점 SD901+관상고+심도+이격 */
+ var donePt={};
+ pipes.forEach(function(l){for(var i=0;i<l.pts.length;i++){var x=l.pts[i][0],y=l.pts[i][1];var key=x.toFixed(1)+','+y.toFixed(1);if(donePt[key])continue;donePt[key]=1;
+  var p=ptAt(x,y);if(!p)continue;var S=shget(x,y);if(!S)continue;
+  if(mhAt(x,y))continue;
+  S.items.push({t:'ins',lay:'SD901',name:'SD901',x:x,y:y});
+  var z=(p.z!=null)?p.z:null;
+  var gz=(p._nm&&elev[p._nm]!=null)?elev[p._nm]:null;
+  if(gz!=null&&z!=null)S.items.push({t:'tx',lay:'SD_관상고',x:x+0.3,y:y-0.9,h:0.5,s:(gz-z).toFixed(3)});
+  if(z!=null)S.items.push({t:'tx',lay:'SDSIM_T',x:x+0.3,y:y+0.4,h:1.0,s:z.toFixed(1)});
+  /* 이격(심도): 관로 직각 틱 + 회전 텍스트 */
+  var hd=hyun.length?hyunDist(x,y):null;
+  if(hd!=null&&hd>=0.3&&hd<=30&&z!=null){
+   var j=(i<l.pts.length-1)?i+1:i-1;var dx9=l.pts[j][0]-x,dy9=l.pts[j][1]-y;var L9=Math.hypot(dx9,dy9)||1;var nx=-dy9/L9,ny=dx9/L9;
+   S.items.push({t:'pl',lay:'SDDIM',pts:[[x,y],[x+nx*1.4,y+ny*1.4]],cl:0});
+   var rot=Math.atan2(ny,nx)*180/Math.PI;
+   S.items.push({t:'tx',lay:'SDDIM1',x:x+nx*0.3-ny*0.35,y:y+ny*0.3+nx*0.35,h:1.0,s:hd.toFixed(1),rot:rot});
+   S.items.push({t:'tx',lay:'SDDIM1',x:x+nx*1.8-ny*0.35,y:y+ny*1.8+nx*0.35,h:1.0,s:'('+z.toFixed(1)+')',rot:rot});
+  }
+ }});
+ /* 3) 맨홀 SD100 + SD219 시설물번호 */
+ (state.manholes||[]).forEach(function(m){if(m.wx==null)return;var S=shget(m.wx,m.wy);if(!S)return;
+  var isR=(m.type==='riser');
+  S.items.push({t:'ins',lay:isR?'SD300':'SD100',name:isR?'SD300':'SD100',x:m.wx,y:m.wy});
+  var lb=(m.label||'').replace(/\s+/g,'');if(lb){
+   var tx=m.wx+1.5,ty=m.wy+1.5,w=lb.length*1.0;
+   if(hitBox(S,tx,ty,tx+w,ty+1.2)){ty=m.wy-2.7;}
+   S.items.push({t:'tx',lay:'SD219',x:tx,y:ty,h:1.0,s:lb});addBox(S,tx,ty,tx+w,ty+1.2);}
+ });
+ /* 4) 구간 제원 SD911 인출선 + SD910 + SD983 공수 */
+ pipes.forEach(function(l){
+  var pts=l.pts;var Lm=0;for(var i=0;i<pts.length-1;i++)Lm+=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);
+  if(Lm<1)return;
+  var zs=[];pts.forEach(function(pt){var p=ptAt(pt[0],pt[1]);if(p&&p.z!=null&&!mhAt(pt[0],pt[1]))zs.push(p.z);});
+  var Dv=zs.length?(zs.reduce(function(a,b){return a+b;},0)/zs.length):null;
+  /* 중점 */
+  var half=Lm/2,acc=0,mi=0,mt=0;
+  for(var i=0;i<pts.length-1;i++){var sl=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);if(acc+sl>=half){mi=i;mt=(half-acc)/sl;break;}acc+=sl;}
+  var mx=pts[mi][0]+(pts[mi+1][0]-pts[mi][0])*mt,my=pts[mi][1]+(pts[mi+1][1]-pts[mi][1])*mt;
+  var S=shget(mx,my);if(!S)return;
+  var dx9=pts[mi+1][0]-pts[mi][0],dy9=pts[mi+1][1]-pts[mi][1];var L9=Math.hypot(dx9,dy9)||1;var ux=dx9/L9,uy=dy9/L9,nx=-uy,ny=ux;
+  var spec=yy+'/'+oKind+'/%%C'+oDia+'x'+gongsu+'('+naeg+')/L'+Lm.toFixed(1)+'/D'+(Dv!=null?Dv.toFixed(1):'-');
+  var tw=spec.length*0.72;
+  var placed=false;
+  var offs=[7,11,15,19];var sides=[1,-1];
+  for(var oi=0;oi<offs.length&&!placed;oi++)for(var si=0;si<2&&!placed;si++){
+   var sgn=sides[si];var ex=mx+nx*offs[oi]*sgn,ey=my+ny*offs[oi]*sgn;
+   var hx=(nx*sgn>=0)?1:-1;
+   var tx0=ex,tx1=ex+hx*(tw+2);
+   if(hitBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6))continue;
+   S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0});
+   S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+1:ex+hx*(tw+1)),y:ey+0.4,h:1.0,s:spec});
+   addBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6);placed=true;
+  }
+  /* SD983: 중점 부근 공수 원 + 밴드 */
+  var bw=1.0,bl=Math.min(gongsu*1.05+1,Lm*0.5);
+  var b0x=mx-ux*bl/2,b0y=my-uy*bl/2;
+  S.items.push({t:'pl',lay:'SD983',pts:[[b0x+nx*bw,b0y+ny*bw],[b0x+ux*bl+nx*bw,b0y+uy*bl+ny*bw],[b0x+ux*bl-nx*bw,b0y+uy*bl-ny*bw],[b0x-nx*bw,b0y-ny*bw]],cl:1});
+  for(var ci=0;ci<gongsu&&ci<10;ci++){S.items.push({t:'ci',lay:'SD983',x:b0x+ux*(ci+0.7)*1.05,y:b0y+uy*(ci+0.7)*1.05,r:0.5});}
+ });
+ return {SH:SH};
+}
+function _pdSer9(items){/* 장면 items → DXF 엔티티 문자열 (핸들은 이 시점 발급) */
+ var e='';for(var i=0;i<items.length;i++){var it=items[i];
+  if(it.t==='pl')e+=_pdPL(it.lay,it.pts,it.cl?true:false);
+  else if(it.t==='ins')e+=_pdIns(it.lay,it.name,it.x,it.y);
+  else if(it.t==='tx')e+=_pdText(it.lay,it.x,it.y,it.h,it.s,it.rot);
+  else if(it.t==='ci')e+=_pdCirc(it.lay,it.x,it.y,it.r);}
+ return e;}
+function posExportDxf(){
+ if(typeof JSZip==='undefined'){toast('압축 모듈 없음 — 새로고침(Ctrl+Shift+R)');return;}
+ var sc=posScene9();
+ if(!sc){toast('통신관로 없음 — 정위치 대상 데이터를 확인하세요');return;}
+ toast('정위치 DXF 생성 중…');
  fetch('dxf/tpl_pos_legend.dxf?v='+Date.now()).then(function(r){return r.text();}).then(function(tpl){
  try{
-  /* \ud45c\uace0 \ub9f5 (finalCsv \uc7ac\ud30c\uc2f1: \uc774\ub984\u2192Z\ub808\ubca8) */
-  var elev={};
-  try{(state.finalCsv||[]).forEach(function(fc){var rows=(fc.text||'').replace(/\r/g,'').split('\n');if(!rows.length)return;var head=splitCsvLine(rows[0]).map(function(s){return s.trim();});function col(){for(var a=0;a<arguments.length;a++){var ii=head.indexOf(arguments[a]);if(ii>=0)return ii;}return -1;}var ciN=col('\uc774\ub984','\ubc88\ud638'),ciZ=col('Z(\ub808\ubca8)','Z','z');if(ciN<0||ciZ<0)return;for(var r9=1;r9<rows.length;r9++){var f=splitCsvLine(rows[r9]);var nm=(f[ciN]||'').trim(),zv=parseFloat(f[ciZ]);if(nm&&!isNaN(zv))elev[nm]=zv;}});}catch(_ee){}
-  /* \ud604\ud669\uc120 \uc138\uadf8\uba3c\ud2b8 (\uc774\uaca9\uac70\ub9ac \uae30\uc900) */
-  var hyun=[];(state.lines||[]).forEach(function(l){if(l.layer===TL||!l.pts)return;for(var i=0;i<l.pts.length-1;i++)hyun.push([l.pts[i],l.pts[i+1]]);});
-  function distSeg(px,py,a,b){var vx=b[0]-a[0],vy=b[1]-a[1],L2=vx*vx+vy*vy;if(!L2)return Math.hypot(px-a[0],py-a[1]);var t=Math.max(0,Math.min(1,((px-a[0])*vx+(py-a[1])*vy)/L2));return Math.hypot(px-(a[0]+t*vx),py-(a[1]+t*vy));}
-  function hyunDist(px,py){var bd=null;for(var i=0;i<hyun.length;i++){var d=distSeg(px,py,hyun[i][0],hyun[i][1]);if(bd==null||d<bd)bd=d;}return bd;}
-  /* \uce21\uc810 \ub9e4\uce6d: \uad00\ub85c \uc815\uc810 \u2194 state.points (0.3m) */
-  function ptAt(x,y){var ps=state.points||[];for(var i=0;i<ps.length;i++){if(Math.abs(ps[i].x-x)<0.3&&Math.abs(ps[i].y-y)<0.3)return ps[i];}return null;}
-  function mhAt(x,y){var ms=state.manholes||[];for(var i=0;i<ms.length;i++){if(ms[i].wx!=null&&Math.abs(ms[i].wx-x)<0.6&&Math.abs(ms[i].wy-y)<0.6)return ms[i];}return null;}
-  /* \uc81c\uc6d0 \uacf5\ud1b5\uac12 */
-  var tb=state.titleBlock||{};var yy=(function(){var d=(state.bizInfo&&state.bizInfo.date)||'';var m=/20(\d\d)/.exec(d);return m?('20'+m[1]):(''+(new Date()).getFullYear());})();
-  var outer=(tb.outer||'FC(\uFFE0100)');var om=/([A-Za-z]+)\D*(\d+)/.exec(outer)||[];var oKind=om[1]||'FC',oDia=om[2]||'100';
-  var gy=parseInt(tb.gyeol,10)||1,gd=parseInt(tb.gdan,10)||1;var gongsu=gy*gd;
-  var naeg=0;try{var tm=state.tangoManual||{};for(var k in tm){if(tm[k]&&tm[k].naegwan){naeg=parseInt(tm[k].naegwan,10)||0;break;}}}catch(_n){}
-  /* \ub3c4\uc5fd \ubc84\ud0b7 */
-  var SH={};function shget(x,y){var c=_posSheetOf(x,y);if(!c)return null;if(!SH[c.no])SH[c.no]={cell:c,ent:'',boxes:[]};return SH[c.no];}
-  function addBox(S,x0,y0,x1,y1){S.boxes.push([Math.min(x0,x1),Math.min(y0,y1),Math.max(x0,x1),Math.max(y0,y1)]);}
-  function hitBox(S,x0,y0,x1,y1){var a=[Math.min(x0,x1),Math.min(y0,y1),Math.max(x0,x1),Math.max(y0,y1)];for(var i=0;i<S.boxes.length;i++){var b=S.boxes[i];if(a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1])return true;}return false;}
-  /* 1) \uad00\ub85c SD001 \u2014 \uc138\uadf8\uba3c\ud2b8 \uc911\uc810 \ub3c4\uc5fd \ubc30\uc815 */
-  pipes.forEach(function(l){var cur=null,buf=[];
-   function flush(){if(cur&&buf.length>=2)cur.ent+=_pdPL('SD001',buf,false);buf=[];}
-   for(var i=0;i<l.pts.length-1;i++){var a=l.pts[i],b=l.pts[i+1];var S=shget((a[0]+b[0])/2,(a[1]+b[1])/2);if(!S)continue;
-    if(S!==cur){flush();cur=S;buf=[a.slice(0,2)];}
-    buf.push(b.slice(0,2));}
-   flush();});
-  /* 2) \uce21\uc810 SD901+\uad00\uc0c1\uace0+\uc2ec\ub3c4+\uc774\uaca9 */
-  var donePt={};
-  pipes.forEach(function(l){for(var i=0;i<l.pts.length;i++){var x=l.pts[i][0],y=l.pts[i][1];var key=x.toFixed(1)+','+y.toFixed(1);if(donePt[key])continue;donePt[key]=1;
-   var p=ptAt(x,y);if(!p)continue;var S=shget(x,y);if(!S)continue;
-   if(mhAt(x,y))continue;
-   S.ent+=_pdIns('SD901','SD901',x,y);
-   var z=(p.z!=null)?p.z:null;
-   var gz=(p._nm&&elev[p._nm]!=null)?elev[p._nm]:null;
-   if(gz!=null&&z!=null)S.ent+=_pdText('SD_\uad00\uc0c1\uace0',x+0.3,y-0.9,0.5,(gz-z).toFixed(3));
-   if(z!=null)S.ent+=_pdText('SDSIM_T',x+0.3,y+0.4,1.0,z.toFixed(1));
-   /* \uc774\uaca9(\uc2ec\ub3c4): \uad00\ub85c \uc9c1\uac01 \ud2f1 + \ud68c\uc804 \ud14d\uc2a4\ud2b8 */
-   var hd=hyun.length?hyunDist(x,y):null;
-   if(hd!=null&&hd>=0.3&&hd<=30&&z!=null){
-    var j=(i<l.pts.length-1)?i+1:i-1;var dx9=l.pts[j][0]-x,dy9=l.pts[j][1]-y;var L9=Math.hypot(dx9,dy9)||1;var nx=-dy9/L9,ny=dx9/L9;
-    S.ent+=_pdPL('SDDIM',[[x,y],[x+nx*1.4,y+ny*1.4]],false);
-    var rot=Math.atan2(ny,nx)*180/Math.PI;
-    S.ent+=_pdText('SDDIM1',x+nx*0.3-ny*0.35,y+ny*0.3+nx*0.35,1.0,hd.toFixed(1),rot);
-    S.ent+=_pdText('SDDIM1',x+nx*1.8-ny*0.35,y+ny*1.8+nx*0.35,1.0,'('+z.toFixed(1)+')',rot);
-   }
-  }});
-  /* 3) \ub9e8\ud640 SD100 + SD219 \uc2dc\uc124\ubb3c\ubc88\ud638 */
-  (state.manholes||[]).forEach(function(m){if(m.wx==null)return;var S=shget(m.wx,m.wy);if(!S)return;
-   var isR=(m.type==='riser');
-   S.ent+=_pdIns(isR?'SD300':'SD100',isR?'SD300':'SD100',m.wx,m.wy);
-   var lb=(m.label||'').replace(/\s+/g,'');if(lb){
-    var tx=m.wx+1.5,ty=m.wy+1.5,w=lb.length*1.0;
-    if(hitBox(S,tx,ty,tx+w,ty+1.2)){ty=m.wy-2.7;}
-    S.ent+=_pdText('SD219',tx,ty,1.0,lb);addBox(S,tx,ty,tx+w,ty+1.2);}
-  });
-  /* 4) \uad6c\uac04 \uc81c\uc6d0 SD911 \uc778\ucd9c\uc120 + SD910 + SD983 \uacf5\uc218 */
-  pipes.forEach(function(l){
-   var pts=l.pts;var Lm=0;for(var i=0;i<pts.length-1;i++)Lm+=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);
-   if(Lm<1)return;
-   var zs=[];pts.forEach(function(pt){var p=ptAt(pt[0],pt[1]);if(p&&p.z!=null&&!mhAt(pt[0],pt[1]))zs.push(p.z);});
-   var Dv=zs.length?(zs.reduce(function(a,b){return a+b;},0)/zs.length):null;
-   /* \uc911\uc810 */
-   var half=Lm/2,acc=0,mi=0,mt=0;
-   for(var i=0;i<pts.length-1;i++){var sl=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);if(acc+sl>=half){mi=i;mt=(half-acc)/sl;break;}acc+=sl;}
-   var mx=pts[mi][0]+(pts[mi+1][0]-pts[mi][0])*mt,my=pts[mi][1]+(pts[mi+1][1]-pts[mi][1])*mt;
-   var S=shget(mx,my);if(!S)return;
-   var dx9=pts[mi+1][0]-pts[mi][0],dy9=pts[mi+1][1]-pts[mi][1];var L9=Math.hypot(dx9,dy9)||1;var ux=dx9/L9,uy=dy9/L9,nx=-uy,ny=ux;
-   var spec=yy+'/'+oKind+'/%%C'+oDia+'x'+gongsu+'('+naeg+')/L'+Lm.toFixed(1)+'/D'+(Dv!=null?Dv.toFixed(1):'-');
-   var tw=spec.length*0.72;
-   var placed=false;
-   var offs=[7,11,15,19];var sides=[1,-1];
-   for(var oi=0;oi<offs.length&&!placed;oi++)for(var si=0;si<2&&!placed;si++){
-    var sgn=sides[si];var ex=mx+nx*offs[oi]*sgn,ey=my+ny*offs[oi]*sgn;
-    var hx=(nx*sgn>=0)?1:-1;
-    var tx0=ex,tx1=ex+hx*(tw+2);
-    if(hitBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6))continue;
-    S.ent+=_pdPL('SD911',[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],false);
-    S.ent+=_pdText('SD910',(hx>0?ex+1:ex+hx*(tw+1)),ey+0.4,1.0,spec);
-    addBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6);placed=true;
-   }
-   /* SD983: \uc911\uc810 \ubd80\uadfc \uacf5\uc218 \uc6d0 + \ubc34\ub4dc */
-   var bw=1.0,bl=Math.min(gongsu*1.05+1,Lm*0.5);
-   var b0x=mx-ux*bl/2,b0y=my-uy*bl/2;
-   S.ent+=_pdPL('SD983',[[b0x+nx*bw,b0y+ny*bw],[b0x+ux*bl+nx*bw,b0y+uy*bl+ny*bw],[b0x+ux*bl-nx*bw,b0y+uy*bl-ny*bw],[b0x-nx*bw,b0y-ny*bw]],true);
-   for(var ci=0;ci<gongsu&&ci<10;ci++){S.ent+=_pdCirc('SD983',b0x+ux*(ci+0.7)*1.05,b0y+uy*(ci+0.7)*1.05,0.5);}
-  });
-  /* 5) \ub3c4\uc5fd\ubcc4 TITLE \ub3c4\uacfd+\uc88c\ud45c\uc8fc\uae30+\uc0ac\uc5c5\uba85+\ubc94\ub840 \u2192 ZIP */
+  var SH=sc.SH;
+  /* 도엽별 TITLE 도곽+좌표주기+사업명+범례 → ZIP */
   var zip=new JSZip();var nsh=0;
-  var pj=(state.projectName||'\uc0ac\uc5c5').replace(/_P\d*$/,'');
+  var pj=(state.projectName||'사업').replace(/_P\d*$/,'');
   Object.keys(SH).forEach(function(no){var S=SH[no];var c=S.cell;
    var p1=_posFromLL(c.latN,c.lngW),p2=_posFromLL(c.latN,c.lngE),p3=_posFromLL(c.latS,c.lngE),p4=_posFromLL(c.latS,c.lngW);
    if(!p1)return;
-   var ent=S.ent;
+   var ent=_pdSer9(S.items);
    ent+=_pdPL('TITLE',[[p1.x,p1.y],[p2.x,p2.y],[p3.x,p3.y],[p4.x,p4.y]],true);
    [[p1,'NW'],[p2,'NE'],[p3,'SE'],[p4,'SW']].forEach(function(cp){var P=cp[0];
     ent+=_pdText('H0010601',P.x-8,P.y+((cp[1]==='NW'||cp[1]==='NE')?1.5:-3.5),2.0,P.y.toFixed(2));
     ent+=_pdText('H0010601',P.x+1.0,P.y+((cp[1]==='NW'||cp[1]==='NE')?4.0:-6.0),2.0,P.x.toFixed(2));});
    ent+=_pdText('TITLE',(p1.x+p2.x)/2-60,p1.y+12,10,pj);
    ent+=_pdText('TITLE',p4.x+4,p4.y-14,7,'S=1:1000');
-   ent+=_pdText('TITLE',p4.x+4,p4.y-24,3,'\ub3c4\uc5fd\ubc88\ud638 : '+no);
-   /* \ubc94\ub840: \uc6d0\ubcf8(195599,493337~) \u2192 \ub3c4\uacfd \uc6b0\uce21 */
+   ent+=_pdText('TITLE',p4.x+4,p4.y-24,3,'도엽번호 : '+no);
+   /* 범례: 원본(195599,493337~) → 도곽 우측 */
    var LGX0=195598.9,LGY0=493336.5;
    var dx=p2.x+15-LGX0, dy=p3.y-LGY0;
    var body=_posShiftEntities(tpl,dx,dy);
-   /* \uc6b0\ub9ac \uc5d4\ud2f0\ud2f0\ub97c ENTITIES ENDSEC \uc9c1\uc804 \uc0bd\uc785 */
+   /* 우리 엔티티를 ENTITIES ENDSEC 직전 삽입 */
    var mkI=body.lastIndexOf('\r\n  0\r\nENDSEC\r\n  0\r\nEOF');
    var ei=body.indexOf('\r\nENTITIES\r\n');
    var endI=body.indexOf('\r\n  0\r\nENDSEC',ei);
    var out=body.slice(0,endI)+'\r\n'+ent.replace(/\r\n$/,'')+body.slice(endI);
    out=out.replace(/(\$HANDSEED\r\n  5\r\n)[0-9A-Fa-f]+/,function(_m,_g){return _g+(_pdH+0x1000).toString(16).toUpperCase();});zip.file(no+'.dxf',out);nsh++;
   });
-  if(!nsh){toast('\ub3c4\uc5fd \ubc30\uc815 \uc2e4\ud328 \u2014 proj4 \ub85c\ub4dc \ud655\uc778');return;}
-  zip.generateAsync({type:'blob'}).then(function(b){var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=pj+'_\uc815\uc704\uce58_'+nsh+'\ub3c4\uc5fd.zip';a.click();toast('\uc815\uc704\uce58 DXF '+nsh+'\uac1c \ub3c4\uc5fd \uc644\ub8cc');});
- }catch(err){console.error('[posExport]',err);toast('\uc815\uc704\uce58 \uc0dd\uc131 \uc624\ub958: '+err.message);}
+  if(!nsh){toast('도엽 배정 실패 — proj4 로드 확인');return;}
+  zip.generateAsync({type:'blob'}).then(function(b){var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=pj+'_정위치_'+nsh+'도엽.zip';a.click();toast('정위치 DXF '+nsh+'개 도엽 완료');});
+ }catch(err){console.error('[posExport]',err);toast('정위치 생성 오류: '+err.message);}
  });}
+/* ===== [BUILD2201] SD 성과 미리보기 렌더러 — 3단 토글(OFF→오버레이→SD전용) ===== */
+var gSD9=null;window._sdPrev9=0;window._sdCache9=null;
+function _sdG9(){if(!gSD9){gSD9=document.createElementNS(SVGNS,'g');gSD9.setAttribute('id','sdPrev9');gSD9.setAttribute('pointer-events','none');cv.appendChild(gSD9);}if(gSD9.parentNode!==cv)cv.appendChild(gSD9);return gSD9;}
+var _SD_COL9={'SD001':'#00a33e','SD901':'#00a33e','SD_관상고':'#00a33e','SDSIM_T':'#8a8a8a','SDDIM':'#00a6b8','SDDIM1':'#00a6b8'};
+function _sdCol9(l){return _SD_COL9[l]||'#111';}
+function _sdDrawSym9(g,name,x,y){/* 블록 심볼 — tpl_pos_legend.dxf 실측 기하 재현 */
+ var c=S(x,y),cx=c[0],cy=c[1];
+ if(name==='SD901'){var cl=_sdCol9('SD901');
+  g.appendChild(el('line',{x1:cx-0.1875,y1:cy-0.1875,x2:cx+0.1875,y2:cy+0.1875,stroke:cl,'stroke-width':0.06,'pointer-events':'none'}));
+  g.appendChild(el('line',{x1:cx-0.1875,y1:cy+0.1875,x2:cx+0.1875,y2:cy-0.1875,stroke:cl,'stroke-width':0.06,'pointer-events':'none'}));
+ }else if(name==='SD100'){
+  g.appendChild(el('circle',{cx:cx,cy:cy,r:0.504,fill:'none',stroke:'#111','stroke-width':0.07,'pointer-events':'none'}));
+  g.appendChild(el('circle',{cx:cx,cy:cy,r:0.7505,fill:'none',stroke:'#111','stroke-width':0.07,'pointer-events':'none'}));
+ }else if(name==='SD300'){
+  g.appendChild(el('circle',{cx:cx,cy:cy,r:0.7505,fill:'none',stroke:'#111','stroke-width':0.07,'pointer-events':'none'}));
+  var r=0.504,a1=91.386*Math.PI/180,a2=268.614*Math.PI/180;
+  var s1=S(x+r*Math.cos(a1),y+r*Math.sin(a1)),s2=S(x+r*Math.cos(a2),y+r*Math.sin(a2));
+  g.appendChild(el('path',{d:'M'+s1[0]+' '+s1[1]+' A'+r+' '+r+' 0 0 1 '+s2[0]+' '+s2[1],fill:'none',stroke:'#111','stroke-width':0.07,'pointer-events':'none'}));
+ }else{
+  g.appendChild(el('circle',{cx:cx,cy:cy,r:0.4,fill:'none',stroke:'#111','stroke-width':0.07,'pointer-events':'none'}));
+ }
+}
+function _sdDrawItem9(g,it){
+ var col=_sdCol9(it.lay);
+ if(it.t==='pl'){
+  var ps='';for(var i=0;i<it.pts.length;i++){var sc=S(it.pts[i][0],it.pts[i][1]);ps+=(i?' ':'')+sc[0].toFixed(3)+','+sc[1].toFixed(3);}
+  g.appendChild(el(it.cl?'polygon':'polyline',{points:ps,fill:'none',stroke:col,'stroke-width':(it.lay==='SD001'?0.15:0.08),'pointer-events':'none'}));
+ }else if(it.t==='ci'){
+  var c=S(it.x,it.y);g.appendChild(el('circle',{cx:c[0],cy:c[1],r:it.r,fill:'none',stroke:col,'stroke-width':0.07,'pointer-events':'none'}));
+ }else if(it.t==='tx'){
+  var c2=S(it.x,it.y);
+  var tn=el('text',{x:c2[0],y:c2[1],'font-size':(it.h*1.5),fill:col,'text-anchor':'start','pointer-events':'none'});
+  if(it.rot)tn.setAttribute('transform','rotate('+(-it.rot)+' '+c2[0]+' '+c2[1]+')');
+  tn.textContent=String(it.s).replace(/%%C/g,'\u00D8');
+  g.appendChild(tn);
+ }else if(it.t==='ins'){_sdDrawSym9(g,it.name,it.x,it.y);}
+}
+function _sdOnly9(on){/* SD 전용 모드: 기존 렌더 그룹·라벨 오버레이 숨김 */
+ try{
+  ['gJBI','gGeo','gMark','gDraft','gPts','gHyunSym','gHit','gMH','gAnc'].forEach(function(n){var G=window[n];if(G&&G.style)G.style.display=on?'none':'';});
+  if(typeof lblOverlay!=='undefined'&&lblOverlay)lblOverlay.style.display=on?'none':'';
+ }catch(_e){}
+}
+function posDrawSD9(force){
+ if(!(typeof IS_POSITION!=='undefined'&&IS_POSITION))return;
+ var g=_sdG9();
+ if(!window._sdPrev9){g.style.display='none';_sdOnly9(false);return;}
+ var sig='';try{sig=(typeof _posSig9==='function')?_posSig9():'';}catch(_sg){}
+ if(force||!window._sdCache9||window._sdCache9.sig!==sig){
+  var sc=null;try{sc=posScene9();}catch(_er){console.error('[SD미리보기]',_er);}
+  window._sdCache9={sig:sig,sc:sc};g._built9=0;}
+ if(!g._built9){
+  while(g.firstChild)g.removeChild(g.firstChild);
+  var sc2=window._sdCache9.sc;
+  if(sc2){Object.keys(sc2.SH).forEach(function(no){var items=sc2.SH[no].items;for(var i=0;i<items.length;i++)_sdDrawItem9(g,items[i]);});}
+  g._built9=1;}
+ g.style.display='';
+ _sdOnly9(window._sdPrev9===2);
+}
+function posSdToggle9(){
+ window._sdPrev9=((window._sdPrev9||0)+1)%3;
+ var b=document.getElementById('posSD9Btn');
+ if(b){b.textContent=(window._sdPrev9===0?'\uD83D\uDCD0 SD 미리보기':(window._sdPrev9===1?'\uD83D\uDCD0 SD 오버레이':'\uD83D\uDCD0 SD 전용'));
+  b.style.background=(window._sdPrev9===0?'#fff':(window._sdPrev9===1?'#ede9fe':'#6d28d9'));
+  b.style.color=(window._sdPrev9===2?'#fff':'#6d28d9');}
+ posDrawSD9(true);
+ if(window._sdPrev9===1)toast('SD 오버레이 — 결선 위에 성과 겹침');
+ else if(window._sdPrev9===2)toast('SD 전용 — 성과 최종 모습만 표시');
+}
+function _sdAfterDraw9(){/* drawGeo 후 훅 — 미리보기 ON이면 결선 지문 검사 후 재빌드(1초 스로틀) */
+ if(!(typeof IS_POSITION!=='undefined'&&IS_POSITION))return;
+ if(!window._sdPrev9){return;}
+ var g=_sdG9();/* 그룹 최상위 유지 */
+ var now=Date.now();
+ if(window._sdChk9&&now-window._sdChk9<1000)return;
+ window._sdChk9=now;
+ posDrawSD9();
+}
+if(typeof IS_POSITION!=='undefined'&&IS_POSITION){
+ (function(){var _dg0=drawGeo;drawGeo=function(){var r=_dg0.apply(this,arguments);try{_sdAfterDraw9();}catch(_sde){}return r;};})();
+}
+
 
 /* ===== [1441] 결선 측점삭제 v2 — document 캡처 + 화면px 직접 판정 ===== */
 (function(){var _pdOk=((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD));if(!_pdOk)return;/* [1466] field도 등록 */
