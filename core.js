@@ -570,7 +570,7 @@ function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
     try{handle.releasePointerCapture(ev.pointerId);}catch(e){}
     drawGeo();highlightSel();}
   handle.addEventListener('pointerup',up);handle.addEventListener('pointercancel',up);
-  if((((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)))&&!readOnly&&!(typeof LV!=='undefined'&&LV&&LV.tagbox===0)&&nt){nt.style.pointerEvents='auto';nt.style.cursor='move';nt.addEventListener('pointerdown',_pd9);}/* [1501] \ub77c\ubca8 \uae00\uc790 \uc9c1\uc811 \ub4dc\ub798\uadf8(\uce90\ucc98\ub294 \ud578\ub4e4\uc774 \uc774\uc5b4\ubc1b\uc74c) */
+  if((((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)))&&!readOnly&&nt){nt.style.pointerEvents='auto';nt.style.cursor=((typeof LV!=='undefined'&&LV&&LV.tagbox===0)?'pointer':'move');nt.addEventListener('pointerdown',_pd9);nt.addEventListener('dblclick',function(ev){if(!(typeof LV!=='undefined'&&LV&&LV.tagbox===0))return;ev.stopPropagation();ev.preventDefault();openPtEdit(p,ls);});if(ct){ct.style.pointerEvents='auto';ct.style.cursor=nt.style.cursor;ct.addEventListener('dblclick',function(ev){if(!(typeof LV!=='undefined'&&LV&&LV.tagbox===0))return;ev.stopPropagation();ev.preventDefault();openPtEdit(p,ls);});}}/* [BUILD2200] 인출선이동 OFF: 드래그는 _pd9 런타임 게이트가 계속 차단, 더블클릭 편집만 허용(ON일 때는 기존 up() 경로만 — 이중 팝업 방지) *//* [1501] \ub77c\ubca8 \uae00\uc790 \uc9c1\uc811 \ub4dc\ub798\uadf8(\uce90\ucc98\ub294 \ud578\ub4e4\uc774 \uc774\uc5b4\ubc1b\uc74c) */
   gAnc.appendChild(handle);
 }
 function openPtEdit(p,ls){
@@ -2738,14 +2738,14 @@ function exportSurveyCsv(){
   var head='이름,X,Y,Z(레벨),코드';
   var _sv=(typeof STAGE!=='undefined'&&STAGE==='survey');/* [1237] 결선DB만: 보강판 제외·이름=날짜_번호 (타 공정 기존 유지) */
   var _pts=state.points; if(_sv)_pts=_pts.filter(function(p){return !/보강판/.test(''+ptNum(p));});
-  var rows=_pts.map(function(p){
+  var _xr9=[];/* [BUILD2200] 수정표시 엑셀용 원본행 */var rows=_pts.map(function(p){
     var nm=ptNum(p);
     if(_sv){var _dd=(p&&(p._d0||(''+p.no).split('-')[0]))||'';if(/^[0-9]{6}$/.test(_dd))nm=_dd+'_'+nm;}
     else if(typeof STAGE!=='undefined'&&STAGE==='realtime'){var _no9=(''+(p.no||''));var _m9=/^([0-9]{6})-(.+)$/.exec(_no9);if(_m9)nm=_m9[1]+'_'+_m9[2];}/* [BUILD1930] 실시간: 이름=날짜-번호 — 야간보정 반영된 현재 번호 그대로 */
     var X=(p.y!=null&&!isNaN(p.y))?(+p.y).toFixed(3):'';   // CSV X = 앱 p.y (북)
     var Y=(p.x!=null&&!isNaN(p.x))?(+p.x).toFixed(3):'';   // CSV Y = 앱 p.x (동)
     var Z=(p.z!=null&&!isNaN(p.z))?(+p.z).toFixed(3):'';
-    var cd=(p.code||'').trim(); if(/[",]/.test(cd))cd='"'+cd.replace(/"/g,'""')+'"';
+    var _nm0=nm;_xr9.push([nm,(X===''?'':+X),(Y===''?'':+Y),(Z===''?'':+Z),(p.code||'').trim(),!!((state.fldCsvEd9||{})[p.no])]);var cd=(p.code||'').trim(); if(/[",]/.test(cd))cd='"'+cd.replace(/"/g,'""')+'"';
     if(/[",]/.test(nm))nm='"'+nm.replace(/"/g,'""')+'"';
     return [nm,X,Y,Z,cd].join(',');
   });
@@ -2755,6 +2755,17 @@ function exportSurveyCsv(){
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='측설용_'+nm+'.csv';
   document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},150);
   toast('측설용 CSV 내보내기 — '+_pts.length+'점');
+  try{var _en9=Object.keys(state.fldCsvEd9||{}).length;
+  if(_en9&&window.ExcelJS){var _wb9=new ExcelJS.Workbook();var _ws9=_wb9.addWorksheet('측설용');
+    _ws9.addRow(['이름','X','Y','Z(레벨)','코드']);
+    _ws9.getRow(1).font={bold:true};
+    _xr9.forEach(function(r){var _rw=_ws9.addRow([r[0],r[1],r[2],r[3],r[4]]);if(r[5])_rw.eachCell(function(c){c.font={color:{argb:'FFE11111'},bold:true};});});
+    [10,13,13,10,16].forEach(function(w,i){_ws9.getColumn(i+1).width=w;});
+    _wb9.xlsx.writeBuffer().then(function(buf){var _b9=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+      var _a9=document.createElement('a');_a9.href=URL.createObjectURL(_b9);_a9.download='측설용_'+nm+'_수정표시.xlsx';
+      document.body.appendChild(_a9);_a9.click();setTimeout(function(){URL.revokeObjectURL(_a9.href);_a9.remove();},150);
+      toast('확인용 엑셀 동시 저장 — 빨간 행 '+_en9+'건');});
+  }}catch(_xe9){}/* [BUILD2200] CSV는 장비 호환 그대로, 색은 xlsx에만 */
 }
 function startAreaSelect(cb){var wrap=document.querySelector('.canvas-wrap');if(!wrap){cb(null);return;}var ov=document.createElement('div');ov.style.cssText='position:absolute;inset:0;z-index:9999;cursor:crosshair;background:rgba(0,0,0,0.06)';var box=document.createElement('div');box.style.cssText='position:absolute;border:2px dashed #1565c0;background:rgba(21,101,192,0.12);display:none;pointer-events:none';ov.appendChild(box);var hint=document.createElement('div');hint.textContent='\uCD9C\uB825\uD560 \uC601\uC5ED \uB4DC\uB798\uADF8 \u00B7 \uD720=\uD655\uB300/\uCD95\uC18C \u00B7 \uD720\uD074\uB9AD=\uC774\uB3D9 \u00B7 ESC=\uC804\uCCB4';hint.style.cssText='position:absolute;top:8px;left:50%;transform:translateX(-50%);background:#1565c0;color:#fff;padding:6px 12px;border-radius:6px;font-size:13px;pointer-events:none;white-space:nowrap';ov.appendChild(hint);wrap.appendChild(ov);var sx,sy,dg=false,midP=false,mpx,mpy,mvb;function clean(){ov.remove();document.removeEventListener('keydown',ek);}function ek(e){if(e.key==='Escape'){clean();cb('FULL');}}document.addEventListener('keydown',ek);ov.addEventListener('wheel',function(e){e.preventDefault();if(typeof zoomAt==='function'){var _wf=wheelFactor();zoomAt(e.deltaY>0?_wf:1/_wf,e.clientX,e.clientY);}},{passive:false});ov.addEventListener('pointerdown',function(e){if(e.button===1){e.preventDefault();midP=true;mpx=e.clientX;mpy=e.clientY;mvb={x:vb.x,y:vb.y};try{ov.setPointerCapture(e.pointerId);}catch(_){}return;}if(e.button!==0)return;dg=true;var r=wrap.getBoundingClientRect();sx=e.clientX-r.left;sy=e.clientY-r.top;box.style.display='block';box.style.left=sx+'px';box.style.top=sy+'px';box.style.width='0';box.style.height='0';try{ov.setPointerCapture(e.pointerId);}catch(_){}});ov.addEventListener('pointermove',function(e){if(midP){var rc=cv.getBoundingClientRect();vb.x=mvb.x-(e.clientX-mpx)*(vb.w/rc.width);vb.y=mvb.y-(e.clientY-mpy)*(vb.h/rc.height);if(typeof applyVB==='function')applyVB();return;}if(!dg)return;var r=wrap.getBoundingClientRect();var cx=e.clientX-r.left,cy=e.clientY-r.top;var x=Math.min(sx,cx),y=Math.min(sy,cy),w=Math.abs(cx-sx),h=Math.abs(cy-sy);box.style.left=x+'px';box.style.top=y+'px';box.style.width=w+'px';box.style.height=h+'px';});ov.addEventListener('pointerup',function(e){if(midP){midP=false;try{ov.releasePointerCapture(e.pointerId);}catch(_){}return;}if(!dg)return;dg=false;var r=wrap.getBoundingClientRect();var cx=e.clientX-r.left,cy=e.clientY-r.top;var x=Math.min(sx,cx),y=Math.min(sy,cy),w=Math.abs(cx-sx),h=Math.abs(cy-sy);clean();if(w>20&&h>20)cb({x:x,y:y,w:w,h:h});else cb('FULL');});}
 var _nanumB64=null,_PDFREQ=false;
