@@ -8636,17 +8636,22 @@ async function aftPhotoZip(){ /* [1272] 측설(후측량) 사진 ZIP — 날짜 
     toast('측설사진 '+n+'장 ZIP 완료');
   }catch(e){toast('ZIP 실패: '+(e&&e.message||e));}
 }
-function _posModal9(msg,okLb,onOk){/* [BUILD2197] 가운데 커스텀 확인 모달 — 브라우저 confirm 금지 규칙 */
+function _posModal9(msg,okLb,onOk,onCancel){/* [BUILD2226] 공용 확인 모달(uiConfirm9 별칭) — 브라우저 confirm 금지 규칙 */
   var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:99999;display:flex;align-items:center;justify-content:center;';
   var bx=document.createElement('div');bx.style.cssText='background:#fff;border:2px solid #d32f2f;border-radius:10px;padding:18px 22px;max-width:460px;min-width:300px;box-shadow:0 6px 24px rgba(0,0,0,0.25);';
   var tx=document.createElement('div');tx.style.cssText='font-size:15px;line-height:1.6;white-space:pre-line;color:#222;';tx.textContent=msg;bx.appendChild(tx);
   var row=document.createElement('div');row.style.cssText='display:flex;gap:10px;justify-content:center;margin-top:16px;';
-  var ok=document.createElement('button');ok.textContent=okLb||'확인';ok.style.cssText='background:#d32f2f;color:#fff;border:0;border-radius:6px;padding:9px 24px;font-size:15px;font-weight:700;cursor:pointer;';
-  var cc=document.createElement('button');cc.textContent='취소';cc.style.cssText='background:#f2f2f2;border:1px solid #bbb;border-radius:6px;padding:9px 24px;font-size:15px;cursor:pointer;';
-  ok.onclick=function(){try{document.body.removeChild(ov);}catch(_r){}if(typeof onOk==='function')onOk();};
-  cc.onclick=function(){try{document.body.removeChild(ov);}catch(_r){}};
+  var ok=document.createElement('button');ok.textContent=okLb||'확인';ok.style.cssText='background:#d32f2f;color:#fff;border:0;border-radius:6px;padding:9px 24px;font-size:15px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;';
+  var cc=document.createElement('button');cc.textContent='취소';cc.style.cssText='background:#f2f2f2;border:1px solid #bbb;border-radius:6px;padding:9px 24px;font-size:15px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;';
+  var _cls9=function(){try{document.body.removeChild(ov);}catch(_r){}try{document.removeEventListener('keydown',_key9,true);}catch(_k){}};
+  ok.onclick=function(){_cls9();if(typeof onOk==='function')onOk();};
+  cc.onclick=function(){_cls9();if(typeof onCancel==='function')onCancel();};
+  var _key9=function(e){if(e.key==='Enter'){e.preventDefault();ok.onclick();}else if(e.key==='Escape'){e.preventDefault();cc.onclick();}};
+  document.addEventListener('keydown',_key9,true);
   row.appendChild(ok);row.appendChild(cc);bx.appendChild(row);ov.appendChild(bx);document.body.appendChild(ov);
+  try{ok.focus();}catch(_f9){}
 }
+function uiConfirm9(msg,okLb,onOk,onCancel){return _posModal9(msg,okLb,onOk,onCancel);}/* [BUILD2226] 전 공정 공용 확인창 — confirm() 대체 표준 */
 /* ===== [BUILD2198] 정위치 결선 동기화 체계 — 열 때 자동(미작업 시) + 추가수정분 선택 반영 ===== */
 function _posSig9(){try{var s=JSON.stringify({p:state.points||[],l:state.lines||[],m:state.manholes||[],n:state.mnList||[],t:state.tgStore||null,d:state._depthManual||null});var h=5381;for(var i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(i))>>>0;}return h+'-'+s.length;}catch(_e){return null;}}
 function _posFldLatest9(cb){/* 같은 사업명 field 최신 완료본 */
@@ -15414,8 +15419,7 @@ function rtRegToSurvey(scope9){ /* [BUILD2210] scope9={raw,csv,line,ph} 선택 �
     if(rows.length){
       var _doUp9=function(){sb.from("survey_projects").update({name:rows[0].name,payload:payload,updated_at:new Date().toISOString()}).eq('id',rows[0].id).select().then(_fin);};
       if(scope9){_posModal9('결선DB에 이미 "'+rows[0].name+'" 사본이 있습니다.\n체크된 성과만 덮어쓰고 나머지는 보존합니다.','등록',_doUp9);return;}
-      if(!confirm('결선DB에 이미 "'+rows[0].name+'" 사본이 있습니다. 현재 성과로 덮어쓸까요?'))return;
-      _doUp9();
+      _posModal9('결선DB에 이미 "'+rows[0].name+'" 사본이 있습니다.\n현재 성과로 덮어쓸까요?','덮어쓰기',_doUp9);return;/* [BUILD2226] confirm 금지 규칙 */
     }else{
       sb.from("survey_projects").insert({name:base+'_A',payload:payload,updated_at:new Date().toISOString()}).select().then(_fin);
     }
@@ -15543,7 +15547,7 @@ function rtDailyInfo(ymd){
 
 function rtOpenDoneModal(){
   if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
-  if(state.rtDone&&state.rtDone.done){if(confirm('이미 완료된 사업입니다. 완료를 취소할까요?')){state.rtDone=null;saveProject();renderSub();toast('완료 취소됨');}return;}
+  if(state.rtDone&&state.rtDone.done){_posModal9('이미 완료된 사업입니다.\n완료를 취소할까요?','완료 취소',function(){state.rtDone=null;saveProject();renderSub();toast('완료 취소됨');});return;}/* [BUILD2226] confirm 금지 규칙 */
   var old=document.getElementById('rtDoneModal');if(old)old.remove();
   var _mob=(typeof isMobileDevice==='function'&&isMobileDevice());
   var wrap=document.createElement('div');wrap.id='rtDoneModal';
@@ -18903,8 +18907,8 @@ function svRegToField(cb){ /* 결선 성과 → 측량(현장) _B 사본. [1216]
       if(typeof cb==='function')cb(saved.id);
     };
     if(rows.length){
-      if(!confirm('현장에 이미 "'+rows[0].name+'" 사본이 있습니다. 현재 성과로 덮어쓸까요?'))return;
-      sb.from("field_projects").update({name:rows[0].name,payload:payload,updated_at:new Date().toISOString()}).eq('id',rows[0].id).select().then(_fin);
+      var _upF9=function(){sb.from("field_projects").update({name:rows[0].name,payload:payload,updated_at:new Date().toISOString()}).eq('id',rows[0].id).select().then(_fin);};
+      _posModal9('현장에 이미 "'+rows[0].name+'" 사본이 있습니다.\n현재 성과로 덮어쓸까요?','덮어쓰기',_upF9);return;/* [BUILD2226] confirm 금지 규칙 */
     }else{
       sb.from("field_projects").insert({name:base+'_B',payload:payload,updated_at:new Date().toISOString()}).select().then(_fin);
     }
