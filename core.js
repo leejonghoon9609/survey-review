@@ -15277,7 +15277,7 @@ function rtDailyOpen(){ /* [1209] 일일(오늘) 등록 전용 — 빨간 테마
   var old=document.getElementById('rtDailyPop');if(old){old.remove();return;}
   var _fin=(state.rtDone&&state.rtDone.done);
   var pop=document.createElement('div');pop.id='rtDailyPop';
-  pop.style.cssText='position:fixed;left:50%;top:110px;transform:translateX(-50%);z-index:9500;background:#fff;border:2px solid #c0392b;border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.25);width:min(94vw,560px);max-height:76vh;display:flex;flex-direction:column;overflow:hidden';
+  pop.style.cssText='position:fixed;left:50%;top:110px;transform:translateX(-50%);z-index:9500;background:#fff;border:2px solid #c0392b;border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.25);width:min(94vw,630px);max-height:76vh;display:flex;flex-direction:column;overflow:hidden';
   pop.innerHTML='<div id="rtDailyHead" style="display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:grab;user-select:none;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:#c0392b;display:inline-block"></span><b style="font-size:15px">일별 완료성과 등록</b><button type="button" id="rtDailyNightBtn" onclick="rtNightBtnToggle()" onpointerdown="event.stopPropagation()" style="margin-left:10px;border:1.5px solid #4f46e5;border-radius:8px;padding:4px 10px;font-weight:800;font-size:12px;cursor:pointer;background:#fff;color:#4f46e5"></button><input type="time" id="rtDailyNightCut" onpointerdown="event.stopPropagation()" onchange="rtNightCutChange(this.value)" style="margin-left:5px;border:1px solid #c7cbe8;border-radius:7px;padding:3px 5px;font-size:12px;color:#4f46e5;font-weight:700"><span style="font-size:11px;color:#bbb;margin-left:auto">드래그로 이동</span></div>'
     +'<div style="display:flex;gap:8px;align-items:center;padding:10px 14px;border-bottom:1px solid #f6eaea">'
     +'<span style="font-size:11.5px;color:#888;white-space:nowrap">[완료성과(전체)]에 일별로 쌓입니다</span>'
@@ -15413,11 +15413,11 @@ function rtDailyAllOpen(){ /* [1209] 완료성과(전체) — 일별 누적 목�
   if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
   var old=document.getElementById('rtDailyAllPop');if(old){old.remove();return;}
   var pop=document.createElement('div');pop.id='rtDailyAllPop';
-  pop.style.cssText='position:fixed;left:50%;top:100px;transform:translateX(-50%);z-index:9500;background:#fff;border:2px solid #c0392b;border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.25);width:min(94vw,630px);max-height:78vh;display:flex;flex-direction:column;overflow:hidden';
+  pop.style.cssText='position:fixed;left:50%;top:100px;transform:translateX(-50%);z-index:9500;background:#fff;border:2px solid #c0392b;border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.25);width:min(94vw,560px);max-height:78vh;display:flex;flex-direction:column;overflow:hidden';
   var _fin=(state.rtDone&&state.rtDone.done);
   pop.innerHTML='<div id="rtDailyAllHead" style="display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:grab;user-select:none;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:'+(_fin?'#d81b60':'#c0392b')+';display:inline-block"></span><b style="font-size:15px">완료성과 (전체)</b>'+(_fin?'<span style="background:#d81b60;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:800">사업완료</span>':'')+'<span style="font-size:11px;color:#bbb;margin-left:auto">드래그로 이동</span></div>'
     +'<div id="rtDailyBody" style="overflow:auto;padding:10px 14px"></div>'
-    +'<div style="padding:9px 14px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px"><button id="rtDailyRegSel9" style="background:#16a34a;color:#fff;border:0;border-radius:8px;padding:8px 20px;font-weight:800;cursor:pointer">등록</button><button id="rtDailyAllClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:8px 18px;cursor:pointer;font-weight:700">닫기</button></div>';
+    +'<div id="rtdaFoot9" style="padding:9px 14px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px"><button id="rtDailyRegSel9" style="background:#16a34a;color:#fff;border:0;border-radius:8px;padding:8px 20px;font-weight:800;cursor:pointer">등록</button><button id="rtDailyAllClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:8px 18px;cursor:pointer;font-weight:700">닫기</button></div>';
   document.body.appendChild(pop);
   document.getElementById('rtDailyAllClose').onclick=function(){pop.remove();};
   var _rs9=document.getElementById('rtDailyRegSel9');if(_rs9)_rs9.onclick=function(){if(typeof rtRegSelScope9==='function')rtRegSelScope9();};/* [BUILD2210] */
@@ -15447,10 +15447,11 @@ function rtDoneAllRender9(){/* [BUILD2212] 완료성과(전체) — 통계=일�
   +'<td style="padding:'+Pd+';'+VL+'"><div style="font-weight:800;font-size:'+Nf+'px;color:#233">'+name+'</div><div style="font-size:'+If+'px;color:#667;margin-top:2px;line-height:1.35">'+info+'</div></td>'
   +'<td style="text-align:center;white-space:nowrap;font-size:'+Cf+'px;'+VL+'">'+cnt+'</td>'
   +'<td style="text-align:center;padding:6px 3px"><button class="'+cls+'" '+(on?'':'disabled ')+'style="'+bs+';border-radius:7px;padding:'+(ph9?'5px':'6px')+' 0;width:'+Zw+'px;font-weight:800;font-size:'+Zf+'px;display:inline-flex;align-items:center;justify-content:center;margin:0 auto;cursor:'+(on?'pointer':'default')+'">'+btn+'</button></td></tr>';}
- var h='<div style="display:flex;align-items:center;gap:10px;padding:2px 2px 9px">'
+ var WB9=(ph9?'width:100%':'width:500px;max-width:100%;margin:0 auto');/* [BUILD2217] 표와 동일 폭 */
+ var h='<div style="display:flex;align-items:center;gap:10px;padding:2px 0 9px;'+WB9+'">'
   +'<div style="font-size:12.5px;color:'+G1+';font-weight:800">거리 합계 <span style="color:#0f6e56">'+(+tot.toFixed(1))+'m</span> · 측점 '+np+'개 · 결선 '+seg+'개 · '+dayN+'일치<span style="color:#98a1ad;font-weight:600;font-size:11px"> (등록분)</span></div>'
   +'<button id="rtdaToSv9" style="margin-left:auto;'+(state.rtToSvDone9?'background:#c0392b;border:1.5px solid #c0392b;color:#fff':'background:#fff;border:1.5px solid #c0392b;color:#c0392b')+';border-radius:8px;padding:7px 14px;font-weight:800;font-size:12.5px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer">결선DB로 등록</button></div>'/* [BUILD2213] 등록 시 빨강 점등 */
-  +'<table style="'+(ph9?'width:100%':'width:500px;max-width:100%;margin:0 auto')+';border-collapse:collapse;font-size:13px;border:1.5px solid '+G2+';table-layout:fixed">'/* [BUILD2216] PC 성과·내용 폭 축소 */
+  +'<table style="'+WB9+';border-collapse:collapse;font-size:13px;border:1.5px solid '+G2+';table-layout:fixed">'/* [BUILD2216] PC 성과·내용 폭 축소 */
   +(ph9?'<colgroup><col style="width:26px"><col><col style="width:58px"><col style="width:54px"></colgroup>':'<colgroup><col style="width:30px"><col style="width:300px"><col style="width:96px"><col style="width:74px"></colgroup>')
   +'<thead><tr style="background:'+G3+';color:'+G1+'">'
   +'<th style="padding:7px 4px;border-bottom:1.5px solid '+G2+';'+VL+'"><input type="checkbox" id="rtdaChkAll9" checked title="전체 선택/해제" style="width:15px;height:15px;cursor:pointer;vertical-align:middle"></th>'
@@ -15464,6 +15465,7 @@ function rtDoneAllRender9(){/* [BUILD2212] 완료성과(전체) — 통계=일�
   +row('ph','노출관로사진', phN?(phN+'장'):'-', '전체 사진 ZIP — 날짜별 폴더','ZIP','rtdaPh9',phN>0)
   +'</tbody></table>';
  el.innerHTML=h;
+ try{var _ft9=document.getElementById('rtdaFoot9');if(_ft9){_ft9.style.width=ph9?'':'500px';_ft9.style.maxWidth='100%';_ft9.style.margin=ph9?'':'0 auto';_ft9.style.paddingLeft=ph9?'14px':'0';_ft9.style.paddingRight=ph9?'14px':'0';}}catch(_f9){}/* [BUILD2217] 하단 버튼줄 표 폭 동기 */
  var b;
  b=el.querySelector('.rtdaRaw9');if(b&&!b.disabled)b.onclick=function(){if(typeof rtRawAllZip9==='function')rtRawAllZip9();};
  b=el.querySelector('.rtdaCsv9');if(b&&!b.disabled)b.onclick=function(){if(typeof rtDailyCsv==='function')rtDailyCsv(null,true);};
