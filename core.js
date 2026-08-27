@@ -15762,11 +15762,11 @@ function rtRawMetaRestore9(){/* [BUILD2190] \uc6d0\uc2dc \ubcf4\uad00 \uba54\ud0
     });
   }catch(_e){}
 }
-function rtRawAllZip9(){ /* [BUILD2096] 원시 통합 — 한 번만 압축: 날짜/등록명/원본내용 폴더로 전개 */
-  var M=(typeof state!=='undefined'&&state.rtRawMeta9)||{};var keys=Object.keys(M).filter(function(k){return !(M[k]&&M[k].dup);}).sort();/* [BUILD2111] 중복 제외 */
+function rtRawAllZip9(_m9,_pid9,_nm9){ /* [BUILD2220] 원격 인자(meta,pid,name) 지원 — 무인자=현재 사업 기존 동작 */ /* [BUILD2096] 원시 통합 — 한 번만 압축: 날짜/등록명/원본내용 폴더로 전개 */
+  var M=_m9||(typeof state!=='undefined'&&state.rtRawMeta9)||{};var PID9=_pid9||(typeof state!=='undefined'&&state.projectId);var PNM9=_nm9||(typeof state!=='undefined'&&state.projectName)||'사업';var keys=Object.keys(M).filter(function(k){return !(M[k]&&M[k].dup);}).sort();/* [BUILD2111] 중복 제외 */
   if(!keys.length){toast('보관된 원시 ZIP이 없습니다 — 원시 ZIP으로 업로드한 날짜만 포함됩니다');return;}
   if(typeof JSZip==='undefined'){toast('압축 모듈 없음 — 새로고침(Ctrl+Shift+R)');return;}
-  if(typeof sb==='undefined'||!state.projectId){toast('사업이 저장되어 있어야 합니다');return;}
+  if(typeof sb==='undefined'||!PID9){toast('사업이 저장되어 있어야 합니다');return;}
   toast('원시 성과 '+keys.length+'일치 수집 중…');
   var out=new JSZip(),i=0,ok=0,fail=0;
   (function nx(){
@@ -15774,13 +15774,13 @@ function rtRawAllZip9(){ /* [BUILD2096] 원시 통합 — 한 번만 압축: 날
       if(!ok){toast('받은 원시가 없습니다 ('+fail+'일 실패)');return;}
       out.generateAsync({type:'blob'}).then(function(b){
         var a=document.createElement('a');a.href=URL.createObjectURL(b);
-        a.download=((state.projectName||'사업')+'_원시성과통합.zip').replace(/[\\/:*?"<>|]/g,'_');
+        a.download=((PNM9||'사업')+'_원시성과통합.zip').replace(/[\\/:*?"<>|]/g,'_');
         document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},400);
         toast('✓ 원시성과통합.zip — '+ok+'일 (날짜/등록명 폴더)'+(fail?(' · 실패 '+fail):''),4500);
       });return;
     }
     var kk=keys[i++];
-    var url=sb.storage.from('photos').getPublicUrl(state.projectId+'/raw_'+kk+'.zip').data.publicUrl+'?t='+Date.now();
+    var url=sb.storage.from('photos').getPublicUrl(PID9+'/raw_'+kk+'.zip').data.publicUrl+'?t='+Date.now();
     fetch(url).then(function(r){if(!r.ok)throw 0;return r.blob();})
     .then(function(b){return JSZip.loadAsync(b);})
     .then(function(src){
@@ -18556,6 +18556,23 @@ function svDailyTable(container,points,lines,rtDaily,projName,phByDate){
   }catch(_az3){}
 }
 function svPhotosByDate(rows){ var m={}; (rows||[]).forEach(function(r){var no=String(r.point_no||'');var d=no.split('-')[0];if(!/^[0-9]{6}$/.test(d))return;(m[d]=m[d]||[]).push({no:no,url:r.url});}); return m; }
+function svRtDxfFromPayload9(pl,nm){/* [BUILD2220] 원격 payload 임시 주입 → 결선 DXF 사본 (state 스왝 패턴) */
+ if(typeof exportDXF!=='function'){toast('DXF 모듈 없음');return;}
+ var K=['points','lines','manholes','baseTexts','depthCheck','bpzones','roadZones','tgNotes','tangoEdit','tangoManual','tamsa','hyunPts','projectName','_pointsOrig','_depthByNo','_depthOrig','depthGround','_depthManual'];
+ var bk={};K.forEach(function(k){bk[k]=state[k];});
+ try{
+  state.points=pl.points||[];state.lines=pl.lines||[];state.manholes=pl.manholes||[];state.baseTexts=pl.baseTexts||[];
+  state.depthCheck=pl.depthCheck||[];state.bpzones=pl.bpzones||[];state.roadZones=pl.roadZones||[];state.tgNotes=pl.tgNotes||null;
+  state.tangoEdit=pl.tangoEdit||null;state.tangoManual=pl.tangoManual||null;state.tamsa=!!pl.tamsa;state.hyunPts=pl.hyunPts||null;
+  state._pointsOrig=null;state._depthOrig=null;state._depthByNo={};
+  state.depthGround=pl.depthGround||null;state._depthManual=pl.depthManual||null;
+  try{if(typeof computeDepth==='function')computeDepth();}catch(_cd9){}
+  state.projectName=(nm||'실시간성과')+'_사본';
+  exportDXF();
+  toast('결선 DXF 사본 생성 — 실시간 성과 기준');
+ }catch(_e9){toast('DXF 생성 오류: '+((_e9&&_e9.message)||_e9));}
+ finally{K.forEach(function(k){state[k]=bk[k];});try{if(typeof computeDepth==='function')computeDepth();}catch(_r9){}}
+}
 function svRtDoneTable9(el,pl,projName,pid,photoRows){/* [BUILD2219] 실시간 최종완료성과 — 성과물 통합 표(붉은 계열) */
  if(!el)return;
  var pts=pl.points||[],lns=pl.lines||[];
@@ -18583,13 +18600,20 @@ function svRtDoneTable9(el,pl,projName,pid,photoRows){/* [BUILD2219] 실시간 �
   +'<th style="padding:7px 4px;border-bottom:1.5px solid '+R2+';text-align:center;'+VL+'">성과 · 내용</th>'
   +'<th style="border-bottom:1.5px solid '+R2+';text-align:center;font-size:'+Cf+'px;'+VL+'">'+(ph9?'건수':'파일 건수')+'</th>'
   +'<th style="border-bottom:1.5px solid '+R2+';text-align:center;font-size:'+Cf+'px">다운</th></tr></thead><tbody>'
-  +row('원시데이터(노출관로)', rawN?(rawN+'건'+(dupN?' <span style="color:#c0392b;font-size:11px">(중복 '+dupN+')</span>':'')):'-', '실시간측량 원시 ZIP — 실시간 화면에서 받으세요','ZIP','svrtRaw9',false)
+  +row('원시데이터(노출관로)', rawN?(rawN+'건'+(dupN?' <span style="color:#c0392b;font-size:11px">(중복 '+dupN+')</span>':'')):'-', '실시간 원시 ZIP 통합 — 원본 그대로','ZIP','svrtRaw9',rawN>0)
   +row('CSV(노출관로)', np?'통합 1건':'-', '측점 '+np+'개 · '+dayN+'일치 · 통합 측설용 CSV','CSV','svrtCsv9',np>0)
-  +row('결선(노출관로)', seg?'DXF 1건':'-', '거리 '+(+tot.toFixed(1))+'m · 결선 '+seg+'개 — 현재 결선DB 사업에서 [DXF로 내보내기]','DXF','svrtDxf9',false)
+  +row('결선(노출관로)', seg?'DXF 1건':'-', '거리 '+(+tot.toFixed(1))+'m · 결선 '+seg+'개 — 실시간 성과 사본 DXF','DXF','svrtDxf9',(pl.lines||[]).length>0)
   +row('노출관로사진', phN?(phN+'장'):'-', '전체 사진 ZIP — 날짜별 폴더','ZIP','svrtPh9',phN>0)
   +'</tbody></table>';
  el.innerHTML=h;
+ try{var _ft9=document.getElementById('svDailyFoot');
+  if(_ft9){_ft9.style.width=ph9?'':'500px';_ft9.style.maxWidth='100%';_ft9.style.margin=ph9?'':'0 auto';_ft9.style.paddingLeft=ph9?'14px':'0';_ft9.style.paddingRight=ph9?'14px':'0';}
+  var _pop9=document.getElementById('svDailyPop');
+  if(_pop9&&!ph9)_pop9.style.width='min(94vw,560px)';
+ }catch(_h9){}/* [BUILD2220] 창·푸터 폭을 표에 맞춤 */
  var b;
+ b=el.querySelector('.svrtRaw9');if(b&&!b.disabled)b.onclick=function(){if(typeof rtRawAllZip9==='function')rtRawAllZip9(RM,pid,projName);};/* [BUILD2220] 원격 원시 그대로 */
+ b=el.querySelector('.svrtDxf9');if(b&&!b.disabled)b.onclick=function(){if(typeof svRtDxfFromPayload9==='function')svRtDxfFromPayload9(pl,projName);};/* [BUILD2220] 결선 DXF 사본 */
  b=el.querySelector('.svrtCsv9');if(b&&!b.disabled)b.onclick=function(){var _p=pts.filter(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);return d0&&regD[d0];});if(typeof _fldCsvFromPoints==='function')_fldCsvFromPoints(_p,projName);};
  b=el.querySelector('.svrtPh9');if(b&&!b.disabled)b.onclick=function(){if(typeof svPhotoZip==='function')svPhotoZip(phAll,(projName||'사진')+'_전체사진',true);};
 }
