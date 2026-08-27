@@ -18980,6 +18980,14 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
  var hyun=[];(state.lines||[]).forEach(function(l){if(l.layer===TL||!l.pts)return;for(var i=0;i<l.pts.length-1;i++)hyun.push([l.pts[i],l.pts[i+1]]);});
  function distSeg(px,py,a,b){var vx=b[0]-a[0],vy=b[1]-a[1],L2=vx*vx+vy*vy;if(!L2)return Math.hypot(px-a[0],py-a[1]);var t=Math.max(0,Math.min(1,((px-a[0])*vx+(py-a[1])*vy)/L2));return Math.hypot(px-(a[0]+t*vx),py-(a[1]+t*vy));}
  function hyunDist(px,py){var bd=null;for(var i=0;i<hyun.length;i++){var d=distSeg(px,py,hyun[i][0],hyun[i][1]);if(bd==null||d<bd)bd=d;}return bd;}
+ function hyunFoot(px,py){/* [BUILD2205] 최근접 현황선 수선발 좌표 — 실물: 측점→현황선 실선 */
+  var bd=null,fx=0,fy=0;
+  for(var i=0;i<hyun.length;i++){var a=hyun[i][0],b=hyun[i][1];
+   var vx=b[0]-a[0],vy=b[1]-a[1],L2=vx*vx+vy*vy;if(!L2)continue;
+   var t=Math.max(0,Math.min(1,((px-a[0])*vx+(py-a[1])*vy)/L2));
+   var qx=a[0]+t*vx,qy=a[1]+t*vy;var d=Math.hypot(px-qx,py-qy);
+   if(bd==null||d<bd){bd=d;fx=qx;fy=qy;}}
+  return bd==null?null:{d:bd,fx:fx,fy:fy};}
  /* 측점 매칭: 관로 정점 ↔ state.points (0.3m) */
  function ptAt(x,y){var ps=state.points||[];for(var i=0;i<ps.length;i++){if(Math.abs(ps[i].x-x)<0.3&&Math.abs(ps[i].y-y)<0.3)return ps[i];}return null;}
  function mhAt(x,y){var ms=state.manholes||[];for(var i=0;i<ms.length;i++){if(ms[i].wx!=null&&Math.abs(ms[i].wx-x)<0.6&&Math.abs(ms[i].wy-y)<0.6)return ms[i];}return null;}
@@ -19009,14 +19017,19 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var gz=(p._nm&&elev[p._nm]!=null)?elev[p._nm]:null;
   if(gz!=null&&z!=null)S.items.push({t:'tx',lay:'SD_관상고',x:x+0.3,y:y-0.9,h:0.5,s:(gz-z).toFixed(3)});
   if(z!=null)S.items.push({t:'tx',lay:'SDSIM_T',x:x+0.3,y:y+0.4,h:1.0,s:z.toFixed(1)});
-  /* 이격(심도): 관로 직각 틱 + 회전 텍스트 */
-  var hd=hyun.length?hyunDist(x,y):null;
-  if(hd!=null&&hd>=0.3&&hd<=30&&z!=null){
-   var j=(i<l.pts.length-1)?i+1:i-1;var dx9=l.pts[j][0]-x,dy9=l.pts[j][1]-y;var L9=Math.hypot(dx9,dy9)||1;var nx=-dy9/L9,ny=dx9/L9;
-   S.items.push({t:'pl',lay:'SDDIM',pts:[[x,y],[x+nx*1.4,y+ny*1.4]],cl:0});
-   var rot=Math.atan2(ny,nx)*180/Math.PI;
-   S.items.push({t:'tx',lay:'SDDIM1',x:x+nx*0.3-ny*0.35,y:y+ny*0.3+nx*0.35,h:1.0,s:hd.toFixed(1),rot:rot});
-   S.items.push({t:'tx',lay:'SDDIM1',x:x+nx*1.8-ny*0.35,y:y+ny*1.8+nx*0.35,h:1.0,s:'('+z.toFixed(1)+')',rot:rot});
+  /* [BUILD2205] 이격: 측점→현황선 수선발 실선(실물 규격) + 중앙정렬 텍스트(위 거리/아래 (심도)), 읽기 정규화 회전 */
+  var F9=hyun.length?hyunFoot(x,y):null;
+  if(F9&&F9.d>=0.3&&F9.d<=30&&z!=null){
+   S.items.push({t:'pl',lay:'SDDIM',pts:[[x,y],[F9.fx,F9.fy]],cl:0});
+   var LL9=F9.d,ux9=(F9.fx-x)/LL9,uy9=(F9.fy-y)/LL9;
+   var th9=Math.atan2(uy9,ux9)*180/Math.PI;if(th9<0)th9+=360;
+   var rd9=th9;if(rd9>90&&rd9<=270)rd9=(rd9+180)%360;/* 글자 뒤집힘 방지 */
+   var ra9=rd9*Math.PI/180,rux9=Math.cos(ra9),ruy9=Math.sin(ra9),rnx9=-ruy9,rny9=rux9;
+   var mx9=x+ux9*LL9/2,my9=y+uy9*LL9/2;
+   var ds9=LL9.toFixed(1),zs9='('+z.toFixed(1)+')';
+   var wD9=ds9.length*0.72/2,wZ9=zs9.length*0.72/2;
+   S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wD9+rnx9*0.2,y:my9-ruy9*wD9+rny9*0.2,h:1.0,s:ds9,rot:rd9});
+   S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wZ9-rnx9*1.2,y:my9-ruy9*wZ9-rny9*1.2,h:1.0,s:zs9,rot:rd9});
   }
  }});
  /* 3) 맨홀 SD100 + SD219 시설물번호 */
