@@ -18954,7 +18954,7 @@ function _posSheetOf(x,y){var ll=toLatLng(x,y);if(!ll)return null;return _posCel
 function _pdN(v){return (Math.round(v*1000)/1000).toString();}
 var _pdH=0x200000;function _pdHx(){return (++_pdH).toString(16).toUpperCase();}
 function _pdText(lay,x,y,h,txt,rot){var s='  0\r\nTEXT\r\n  5\r\n'+_pdHx()+'\r\n100\r\nAcDbEntity\r\n  8\r\n'+lay+'\r\n100\r\nAcDbText\r\n 10\r\n'+_pdN(x)+'\r\n 20\r\n'+_pdN(y)+'\r\n 30\r\n0\r\n 40\r\n'+_pdN(h)+'\r\n  1\r\n'+txt+'\r\n';if(rot)s+=' 50\r\n'+_pdN(rot)+'\r\n';s+='100\r\nAcDbText\r\n';return s;}
-function _pdPL(lay,pts,closed){var s='  0\r\nLWPOLYLINE\r\n  5\r\n'+_pdHx()+'\r\n100\r\nAcDbEntity\r\n  8\r\n'+lay+'\r\n100\r\nAcDbPolyline\r\n 90\r\n'+pts.length+'\r\n 70\r\n'+(closed?1:0)+'\r\n';for(var i=0;i<pts.length;i++)s+=' 10\r\n'+_pdN(pts[i][0])+'\r\n 20\r\n'+_pdN(pts[i][1])+'\r\n';return s;}
+function _pdPL(lay,pts,closed,c62){var s='  0\r\nLWPOLYLINE\r\n  5\r\n'+_pdHx()+'\r\n100\r\nAcDbEntity\r\n  8\r\n'+lay+'\r\n'+(c62?(' 62\r\n'+c62+'\r\n'):'')+'100\r\nAcDbPolyline\r\n 90\r\n'+pts.length+'\r\n 70\r\n'+(closed?1:0)+'\r\n';for(var i=0;i<pts.length;i++)s+=' 10\r\n'+_pdN(pts[i][0])+'\r\n 20\r\n'+_pdN(pts[i][1])+'\r\n';return s;}
 function _pdIns(lay,name,x,y){return '  0\r\nINSERT\r\n  5\r\n'+_pdHx()+'\r\n100\r\nAcDbEntity\r\n  8\r\n'+lay+'\r\n100\r\nAcDbBlockReference\r\n  2\r\n'+name+'\r\n 10\r\n'+_pdN(x)+'\r\n 20\r\n'+_pdN(y)+'\r\n 30\r\n0\r\n';}
 function _pdCirc(lay,x,y,r){return '  0\r\nCIRCLE\r\n  5\r\n'+_pdHx()+'\r\n100\r\nAcDbEntity\r\n  8\r\n'+lay+'\r\n100\r\nAcDbCircle\r\n 10\r\n'+_pdN(x)+'\r\n 20\r\n'+_pdN(y)+'\r\n 30\r\n0\r\n 40\r\n'+_pdN(r)+'\r\n';}
 function _posShiftEntities(tpl,dx,dy){
@@ -19059,14 +19059,14 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   S.items.push({t:'pl',lay:'SD983',pts:[[b0x+nx*bw,b0y+ny*bw],[b0x+ux*bl+nx*bw,b0y+uy*bl+ny*bw],[b0x+ux*bl-nx*bw,b0y+uy*bl-ny*bw],[b0x-nx*bw,b0y-ny*bw]],cl:1});
   for(var ci=0;ci<gongsu&&ci<10;ci++){S.items.push({t:'ci',lay:'SD983',x:b0x+ux*(ci+0.7)*1.05,y:b0y+uy*(ci+0.7)*1.05,r:0.5});}
  });
- /* [BUILD2203] 현황선 — DXF 포함(원 레이어명 그대로), 기존 도엽에만 배정(현황선 단독 도엽 생성 금지) */
+ /* [BUILD2204] 현황선 — 실물 표준 레이어 DORO(색4). ★현황결선은 insp:true가 정상이라 insp 제외 금지(2203 결함). 기존 도엽에만 배정 */
  function shpeek(x,y){var c=_posSheetOf(x,y);return (c&&SH[c.no])?SH[c.no]:null;}
  (state.lines||[]).forEach(function(l){
   if(!l||!l.pts||l.pts.length<2)return;
-  if(l.base||l.crop||l.free||l.insp)return;
+  if(l.base||l.crop||l.free)return;
   if(l.layer===TL||l.layer==='지거'||l.layer==='압입구간'||l.layer==='탐사구간')return;
   var cur=null,buf=[];
-  function flush(){if(cur&&buf.length>=2)cur.items.push({t:'pl',lay:(l.layer||'현황선'),pts:buf,cl:0});buf=[];}
+  function flush(){if(cur&&buf.length>=2)cur.items.push({t:'pl',lay:'DORO',c62:4,slay:(l.layer||''),pts:buf,cl:0});buf=[];}
   for(var i=0;i<l.pts.length-1;i++){var a=l.pts[i],b=l.pts[i+1];var S2=shpeek((a[0]+b[0])/2,(a[1]+b[1])/2);if(!S2){flush();cur=null;continue;}
    if(S2!==cur){flush();cur=S2;buf=[a.slice(0,2)];}
    buf.push(b.slice(0,2));}
@@ -19075,7 +19075,7 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
 }
 function _pdSer9(items){/* 장면 items → DXF 엔티티 문자열 (핸들은 이 시점 발급) */
  var e='';for(var i=0;i<items.length;i++){var it=items[i];
-  if(it.t==='pl')e+=_pdPL(it.lay,it.pts,it.cl?true:false);
+  if(it.t==='pl')e+=_pdPL(it.lay,it.pts,it.cl?true:false,it.c62);
   else if(it.t==='ins')e+=_pdIns(it.lay,it.name,it.x,it.y);
   else if(it.t==='tx')e+=_pdText(it.lay,it.x,it.y,it.h,it.s,it.rot);
   else if(it.t==='ci')e+=_pdCirc(it.lay,it.x,it.y,it.r);}
@@ -19142,7 +19142,7 @@ function _sdDrawSym9(g,name,x,y){/* 블록 심볼 — tpl_pos_legend.dxf 실측 
 function _sdDrawItem9(g,it){
  var col=_sdCol9(it.lay);
  if(it.t==='pl'){
-  if(!/^SD/.test(it.lay)&&typeof LINECOL!=='undefined'&&LINECOL[it.lay])col=LINECOL[it.lay].c;/* [BUILD2203] 현황 레이어 색 */
+  if(!/^SD/.test(it.lay)){var _sl9=it.slay||it.lay;col=(typeof LINECOL!=='undefined'&&LINECOL[_sl9])?LINECOL[_sl9].c:'#00a6b8';}/* [BUILD2204] 현황=원레이어 색, DORO 폴백 시안 */
   var ps='';for(var i=0;i<it.pts.length;i++){var sc=S(it.pts[i][0],it.pts[i][1]);ps+=(i?' ':'')+sc[0].toFixed(3)+','+sc[1].toFixed(3);}
   g.appendChild(el(it.cl?'polygon':'polyline',{points:ps,fill:'none',stroke:col,'stroke-width':(it.lay==='SD001'?0.15:(!/^SD/.test(it.lay)?0.1:0.08)),'pointer-events':'none'}));
  }else if(it.t==='ci'){
