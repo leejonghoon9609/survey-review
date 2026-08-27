@@ -19015,7 +19015,7 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   S.items.push({t:'ins',lay:'SD901',name:'SD901',x:x,y:y});
   var z=(p.z!=null)?p.z:null;/* 실시간 CSV z = 관상고 */
   var gz=(p._nm&&elev[p._nm]!=null)?elev[p._nm]:null;/* 후측량 Z(레벨) = 지반고 */
-  var dep9=(gz!=null&&z!=null)?(gz-z):null;/* [BUILD2206] 심도 = 지반고 - 관상고 */
+  var dep9=state.tamsa?((p.z!=null&&isFinite(p.z))?p.z:null):((state._depthByNo&&state._depthByNo[p.no]!=null&&isFinite(state._depthByNo[p.no]))?+state._depthByNo[p.no]:null);/* [BUILD2207] 심도 = 도면 파란 심도 라벨과 동일 원천(_depthByNo, 수동입력 포함) */
   if(z!=null)S.items.push({t:'tx',lay:'SD_관상고',x:x,y:y,h:0.5,s:z.toFixed(3)});/* 측점 정좌표 안착(완성본 규격) */
   if(dep9!=null)S.items.push({t:'tx',lay:'SDSIM_T',x:x,y:y,h:1.0,s:dep9.toFixed(1)});
   /* [BUILD2205] 이격: 측점→현황선 수선발 실선(실물 규격) + 중앙정렬 텍스트(위 거리/아래 (심도)), 읽기 정규화 회전 */
@@ -19046,7 +19046,7 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
  pipes.forEach(function(l){
   var pts=l.pts;var Lm=0;for(var i=0;i<pts.length-1;i++)Lm+=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);
   if(Lm<1)return;
-  var zs=[];pts.forEach(function(pt){var p=ptAt(pt[0],pt[1]);if(p&&p.z!=null&&!mhAt(pt[0],pt[1])){var g9=(p._nm&&elev[p._nm]!=null)?elev[p._nm]:null;if(g9!=null)zs.push(g9-p.z);}});/* [BUILD2206] D=평균 심도(지반고-관상고) */
+  var zs=[];pts.forEach(function(pt){var p=ptAt(pt[0],pt[1]);if(p&&!mhAt(pt[0],pt[1])){var d9=state.tamsa?((p.z!=null&&isFinite(p.z))?p.z:null):((state._depthByNo&&state._depthByNo[p.no]!=null&&isFinite(state._depthByNo[p.no]))?+state._depthByNo[p.no]:null);if(d9!=null)zs.push(d9);}});/* [BUILD2207] D=평균 심도(_depthByNo 동일 원천) */
   var Dv=zs.length?(zs.reduce(function(a,b){return a+b;},0)/zs.length):null;
   /* 중점 */
   var half=Lm/2,acc=0,mi=0,mt=0;
