@@ -19013,20 +19013,21 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var p=ptAt(x,y);if(!p)continue;var S=shget(x,y);if(!S)continue;
   if(mhAt(x,y))continue;
   S.items.push({t:'ins',lay:'SD901',name:'SD901',x:x,y:y});
-  var z=(p.z!=null)?p.z:null;
-  var gz=(p._nm&&elev[p._nm]!=null)?elev[p._nm]:null;
-  if(gz!=null&&z!=null)S.items.push({t:'tx',lay:'SD_관상고',x:x+0.3,y:y-0.9,h:0.5,s:(gz-z).toFixed(3)});
-  if(z!=null)S.items.push({t:'tx',lay:'SDSIM_T',x:x+0.3,y:y+0.4,h:1.0,s:z.toFixed(1)});
+  var z=(p.z!=null)?p.z:null;/* 실시간 CSV z = 관상고 */
+  var gz=(p._nm&&elev[p._nm]!=null)?elev[p._nm]:null;/* 후측량 Z(레벨) = 지반고 */
+  var dep9=(gz!=null&&z!=null)?(gz-z):null;/* [BUILD2206] 심도 = 지반고 - 관상고 */
+  if(z!=null)S.items.push({t:'tx',lay:'SD_관상고',x:x,y:y,h:0.5,s:z.toFixed(3)});/* 측점 정좌표 안착(완성본 규격) */
+  if(dep9!=null)S.items.push({t:'tx',lay:'SDSIM_T',x:x,y:y,h:1.0,s:dep9.toFixed(1)});
   /* [BUILD2205] 이격: 측점→현황선 수선발 실선(실물 규격) + 중앙정렬 텍스트(위 거리/아래 (심도)), 읽기 정규화 회전 */
   var F9=hyun.length?hyunFoot(x,y):null;
-  if(F9&&F9.d>=0.3&&F9.d<=30&&z!=null){
+  if(F9&&F9.d>=0.3&&F9.d<=30&&dep9!=null){
    S.items.push({t:'pl',lay:'SDDIM',pts:[[x,y],[F9.fx,F9.fy]],cl:0});
    var LL9=F9.d,ux9=(F9.fx-x)/LL9,uy9=(F9.fy-y)/LL9;
    var th9=Math.atan2(uy9,ux9)*180/Math.PI;if(th9<0)th9+=360;
    var rd9=th9;if(rd9>90&&rd9<=270)rd9=(rd9+180)%360;/* 글자 뒤집힘 방지 */
    var ra9=rd9*Math.PI/180,rux9=Math.cos(ra9),ruy9=Math.sin(ra9),rnx9=-ruy9,rny9=rux9;
    var mx9=x+ux9*LL9/2,my9=y+uy9*LL9/2;
-   var ds9=LL9.toFixed(1),zs9='('+z.toFixed(1)+')';
+   var ds9=LL9.toFixed(1),zs9='('+dep9.toFixed(1)+')';
    var wD9=ds9.length*0.72/2,wZ9=zs9.length*0.72/2;
    S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wD9+rnx9*0.2,y:my9-ruy9*wD9+rny9*0.2,h:1.0,s:ds9,rot:rd9});
    S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wZ9-rnx9*1.2,y:my9-ruy9*wZ9-rny9*1.2,h:1.0,s:zs9,rot:rd9});
@@ -19045,7 +19046,7 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
  pipes.forEach(function(l){
   var pts=l.pts;var Lm=0;for(var i=0;i<pts.length-1;i++)Lm+=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);
   if(Lm<1)return;
-  var zs=[];pts.forEach(function(pt){var p=ptAt(pt[0],pt[1]);if(p&&p.z!=null&&!mhAt(pt[0],pt[1]))zs.push(p.z);});
+  var zs=[];pts.forEach(function(pt){var p=ptAt(pt[0],pt[1]);if(p&&p.z!=null&&!mhAt(pt[0],pt[1])){var g9=(p._nm&&elev[p._nm]!=null)?elev[p._nm]:null;if(g9!=null)zs.push(g9-p.z);}});/* [BUILD2206] D=평균 심도(지반고-관상고) */
   var Dv=zs.length?(zs.reduce(function(a,b){return a+b;},0)/zs.length):null;
   /* 중점 */
   var half=Lm/2,acc=0,mi=0,mt=0;
