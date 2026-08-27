@@ -3,8 +3,9 @@
 
 /* 페이지 자동 감지: 결선(survey) / 측량(현장)(field) / 탱고(tango) */
 var IS_FIELD=(document.title==='측량(현장)'), IS_TANGO=(document.title==='탱고 DB'), IS_REALTIME=(document.title==='실시간측량'), IS_POSITION=(document.title==='정위치 DB');
-var STAGE=IS_TANGO?'tango':(IS_FIELD?'field':(IS_REALTIME?'realtime':(typeof IS_POSITION!=='undefined'&&IS_POSITION?'position':'survey')));/* [1436] */
-var DB=STAGE; // STAGE별 Supabase 테이블 완전 분리: survey_*/field_*/tango_*
+var STAGE=IS_TANGO?'tango':(typeof IS_POSITION!=='undefined'&&IS_POSITION?'position':(IS_FIELD?'field':(IS_REALTIME?'realtime':'survey')));/* [1436] *//* [BUILD2189] position 우선 판정 — 아래 IS_FIELD 별칭 부여 전에 STAGE/DB를 'position'으로 확정(데이터 분리) */
+var DB=STAGE; // STAGE별 Supabase 테이블 완전 분리: survey_*/field_*/tango_*/position_*
+if(typeof IS_POSITION!=='undefined'&&IS_POSITION)IS_FIELD=true;/* [BUILD2189] 정위치=측량현장 화면·기능 fall-through — STAGE/DB는 이미 'position'으로 확정되어 저장·사진·이력 전부 position_* 테이블(성과 완전 분리). IS_FIELD UI 게이트(~100곳)만 공유: 월드고정 텍스트·히트반경·라벨·레이어 프리셋·버튼 규칙 동일 */
 if(IS_FIELD)document.body.classList.add('fpage');
 /* ====== 설정: 본인 Supabase 정보 입력 (비우면 로컬 모드) ====== */
 var SUPABASE_URL = "https://yidswostdxaejjeikxhg.supabase.co";
@@ -8122,7 +8123,7 @@ function importFromStage(id,srcStage){
     if(res.error||!res.data){toast('가져오기 실패 — '+(res.error?res.error.message:'없음'));return;}
     var p=res.data.payload||{};
     try{var _hv2=res.data.heavy;if(_hv2&&_hv2.finalCsv!==undefined)p.finalCsv=_hv2.finalCsv;}catch(_h4){}window._hvSaved=null;/* [1491] 가져오기 heavy 병합, 새 사업이므로 재기록 */
-    var suffix=(STAGE==='tango'?'_T':(STAGE==='field'?'_B':(STAGE==='survey'?'_A':'')));
+    var suffix=(STAGE==='tango'?'_T':(STAGE==='position'?'_P':(STAGE==='field'?'_B':(STAGE==='survey'?'_A':''))));/* [BUILD2189] 정위치 사본 접미사 _P (fldRegOn 관례 일치) */
     var _base=baseName(res.data.name),_want=_base+suffix;
     var _run=function(newName){
     state.projectId=null;state.projectName=newName;state.loadedStage=srcStage;state._importSrc=[];

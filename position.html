@@ -13,7 +13,7 @@
   *{box-sizing:border-box;margin:0;padding:0}
   .ptin::placeholder{color:#d2d2d2;opacity:1}
   :root{--line:#e3e3e0;--ink:#1c1c1a;--muted:#6b6b66;--bg:#fafaf8;--ok:#2a9e50;--bad:#d32f2f;--accent:#1f6fd6}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);background:var(--bg);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;color:var(--ink);background:var(--bg);height:100vh;height:100dvh/* [BUILD2013] --vh9 제거 — 더 이상 설정하지 않는다. dvh 미지원 브라우저는 100vh 폴백이고, 분할 비율은 fldSplit9()가 stage 실측으로 보정한다 *//* [BUILD2011] ★근본 원인 — body가 100vh 고정이라 앱 복귀 시 주소창이 나타나면 body가 실제 화면보다 커져 내부 flex 배분이 통째로 어긋난다. [2009]는 .php-main만 고쳐 효과가 없었다. dvh → --vh9 순으로 덮어쓴다 */;display:flex;flex-direction:column;overflow:hidden}
   header{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:9px 14px;border-bottom:1px solid var(--line);background:#fff}
   /* [1219] ?open= 사업 필터 칩: 헤더 끝으로 보내 기존 버튼 줄배치 보존 (realtime은 자체 규칙) */
   #projFilterChip{order:99;max-width:170px}
@@ -78,11 +78,23 @@
   .regcard{border:1px solid var(--line);border-top:3px solid var(--rc,#ccc);border-radius:11px;padding:14px 13px;display:flex;flex-direction:column;min-height:212px;background:#fcfcfb}
   .regcard.csv{--rc:#1f6fd6}
   .regcard.pho{--rc:#2a9e50}
-  .regcard.crs{--rc:#7a52e0}
+  .regcard.crs{--rc:#7a52e0}.regcard.aft{--rc:#555}/* [1249] aft 카드 색 변수 — 직접 로딩 테두리 */
   .regcard.dxf{--rc:#d98200}
   .regcard.tamsa{--rc:#0a9a7a;display:none}
   .regbox.tamsa-on .regcard.tamsa{display:flex}
   .regbox.tamsa-on .regcard.csv,.regbox.tamsa-on #regAftCard,.regbox.tamsa-on .regcard.pho{display:none}
+  @media (max-width:640px){
+    .regwrap{padding:6px}
+    .regbox{max-height:97vh;overflow-y:auto}
+    .regcards{gap:7px;padding:8px 12px 4px}
+    .regcard{min-height:0;padding:8px 9px}
+    .rc-drop{padding:7px 4px;min-height:0}
+    .rc-dico,.rc-hint{display:none}
+    .rc-btn{padding:5px 0;font-size:12px}
+    .regname{padding:8px 14px 2px}
+    .reginfo{padding:4px 14px 2px;gap:6px}
+    .reghd{padding:9px 14px}
+  }
   .regbox.tamsa-on #regNightRow{display:none}
   .reg-real{margin-left:14px;border:1.5px solid #16a34a;background:#fff;color:#15803d;font-weight:800;font-size:15px;border-radius:9px;padding:8px 18px;cursor:pointer}.reg-real:hover{background:#d5f0dd}.reg-real.on{background:#16a34a;border-color:#16a34a;color:#fff}.reg-tamsa{margin-left:8px;border:1.5px solid #d92b2b;background:#fff;color:#c0392b;font-weight:800;font-size:15px;border-radius:9px;padding:8px 18px;cursor:pointer}
   .reg-tamsa:hover{background:#fbdcdc}
@@ -147,7 +159,7 @@
   .toast.show{opacity:.95}
   .coordbox{position:fixed;right:10px;bottom:10px;z-index:50;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-size:12px;color:var(--ink);font-variant-numeric:tabular-nums;pointer-events:none;box-shadow:0 1px 6px rgba(0,0,0,.12);line-height:1.5}
   .coordbox b{font-weight:600}
-  .coordbox .cb-near{display:block;color:var(--muted);font-size:11px;margin-top:1px}
+  .coordbox .cb-near{display:none}/* [BUILD2000] 측량현장 좌표창 한 줄로 — 근접측점·관정보 줄 숨김. 실시간[BUILD1814] 관례와 동일 */
   .recclr{padding:2px 8px;font-size:11px;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer}
   .recclr:hover{color:var(--bad);border-color:var(--bad);background:#fbeeee}
   .photoBtn{background:#eef6ef;border-color:#bcdcc0;color:#2a9e50;font-weight:600}
@@ -194,8 +206,8 @@
   .jz-ph2{display:flex;border-top:1px solid #333}
   .jz-pc{flex:1;min-width:0;display:flex;flex-direction:column}
   .jz-pc+.jz-pc{border-left:1px solid #333}
-  .jz-pc img{width:100%;height:300px;object-fit:contain;background:#f2f2f2;display:block}
-  .jz-pc .ne{display:flex;align-items:center;justify-content:center;height:300px;color:#bbb;font-size:12px}
+  .jz-pc img{width:100%;height:250px;object-fit:contain;background:#f2f2f2;display:block}/* [1272] 사진 상하 여백 축소 — 한 화면 2카드 */
+  .jz-pc .ne{display:flex;align-items:center;justify-content:center;height:250px;color:#bbb;font-size:12px}/* [1276] 행 전체 축소 — 사진(180px)과 동일 */
   .jz-cap{text-align:center;font-weight:700;background:#fafafa;border-top:1px solid #333;padding:4px;font-size:12px}
   .jz-datemenu{display:none;position:fixed;background:#fff;border:1px solid #ccc;border-radius:8px;box-shadow:0 6px 20px rgba(0,0,0,.18);z-index:1300;min-width:200px;overflow:hidden}
   .jz-dateitem{padding:9px 13px;font-size:13px;cursor:pointer;border-bottom:1px solid #f1f1f1;white-space:nowrap}
@@ -205,11 +217,15 @@
   .jz-link.off{border-color:#9ca3af;background:#f3f4f6;color:#6b7280}
   .jz-done{background:#eef2ff;border:1px solid #4f46e5;color:#4f46e5;border-radius:7px;padding:4px 10px;font-weight:700;cursor:pointer}
   .jz-done.on{background:#16a34a;border-color:#16a34a;color:#fff}
-  .fbtn{background:#fff;border:1.5px solid #cfd8e3;color:#33415a;border-radius:8px;padding:7px 10px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 2px 7px rgba(0,0,0,.11)}
+  .fbtn{background:#fff;border:1.5px solid #cfd8e3;color:#33415a;border-radius:7px;padding:5px 7px;font-size:11px;font-weight:700;cursor:pointer;box-shadow:0 2px 7px rgba(0,0,0,.11)}
   .fbtn:hover{filter:brightness(.97)}
   #fldCsv{background:#eff4ff;border-color:#3b82f6;color:#2563eb}
   #fldJoseo{background:#e7faf5;border-color:#0d9488;color:#0d9488}
   #fldManhole{background:#fff7e6;border-color:#e3a008;color:#b45309}
+  #fldRefLoad{background:#eef4ff;border-color:#3b6fd4;color:#1f4fa8;font-weight:700}
+  #fldTerr{background:#f4f4f2;border-color:#c9c9c4;color:#8a8a84;font-weight:700}
+  #fldTerr.on{background:#fff7e6;border-color:#e3a008;color:#a16207}
+  #fldReg{background:#f3fbf6;border-color:#1d9e75;color:#0f7a57;font-weight:700}
   .fbtn.done{background:#eafaf0!important;border-color:#16a34a!important;color:#16a34a!important}
   .fbtn-final{background:#eef2ff;border-color:#4f46e5;color:#4f46e5}
   .fbtn-final:hover{filter:brightness(.97)}
@@ -234,8 +250,8 @@
   .php-main .cap,.php-sub .cap{font-size:15px;color:#0d47a1;font-weight:700;padding:6px 11px;border-bottom:1px solid var(--line);background:#fff;flex:none;display:flex;align-items:center;gap:6px}
   .php-main .cap span,.php-sub .cap span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .php-main .cap{font-size:16px}
-  .zoomwrap{flex:1;min-height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#f3f3f0;position:relative}
-  .php-main .zoomwrap .ph{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;flex:none}
+  .zoomwrap{flex:1;min-height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#f3f3f0;position:relative;touch-action:pan-y;-ms-touch-action:pan-y}/* [BUILD2017] ★pan-y — 한 손가락 세로 스와이프(후측량 사진 보기)는 살리고 브라우저 핀치(페이지 확대)만 차단. [2016]의 none 은 스크롤까지 막았다 */
+  .php-main .zoomwrap .ph{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;display:block;flex:none;touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-user-drag:none;will-change:transform}/* [BUILD2017] */
   .php-main .ph{flex:1;width:100%;height:auto;min-height:0;object-fit:contain;background:#f3f3f0;display:block}
   .php-row{display:flex;gap:10px;flex:2;min-height:130px}
   .php-sub{flex:1;min-width:0}
@@ -246,7 +262,7 @@
   .php-split>.php-main{flex:1;min-height:0}
   .php-after .ph.php-none{color:#bbb;font-size:13px;background:#f6f6f3;flex:1}
   /* 폰 현장모드: 노출/후측량 각각 풀사이즈로 세로 스택 + 패널 스크롤 */
-  @media(max-width:760px){.viewer .php-split{flex:none}.viewer .php-split>.php-main{flex:none;height:42vh;min-height:300px}}
+  @media(max-width:760px){.viewer .php-split{flex:none}.viewer .php-split>.php-main{flex:none;height:33vh;min-height:200px}/* [BUILD2013] 실제 높이는 fldSplit9()가 px로 지정(!important) — 여긴 초기 폴백 *//* [BUILD2009] vh는 주소창 숨긴 최대높이 기준으로 고정되어 앱 복귀 시 비율이 틀어졌다 — 실제 innerHeight 기준 --vh9 로 교체(미정의 시 1vh 폴백) */}/* [BUILD2004] 사진창 확대 33vh→42vh — 아래 photo-panel.open 과 반드시 짝을 맞추어야 안쪽 스크롤이 안 생긴다 *//* [BUILD1877] */
   /* 폰 현장모드 로드뷰: 위=로드뷰 / 아래=측점사진(후측량모드처럼 풀사이즈) + 세로 스크롤 */
   @media(max-width:760px){
     .viewer #rvPanel.open{height:86vh}
@@ -276,32 +292,42 @@
   .viewer #rail,.viewer #subbar,.viewer aside.panel{display:none}
   .viewer .maincol{flex:1;min-height:0;width:100%}
   .viewer .photo-panel{width:100%!important;max-width:none!important;min-width:0!important;border-left:none;border-top:2px solid var(--line)}
-  .viewer .photo-panel.open{display:flex;flex:none;height:44vh}
+  .viewer .photo-panel.open{display:flex;flex:none;height:45vh}/* [BUILD2013] 초기 폴백 — fldSplit9()가 덮어쓴다 *//* [BUILD2009] 짝 유지 *//* [BUILD2006] 2004의 증가분을 정확히 절반만 — 33→42→37.5vh / 220→280→250px *//* [BUILD2004] 33vh→42vh · 220→280px — 도면창(.maincol flex:1)은 자동으로 그만큼 줄어든다 *//* [BUILD1878] 캐벘션줄까지만 노출, 도면 최대화 */
   .viewer #rvPanel.open{width:100%!important;max-width:none!important;border-left:none;border-top:2px solid var(--line);flex:none;height:50vh}
   /* 상단바 한 줄 + dev배지 숨김 */
   .viewer #buildno,.viewer #conn{display:none}
   .viewer header{flex-wrap:wrap;align-items:center;row-gap:6px;column-gap:6px;padding:7px 9px}
-  .viewer h1{flex-basis:100%;font-size:17px;margin:0;order:0}
+  .viewer h1{font-size:15px;margin:0 6px 0 0;order:0}
   .viewer #viewerBar{flex:1;min-width:0;flex-wrap:nowrap;overflow-x:auto;gap:5px;order:2}
   .viewer #viewerBar button{font-size:12.5px;padding:5px 9px;white-space:nowrap;flex:none}
   .viewer #viewerBar select{font-size:12.5px;padding:4px 6px;flex:none;max-width:130px}#proj{max-width:46vw;min-width:220px}
   .viewer #modeToggle{font-size:12.5px;padding:5px 9px;white-space:nowrap;flex:none}
   /* 사진 헤더 한 줄 + 업로드/닫기 숨김 */
-  .viewer .php-head{flex-wrap:nowrap;overflow-x:auto;gap:5px;padding:6px 9px}
+  .viewer .php-head{flex-wrap:nowrap;overflow-x:auto;gap:5px;padding:6px 9px;scrollbar-width:none}/* [BUILD2019] */
   .viewer .php-head h3{display:none}
-  .viewer #photoUp,.viewer #photoClose{display:none}
-  .viewer .php-head button,.viewer .php-head select{font-size:12px;padding:4px 7px;white-space:nowrap;flex:none}
-  .viewer #vNote2{background:#fff;color:#d32f2f;border-color:#d32f2f;font-weight:700}
-  .viewer #vNote2.on{background:#d32f2f;color:#fff}
+  .viewer #photoUp{display:none}/* [1263] photoClose 숨김 해제 — 특이사항 오른쪽 닫기 */
+  .viewer .php-head button,.viewer .php-head select{font-size:10px;padding:3px 4px;white-space:nowrap;flex:none}/* [BUILD2019] 폰 앞 버튼 축소 — [2018]은 min-width:761px 블록에 넣어 폰에 안 먹었다 */
+    .viewer .php-head{padding:5px 5px;gap:3px}/* [BUILD2020] 좌우 여백·간격 축소 */
+    /* [BUILD2020] ★max-width 자르기 제거 — 라벨을 살리고 패딩·글자로만 줄인다.
+       [2019]는 화면폭을 412px로 가정해 과하게 잘랐다(실측 461px). */
+    .viewer .php-head #dirToggle,.viewer .php-head #photoLinkBtn{font-size:9.5px;padding:2px 4px}
+    .viewer .php-head #fldStakePhTgl{font-size:9.5px;padding:2px 5px;max-width:none;overflow:visible;text-overflow:clip}
+    .viewer .php-head #photoSel{max-width:none;width:auto;font-size:9.5px;padding:2px 2px}
+    .viewer .php-head #aftPhotoUp{display:none}/* [BUILD2019] 폰에선 업로드 대신 촬영 버튼을 쓴다 — 자리 확보 */
+    .viewer .php-head #photoClose{font-size:11px;padding:2px 5px}
+    /* [BUILD2019] 후측량 촬영 — 빨간 배경·큰 세로크기·잘림 방지 */
+    .viewer .php-head #fldAftCap9{order:9;margin-left:auto;margin-right:0;flex:none;font-size:11px;font-weight:900;padding:0 7px;height:32px;line-height:1;display:inline-flex;align-items:center;justify-content:center;background:#d32f2f!important;color:#fff!important;border:1.5px solid #b71c1c!important;border-radius:9px;box-shadow:0 2px 5px rgba(211,47,47,.35)}
+  .viewer #fldAftCap9{background:#eafaf0;color:#16a34a;border-color:#16a34a;font-weight:800}
+  .viewer #fldAftCap9:active{background:#16a34a;color:#fff}
   /* 선택측점 사진만 크게 */
   .viewer .php-body .php-main{flex:1}
   /* PC(넓은 화면) 측량(현장) 전용: 사진/로드뷰 패널을 아래 대신 오른쪽에 (결선 DB·탱고는 영향 없음) */
   @media(min-width:761px){
     .fpage .stage{flex-direction:row}
     .fpage #viewerBar{flex:none}
-    .fpage header{border-bottom:2px solid #6aa3ff;position:relative}
-  .fpage #buildno{display:inline-block!important;position:absolute;top:8px;right:12px}
-    .fpage .photo-panel{width:38%!important;min-width:420px!important;max-width:46%!important;border-left:1px solid var(--line)!important;border-top:none!important}
+    .fpage header{border-bottom:2px solid #000;position:relative}/* [1245] 헤더 하단선 파랑→검정 */
+  .fpage #buildno{display:inline-block!important;position:static;order:-10;margin-right:8px;align-self:center}
+    .fpage .photo-panel{width:30%!important;min-width:360px!important;max-width:34%!important;border-left:1px solid var(--line)!important;border-top:none!important}/* [1263] 사진 기준 창 폭 축소 */
     .fpage .photo-panel.open{height:auto!important}
     .fpage #rvPanel.open{width:42%!important;min-width:440px!important;max-width:50%!important;height:auto!important;border-left:1px solid var(--line)!important;border-top:none!important}
   }
@@ -318,6 +344,106 @@
   .hide-hyun .insp-line{display:none}
   .lvchk{display:inline-flex;align-items:center;gap:3px;font-size:12px;color:#444;font-weight:600;white-space:nowrap;cursor:pointer;margin:0 2px}
   .lvchk input{cursor:pointer;margin:0}
+
+/* ===== [BUILD 1057] 현장 모바일 헤더 3단 (실시간측량 틀) ===== */
+.hdr-break{display:none}
+@media(max-width:760px){
+  header{row-gap:5px!important;column-gap:5px!important;padding:6px 8px!important}
+  header button,header select{font-size:11px!important;padding:4px 6px!important;border-radius:7px!important}
+  header #viewerBar{display:contents!important}
+  header #fieldBar{display:contents!important}
+  /* [1069] 1줄: 홈 · 측량(현장) · 완료결선업로드 · 백판 · 현장사업목록 (한 줄에 다)
+     — fldRefLoad·fldTerr 가 order 지정이 없어 기본값 0 으로 맨 앞에 밀려 있었다 */
+  header #homeBtn{order:1!important;display:inline-flex!important;flex:none!important;font-size:9.5px!important;padding:3px 5px!important}
+  header h1{font-size:11.5px!important;margin:0!important;order:2!important;flex:none!important;display:inline-block!important;white-space:nowrap!important}
+  header #fldRefLoad{display:none!important} /* [1292] 모바일 완료결선 업로드 숨김 */
+  header #fldTerr{order:4!important;display:inline-flex!important;flex:none!important;font-size:9.5px!important;padding:3px 5px!important;white-space:nowrap!important}
+  header #vproj{order:5!important;flex:1 1 60px!important;min-width:60px!important;max-width:none!important;display:inline-block!important;font-size:9.5px!important;padding:3px 2px!important}
+  header .hdr-break{display:block!important;flex-basis:100%!important;width:100%!important;height:0!important;margin:0!important;padding:0!important;border:0!important}
+  header #hdrBreak1{order:6!important}
+  /* 2줄: 저장 · 사업삭제 · 완료성과목록 · (우)사진 · 지도 */
+  header #fldSave{order:7!important;display:inline-flex!important}
+  header #fldDel{order:8!important;display:inline-flex!important}
+  header #fldImport{order:9!important;display:inline-flex!important;margin-left:0!important}
+  header #vPhoto{order:10!important;display:inline-flex!important;margin-left:auto!important}
+  header #vMap{order:11!important;display:inline-flex!important}
+  header #hdrBreak2{order:12!important}
+  /* 3줄: 탐사사업등록 · 후측량최종성과등록 · (우)CSV · 맨홀도제작 — 세로 여유 */
+  header #fldReg{order:13!important;display:inline-flex!important;padding:8px 8px!important;font-weight:700!important}
+  header #fldFinal{order:14!important;display:inline-flex!important;font-size:10px!important;padding:9px 6px!important;line-height:1.15!important}
+  header #fldCsv{order:15!important;display:inline-flex!important;margin-left:auto!important;background:#2563eb!important;border-color:#2563eb!important;color:#fff!important;font-weight:800!important;padding:8px 9px!important}
+  header #fldManhole{order:16!important;display:inline-flex!important;background:#d32f2f!important;border-color:#d32f2f!important;color:#fff!important;font-weight:800!important;padding:8px 9px!important}
+  /* 나머지 숨김 */
+  header #fldRefHint,header #fldFit,header #fldViewLbl,header #fldCrop,header #fldTrash,header #modeToggle,header #sysSwitch,header #roBadge,header #vRv,header #fldJoseo,header #proj,header #save,header #delProj,header #bpToggle,header #doneListBtn,header #doneSummary,header #asbuiltBtn,header #photoBtn,header #bgBtn,header #rvBtn,header #buildno,header #conn,header #tamsaBadge,header #globalbtns{display:none!important}
+  #projFilterChip{display:none!important} /* [1292] 모바일 사업 전체보기 칩 숨김 */
+  #aftPhotoUp{display:none!important} /* [1509] 모바일 숨김 */
+
+  /* [BUILD2078] \uc0ac\uc9c4 \uace0\uc815 \uc0c1\ud55c 34vh \u2014 \ud68c\uc804\ud574\uc57c \uace0\uccd0\uc9c0\ub358 \ubb38\uc81c \uc885\uacb0(\uc2e4\uc2dc\uac04\uacfc \ub3d9\uc77c) */
+  .php-main .ph{width:100%!important;height:auto!important;max-height:34vh!important;object-fit:contain!important;object-position:top center!important}
+  .php-main .zoomwrap{height:auto!important;max-height:34vh!important;overflow:hidden!important}
+  .php-body{overflow-y:auto!important;min-height:0!important}
+}
+/* ===== [1261] field PC 사진 패널 — 헤더 줄바꽈(닫기 보임)·사진 폭 꽉 채움 ===== */
+@media(min-width:761px){
+  .viewer .php-head{flex-wrap:wrap;row-gap:4px}
+  .viewer .php-head #photoSel{flex:0 1 auto;min-width:110px;max-width:170px}
+  .viewer .php-head #photoClose{flex:none;font-weight:800;border:1px solid #c0392b;color:#c0392b;background:#fff;border-radius:7px;padding:3px 8px}
+  /* [1300] 헤더 한 줄 고정 + 명시 순서: 방향ON → 측설사진 → 셀렉트 → 연동 → 특이사항 → ✕ */
+  .viewer .php-head{flex-wrap:nowrap}
+  .viewer .php-head button,.viewer .php-head select{font-size:10.5px;padding:3px 5px}
+    .viewer .php-head #photoSel{max-width:100px;font-size:10px}
+    .viewer .php-head #fldAftCap9{font-size:11px;padding:3px 7px;font-weight:800}
+  .viewer .php-head #photoSel{max-width:140px;order:4}
+  .viewer .php-head #dirToggle{order:1}
+  .viewer .php-head #aftPhotoUp{order:2;margin-left:2px;border:1.5px solid #1565c0;color:#1565c0;background:#fff;border-radius:8px;font-weight:800;cursor:pointer}/* [1509] */
+  .viewer .php-head #fldStakePhTgl{order:3;margin-left:auto}/* [1509] 파란그룹 우측 밀착 */
+  .viewer .php-head #photoLinkBtn{order:5}
+  .viewer .php-head #fldAftCap9{order:6}
+  .viewer .php-head #photoClose{order:7;margin-left:2px}
+}
+/* ===== [1243] 현장 PC 헤더 3줄 — survey(1233) 배치 미러 (field 전용, 모바일 무영향) ===== */
+@media(min-width:761px){
+  .viewer header{flex-wrap:wrap;row-gap:6px}
+  .viewer #viewerBar{display:contents!important}
+  .viewer #fieldBar{display:contents!important}
+  .viewer .hdr-break{display:block!important;flex-basis:100%!important;width:100%!important;height:0!important;margin:3px 0!important;padding:0!important;border:0!important;border-bottom:1px solid #f5e7b0!important}/* [1244] 줄 구분선(연노랑) */
+  /* 1줄: 홈·제목·현장 사업목록·저장·사업등록·사업 삭제·삭제목록·완료결선 업로드 … 우측 [Supabase][작업자][BUILD] */
+  .viewer #homeBtn{order:-2}
+  .viewer h1{order:-1}
+  .viewer #vproj{order:1;min-width:440px;max-width:44vw;flex:0 1 auto}/* [1246] 2배 확대 */
+  .viewer #fldSave,.viewer #fldDel,.viewer #fldTrash{order:2}
+  .viewer #projFilterChip{order:5;margin-left:auto!important;max-width:170px}/* [1244] 칩=1줄 우측 */
+  .viewer #projFilterChip~#conn{margin-left:8px!important}
+  .viewer #conn{display:inline-flex!important;order:6;margin-left:auto!important}
+  .viewer #workerChip{display:inline-flex!important;order:6;margin-left:8px!important}
+  .viewer.fpage #buildno{display:inline-block!important;position:static;order:7;margin:0 0 0 8px}
+  .viewer #hdrBreak1{order:8}
+  /* 2줄: 보기[전체·백판·영역크롭] | 실시간 사진조서·맨홀도 제작 … 우측 [후측량 csv][후측량 사진][지도][로드뷰] */
+  .viewer #fldReg{order:9;background:#fff;color:#6e757f;border:1px solid #e3e3df;border-left:4px solid #6e757f;border-radius:0 8px 8px 0;font-weight:600;padding:11px 12px;font-size:14px;margin-right:8px}/* [1252] survey 사이드바 사업등록 동일 스타일 */
+  .viewer #fldRefLoad{order:9;border-radius:0;border:1.5px solid #c0392b;color:#c0392b;background:#fff;font-weight:700;padding:9px 10px;font-size:13px}/* [1251] 2줄 맨 왼쪽·각진 빨강 */
+  .viewer #fldRefHint{order:9;font-size:12px;color:#c0392b;font-weight:700;margin-right:14px;align-self:center}
+  .viewer #globalbtns{display:contents!important}/* [1264] 지우기(통합)·거리산출만 표시 — 기존 배선 재사용(함정 I) */
+  .viewer #globalbtns>*{display:none!important}
+  .viewer #globalbtns button[data-g="delall2"]{display:inline-flex!important;order:9;margin-left:24px}/* [1282] 멘트 오른쪽 배치 */
+  .viewer #globalbtns button[data-g="measure"]{display:inline-flex!important;order:9}
+  .viewer #fldViewLbl{order:10;margin-left:auto}/* [1254] 보기 그룹 우측 이동 */
+  .viewer #fldFit{order:10;border:1px solid #c0392b;color:#c0392b;font-weight:700}
+  .viewer #fldFit:active{background:#fdeaea}
+  .viewer #fldTerr{order:10}
+  .viewer #fldCrop{order:10}
+  .viewer #fldJoseo{order:15;margin-left:auto;padding:9px 10px;font-size:13px}/* [1253] 3줄 우측 */
+  .viewer #fldManhole{order:15;padding:9px 10px;font-size:13px}
+  .viewer #fldCsv{order:11;margin-left:48px}/* [1254] 보기 그룹과 간격 */
+  .viewer #vPhoto{order:12;margin-left:0!important}
+  .viewer #vMap{order:12}
+  .viewer #vRv{order:12}
+  .viewer #hdrBreak2{order:13}
+  /* 3줄: 완료성과목록 · 후측량 최종성과 등록 */
+  .viewer #fldImport{order:14;margin-left:0!important}
+  .viewer #fldFinal{order:14}
+}
+/* [BUILD2023] PC 사진조서·맨홀도 버튼 축소 */
+@media(min-width:761px){.viewer #fldJoseo,.viewer #fldManhole{padding:6px 10px!important;font-size:12.5px!important}.viewer #fldImport,.viewer #fldFinal{padding:5px 9px!important;font-size:11.5px!important;line-height:1.2!important}}
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b62c4">
@@ -325,13 +451,210 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="지하관로 시스템">
+<script>
+/* [BUILD2013] ★폰 도면창:사진창 비율 고정.
+   vh 는 주소창 숨긴 최대높이 기준으로 고정이고, calc(var(--vh9)) 방식([2009]/[2011])도
+   CSS 우선순위·파싱에 휘둘려 두 번 실패했다. → JS가 .stage 실제 높이를 재서 px 로 직접 박는다.
+   FLD_SPLIT9 = 사진창이 차지할 비율(.stage 기준). 콘솔에서 바꿔 바로 확인 가능. */
+window.FLD_SPLIT9 = (function(){try{var v=parseFloat(localStorage.getItem('fldSplit9'));return (v>0.15&&v<0.85)?v:0.488;}catch(e){return 0.488;}})();/* [BUILD2015] 기본 46.8% — 사용자가 폰에서 직접 맞춘 값 *//* [BUILD2014] 실측 기본값 41.8%(체부2 실측) + 사용자가 맞춘 값 localStorage 유지 */
+window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
+(function(){
+  var t=null;
+  function apply(){
+    try{
+      if(!window.matchMedia||!matchMedia('(max-width:760px)').matches)return;
+      var pp=document.querySelector('.photo-panel');
+      var st=document.querySelector('.stage');
+      if(!pp||!st)return;
+      if(!pp.classList.contains('open')){pp.style.removeProperty('height');return;}
+      var H=st.getBoundingClientRect().height;
+      if(!H||H<200)return;
+      var h=Math.round(H*window.FLD_SPLIT9);
+      if(h>H-140)h=H-140;    /* 도면창 최소 140px */
+      if(h<140)h=140;        /* 사진창 최소 140px */
+      pp.style.setProperty('height',h+'px','important');
+      var pm=pp.querySelector('.php-split>.php-main')||pp.querySelector('.php-main');
+      if(pm)pm.style.setProperty('height',(h-window.FLD_HEAD9)+'px','important');
+    }catch(e){}
+  }
+  function kick(){ apply(); if(t)clearTimeout(t); t=setTimeout(apply,80); setTimeout(apply,300); }
+  window.fldSplit9=function(r){ if(r!=null){window.FLD_SPLIT9=r;try{localStorage.setItem('fldSplit9',String(r));}catch(e){}} apply();
+    try{var pp=document.querySelector('.photo-panel'),st=document.querySelector('.stage');
+      console.log('[분할] 비율 '+(window.FLD_SPLIT9*100).toFixed(1)+'%  stage='+st.getBoundingClientRect().height.toFixed(0)
+        +'px  사진창='+pp.getBoundingClientRect().height.toFixed(0)+'px');}catch(e){}
+  };
+  /* [BUILD2014] \ud3f0\uc5d0\uc11c \uc9c1\uc811 \ube44\uc728 \ub9de\ucd94\ub294 \uc784\uc2dc \ubc84\ud2bc \u2014 \ud655\uc815\ub418\uba74 \ub2e4\uc74c \ube4c\ub4dc\uc5d0\uc11c \uc81c\uac70 */
+  function bar(){
+    try{
+      if(!window.matchMedia||!matchMedia('(max-width:760px)').matches)return;
+      if(document.getElementById('fldSplitBar9'))return;
+      var cw=document.querySelector('.canvas-wrap'); if(!cw)return;
+      var w=document.createElement('div'); w.id='fldSplitBar9';
+      w.style.cssText='position:absolute;left:104px;bottom:6px;z-index:60;display:flex;align-items:center;gap:3px;'
+        +'height:22px;box-sizing:border-box;background:rgba(255,255,255,.94);border:1px solid #1565c0;border-radius:7px;padding:0 4px;'
+        +'font-size:10px;font-weight:800;color:#1565c0;box-shadow:0 2px 5px rgba(0,0,0,.16)';/* [BUILD2016] \ub192\uc774 22px \u2014 BUILD \ubc30\uc9c0\uc640 \ub3d9\uc77c *//* [BUILD2015] BUILD 배지 오른쪽(도면 좌하단 줄)으로 이동 */
+      var bs='border:1px solid #90b4d8;background:#fff;color:#1565c0;border-radius:4px;width:19px;height:17px;'
+        +'font:800 12px/1 -apple-system,sans-serif;padding:0;cursor:pointer;'
+        +'display:inline-flex;align-items:center;justify-content:center;text-align:center;'
+        +'box-sizing:border-box;flex:none;-webkit-appearance:none;appearance:none';/* [BUILD2016] \uac00\uc6b4\ub370 \uc815\ub82c \u2014 \ubc84\ud2bc \uae30\ubcf8 padding\u00b7line-height \uc81c\uac70 */
+      w.innerHTML='<button id="fsMinus" style="'+bs+'">\u2212</button>'
+        +'<b id="fsVal" style="min-width:32px;text-align:center;font-size:10px;line-height:1;display:inline-flex;align-items:center;justify-content:center">'+(window.FLD_SPLIT9*100).toFixed(1)+'%</b>'
+        +'<button id="fsPlus" style="'+bs+'">+</button>'
+        +'<button id="fsHide" style="'+bs+';width:15px;font-size:9px" title="\uc811\uae30">\u25c0</button>';
+      cw.appendChild(w);
+      function upd(){var e=document.getElementById('fsVal');if(e)e.textContent=(window.FLD_SPLIT9*100).toFixed(1)+'%';}
+      function step(d){var v=Math.round((window.FLD_SPLIT9+d)*1000)/1000;
+        if(v<0.20)v=0.20; if(v>0.75)v=0.75;
+        window.FLD_SPLIT9=v; try{localStorage.setItem('fldSplit9',String(v));}catch(e){} apply(); upd();}
+      document.getElementById('fsMinus').onclick=function(e){e.stopPropagation();step(-0.01);};
+      document.getElementById('fsPlus').onclick=function(e){e.stopPropagation();step(0.01);};
+      /* [BUILD2015] \u00d7(\uc0ad\uc81c) \u2192 \uc811\uae30/\ud3bc\uce58\uae30. \uc811\uc73c\uba74 \uc791\uc740 \ud0ed\ub9cc \ub0a8\uace0 \ub2e4\uc2dc \ub204\ub974\uba74 \ud3bc\uccd0\uc9c4\ub2e4 */
+      var _fold=false;
+      function paint(){
+        var ids=['fsMinus','fsVal','fsPlus'];
+        ids.forEach(function(id){var e=document.getElementById(id);if(e)e.style.display=_fold?'none':'';});
+        var hb=document.getElementById('fsHide');
+        if(hb)hb.textContent=_fold?'\u25b6':'\u25c0';
+        w.style.padding=_fold?'2px 3px':'2px 5px';
+      }
+      document.getElementById('fsHide').onclick=function(e){e.stopPropagation();_fold=!_fold;
+        try{localStorage.setItem('fldSplitFold9',_fold?'1':'0');}catch(_e){} paint();};
+      try{_fold=(localStorage.getItem('fldSplitFold9')==='1');}catch(_e){}
+      paint();
+    }catch(e){}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){kick();bar();}); else {kick();bar();}
+  window.addEventListener('load',kick);
+  window.addEventListener('resize',kick);
+  window.addEventListener('orientationchange',function(){setTimeout(kick,250);});
+  window.addEventListener('pageshow',kick);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(kick,60);});
+  try{if(window.visualViewport){visualViewport.addEventListener('resize',kick);}}catch(e){}
+  /* 사진창 열림/닫힘도 추종 */
+  try{var mo=new MutationObserver(kick);
+    document.addEventListener('DOMContentLoaded',function(){
+      var pp=document.querySelector('.photo-panel');
+      if(pp)mo.observe(pp,{attributes:true,attributeFilter:['class','style']});
+    });}catch(e){}
+})();
+</script>
+<script>
+/* [BUILD2015] 사진 확대축소 — 실시간(#zoomImg)·후측량(.zoomImgA) 공통.
+   .zoomwrap 안에서만 동작하므로 도면 팬/줌과 충돌하지 않는다.
+   핀치(두 손가락) / 더블탭 2배 토글 / 확대 중 한 손가락 드래그 이동 / 휠(PC). */
+(function(){
+  var MAX=6, MIN=1;
+  function st(img){ if(!img._z9)img._z9={s:1,x:0,y:0}; return img._z9; }
+  function apply(img){
+    var z=st(img);
+    if(z.s<=MIN+0.001){z.s=1;z.x=0;z.y=0;}
+    /* 이동 범위 제한 — 이미지가 화면 밖으로 완전히 나가지 않게 */
+    try{
+      var w=img.parentNode.clientWidth, h=img.parentNode.clientHeight;
+      var mx=Math.max(0,(w*z.s-w)/2), my=Math.max(0,(h*z.s-h)/2);
+      if(z.x>mx)z.x=mx; if(z.x<-mx)z.x=-mx;
+      if(z.y>my)z.y=my; if(z.y<-my)z.y=-my;
+    }catch(e){}
+    img.style.transform='translate('+z.x+'px,'+z.y+'px) scale('+z.s+')';
+    img.style.transformOrigin='center center';
+    img.style.cursor=(z.s>1)?'grab':'zoom-in';
+    var wr=img.parentNode;
+    if(wr){wr.style.touchAction=(z.s>1)?'none':'pan-y';img.style.touchAction=(z.s>1)?'none':'pan-y';}
+    /* [BUILD2017] 1\ubc30=pan-y(\uc138\ub85c \uc2a4\ud06c\ub864 \uac00\ub2a5) / \ud655\ub300\uc911=none(\uc0ac\uc9c4 \uc774\ub3d9 \uc804\uc6a9) */
+  }
+  function bind(img){
+    if(!img||img._zb9)return; img._zb9=1;
+    img.style.transition='transform .10s ease-out';/* [BUILD2016] \ud540\uce58\u00b7\ub4dc\ub798\uadf8 \uc911\uc5d0\ub294 \uc544\ub798\uc5d0\uc11c \uaebc\ub2e4 */
+    var pts={}, base=0, bs=1, drag=null, lastTap=0, pinched=0, down=null;
+    function dist(){var k=Object.keys(pts);if(k.length<2)return 0;
+      var a=pts[k[0]],b=pts[k[1]];return Math.hypot(a.x-b.x,a.y-b.y);}
+    img.addEventListener('pointerdown',function(e){
+      pts[e.pointerId]={x:e.clientX,y:e.clientY};
+      try{img.setPointerCapture(e.pointerId);}catch(_e){}
+      if(Object.keys(pts).length===2){base=dist();bs=st(img).s;drag=null;lastTap=0;pinched=1;
+        img.style.transition='none';
+        try{img.style.touchAction='none';img.parentNode.style.touchAction='none';}catch(_e){}
+        /* [BUILD2017] \ub450 \uc190\uac00\ub77d \uac10\uc9c0 \uc989\uc2dc \uc2a4\ud06c\ub864 \ucc28\ub2e8 \u2014 \ud540\uce58\ub9cc \uac00\ub85c\ucc44\uae30 */
+        e.preventDefault();return;}/* [BUILD2015] \ud540\uce58 \uc911\uc5d0\ub294 \ub354\ube14\ud0ed \ud310\uc815 \ubb34\ud6a8\ud654 */
+      var now=Date.now();
+      /* [BUILD2017] 더블탭 판정을 pointerup 으로 옮겼다 — pointerdown 에서 처리하면
+         "탭 직후 핀치"가 더블탭으로 먼저 먹혀 배율이 튄다(시뮬에서 4배로 나옴). */
+      if(pinched){ pinched=0; lastTap=0;
+        if(st(img).s>1){drag={x:e.clientX,y:e.clientY,ox:st(img).x,oy:st(img).y};e.preventDefault();}
+        return;
+      }
+      down={t:now,x:e.clientX,y:e.clientY};
+      if(st(img).s>1){drag={x:e.clientX,y:e.clientY,ox:st(img).x,oy:st(img).y};img.style.transition='none';e.preventDefault();}
+      /* [BUILD2017] 1\ubc30\uc77c \ub54c\ub294 preventDefault \ud558\uc9c0 \uc54a\ub294\ub2e4 \u2014 \uc138\ub85c \uc2a4\uc640\uc774\ud504\ub85c \ud6c4\uce21\ub7c9 \uc0ac\uc9c4\uae4c\uc9c0 \ub0b4\ub824\uac00\uc57c \ud568 */
+    });
+    img.addEventListener('pointermove',function(e){
+      if(!pts[e.pointerId])return;
+      pts[e.pointerId]={x:e.clientX,y:e.clientY};
+      if(Object.keys(pts).length>=2&&base>0){
+        e.preventDefault();
+        var d=dist(); if(!d)return;
+        var z=st(img); z.s=Math.max(MIN,Math.min(MAX,bs*(d/base))); apply(img); return;
+      }
+      if(drag){e.preventDefault();var z=st(img);
+        z.x=drag.ox+(e.clientX-drag.x); z.y=drag.oy+(e.clientY-drag.y); apply(img);}
+    });
+    function up(e){
+      /* [BUILD2017] 탭으로 끝났고(움직임 6px 미만) 직전 탭과 300ms 이내면 더블탭 */
+      try{
+        if(down&&Object.keys(pts).length===1&&!pinched){/* [BUILD2017] !drag \uc870\uac74 \uc81c\uac70 \u2014 \ud655\ub300 \uc0c1\ud0dc\uc5d0\uc120 pointerdown\uc5d0\uc11c drag\uac00 \ubb34\uc870\uac74 \uc7a1\ud600 \ub354\ube14\ud0ed \uc6d0\ubcf5\uc774 \uc548 \ub410\ub2e4. \uc2e4\uc81c \uc774\ub3d9\ub7c9(mv<6)\uc73c\ub85c\ub9cc \ud310\uc815\ud55c\ub2e4 */
+          var mv=Math.hypot((e.clientX||0)-down.x,(e.clientY||0)-down.y);
+          var dt=Date.now()-down.t;
+          if(mv<6&&dt<300){
+            if(Date.now()-lastTap<320){var z=st(img);z.s=(z.s>1.05)?1:2;z.x=0;z.y=0;apply(img);lastTap=0;}
+            else lastTap=Date.now();
+          }
+        }
+      }catch(_e){}
+      down=null;
+      delete pts[e.pointerId];
+      if(Object.keys(pts).length<2)base=0;
+      if(!Object.keys(pts).length){drag=null;img.style.transition='transform .10s ease-out';
+        try{var _s9=st(img).s;img.style.touchAction=(_s9>1)?'none':'pan-y';
+            img.parentNode.style.touchAction=(_s9>1)?'none':'pan-y';}catch(_e){}
+        if(pinched)setTimeout(function(){pinched=0;},350);} }
+    img.addEventListener('pointerup',up);
+    img.addEventListener('pointercancel',up);
+    img.addEventListener('dblclick',function(e){e.preventDefault();
+      var z=st(img); z.s=(z.s>1.05)?1:2; z.x=0; z.y=0; apply(img);});
+    img.addEventListener('wheel',function(e){
+      if(!e.ctrlKey&&st(img).s<=1&&e.deltaY>0)return;/* [BUILD2017] 1\ubc30\uc5d0\uc11c \uc544\ub798 \ud720\uc740 \uc2a4\ud06c\ub864 \uc591\ubcf4 */
+      e.preventDefault();
+      var z=st(img); z.s=Math.max(MIN,Math.min(MAX,z.s*(e.deltaY>0?0.88:1.14))); apply(img);},{passive:false});
+    apply(img);
+  }
+  function scan(){
+    try{
+      var L=document.querySelectorAll('.zoomwrap img.ph');
+      for(var i=0;i<L.length;i++)bind(L[i]);
+    }catch(e){}
+  }
+  window.phZoomReset9=function(){try{
+    var L=document.querySelectorAll('.zoomwrap img.ph');
+    for(var i=0;i<L.length;i++){L[i]._z9={s:1,x:0,y:0};apply(L[i]);}
+  }catch(e){}};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scan); else scan();
+  /* 사진 패널은 innerHTML 로 매번 새로 그려지므로 감시해서 재바인딩 */
+  try{
+    var mo=new MutationObserver(function(){scan();});
+    function obs(){var b=document.getElementById('photoBody')||document.body;
+      if(b)mo.observe(b,{childList:true,subtree:true});}
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',obs); else obs();
+  }catch(e){}
+  setInterval(scan,1200);
+})();
+</script>
 </head>
 <body>
   <header>
-    <button id="homeBtn" class="photoBtn" style="background:#eef2f7;border:1px solid #c6d2e0;color:#33506e;font-weight:700;border-radius:8px;padding:5px 11px;margin-right:2px">🏠 홈</button>
+    <button id="homeBtn" class="photoBtn" style="background:#eef2f7;border:1px solid #c6d2e0;color:#33506e;font-weight:700;border-radius:8px;padding:5px 11px;margin-right:2px">🏠 홈으로</button>
     <button id="modeToggle" class="photoBtn">💻 결선</button>
-    <h1>정위치 DB</h1>
-    <button id="sysSwitch" class="wk" onclick="location.href='index.html'" style="background:#f3eefe;border:1px solid #8b5cf6;color:#6d28d9;font-weight:700;border-radius:8px;padding:5px 11px;margin-left:2px">🏠 포털</button>
+    <h1>정위치 DB</h1><div class="hdr-break" id="hdrBreak1"></div><div class="hdr-break" id="hdrBreak2"></div>
+    <button id="sysSwitch" class="wk" onclick="if(confirm('탱고 DB로 이동할까요? 저장 안 한 변경은 사라집니다.'))location.href='tango.html'" style="background:#fdeef6;border:1px solid #e06ba8;color:#c2185b;font-weight:700;border-radius:8px;padding:5px 11px;margin-left:2px">🎵 탱고 DB 이동</button>
     <span id="roBadge" class="wk" style="display:none;cursor:pointer;color:#d98200;border:1px solid #e0b15a;background:#fff8ec;border-radius:7px;padding:2px 9px;font-size:12px;font-weight:700" title="클릭하면 수정 가능 모드로 전환">🔒 보기 전용 · 클릭=수정</span>
     <span id="viewerBar" class="vw">
       <select id="vproj"><option value="">결선완료사업목록</option></select>
@@ -341,17 +664,21 @@
     </span>
     <div id="fieldBar" style="order:3;flex:1;min-width:0;display:none;gap:8px;align-items:center;flex-wrap:wrap">
       <button class="fbtn" id="fldSave">💾 저장</button>
+      <button class="fbtn" id="fldReg">📋 사업등록</button>
       <button class="fbtn" id="fldDel" style="color:#d32f2f;border-color:#f0c4c4">🗑 사업 삭제</button>
+      <button class="fbtn" id="fldTrash" title="삭제목록 (7일 보관)">🗂 삭제목록</button>
       <button class="fbtn" id="fldCsv">후측량 csv</button>
       <button class="fbtn" id="fldJoseo">실시간 사진조서</button>
       <button class="fbtn" id="fldManhole">맨홀도 제작</button>
-      <button class="fbtn" id="fldImport" style="margin-left:auto">📥 결선완료 성과목록</button>
+      <button class="fbtn" id="fldRefLoad">📂 완료결선 업로드</button><span id="fldRefHint">시스템 완료전 결선완료사업 업로드(사업등록후 업로드)</span>
+      <span id="fldViewLbl" style="color:#889;font-size:12px;font-weight:700;align-self:center">보기</span><button class="fbtn" id="fldFit" title="도면 전체 보기">전체</button><button class="fbtn" id="fldTerr">🗺 백판 꺼짐</button>
+      <button class="fbtn" id="fldCrop" title="드래그한 영역을 PNG로 저장" style="background:#fff3e0;border-color:#f0a94e;color:#e8710a;font-weight:700">✂ 영역 크롭</button>
+      <button class="fbtn" id="fldImport" style="margin-left:auto">📥 결선DB 최종성과</button>
       <button class="fbtn fbtn-final" id="fldFinal">📋 후측량 최종성과 등록</button>
     </div>
     <select id="proj" class="wk"><option value="">사업 선택…</option></select>
     <button id="save" class="pri wk">저장</button>
     <button id="delProj" class="dgr wk">사업 삭제</button>
-    <button id="trashProj" class="wk" title="삭제목록 (7일 보관)">🗂 삭제목록</button>
     <span id="globalbtns" class="hgbtns wk"></span>
     <button id="bpToggle" class="wk" title="백판(수치지도) 표시/숨김">🗺 백판 ON</button>
     <button id="doneListBtn" class="wk" style="background:#eafaf0;color:#16a34a;border:1px solid #16a34a;font-weight:700">✅ 결선 완료사업</button>
@@ -380,9 +707,11 @@
       <div class="php-head">
         <h3>측점 사진</h3>
         <button id="dirToggle" class="dirtgl on">🧭 방향 ON</button>
+        <button id="aftPhotoUp" title="파일명=점번호(예: 251103-14.jpg)로 자동 배정">📷 후측량사진 업로드</button>
+        <button id="fldStakePhTgl" style="border-radius:8px;padding:3px 7px;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap;flex:none;background:#fff8e1;color:#b7791f;border:1.5px solid #e0a800">측설사진 미등록</button>
         <select id="photoSel"><option value="">측점 선택…</option></select>
         <button id="photoLinkBtn" class="linkon">🔗 연동</button>
-        <button id="vNote2" class="vw">⚠ 특이사항</button>
+        <button id="fldAftCap9" class="vw" title="선택된 측점의 후측량 사진 촬영">&#128247; 후측량 촬영</button>
         <button id="photoUp">사진 업로드</button>
         <button id="photoClose">✕</button>
       </div>
@@ -409,6 +738,7 @@
         <button id="joseoLinkBtn" class="jz-link">🔗 연동</button>
         <button id="joseoDoneBtn" class="jz-done">✅ 완료등록</button>
         <div style="margin-left:auto;display:flex;gap:6px;align-items:center;position:relative">
+          <button id="joseoBoardTgl" title="실시간 측량점 사진: 현황판 합성/원본 전환" style="border:1.5px solid #d9a800;background:#FFC61A;color:#6b5300;border-radius:8px;padding:4px 10px;font-weight:800;cursor:pointer">원본</button>
           <button onclick="joseoDownloadAll()" class="jz-dlall">📦 전체 ZIP</button>
           <button id="joseoDlDate" class="jz-dldate">📥 날자별 다운로드 ▾</button>
           <div id="joseoDateMenu" class="jz-datemenu"></div>
@@ -462,7 +792,7 @@
           <button class="rc-clr" id="clrTamsa" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">✕ 삭제</button>
         </div>
         <div class="regcard csv">
-          <div class="rc-t">CSV 로딩</div>
+          <div class="rc-t">노출관로 CSV</div>
           <div class="rc-drop" id="dropCsv">
             <span class="rc-dico">⬇</span>
             <span class="rc-st" id="rcCsv">측점 데이터 (.csv)</span>
@@ -471,7 +801,7 @@
           <button class="rc-btn" id="rcCsvBtn">직접 로딩</button>
           <button class="rc-clr" id="clrCsv" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">🗑 CSV별 삭제</button>
         </div>
-        <div class="regcard aft" id="regAftCard"><div class="rc-t">후측량 CSV (심도)</div><div class="rc-drop" id="dropAft"><span class="rc-dico">⬇</span><span class="rc-st" id="rcAft">복구후 후측량 (.csv)</span><span class="rc-hint">파일을 끌어다 놓기</span></div><button class="rc-btn" id="rcAftBtn">직접 로딩</button><div id="rcAftOut" style="margin-top:6px;font-size:11px;color:#7a52e0;font-weight:700"></div><div id="rcAftCnt" style="margin-top:3px;font-size:11px;color:#16a34a;font-weight:700"></div><button class="rc-clr" id="clrAft" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">🗑 심도 삭제</button></div><div class="regcard pho">
+        <div class="regcard aft" id="regAftCard"><div class="rc-t">후측량 CSV (심도)</div><div class="rc-drop" id="dropAft"><span class="rc-dico">⬇</span><span class="rc-st" id="rcAft">복구후 후측량 (.csv)</span><span class="rc-hint">파일을 끌어다 놓기</span></div><button class="rc-btn" id="rcAftBtn">직접 로딩</button><div id="rcAftOut" style="margin-top:6px;font-size:11px;color:#7a52e0;font-weight:700"></div><div id="rcAftCnt" style="margin-top:3px;font-size:11px;color:#16a34a;font-weight:700"></div><button class="rc-clr" id="clrAftList" style="display:none;margin-top:4px;font-size:11px;color:#c0392b;background:#fff;border:1px solid #e3b4ae;border-radius:6px;padding:3px 8px;cursor:pointer">🗑 CSV별 삭제</button></div><div class="regcard pho">
           <div class="rc-t">측점사진 로딩</div>
           <div class="rc-drop" id="dropPho">
             <span class="rc-dico">⬇</span>
@@ -523,6 +853,25 @@
     </div>
   </div>
 
-<script src="login.js?v=2188"></script><script src="core.js?v=2188"></script>
+<script src="login.js?v=2189"></script><script src="core.js?v=2189"></script>
+<script>
+/* [BUILD2079] 폰 body 높이 = 실측 픽셀 고정 — dvh를 못 믿는 웹뷰(카톡 인앱 등)에서 패널 바닥이 화면 밖으로 나가던 문제 종결. 회전해야 고쳐지던 증상의 근본 원인 제거 */
+(function(){
+  var last=0;
+  function fit(){try{
+    if(!window.matchMedia||!matchMedia('(max-width:760px)').matches){if(last){document.body.style.removeProperty('height');last=0;}return;}
+    var h=window.innerHeight||0;
+    if(h>200&&h!==last){document.body.style.setProperty('height',h+'px','important');last=h;}
+  }catch(e){}}
+  fit();
+  window.addEventListener('load',fit);
+  window.addEventListener('resize',fit);
+  window.addEventListener('orientationchange',function(){setTimeout(fit,250);setTimeout(fit,600);});
+  window.addEventListener('pageshow',fit);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)setTimeout(fit,80);});
+  try{if(window.visualViewport)visualViewport.addEventListener('resize',fit);}catch(e){}
+  setTimeout(fit,300);setTimeout(fit,1000);setTimeout(fit,2500);
+})();
+</script>
 </body>
 </html>
