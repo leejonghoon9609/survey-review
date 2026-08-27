@@ -8610,7 +8610,18 @@ async function aftPhotoZip(){ /* [1272] 측설(후측량) 사진 ZIP — 날짜 
     toast('측설사진 '+n+'장 ZIP 완료');
   }catch(e){toast('ZIP 실패: '+(e&&e.message||e));}
 }
-function posPullFld9(){/* [BUILD2195] 정위치 1번 — 측량현장 완료성과의 결선 데이터만 복사(원본 불변). 사진·CSV·백판·특이사항은 제외 — 부속성과는 취합 단계(4번) 별도 */
+function _posModal9(msg,okLb,onOk){/* [BUILD2197] 가운데 커스텀 확인 모달 — 브라우저 confirm 금지 규칙 */
+  var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:99999;display:flex;align-items:center;justify-content:center;';
+  var bx=document.createElement('div');bx.style.cssText='background:#fff;border:2px solid #d32f2f;border-radius:10px;padding:18px 22px;max-width:460px;min-width:300px;box-shadow:0 6px 24px rgba(0,0,0,0.25);';
+  var tx=document.createElement('div');tx.style.cssText='font-size:15px;line-height:1.6;white-space:pre-line;color:#222;';tx.textContent=msg;bx.appendChild(tx);
+  var row=document.createElement('div');row.style.cssText='display:flex;gap:10px;justify-content:center;margin-top:16px;';
+  var ok=document.createElement('button');ok.textContent=okLb||'확인';ok.style.cssText='background:#d32f2f;color:#fff;border:0;border-radius:6px;padding:9px 24px;font-size:15px;font-weight:700;cursor:pointer;';
+  var cc=document.createElement('button');cc.textContent='취소';cc.style.cssText='background:#f2f2f2;border:1px solid #bbb;border-radius:6px;padding:9px 24px;font-size:15px;cursor:pointer;';
+  ok.onclick=function(){try{document.body.removeChild(ov);}catch(_r){}if(typeof onOk==='function')onOk();};
+  cc.onclick=function(){try{document.body.removeChild(ov);}catch(_r){}};
+  row.appendChild(ok);row.appendChild(cc);bx.appendChild(row);ov.appendChild(bx);document.body.appendChild(ov);
+}
+function posPullFld9(){/* [BUILD2195/2197] 정위치 1번 — 측량현장 완료성과의 결선 데이터만 복사(원본 불변). 2197: confirm→가운데 모달 */
   if(!(typeof IS_POSITION!=='undefined'&&IS_POSITION))return;
   if(!online){toast('Supabase 연결 필요');return;}
   if(!state.projectId||!state.projectName){toast('먼저 정위치 사업을 선택하세요');return;}
@@ -8622,7 +8633,7 @@ function posPullFld9(){/* [BUILD2195] 정위치 1번 — 측량현장 완료성�
     var src=rows[0],pl=src.payload||{};
     var np=(pl.points||[]).length,nl=(pl.lines||[]).length,nm=(pl.manholes||[]).length;
     if(!np&&!nl){toast('해당 측량현장 사업에 결선 데이터가 없습니다');return;}
-    if(!confirm('측량현장 「'+src.name+'」 결선 가져오기\n측점 '+np+' · 관로선 '+nl+' · 맨홀 '+nm+'\n\n현재 정위치의 결선 데이터를 이 복사본으로 교체합니다.\n(측량현장 원본은 변경되지 않습니다)'))return;
+    _posModal9('측량현장 「'+src.name+'」 결선 가져오기\n측점 '+np+' · 관로선 '+nl+' · 맨홀 '+nm+'\n\n현재 정위치의 결선 데이터를 이 복사본으로 교체합니다.\n(측량현장 원본은 변경되지 않습니다)','가져오기',function(){
     function cp(v){try{return v==null?v:JSON.parse(JSON.stringify(v));}catch(_e){return v;}}
     state.points=cp(pl.points)||[];state.lines=cp(pl.lines)||[];
     try{state._lnBase9=null;_lnBaseSet9(state.lines);}catch(_lb){}
@@ -8639,6 +8650,7 @@ function posPullFld9(){/* [BUILD2195] 정위치 1번 — 측량현장 완료성�
     try{if(typeof updMeta==='function')updMeta();}catch(_um){}
     try{saveProject();}catch(_sv){}
     toast('📥 측량현장 결선 복사 완료 — '+src.name+' (측점 '+np+' · 선 '+nl+')');
+    });
   });
 }
 function fldRegToNext(cb){ /* [1289] field 성과 → 탱고(_T)·정위치(_P) 사본 등록 — svRegToField 미러 */
