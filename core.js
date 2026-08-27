@@ -8610,6 +8610,37 @@ async function aftPhotoZip(){ /* [1272] 측설(후측량) 사진 ZIP — 날짜 
     toast('측설사진 '+n+'장 ZIP 완료');
   }catch(e){toast('ZIP 실패: '+(e&&e.message||e));}
 }
+function posPullFld9(){/* [BUILD2195] 정위치 1번 — 측량현장 완료성과의 결선 데이터만 복사(원본 불변). 사진·CSV·백판·특이사항은 제외 — 부속성과는 취합 단계(4번) 별도 */
+  if(!(typeof IS_POSITION!=='undefined'&&IS_POSITION))return;
+  if(!online){toast('Supabase 연결 필요');return;}
+  if(!state.projectId||!state.projectName){toast('먼저 정위치 사업을 선택하세요');return;}
+  var base=baseName(state.projectName);
+  sb.from('field_projects').select('id,name,updated_at,payload').then(function(res){
+    var rows=((res&&res.data)||[]).filter(function(r){var pl=r.payload||{};return !pl.delAt&&(pl.stage||'survey')==='field'&&baseName(r.name)===base;});
+    if(!rows.length){toast('측량현장에 같은 사업명('+base+') 없음');return;}
+    rows.sort(function(a,b){return (''+(b.updated_at||'')).localeCompare(''+(a.updated_at||''));});
+    var src=rows[0],pl=src.payload||{};
+    var np=(pl.points||[]).length,nl=(pl.lines||[]).length,nm=(pl.manholes||[]).length;
+    if(!np&&!nl){toast('해당 측량현장 사업에 결선 데이터가 없습니다');return;}
+    if(!confirm('측량현장 「'+src.name+'」 결선 가져오기\n측점 '+np+' · 관로선 '+nl+' · 맨홀 '+nm+'\n\n현재 정위치의 결선 데이터를 이 복사본으로 교체합니다.\n(측량현장 원본은 변경되지 않습니다)'))return;
+    function cp(v){try{return v==null?v:JSON.parse(JSON.stringify(v));}catch(_e){return v;}}
+    state.points=cp(pl.points)||[];state.lines=cp(pl.lines)||[];
+    try{state._lnBase9=null;_lnBaseSet9(state.lines);}catch(_lb){}
+    state.manholes=cp(pl.manholes)||[];try{if(typeof _mhIdFix==='function')_mhIdFix();}catch(_mf){}
+    state.mnList=cp(pl.mnList)||[];
+    state.labelOff=cp(pl.labelOff)||{};
+    state.tgStore=cp(pl.tgStore)||null;state.tangoManual=cp(pl.tangoManual)||null;state.tangoEdit=cp(pl.tangoEdit)||null;
+    state.tgSegLabelOff=cp(pl.tgSegLabelOff)||{};state.tgAddSegs=cp(pl.tgAddSegs)||[];state.mhDel=cp(pl.mhDel)||null;
+    state.refCrop=cp(pl.refCrop)||null;try{if(typeof refCropBtn==='function')refCropBtn();}catch(_rc){}
+    state.crs=pl.crs||state.crs;state.tamsa=!!pl.tamsa;
+    state.depthGround=cp(pl.depthGround)||null;state._depthManual=cp(pl.depthManual)||null;state._depthAlign=null;
+    try{if(typeof computeDepth==='function')computeDepth();}catch(_cd){}
+    try{drawGeo();drawMarks();drawManholes();fitView();}catch(_dr){}
+    try{if(typeof updMeta==='function')updMeta();}catch(_um){}
+    try{saveProject();}catch(_sv){}
+    toast('📥 측량현장 결선 복사 완료 — '+src.name+' (측점 '+np+' · 선 '+nl+')');
+  });
+}
 function fldRegToNext(cb){ /* [1289] field 성과 → 탱고(_T)·정위치(_P) 사본 등록 — svRegToField 미러 */
   if(!online){toast('Supabase 연결 필요');return;}
   if(!state.projectId||!state.projectName){toast('먼저 사업을 선택/저장하세요');return;}
@@ -8735,7 +8766,7 @@ function _fldExPhotoAuto(cb){ /* [1302] field 전용 — 결선DB 완료성과(_
   var sv=document.getElementById('fldSave');if(sv)sv.onclick=function(){saveProject();};
   var c=document.getElementById('fldCsv');if(c)c.onclick=openFinalCsvUpload;
   var j=document.getElementById('fldJoseo');if(j)j.onclick=openJoseoPanel;
-  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){if(typeof mnOpenList==='function')mnOpenList();};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){fldDoneRegList();}; /* [1286] 결선DB 최종성과 목록 */var _frl=document.getElementById('fldRefLoad');if(_frl)_frl.onclick=function(){if(typeof refOpen==='function')refOpen();};try{var _ftr=document.getElementById('fldTerr');if(_ftr){_ftr.onclick=function(){
+  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){if(typeof mnOpenList==='function')mnOpenList();};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){fldDoneRegList();}; /* [1286] 결선DB 최종성과 목록 */var _frl=document.getElementById('fldRefLoad');if(_frl){if(typeof IS_POSITION!=='undefined'&&IS_POSITION){_frl.textContent='📥 측량현장 결선 가져오기';_frl.onclick=function(){posPullFld9();};var _fh9=document.getElementById('fldRefHint');if(_fh9)_fh9.textContent='측량현장 완료 결선 복사본으로 정위치 성과 제작(원본 불변)';}else{_frl.onclick=function(){if(typeof refOpen==='function')refOpen();};}}/* [BUILD2195] */try{var _ftr=document.getElementById('fldTerr');if(_ftr){_ftr.onclick=function(){
     if(typeof REF!=='undefined'&&REF&&REF.ents&&typeof refTerrCount==='function'&&refTerrCount()){refTerrToggle();return;}
     /* [1290] 완료결선 없으면 사업등록 수치지도(BP) 토글 */
     if(typeof bpOff==='undefined')window.bpOff=false;
