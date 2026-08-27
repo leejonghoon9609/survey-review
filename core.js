@@ -15355,7 +15355,7 @@ function rtDailyDel(){/* [BUILD1915] 체크된 날짜 등록 성과 삭제 — �
   if(typeof rtDoneAllRender9==='function')rtDoneAllRender9();rtDailyTodayFill();if(typeof renderSub==='function')renderSub();
 }
 /* [1215] realtime 전용 — 완료성과를 결선DB(survey) 사본으로 등록. 포털 결선DB 작업중 목록에 표시됨 */
-function rtRegToSurvey(){ /* [1216] 대상 테이블 = survey_projects/survey_photos (공정별 테이블 분리 — DB 상수 사용 금지) */
+function rtRegToSurvey(scope9){ /* [BUILD2210] scope9={raw,csv,line,ph} 선택 등록 — 무인자=기존 전체 등록 그대로 */ /* [1216] 대상 테이블 = survey_projects/survey_photos (공정별 테이블 분리 — DB 상수 사용 금지) */
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
   if(!state.projectId||!state.projectName){toast('먼저 사업을 선택/저장하세요');return;}
   var base=baseName(state.projectName);
@@ -15372,8 +15372,15 @@ function rtRegToSurvey(){ /* [1216] 대상 테이블 = survey_projects/survey_ph
   });
   sb.from("survey_projects").select("id,name,payload").then(function(res){
     var rows=((res&&res.data)||[]).filter(function(r){var pl0=r.payload||{};return !pl0.delAt&&(pl0.stage||'survey')==='survey'&&baseName(r.name)===base;});
+    var _old9=(rows.length?(rows[0].payload||{}):{});/* [BUILD2210] 선택 등록 병합 기준 */
     var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,rtDaily:state.rtDaily||[],trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:state.finalCsv||null,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,depthManual:state._depthManual||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,tgSegLabelOff:state.tgSegLabelOff||null,mnList:state.mnList||[],tangoDone:state.tangoDone||null,tgCarrier:state.tgCarrier||null,mhDel:state.mhDel||null,tgNotes:state.tgNotes||null,refCrop:state.refCrop||null/* [BUILD1994] 사업 영역 인계 */,bpFull:state.bpFull||[],bpTexts:state.bpTexts||[]/* [BUILD1997] 백판 원본 인계 — 탱고·정위치 사본에서도 재크롭 복구가 되도록. payload로 넘어오지만 다음 저장 때 saveProject가 heavy 컬럼으로 자동 이사시킨다([1491] finalCsv와 동일 관례) */,hyunPts:state.hyunPts||null,rtJgBoard9:state.rtJgBoard9||null,rtBoardName:state.rtBoardName||null,rtBoardPos:state.rtBoardPos||null/* [BUILD2127] 지거 현황판 입력·사업명·위치 인계 */};
     payload.stage='survey';payload.routingDone=false;
+    if(scope9){/* [BUILD2210] 체크된 성과만 새 값, 미체크는 기존 결선DB 값 보존(신규면 빈값) */
+     if(!scope9.csv){payload.points=_old9.points||[];payload.gpsPts=_old9.gpsPts||[];payload.labelOff=_old9.labelOff||{};payload.finalCsv=_old9.finalCsv||null;}
+     if(!scope9.line){payload.lines=_old9.lines||[];}
+     if(scope9.raw){payload.rtRawMeta9=state.rtRawMeta9||null;payload.rtRawSrc9=state.projectId;}
+     else{if(_old9.rtRawMeta9)payload.rtRawMeta9=_old9.rtRawMeta9;if(_old9.rtRawSrc9)payload.rtRawSrc9=_old9.rtRawSrc9;}
+    }
     var _photos=function(toId){
       sb.from(STAGE+"_photos").select("point_no,url").eq('project_id',state.projectId).then(function(pr){
         var prows=(pr&&pr.data)||[];if(!prows.length)return;
@@ -15388,12 +15395,14 @@ function rtRegToSurvey(){ /* [1216] 대상 테이블 = survey_projects/survey_ph
     var _fin=function(row){
       if(row&&row.error){toast('등록 오류: '+row.error.message);return;}
       var saved=row&&row.data&&row.data[0];if(!saved)return;
-      _photos(saved.id);
+      if(!scope9||scope9.ph)_photos(saved.id);/* [BUILD2210] 사진 미체크 시 복사 생략 */
       toast('결선DB로 등록됨: '+saved.name+' — 포털 결선DB 목록에서 열 수 있습니다');
     };
     if(rows.length){
+      var _doUp9=function(){sb.from("survey_projects").update({name:rows[0].name,payload:payload,updated_at:new Date().toISOString()}).eq('id',rows[0].id).select().then(_fin);};
+      if(scope9){_posModal9('결선DB에 이미 "'+rows[0].name+'" 사본이 있습니다.\n체크된 성과만 덮어쓰고 나머지는 보존합니다.','등록',_doUp9);return;}
       if(!confirm('결선DB에 이미 "'+rows[0].name+'" 사본이 있습니다. 현재 성과로 덮어쓸까요?'))return;
-      sb.from("survey_projects").update({name:rows[0].name,payload:payload,updated_at:new Date().toISOString()}).eq('id',rows[0].id).select().then(_fin);
+      _doUp9();
     }else{
       sb.from("survey_projects").insert({name:base+'_A',payload:payload,updated_at:new Date().toISOString()}).select().then(_fin);
     }
@@ -15407,17 +15416,17 @@ function rtDailyAllOpen(){ /* [1209] 완료성과(전체) — 일별 누적 목�
   var _fin=(state.rtDone&&state.rtDone.done);
   pop.innerHTML='<div id="rtDailyAllHead" style="display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:grab;user-select:none;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:'+(_fin?'#d81b60':'#c0392b')+';display:inline-block"></span><b style="font-size:15px">완료성과 (전체)</b>'+(_fin?'<span style="background:#d81b60;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:800">사업완료</span>':'')+'<span style="font-size:11px;color:#bbb;margin-left:auto">드래그로 이동</span></div>'
     +'<div id="rtDailyBody" style="overflow:auto;padding:10px 14px"></div>'
-    +'<div style="padding:9px 14px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px">'+((false /* [BUILD2137] 폰에서도 [결선DB로 등록] 표시 */)?'':'<button id="rtDailyToSurvey" style="background:#c0392b;color:#fff;border:0;border-radius:8px;padding:8px 16px;font-weight:800;cursor:pointer">결선DB로 등록</button>')+'<button id="rtDailyAllClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:8px 18px;cursor:pointer;font-weight:700">닫기</button></div>';
+    +'<div style="padding:9px 14px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px"><button id="rtDailyRegSel9" style="background:#16a34a;color:#fff;border:0;border-radius:8px;padding:8px 20px;font-weight:800;cursor:pointer">등록</button><button id="rtDailyAllClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:8px 18px;cursor:pointer;font-weight:700">닫기</button></div>';
   document.body.appendChild(pop);
   document.getElementById('rtDailyAllClose').onclick=function(){pop.remove();};
-  var _ts=document.getElementById('rtDailyToSurvey');if(_ts)_ts.onclick=function(){if(typeof rtRegToSurvey==='function')rtRegToSurvey();};
+  var _rs9=document.getElementById('rtDailyRegSel9');if(_rs9)_rs9.onclick=function(){if(typeof rtRegSelScope9==='function')rtRegSelScope9();};/* [BUILD2210] */
   (function(){var hd=document.getElementById('rtDailyAllHead'),dx=0,dy=0,drag=false;
     hd.addEventListener('pointerdown',function(e){drag=true;var r=pop.getBoundingClientRect();pop.style.left=r.left+'px';pop.style.top=r.top+'px';pop.style.transform='none';dx=e.clientX-r.left;dy=e.clientY-r.top;try{hd.setPointerCapture(e.pointerId);}catch(_e){}});
     hd.addEventListener('pointermove',function(e){if(!drag)return;pop.style.left=(e.clientX-dx)+'px';pop.style.top=(e.clientY-dy)+'px';});
     hd.addEventListener('pointerup',function(){drag=false;});})();
   rtDoneAllRender9();
 }
-function rtDoneAllRender9(){/* [BUILD2209] 완료성과(전체) 전면 개편 — 성과물 통합 다운로드 표(성과/파일 건수/내용/다운) */
+function rtDoneAllRender9(){/* [BUILD2210] 완료성과(전체) — 초록 표·고정폭 정렬·성과별 체크·선택 등록 */
  var el=document.getElementById('rtDailyBody');if(!el)return;
  var dm=rtDailyDistMap();var tot=0,seg=0;for(var _k in dm.dist)tot+=dm.dist[_k];for(var _k2 in dm.seg)seg+=dm.seg[_k2];
  var np=(state.points||[]).length;
@@ -15425,18 +15434,25 @@ function rtDoneAllRender9(){/* [BUILD2209] 완료성과(전체) 전면 개편 �
  var dayN=Object.keys(days).length;
  var RM=state.rtRawMeta9||{},rawN=0,dupN=0;for(var rk in RM){rawN++;if(RM[rk]&&RM[rk].dup)dupN++;}
  var phN=0;try{var _pm=(typeof photoMap!=='undefined'&&photoMap)?photoMap:{};for(var pk in _pm)phN++;}catch(_p){}
- function row(name,cnt,info,btn,cls,on){return '<tr style="border-bottom:1px solid #f2f2ef">'
+ var G1='#15803d',G2='#b7dfc4',G3='#e7f7ec';
+ function row(key,name,cnt,info,btn,cls,on){return '<tr style="border-bottom:1px solid #e3f0e7">'
+  +'<td style="text-align:center"><input type="checkbox" class="rtdaChk9" data-k="'+key+'" checked style="width:15px;height:15px;cursor:pointer"></td>'
   +'<td style="padding:10px 8px;font-weight:800;color:#233;white-space:nowrap">'+name+'</td>'
   +'<td style="text-align:center;white-space:nowrap">'+cnt+'</td>'
   +'<td style="font-size:12.5px;color:#445">'+info+'</td>'
-  +'<td style="text-align:center;padding:6px 8px"><button class="'+cls+'" '+(on?'':'disabled ')+'style="background:'+(on?'#1565c0':'#e8e8e2')+';color:'+(on?'#fff':'#999')+';border:0;border-radius:7px;padding:6px 14px;font-weight:800;font-size:12.5px;cursor:'+(on?'pointer':'default')+'">'+btn+'</button></td></tr>';}
- var h='<div style="font-size:12.5px;color:#1f4e9e;font-weight:800;padding:2px 2px 8px">거리 합계 <span style="color:#0f6e56">'+(+tot.toFixed(1))+'m</span> · 측점 '+np+'개 · 결선 '+seg+'개 · '+dayN+'일치</div>'
-  +'<table style="width:100%;border-collapse:collapse;font-size:13px;border:1.5px solid #cfd8e3"><thead><tr style="background:#f5f8ff;color:#1f4e9e">'
-  +'<th style="padding:7px 8px;border-bottom:1.5px solid #cdd6e4;text-align:left">성과</th><th style="border-bottom:1.5px solid #cdd6e4">파일 건수</th><th style="border-bottom:1.5px solid #cdd6e4;text-align:left">내용</th><th style="border-bottom:1.5px solid #cdd6e4">다운</th></tr></thead><tbody>'
-  +row('원시데이터(노출관로)', rawN?(rawN+'건'+(dupN?' <span style="color:#c0392b;font-size:11px">(중복 '+dupN+' 제외)</span>':'')):'-', '일별 원시 ZIP 통합 — 원본 그대로','ZIP','rtdaRaw9',rawN>0)
-  +row('CSV(노출관로)', np?'통합 1건':'-', '측점 '+np+'개 · '+dayN+'일치 · 야간보정 반영 한 파일','CSV','rtdaCsv9',np>0)
-  +row('결선(노출관로)', seg?'DXF 1건':'-', '거리 '+(+tot.toFixed(1))+'m · 결선 '+seg+'개','DXF','rtdaDxf9',seg>0)
-  +row('노출관로사진', phN?(phN+'장'):'-', '전체 사진 ZIP — 날짜별 폴더','ZIP','rtdaPh9',phN>0)
+  +'<td style="text-align:center;padding:6px 8px"><button class="'+cls+'" '+(on?'':'disabled ')+'style="background:#fff;border:1.5px solid '+(on?'#16a34a':'#cfcfc8')+';color:'+(on?'#16a34a':'#aaa')+';border-radius:7px;padding:6px 0;width:58px;font-weight:800;font-size:12.5px;cursor:'+(on?'pointer':'default')+'">'+btn+'</button></td></tr>';}
+ var h='<div style="display:flex;align-items:center;gap:10px;padding:2px 2px 9px">'
+  +'<div style="font-size:12.5px;color:'+G1+';font-weight:800">거리 합계 <span style="color:#0f6e56">'+(+tot.toFixed(1))+'m</span> · 측점 '+np+'개 · 결선 '+seg+'개 · '+dayN+'일치</div>'
+  +'<button id="rtdaToSv9" style="margin-left:auto;background:#c0392b;color:#fff;border:0;border-radius:8px;padding:7px 14px;font-weight:800;font-size:12.5px;cursor:pointer">결선DB로 등록</button></div>'
+  +'<table style="width:100%;border-collapse:collapse;font-size:13px;border:1.5px solid '+G2+';table-layout:fixed">'
+  +'<colgroup><col style="width:34px"><col style="width:172px"><col style="width:120px"><col><col style="width:78px"></colgroup>'
+  +'<thead><tr style="background:'+G3+';color:'+G1+'">'
+  +'<th style="padding:7px 4px;border-bottom:1.5px solid '+G2+'"><input type="checkbox" id="rtdaChkAll9" checked title="전체 선택/해제" style="width:15px;height:15px;cursor:pointer;vertical-align:middle"></th>'
+  +'<th style="padding:7px 8px;border-bottom:1.5px solid '+G2+';text-align:left">성과</th><th style="border-bottom:1.5px solid '+G2+'">파일 건수</th><th style="border-bottom:1.5px solid '+G2+';text-align:left">내용</th><th style="border-bottom:1.5px solid '+G2+'">다운</th></tr></thead><tbody>'
+  +row('raw','원시데이터(노출관로)', rawN?(rawN+'건'+(dupN?' <span style="color:#c0392b;font-size:11px">(중복 '+dupN+' 제외)</span>':'')):'-', '일별 원시 ZIP 통합 — 원본 그대로','ZIP','rtdaRaw9',rawN>0)
+  +row('csv','CSV(노출관로)', np?'통합 1건':'-', '측점 '+np+'개 · '+dayN+'일치 · 야간보정 반영 한 파일','CSV','rtdaCsv9',np>0)
+  +row('line','결선(노출관로)', seg?'DXF 1건':'-', '거리 '+(+tot.toFixed(1))+'m · 결선 '+seg+'개','DXF','rtdaDxf9',seg>0)
+  +row('ph','노출관로사진', phN?(phN+'장'):'-', '전체 사진 ZIP — 날짜별 폴더','ZIP','rtdaPh9',phN>0)
   +'</tbody></table>';
  el.innerHTML=h;
  var b;
@@ -15444,6 +15460,19 @@ function rtDoneAllRender9(){/* [BUILD2209] 완료성과(전체) 전면 개편 �
  b=el.querySelector('.rtdaCsv9');if(b&&!b.disabled)b.onclick=function(){if(typeof rtDailyCsv==='function')rtDailyCsv(null,true);};
  b=el.querySelector('.rtdaDxf9');if(b&&!b.disabled)b.onclick=function(){if(typeof exportDXF==='function')exportDXF();};
  b=el.querySelector('.rtdaPh9');if(b&&!b.disabled)b.onclick=function(){var _it=[];try{for(var k in photoMap)_it.push({no:k,url:photoMap[k]});}catch(_e){}if(!_it.length){toast('사진이 없습니다');return;}if(typeof svPhotoZip==='function')svPhotoZip(_it,(state.projectName||'사진')+'_전체사진',true);};
+ var _tv9=el.querySelector('#rtdaToSv9');if(_tv9)_tv9.onclick=function(){if(typeof rtRegToSurvey==='function')rtRegToSurvey();};
+ try{var _ma9=el.querySelector('#rtdaChkAll9');if(_ma9){
+  var _sy9=function(){var cs=el.querySelectorAll('.rtdaChk9');var all=cs.length>0;[].forEach.call(cs,function(x){if(!x.checked)all=false;});_ma9.checked=all;};
+  _ma9.onclick=function(){var v=_ma9.checked;[].forEach.call(el.querySelectorAll('.rtdaChk9'),function(c){c.checked=v;});};
+  [].forEach.call(el.querySelectorAll('.rtdaChk9'),function(c){c.addEventListener('change',_sy9);});
+ }}catch(_m8){}
+}
+function rtRegSelScope9(){/* [BUILD2210] 하단 [등록] — 체크된 성과만 결선DB로 */
+ var el=document.getElementById('rtDailyBody');if(!el)return;
+ var sc={raw:false,csv:false,line:false,ph:false},n=0;
+ [].forEach.call(el.querySelectorAll('.rtdaChk9'),function(c){if(c.checked){sc[c.getAttribute('data-k')]=true;n++;}});
+ if(!n){toast('등록할 성과를 체크하세요');return;}
+ if(typeof rtRegToSurvey==='function')rtRegToSurvey(sc);
 }
 function rtDailyRender(){
   var el=document.getElementById('rtDailyBody');if(!el)return;
