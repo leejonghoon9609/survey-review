@@ -1438,7 +1438,9 @@ function nearestPipeDir(wx,wy,maxR){
   return [vx/vl,vy/vl,bd];
 }
 // 맨홀/입상주 라벨 기본 위치(world) — 화면·DXF 공용. txtW=라벨 폭(각자 단위)
-function mhDisp(mh){if(mh&&(mh.type==='jb'||mh.type==='inlet')){var _jf=(mh.type==='jb'?'JB':'인입');var _jo=((mh._own||'')+'').trim();var _jn=((mh.note||'')+'').trim();return _jf+(_jo?' ('+_jo+')':'')+(_jn?' '+_jn:'');}/* [BUILD1733] */var kd=(mh.kind&&mh.type!=='riser')?mh.kind:'';try{var V=(typeof IS_TANGO!=='undefined'&&IS_TANGO&&state&&state.tgCarrier)?state.tgCarrier.view:null;if(V&&V!=='ALL'&&mh.type!=='riser'){var o=((mh._own||((/\(([^)]*)\)/.exec(mh.label||'')||[])[1]||''))+'').trim().toUpperCase();if(o&&o!==V)kd='기';}}catch(_e){}return (kd?kd+' ':'')+(mh.label||'')+(mh.spec?' '+mh.spec:'');}/* [1430] SKT/SKB 보기: 타사 맨홀 기설 표기(비파괴) */
+function mhDisp(mh){if(mh&&(mh.type==='jb'||mh.type==='inlet')){var _jf=(mh.type==='jb'?'JB':'인입');var _jo=((mh._own||'')+'').trim();var _jn=((mh.note||'')+'').trim();
+ if(_jo.length>6)_jo=_jo.slice(0,6)+'…';if(_jn.length>5)_jn=_jn.slice(0,5)+'…';/* [BUILD2225] 태그 길이 축약 */
+ return _jf+(_jo?'('+_jo+')':'')+(_jn?' '+_jn:'');}/* [BUILD1733] */var kd=(mh.kind&&mh.type!=='riser')?mh.kind:'';try{var V=(typeof IS_TANGO!=='undefined'&&IS_TANGO&&state&&state.tgCarrier)?state.tgCarrier.view:null;if(V&&V!=='ALL'&&mh.type!=='riser'){var o=((mh._own||((/\(([^)]*)\)/.exec(mh.label||'')||[])[1]||''))+'').trim().toUpperCase();if(o&&o!==V)kd='기';}}catch(_e){}return (kd?kd+' ':'')+(mh.label||'')+(mh.spec?' '+mh.spec:'');}/* [1430] SKT/SKB 보기: 타사 맨홀 기설 표기(비파괴) */
 function _jbMhFind(wx,wy){var L=((typeof state!=='undefined'&&state.manholes)||[]);for(var i=0;i<L.length;i++){var m=L[i];if(m&&(m.type==='jb'||m.type==='inlet')&&Math.abs(m.wx-wx)<0.5&&Math.abs(m.wy-wy)<0.5)return m;}return null;}
 function _jbMhAt(nd){if(!nd)return null;return _jbMhFind(nd.x,nd.y);}
 function selJb(opts,val,wx,wy,fld){var _o=[''].concat(opts||[]);if(val&&_o.indexOf(val)<0)_o.push(val);if(_o.indexOf('\uC9C1\uC811\uC785\uB825')<0)_o.push('\uC9C1\uC811\uC785\uB825');return '<select data-jx="'+wx+'" data-jy="'+wy+'" data-jf="'+fld+'" onchange="jbAttrOnChange(this)" style="font-size:12px;padding:1px 2px;border:1px solid #bbb;border-radius:4px;background:#fff;width:100%">'+_o.map(function(o){return '<option'+(o===val?' selected':'')+'>'+o+'</option>';}).join('')+'</select>';}
@@ -1458,7 +1460,12 @@ function jbTagEdit(mh,ev){/* [BUILD1733] JB/인입 태그 편집기 */
  var rN=document.createElement('div');rN.style.cssText='display:flex;align-items:center;gap:5px';var lbN=document.createElement('span');lbN.textContent='\uD2B9\uC774\uC0AC\uD56D';lbN.style.cssText='font-weight:700;color:#7a52e0;width:46px;flex:0 0 auto';var inpN=document.createElement('input');inpN.value=curNote;inpN.placeholder='(\uC788\uC744 \uB54C\uB9CC)';inpN.style.cssText='width:110px;flex:0 0 auto;font-size:12px;padding:2px 4px;border:1px solid #bbb;border-radius:4px';rN.appendChild(lbN);rN.appendChild(inpN);
  var br=document.createElement('div');br.style.cssText='display:flex;gap:6px;align-items:center';var bC=document.createElement('button');bC.textContent='\uCDE8\uC18C';bC.style.cssText='font-size:12px;padding:3px 10px;border:1px solid #bbb;border-radius:5px;background:#fff;cursor:pointer';var bS=document.createElement('button');bS.textContent='\uC800\uC7A5';bS.style.cssText='font-size:12px;padding:3px 12px;border:1px solid #7a52e0;border-radius:5px;background:#7a52e0;color:#fff;font-weight:700;cursor:pointer';
  bC.onclick=function(){w.remove();};
- bS.onclick=function(){if(typeof pushHist==='function')pushHist();mh.fac=rFac._val()||'';mh._own=rOwn._val()||'';mh.note=inpN.value.trim();w.remove();if(typeof saveProject==='function'){try{saveProject();}catch(_e){}}if(typeof drawManholes==='function')drawManholes();if(typeof jbTagSyncToAttr==='function')try{jbTagSyncToAttr(mh);}catch(_e2){}};
+ var _doSave9=function(){if(typeof pushHist==='function')pushHist();mh.fac=rFac._val()||'';mh._own=rOwn._val()||'';mh.note=inpN.value.trim();w.remove();if(typeof saveProject==='function'){try{saveProject();}catch(_e){}}if(typeof drawManholes==='function')drawManholes();if(typeof jbTagSyncToAttr==='function')try{jbTagSyncToAttr(mh);}catch(_e2){}};
+ bS.onclick=_doSave9;
+ w.addEventListener('keydown',function(e){/* [BUILD2225] 엔터=저장, ESC=취소 */
+  if(e.key==='Enter'){e.preventDefault();e.stopPropagation();_doSave9();}
+  else if(e.key==='Escape'){e.preventDefault();e.stopPropagation();w.remove();}
+ });
  br.appendChild(bC);br.appendChild(bS);w.appendChild(rFac);w.appendChild(rOwn);w.appendChild(rN);w.appendChild(br);document.body.appendChild(w);
  setTimeout(function(){function _cl(e){if(!w.contains(e.target)){w.remove();document.removeEventListener('pointerdown',_cl,true);}}document.addEventListener('pointerdown',_cl,true);},60);
 }
