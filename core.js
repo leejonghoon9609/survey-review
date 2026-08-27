@@ -19059,13 +19059,19 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   S.items.push({t:'pl',lay:'SD983',pts:[[b0x+nx*bw,b0y+ny*bw],[b0x+ux*bl+nx*bw,b0y+uy*bl+ny*bw],[b0x+ux*bl-nx*bw,b0y+uy*bl-ny*bw],[b0x-nx*bw,b0y-ny*bw]],cl:1});
   for(var ci=0;ci<gongsu&&ci<10;ci++){S.items.push({t:'ci',lay:'SD983',x:b0x+ux*(ci+0.7)*1.05,y:b0y+uy*(ci+0.7)*1.05,r:0.5});}
  });
- /* [BUILD2202] 현황선 — 화면 미리보기 전용(DXF 미반영, 수치지도 세분화 시 레이어 확정 예정) */
- var hyun9=[];(state.lines||[]).forEach(function(l){
+ /* [BUILD2203] 현황선 — DXF 포함(원 레이어명 그대로), 기존 도엽에만 배정(현황선 단독 도엽 생성 금지) */
+ function shpeek(x,y){var c=_posSheetOf(x,y);return (c&&SH[c.no])?SH[c.no]:null;}
+ (state.lines||[]).forEach(function(l){
   if(!l||!l.pts||l.pts.length<2)return;
   if(l.base||l.crop||l.free||l.insp)return;
   if(l.layer===TL||l.layer==='지거'||l.layer==='압입구간'||l.layer==='탐사구간')return;
-  hyun9.push({pts:l.pts,lay:l.layer||''});});
- return {SH:SH,hyun9:hyun9};
+  var cur=null,buf=[];
+  function flush(){if(cur&&buf.length>=2)cur.items.push({t:'pl',lay:(l.layer||'현황선'),pts:buf,cl:0});buf=[];}
+  for(var i=0;i<l.pts.length-1;i++){var a=l.pts[i],b=l.pts[i+1];var S2=shpeek((a[0]+b[0])/2,(a[1]+b[1])/2);if(!S2){flush();cur=null;continue;}
+   if(S2!==cur){flush();cur=S2;buf=[a.slice(0,2)];}
+   buf.push(b.slice(0,2));}
+  flush();});
+ return {SH:SH};
 }
 function _pdSer9(items){/* 장면 items → DXF 엔티티 문자열 (핸들은 이 시점 발급) */
  var e='';for(var i=0;i<items.length;i++){var it=items[i];
@@ -19136,8 +19142,9 @@ function _sdDrawSym9(g,name,x,y){/* 블록 심볼 — tpl_pos_legend.dxf 실측 
 function _sdDrawItem9(g,it){
  var col=_sdCol9(it.lay);
  if(it.t==='pl'){
+  if(!/^SD/.test(it.lay)&&typeof LINECOL!=='undefined'&&LINECOL[it.lay])col=LINECOL[it.lay].c;/* [BUILD2203] 현황 레이어 색 */
   var ps='';for(var i=0;i<it.pts.length;i++){var sc=S(it.pts[i][0],it.pts[i][1]);ps+=(i?' ':'')+sc[0].toFixed(3)+','+sc[1].toFixed(3);}
-  g.appendChild(el(it.cl?'polygon':'polyline',{points:ps,fill:'none',stroke:col,'stroke-width':(it.lay==='SD001'?0.15:0.08),'pointer-events':'none'}));
+  g.appendChild(el(it.cl?'polygon':'polyline',{points:ps,fill:'none',stroke:col,'stroke-width':(it.lay==='SD001'?0.15:(!/^SD/.test(it.lay)?0.1:0.08)),'pointer-events':'none'}));
  }else if(it.t==='ci'){
   var c=S(it.x,it.y);g.appendChild(el('circle',{cx:c[0],cy:c[1],r:it.r,fill:'none',stroke:col,'stroke-width':0.07,'pointer-events':'none'}));
  }else if(it.t==='tx'){
@@ -19165,12 +19172,11 @@ function posDrawSD9(force){
  if(!g._built9){
   while(g.firstChild)g.removeChild(g.firstChild);
   var sc2=window._sdCache9.sc;
-  if(sc2){
-   if(sc2.hyun9)for(var h9=0;h9<sc2.hyun9.length;h9++){var H9=sc2.hyun9[h9];/* [BUILD2202] 현황선 */
-    var col9=(typeof LINECOL!=='undefined'&&LINECOL[H9.lay])?LINECOL[H9.lay].c:'#9aa2ab';
-    var ps9='';for(var q9=0;q9<H9.pts.length;q9++){var sq9=S(H9.pts[q9][0],H9.pts[q9][1]);ps9+=(q9?' ':'')+sq9[0].toFixed(3)+','+sq9[1].toFixed(3);}
-    g.appendChild(el('polyline',{points:ps9,fill:'none',stroke:col9,'stroke-width':0.1,'pointer-events':'none'}));}
-   Object.keys(sc2.SH).forEach(function(no){var items=sc2.SH[no].items;for(var i=0;i<items.length;i++)_sdDrawItem9(g,items[i]);});}
+  if(sc2){/* [BUILD2203] 2패스 — 현황선(비SD 레이어) 먼저 깔고 SD 위에 */
+   var _hy9=[],_sd9=[];
+   Object.keys(sc2.SH).forEach(function(no){var items=sc2.SH[no].items;for(var i=0;i<items.length;i++){var it9=items[i];((it9.t==='pl'&&!/^SD/.test(it9.lay))?_hy9:_sd9).push(it9);}});
+   for(var i9=0;i9<_hy9.length;i9++)_sdDrawItem9(g,_hy9[i9]);
+   for(var j9=0;j9<_sd9.length;j9++)_sdDrawItem9(g,_sd9[j9]);}
   g._built9=1;}
  g.style.display='';
  _sdOnly9(window._sdPrev9===2);
