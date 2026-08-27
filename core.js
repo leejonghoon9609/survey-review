@@ -15440,7 +15440,7 @@ function rtDoneAllRender9(){/* [BUILD2210] 완료성과(전체) — 초록 표·
   +'<td style="padding:10px 8px;font-weight:800;color:#233;white-space:nowrap">'+name+'</td>'
   +'<td style="text-align:center;white-space:nowrap">'+cnt+'</td>'
   +'<td style="font-size:12.5px;color:#445">'+info+'</td>'
-  +'<td style="text-align:center;padding:6px 8px"><button class="'+cls+'" '+(on?'':'disabled ')+'style="background:#fff;border:1.5px solid '+(on?'#16a34a':'#cfcfc8')+';color:'+(on?'#16a34a':'#aaa')+';border-radius:7px;padding:6px 0;width:58px;font-weight:800;font-size:12.5px;cursor:'+(on?'pointer':'default')+'">'+btn+'</button></td></tr>';}
+  +'<td style="text-align:center;padding:6px 8px"><button class="'+cls+'" '+(on?'':'disabled ')+'style="background:#fff;border:1.5px solid '+(on?'#16a34a':'#cfcfc8')+';color:'+(on?'#16a34a':'#aaa')+';border-radius:7px;padding:6px 0;width:58px;font-weight:800;font-size:12.5px;display:inline-flex;align-items:center;justify-content:center;margin:0 auto;cursor:'+(on?'pointer':'default')+'">'+btn+'</button></td></tr>';}
  var h='<div style="display:flex;align-items:center;gap:10px;padding:2px 2px 9px">'
   +'<div style="font-size:12.5px;color:'+G1+';font-weight:800">거리 합계 <span style="color:#0f6e56">'+(+tot.toFixed(1))+'m</span> · 측점 '+np+'개 · 결선 '+seg+'개 · '+dayN+'일치</div>'
   +'<button id="rtdaToSv9" style="margin-left:auto;background:#c0392b;color:#fff;border:0;border-radius:8px;padding:7px 14px;font-weight:800;font-size:12.5px;cursor:pointer">결선DB로 등록</button></div>'
