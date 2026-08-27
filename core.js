@@ -333,6 +333,15 @@ function loadTamsaCsv(f){
 }
 function loadAfterCsv(f){
   if(!f)return;
+  if(/\.zip$/i.test(f.name||'')){/* [BUILD2234] 사업등록 카드도 원시 ZIP 수용 */
+   if(typeof aftRawZipUp9==='function')aftRawZipUp9(f,function(o){
+    var a=finalCsvArr();a.push({name:o.name,text:o.text});state.finalCsv=a;
+    if(!state.fieldDone)state.fieldDone={csv:false,joseo:false,manhole:false};state.fieldDone.csv=true;
+    try{finalCsvDepthSync();}catch(_d9){}
+    try{if(typeof updRegStatus==='function')updRegStatus();}catch(_u9){}
+    try{if(online&&state.projectId)saveProject();}catch(_s9){}
+   });
+   return;}
   var rd=new FileReader();
   rd.onload=function(){
     var txt;try{txt=decodeBuf(rd.result);}catch(e){txt=''+rd.result;}
@@ -6696,7 +6705,7 @@ function _lnGuard9(ls,sil,onOk){
 }
 function saveProject(cb){ if(readOnly){if(typeof cb==='function')cb();return;} var _sil=!!window._silentSave;window._silentSave=false;
   try{if(typeof mhFixStamp9==='function'){(state.manholes||[]).forEach(function(m){if(m&&m.wx!=null&&!m._fx0&&mhFixed9(m))m._fx0=[+m.wx,+m.wy];});}if(typeof mhFixGuard9==='function')mhFixGuard9(_sil);}catch(_fg9){}/* [BUILD1955] 측량 좌표 이탈분 저장 전 복구 *//* [1358] 자동저장 플래그 진입 시 캐처 */
-  var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,rtToSvDone9:state.rtToSvDone9||null,svFldReg9:state.svFldReg9||null,rtDaily:state.rtDaily||[],trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:null/* [1491] heavy 컬럼으로 이동 */,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,depthManual:state._depthManual||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,tgSegLabelOff:state.tgSegLabelOff||null,mnList:state.mnList||[],tangoDone:state.tangoDone||null,tgCarrier:state.tgCarrier||null,mhDel:state.mhDel||null,tgNotes:state.tgNotes||null,refCrop:state.refCrop||null/* [BUILD1994] 크롭 영역 영속 — 미저장이라 재로드 시 REF 가림막이 풀려 '바깥이 살아난' 것처럼 보였음 */,tgAddSegs:state.tgAddSegs||[]/* [BUILD1994] 구간추가 영속 — payload·tgStore 어디에도 없어 새로고침 시 소실됐음 */,refMhLbl:state.refMhLbl||null,hyunPts:state.hyunPts||null,csvTrash:state._csvTrash||[],rtCsvHead9:state.rtCsvHead9||null/* [BUILD2068] 원본 CSV 헤더 영속 */,rtRawMeta9:state.rtRawMeta9||null,rtJgBoard9:state.rtJgBoard9||null/* [BUILD2122] 지거 현황판 입력 */,phoTrash9:state.phoTrash9||null/* [BUILD2179] 사진 휴지통 *//* [BUILD2085] 원시ZIP 메타 *//* [BUILD1867] CSV \uC0AD\uC81C\uBCF4\uAD00 \uC601\uC18D\uD654 */,rtBoardName:state.rtBoardName||null,rtBoardPos:state.rtBoardPos||null,joseoBoard:state.joseoBoard?1:null,posSync9:state.posSync9||null/* [BUILD2198] */,fldCsvEd9:state.fldCsvEd9||null/* [BUILD2199] *//* [BUILD1873] \ud604\ud669\ud310 \uc0ac\uc5c5\uba85\u00b7\uc704\uce58 \uc601\uc18d\ud654 */};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
+  var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,rtToSvDone9:state.rtToSvDone9||null,svFldReg9:state.svFldReg9||null,rtDaily:state.rtDaily||[],trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,finalCsv:null/* [1491] heavy 컬럼으로 이동 */,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,depthManual:state._depthManual||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,tgSegLabelOff:state.tgSegLabelOff||null,mnList:state.mnList||[],tangoDone:state.tangoDone||null,tgCarrier:state.tgCarrier||null,mhDel:state.mhDel||null,tgNotes:state.tgNotes||null,refCrop:state.refCrop||null/* [BUILD1994] 크롭 영역 영속 — 미저장이라 재로드 시 REF 가림막이 풀려 '바깥이 살아난' 것처럼 보였음 */,tgAddSegs:state.tgAddSegs||[]/* [BUILD1994] 구간추가 영속 — payload·tgStore 어디에도 없어 새로고침 시 소실됐음 */,refMhLbl:state.refMhLbl||null,hyunPts:state.hyunPts||null,csvTrash:state._csvTrash||[],rtCsvHead9:state.rtCsvHead9||null/* [BUILD2068] 원본 CSV 헤더 영속 */,rtRawMeta9:state.rtRawMeta9||null,aftRawMeta9:state.aftRawMeta9||null,rtJgBoard9:state.rtJgBoard9||null/* [BUILD2122] 지거 현황판 입력 */,phoTrash9:state.phoTrash9||null/* [BUILD2179] 사진 휴지통 *//* [BUILD2085] 원시ZIP 메타 *//* [BUILD1867] CSV \uC0AD\uC81C\uBCF4\uAD00 \uC601\uC18D\uD654 */,rtBoardName:state.rtBoardName||null,rtBoardPos:state.rtBoardPos||null,joseoBoard:state.joseoBoard?1:null,posSync9:state.posSync9||null/* [BUILD2198] */,fldCsvEd9:state.fldCsvEd9||null/* [BUILD2199] *//* [BUILD1873] \ud604\ud669\ud310 \uc0ac\uc5c5\uba85\u00b7\uc704\uce58 \uc601\uc18d\ud654 */};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
   if(!state.projectName){toast('사업명을 먼저 정하세요(새 사업)');return;}if(!_lnGuard9(payload.lines,_sil,function(){window._silentSave=_sil;saveProject(cb);}))return;/* [BUILD1937] 관로선 급감 시 저장 차단 */
   payload.stage=STAGE;
   if(state.loadedStage&&state.loadedStage!==STAGE){state.projectId=null;} // 다운스트림 분리: 다른 단계 사업은 처음 저장 시 새 사본 생성(원본 보호)
@@ -6746,7 +6755,7 @@ function _loadProjectRaw(id,ro,cb){ if(!online||!id)return; try{if(typeof mnClos
     if(res.error||!res.data){toast('불러오기 실패');return;}if(typeof _tgStageBackup==='function'&&state.tgStore&&(state._pointsOrig||state._linesOrig||state._depthOrig))_tgStageBackup();if(typeof _tgStageOut==='function')_tgStageOut();var _xp=document.getElementById('tangoPanel');if(_xp)_xp.style.display='none';var _xi=document.getElementById('tgInfoPanel');if(_xi)_xi.style.display='none';if(typeof tgPanelLayout==='function')tgPanelLayout(false);if(typeof tgUpdateBtn==='function')tgUpdateBtn(false);if(typeof tgSeg!=='undefined')tgSeg=-1;if(typeof _segFix!=='undefined')_segFix=null;if(typeof _segAdd!=='undefined')_segAdd=null;if(typeof _tgSegs!=='undefined')_tgSegs=null;if(typeof mode!=='undefined'&&mode&&mode.indexOf('tg')===0){mode='pan';if(typeof setModeUI==='function')setModeUI();}state.tgSegLabelOff={};['tgSegHLG','tgSegHLF','tgSegHL'].forEach(function(_xid){var _xe=document.getElementById(_xid);if(_xe)_xe.remove();});
     var p=res.data.payload||{};state.projectId=res.data.id;
     try{var _hv=res.data.heavy;try{state.bpFull=(_hv&&_hv.bpFull)?_hv.bpFull:[];state.bpTexts=(_hv&&_hv.bpTexts)?_hv.bpTexts:[];}catch(_bf4){state.bpFull=[];state.bpTexts=[];}/* [BUILD1996] 백판 원본 복원 — 없으면 빈 배열(사업 전환 유출 차단) */if(_hv&&_hv.finalCsv!==undefined){p.finalCsv=_hv.finalCsv;window._hvSaved=res.data.id+'#'+((_hv.finalCsv||[]).map(function(f){return (f.name||'')+':'+((f.text||'').length);}).join('|'));}else{window._hvSaved=null;}}catch(_h3){window._hvSaved=null;}/* [1491] heavy 병합 — 구사업은 다음 저장때 자동 이사 */state.projectName=res.data.name;state.loadedStage=p.stage||'survey';state._importSrc=[];
-    state.points=p.points||[];state.gpsPts=p.gpsPts||[];state.tangoEdit=p.tangoEdit||null;if(p.tangoManual)state.tangoManual=p.tangoManual;state.tgStore=p.tgStore||null;state.tgSegLabelOff=p.tgSegLabelOff||{};/* [BUILD2029] \uAD6C\uAC04\uB77C\uBCA8 \uC624\uD504\uC14B \uC601\uC18D */if(!state.tgStore&&(p.tangoEdit||p.tangoManual)){state.tgStore={tango:{edit:p.tangoEdit,manual:p.tangoManual||{},segDel:{}}};}_tgCtx='tango';try{if((!state.bpFull||!state.bpFull.length)&&p.bpFull&&p.bpFull.length){state.bpFull=p.bpFull;state.bpTexts=p.bpTexts||[];}}catch(_bf5){}/* [BUILD1997] 인계본은 payload에 백판 원본이 실려 온다 — heavy가 비어 있을 때만 채운다(heavy 우선) */state.refCrop=p.refCrop||null;state.tgAddSegs=p.tgAddSegs||[];try{if(typeof refCropBtn==='function')refCropBtn();}catch(_rc94){}/* [BUILD1994] 크롭 영역·구간추가 복원 — 미존재 시 초기화(사업 전환 유출 차단) */state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];try{state._lnBase9=null;_lnBaseSet9(state.lines);}catch(_lb8){}/* [BUILD1937] */state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];if(typeof _mhIdFix==='function')_mhIdFix();/* [1554] */state.bpzones=p.bpzones||[];state.roadZones=p.roadZones||[];state.depthCheck=p.depthCheck||[];if(typeof classifyRoad==='function')classifyRoad();state.depthGround=p.depthGround||null;state._depthManual=p.depthManual||null;/* [1541] */state._depthAlign=null;state.titleBlock=p.titleBlock||null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.tangoDone=p.tangoDone||null;state.tgCarrier=p.tgCarrier||null;state.mhDel=p.mhDel||null;state.tgNotes=p.tgNotes||[];state.refMhLbl=p.refMhLbl||{};/* [1461] */state._csvTrash=p.csvTrash||[];state.rtCsvHead9=p.rtCsvHead9||{};state.rtRawMeta9=p.rtRawMeta9||{};state.rtJgBoard9=p.rtJgBoard9||{};/* [BUILD2122] */state.phoTrash9=p.phoTrash9||[];state.posSync9=p.posSync9||null;/* [BUILD2198] */state.fldCsvEd9=p.fldCsvEd9||{};/* [BUILD2199] *//* [BUILD2179] */try{if(typeof jgMigrate9==='function')jgMigrate9();}catch(_jm9){}/* [BUILD2187] */
+    state.points=p.points||[];state.gpsPts=p.gpsPts||[];state.tangoEdit=p.tangoEdit||null;if(p.tangoManual)state.tangoManual=p.tangoManual;state.tgStore=p.tgStore||null;state.tgSegLabelOff=p.tgSegLabelOff||{};/* [BUILD2029] \uAD6C\uAC04\uB77C\uBCA8 \uC624\uD504\uC14B \uC601\uC18D */if(!state.tgStore&&(p.tangoEdit||p.tangoManual)){state.tgStore={tango:{edit:p.tangoEdit,manual:p.tangoManual||{},segDel:{}}};}_tgCtx='tango';try{if((!state.bpFull||!state.bpFull.length)&&p.bpFull&&p.bpFull.length){state.bpFull=p.bpFull;state.bpTexts=p.bpTexts||[];}}catch(_bf5){}/* [BUILD1997] 인계본은 payload에 백판 원본이 실려 온다 — heavy가 비어 있을 때만 채운다(heavy 우선) */state.refCrop=p.refCrop||null;state.tgAddSegs=p.tgAddSegs||[];try{if(typeof refCropBtn==='function')refCropBtn();}catch(_rc94){}/* [BUILD1994] 크롭 영역·구간추가 복원 — 미존재 시 초기화(사업 전환 유출 차단) */state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];try{state._lnBase9=null;_lnBaseSet9(state.lines);}catch(_lb8){}/* [BUILD1937] */state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];if(typeof _mhIdFix==='function')_mhIdFix();/* [1554] */state.bpzones=p.bpzones||[];state.roadZones=p.roadZones||[];state.depthCheck=p.depthCheck||[];if(typeof classifyRoad==='function')classifyRoad();state.depthGround=p.depthGround||null;state._depthManual=p.depthManual||null;/* [1541] */state._depthAlign=null;state.titleBlock=p.titleBlock||null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.tangoDone=p.tangoDone||null;state.tgCarrier=p.tgCarrier||null;state.mhDel=p.mhDel||null;state.tgNotes=p.tgNotes||[];state.refMhLbl=p.refMhLbl||{};/* [1461] */state._csvTrash=p.csvTrash||[];state.rtCsvHead9=p.rtCsvHead9||{};state.rtRawMeta9=p.rtRawMeta9||{};state.aftRawMeta9=p.aftRawMeta9||{};/* [BUILD2234] */state.rtJgBoard9=p.rtJgBoard9||{};/* [BUILD2122] */state.phoTrash9=p.phoTrash9||[];state.posSync9=p.posSync9||null;/* [BUILD2198] */state.fldCsvEd9=p.fldCsvEd9||{};/* [BUILD2199] *//* [BUILD2179] */try{if(typeof jgMigrate9==='function')jgMigrate9();}catch(_jm9){}/* [BUILD2187] */
   try{if(typeof STAGE!=='undefined'&&STAGE==='survey'&&state.points&&state.points.length){/* [BUILD2156] 과거 사업 소급 — 시설물 좌표와 겹친 지거점 정리 */
     var _b4=state.points.length;
     state.points=state.points.filter(function(q){
@@ -8515,16 +8524,78 @@ function openAftCsvList(){ /* [1248] field 후측량 CSV 파일별 삭제 — op
   }
   render();ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};document.body.appendChild(ov);
 }
+function aftRawZipUp9(file,onCsv){/* [BUILD2234] 후측량 원시 ZIP — 안의 CSV 추출→등록, 원본 ZIP 보관 */
+ if(!file)return;
+ if(typeof JSZip==='undefined'){toast('압축 모듈 없음 — 새로고침(Ctrl+Shift+R)');return;}
+ toast('후측량 원시 ZIP 여는 중… ('+(file.name||'')+')');
+ return JSZip.loadAsync(file).then(function(zip){
+  var ents=[];zip.forEach(function(path,e){if(!e.dir&&/\.csv$/i.test(path))ents.push({p:path,e:e});});
+  if(!ents.length){toast('ZIP 안에서 CSV를 찾지 못했습니다');return;}
+  var i=0;
+  function nx(){
+   if(i>=ents.length){
+    var ymd=null,m=/20(\d{6})/.exec(file.name||'');if(m)ymd=m[1];
+    if(!ymd)ymd=(new Date()).toISOString().slice(2,10).replace(/-/g,'');
+    if(typeof sb!=='undefined'&&state.projectId&&(typeof online==='undefined'||online)){
+     sb.storage.from('photos').upload(state.projectId+'/aftraw_'+ymd+'.zip',file,{upsert:true,contentType:'application/zip'}).then(function(u){
+      if(u&&u.error){toast('후측량 원시 보관 실패: '+u.error.message);return;}
+      state.aftRawMeta9=state.aftRawMeta9||{};
+      state.aftRawMeta9[ymd]={zn:(file.name||''),size:file.size||0,at:new Date().toISOString(),n:ents.length};
+      try{saveProject();}catch(_sv){}
+      toast('📦 후측량 원시 보관 완료 — CSV '+ents.length+'개 등록',4200);
+     })['catch'](function(e){toast('후측량 원시 보관 오류: '+(e&&e.message||e));});
+    }else{toast('CSV '+ents.length+'개 등록 — 사업 저장 후 다시 올리면 원본 ZIP도 보관됩니다',4200);}
+    return;
+   }
+   var it=ents[i++];
+   it.e.async('uint8array').then(function(u8){
+    var txt='';try{txt=decodeBuf(u8.buffer);}catch(_d){try{txt=new TextDecoder('euc-kr').decode(u8);}catch(_d2){txt='';}}
+    if(txt&&typeof onCsv==='function')onCsv({name:(it.p.split('/').pop()||'후측량.csv'),text:txt});
+    setTimeout(nx,0);
+   })['catch'](function(){setTimeout(nx,0);});
+  }
+  nx();
+ })['catch'](function(e){toast('ZIP 처리 오류: '+(e&&e.message||e));});
+}
+function aftRawAllZip9(){/* [BUILD2234] 후측량 원시 통합 다운 */
+ var M=state.aftRawMeta9||{};var keys=Object.keys(M).sort();
+ if(!keys.length){toast('보관된 후측량 원시 ZIP이 없습니다');return;}
+ if(typeof JSZip==='undefined'){toast('압축 모듈 없음');return;}
+ if(typeof sb==='undefined'||!state.projectId){toast('사업이 저장되어 있어야 합니다');return;}
+ var out=new JSZip(),i=0,ok=0,fail=0;
+ (function nx(){
+  if(i>=keys.length){
+   if(!ok){toast('받은 원시가 없습니다');return;}
+   out.generateAsync({type:'blob'}).then(function(b){
+    var a=document.createElement('a');a.href=URL.createObjectURL(b);
+    a.download=((state.projectName||'사업')+'_후측량원시통합.zip').replace(/[\\/:*?"<>|]/g,'_');
+    document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},400);
+    toast('✓ 후측량원시통합.zip — '+ok+'건'+(fail?(' · 실패 '+fail):''),4200);
+   });return;
+  }
+  var kk=keys[i++];
+  var url=sb.storage.from('photos').getPublicUrl(state.projectId+'/aftraw_'+kk+'.zip').data.publicUrl+'?t='+Date.now();
+  fetch(url).then(function(r){if(!r.ok)throw 0;return r.blob();}).then(function(b){return JSZip.loadAsync(b);})
+  .then(function(src){
+   var zn=String((M[kk]&&M[kk].zn)||('후측량원시_'+kk+'.zip')).replace(/\.zip$/i,'').replace(/[\\/:*?"<>|]/g,'_');
+   var base='20'+kk+'/'+zn+'/';var es=[];src.forEach(function(p,e){if(!e.dir)es.push({p:p,e:e});});
+   var i2=0;return new Promise(function(res,rej){(function nx2(){
+    if(i2>=es.length){ok++;res();return;}
+    var it=es[i2++];it.e.async('uint8array').then(function(u8){out.file(base+it.p,u8);setTimeout(nx2,0);})['catch'](rej);
+   })();});
+  })['catch'](function(){fail++;}).then(function(){setTimeout(nx,20);});
+ })();
+}
 function openFinalCsvUpload(){
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;z-index:1250;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;padding:16px';
   var _fld=(typeof IS_FIELD!=='undefined'&&IS_FIELD); /* [1246~1247] field 전용: 가로 2열(620px)·빨간 계열 — 탱고 등 타 공정은 기존 파랑 단일 창 유지 */
   var _BS1=_fld?'background:#fff;color:#d99b00;border:1.5px solid #e0a800':'background:#2563eb;color:#fff;border:none', _BS2=_fld?'background:#fff;color:#d99b00;border:1.5px solid #e0a800':'background:#16a34a;color:#fff;border:none', _DBC=_fld?'#ead8a0':'#cdd6e6'; /* [1250] field 우측(후측량)=노랑 계열 */ /* [1248] field 버튼=흰배경+밝은 빨강 */
-  var _aftB='<div id="fcDrop" style="border:1.5px dashed '+_DBC+';border-radius:10px;padding:20px;text-align:center;cursor:pointer;color:#5b6b86"><div style="font-size:22px">⬇</div><div style="margin-top:6px">후측량 CSV (.csv) 끌어다 놓기 / 클릭 (여러 개 가능)</div></div><button id="fcBtn" style="margin-top:12px;width:100%;'+_BS1+';border-radius:9px;padding:11px;font-weight:700;cursor:pointer">파일 선택</button><div id="fcList" style="margin-top:12px"></div><button id="fcDone" style="margin-top:14px;width:100%;'+_BS2+';border-radius:9px;padding:11px;font-weight:700;cursor:pointer">✅ 등록 완료</button>';
+  var _aftB='<div id="fcDrop" style="border:1.5px dashed '+_DBC+';border-radius:10px;padding:20px;text-align:center;cursor:pointer;color:#5b6b86"><div style="font-size:22px">⬇</div><div style="margin-top:6px">후측량 CSV·원시 ZIP 끌어다 놓기 / 클릭 (여러 개 가능)</div></div><button id="fcBtn" style="margin-top:12px;width:100%;'+_BS1+';border-radius:9px;padding:11px;font-weight:700;cursor:pointer">파일 선택</button><div id="fcList" style="margin-top:12px"></div><button id="fcDone" style="margin-top:14px;width:100%;'+_BS2+';border-radius:9px;padding:11px;font-weight:700;cursor:pointer">✅ 등록 완료</button>';
   if(_fld){ ov.innerHTML='<div style="background:#fff;border-radius:14px;width:94%;max-width:620px;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden;border-top:4px solid #c0392b"><div style="padding:14px 18px;border-bottom:1px solid #f2dedd;display:flex;align-items:center;background:#fdf5f4"><b style="flex:1;font-size:16px;color:#c0392b">📄 노출관로·후측량 CSV 등록</b><button id="fcX" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div><div style="padding:14px;display:flex;gap:12px;flex-wrap:wrap;align-items:stretch">'+'<div style="flex:1 1 240px;min-width:230px;border:1px solid #f0dcda;border-top:3px solid #c0392b;border-radius:11px;padding:12px;background:#fffbfa"><b style="font-size:14px;color:#c0392b">노출관로 CSV</b><div id="fcExpTop" style="margin-top:8px;font-size:12.5px;color:#e74c3c;font-weight:700;text-align:center"></div><div id="fcDropExp" style="border:1.5px dashed #e3b4ae;border-radius:10px;padding:20px;text-align:center;cursor:pointer;color:#5b6b86;margin-top:10px"><div style="font-size:22px">⬇</div><div style="margin-top:6px">노출관로 CSV (.csv) 끌어다 놓기 / 클릭 (여러 개 가능)</div></div><button id="fcBtnExp" style="margin-top:12px;width:100%;background:#fff;color:#e74c3c;border:1.5px solid #e74c3c;border-radius:9px;padding:11px;font-weight:700;cursor:pointer">파일 선택</button><div id="fcExpList" style="margin-top:8px"></div></div>'+'<div style="flex:1 1 240px;min-width:230px;border:1px solid #efe3bb;border-top:3px solid #e0a800;border-radius:11px;padding:12px;background:#fffdf5"><b style="font-size:14px;color:#b8860b">후측량 CSV (심도)</b><div id="fcAftStat" style="margin-top:8px;font-size:12.5px;color:#d99b00;font-weight:700;text-align:center"></div><div style="margin-top:10px">'+_aftB+'</div></div></div></div>'; }
   else{ ov.innerHTML='<div style="background:#fff;border-radius:14px;width:92%;max-width:460px;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden"><div style="padding:15px 18px;border-bottom:1px solid #eee;display:flex;align-items:center"><b style="flex:1;font-size:16px;color:#2563eb">📄 후측량 CSV 등록</b><button id="fcX" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 12px;cursor:pointer">닫기</button></div><div style="padding:18px">'+_aftB+'</div></div>'; }
   document.body.appendChild(ov);
-  var inp=document.createElement('input');inp.type='file';inp.accept='.csv';inp.multiple=true;inp.style.display='none';ov.appendChild(inp);
+  var inp=document.createElement('input');inp.type='file';inp.accept='.csv,.zip';inp.multiple=true;/* [BUILD2234] */inp.style.display='none';ov.appendChild(inp);
   function renderList(){
     var arr=finalCsvArr(),o=document.getElementById('fcList');if(!o)return;
     if(!arr.length){o.innerHTML='<div style="font-size:12px;color:#999;text-align:center;padding:4px">아직 등록된 CSV가 없습니다</div>';return;}
@@ -8532,7 +8603,10 @@ function openFinalCsvUpload(){
     [].forEach.call(o.querySelectorAll('.fcDel'),function(b){b.onclick=function(){var i=+this.getAttribute('data-i'),a=finalCsvArr();a.splice(i,1);state.finalCsv=a;if(!state.fieldDone)state.fieldDone={csv:false,joseo:false,manhole:false};state.fieldDone.csv=a.length>0;finalCsvDepthSync();if(online&&state.projectId)saveProject();if(typeof refreshFieldBar==='function')refreshFieldBar();renderList();};});
     if(_fld){var _as=ov.querySelector('#fcAftStat');if(_as){var _cc=_aftCsvCounts();_as.textContent=_cc.files?('심도 '+_cc.l+'점 · 현황 '+_cc.h+'점 · 맨홈 '+_cc.m+'개 · 전주 '+_cc.j+'개'):'';}try{updRegStatus();}catch(e){}} /* [1248] 사업등록 카드 상태 연동 */
   }
-  function handle(f){if(!f)return;var rd=new FileReader();rd.onload=function(){var txt;try{txt=decodeBuf(rd.result);}catch(e){txt=''+rd.result;}var a=finalCsvArr();a.push({name:f.name,text:txt});state.finalCsv=a;if(!state.fieldDone)state.fieldDone={csv:false,joseo:false,manhole:false};state.fieldDone.csv=true;finalCsvDepthSync();if(online&&state.projectId)saveProject();if(typeof refreshFieldBar==='function')refreshFieldBar();renderList();toast('후측량 CSV 등록 ('+finalCsvArr().length+'개) — 최종성과·심도 연동됨');};rd.readAsArrayBuffer(f);}
+  function _addFc9(o){var a=finalCsvArr();a.push({name:o.name,text:o.text});state.finalCsv=a;if(!state.fieldDone)state.fieldDone={csv:false,joseo:false,manhole:false};state.fieldDone.csv=true;try{finalCsvDepthSync();}catch(_d9){}try{renderList();}catch(_r9){}try{if(online&&state.projectId)saveProject();}catch(_s9){}}/* [BUILD2234] */
+  function handle(f){if(!f)return;
+   if(/\.zip$/i.test(f.name||'')){if(typeof aftRawZipUp9==='function')aftRawZipUp9(f,_addFc9);return;}/* [BUILD2234] 원시 ZIP 자동 등록 */
+   var rd=new FileReader();rd.onload=function(){var txt;try{txt=decodeBuf(rd.result);}catch(e){txt=''+rd.result;}var a=finalCsvArr();a.push({name:f.name,text:txt});state.finalCsv=a;if(!state.fieldDone)state.fieldDone={csv:false,joseo:false,manhole:false};state.fieldDone.csv=true;finalCsvDepthSync();if(online&&state.projectId)saveProject();if(typeof refreshFieldBar==='function')refreshFieldBar();renderList();toast('후측량 CSV 등록 ('+finalCsvArr().length+'개) — 최종성과·심도 연동됨');};rd.readAsArrayBuffer(f);}
   ov.querySelector('#fcX').onclick=function(){ov.remove();};
   var _fd=ov.querySelector('#fcDone');if(_fd)_fd.onclick=function(){if(finalCsvArr().length){if(!state.fieldDone)state.fieldDone={csv:false,joseo:false,manhole:false};state.fieldDone.csv=true;finalCsvDepthSync();if(online&&state.projectId)saveProject();if(typeof refreshFieldBar==='function')refreshFieldBar();toast('후측량 CSV 등록 완료 ('+finalCsvArr().length+'개)');}ov.remove();};
   ov.querySelector('#fcBtn').onclick=function(){inp.click();};
