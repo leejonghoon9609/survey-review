@@ -15030,7 +15030,7 @@ function fldLayerBox(){
   /* [BUILD1812] 실시간: 시작 시 태그이동·구간색칠 OFF (1회만 강제 — 세션 중 켜면 유지) */
   if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&!window._rtLvInit){window._rtLvInit=1;LV.tagbox=0;LV.tgseg=0;}
   try{ localStorage.setItem(LV_KEY,JSON.stringify(LV)); }catch(e){}
-  var defs=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)?[['no','점번호'],['code','관정보'],['date','날짜'],['mh','맨홀 정보'],['riser','입상주'],['bizbox','사업정보'],['bp','보강판 측점'],['bpbox','보강판 박스'],['photoDir','사진방향'],['tagbox','태그 이동'],['tgseg','구간 색칠']]:[['no','점번호'],['stake','측점'],['code','관정보'],['depth','심도'],['date','날짜'],['mh','맨홀 정보'],['riser','입상주'],['bizbox','사업정보'],['dogak','도곽'],['tagbox','인출선 이동'],['bp','보강판 측점'],['bpbox','보강판 박스'],['photoDir','사진방향'],['tgseg','구간 색칠']];if(!(typeof IS_REALTIME!=='undefined'&&IS_REALTIME))defs.push(['chg9','변경내용']);/* [BUILD2222] 실시간 외 전 공정 노출 */
+  var defs=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)?[['no','점번호'],['code','관정보'],['date','날짜'],['mh','맨홀 정보'],['riser','입상주'],['bizbox','사업정보'],['bp','보강판 측점'],['bpbox','보강판 박스'],['photoDir','사진방향'],['tagbox','태그 이동'],['tgseg','구간 색칠']]:[['no','점번호'],['stake','측점'],['code','관정보'],['depth','심도'],['date','날짜'],['mh','맨홀 정보'],['riser','입상주'],['bizbox','사업정보'],['dogak','도곽'],['tagbox','인출선 이동'],['bp','보강판 측점'],['bpbox','보강판 박스'],['photoDir','사진방향'],['tgseg','구간 색칠']];defs.push(['chg9','변경내용']);/* [BUILD2223] 전 공정 무조건 노출 */
   if((typeof IS_FIELD!=='undefined'&&IS_FIELD))defs.push(['hyun','현황 측량(도로)'],['hyunpt','현황측량 타점'],['roadzone','도로면'],['surfacedot','도로/보도점'],['missExp','누락_실시간사진'],['missAft','누락_후측량사진'],['tamsaPt','탐사 보완점']);/* [1630] 현황측량 레이어 토글 */
   var open=(function(){try{return localStorage.getItem('fldLayerOpen')!=='0';}catch(e){return true;}})();
   var h='<div style="border:1px solid #f1c40f;border-radius:8px;padding:6px 10px;background:#fffdf5;box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:92px">';
@@ -18707,7 +18707,8 @@ function svFldDoneTable9(el,phByDate){/* [BUILD2221] 결선완료 등록 — 성
  var WB9=(ph9?'width:100%':'width:600px;max-width:100%;margin:0 auto');
  var CH=(state._chgCnt9||{});
  function row(key,name,cnt,info,btn,cls,on,chgN){
-  var bs=on?'background:#fff;border:1.5px solid #16a34a;color:#16a34a':'background:#fff;border:1.5px solid #cfcfc8;color:#aaa';
+  var _rg9=(state.svFldReg9&&state.svFldReg9[key]);/* [BUILD2223] 등록된 성과만 초록 채움 */
+  var bs=on?(_rg9?'background:#16a34a;border:1.5px solid #16a34a;color:#fff':'background:#fff;border:1.5px solid #16a34a;color:#16a34a'):'background:#fff;border:1.5px solid #cfcfc8;color:#aaa';
   var cb=(chgN==null)?'<span style="color:#bbb;font-size:11.5px">-</span>'
    :'<button class="svchg9" data-k="'+key+'" style="background:#fff;border:1.5px solid #c0392b;color:#c0392b;border-radius:7px;padding:'+(ph9?'5px':'6px')+' 0;width:'+(ph9?46:60)+'px;font-weight:800;font-size:'+Zf+'px;display:inline-flex;align-items:center;justify-content:center;margin:0 auto;cursor:pointer">'+chgN+'건</button>';
   return '<tr style="border-bottom:1px solid #e3f0e7">'
@@ -18753,23 +18754,48 @@ function svFldDoneTable9(el,phByDate){/* [BUILD2221] 결선완료 등록 — 성
   _ma9.onclick=function(){var v=_ma9.checked;[].forEach.call(el.querySelectorAll('.svdaChk9'),function(c){c.checked=v;});};
   [].forEach.call(el.querySelectorAll('.svdaChk9'),function(c){c.addEventListener('change',_sy9);});
  }}catch(_m8){}
- try{svFldRegBtnSync9();}catch(_b9){}
- var _tf9=el.querySelector('#svdaToFld9');if(_tf9)_tf9.onclick=function(){if(typeof svRegToField==='function')svRegToField(function(){try{svFldRegMark9(null);}catch(_e){}});};
+ try{svFldRegBtnSync9();svFldRegPaint9();}catch(_b9){}
+ var _tf9=el.querySelector('#svdaToFld9');if(_tf9)_tf9.onclick=function(){/* [BUILD2223] 등록 ↔ 해제 토글 */
+  var R=state.svFldReg9||null,n=0;['raw','csv','line','ph'].forEach(function(k){if(R&&R[k])n++;});
+  if(n){if(typeof svFldRegClear9==='function')svFldRegClear9();return;}
+  if(typeof svRegToField==='function')svRegToField(function(){try{svFldRegMark9(null);}catch(_e){}});};
  try{svChgLoad9();}catch(_c8){}
 }
 function svFldRegBtnSync9(){/* [BUILD2221] 등록 버튼 3단계: 미등록(흰+초록) → 일부(빨강) → 전부(빨강+노란 테두리) */
  var b=document.getElementById('svdaToFld9');if(!b)return;
  var R=state.svFldReg9||null;var ks=['raw','csv','line','ph'];
  var n=0;if(R)ks.forEach(function(k){if(R[k])n++;});
- if(!n){b.style.background='#fff';b.style.border='1.5px solid #16a34a';b.style.color='#16a34a';b.style.boxShadow='';}
- else if(n<4){b.style.background='#c0392b';b.style.border='1.5px solid #c0392b';b.style.color='#fff';b.style.boxShadow='';}
- else{b.style.background='#c0392b';b.style.border='1.5px solid #c0392b';b.style.color='#fff';b.style.boxShadow='0 0 0 3px #f1c40f';}
+ if(!n){b.style.background='#fff';b.style.border='1.5px solid #c0392b';b.style.color='#c0392b';b.style.boxShadow='';b.textContent='측량(현장) 등록';}/* [BUILD2223] 미등록=흰+빨강테두리 */
+ else if(n<4){b.style.background='#c0392b';b.style.border='1.5px solid #c0392b';b.style.color='#fff';b.style.boxShadow='';b.textContent='측량(현장) 등록';}
+ else{b.style.background='#c0392b';b.style.border='1.5px solid #c0392b';b.style.color='#fff';b.style.boxShadow='0 0 0 4px #f1c40f';b.textContent='측량(현장) 등록';}
 }
 function svFldRegMark9(scope){/* 등록된 성과 기록 — scope 없으면 전체 */
  var R=state.svFldReg9||{};var ks=['raw','csv','line','ph'];
  ks.forEach(function(k){if(!scope||scope[k])R[k]=new Date().toISOString();});
  state.svFldReg9=R;try{if(typeof saveProject==='function')saveProject();}catch(_s){}
  try{svFldRegBtnSync9();}catch(_b){}
+ try{svFldRegPaint9();}catch(_p9){}/* [BUILD2223] 다운 버튼 점등 갱신 */
+}
+function svFldRegPaint9(){/* [BUILD2223] 등록된 성과의 다운 버튼만 초록 채움 */
+ var el=document.getElementById('svDailyBody');if(!el)return;
+ var R=state.svFldReg9||{};var MP={raw:'.svdaRaw9',csv:'.svdaCsv9',line:'.svdaDxf9',ph:'.svdaPh9'};
+ for(var k in MP){var b=el.querySelector(MP[k]);if(!b||b.disabled)continue;
+  if(R[k]){b.style.background='#16a34a';b.style.border='1.5px solid #16a34a';b.style.color='#fff';}
+  else{b.style.background='#fff';b.style.border='1.5px solid #16a34a';b.style.color='#16a34a';}}
+}
+function svFldRegClear9(){/* [BUILD2223] 등록 해제 — 현장(_F) 사본 삭제표시 + 상태 초기화 */
+ var base=(typeof baseName==='function')?baseName(state.projectName||''):'';
+ _posModal9('측량(현장) 등록을 해제할까요?\n현장 사본이 삭제목록으로 이동합니다.','해제',function(){
+  try{sb.from('field_projects').select('id,name,payload').then(function(res){
+   var tw=null;((res&&res.data)||[]).some(function(r){var pl=r.payload||{};if(pl.delAt)return false;if((pl.stage||'')!=='field')return false;if(baseName(r.name)!==base)return false;tw=r;return true;});
+   if(tw){var pl2=tw.payload||{};pl2.delAt=new Date().toISOString();
+    sb.from('field_projects').update({payload:pl2}).eq('id',tw.id).then(function(){});}
+  });}catch(_c9){}
+  state.svFldReg9=null;state.routingDone=false;
+  try{if(typeof saveProject==='function')saveProject();}catch(_s9){}
+  try{svFldRegBtnSync9();svFldRegPaint9();}catch(_b9){}
+  toast('측량(현장) 등록 해제됨');
+ });
 }
 function svRegSelScope9(){/* [BUILD2221] 하단 [등록] — 체크된 성과만 */
  var el=document.getElementById('svDailyBody');if(!el)return;
