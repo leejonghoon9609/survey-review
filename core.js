@@ -7635,7 +7635,7 @@ function openAsbuilt(){
     }
   }).catch(function(){try{win.document.body.innerHTML='<div style="padding:24px;font:15px sans-serif;color:#eee;line-height:1.7">도면을 창 안에서 열지 못했습니다(접근 제한).<br><br><a href="'+a.url+'" target="_blank" style="color:#9cf">여기를 눌러 새 탭에서 열기</a></div>';}catch(e){window.open(a.url,'_blank');}});
 }
-document.getElementById('rcCsvBtn').onclick=function(){if(typeof IS_REALTIME==='undefined'||!IS_REALTIME){document.getElementById('fCsv').click();return;}var i9=document.getElementById('rcRawInp9');if(!i9){i9=document.createElement('input');i9.type='file';i9.id='rcRawInp9';i9.accept='.zip,.csv,.txt';i9.multiple=true;i9.style.display='none';document.body.appendChild(i9);i9.onchange=function(){var fs=[].slice.call(this.files||[]);this.value='';if(!fs.length)return;var zips=fs.filter(function(f){return /\.zip$/i.test(f.name||'');});var csvs=fs.filter(function(f){return /\.(csv|txt)$/i.test(f.name||'');});if(zips.length&&typeof rtRawZipUpMany9==='function')rtRawZipUpMany9(zips);if(csvs.length){var fc=document.getElementById('fCsv');if(fc){try{var dt=new DataTransfer();csvs.forEach(function(f){dt.items.add(f);});fc.files=dt.files;fc.dispatchEvent(new Event('change',{bubbles:true}));}catch(_d9){toast('CSV 주입 실패 — 드롭으로 올려주세요');}}}};}i9.click();};/* [BUILD2110] 직접 로딩=원시 ZIP·CSV 다중 */document.getElementById('rcAftBtn').onclick=function(){if(typeof openFinalCsvUpload==='function')openFinalCsvUpload();else document.getElementById('fAft').click();};var _clrAft=document.getElementById('clrAft');if(_clrAft)_clrAft.onclick=function(){state.finalCsv=[];if(state.fieldDone)state.fieldDone.csv=false;state.depthGround=null;state._depthManual=null;/* [1541] */state._depthAlign=null;if(online&&state.projectId)saveProject();if(typeof refreshFieldBar==='function')refreshFieldBar();var st=document.getElementById('rcAft');if(st)st.textContent='복구후 후측량 (.csv)';var o=document.getElementById('rcAftOut');if(o)o.textContent='';this.style.display='none';toast('심도 데이터 삭제');};(function(){if(!IS_TANGO&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD)){var c=document.getElementById('regAftCard');if(c)c.style.display='none';}})(); /* [1246] field도 표시(탱고 동일) — realtime은 계속 숨김 */
+document.getElementById('rcCsvBtn').onclick=function(){if(typeof IS_REALTIME==='undefined'||!IS_REALTIME){document.getElementById('fCsv').click();return;}var i9=document.getElementById('rcRawInp9');if(!i9){i9=document.createElement('input');i9.type='file';i9.id='rcRawInp9';i9.accept='.zip,.csv,.txt';i9.multiple=true;i9.style.display='none';document.body.appendChild(i9);i9.onchange=function(){var fs=[].slice.call(this.files||[]);this.value='';if(!fs.length)return;var zips=fs.filter(function(f){return /\.zip$/i.test(f.name||'');});var csvs=fs.filter(function(f){return /\.(csv|txt)$/i.test(f.name||'');});if(zips.length&&typeof rtRawZipUpMany9==='function')rtRawZipUpMany9(zips);if(csvs.length){var fc=document.getElementById('fCsv');if(fc){try{var dt=new DataTransfer();csvs.forEach(function(f){dt.items.add(f);});fc.files=dt.files;fc.dispatchEvent(new Event('change',{bubbles:true}));}catch(_d9){toast('CSV 주입 실패 — 드롭으로 올려주세요');}}}};}i9.click();};/* [BUILD2110] 직접 로딩=원시 ZIP·CSV 다중 */document.getElementById('rcAftBtn').onclick=function(){if(typeof openFinalCsvUpload==='function')openFinalCsvUpload();else document.getElementById('fAft').click();};var _clrAft=document.getElementById('clrAft');if(_clrAft)_clrAft.onclick=function(){state.finalCsv=[];if(state.fieldDone)state.fieldDone.csv=false;try{if(typeof aftRawClear9==='function')aftRawClear9();}catch(_ac9){}state.depthGround=null;state._depthManual=null;/* [1541] */state._depthAlign=null;if(online&&state.projectId)saveProject();if(typeof refreshFieldBar==='function')refreshFieldBar();var st=document.getElementById('rcAft');if(st)st.textContent='복구후 후측량 (.csv)';var o=document.getElementById('rcAftOut');if(o)o.textContent='';this.style.display='none';toast('심도 데이터 삭제');};(function(){if(!IS_TANGO&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD)){var c=document.getElementById('regAftCard');if(c)c.style.display='none';}})(); /* [1246] field도 표시(탱고 동일) — realtime은 계속 숨김 */
 document.getElementById('rcDxfBtn').onclick=function(){document.getElementById('fDxf').click();};
 document.getElementById('rcPhoBtn').onclick=function(){document.getElementById('fRegPhotos').click();};
 (function(){
@@ -8518,9 +8518,9 @@ function openAftCsvList(){ /* [1248] field 후측량 CSV 파일별 삭제 — op
   function render(){var a=finalCsvArr();if(!a.length){ov.remove();toast('후측량 CSV 전부 제거됨');return;}
     var rows=a.map(function(it,i){return '<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid #f2f2f2;font-size:13px"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">\uD83D\uDCC4 '+joseoEsc(it.name||'csv')+'</span><button data-i="'+i+'" class="avl-x" style="flex:none;border:1px solid #e3b4ae;background:#fff;color:#c0392b;border-radius:6px;padding:3px 10px;font-size:12px;cursor:pointer">\u2715 삭제</button></div>';}).join('');
     box.innerHTML='<div style="display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid #eee"><b style="flex:1;font-size:15px">후측량 CSV ('+a.length+'개 파일)</b><button id="avlClose" style="border:none;background:#f2f2f2;border-radius:7px;padding:5px 11px;cursor:pointer">닫기</button></div><div style="overflow:auto">'+rows+'</div><div style="padding:10px 14px;border-top:1px solid #eee;text-align:right"><button id="avlAll" style="border:1px solid #e3b4ae;background:#fff;color:#c0392b;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer">전체 비우기</button></div>';
-    [].forEach.call(box.querySelectorAll('.avl-x'),function(b){b.onclick=function(){var i=+this.getAttribute('data-i'),x=finalCsvArr();x.splice(i,1);state.finalCsv=x;if(!x.length){state.depthGround=null;state._depthAlign=null;}_apply();render();};});
+    [].forEach.call(box.querySelectorAll('.avl-x'),function(b){b.onclick=function(){var i=+this.getAttribute('data-i'),x=finalCsvArr();x.splice(i,1);state.finalCsv=x;if(!x.length){state.depthGround=null;state._depthAlign=null;try{if(typeof aftRawClear9==='function')aftRawClear9();}catch(_ac6){}}_apply();render();};});
     box.querySelector('#avlClose').onclick=function(){ov.remove();};
-    box.querySelector('#avlAll').onclick=function(){state.finalCsv=[];state.depthGround=null;state._depthAlign=null;_apply();ov.remove();toast('후측량 CSV 전부 제거됨');};
+    box.querySelector('#avlAll').onclick=function(){state.finalCsv=[];state.depthGround=null;state._depthAlign=null;try{if(typeof aftRawClear9==='function')aftRawClear9();}catch(_ac8){}_apply();ov.remove();toast('후측량 CSV 전부 제거됨');};
   }
   render();ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};document.body.appendChild(ov);
 }
@@ -8556,6 +8556,15 @@ function aftRawZipUp9(file,onCsv){/* [BUILD2234] 후측량 원시 ZIP — 안의
   }
   nx();
  })['catch'](function(e){toast('ZIP 처리 오류: '+(e&&e.message||e));});
+}
+function aftRawClear9(){/* [BUILD2237] 후측량 CSV 전체 삭제 시 원시 메타·보관본 정리 */
+ var M=state.aftRawMeta9||{};var ks=Object.keys(M);
+ state.aftRawMeta9={};
+ try{if(state.fieldDone)state.fieldDone.rawAft=false;}catch(_f9){}
+ try{if(typeof sb!=='undefined'&&state.projectId&&ks.length){
+  sb.storage.from('photos').remove(ks.map(function(k){return state.projectId+'/aftraw_'+k+'.zip';})).then(function(){},function(){});
+ }}catch(_r9){}
+ try{if(online&&state.projectId){window._silentSave=true;saveProject();}}catch(_s9){}
 }
 function aftRawAllZip9(){/* [BUILD2234] 후측량 원시 통합 다운 */
  var M=state.aftRawMeta9||{};var keys=Object.keys(M).sort();
@@ -8600,7 +8609,7 @@ function openFinalCsvUpload(){
     var arr=finalCsvArr(),o=document.getElementById('fcList');if(!o)return;
     if(!arr.length){o.innerHTML='<div style="font-size:12px;color:#999;text-align:center;padding:4px">아직 등록된 CSV가 없습니다</div>';return;}
     o.innerHTML='<div style="font-size:12.5px;color:'+(_fld?'#d99b00':'#16a34a')+';font-weight:700;margin-bottom:7px">✅ '+arr.length+'개 등록됨</div>'+arr.map(function(it,i){return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #e5e9f0;border-radius:8px;margin-bottom:5px"><span style="flex:1;min-width:0;font-size:12.5px;color:#333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">📄 '+joseoEsc(it.name||'csv')+'</span><button data-i="'+i+'" class="fcDel" style="border:1px solid #e3b4ae;background:#fff;color:#c0392b;border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer;flex:none">삭제</button></div>';}).join('');
-    [].forEach.call(o.querySelectorAll('.fcDel'),function(b){b.onclick=function(){var i=+this.getAttribute('data-i'),a=finalCsvArr();a.splice(i,1);state.finalCsv=a;if(!state.fieldDone)state.fieldDone={csv:false,joseo:false,manhole:false};state.fieldDone.csv=a.length>0;finalCsvDepthSync();if(online&&state.projectId)saveProject();if(typeof refreshFieldBar==='function')refreshFieldBar();renderList();};});
+    [].forEach.call(o.querySelectorAll('.fcDel'),function(b){b.onclick=function(){var i=+this.getAttribute('data-i'),a=finalCsvArr();a.splice(i,1);state.finalCsv=a;if(!a.length){try{if(typeof aftRawClear9==='function')aftRawClear9();}catch(_ac7){}}if(!state.fieldDone)state.fieldDone={csv:false,joseo:false,manhole:false};state.fieldDone.csv=a.length>0;finalCsvDepthSync();if(online&&state.projectId)saveProject();if(typeof refreshFieldBar==='function')refreshFieldBar();renderList();};});
     if(_fld){var _as=ov.querySelector('#fcAftStat');if(_as){var _cc=_aftCsvCounts();_as.textContent=_cc.files?('심도 '+_cc.l+'점 · 현황 '+_cc.h+'점 · 맨홈 '+_cc.m+'개 · 전주 '+_cc.j+'개'):'';}try{updRegStatus();}catch(e){}} /* [1248] 사업등록 카드 상태 연동 */
   }
   function _addFc9(o){var a=finalCsvArr();a.push({name:o.name,text:o.text});state.finalCsv=a;if(!state.fieldDone)state.fieldDone={csv:false,joseo:false,manhole:false};state.fieldDone.csv=true;try{finalCsvDepthSync();}catch(_d9){}try{renderList();}catch(_r9){}try{if(online&&state.projectId)saveProject();}catch(_s9){}}/* [BUILD2234] */
@@ -8972,6 +8981,11 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
   }catch(_d9){toast('다운로드 오류');}
  };}
  function render(){
+  ITEMS=_calc9();/* [BUILD2235] 결선DB 조회 결과 즉시 반영 */
+  try{var _sv9=window._fldSvCache9;/* [BUILD2237] 결선DB 완료 성과=자동 등록완료 */
+   if(_sv9){if(_sv9.rawMeta&&Object.keys(_sv9.rawMeta).length&&!fd.raw)fd.raw=true;
+    if(_sv9.points&&_sv9.points.length&&!fd.csvExp)fd.csvExp=true;}
+  }catch(_a9){}
   var regN=0;ITEMS.forEach(function(it){if(fd[it[0]])regN++;});
   var allDone=(regN===ITEMS.length);
   var bs9=(!regN)?'background:#fff;border:1.5px solid #c0392b;color:#c0392b':(allDone?'background:#c0392b;border:1.5px solid #c0392b;color:#fff;box-shadow:0 0 0 4px #f1c40f':'background:#c0392b;border:1.5px solid #c0392b;color:#fff');
