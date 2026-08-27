@@ -15412,7 +15412,7 @@ function rtDailyAllOpen(){ /* [1209] 완료성과(전체) — 일별 누적 목�
   if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
   var old=document.getElementById('rtDailyAllPop');if(old){old.remove();return;}
   var pop=document.createElement('div');pop.id='rtDailyAllPop';
-  pop.style.cssText='position:fixed;left:50%;top:100px;transform:translateX(-50%);z-index:9500;background:#fff;border:2px solid #c0392b;border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.25);width:min(94vw,680px);max-height:78vh;display:flex;flex-direction:column;overflow:hidden';
+  pop.style.cssText='position:fixed;left:50%;top:100px;transform:translateX(-50%);z-index:9500;background:#fff;border:2px solid #c0392b;border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.25);width:min(94vw,630px);max-height:78vh;display:flex;flex-direction:column;overflow:hidden';
   var _fin=(state.rtDone&&state.rtDone.done);
   pop.innerHTML='<div id="rtDailyAllHead" style="display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:grab;user-select:none;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:'+(_fin?'#d81b60':'#c0392b')+';display:inline-block"></span><b style="font-size:15px">완료성과 (전체)</b>'+(_fin?'<span style="background:#d81b60;color:#fff;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:800">사업완료</span>':'')+'<span style="font-size:11px;color:#bbb;margin-left:auto">드래그로 이동</span></div>'
     +'<div id="rtDailyBody" style="overflow:auto;padding:10px 14px"></div>'
@@ -15426,30 +15426,37 @@ function rtDailyAllOpen(){ /* [1209] 완료성과(전체) — 일별 누적 목�
     hd.addEventListener('pointerup',function(){drag=false;});})();
   rtDoneAllRender9();
 }
-function rtDoneAllRender9(){/* [BUILD2210] 완료성과(전체) — 초록 표·고정폭 정렬·성과별 체크·선택 등록 */
+function rtDoneAllRender9(){/* [BUILD2212] 완료성과(전체) — 통계=일별 등록분만 · 세로 구분선 · 헤더 중앙 · 사업완료 점등 */
  var el=document.getElementById('rtDailyBody');if(!el)return;
- var dm=rtDailyDistMap();var tot=0,seg=0;for(var _k in dm.dist)tot+=dm.dist[_k];for(var _k2 in dm.seg)seg+=dm.seg[_k2];
- var np=(state.points||[]).length;
- var days={};(state.points||[]).forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0&&/^[0-9]{6}$/.test(d0))days[d0]=1;});
- var dayN=Object.keys(days).length;
- var RM=state.rtRawMeta9||{},rawN=0,dupN=0;for(var rk in RM){rawN++;if(RM[rk]&&RM[rk].dup)dupN++;}
- var phN=0;try{var _pm=(typeof photoMap!=='undefined'&&photoMap)?photoMap:{};for(var pk in _pm)phN++;}catch(_p){}
- var G1='#15803d',G2='#b7dfc4',G3='#e7f7ec';
- function row(key,name,cnt,info,btn,cls,on){return '<tr style="border-bottom:1px solid #e3f0e7">'
-  +'<td style="text-align:center"><input type="checkbox" class="rtdaChk9" data-k="'+key+'" checked style="width:15px;height:15px;cursor:pointer"></td>'
-  +'<td style="padding:10px 8px;font-weight:800;color:#233;white-space:nowrap">'+name+'</td>'
-  +'<td style="text-align:center;white-space:nowrap">'+cnt+'</td>'
-  +'<td style="font-size:12.5px;color:#445">'+info+'</td>'
-  +'<td style="text-align:center;padding:6px 8px"><button class="'+cls+'" '+(on?'':'disabled ')+'style="background:#fff;border:1.5px solid '+(on?'#16a34a':'#cfcfc8')+';color:'+(on?'#16a34a':'#aaa')+';border-radius:7px;padding:6px 0;width:58px;font-weight:800;font-size:12.5px;display:inline-flex;align-items:center;justify-content:center;margin:0 auto;cursor:'+(on?'pointer':'default')+'">'+btn+'</button></td></tr>';}
+ var regD={};(state.rtDaily||[]).forEach(function(r){if(r&&r.date)regD[r.date]=1;});
+ var dm=rtDailyDistMap();var tot=0,seg=0;for(var _k in dm.dist)if(regD[_k])tot+=dm.dist[_k];for(var _k2 in dm.seg)if(regD[_k2])seg+=dm.seg[_k2];
+ var np=0;(state.points||[]).forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0&&regD[d0])np++;});
+ var dayN=Object.keys(regD).length;
+ var RM=state.rtRawMeta9||{},rawN=0,dupN=0;
+ (function(){var seen={};for(var d in regD){var k=(typeof _rtRawKey9==='function')?_rtRawKey9(d):(RM[d]?d:null);if(k&&RM[k]&&!seen[k]){seen[k]=1;rawN++;if(RM[k].dup)dupN++;}}})();
+ var phN=0;try{var _pm=(typeof photoMap!=='undefined'&&photoMap)?photoMap:{};for(var pk in _pm){var _pd=String(pk).split('-')[0];if(regD[_pd])phN++;}}catch(_p){}
+ var fin=!!(state.rtDone&&state.rtDone.done);/* [사업 최종완료] 등록 시 다운 버튼 점등 */
+ var G1='#15803d',G2='#b7dfc4',G3='#e7f7ec',VL='border-right:1px solid #d9ecdf';
+ function row(key,name,cnt,info,btn,cls,on){
+  var bs=on?(fin?'background:#16a34a;border:1.5px solid #16a34a;color:#fff':'background:#fff;border:1.5px solid #16a34a;color:#16a34a'):'background:#fff;border:1.5px solid #cfcfc8;color:#aaa';
+  return '<tr style="border-bottom:1px solid #e3f0e7">'
+  +'<td style="text-align:center;'+VL+'"><input type="checkbox" class="rtdaChk9" data-k="'+key+'" checked style="width:15px;height:15px;cursor:pointer"></td>'
+  +'<td style="padding:10px 8px;font-weight:800;color:#233;white-space:nowrap;'+VL+'">'+name+'</td>'
+  +'<td style="text-align:center;white-space:nowrap;'+VL+'">'+cnt+'</td>'
+  +'<td style="font-size:12.5px;color:#445;padding:6px 8px;'+VL+'">'+info+'</td>'
+  +'<td style="text-align:center;padding:6px 6px"><button class="'+cls+'" '+(on?'':'disabled ')+'style="'+bs+';border-radius:7px;padding:6px 0;width:58px;font-weight:800;font-size:12.5px;display:inline-flex;align-items:center;justify-content:center;margin:0 auto;cursor:'+(on?'pointer':'default')+'">'+btn+'</button></td></tr>';}
  var h='<div style="display:flex;align-items:center;gap:10px;padding:2px 2px 9px">'
-  +'<div style="font-size:12.5px;color:'+G1+';font-weight:800">거리 합계 <span style="color:#0f6e56">'+(+tot.toFixed(1))+'m</span> · 측점 '+np+'개 · 결선 '+seg+'개 · '+dayN+'일치</div>'
-  +'<button id="rtdaToSv9" style="margin-left:auto;background:#c0392b;color:#fff;border:0;border-radius:8px;padding:7px 14px;font-weight:800;font-size:12.5px;cursor:pointer">결선DB로 등록</button></div>'
+  +'<div style="font-size:12.5px;color:'+G1+';font-weight:800">거리 합계 <span style="color:#0f6e56">'+(+tot.toFixed(1))+'m</span> · 측점 '+np+'개 · 결선 '+seg+'개 · '+dayN+'일치<span style="color:#98a1ad;font-weight:600;font-size:11px"> (등록분)</span></div>'
+  +'<button id="rtdaToSv9" style="margin-left:auto;background:#c0392b;color:#fff;border:0;border-radius:8px;padding:7px 14px;font-weight:800;font-size:12.5px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer">결선DB로 등록</button></div>'
   +'<table style="width:100%;border-collapse:collapse;font-size:13px;border:1.5px solid '+G2+';table-layout:fixed">'
-  +'<colgroup><col style="width:34px"><col style="width:172px"><col style="width:120px"><col><col style="width:78px"></colgroup>'
+  +'<colgroup><col style="width:30px"><col style="width:160px"><col style="width:88px"><col><col style="width:70px"></colgroup>'
   +'<thead><tr style="background:'+G3+';color:'+G1+'">'
-  +'<th style="padding:7px 4px;border-bottom:1.5px solid '+G2+'"><input type="checkbox" id="rtdaChkAll9" checked title="전체 선택/해제" style="width:15px;height:15px;cursor:pointer;vertical-align:middle"></th>'
-  +'<th style="padding:7px 8px;border-bottom:1.5px solid '+G2+';text-align:left">성과</th><th style="border-bottom:1.5px solid '+G2+'">파일 건수</th><th style="border-bottom:1.5px solid '+G2+';text-align:left">내용</th><th style="border-bottom:1.5px solid '+G2+'">다운</th></tr></thead><tbody>'
-  +row('raw','원시데이터(노출관로)', rawN?(rawN+'건'+(dupN?' <span style="color:#c0392b;font-size:11px">(중복 '+dupN+' 제외)</span>':'')):'-', '일별 원시 ZIP 통합 — 원본 그대로','ZIP','rtdaRaw9',rawN>0)
+  +'<th style="padding:7px 4px;border-bottom:1.5px solid '+G2+';'+VL+'"><input type="checkbox" id="rtdaChkAll9" checked title="전체 선택/해제" style="width:15px;height:15px;cursor:pointer;vertical-align:middle"></th>'
+  +'<th style="padding:7px 4px;border-bottom:1.5px solid '+G2+';text-align:center;'+VL+'">성과</th>'
+  +'<th style="border-bottom:1.5px solid '+G2+';text-align:center;'+VL+'">파일 건수</th>'
+  +'<th style="border-bottom:1.5px solid '+G2+';text-align:center;'+VL+'">내용</th>'
+  +'<th style="border-bottom:1.5px solid '+G2+';text-align:center">다운</th></tr></thead><tbody>'
+  +row('raw','원시데이터(노출관로)', rawN?(rawN+'건'+(dupN?' <span style="color:#c0392b;font-size:11px">(중복 '+dupN+')</span>':'')):'-', '일별 원시 ZIP 통합 — 원본 그대로','ZIP','rtdaRaw9',rawN>0)
   +row('csv','CSV(노출관로)', np?'통합 1건':'-', '측점 '+np+'개 · '+dayN+'일치 · 야간보정 반영 한 파일','CSV','rtdaCsv9',np>0)
   +row('line','결선(노출관로)', seg?'DXF 1건':'-', '거리 '+(+tot.toFixed(1))+'m · 결선 '+seg+'개','DXF','rtdaDxf9',seg>0)
   +row('ph','노출관로사진', phN?(phN+'장'):'-', '전체 사진 ZIP — 날짜별 폴더','ZIP','rtdaPh9',phN>0)
