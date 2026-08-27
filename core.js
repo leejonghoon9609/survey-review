@@ -9006,8 +9006,8 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
    var bs=on?(reg?'background:#16a34a;border:1.5px solid #16a34a;color:#fff':'background:#fff;border:1.5px solid #16a34a;color:#16a34a'):'background:#fff;border:1.5px solid #cfcfc8;color:#aaa';
    h+='<tr style="border-bottom:1px solid #e3f0e7">'
     +'<td style="text-align:center;'+VL+'"><input type="checkbox" class="fsChk9" data-k="'+k+'"'+(reg?' checked':'')+' style="width:15px;height:15px;cursor:pointer"></td>'
-    +'<td style="padding:'+Pd+';'+VL+'"><div style="font-weight:800;font-size:'+Nf+'px;color:#233">'+it[1]+'</div><div style="font-size:'+If+'px;color:#667;margin-top:2px;line-height:1.35">'+it[3]+'</div></td>'
-    +'<td style="text-align:center;white-space:nowrap;font-size:'+Cf+'px;'+VL+'">'+it[2]+'</td>'
+    +'<td style="padding:'+Pd+';'+VL+'"><div style="font-weight:800;font-size:'+Nf+'px;color:'+(reg?'#c0392b':'#233')+'">'+it[1]+'</div>'/* [BUILD2238] 등록완료=빨강 텍스트 */+'<div style="font-size:'+If+'px;color:#667;margin-top:2px;line-height:1.35">'+it[3]+'</div></td>'
+    +'<td style="text-align:center;white-space:nowrap;font-size:'+Cf+'px;'+VL+';color:'+(reg?'#c0392b':'#233')+';font-weight:'+(reg?'800':'400')+'">'+it[2]+'</td>'
     +'<td style="text-align:center;padding:6px 3px"><button class="fsDl9" data-k="'+k+'" '+(on?'':'disabled ')+'style="'+bs+';border-radius:6px;padding:3px 0;width:'+Zw+'px;font-weight:800;font-size:'+Zf+'px;display:inline-flex;align-items:center;justify-content:center;margin:0 auto;cursor:'+(on?'pointer':'default')+'">'+lab+'</button></td></tr>';
   });
   h+='</tbody></table></div>'
