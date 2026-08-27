@@ -19059,7 +19059,13 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   S.items.push({t:'pl',lay:'SD983',pts:[[b0x+nx*bw,b0y+ny*bw],[b0x+ux*bl+nx*bw,b0y+uy*bl+ny*bw],[b0x+ux*bl-nx*bw,b0y+uy*bl-ny*bw],[b0x-nx*bw,b0y-ny*bw]],cl:1});
   for(var ci=0;ci<gongsu&&ci<10;ci++){S.items.push({t:'ci',lay:'SD983',x:b0x+ux*(ci+0.7)*1.05,y:b0y+uy*(ci+0.7)*1.05,r:0.5});}
  });
- return {SH:SH};
+ /* [BUILD2202] 현황선 — 화면 미리보기 전용(DXF 미반영, 수치지도 세분화 시 레이어 확정 예정) */
+ var hyun9=[];(state.lines||[]).forEach(function(l){
+  if(!l||!l.pts||l.pts.length<2)return;
+  if(l.base||l.crop||l.free||l.insp)return;
+  if(l.layer===TL||l.layer==='지거'||l.layer==='압입구간'||l.layer==='탐사구간')return;
+  hyun9.push({pts:l.pts,lay:l.layer||''});});
+ return {SH:SH,hyun9:hyun9};
 }
 function _pdSer9(items){/* 장면 items → DXF 엔티티 문자열 (핸들은 이 시점 발급) */
  var e='';for(var i=0;i<items.length;i++){var it=items[i];
@@ -19159,7 +19165,12 @@ function posDrawSD9(force){
  if(!g._built9){
   while(g.firstChild)g.removeChild(g.firstChild);
   var sc2=window._sdCache9.sc;
-  if(sc2){Object.keys(sc2.SH).forEach(function(no){var items=sc2.SH[no].items;for(var i=0;i<items.length;i++)_sdDrawItem9(g,items[i]);});}
+  if(sc2){
+   if(sc2.hyun9)for(var h9=0;h9<sc2.hyun9.length;h9++){var H9=sc2.hyun9[h9];/* [BUILD2202] 현황선 */
+    var col9=(typeof LINECOL!=='undefined'&&LINECOL[H9.lay])?LINECOL[H9.lay].c:'#9aa2ab';
+    var ps9='';for(var q9=0;q9<H9.pts.length;q9++){var sq9=S(H9.pts[q9][0],H9.pts[q9][1]);ps9+=(q9?' ':'')+sq9[0].toFixed(3)+','+sq9[1].toFixed(3);}
+    g.appendChild(el('polyline',{points:ps9,fill:'none',stroke:col9,'stroke-width':0.1,'pointer-events':'none'}));}
+   Object.keys(sc2.SH).forEach(function(no){var items=sc2.SH[no].items;for(var i=0;i<items.length;i++)_sdDrawItem9(g,items[i]);});}
   g._built9=1;}
  g.style.display='';
  _sdOnly9(window._sdPrev9===2);
