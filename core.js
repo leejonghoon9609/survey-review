@@ -760,10 +760,10 @@ function mkSym(svgX,svgY,grp,css){
 }
 // ★ 화면 1px당 월드단위 — getScreenCTM으로 브라우저가 실제 적용한 스케일을 직접 측정
 //   (preserveAspectRatio/meet/종횡비/리사이즈/줌이 모두 반영된 실측값 → 추정 오차 없음)
-function pxToWorld(){
-  var r=cv.getBoundingClientRect();
+function pxToWorld(){/* [BUILD2193] \ub808\uc774\uc544\uc6c3 \uce90\uc2dc \uc801\uc6a9 \u2014 78\uac1c \ud638\ucd9c\uc9c0\uc810, drawGeo \ub0b4 \uce21\uc810\u00b7\ub77c\ubca8\ub2f9 \uc218\ucc9c\ud68c \uac15\uc81c \ub9ac\ud50c\ub85c\uc6b0 \uc81c\uac70 */
+  var r=(typeof _cvRect9==='function')?_cvRect9():cv.getBoundingClientRect();
   if(r.width>0)return vb.w/r.width;   // vb 기반: applyVB 직후 즉시 정확
-  var m=null; try{m=cv.getScreenCTM();}catch(e){}
+  var m=(typeof _cvCTM9==='function')?_cvCTM9():null;
   if(m&&m.a)return 1/m.a;
   return vb.w/Math.max(r.width,1);
 }
