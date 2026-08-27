@@ -6721,7 +6721,7 @@ function _loadProjectRaw(id,ro,cb){ if(!online||!id)return; try{if(typeof mnClos
     var _rm=_b4-state.points.length;
     if(_rm>0)try{toast('시설물과 겹친 지거점 '+_rm+'개 정리');}catch(_t9){}
   }}catch(_jm9){}/* [BUILD1867] */if(p.rtBoardName)state.rtBoardName=String(p.rtBoardName);else delete state.rtBoardName;state.rtBoardPos=p.rtBoardPos||{};/* [BUILD1873] */state.joseoBoard=!!p.joseoBoard;/* [BUILD1875] */state.hyunPts=p.hyunPts||null;/* [1633] 타점 영속 */state.asbuilt=p.asbuilt||null;state.rtDone=p.rtDone||null;state.rtDaily=p.rtDaily||[];state.mnList=p.mnList||[];state._trash=p.trash||[];if(typeof rtPurgeTrash==='function')setTimeout(rtPurgeTrash,800);var _pn9=p.nightShift;state.nightShift={on:true,cut:(_pn9&&_pn9.cut!=null)?_pn9.cut:360};try{if(typeof applyNightShift==='function')applyNightShift();}catch(_na9){}/* [BUILD1929] \uae30\ubcf8 ON */state.fieldDone=p.fieldDone||null;state.tamsa=!!p.tamsa;state.finalCsv=p.finalCsv?(Array.isArray(p.finalCsv)?p.finalCsv:[p.finalCsv]):[];state.bizInfo=p.bizInfo||null;
-    selNum=null;clearSvg(gSel);try{if(typeof tamsaFixTDepth==='function')tamsaFixTDepth();}catch(_tf){}try{if(state.finalCsv&&state.finalCsv.length&&typeof finalCsvDepthSync==='function')finalCsvDepthSync();if(state.depthGround&&state.depthGround.length&&typeof computeDepth==='function')computeDepth();}catch(e){}try{mergeAftMh();}catch(_me){}if(state.tamsa&&typeof buildTamsaMh==='function')try{buildTamsaMh();}catch(_te){}if(typeof IS_TANGO!=='undefined'&&IS_TANGO&&state.tangoEdit){if(!state.tangoEdit.lines)state.tangoEdit.lines=JSON.parse(JSON.stringify(state.lines||[]));if(!state.tangoEdit.points)state.tangoEdit.points=JSON.parse(JSON.stringify(state.points||[]));if(!state.tangoEdit.depthByNo)state.tangoEdit.depthByNo={};}drawGeo();drawMarks();drawManholes();try{fitView();}catch(_e0){}updMeta();loadPhotos();fitSoon();if(typeof tgLayerMount==='function')tgLayerMount();if(typeof refreshFieldBar==='function')refreshFieldBar();toast('현장 불러옴: '+res.data.name);try{if(typeof refCloudLoad==='function')refCloudLoad();}catch(_re){}
+    selNum=null;clearSvg(gSel);try{if(typeof tamsaFixTDepth==='function')tamsaFixTDepth();}catch(_tf){}try{if(state.finalCsv&&state.finalCsv.length&&typeof finalCsvDepthSync==='function')finalCsvDepthSync();if(state.depthGround&&state.depthGround.length&&typeof computeDepth==='function')computeDepth();}catch(e){}try{mergeAftMh();}catch(_me){}if(state.tamsa&&typeof buildTamsaMh==='function')try{buildTamsaMh();}catch(_te){}if(typeof IS_TANGO!=='undefined'&&IS_TANGO&&state.tangoEdit){if(!state.tangoEdit.lines)state.tangoEdit.lines=JSON.parse(JSON.stringify(state.lines||[]));if(!state.tangoEdit.points)state.tangoEdit.points=JSON.parse(JSON.stringify(state.points||[]));if(!state.tangoEdit.depthByNo)state.tangoEdit.depthByNo={};}drawGeo();drawMarks();drawManholes();try{fitView();}catch(_e0){}updMeta();loadPhotos();fitSoon();try{if(typeof rtRawMetaRestore9==='function')setTimeout(rtRawMetaRestore9,900);}catch(_rr9){}/* [BUILD2190] \uc6d0\uc2dc \uba54\ud0c0 \uc790\uac00\ubcf5\uc6d0 */if(typeof tgLayerMount==='function')tgLayerMount();if(typeof refreshFieldBar==='function')refreshFieldBar();toast('현장 불러옴: '+res.data.name);try{if(typeof refCloudLoad==='function')refCloudLoad();}catch(_re){}
     var vs=document.getElementById('vproj');if(vs)vs.value=res.data.id;
     if(viewerMode&&!IS_FIELD)setTimeout(function(){openPhotoPanel(true);},150);
     try{toolsOpen=false;inspmkOpen=false;activeCat='pan';if(typeof renderRail==='function')renderRail();if(typeof renderSub==='function')renderSub();}catch(_e){}if(typeof cb==='function')cb();
@@ -15520,6 +15520,29 @@ function _rtRawKey9(d){try{var M=state.rtRawMeta9||{};if(M[d])return d;
   for(var k in M){var kt=new Date('20'+k.slice(0,2)+'-'+k.slice(2,4)+'-'+k.slice(4,6)+'T00:00:00').getTime();
     if(isFinite(kt)&&Math.abs(kt-t)<=86400000)return k;}
 }catch(_e){}return null;}
+function rtRawMetaRestore9(){/* [BUILD2190] \uc6d0\uc2dc \ubcf4\uad00 \uba54\ud0c0 \uc790\uac00\ubcf5\uc6d0 \u2014 payload \ud1b5\uc9f8 \ub36e\uc4f0\uae30\ub85c rtRawMeta9\ub9cc \uc720\uc2e4\ub418\ub294 \uc0ac\uace0 \ubc29\uc5b4: \uc0ac\uc5c5 \ub85c\ub4dc \uc2dc \uc2a4\ud1a0\ub9ac\uc9c0 raw_*.zip \ubaa9\ub85d\uacfc \ub300\uc870\ud574 \ube48 \ub0a0\uc9dc \uc790\ub3d9 \ubcf5\uc6d0(\ud30c\uc77c\uc774 \uc9c4\uc2e4) */
+  try{
+    if(typeof IS_REALTIME==='undefined'||!IS_REALTIME)return;
+    if(typeof online==='undefined'||!online||typeof sb==='undefined'||!state.projectId)return;
+    if(window._rawRst9===state.projectId)return;window._rawRst9=state.projectId;/* \uc0ac\uc5c5\ub2f9 1\ud68c */
+    var pid=state.projectId;
+    sb.storage.from('photos').list(pid,{limit:1000,search:'raw_'}).then(function(r){
+      if(!r||r.error||!r.data||state.projectId!==pid)return;
+      var M=state.rtRawMeta9=state.rtRawMeta9||{};var add=[];
+      r.data.forEach(function(f){
+        var m=/^raw_([0-9]{6})[.]zip$/.exec(f.name||'');if(!m)return;
+        var d=m[1];if(M[d])return;
+        M[d]={zn:f.name,size:(f.metadata&&f.metadata.size)||0,at:(f.updated_at||f.created_at||''),night:null,cut:null,fp:[],rst:1};
+        add.push(d);
+      });
+      if(!add.length)return;
+      try{if(typeof _rtDupChk9==='function')add.forEach(function(d){_rtDupChk9(d);});}catch(_dc){}
+      try{window._silentSave=true;saveProject();}catch(_sv){}
+      try{toast('\ud83d\udce6 \uc6d0\uc2dc \ubcf4\uad00 \uba54\ud0c0 '+add.length+'\uc77c \uc790\ub3d9\ubcf5\uc6d0 \u2014 '+add.join(', '),6500);}catch(_t){}
+      try{if(document.getElementById('rtDailyPop')&&typeof rtDailyTodayFill==='function')rtDailyTodayFill();}catch(_rf){}
+    });
+  }catch(_e){}
+}
 function rtRawAllZip9(){ /* [BUILD2096] 원시 통합 — 한 번만 압축: 날짜/등록명/원본내용 폴더로 전개 */
   var M=(typeof state!=='undefined'&&state.rtRawMeta9)||{};var keys=Object.keys(M).filter(function(k){return !(M[k]&&M[k].dup);}).sort();/* [BUILD2111] 중복 제외 */
   if(!keys.length){toast('보관된 원시 ZIP이 없습니다 — 원시 ZIP으로 업로드한 날짜만 포함됩니다');return;}
