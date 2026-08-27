@@ -18556,6 +18556,43 @@ function svDailyTable(container,points,lines,rtDaily,projName,phByDate){
   }catch(_az3){}
 }
 function svPhotosByDate(rows){ var m={}; (rows||[]).forEach(function(r){var no=String(r.point_no||'');var d=no.split('-')[0];if(!/^[0-9]{6}$/.test(d))return;(m[d]=m[d]||[]).push({no:no,url:r.url});}); return m; }
+function svRtDoneTable9(el,pl,projName,pid,photoRows){/* [BUILD2219] 실시간 최종완료성과 — 성과물 통합 표(붉은 계열) */
+ if(!el)return;
+ var pts=pl.points||[],lns=pl.lines||[];
+ var regD={};(pl.rtDaily||[]).forEach(function(r){if(r&&r.date)regD[r.date]=1;});
+ var dm=svDistMap(pts,lns);var tot=0,seg=0;for(var _k in dm.dist)if(regD[_k])tot+=dm.dist[_k];for(var _k2 in dm.seg)if(regD[_k2])seg+=dm.seg[_k2];
+ var np=0;pts.forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0&&regD[d0])np++;});
+ var dayN=Object.keys(regD).length;
+ var RM=pl.rtRawMeta9||{},rawN=0,dupN=0;(function(){for(var d in regD){if(RM[d]){rawN++;if(RM[d].dup)dupN++;}}})();
+ var phAll=[],phN=0;(photoRows||[]).forEach(function(r){var no=String(r.point_no||'');var d=no.split('-')[0];if(!regD[d])return;phAll.push({no:no,url:r.url});phN++;});
+ var ph9=(typeof _rtPhone9==='function'&&_rtPhone9());
+ var R1='#a12b2b',R2='#e0b4b4',R3='#fdf0f0',VL='border-right:1px solid #f0dcdc';
+ var Zw=ph9?46:58,Zf=ph9?11.5:12.5,Nf=ph9?12.5:13.5,If=ph9?10.5:11.5,Cf=ph9?11.5:12.5,Pd=ph9?'8px 6px':'9px 10px';
+ var WB9=(ph9?'width:100%':'width:500px;max-width:100%;margin:0 auto');
+ function row(name,cnt,info,btn,cls,on){
+  var bs=on?'background:#fff;border:1.5px solid #c0392b;color:#c0392b':'background:#fff;border:1.5px solid #cfcfc8;color:#aaa';
+  return '<tr style="border-bottom:1px solid #f5e4e4">'
+  +'<td style="padding:'+Pd+';'+VL+'"><div style="font-weight:800;font-size:'+Nf+'px;color:#233">'+name+'</div><div style="font-size:'+If+'px;color:#667;margin-top:2px;line-height:1.35">'+info+'</div></td>'
+  +'<td style="text-align:center;white-space:nowrap;font-size:'+Cf+'px;'+VL+'">'+cnt+'</td>'
+  +'<td style="text-align:center;padding:6px 3px"><button class="'+cls+'" '+(on?'':'disabled ')+'style="'+bs+';border-radius:7px;padding:'+(ph9?'5px':'6px')+' 0;width:'+Zw+'px;font-weight:800;font-size:'+Zf+'px;display:inline-flex;align-items:center;justify-content:center;margin:0 auto;cursor:'+(on?'pointer':'default')+'">'+btn+'</button></td></tr>';}
+ var h='<div style="display:flex;align-items:center;gap:10px;padding:2px 0 9px;'+WB9+'">'
+  +'<div style="font-size:12.5px;color:'+R1+';font-weight:800">거리 합계 <span style="color:#0f6e56">'+(+tot.toFixed(1))+'m</span> · 측점 '+np+'개 · 결선 '+seg+'개 · '+dayN+'일치<span style="color:#98a1ad;font-weight:600;font-size:11px"> (등록분)</span></div></div>'
+  +'<table style="'+WB9+';border-collapse:collapse;font-size:13px;border:1.5px solid '+R2+';table-layout:fixed">'
+  +(ph9?'<colgroup><col><col style="width:58px"><col style="width:54px"></colgroup>':'<colgroup><col style="width:300px"><col style="width:96px"><col style="width:74px"></colgroup>')
+  +'<thead><tr style="background:'+R3+';color:'+R1+'">'
+  +'<th style="padding:7px 4px;border-bottom:1.5px solid '+R2+';text-align:center;'+VL+'">성과 · 내용</th>'
+  +'<th style="border-bottom:1.5px solid '+R2+';text-align:center;font-size:'+Cf+'px;'+VL+'">'+(ph9?'건수':'파일 건수')+'</th>'
+  +'<th style="border-bottom:1.5px solid '+R2+';text-align:center;font-size:'+Cf+'px">다운</th></tr></thead><tbody>'
+  +row('원시데이터(노출관로)', rawN?(rawN+'건'+(dupN?' <span style="color:#c0392b;font-size:11px">(중복 '+dupN+')</span>':'')):'-', '실시간측량 원시 ZIP — 실시간 화면에서 받으세요','ZIP','svrtRaw9',false)
+  +row('CSV(노출관로)', np?'통합 1건':'-', '측점 '+np+'개 · '+dayN+'일치 · 통합 측설용 CSV','CSV','svrtCsv9',np>0)
+  +row('결선(노출관로)', seg?'DXF 1건':'-', '거리 '+(+tot.toFixed(1))+'m · 결선 '+seg+'개 — 현재 결선DB 사업에서 [DXF로 내보내기]','DXF','svrtDxf9',false)
+  +row('노출관로사진', phN?(phN+'장'):'-', '전체 사진 ZIP — 날짜별 폴더','ZIP','svrtPh9',phN>0)
+  +'</tbody></table>';
+ el.innerHTML=h;
+ var b;
+ b=el.querySelector('.svrtCsv9');if(b&&!b.disabled)b.onclick=function(){var _p=pts.filter(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);return d0&&regD[d0];});if(typeof _fldCsvFromPoints==='function')_fldCsvFromPoints(_p,projName);};
+ b=el.querySelector('.svrtPh9');if(b&&!b.disabled)b.onclick=function(){if(typeof svPhotoZip==='function')svPhotoZip(phAll,(projName||'사진')+'_전체사진',true);};
+}
 function svRtDailyOpen(){ /* 같은 base의 실시간(_S) 성과 원격 열람 */
   if(!online){toast('로컬 모드 — Supabase 연결이 필요합니다');return;}
   if(!state.projectName){toast('먼저 사업을 선택하세요');return;}
@@ -18571,7 +18608,7 @@ function svRtDailyOpen(){ /* 같은 base의 실시간(_S) 성과 원격 열람 *
     if(!tw){body.innerHTML='<div style="color:#c0392b;text-align:center;padding:22px 0">대응 실시간 사업(_S)을 찾지 못했습니다.</div>';return;}
     sb.from('realtime_photos').select('point_no,url').eq('project_id',tw.id).then(function(pr){
       var pl=tw.payload||{};
-      svDailyTable(body,pl.points||[],pl.lines||[],pl.rtDaily||[],tw.name,svPhotosByDate((pr&&pr.data)||[]));
+      svRtDoneTable9(body,pl,tw.name,tw.id,(pr&&pr.data)||[]);/* [BUILD2219] 실시간 완료성과와 동일 구성(붉은 계열) */
     });
   });
 }
