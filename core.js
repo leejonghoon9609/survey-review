@@ -15450,8 +15450,8 @@ function rtDoneAllRender9(){/* [BUILD2212] 완료성과(전체) — 통계=일�
  var h='<div style="display:flex;align-items:center;gap:10px;padding:2px 2px 9px">'
   +'<div style="font-size:12.5px;color:'+G1+';font-weight:800">거리 합계 <span style="color:#0f6e56">'+(+tot.toFixed(1))+'m</span> · 측점 '+np+'개 · 결선 '+seg+'개 · '+dayN+'일치<span style="color:#98a1ad;font-weight:600;font-size:11px"> (등록분)</span></div>'
   +'<button id="rtdaToSv9" style="margin-left:auto;'+(state.rtToSvDone9?'background:#c0392b;border:1.5px solid #c0392b;color:#fff':'background:#fff;border:1.5px solid #c0392b;color:#c0392b')+';border-radius:8px;padding:7px 14px;font-weight:800;font-size:12.5px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer">결선DB로 등록</button></div>'/* [BUILD2213] 등록 시 빨강 점등 */
-  +'<table style="width:100%;border-collapse:collapse;font-size:13px;border:1.5px solid '+G2+';table-layout:fixed">'
-  +(ph9?'<colgroup><col style="width:26px"><col><col style="width:58px"><col style="width:54px"></colgroup>':'<colgroup><col style="width:30px"><col><col style="width:96px"><col style="width:74px"></colgroup>')
+  +'<table style="'+(ph9?'width:100%':'width:500px;max-width:100%;margin:0 auto')+';border-collapse:collapse;font-size:13px;border:1.5px solid '+G2+';table-layout:fixed">'/* [BUILD2216] PC 성과·내용 폭 축소 */
+  +(ph9?'<colgroup><col style="width:26px"><col><col style="width:58px"><col style="width:54px"></colgroup>':'<colgroup><col style="width:30px"><col style="width:300px"><col style="width:96px"><col style="width:74px"></colgroup>')
   +'<thead><tr style="background:'+G3+';color:'+G1+'">'
   +'<th style="padding:7px 4px;border-bottom:1.5px solid '+G2+';'+VL+'"><input type="checkbox" id="rtdaChkAll9" checked title="전체 선택/해제" style="width:15px;height:15px;cursor:pointer;vertical-align:middle"></th>'
   +'<th style="padding:7px 4px;border-bottom:1.5px solid '+G2+';text-align:center;'+VL+'">성과 · 내용</th>'
