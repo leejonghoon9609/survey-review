@@ -15438,35 +15438,26 @@ function rtDoneAllRender9(){/* [BUILD2212] 완료성과(전체) — 통계=일�
  var phN=0;try{var _pm=(typeof photoMap!=='undefined'&&photoMap)?photoMap:{};for(var pk in _pm){var _pd=String(pk).split('-')[0];if(regD[_pd])phN++;}}catch(_p){}
  var fin=!!(state.rtDone&&state.rtDone.done);/* [사업 최종완료] 등록 시 다운 버튼 점등 */
  var G1='#15803d',G2='#b7dfc4',G3='#e7f7ec',VL='border-right:1px solid #d9ecdf';
- var ph9=(typeof _rtPhone9==='function'&&_rtPhone9());/* [BUILD2214] 폰 전용 레이아웃 */
+ var ph9=(typeof _rtPhone9==='function'&&_rtPhone9());/* [BUILD2215] 폰·PC 공통 레이아웃 — 치수만 분기 */
+ var Zw=ph9?46:58,Zf=ph9?11.5:12.5,Nf=ph9?12.5:13.5,If=ph9?10.5:11.5,Cf=ph9?11.5:12.5,Pd=ph9?'8px 6px':'9px 10px';
  function row(key,name,cnt,info,btn,cls,on){
-  if(ph9){var bs9=on?(fin?'background:#16a34a;border:1.5px solid #16a34a;color:#fff':'background:#fff;border:1.5px solid #16a34a;color:#16a34a'):'background:#fff;border:1.5px solid #cfcfc8;color:#aaa';
-   return '<tr style="border-bottom:1px solid #e3f0e7">'
-   +'<td style="text-align:center;'+VL+'"><input type="checkbox" class="rtdaChk9" data-k="'+key+'" checked style="width:15px;height:15px;cursor:pointer"></td>'
-   +'<td style="padding:8px 6px;'+VL+'"><div style="font-weight:800;font-size:12.5px;color:#233">'+name+'</div><div style="font-size:10.5px;color:#667;margin-top:2px;line-height:1.35">'+info+'</div></td>'
-   +'<td style="text-align:center;white-space:nowrap;font-size:11.5px;'+VL+'">'+cnt+'</td>'
-   +'<td style="text-align:center;padding:6px 3px"><button class="'+cls+'" '+(on?'':'disabled ')+'style="'+bs9+';border-radius:7px;padding:5px 0;width:46px;font-weight:800;font-size:11.5px;display:inline-flex;align-items:center;justify-content:center;margin:0 auto;cursor:'+(on?'pointer':'default')+'">'+btn+'</button></td></tr>';}
   var bs=on?(fin?'background:#16a34a;border:1.5px solid #16a34a;color:#fff':'background:#fff;border:1.5px solid #16a34a;color:#16a34a'):'background:#fff;border:1.5px solid #cfcfc8;color:#aaa';
   return '<tr style="border-bottom:1px solid #e3f0e7">'
   +'<td style="text-align:center;'+VL+'"><input type="checkbox" class="rtdaChk9" data-k="'+key+'" checked style="width:15px;height:15px;cursor:pointer"></td>'
-  +'<td style="padding:10px 8px;font-weight:800;color:#233;white-space:nowrap;'+VL+'">'+name+'</td>'
-  +'<td style="text-align:center;white-space:nowrap;'+VL+'">'+cnt+'</td>'
-  +'<td style="font-size:12.5px;color:#445;padding:6px 8px;'+VL+'">'+info+'</td>'
-  +'<td style="text-align:center;padding:6px 6px"><button class="'+cls+'" '+(on?'':'disabled ')+'style="'+bs+';border-radius:7px;padding:6px 0;width:58px;font-weight:800;font-size:12.5px;display:inline-flex;align-items:center;justify-content:center;margin:0 auto;cursor:'+(on?'pointer':'default')+'">'+btn+'</button></td></tr>';}
+  +'<td style="padding:'+Pd+';'+VL+'"><div style="font-weight:800;font-size:'+Nf+'px;color:#233">'+name+'</div><div style="font-size:'+If+'px;color:#667;margin-top:2px;line-height:1.35">'+info+'</div></td>'
+  +'<td style="text-align:center;white-space:nowrap;font-size:'+Cf+'px;'+VL+'">'+cnt+'</td>'
+  +'<td style="text-align:center;padding:6px 3px"><button class="'+cls+'" '+(on?'':'disabled ')+'style="'+bs+';border-radius:7px;padding:'+(ph9?'5px':'6px')+' 0;width:'+Zw+'px;font-weight:800;font-size:'+Zf+'px;display:inline-flex;align-items:center;justify-content:center;margin:0 auto;cursor:'+(on?'pointer':'default')+'">'+btn+'</button></td></tr>';}
  var h='<div style="display:flex;align-items:center;gap:10px;padding:2px 2px 9px">'
   +'<div style="font-size:12.5px;color:'+G1+';font-weight:800">거리 합계 <span style="color:#0f6e56">'+(+tot.toFixed(1))+'m</span> · 측점 '+np+'개 · 결선 '+seg+'개 · '+dayN+'일치<span style="color:#98a1ad;font-weight:600;font-size:11px"> (등록분)</span></div>'
   +'<button id="rtdaToSv9" style="margin-left:auto;'+(state.rtToSvDone9?'background:#c0392b;border:1.5px solid #c0392b;color:#fff':'background:#fff;border:1.5px solid #c0392b;color:#c0392b')+';border-radius:8px;padding:7px 14px;font-weight:800;font-size:12.5px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer">결선DB로 등록</button></div>'/* [BUILD2213] 등록 시 빨강 점등 */
   +'<table style="width:100%;border-collapse:collapse;font-size:13px;border:1.5px solid '+G2+';table-layout:fixed">'
-  +(ph9?'<colgroup><col style="width:26px"><col><col style="width:58px"><col style="width:54px"></colgroup>':'<colgroup><col style="width:30px"><col style="width:160px"><col style="width:88px"><col><col style="width:70px"></colgroup>')
+  +(ph9?'<colgroup><col style="width:26px"><col><col style="width:58px"><col style="width:54px"></colgroup>':'<colgroup><col style="width:30px"><col><col style="width:96px"><col style="width:74px"></colgroup>')
   +'<thead><tr style="background:'+G3+';color:'+G1+'">'
   +'<th style="padding:7px 4px;border-bottom:1.5px solid '+G2+';'+VL+'"><input type="checkbox" id="rtdaChkAll9" checked title="전체 선택/해제" style="width:15px;height:15px;cursor:pointer;vertical-align:middle"></th>'
-  +(ph9?('<th style="padding:7px 4px;border-bottom:1.5px solid '+G2+';text-align:center;'+VL+'">성과 · 내용</th>'
-   +'<th style="border-bottom:1.5px solid '+G2+';text-align:center;font-size:11.5px;'+VL+'">건수</th>'
-   +'<th style="border-bottom:1.5px solid '+G2+';text-align:center;font-size:11.5px">다운</th>')
-  :('<th style="padding:7px 4px;border-bottom:1.5px solid '+G2+';text-align:center;'+VL+'">성과</th>'
-   +'<th style="border-bottom:1.5px solid '+G2+';text-align:center;'+VL+'">파일 건수</th>'
-   +'<th style="border-bottom:1.5px solid '+G2+';text-align:center;'+VL+'">내용</th>'
-   +'<th style="border-bottom:1.5px solid '+G2+';text-align:center">다운</th>'))+'</tr></thead><tbody>'
+  +'<th style="padding:7px 4px;border-bottom:1.5px solid '+G2+';text-align:center;'+VL+'">성과 · 내용</th>'
+  +'<th style="border-bottom:1.5px solid '+G2+';text-align:center;font-size:'+Cf+'px;'+VL+'">'+(ph9?'건수':'파일 건수')+'</th>'
+  +'<th style="border-bottom:1.5px solid '+G2+';text-align:center;font-size:'+Cf+'px">다운</th>'
+  +'</tr></thead><tbody>'
   +row('raw','원시데이터(노출관로)', rawN?(rawN+'건'+(dupN?' <span style="color:#c0392b;font-size:11px">(중복 '+dupN+')</span>':'')):'-', '일별 원시 ZIP 통합 — 원본 그대로','ZIP','rtdaRaw9',rawN>0)
   +row('csv','CSV(노출관로)', np?'통합 1건':'-', '측점 '+np+'개 · '+dayN+'일치 · 야간보정 반영 한 파일','CSV','rtdaCsv9',np>0)
   +row('line','결선(노출관로)', seg?'DXF 1건':'-', '거리 '+(+tot.toFixed(1))+'m · 결선 '+seg+'개','DXF','rtdaDxf9',seg>0)
