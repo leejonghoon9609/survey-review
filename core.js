@@ -542,7 +542,7 @@ function worldToPx(svgX,svgY){var p=w2screen(svgX,svgY),r=_cvRect9();return [p[0
 function moveLabelDiv(d,svgX,svgY){d._sx=svgX;d._sy=svgY;placeLabelDiv(d);}
 function addLabelHandle(p,L,ls,nt,ct,ld,isSel){
   var anchor=L.anchor;
-  var Uh=vb.w/Math.max(cv.getBoundingClientRect().width,1); // 1px = Uh world
+  var Uh=vb.w/Math.max(((typeof _cvRect9==='function')?_cvRect9():cv.getBoundingClientRect()).width,1); // 1px = Uh world /* [BUILD2194] \uce90\uc2dc \uc6b0\ud68c \uc9c1\uc811\ud638\ucd9c\uc774 634\ud68c \uac15\uc81c \ub9ac\ud50c\ub85c\uc6b0(1122ms)\uc758 \uc8fc\ubc94 */
   var maxChars=Math.max((''+(p.no||'')).length,((p.code||'').trim()).length);
   var tw=13*Uh;  // 이동/수정 핸들 폭 — 작게(인출선 닿는 라벨 앞부분만)
   var hh=15*Uh;  // 핸들 높이 — 한 줄 정도
