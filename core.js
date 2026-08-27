@@ -18675,13 +18675,17 @@ function svChgShow9(diff){/* 도면에 빨간 원+텍스트 표시 — 레이어
  if(typeof LV!=='undefined')LV.chg9=1;
  try{if(typeof setLayerVis==='function')setLayerVis('chg9',true);}catch(_s9){}
  try{drawChg9();}catch(_d9){}
- try{if(typeof fldLayerRender==='function')fldLayerRender();}catch(_l9){}
+ try{if(typeof repositionLabels==='function')repositionLabels();}catch(_r9){}/* [BUILD2224] 라벨 즉시 배치 */
+ try{var _lw9=document.getElementById('fldLayerWrap');
+  if(_lw9&&typeof fldLayerBox==='function')_lw9.innerHTML=fldLayerBox();
+  else if(typeof fieldLayerBar==='function')fieldLayerBar();}catch(_l9){}/* [BUILD2224] 실제 렌더러로 갱신 */
  if(diff&&diff.items&&diff.items.length)toast('변경내용 '+diff.items.length+'건 표시 — 레이어 [변경내용]으로 끄기/켜기');
  else toast('변경된 내용이 없습니다');
 }
 function drawChg9(){/* [BUILD2221] 월드고정 빨간 원 + 점번호/내용 텍스트 */
  if(typeof gChg9==='undefined')return;
  while(gChg9.firstChild)gChg9.removeChild(gChg9.firstChild);
+ try{if(typeof clearLabels==='function')clearLabels('chg9');}catch(_cl9){}/* [BUILD2224] 라벨 중복·잔상 제거 */
  var D=state._chg9;if(!D||!D.items||!D.items.length)return;
  if(typeof LV!=='undefined'&&!LV.chg9)return;
  D.items.forEach(function(it){
@@ -18831,7 +18835,8 @@ function svChgLoad9(){/* [BUILD2221] 실시간 원본(_S) ↔ 현장(_F) 마지�
 function svChgRefresh9(){/* 건수만 갱신(표 재렌더 없이) */
  var el=document.getElementById('svDailyBody');if(!el)return;
  var CH=state._chgCnt9||{};
- [].forEach.call(el.querySelectorAll('.svchg9'),function(c){var k=c.getAttribute('data-k');var v=CH[k];if(v!=null)c.textContent=v+'건';});
+ [].forEach.call(el.querySelectorAll('.svchg9'),function(c){var k=c.getAttribute('data-k');var v=CH[k];if(v==null)v=0;c.textContent=v+'건';
+  c.style.color=v?'#c0392b':'#aaa';c.style.borderColor=v?'#c0392b':'#d8d8d2';});/* [BUILD2224] 0건은 흐리게 */
 }
 function svDoneRegOpen(){ /* 결선완료 등록 — 현재 결선 사업 일별 목록 + 등록 액션 */
   if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
