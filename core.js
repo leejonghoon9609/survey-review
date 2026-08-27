@@ -15536,7 +15536,7 @@ function rtRawMetaRestore9(){/* [BUILD2190] \uc6d0\uc2dc \ubcf4\uad00 \uba54\ud0
         add.push(d);
       });
       if(!add.length)return;
-      try{if(typeof _rtDupChk9==='function')add.forEach(function(d){_rtDupChk9(d);});}catch(_dc){}
+      try{if(typeof rtDupScan9==='function')setTimeout(rtDupScan9,400);}catch(_dc){}/* [BUILD2191] \ubcf5\uc6d0 \uc9c1\ud6c4 \uc9c0\ubb38 \ubcf4\ucda9+\uc911\ubcf5 \uc7ac\ud310\uc815 \uc790\ub3d9 \u2014 \ubcf5\uc6d0 \uba54\ud0c0\ub294 fp\uac00 \ube44\uc5b4 \uc218\ub3d9 \uac80\uc0ac \uc804\uae4c\uc9c0 \uc911\ubcf5 \ud45c\uc2dc\uac00 \uc548 \ub5B4\ub358 \ubb38\uc81c */
       try{window._silentSave=true;saveProject();}catch(_sv){}
       try{toast('\ud83d\udce6 \uc6d0\uc2dc \ubcf4\uad00 \uba54\ud0c0 '+add.length+'\uc77c \uc790\ub3d9\ubcf5\uc6d0 \u2014 '+add.join(', '),6500);}catch(_t){}
       try{if(document.getElementById('rtDailyPop')&&typeof rtDailyTodayFill==='function')rtDailyTodayFill();}catch(_rf){}
