@@ -8331,22 +8331,17 @@ function _fldCsvFromPoints(pts,name){ /* [1286] 통합 측설용 CSV — exportS
   document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},150);
   toast('통합 측설용 CSV — '+pts.length+'점');
 }
-function fldDoneRegView(pid,name){ /* [1286] 완료성과 등록 창(읽기·다운로드 전용) — svDoneRegOpen 미러 */
+function fldDoneRegView(pid,name){ /* [BUILD2231] 결선DB 최종성과 — 성과물 통합 표(붉은 계열, 변경내용 열 없음) */
   sb.from('survey_projects').select('payload').eq('id',pid).single().then(function(r){
     var p=(r&&r.data&&r.data.payload)||{};
     sb.from('survey_photos').select('point_no,url').eq('project_id',pid).then(function(phr){
       var ph=(phr&&phr.data)||[];
-      var pop=svPopup('완료성과 등록 — '+(name||''),'#16a34a');
-      pop.querySelector('#svDailyHead').style.background='#e7f7ec';
+      var pop=svPopup('결선DB 최종성과 — '+(name||''),'#c0392b');
+      pop.querySelector('#svDailyHead').style.background='#fdf0f0';
       var body=pop.querySelector('#svDailyBody');
-      svDailyTable(body,p.points||[],p.lines||[],p.rtDaily||[],name,svPhotosByDate(ph));
-      pop.querySelector('#svDailyFoot').innerHTML='<button id="fldDrClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:9px 16px;cursor:pointer;font-weight:700">닫기</button>';
+      svRtDoneTable9(body,p,name,pid,ph);/* 실시간 최종완료성과와 동일 구성(붉은 계열) */
+      pop.querySelector('#svDailyFoot').innerHTML='<button id="fldDrClose" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:9px 16px;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;justify-content:center">닫기</button>';
       pop.querySelector('#fldDrClose').onclick=function(){pop.remove();};
-      var _tot=body.querySelector('#svDailyTot');
-      if(_tot){var _cb=document.createElement('button');_cb.textContent='통합 측설용 CSV';
-        _cb.style.cssText='margin-left:10px;background:#fff;border:1px solid #0d7a52;color:#0d7a52;border-radius:7px;padding:5px 12px;font-weight:800;font-size:12px;cursor:pointer';
-        _cb.onclick=function(){_fldCsvFromPoints(p.points||[],name);};
-        _tot.appendChild(_cb);}
     });
   });
 }
@@ -18634,7 +18629,7 @@ function svRtDoneTable9(el,pl,projName,pid,photoRows){/* [BUILD2219] 실시간 �
   if(_pop9&&!ph9)_pop9.style.width='min(94vw,560px)';
  }catch(_h9){}/* [BUILD2220] 창·푸터 폭을 표에 맞춤 */
  var b;
- b=el.querySelector('.svrtRaw9');if(b&&!b.disabled)b.onclick=function(){if(typeof rtRawAllZip9==='function')rtRawAllZip9(RM,pid,projName);};/* [BUILD2220] 원격 원시 그대로 */
+ b=el.querySelector('.svrtRaw9');if(b&&!b.disabled)b.onclick=function(){var _sp9=(pl&&pl.rtRawSrc9)||pid;/* [BUILD2231] 원시 실물은 실시간 사업 스토리지 */if(typeof rtRawAllZip9==='function')rtRawAllZip9(RM,_sp9,projName);};
  b=el.querySelector('.svrtDxf9');if(b&&!b.disabled)b.onclick=function(){if(typeof svRtDxfFromPayload9==='function')svRtDxfFromPayload9(pl,projName);};/* [BUILD2220] 결선 DXF 사본 */
  b=el.querySelector('.svrtCsv9');if(b&&!b.disabled)b.onclick=function(){var _p=pts.filter(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);return d0&&regD[d0];});if(typeof _fldCsvFromPoints==='function')_fldCsvFromPoints(_p,projName);};
  b=el.querySelector('.svrtPh9');if(b&&!b.disabled)b.onclick=function(){if(typeof svPhotoZip==='function')svPhotoZip(phAll,(projName||'사진')+'_전체사진',true);};
