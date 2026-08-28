@@ -537,6 +537,7 @@
       ov.innerHTML='<div style="background:#fff;border-radius:14px;width:min(92vw,480px);max-height:76vh;display:flex;flex-direction:column;padding:16px">'
         +'<b style="font-size:16px;color:#EA002C">삭제리스트 목록/복원</b>'
         +'<div style="font-size:12px;color:#888;margin:3px 0 8px">체크한 사업이 포털·폰 목록에 다시 표시됩니다 (성과는 보존됨)</div>'
+        +(items.length?('<label style="display:flex;align-items:center;gap:8px;padding:7px 11px;border:1px solid #e3b4ae;background:#fff7f6;border-radius:9px;margin:0 0 6px;cursor:pointer;font-size:13px;font-weight:800;color:#c0392b"><input type="checkbox" id="pxhAll" checked style="width:16px;height:16px">전체 선택/해제 <span style="margin-left:auto;font-weight:700;color:#888;font-size:12px">'+items.length+'건</span></label>'):'')/* [BUILD2239] */
         +'<div style="overflow:auto;flex:1">'+rows+'</div>'
         +'<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">'
         +'<button id="pxhOk" style="background:#EA002C;color:#fff;border:0;border-radius:9px;padding:10px 24px;font-weight:800">복 원</button>'
@@ -544,6 +545,12 @@
       document.body.appendChild(ov);
       ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
       ov.querySelector('#pxhCancel').onclick=function(){ov.remove();};
+      try{var _pa=ov.querySelector('#pxhAll');if(_pa){/* [BUILD2239] 전체 선택/해제 */
+        var _sync=function(){var cs=ov.querySelectorAll('.pxh-ck');var all=cs.length>0;[].forEach.call(cs,function(c){if(!c.checked)all=false;});_pa.checked=all;};
+        _pa.onclick=function(){var v=_pa.checked;[].forEach.call(ov.querySelectorAll('.pxh-ck'),function(c){c.checked=v;});};
+        [].forEach.call(ov.querySelectorAll('.pxh-ck'),function(c){c.addEventListener('change',_sync);});
+        _sync();
+      }}catch(_pe){}
       ov.querySelector('#pxhOk').onclick=function(){
         var jobs=[];
         [].forEach.call(ov.querySelectorAll('.pxh-ck'),function(ck){
@@ -643,6 +650,6 @@
   });
 })();
 </script>
-<script src="login.js?v=2238"></script>
+<script src="login.js?v=2239"></script>
 </body>
 </html>
