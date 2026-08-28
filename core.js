@@ -8413,7 +8413,7 @@ function posFldDoneTable9(el,pl,projName,pid,photoRows){/* [BUILD2244] 정위치
   +'<th style="border-bottom:1.5px solid '+R2+';text-align:center;font-size:'+Cf+'px;'+VL+'">'+(ph9?'건수':'파일 건수')+'</th>'
   +'<th style="border-bottom:1.5px solid '+R2+';text-align:center;font-size:'+Cf+'px">다운</th></tr></thead><tbody>';
  ITEMS.forEach(function(it){
-  var k=it[0],on=!!it[4],reg=!!fd[k],lab=it[5]||'받기';
+  var k=it[0],reg=!!fd[k],on=!!it[4],lab=it[5]||'받기';/* [BUILD2246] 등록불 승계(다운은 데이터 유무 기준) */
   var bs=on?(reg?'background:#16a34a;border:1.5px solid #16a34a;color:#fff':'background:#fff;border:1.5px solid #16a34a;color:#16a34a')
           :(reg?'background:#16a34a;border:1.5px solid #16a34a;color:#fff':'background:#fff;border:1.5px solid #cfcfc8;color:#aaa');
   h+='<tr style="border-bottom:1px solid #f5e4e4">'
@@ -9066,7 +9066,7 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
    ['csv','후측량 CSV',(fcN?fcN+'건':'-'),'후측량 업로드 CSV '+fcN+'건',fcN>0,'CSV'],
    ['line','결선',(seg?'DXF 1건':'-'),'후측량 반영 최종 결선 · 거리 '+(+tot.toFixed(1))+'m · '+seg+'개',seg>0,'DXF'],
    ['exPhoto','노출관로 사진',(exN?exN+'장':'-'),'실시간 측점 사진',exN>0,'ZIP'],
-   ['joseo','실시간 사진조서',(joN?joN+'점':'-'),'측점 사진조서',joN>0,'ZIP'],
+   ['joseo','실시간 사진조서',(joN?joN+'점':(fd.joseo?'등록완료':'-')),'측점 사진조서',joN>0,'ZIP'],
    ['aftPhoto','측설사진',(afN?afN+'장':'-'),'측설(_A) 사진',afN>0,'ZIP'],
    ['mnDxf','맨홀도',(mnN?mnN+'개':'-'),'맨홀 상세도',mnN>0,'DXF'],
    ['mnXls','설비사진조서(엑셀)',(mnN?mnN+'개':'-'),'맨홀 설비 사진조서',mnN>0,'XLSX'],
@@ -9118,7 +9118,7 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
    +'<th style="border-bottom:1.5px solid '+G2+';text-align:center;font-size:'+Cf+'px;'+VL+'">'+(ph9?'건수':'파일 건수')+'</th>'
    +'<th style="border-bottom:1.5px solid '+G2+';text-align:center;font-size:'+Cf+'px">다운</th></tr></thead><tbody>';
   ITEMS.forEach(function(it){
-   var k=it[0],on=!!it[4],reg=!!fd[k],lab=it[5]||'받기';
+   var k=it[0],reg=!!fd[k],on=(!!it[4]||reg),lab=it[5]||'받기';/* [BUILD2246] 등록완료면 다운 활성·점등 */
    var bs=on?(reg?'background:#16a34a;border:1.5px solid #16a34a;color:#fff':'background:#fff;border:1.5px solid #16a34a;color:#16a34a'):'background:#fff;border:1.5px solid #cfcfc8;color:#aaa';
    h+='<tr style="border-bottom:1px solid #e3f0e7">'
     +'<td style="text-align:center;'+VL+'"><input type="checkbox" class="fsChk9" data-k="'+k+'"'+(reg?' checked':'')+' style="width:15px;height:15px;cursor:pointer"></td>'
