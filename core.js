@@ -19613,7 +19613,11 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
  var elev={};
  try{(state.finalCsv||[]).forEach(function(fc){var rows=(fc.text||'').replace(/\r/g,'').split('\n');if(!rows.length)return;var head=splitCsvLine(rows[0]).map(function(s){return s.trim();});function col(){for(var a=0;a<arguments.length;a++){var ii=head.indexOf(arguments[a]);if(ii>=0)return ii;}return -1;}var ciN=col('이름','번호'),ciZ=col('Z(레벨)','Z','z');if(ciN<0||ciZ<0)return;for(var r9=1;r9<rows.length;r9++){var f=splitCsvLine(rows[r9]);var nm=(f[ciN]||'').trim(),zv=parseFloat(f[ciZ]);if(nm&&!isNaN(zv))elev[nm]=zv;}});}catch(_ee){}
  /* 현황선 세그먼트 (이격거리 기준) */
- var hyun=[];(state.lines||[]).forEach(function(l){if(l.layer===TL||!l.pts)return;for(var i=0;i<l.pts.length-1;i++)hyun.push([l.pts[i],l.pts[i+1]]);});
+ var hyun=[];(state.lines||[]).forEach(function(l){if(!l||!l.pts)return;
+  var _ly=(l.layer||'');
+  if(_ly!=='도로'&&_ly!=='보도')return;/* [BUILD2253] 현황측량선(도로·보도)만 — 수치지도 원본 레이어 배제 */
+  if(l.base||l.crop||l.free)return;
+  for(var i=0;i<l.pts.length-1;i++)hyun.push([l.pts[i],l.pts[i+1]]);});
  function distSeg(px,py,a,b){var vx=b[0]-a[0],vy=b[1]-a[1],L2=vx*vx+vy*vy;if(!L2)return Math.hypot(px-a[0],py-a[1]);var t=Math.max(0,Math.min(1,((px-a[0])*vx+(py-a[1])*vy)/L2));return Math.hypot(px-(a[0]+t*vx),py-(a[1]+t*vy));}
  function hyunDist(px,py){var bd=null;for(var i=0;i<hyun.length;i++){var d=distSeg(px,py,hyun[i][0],hyun[i][1]);if(bd==null||d<bd)bd=d;}return bd;}
  function hyunFoot(px,py){/* [BUILD2251] 현황선 수직 부착 — 선분 끝 1m 연장 허용(꺾임점 갭 보정), 발은 선분 위로 클램프 */
@@ -19718,7 +19722,7 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
  (state.lines||[]).forEach(function(l){
   if(!l||!l.pts||l.pts.length<2)return;
   if(l.base||l.crop||l.free)return;
-  if(l.layer===TL||l.layer==='지거'||l.layer==='압입구간'||l.layer==='탐사구간')return;
+  if(l.layer!=='도로'&&l.layer!=='보도')return;/* [BUILD2253] 현황측량선만 DXF 반출 — 수치지도 배제 */
   var cur=null,buf=[];
   function flush(){if(cur&&buf.length>=2)cur.items.push({t:'pl',lay:'DORO',c62:4,slay:(l.layer||''),pts:buf,cl:0});buf=[];}
   for(var i=0;i<l.pts.length-1;i++){var a=l.pts[i],b=l.pts[i+1];var S2=shpeek((a[0]+b[0])/2,(a[1]+b[1])/2);if(!S2){flush();cur=null;continue;}
