@@ -443,7 +443,7 @@
   .viewer #fldFinal{order:14}
 }
 /* [BUILD2023] PC 사진조서·맨홀도 버튼 축소 */
-@media(min-width:761px){.viewer #fldJoseo,.viewer #fldManhole{padding:6px 10px!important;font-size:12.5px!important}.viewer #fldImport,.viewer #fldFinal{padding:5px 9px!important;font-size:11.5px!important;line-height:1.2!important}}
+@media(min-width:761px){.viewer #fldJoseo,.viewer #fldManhole{padding:6px 10px!important;font-size:12.5px!important}.viewer #fldImport,.viewer #fldFinal{padding:7px 12px!important;font-size:13px!important;line-height:1.2!important}}/* [BUILD2244] */
 </style>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b62c4">
@@ -673,8 +673,8 @@ window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
       <button class="fbtn" id="fldRefLoad">📂 완료결선 업로드</button><span id="fldRefHint">시스템 완료전 결선완료사업 업로드(사업등록후 업로드)</span>
       <span id="fldViewLbl" style="color:#889;font-size:12px;font-weight:700;align-self:center">보기</span><button class="fbtn" id="fldFit" title="도면 전체 보기">전체</button><button class="fbtn" id="fldTerr">🗺 백판 꺼짐</button>
       <button class="fbtn" id="fldCrop" title="드래그한 영역을 PNG로 저장" style="background:#fff3e0;border-color:#f0a94e;color:#e8710a;font-weight:700">✂ 영역 크롭</button>
-      <button class="fbtn" id="fldImport" style="margin-left:auto">📥 결선DB 최종성과</button>
-      <button class="fbtn fbtn-final" id="fldFinal">📋 후측량 최종성과 등록</button>
+      <button class="fbtn" id="fldImport" style="margin-left:auto;font-size:13px;padding:7px 12px;border:1px solid #c0392b;border-radius:6px;background:#fff;color:#c0392b;font-weight:700;cursor:pointer">측량(현장) 최종성과</button>
+      <button class="fbtn fbtn-final" id="fldFinal" style="font-size:13px;padding:7px 12px;border:1px solid #16a34a;border-radius:6px;background:#fff;color:#15803d;font-weight:700;cursor:pointer;margin-left:4px">성과심사 완료성과</button>
     </div>
     <select id="proj" class="wk"><option value="">사업 선택…</option></select>
     <button id="save" class="pri wk">저장</button>
@@ -853,7 +853,7 @@ window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
     </div>
   </div>
 
-<script src="login.js?v=2243"></script><script src="core.js?v=2243"></script>
+<script src="login.js?v=2244"></script><script src="core.js?v=2244"></script>
 <script>
 /* [BUILD2079] 폰 body 높이 = 실측 픽셀 고정 — dvh를 못 믿는 웹뷰(카톡 인앱 등)에서 패널 바닥이 화면 밖으로 나가던 문제 종결. 회전해야 고쳐지던 증상의 근본 원인 제거 */
 (function(){

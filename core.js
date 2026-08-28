@@ -8373,6 +8373,95 @@ function fldDoneRegView(pid,name){ /* [BUILD2231] 결선DB 최종성과 — 성�
     });
   });
 }
+function posFldDoneTable9(el,pl,projName,pid,photoRows){/* [BUILD2244] 정위치 — 측량(현장) 12개 성과 그대로(붉은 계열), 등록불 승계, 결선=사본 */
+ if(!el)return;
+ var fd=pl.fieldDone||{};
+ var pts=pl.points||[],lns=pl.lines||[];
+ var dm=(typeof svDistMap==='function')?svDistMap(pts,lns):{dist:{},seg:{}};
+ var tot=0,seg=0;for(var _k in dm.dist)tot+=dm.dist[_k];for(var _k2 in dm.seg)seg+=dm.seg[_k2];
+ var RM=pl.rtRawMeta9||{},rawN=0;for(var rk in RM)rawN++;
+ var ARM=pl.aftRawMeta9||{},aftN=0;for(var ak in ARM)aftN++;
+ var fcN=(pl.finalCsv||[]).length;
+ var exN=0,afN=0,exAll=[],afAll=[];
+ (photoRows||[]).forEach(function(r){var no=String(r.point_no||'');if(/_A$/.test(no)){afN++;afAll.push({no:no,url:r.url});}else{exN++;exAll.push({no:no,url:r.url});}});
+ var mnN=(pl.mnList||[]).filter(function(r){return r&&!r.delAt;}).length;
+ var ph9=(typeof _rtPhone9==='function'&&_rtPhone9());
+ var R1='#a12b2b',R2='#e0b4b4',R3='#fdf0f0',VL='border-right:1px solid #f0dcdc';
+ var Zw=ph9?46:52,Zf=ph9?10.5:11,Nf=ph9?11.5:12,If=ph9?9.5:10,Cf=ph9?10.5:11,Pd=ph9?'4px 6px':'4px 9px';
+ var WB9=(ph9?'width:100%':'width:520px;max-width:100%;margin:0 auto');
+ var ITEMS=[
+  ['raw','원시데이터(노출관로)',(rawN?rawN+'건':'-'),'결선DB 원시 ZIP 통합 — 원본 그대로',rawN>0,'ZIP'],
+  ['rawAft','원시데이터(후측량)',(aftN?aftN+'건':'-'),'후측량 업로드 원시 ZIP',aftN>0,'ZIP'],
+  ['csvExp','노출관로 CSV',(pts.length?'통합 1건':'-'),'측점 '+pts.length+'개 · 통합 측설용 CSV',pts.length>0,'CSV'],
+  ['csv','후측량 CSV',(fcN?fcN+'건':'-'),'후측량 업로드 CSV '+fcN+'건',fcN>0,'CSV'],
+  ['line','결선',(seg?'DXF 1건':'-'),'측량(현장) 최종 결선 사본 · 거리 '+(+tot.toFixed(1))+'m · '+seg+'개',seg>0,'DXF'],
+  ['exPhoto','노출관로 사진',(exN?exN+'장':'-'),'실시간 측점 사진',exN>0,'ZIP'],
+  ['joseo','실시간 사진조서','-','측점 사진조서 — 측량(현장)에서 등록',false,'ZIP'],
+  ['aftPhoto','측설사진',(afN?afN+'장':'-'),'측설(_A) 사진',afN>0,'ZIP'],
+  ['mnDxf','맨홀도',(mnN?mnN+'개':'-'),'맨홀 상세도',false,'DXF'],
+  ['mnXls','설비사진조서(엑셀)',(mnN?mnN+'개':'-'),'맨홀 설비 사진조서',false,'XLSX'],
+  ['mnEfb','현장전자야장',(mnN?mnN+'개':'-'),'현장 전자야장',false,'EFB'],
+  ['mnPhoto','맨홀사진','-','맨홀 사진',false,'ZIP']
+ ];
+ var regN=0;ITEMS.forEach(function(it){if(fd[it[0]])regN++;});
+ var h='<div style="display:flex;align-items:center;gap:8px;padding:1px 0 6px;'+WB9+'">'
+  +'<div style="font-size:11.5px;color:'+R1+';font-weight:800">거리 합계 <span style="color:#0f6e56">'+(+tot.toFixed(1))+'m</span> · 측점 '+pts.length+'개 · 결선 '+seg+'개 · 성과 '+regN+'/'+ITEMS.length+'</div></div>'
+  +'<table style="'+WB9+';border-collapse:collapse;font-size:13px;border:1.5px solid '+R2+';table-layout:fixed">'
+  +(ph9?'<colgroup><col><col style="width:58px"><col style="width:54px"></colgroup>':'<colgroup><col style="width:300px"><col style="width:96px"><col style="width:74px"></colgroup>')
+  +'<thead><tr style="background:'+R3+';color:'+R1+'">'
+  +'<th style="padding:7px 4px;border-bottom:1.5px solid '+R2+';text-align:center;'+VL+'">성과 · 내용</th>'
+  +'<th style="border-bottom:1.5px solid '+R2+';text-align:center;font-size:'+Cf+'px;'+VL+'">'+(ph9?'건수':'파일 건수')+'</th>'
+  +'<th style="border-bottom:1.5px solid '+R2+';text-align:center;font-size:'+Cf+'px">다운</th></tr></thead><tbody>';
+ ITEMS.forEach(function(it){
+  var k=it[0],on=!!it[4],reg=!!fd[k],lab=it[5]||'받기';
+  var bs=on?(reg?'background:#16a34a;border:1.5px solid #16a34a;color:#fff':'background:#fff;border:1.5px solid #16a34a;color:#16a34a')
+          :(reg?'background:#16a34a;border:1.5px solid #16a34a;color:#fff':'background:#fff;border:1.5px solid #cfcfc8;color:#aaa');
+  h+='<tr style="border-bottom:1px solid #f5e4e4">'
+   +'<td style="padding:'+Pd+';'+VL+'"><div style="font-weight:800;font-size:'+Nf+'px;color:'+(reg?'#c0392b':'#233')+'">'+it[1]+'</div><div style="font-size:'+If+'px;color:#667;margin-top:2px;line-height:1.35">'+it[3]+'</div></td>'
+   +'<td style="text-align:center;white-space:nowrap;font-size:'+Cf+'px;'+VL+';color:'+(reg?'#c0392b':'#233')+';font-weight:'+(reg?'800':'400')+'">'+it[2]+'</td>'
+   +'<td style="text-align:center;padding:6px 3px"><button class="pfd_'+k+'" '+(on?'':'disabled ')+'style="'+bs+';border-radius:6px;padding:3px 0;width:'+Zw+'px;font-weight:800;font-size:'+Zf+'px;display:inline-flex;align-items:center;justify-content:center;margin:0 auto;cursor:'+(on?'pointer':'default')+'">'+lab+'</button></td></tr>';
+ });
+ h+='</tbody></table>';
+ el.innerHTML=h;
+ var b;
+ b=el.querySelector('.pfd_raw');if(b&&!b.disabled)b.onclick=function(){if(typeof rtRawAllZip9==='function')rtRawAllZip9(RM,(pl.rtRawSrc9||pid),projName);};
+ b=el.querySelector('.pfd_rawAft');if(b&&!b.disabled)b.onclick=function(){if(typeof aftRawAllZip9==='function'){var _bk=state.aftRawMeta9,_bp=state.projectId,_bn=state.projectName;state.aftRawMeta9=ARM;state.projectId=pid;state.projectName=projName;try{aftRawAllZip9();}finally{setTimeout(function(){state.aftRawMeta9=_bk;state.projectId=_bp;state.projectName=_bn;},1500);}}};
+ b=el.querySelector('.pfd_csvExp');if(b&&!b.disabled)b.onclick=function(){if(typeof _fldCsvFromPoints==='function')_fldCsvFromPoints(pts,projName);};
+ b=el.querySelector('.pfd_csv');if(b&&!b.disabled)b.onclick=function(){try{var _z=new JSZip();(pl.finalCsv||[]).forEach(function(f,i){_z.file(f.name||('후측량'+(i+1)+'.csv'),f.text||'');});_z.generateAsync({type:'blob'}).then(function(bl){var a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download=(projName||'사업')+'_후측량CSV.zip';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},400);});}catch(_e9){toast('CSV 다운 오류');}};
+ b=el.querySelector('.pfd_line');if(b&&!b.disabled)b.onclick=function(){if(typeof svRtDxfFromPayload9==='function')svRtDxfFromPayload9(pl,projName);};/* 결선=사본 */
+ b=el.querySelector('.pfd_exPhoto');if(b&&!b.disabled)b.onclick=function(){if(typeof svPhotoZip==='function')svPhotoZip(exAll,(projName||'사진')+'_노출관로사진',true);};
+ b=el.querySelector('.pfd_aftPhoto');if(b&&!b.disabled)b.onclick=function(){if(typeof svPhotoZip==='function')svPhotoZip(afAll,(projName||'사진')+'_측설사진',true);};
+}
+function posFldDoneList9(){/* [BUILD2244] 정위치 — 측량(현장) 최종성과 사업 목록 */
+ if(typeof sb==='undefined'||!online){toast('온라인에서만 열람 가능합니다');return;}
+ sb.from('field_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
+  var rows=((res&&res.data)||[]).filter(function(r){var pl=r.payload||{};return !pl.delAt&&(pl.stage||'field')==='field';});
+  var pop=svPopup('측량(현장) 최종성과 — 완료성과 등록 목록','#c0392b');
+  try{pop.querySelector('#svDailyHead').style.background='#fdf0f0';}catch(_h9){}
+  var body=pop.querySelector('#svDailyBody');
+  if(!rows.length){body.innerHTML='<div style="padding:22px;text-align:center;color:#999">등록된 측량(현장) 성과가 없습니다</div>';}
+  else{body.innerHTML=rows.map(function(r,i){var d=(r.updated_at||'').slice(5,10);
+    return '<div class="pfdRow9" data-i="'+i+'" style="display:flex;align-items:center;gap:9px;padding:9px 11px;border:1px solid #f0dcdc;border-radius:9px;margin:5px 0;cursor:pointer;font-size:13.5px">'
+     +'<span style="flex:none;font-size:11px;font-weight:800;color:#fff;background:#c0392b;border-radius:5px;padding:2px 7px">현장</span>'
+     +'<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:#233">'+String(r.name||'').replace(/</g,'&lt;')+'</span>'
+     +'<span style="flex:none;color:#999;font-size:12px">'+d+'</span></div>';}).join('');
+   [].forEach.call(body.querySelectorAll('.pfdRow9'),function(el){el.onclick=function(){
+     var r=rows[+el.getAttribute('data-i')];if(!r)return;pop.remove();posFldDoneView9(r);};});}
+  pop.querySelector('#svDailyFoot').innerHTML='<button id="pfdClose9" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:9px 16px;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;justify-content:center">닫기</button>';
+  pop.querySelector('#pfdClose9').onclick=function(){pop.remove();};
+ });
+}
+function posFldDoneView9(rec){/* [BUILD2244] 측량(현장) 성과 그대로 열람 — 등록 상태(초록불) 승계, 결선은 사본 */
+ var pl=rec.payload||{},pid=rec.id,name=rec.name||'';
+ sb.from('field_photos').select('point_no,url').eq('project_id',pid).then(function(phr){
+  var ph=(phr&&phr.data)||[];
+  var pop=svPopup('측량(현장) 최종성과 — '+name,'#c0392b');
+  try{pop.querySelector('#svDailyHead').style.background='#fdf0f0';}catch(_h9){}
+  posFldDoneTable9(pop.querySelector('#svDailyBody'),pl,name,pid,ph);
+  pop.querySelector('#svDailyFoot').innerHTML='<button id="pfvClose9" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:9px 16px;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;justify-content:center">닫기</button>';
+  pop.querySelector('#pfvClose9').onclick=function(){pop.remove();};
+ });
+}
 function fldDoneRegList(){ /* [1286] 결선DB 최종성과 — 사업 목록 모달 */
   if(!online){toast('Supabase 연결 필요');return;}
   sb.from('survey_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
@@ -9089,7 +9178,7 @@ function _fldExPhotoAuto(cb){ /* [1302] field 전용 — 결선DB 완료성과(_
   var sv=document.getElementById('fldSave');if(sv)sv.onclick=function(){saveProject();};
   var c=document.getElementById('fldCsv');if(c)c.onclick=openFinalCsvUpload;
   var j=document.getElementById('fldJoseo');if(j)j.onclick=openJoseoPanel;
-  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){if(typeof mnOpenList==='function')mnOpenList();};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){fldDoneRegList();}; /* [1286] 결선DB 최종성과 목록 */var _frl=document.getElementById('fldRefLoad');if(_frl){if(typeof IS_POSITION!=='undefined'&&IS_POSITION){_frl.textContent='📥 현장결선 추가분 반영';_frl.onclick=function(){posDiffPull9();};/* [BUILD2198] */var _fh9=document.getElementById('fldRefHint');if(_fh9)_fh9.textContent='열 때 현장 결선 자동 반영 · 작업 후 추가분은 버튼으로 선택 반영(원본 불변)';/* [BUILD2201] SD 미리보기 3단 토글 버튼 + 툴바 줄내림(정위치 전용) */try{if(_fh9&&!document.getElementById('posSD9Btn')){var _sb9=document.createElement('button');_sb9.id='posSD9Btn';_sb9.className='fbtn';_sb9.textContent='\uD83D\uDCD0 SD 미리보기';_sb9.style.cssText='border:1.5px solid #6d28d9;color:#6d28d9;background:#fff;font-weight:800;padding:9px 12px;font-size:13px;border-radius:8px';_sb9.onclick=function(){posSdToggle9();};_fh9.parentNode.insertBefore(_sb9,_fh9.nextSibling);var _bk9=document.createElement('div');_bk9.id='hdrBreakP9';_bk9.className='hdr-break';_fh9.parentNode.insertBefore(_bk9,_sb9.nextSibling);var _st9=document.createElement('style');_st9.textContent='@media(min-width:761px){.viewer #posSD9Btn{order:9;margin-left:10px}.viewer #hdrBreakP9{order:9}}@media(max-width:760px){#posSD9Btn,#hdrBreakP9{display:none!important}}';document.head.appendChild(_st9);}}catch(_sb2){}}else{_frl.onclick=function(){if(typeof refOpen==='function')refOpen();};}}/* [BUILD2195] */try{var _ftr=document.getElementById('fldTerr');if(_ftr){_ftr.onclick=function(){
+  var m=document.getElementById('fldManhole');if(m)m.onclick=function(){if(typeof mnOpenList==='function')mnOpenList();};var _fi=document.getElementById('fldImport');if(_fi)_fi.onclick=function(){if(typeof IS_POSITION!=='undefined'&&IS_POSITION){if(typeof posFldDoneList9==='function')posFldDoneList9();return;}/* [BUILD2244] 정위치=측량(현장) 최종성과 */fldDoneRegList();}; /* [1286] 결선DB 최종성과 목록 */var _frl=document.getElementById('fldRefLoad');if(_frl){if(typeof IS_POSITION!=='undefined'&&IS_POSITION){_frl.textContent='📥 현장결선 추가분 반영';_frl.onclick=function(){posDiffPull9();};/* [BUILD2198] */var _fh9=document.getElementById('fldRefHint');if(_fh9)_fh9.textContent='열 때 현장 결선 자동 반영 · 작업 후 추가분은 버튼으로 선택 반영(원본 불변)';/* [BUILD2201] SD 미리보기 3단 토글 버튼 + 툴바 줄내림(정위치 전용) */try{if(_fh9&&!document.getElementById('posSD9Btn')){var _sb9=document.createElement('button');_sb9.id='posSD9Btn';_sb9.className='fbtn';_sb9.textContent='\uD83D\uDCD0 SD 미리보기';_sb9.style.cssText='border:1.5px solid #6d28d9;color:#6d28d9;background:#fff;font-weight:800;padding:9px 12px;font-size:13px;border-radius:8px';_sb9.onclick=function(){posSdToggle9();};_fh9.parentNode.insertBefore(_sb9,_fh9.nextSibling);var _bk9=document.createElement('div');_bk9.id='hdrBreakP9';_bk9.className='hdr-break';_fh9.parentNode.insertBefore(_bk9,_sb9.nextSibling);var _st9=document.createElement('style');_st9.textContent='@media(min-width:761px){.viewer #posSD9Btn{order:9;margin-left:10px}.viewer #hdrBreakP9{order:9}}@media(max-width:760px){#posSD9Btn,#hdrBreakP9{display:none!important}}';document.head.appendChild(_st9);}}catch(_sb2){}}else{_frl.onclick=function(){if(typeof refOpen==='function')refOpen();};}}/* [BUILD2195] */try{var _ftr=document.getElementById('fldTerr');if(_ftr){_ftr.onclick=function(){
     if(typeof REF!=='undefined'&&REF&&REF.ents&&typeof refTerrCount==='function'&&refTerrCount()){refTerrToggle();return;}
     /* [1290] 완료결선 없으면 사업등록 수치지도(BP) 토글 */
     if(typeof bpOff==='undefined')window.bpOff=false;
