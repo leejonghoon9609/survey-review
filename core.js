@@ -8441,7 +8441,9 @@ function posFldDoneList9(){/* [BUILD2245] 목록 생략 — 현재 사업의 측
  sb.from('field_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
   var rows=((res&&res.data)||[]).filter(function(r){var pl=r.payload||{};return !pl.delAt&&(pl.stage||'field')==='field';});
   var hit=null;
+  var _nz9=function(x){return String(x||'').replace(/\s+/g,'').toLowerCase();};
   rows.some(function(r){if((typeof baseName==='function'?baseName(r.name):r.name)===base){hit=r;return true;}return false;});
+  if(!hit)rows.some(function(r){if(_nz9(typeof baseName==='function'?baseName(r.name):r.name)===_nz9(base)){hit=r;return true;}return false;});/* [BUILD2247] */
   if(hit){posFldDoneView9(hit);return;}
   /* 짝을 못 찾으면 목록으로 폴백 */
   if(!rows.length){toast('측량(현장) 성과가 없습니다');return;}
@@ -8477,11 +8479,14 @@ function fldDoneRegList(){ /* [1286] 결선DB 최종성과 — 사업 목록 모
     var rows=(res.data||[]).filter(function(rr){var pl=rr.payload||{};if(pl.delAt)return false;return (pl.stage||'survey')==='survey';});
     /* [1288] 현재 사업 계열(_A 등) 결선 사업이 있으면 바로 등록 창 오픈, 없을 때만 목록 */
     var _base=(state.projectName&&typeof baseName==='function')?baseName(state.projectName):null;
-    if(_base){var _hit=rows.filter(function(rr){return baseName(rr.name)===_base;})[0];
+    if(_base){var _nz9=function(x){return String(x||'').replace(/\s+/g,'').toLowerCase();};
+      var _hit=rows.filter(function(rr){return baseName(rr.name)===_base;})[0]
+             ||rows.filter(function(rr){return _nz9(baseName(rr.name))===_nz9(_base);})[0];/* [BUILD2247] 공백·대소문자 무시 재시도 */
       if(_hit){fldDoneRegView(_hit.id,_hit.name);return;}}
     var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:1300;background:rgba(0,0,0,.38);display:flex;align-items:center;justify-content:center';
     ov.innerHTML='<div style="background:#fff;border-radius:14px;width:92%;max-width:460px;max-height:78vh;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden;border-top:5px solid #16a34a">'
-      +'<div style="display:flex;align-items:center;padding:13px 16px;border-bottom:1px solid #eee"><b style="font-size:15px;color:#15803d">📑 결선DB 최종성과 — 완료성과 등록 목록</b><button id="fdrX" style="margin-left:auto;border:1px solid #ddd;background:#fff;border-radius:7px;padding:4px 12px;cursor:pointer">닫기</button></div>'
+      +'<div style="display:flex;align-items:center;padding:13px 16px;border-bottom:1px solid #eee"><b style="font-size:15px;color:#15803d">📑 결선DB 최종성과 — 사업 선택</b><button id="fdrX" style="margin-left:auto;border:1px solid #ddd;background:#fff;border-radius:7px;padding:4px 12px;cursor:pointer">닫기</button></div>'
+      +'<div style="padding:9px 14px 0;font-size:12.5px;color:#c0392b;font-weight:700">현재 사업(&quot;'+String(state.projectName||'').replace(/</g,'&lt;')+'&quot;)과 같은 이름의 결선DB 사업이 없습니다 — 열람할 사업을 고르세요</div>'/* [BUILD2247] 짝 부재 안내 */
       +'<div id="fdrList" style="overflow:auto;padding:10px 14px;display:flex;flex-direction:column;gap:7px"></div></div>';
     document.body.appendChild(ov);
     ov.querySelector('#fdrX').onclick=function(){ov.remove();};
