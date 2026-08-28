@@ -1847,42 +1847,38 @@ function placeManholeAt(wx,wy,type){
 }
 // ★ CSV의 전주(TJ/EJ) 측점 → 같은 코드 가장 가까운 2점 짝 → 중점에 입상주 자동생성(BUILD516). TJ=통신주입상/EJ=한전주입상. 원래 2점은 남김(자동결선만 제외)
 function _tjTokOf(c){var t=(''+(c||'')).trim().toUpperCase().split(/\s+/);for(var i=0;i<t.length;i++){if(t[i]==='TJ'||t[i]==='EJ')return t[i];}return null;}/* [1416] BS TJ·SS TJ·DA EJ 등 접두어 코드 지원 */
-function buildRisersFromCsv(){if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))state.mhDel=null;/* [1353][1471] field는 묘비 유지 */
+function buildRisersFromCsv(){/* [BUILD2240] 입상주=맨홀처럼 각 측점에 그대로 배치(2점중점·짝짓기 폐지) — 작업자 확인·수정 전제 */
+  if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))state.mhDel=null;/* [1353][1471] field는 묘비 유지 */
   var arr=(typeof finalCsvArr==='function')?finalCsvArr():[];
   var rows=[];
-  arr.forEach(function(it){var rs;try{rs=parseInspCsv(it.text||'');}catch(e){rs=[];}rs.forEach(function(p){if(p.skip)return;var c=(p.code||'').trim();var _tk9=_tjTokOf(c);if(_tk9)rows.push({x:p.ex,y:p.no,no:p.name||'',code:_tk9,surface:p.surface||'',pave:p.pave||''});else if((typeof IS_FIELD!=='undefined'&&IS_FIELD)&&/^(입상|ip\s*주|ip\b|통신주입상|통신입상)/i.test(c)){var _pp9=/\(([^)]+)\)/.exec(c);rows.push({x:p.ex,y:p.no,no:p.name||'',code:'IPJU',spec:(_pp9?_pp9[1]:''),surface:p.surface||'',pave:p.pave||''});}else if((typeof IS_FIELD!=='undefined'&&IS_FIELD)&&/(입상|ip)/i.test(c)&&!/^(in|tj|ej)/i.test(c)){try{console.info('[IP주 미매칭 코드]',JSON.stringify(c),'측점',p.name||'');}catch(_l9){}}/* [1463] IP주 2점짝중점(field) *//* [1416] */});});
+  arr.forEach(function(it){var rs;try{rs=parseInspCsv(it.text||'');}catch(e){rs=[];}rs.forEach(function(p){if(p.skip)return;
+    var c=(p.code||'').trim();var _tk9=_tjTokOf(c);
+    if(_tk9)rows.push({x:p.ex,y:p.no,no:p.name||'',code:_tk9,surface:p.surface||'',pave:p.pave||''});
+    else if((typeof IS_FIELD!=='undefined'&&IS_FIELD)&&/^(입상|ip\s*주|ip\b|통신주입상|통신입상)/i.test(c)){var _pp9=/\(([^)]+)\)/.exec(c);rows.push({x:p.ex,y:p.no,no:p.name||'',code:'IPJU',spec:(_pp9?_pp9[1]:''),surface:p.surface||'',pave:p.pave||''});}
+    else if((typeof IS_FIELD!=='undefined'&&IS_FIELD)&&/(입상|ip)/i.test(c)&&!/^(in|tj|ej)/i.test(c)){try{console.info('[IP주 미매칭 코드]',JSON.stringify(c),'측점',p.name||'');}catch(_l9){}}
+  });});
   if(!rows.length)return 0;
   if(state.tamsa)state.points.forEach(function(p){if(_tjTokOf(p.code))p._hideMark=true;});/* [1416] */
-  var _keepR={};(state.manholes||[]).forEach(function(m){if(m._fromCsv&&m.type==='riser'&&m.wx!=null&&(m._edited||(m.dests&&m.dests.length)))_keepR[m.wx+'_'+m.wy]=1;});state.manholes=(state.manholes||[]).filter(function(m){return !(m._fromCsv&&m.type==='riser'&&!m._edited&&!(m.dests&&m.dests.length));});/* [BUILD1975] 방향(dests) 지정분은 재생성 대상에서 제외 — dests 유실 방지 */   /* [1161][1483] 수정 입상 보존 */
+  /* 이전 CSV 생성분만 제거 — 작업자가 수정·방향지정한 것은 보존 */
+  var _keepR={};(state.manholes||[]).forEach(function(m){if(m._fromCsv&&m.type==='riser'&&m.wx!=null&&(m._edited||(m.dests&&m.dests.length)))_keepR[m.wx+'_'+m.wy]=1;});
+  state.manholes=(state.manholes||[]).filter(function(m){return !(m._fromCsv&&m.type==='riser'&&!m._edited&&!(m.dests&&m.dests.length));});
   state.points=(state.points||[]).filter(function(p){return !p._riserPt;});
   state.lines=(state.lines||[]).filter(function(l){return !l._riserLine;});
-  var byCode={};
-  rows.forEach(function(p){(byCode[p.code]=byCode[p.code]||[]).push(p);});
   var made=0;
-  for(var code in byCode){
-    var a2=byCode[code].slice(),used={};
-    for(var i=0;i<a2.length;i++){
-      if(used[i])continue;
-      var best=-1,bd=1e9;
-      for(var j=i+1;j<a2.length;j++){
-        if(used[j])continue;
-        var d=Math.hypot(a2[i].x-a2[j].x,a2[i].y-a2[j].y);
-        if(d<bd){bd=d;best=j;}
-      }
-      if(best<0)continue;
-      used[i]=used[best]=1;
-      [a2[i],a2[best]].forEach(function(rp){if(state.mhDel&&state.mhDel[rp.x+'_'+rp.y])return;/* [1514] 묘비 존중 */state.points.push({no:rp.no,x:rp.x,y:rp.y,z:null,code:rp.code,_riserPt:true,_hideMark:!!state.tamsa});});
-      
-      var mx=(a2[i].x+a2[best].x)/2,my=(a2[i].y+a2[best].y)/2;if(state.mhDel&&state.mhDel[mx+'_'+my])continue;if(_keepR[mx+'_'+my]){made++;continue;}/* [1471] */
-      state.manholes=(state.manholes||[]).filter(function(m){return !(m.type==='riser'&&!m._fromCsv&&Math.hypot((m.wx||0)-mx,(m.wy||0)-my)<2);});/* [1470] 이번 생성분(_fromCsv) 보호 — 근접 EJ/IP 상호 삭제 버그 */
-      var isEJ=/^EJ/i.test(code);
-      state.manholes.push({id:mhIdSeq++,wx:mx,wy:my,label:isEJ?'한전주입상':('통신주입상'+((code==='IPJU'&&(a2[i].spec||a2[best].spec))?(' ('+(a2[i].spec||a2[best].spec)+')'):'')),lx:null,ly:null,type:'riser',_fromCsv:true,_ipPair:(code==='IPJU'?[[a2[i].x,a2[i].y],[a2[best].x,a2[best].y]]:null),surface:(a2[i].surface||a2[best].surface||''),pave:(a2[i].pave||a2[best].pave||'')});
-      made++;
-    }
-    if(code==='IPJU')for(var q=0;q<a2.length;q++){if(used[q])continue;var rp2=a2[q];if(state.mhDel&&state.mhDel[rp2.x+'_'+rp2.y])continue;if(_keepR[rp2.x+'_'+rp2.y]){made++;continue;}state.points.push({no:rp2.no,x:rp2.x,y:rp2.y,z:null,code:rp2.code,_riserPt:true,_hideMark:!!state.tamsa});state.manholes.push({id:mhIdSeq++,wx:rp2.x,wy:rp2.y,label:'통신주입상'+(rp2.spec?(' ('+rp2.spec+')'):''),lx:null,ly:null,type:'riser',_fromCsv:true,surface:rp2.surface||'',pave:rp2.pave||''});made++;}/* [1469] 짝 없는 입상 단독 유지 */
-  }
+  rows.forEach(function(rp){
+    if(state.mhDel&&state.mhDel[rp.x+'_'+rp.y])return;/* 묘비 존중 */
+    if(_keepR[rp.x+'_'+rp.y]){made++;return;}
+    var isEJ=/^EJ/i.test(rp.code);
+    state.points.push({no:rp.no,x:rp.x,y:rp.y,z:null,code:rp.code,_riserPt:true,_hideMark:!!state.tamsa});
+    state.manholes.push({id:mhIdSeq++,wx:rp.x,wy:rp.y,
+      label:isEJ?'한전주입상':('통신주입상'+(rp.spec?(' ('+rp.spec+')'):'')),
+      lx:null,ly:null,type:'riser',insp:true,_fromCsv:true,
+      surface:rp.surface||'',pave:rp.pave||''});
+    made++;
+  });
   return made;
 }
+
 // 측점삽입: 다음 측점번호 자동 채번(기존 prefix 이어서 +1)
 function nextPtNo(){
   var prefix='', maxN=0;
@@ -8480,7 +8476,7 @@ function _fldAutoAftMh(){ /* [1256] field 전용 — 후측량 CSV 맨홈 자동
   var _keepE={};(state.manholes||[]).forEach(function(m){if(m.insp&&m._fromCsv&&m._edited&&m.wx!=null)_keepE[m.wx+'_'+m.wy]=1;});state.manholes=(state.manholes||[]).filter(function(m){return !(m.insp&&m._fromCsv&&!m._edited);});/* [1483] 수정본 보존 */
   var arr=(typeof finalCsvArr==='function')?finalCsvArr():[],n=0;
   arr.forEach(function(it){var rs;try{rs=(typeof parseInspCsv==='function')?parseInspCsv(it.text||''):[];}catch(e){rs=[];}
-    rs.forEach(function(p){if(p.skip)return;var _c0=((p.code||'')+'').trim();if(/^jb\s*m?$/i.test(_c0)){if(state.mhDel&&state.mhDel[p.ex+'_'+p.no])return;if(_keepE[p.ex+'_'+p.no])return;state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+state.manholes.length)),wx:p.ex,wy:p.no,label:'JB',lx:null,ly:null,type:'jb',insp:true,_fromCsv:true});n++;return;}if(/^in$/i.test(_c0)){if(state.mhDel&&state.mhDel[p.ex+'_'+p.no])return;if(_keepE[p.ex+'_'+p.no])return;state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+state.manholes.length)),wx:p.ex,wy:p.no,label:'인입',lx:null,ly:null,type:'inlet',insp:true,_fromCsv:true});n++;return;}if(/^(입상|ip주)/i.test(_c0)){return;}/* [1463] IP주는 buildRisersFromCsv 2점중점으로 이동 */if(typeof isMhCode==='function'&&isMhCode(p.code)){if(state.mhDel&&state.mhDel[p.ex+'_'+p.no])return;if(_keepE[p.ex+'_'+p.no])return;var _k=(typeof mhKindOf==='function')?mhKindOf(p.code):'SK';var _n9=(typeof mhNumOf==='function')?mhNumOf(p.code):'';
+    rs.forEach(function(p){if(p.skip)return;var _c0=((p.code||'')+'').trim();if(/^jb\s*m?$/i.test(_c0)){if(state.mhDel&&state.mhDel[p.ex+'_'+p.no])return;if(_keepE[p.ex+'_'+p.no])return;state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+state.manholes.length)),wx:p.ex,wy:p.no,label:'JB',lx:null,ly:null,type:'jb',insp:true,_fromCsv:true});n++;return;}var _bld9=/^건물\s*\+?\s*in$/i.test(_c0);if(/^in$/i.test(_c0)||_bld9){if(state.mhDel&&state.mhDel[p.ex+'_'+p.no])return;if(_keepE[p.ex+'_'+p.no])return;state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+state.manholes.length)),wx:p.ex,wy:p.no,label:'인입',lx:null,ly:null,type:'inlet',insp:true,_fromCsv:true,_own:(_bld9?'타사':''),note:(_bld9?'건물인입':'')});n++;return;}if(/^(입상|ip주)/i.test(_c0)){return;}/* [1463] IP주는 buildRisersFromCsv 2점중점으로 이동 */if(typeof isMhCode==='function'&&isMhCode(p.code)){if(state.mhDel&&state.mhDel[p.ex+'_'+p.no])return;if(_keepE[p.ex+'_'+p.no])return;var _k=(typeof mhKindOf==='function')?mhKindOf(p.code):'SK';var _n9=(typeof mhNumOf==='function')?mhNumOf(p.code):'';
       state.manholes.push({id:(typeof mhIdSeq!=='undefined'?mhIdSeq++:(Date.now()+state.manholes.length)),wx:p.ex,wy:p.no,label:(_n9||'')+'M ('+_k+' )',kind:'신',lx:null,ly:null,type:'mh',insp:true,_fromCsv:true,surface:p.surface||'',pave:p.pave||'',_edited:!!_n9});n++;}});});/* [1453] field도 in/입상/JB/번호 미러 */
   if(n){try{mergeAftMh();}catch(e){try{console.warn('[autoAftMh]',e);}catch(_c){}}}
   try{drawManholes();}catch(e){}
