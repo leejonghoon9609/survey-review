@@ -364,7 +364,7 @@
   /* 2줄: 저장 · 사업삭제 · 완료성과목록 · (우)사진 · 지도 */
   header #fldSave{order:7!important;display:inline-flex!important}
   header #fldDel{order:8!important;display:inline-flex!important}
-  header #fldImport{order:9!important;display:inline-flex!important;margin-left:0!important}
+  header #fldImport{order:13!important;display:inline-flex!important;margin-left:0!important;font-size:10px!important;padding:9px 6px!important;line-height:1.15!important}/* [BUILD2252] 폰: 최종성과 2종 같은 줄 */
   header #vPhoto{order:10!important;display:inline-flex!important;margin-left:auto!important}
   header #vMap{order:11!important;display:inline-flex!important}
   header #hdrBreak2{order:12!important}
@@ -443,6 +443,7 @@
   .viewer #fldFinal{order:14}
 }
 /* [BUILD2023] PC 사진조서·맨홀도 버튼 축소 */
+@media(max-width:760px){#fldUndoFab9{display:block!important}}/* [BUILD2252] 폰 전용 되돌리기 */
 @media(min-width:761px){.viewer #fldJoseo,.viewer #fldManhole{padding:6px 10px!important;font-size:12.5px!important}.viewer #fldImport,.viewer #fldFinal{padding:7px 12px!important;font-size:13px!important;line-height:1.2!important}}/* [BUILD2231] 결선DB 2종과 동일 크기 */
 </style>
 <link rel="manifest" href="manifest.webmanifest">
@@ -696,6 +697,7 @@ window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
     <div class="maincol">
       <div class="subbar" id="subbar"></div>
     <div class="canvas-wrap">
+      <div id="fldUndoFab9" style="position:absolute;right:10px;top:10px;z-index:20;display:none"><button type="button" onclick="if(typeof doUndo==='function')doUndo();else if(typeof undo==='function')undo()" style="background:#fffdf5;color:#c0392b;border:1px solid #c0392b;border-radius:9px;padding:7px 12px;font-weight:800;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,.15);cursor:pointer">↩ 되돌리기</button></div><!-- [BUILD2252] 폰 전용 -->
       <div id="kmapBg" class="kmapbg" style="display:none"></div>
       <svg id="cv" xmlns="http://www.w3.org/2000/svg"></svg>
       <div id="lblOverlay" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:5"></div>
@@ -853,7 +855,7 @@ window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
     </div>
   </div>
 
-<script src="login.js?v=2251"></script><script src="core.js?v=2251"></script>
+<script src="login.js?v=2252"></script><script src="core.js?v=2252"></script>
 <script>
 /* [BUILD2079] 폰 body 높이 = 실측 픽셀 고정 — dvh를 못 믿는 웹뷰(카톡 인앱 등)에서 패널 바닥이 화면 밖으로 나가던 문제 종결. 회전해야 고쳐지던 증상의 근본 원인 제거 */
 (function(){
