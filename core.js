@@ -1883,7 +1883,7 @@ function buildRisersFromCsv(){/* [BUILD2242] 입상주=2점 짝짓기→중점 �
       var mx=(a2[i].x+a2[best].x)/2,my=(a2[i].y+a2[best].y)/2;
       if(state.mhDel&&state.mhDel[mx+'_'+my])continue;
       if(_keepR[mx+'_'+my]){made++;continue;}
-      state.manholes=(state.manholes||[]).filter(function(m){return !(m.type==='riser'&&!m._fromCsv&&Math.hypot((m.wx||0)-mx,(m.wy||0)-my)<2);});/* [1470] */
+      /* [BUILD2243] 작업자가 직접 찍은 입상주는 삭제하지 않음 — 근접 2m 자동 제거 폐지 */
       var isEJ=/^EJ/i.test(code);
       state.manholes.push({id:NID9(),wx:mx,wy:my,
         label:isEJ?'한전주입상':('통신주입상'+((code==='IPJU'&&(a2[i].spec||a2[best].spec))?(' ('+(a2[i].spec||a2[best].spec)+')'):'')),
@@ -8508,7 +8508,7 @@ function _fldAutoAftMh(){ /* [1256] field 전용 — 후측량 CSV 맨홈 자동
 function _fldAutoRisers(){ /* [1255] field 전용 — 후측량 CSV 전주입상 자동 생성/정리 (탱고는 mkRiser 수동 유지) */
   if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return 0;
   var n=0;try{n=(typeof buildRisersFromCsv==='function')?buildRisersFromCsv():0;}catch(e){try{console.warn('[autoRiser]',e);}catch(_c){}}
-  if(!n){state.manholes=(state.manholes||[]).filter(function(m){return !(m._fromCsv&&m.type==='riser'&&!m._edited);});
+  if(!n){state.manholes=(state.manholes||[]).filter(function(m){return !(m._fromCsv&&m.type==='riser'&&!m._edited&&!(m.dests&&m.dests.length));});/* [BUILD2243] 수동·방향지정 입상주 보존 */
     state.points=(state.points||[]).filter(function(p){return !p._riserPt;});
     state.lines=(state.lines||[]).filter(function(l){return !l._riserLine;});}
   try{drawManholes();}catch(e){}
