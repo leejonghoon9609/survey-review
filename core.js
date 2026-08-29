@@ -19711,6 +19711,7 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
  var tb=state.titleBlock||{};var yy=(function(){var d=(state.bizInfo&&state.bizInfo.date)||'';var m=/20(\d\d)/.exec(d);return m?('20'+m[1]):(''+(new Date()).getFullYear());})();
  var outer=(tb.outer||'FC(￠100)');var om=/([A-Za-z]+)\D*(\d+)/.exec(outer)||[];var oKind=om[1]||'FC',oDia=om[2]||'100';
  var gy=parseInt(tb.gyeol,10)||1,gd=parseInt(tb.gdan,10)||1;var gongsu=gy*gd;
+ var _SDSLOPE9=12*Math.PI/180;/* [BUILD2277] 인출선 대각 경사각 */
  var naeg=0;try{var tm=state.tangoManual||{};for(var k in tm){if(tm[k]&&tm[k].naegwan){naeg=parseInt(tm[k].naegwan,10)||0;break;}}}catch(_n){}
  /* ===== [BUILD2273] 구간별 관정보 — 관로 태그(drawTgPipeTags)와 동일 소스 재사용 ===== */
  var _tgS9=null,_tgR9=null;
@@ -19875,8 +19876,12 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var offs=[7,11,15,19];var sides=[1,-1];
   for(var pzL=0;pzL<2&&!placed;pzL++)/* [BUILD2262] pass0=관로 크로스 배제, pass1=폴백 */
   for(var oi=0;oi<offs.length&&!placed;oi++)for(var si=0;si<2&&!placed;si++){
-   var sgn=sides[si];var ex=mx+nx*offs[oi]*sgn,ey=my+ny*offs[oi]*sgn;
-   var hx=(nx*sgn>=0)?1:-1;
+   var sgn=sides[si];
+   var _dxn=nx*sgn,_dyn=ny*sgn;/* [BUILD2277] 완료성과처럼 바깥으로 갈수록 내려가는 완만한 경사 */
+   var _rt9=(_dxn>=0)?-_SDSLOPE9:_SDSLOPE9;
+   var _dxr=_dxn*Math.cos(_rt9)-_dyn*Math.sin(_rt9),_dyr=_dxn*Math.sin(_rt9)+_dyn*Math.cos(_rt9);
+   var ex=mx+_dxr*offs[oi],ey=my+_dyr*offs[oi];
+   var hx=(_dxr>=0)?1:-1;
    var tx0=ex,tx1=ex+hx*(tw+2);
    if(hitBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6))continue;
    if(pzL===0&&_pipeX9([[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],mx,my))continue;/* [BUILD2262] */
@@ -20029,7 +20034,7 @@ function _sdLeadDrag9(node,it){/* [BUILD2260] SD 인출선 이동 — window 리
  function _up(e){
   if(!st)return;st=null;
   try{window.removeEventListener('pointermove',_mv,true);window.removeEventListener('pointerup',_up,true);window.removeEventListener('pointercancel',_up,true);}catch(_r){}
-  try{window._sdCache9=null;if(typeof posDrawSD9==='function')posDrawSD9(true);}catch(_e2){}
+  try{window._sdCache9=null;}catch(_e2){}/* [BUILD2277] 놓는 순간 재빌드하지 않음 — 화면은 끌어둔 위치 그대로 */
   try{if(typeof saveProject==='function'){window._silentSave=true;saveProject();}}catch(_s){}
  }
  node.addEventListener('pointerdown',function(e){
