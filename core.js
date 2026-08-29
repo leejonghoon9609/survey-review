@@ -19824,7 +19824,7 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var lb=(m.label||'').replace(/\s+/g,'');if(lb){
    /* [BUILD2257] 완성본 규격 — SD911-1 인출선(심벌→대각→수평) + 끝에 SD219 (dy +0.20) */
    var _fk9='F'+m.wx.toFixed(2)+'_'+m.wy.toFixed(2);
-   var _fu9=(state.sdLead9&&state.sdLead9[_fk9])||null;
+   var _fu9=((typeof _sdLeadGet9==='function')?_sdLeadGet9(_fk9):null)||(state.sdLead9&&state.sdLead9[_fk9])||null;/* [BUILD2279] */
    var w9=Math.max(5.1,lb.length*0.129+4.56);/* 완성본 수평 길이 */
    var placedF=false;
    if(_fu9){
@@ -19866,7 +19866,7 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var tw=spec.replace(/%%C/g,'Ø').length*0.954-2.6;/* [BUILD2257] 완성본 회귀 *//* [BUILD2255] 4도엽 회귀: 글자수*0.745+5.2 (수평선=tw+2) */
   var placed=false,_lkSgn9=0,_lkEX9=null,_lkEY9=null;/* [BUILD2274] 인출선 팔꿈치(대각 끝) */
   var _lk9='L'+mx.toFixed(2)+'_'+my.toFixed(2);/* [BUILD2254] 구간 인출선 키 */
-  var _uo9=(state.sdLead9&&state.sdLead9[_lk9])||null;
+  var _uo9=((typeof _sdLeadGet9==='function')?_sdLeadGet9(_lk9):null)||(state.sdLead9&&state.sdLead9[_lk9])||null;/* [BUILD2279] */
   if(_uo9){/* 사용자가 옮긴 위치 우선 */
    var ex=mx+_uo9[0],ey=my+_uo9[1];var hx=(_uo9[0]>=0)?1:-1;
    S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0,lk:_lk9,ax:mx,ay:my,lw:(tw+2),eo:[ex-mx,ey-my]});
@@ -19992,13 +19992,22 @@ function _sdDrawSym9(g,name,x,y){/* 블록 심볼 — tpl_pos_legend.dxf 실측 
  }
 }
 var _sdLeadReg9={};/* [BUILD2260] lk -> 노드 배열 (드래그 라이브 갱신용) */
+window._sdLeadKeep9=window._sdLeadKeep9||{};/* [BUILD2279] 세션 보관 — state 재로드에도 인출선 위치 유지 */
+function _sdLeadGet9(lk){/* state 우선, 없으면 보관본에서 복구하고 state에 되살림 */
+ if(!lk)return null;
+ var v=(state.sdLead9&&state.sdLead9[lk])||null;
+ if(v)return v;
+ var k=window._sdLeadKeep9&&window._sdLeadKeep9[lk];
+ if(k){state.sdLead9=state.sdLead9||{};state.sdLead9[lk]=[k[0],k[1]];return state.sdLead9[lk];}
+ return null;
+}
 var _sdLeadFW9={};/* [BUILD2276] lk -> 실측 수평선 길이 */
 function _sdLeadGeo9(it,ox,oy){/* [BUILD2274] 인출선 팔꿈치·수평길이 — 화면은 글자 배수(K)로 축소해 태그와 길이 일치 */
  var K=_SDVW9.txt;
  var ax=(it.ax!=null?it.ax:0),ay=(it.ay!=null?it.ay:0);
  var cur=null;
  if(ox!=null&&oy!=null)cur=[ox,oy];
- else cur=(state.sdLead9&&state.sdLead9[it.lk])||(it.eo?[it.eo[0],it.eo[1]]:null);
+ else cur=_sdLeadGet9(it.lk)||(it.eo?[it.eo[0],it.eo[1]]:null);/* [BUILD2279] */
  if(!cur){var p1=(it.t==='pl'&&it.pts)?it.pts[1]:[it.x,it.y];cur=[p1[0]-ax,p1[1]-ay];}
  var hx=(cur[0]>=0)?1:-1,lw=(_sdLeadFW9[it.lk]!=null?_sdLeadFW9[it.lk]:(it.lw!=null?it.lw:0)*K);/* [BUILD2276] 실측 폭 우선 */
  return {ax:ax,ay:ay,ex:ax+cur[0],ey:ay+cur[1],hx:hx,lw:lw,K:K};
@@ -20029,6 +20038,7 @@ function _sdLeadDrag9(node,it){/* [BUILD2260] SD 인출선 이동 — window 리
   var p=_sxy9(e);if(!p)return;
   var ox=st.ox+(p[0]-st.sx),oy=st.oy-(p[1]-st.sy);/* 월드 y는 화면 y의 반대 */
   state.sdLead9=state.sdLead9||{};state.sdLead9[it.lk]=[ox,oy];
+  window._sdLeadKeep9=window._sdLeadKeep9||{};window._sdLeadKeep9[it.lk]=[ox,oy];/* [BUILD2279] */
   if(!window._sdDbg9){window._sdDbg9=1;try{console.log('[SD인출선] 이동 기록 키=',it.lk,'타입=',it.t,'레이어=',it.lay);}catch(_g){}}/* [BUILD2278] 1회 진단 */
   try{_sdLeadMv9(it.lk,ox,oy);}catch(_d){}
  }
@@ -20042,7 +20052,7 @@ function _sdLeadDrag9(node,it){/* [BUILD2260] SD 인출선 이동 — window 리
   if(e.button!=null&&e.button!==0)return;
   e.preventDefault();e.stopPropagation();
   var p0=_sxy9(e);if(!p0)return;
-  var cur=(state.sdLead9&&state.sdLead9[it.lk])||null;
+  var cur=_sdLeadGet9(it.lk)||null;
   if(!cur&&it.eo)cur=[it.eo[0],it.eo[1]];/* [BUILD2260] 텍스트 드래그 시 ax/ay 누락으로 절대좌표가 오프셋이 되던 사고 차단 */
   if(!cur){var ax0=(it.ax!=null?it.ax:0),ay0=(it.ay!=null?it.ay:0);var p1=(it.t==='pl')?it.pts[1]:[it.x,it.y];cur=[p1[0]-ax0,p1[1]-ay0];}
   st={sx:p0[0],sy:p0[1],ox:cur[0],oy:cur[1]};
