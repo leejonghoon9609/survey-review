@@ -19648,15 +19648,12 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   for(var i=0;i<l.pts.length-1;i++)hyun.push([l.pts[i],l.pts[i+1]]);});
  function distSeg(px,py,a,b){var vx=b[0]-a[0],vy=b[1]-a[1],L2=vx*vx+vy*vy;if(!L2)return Math.hypot(px-a[0],py-a[1]);var t=Math.max(0,Math.min(1,((px-a[0])*vx+(py-a[1])*vy)/L2));return Math.hypot(px-(a[0]+t*vx),py-(a[1]+t*vy));}
  function hyunDist(px,py){var bd=null;for(var i=0;i<hyun.length;i++){var d=distSeg(px,py,hyun[i][0],hyun[i][1]);if(bd==null||d<bd)bd=d;}return bd;}
- function hyunFoot(px,py){/* [BUILD2251] 현황선 수직 부착 — 선분 끝 1m 연장 허용(꺾임점 갭 보정), 발은 선분 위로 클램프 */
-  var EXT=1.0;/* 연장 허용(m) — 인접 세그 사이 꺾임에서 수직을 놓치지 않게 */
+ function hyunFoot(px,py){/* [BUILD2258] 현황선 수직발 — 선분 내부(진짜 수직)만 채택, 꺾임점 스냅 금지. 좌·우 후보 모두 검토 후 최단 */
   var bd=null,fx=0,fy=0;
   for(var i=0;i<hyun.length;i++){var a=hyun[i][0],b=hyun[i][1];
    var vx=b[0]-a[0],vy=b[1]-a[1],L2=vx*vx+vy*vy;if(!L2)continue;
-   var L=Math.sqrt(L2),m=EXT/L;
    var t=((px-a[0])*vx+(py-a[1])*vy)/L2;
-   if(t<-m||t>1+m)continue;/* 선분(+연장) 밖 → 채택 안 함 */
-   if(t<0)t=0;else if(t>1)t=1;/* 발은 반드시 현황선 위 */
+   if(t<0||t>1)continue;/* 선분 밖 → 수직 아님(꺾임점 스냅 금지) */
    var qx=a[0]+t*vx,qy=a[1]+t*vy;var d=Math.hypot(px-qx,py-qy);
    if(bd==null||d<bd){bd=d;fx=qx;fy=qy;}}
   return bd==null?null:{d:bd,fx:fx,fy:fy};}
