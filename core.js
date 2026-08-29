@@ -19998,12 +19998,9 @@ function _sdDrawItem9(g,it){
  }else if(it.t==='ci'){
   var c=S(it.x,it.y);g.appendChild(el('circle',{cx:c[0],cy:c[1],r:it.r,fill:'none',stroke:col,'stroke-width':(0.07*_SDVW9.sym),'pointer-events':'none'}));
  }else if(it.t==='tx'){
-  var c2;
-  if(it.mid&&it.side!=null&&it.bx!=null){/* [BUILD2267] 위 0.2 / 아래 (0.2+화면글자높이) — 시각 간격 동일 */
-   var _gp9=0.2,_fs9=(it.h||1)*_SDVW9.txt;
-   var _of9=(it.side>0)?_gp9:-(_gp9+_fs9*_sdAscR9(g));/* [BUILD2268] 실측 비율 적용 */
-   c2=S(it.bx+it.nx9*_of9, it.by+it.ny9*_of9);
-  }else c2=(it.mid&&it.cx!=null)?S(it.cx,it.cy):S(it.x,it.y);/* [BUILD2264] */
+  var c2,_md9=(it.mid&&it.side!=null&&it.bx!=null);
+  if(_md9)c2=S(it.bx,it.by);/* [BUILD2269] 이격선 위의 기준점 — 상하 배치는 그린 뒤 실측 보정 */
+  else c2=(it.mid&&it.cx!=null)?S(it.cx,it.cy):S(it.x,it.y);/* [BUILD2264] */
   var _fk=(it.lk?1:_sdDensK9(it.x,it.y));/* [BUILD2262] 인출선 글자는 축소 제외 */
   var tn=el('text',{x:c2[0],y:c2[1],'font-size':(it.h*_SDVW9.txt*_fk),fill:col,'text-anchor':(it.mid?'middle':'start'),'pointer-events':(it.lk?'auto':'none')});
   tn.setAttribute('font-weight',_SDVW9.fw);tn.setAttribute('font-family',_SDVW9.ff);tn.setAttribute('stroke','none');/* [BUILD2265] 아주 얇은 획 */
@@ -20011,7 +20008,25 @@ function _sdDrawItem9(g,it){
   if(it.rot)tn.setAttribute('transform','rotate('+(-it.rot)+' '+c2[0]+' '+c2[1]+')');
   tn.textContent=String(it.s).replace(/%%C/g,'\u00D8');
   g.appendChild(tn);
- }else if(it.t==='ins'){
+  if(_md9){/* [BUILD2269] 그려진 글자의 실제 경계(getBBox)로 위·아래 간격을 똑같이 맞춤 — 비율 추정 금지 */
+   try{
+    var _bb9=tn.getBBox();
+    if(_bb9&&_bb9.height>0){
+     var _gp9=0.2;/* 이격선 ↔ 글자 간격(사용자단위) */
+     var _wt9=(it.side>0)?(c2[1]-_gp9-_bb9.height):(c2[1]+_gp9);/* 원하는 글자 윗변 위치 */
+     var _dy9=_wt9-_bb9.y;
+     tn.setAttribute('y',c2[1]+_dy9);
+     if(it.rot)tn.setAttribute('transform','rotate('+(-it.rot)+' '+c2[0]+' '+c2[1]+')');/* 회전 중심은 기준점 고정 → 이동이 이격선 법선 방향이 됨 */
+    }else{/* 실측 실패 시에만 기존 계산식 폴백 */
+     var _fs9=(it.h||1)*_SDVW9.txt,_of9=(it.side>0)?0.2:-(0.2+_fs9*0.72);
+     var _c39=S(it.bx+it.nx9*_of9,it.by+it.ny9*_of9);
+     tn.setAttribute('x',_c39[0]);tn.setAttribute('y',_c39[1]);
+     if(it.rot)tn.setAttribute('transform','rotate('+(-it.rot)+' '+_c39[0]+' '+_c39[1]+')');
+    }
+   }catch(_bx9){}
+  }
+ 
+}else if(it.t==='ins'){
   var _sg9=document.createElementNS(SVGNS,'g');_sdDrawSym9(_sg9,it.name,it.x,it.y);
   var _cs9=_sg9.childNodes;for(var _q9=0;_q9<_cs9.length;_q9++){var _w9=parseFloat(_cs9[_q9].getAttribute&&_cs9[_q9].getAttribute('stroke-width'));
    if(isFinite(_w9))_cs9[_q9].setAttribute('stroke-width',(_w9*_SDVW9.sym).toFixed(4));}
