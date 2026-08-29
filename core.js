@@ -19698,8 +19698,8 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var mx=pts[mi][0]+(pts[mi+1][0]-pts[mi][0])*mt,my=pts[mi][1]+(pts[mi+1][1]-pts[mi][1])*mt;
   var S=shget(mx,my);if(!S)return;
   var dx9=pts[mi+1][0]-pts[mi][0],dy9=pts[mi+1][1]-pts[mi][1];var L9=Math.hypot(dx9,dy9)||1;var ux=dx9/L9,uy=dy9/L9,nx=-uy,ny=ux;
-  var spec=yy+'/'+oKind+'/%%C'+oDia+'x'+gongsu+'('+naeg+')/L'+Lm.toFixed(1)+'/D'+(Dv!=null?Dv.toFixed(1):'-');
-  var tw=spec.length*0.72;
+  var spec=yy+'/'+oKind+'/%%C'+oDia+'x'+gongsu+'('+naeg+')/L'+Lm.toFixed(1)+'/D'+(Dv!=null?Dv.toFixed(1):'__');/* [BUILD2255] 실물 D__ */
+  var tw=spec.replace(/%%C/g,'Ø').length*0.745+3.2;/* [BUILD2255] 4도엽 회귀: 글자수*0.745+5.2 (수평선=tw+2) */
   var placed=false;
   var _lk9='L'+mx.toFixed(2)+'_'+my.toFixed(2);/* [BUILD2254] 구간 인출선 키 */
   var _uo9=(state.sdLead9&&state.sdLead9[_lk9])||null;
@@ -19723,7 +19723,7 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var bw=1.0,bl=Math.min(gongsu*1.05+1,Lm*0.5);
   var b0x=mx-ux*bl/2,b0y=my-uy*bl/2;
   S.items.push({t:'pl',lay:'SD983',pts:[[b0x+nx*bw,b0y+ny*bw],[b0x+ux*bl+nx*bw,b0y+uy*bl+ny*bw],[b0x+ux*bl-nx*bw,b0y+uy*bl-ny*bw],[b0x-nx*bw,b0y-ny*bw]],cl:1});
-  for(var ci=0;ci<gongsu&&ci<10;ci++){S.items.push({t:'ci',lay:'SD983',x:b0x+ux*(ci+0.7)*1.05,y:b0y+uy*(ci+0.7)*1.05,r:0.5});}
+  var _cr9=(parseFloat(oDia)<=50)?0.25:0.5;/* [BUILD2255] 관경별 원 반경 */for(var ci=0;ci<gongsu&&ci<10;ci++){S.items.push({t:'ci',lay:'SD983',x:b0x+ux*(ci+0.7)*1.05,y:b0y+uy*(ci+0.7)*1.05,r:_cr9});}
  });
  /* [BUILD2204] 현황선 — 실물 표준 레이어 DORO(색4). ★현황결선은 insp:true가 정상이라 insp 제외 금지(2203 결함). 기존 도엽에만 배정 */
  function shpeek(x,y){var c=_posSheetOf(x,y);return (c&&SH[c.no])?SH[c.no]:null;}
