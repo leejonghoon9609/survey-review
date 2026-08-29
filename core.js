@@ -19899,6 +19899,7 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   _mkV9=[-_mkU9[1],_mkU9[0]];if(_mkV9[1]<0){_mkV9=[-_mkV9[0],-_mkV9[1]];}/* 박스는 항상 인출선 위쪽 */
   var _ax9=mx+_mkU9[0]*3.0,_ay9=my+_mkU9[1]*3.0;/* 박스 시작 모서리(인출선 위) */
   var _bx9=_ax9+_mkU9[0]*_bw9,_by9=_ay9+_mkU9[1]*_bw9;
+  S.items.push({t:'pl',lay:'SD983',cl:0,pts:[[mx,my],[_ax9,_ay9]]});/* [BUILD2275] 관로 포인트 → 박스 연결선(샘플 P0→P4) */
   S.items.push({t:'pl',lay:'SD983',cl:1,pts:[[_ax9,_ay9],[_bx9,_by9],[_bx9+_mkV9[0]*_bh9,_by9+_mkV9[1]*_bh9],[_ax9+_mkV9[0]*_bh9,_ay9+_mkV9[1]*_bh9]]});
   for(var _r9=0;_r9<_nr9&&_r9<8;_r9++)for(var _c9=0;_c9<_nc9&&_c9<12;_c9++){
    var _ou9=(_c9+0.5)*_dm9,_ov9=(_r9+0.5)*_dm9;
