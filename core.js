@@ -20103,6 +20103,8 @@ function _sdLeadDrag9(node,it){/* [BUILD2260] SD 인출선 이동 — window 리
  }
  function _up(e){
   if(!st)return;st=null;
+  try{var _fv9=state.sdLead9&&state.sdLead9[it.lk];
+   console.log('[SD추적] 드래그 종료 키=',it.lk,'| 최종 저장값=',_fv9?JSON.stringify(_fv9.map(function(z){return +z.toFixed(2);})):'없음');}catch(_ul){}/* [BUILD2284] 종료값 계측 */
   try{window.removeEventListener('pointermove',_mv,true);window.removeEventListener('pointerup',_up,true);window.removeEventListener('pointercancel',_up,true);}catch(_r){}
   try{window._sdCache9=null;}catch(_e2){}/* [BUILD2277] 놓는 순간 재빌드하지 않음 — 화면은 끌어둔 위치 그대로 */
   try{if(typeof saveProject==='function'){window._silentSave=true;saveProject();}}catch(_s){}
