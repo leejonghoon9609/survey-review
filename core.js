@@ -19752,8 +19752,8 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    var mx9=x+ux9*LL9/2,my9=y+uy9*LL9/2;
    var ds9=LL9.toFixed(1),zs9='('+dep9.toFixed(1)+')';
    var wD9=ds9.length*0.72/2,wZ9=zs9.length*0.72/2;
-   S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wD9+rnx9*0.2,y:my9-ruy9*wD9+rny9*0.2,h:1.0,s:ds9,rot:rd9,cx:mx9+rnx9*0.2,cy:my9+rny9*0.2,mid:1});/* [BUILD2264] 화면은 cx,cy+중앙정렬 — 글자크기 무관 정렬 */
-   S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wZ9-rnx9*1.2,y:my9-ruy9*wZ9-rny9*1.2,h:1.0,s:zs9,rot:rd9,cx:mx9-rnx9*1.2,cy:my9-rny9*1.2,mid:1});/* [BUILD2264] */
+   S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wD9+rnx9*0.2,y:my9-ruy9*wD9+rny9*0.2,h:1.0,s:ds9,rot:rd9,cx:mx9+rnx9*0.2,cy:my9+rny9*0.2,mid:1,bx:mx9,by:my9,nx9:rnx9,ny9:rny9,side:1});/* [BUILD2267] 화면 간격 대칭 *//* [BUILD2264] 화면은 cx,cy+중앙정렬 — 글자크기 무관 정렬 */
+   S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wZ9-rnx9*1.2,y:my9-ruy9*wZ9-rny9*1.2,h:1.0,s:zs9,rot:rd9,cx:mx9-rnx9*1.2,cy:my9-rny9*1.2,mid:1,bx:mx9,by:my9,nx9:rnx9,ny9:rny9,side:-1});/* [BUILD2267] *//* [BUILD2264] */
   }
  }});
  /* 3) 맨홀 SD100 + SD219 시설물번호 */
@@ -19989,7 +19989,12 @@ function _sdDrawItem9(g,it){
  }else if(it.t==='ci'){
   var c=S(it.x,it.y);g.appendChild(el('circle',{cx:c[0],cy:c[1],r:it.r,fill:'none',stroke:col,'stroke-width':(0.07*_SDVW9.sym),'pointer-events':'none'}));
  }else if(it.t==='tx'){
-  var c2=(it.mid&&it.cx!=null)?S(it.cx,it.cy):S(it.x,it.y);/* [BUILD2264] */
+  var c2;
+  if(it.mid&&it.side!=null&&it.bx!=null){/* [BUILD2267] 위 0.2 / 아래 (0.2+화면글자높이) — 시각 간격 동일 */
+   var _gp9=0.2,_fs9=(it.h||1)*_SDVW9.txt;
+   var _of9=(it.side>0)?_gp9:-(_gp9+_fs9);
+   c2=S(it.bx+it.nx9*_of9, it.by+it.ny9*_of9);
+  }else c2=(it.mid&&it.cx!=null)?S(it.cx,it.cy):S(it.x,it.y);/* [BUILD2264] */
   var _fk=(it.lk?1:_sdDensK9(it.x,it.y));/* [BUILD2262] 인출선 글자는 축소 제외 */
   var tn=el('text',{x:c2[0],y:c2[1],'font-size':(it.h*_SDVW9.txt*_fk),fill:col,'text-anchor':(it.mid?'middle':'start'),'pointer-events':(it.lk?'auto':'none')});
   tn.setAttribute('font-weight',_SDVW9.fw);tn.setAttribute('font-family',_SDVW9.ff);tn.setAttribute('stroke','none');/* [BUILD2265] 아주 얇은 획 */
