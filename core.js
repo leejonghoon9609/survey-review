@@ -20030,7 +20030,6 @@ function _sdLeadGet9(lk){/* [BUILD2280] 정확 키 → 보관본 → 앵커 근�
   if(d<=0.6&&(bd==null||d<bd)){bd=d;best=pool[kk];}
  }
  if(best){
-  if(!window._sdKeyDrift9){window._sdKeyDrift9=1;try{console.log('[SD인출선] 키 드리프트 보정 — 요청',lk,'거리',bd.toFixed(3),'m');}catch(_g){}}
   window._sdSrc9='근접'+bd.toFixed(2);
   state.sdLead9=state.sdLead9||{};state.sdLead9[lk]=[best[0],best[1]];
   window._sdLeadKeep9=window._sdLeadKeep9||{};window._sdLeadKeep9[lk]=[best[0],best[1]];
@@ -20097,14 +20096,10 @@ function _sdLeadDrag9(node,it){/* [BUILD2260] SD 인출선 이동 — window 리
   state.sdLead9=state.sdLead9||{};state.sdLead9[it.lk]=[ox,oy];
   window._sdLeadKeep9=window._sdLeadKeep9||{};window._sdLeadKeep9[it.lk]=[ox,oy];/* [BUILD2279] */
   try{_sdKeepSave9();}catch(_ks){}/* [BUILD2282] 즉시 영속화 — 저장 전에 재로드돼도 생존 */
-  window._sdLastDrag9=it.lk;/* [BUILD2283] */
-  if(!window._sdDbg9){window._sdDbg9=1;try{console.log('[SD인출선] 이동 기록 키=',it.lk,'타입=',it.t,'레이어=',it.lay);}catch(_g){}}/* [BUILD2278] 1회 진단 */
   try{_sdLeadMv9(it.lk,ox,oy);}catch(_d){}
  }
  function _up(e){
   if(!st)return;st=null;
-  try{var _fv9=state.sdLead9&&state.sdLead9[it.lk];
-   console.log('[SD추적] 드래그 종료 키=',it.lk,'| 최종 저장값=',_fv9?JSON.stringify(_fv9.map(function(z){return +z.toFixed(2);})):'없음');}catch(_ul){}/* [BUILD2284] 종료값 계측 */
   try{window.removeEventListener('pointermove',_mv,true);window.removeEventListener('pointerup',_up,true);window.removeEventListener('pointercancel',_up,true);}catch(_r){}
   try{window._sdCache9=null;}catch(_e2){}/* [BUILD2277] 놓는 순간 재빌드하지 않음 — 화면은 끌어둔 위치 그대로 */
   try{if(typeof saveProject==='function'){window._silentSave=true;saveProject();}}catch(_s){}
@@ -20171,11 +20166,7 @@ function _sdDrawItem9(g,it){
  if(it.t==='pl'){
   if(!/^SD/.test(it.lay)){var _sl9=it.slay||it.lay;col=(typeof LINECOL!=='undefined'&&LINECOL[_sl9])?LINECOL[_sl9].c:'#00a6b8';}/* [BUILD2204] 현황=원레이어 색, DORO 폴백 시안 */
   var _lp9=it.pts;
-  if(it.lk&&it.lw!=null&&it.ax!=null){var G9=_sdLeadGeo9(it);_lp9=[[G9.ax,G9.ay],[G9.ex,G9.ey],[G9.ex+G9.hx*G9.lw,G9.ey]];
-   if(window._sdLastDrag9&&it.lk===window._sdLastDrag9&&!it._trc9){it._trc9=1;
-    try{var _sv9=(state.sdLead9&&state.sdLead9[it.lk])?JSON.stringify(state.sdLead9[it.lk].map(function(z){return +z.toFixed(2);})):'없음';
-    console.log('[SD추적] 렌더 키=',it.lk,'| 소스=',window._sdSrc9||'eo폴백','| 저장값=',_sv9,'| 팔꿈치=('+G9.ex.toFixed(2)+','+G9.ey.toFixed(2)+') eo=('+(it.eo?it.eo.map(function(z){return +z.toFixed(2);}).join(','):'-')+')');}catch(_t9){}}
-  }/* [BUILD2274] 수평선을 태그 길이에 맞춤 */
+  if(it.lk&&it.lw!=null&&it.ax!=null){var G9=_sdLeadGeo9(it);_lp9=[[G9.ax,G9.ay],[G9.ex,G9.ey],[G9.ex+G9.hx*G9.lw,G9.ey]];}/* [BUILD2274] 수평선을 태그 길이에 맞춤 */
   var ps='';for(var i=0;i<_lp9.length;i++){var sc=S(_lp9[i][0],_lp9[i][1]);ps+=(i?' ':'')+sc[0].toFixed(3)+','+sc[1].toFixed(3);}
   var _pn9=el(it.cl?'polygon':'polyline',{points:ps,fill:'none',stroke:col,'stroke-width':(it.lay==='SD001'?_SDVW9.pipe:(!/^SD/.test(it.lay)?_SDVW9.hyun:_SDVW9.sd)),'pointer-events':(it.lk?'stroke':'none')});
   if(it.lk){_pn9.setAttribute('stroke-width',_SDVW9.lead);_pn9.style.cursor='move';_sdLeadDrag9(_pn9,it);_sdLeadPut9(_pn9,it);
@@ -20248,7 +20239,6 @@ function posDrawSD9(force){
    for(var j9=0;j9<_sd9.length;j9++)_sdDrawItem9(g,_sd9[j9]);}
   g._built9=1;}
  g.style.display='';
- try{_sdLeadAudit9();}catch(_au){}/* [BUILD2280] */
  _sdOnly9(window._sdPrev9===2);
 }
 function posSdToggle9(){
