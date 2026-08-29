@@ -20026,16 +20026,16 @@ function _sdLeadGet9(lk){/* [BUILD2280] 정확 키 → 보관본 → 앵커 근�
  return null;
 }
 function _sdLeadAudit9(){/* [BUILD2280] 렌더 후 계측 — 저장 키가 화면 아이템과 매칭되는지 1회 보고 */
- if(window._sdAudit9)return;
+ window._sdAudit9=(window._sdAudit9||0)+1;
+ if(window._sdAudit9>6)return;/* [BUILD2281] 초반 6회까지는 매번 계측 */
  try{
   var pool={},kk;
   var S1=state.sdLead9||{};for(kk in S1)pool[kk]=1;
   var S2=window._sdLeadKeep9||{};for(kk in S2)pool[kk]=1;
-  var keys=Object.keys(pool);if(!keys.length)return;
-  window._sdAudit9=1;
+  var keys=Object.keys(pool);
   var have=Object.keys(_sdLeadReg9||{});
   var miss=keys.filter(function(k){return !(_sdLeadReg9&&_sdLeadReg9[k]&&_sdLeadReg9[k].length);});
-  console.log('[SD인출선 계측] 저장 '+keys.length+'건 / 화면 '+have.length+'건 / 미매칭 '+miss.length+'건'
+  console.log('[SD인출선 계측#'+window._sdAudit9+'] 저장 '+keys.length+'건 / 화면 '+have.length+'건 / 미매칭 '+miss.length+'건'
    +(miss.length?(' | 저장키 예: '+miss[0]):'')+(have.length?(' | 화면키 예: '+have[0]):''));
  }catch(_a){}
 }
