@@ -19802,14 +19802,14 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var dx9=pts[mi+1][0]-pts[mi][0],dy9=pts[mi+1][1]-pts[mi][1];var L9=Math.hypot(dx9,dy9)||1;var ux=dx9/L9,uy=dy9/L9,nx=-uy,ny=ux;
   var spec=yy+'/'+oKind+'/%%C'+oDia+'x'+gongsu+'('+naeg+')/L'+Lm.toFixed(1)+'/D'+(Dv!=null?Dv.toFixed(1):'__');/* [BUILD2255] 실물 D__ */
   var tw=spec.replace(/%%C/g,'Ø').length*0.954-2.6;/* [BUILD2257] 완성본 회귀 *//* [BUILD2255] 4도엽 회귀: 글자수*0.745+5.2 (수평선=tw+2) */
-  var placed=false;
+  var placed=false,_lkSgn9=0;/* [BUILD2271] 관정보 인출선이 나간 쪽 */
   var _lk9='L'+mx.toFixed(2)+'_'+my.toFixed(2);/* [BUILD2254] 구간 인출선 키 */
   var _uo9=(state.sdLead9&&state.sdLead9[_lk9])||null;
   if(_uo9){/* 사용자가 옮긴 위치 우선 */
    var ex=mx+_uo9[0],ey=my+_uo9[1];var hx=(_uo9[0]>=0)?1:-1;
    S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0,lk:_lk9,ax:mx,ay:my,lw:(tw+2),eo:[ex-mx,ey-my]});
    S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+0.35:ex+hx*(tw+2)+0.35),y:ey+0.35,h:1.0,s:spec,lk:_lk9,ax:mx,ay:my,lw:(tw+2),tox:0.35,toy:0.35,eo:[ex-mx,ey-my]});/* [BUILD2257] 완성본 오프셋 */
-   addBox(S,Math.min(ex,ex+hx*(tw+2)),ey-0.2,Math.max(ex,ex+hx*(tw+2)),ey+1.6);placed=true;
+   addBox(S,Math.min(ex,ex+hx*(tw+2)),ey-0.2,Math.max(ex,ex+hx*(tw+2)),ey+1.6);placed=true;_lkSgn9=((_uo9[0]*nx+_uo9[1]*ny)>=0)?1:-1;
   }
   var offs=[7,11,15,19];var sides=[1,-1];
   for(var pzL=0;pzL<2&&!placed;pzL++)/* [BUILD2262] pass0=관로 크로스 배제, pass1=폴백 */
@@ -19821,13 +19821,26 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    if(pzL===0&&_pipeX9([[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],mx,my))continue;/* [BUILD2262] */
    S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0,lk:_lk9,ax:mx,ay:my,lw:(tw+2),eo:[ex-mx,ey-my]});
    S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+0.35:ex+hx*(tw+2)+0.35),y:ey+0.35,h:1.0,s:spec,lk:_lk9,ax:mx,ay:my,lw:(tw+2),tox:0.35,toy:0.35,eo:[ex-mx,ey-my]});/* [BUILD2257] 완성본 오프셋 */
-   addBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6);placed=true;
+   addBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6);placed=true;_lkSgn9=sgn;
   }
-  /* SD983: 중점 부근 공수 원 + 밴드 */
-  var bw=1.0,bl=Math.min(gongsu*1.05+1,Lm*0.5);
-  var b0x=mx-ux*bl/2,b0y=my-uy*bl/2;
-  S.items.push({t:'pl',lay:'SD983',pts:[[b0x+nx*bw,b0y+ny*bw],[b0x+ux*bl+nx*bw,b0y+uy*bl+ny*bw],[b0x+ux*bl-nx*bw,b0y+uy*bl-ny*bw],[b0x-nx*bw,b0y-ny*bw]],cl:1});
-  var _cr9=(parseFloat(oDia)<=50)?0.25:0.5;/* [BUILD2255] 관경별 원 반경 */for(var ci=0;ci<gongsu&&ci<10;ci++){S.items.push({t:'ci',lay:'SD983',x:b0x+ux*(ci+0.7)*1.05,y:b0y+uy*(ci+0.7)*1.05,r:_cr9});}
+  /* [BUILD2271] 관표시 = 관정보와 별개의 두 번째 인출선 — 관로 포인트에서 짧게 뽑아 끝에 관 단면 박스
+     범례(NGIS 양식) 실측: 관경100 → 박스 폭 7.560 / 단높이 1.000 / 원 r 0.5
+                           관경50  → 박스 폭 3.780 / 단높이 0.500 / 원 r 0.25 */
+  var _d50=(parseFloat(oDia)<=50);
+  var _cr9=_d50?0.25:0.5;/* [BUILD2255] 관경별 원 반경 */
+  var _bh9=(_d50?0.5:1.0)*Math.max(1,gd);/* 단수만큼 높이 */
+  var _bw9=Math.max(_d50?3.780:7.560, Math.max(1,gy)*_cr9*2+0.6);/* 열수가 많으면 넓힘 */
+  var _mkS9=_lkSgn9?-_lkSgn9:1;/* 관정보 인출선 반대편 */
+  var _mkD9=_bh9/2+2.0;/* 관표시 인출선 길이 */
+  var _bcx=mx+nx*_mkD9*_mkS9,_bcy=my+ny*_mkD9*_mkS9;/* 박스 중심 */
+  S.items.push({t:'pl',lay:'SD983',pts:[[mx,my],[_bcx-nx*(_bh9/2)*_mkS9,_bcy-ny*(_bh9/2)*_mkS9]],cl:0});/* 관표시 인출선 */
+  var _hx9=ux*_bw9/2,_hy9=uy*_bw9/2,_vx9=nx*_bh9/2,_vy9=ny*_bh9/2;
+  S.items.push({t:'pl',lay:'SD983',pts:[[_bcx-_hx9+_vx9,_bcy-_hy9+_vy9],[_bcx+_hx9+_vx9,_bcy+_hy9+_vy9],[_bcx+_hx9-_vx9,_bcy+_hy9-_vy9],[_bcx-_hx9-_vx9,_bcy-_hy9-_vy9]],cl:1});
+  var _nc9=Math.max(1,gy),_nr9=Math.max(1,gd);/* 열 × 단 */
+  for(var _r9=0;_r9<_nr9&&_r9<8;_r9++)for(var _c9=0;_c9<_nc9&&_c9<12;_c9++){
+   var _ox9=(_c9-(_nc9-1)/2)*_cr9*2,_oy9=(_r9-(_nr9-1)/2)*_cr9*2;
+   S.items.push({t:'ci',lay:'SD983',x:_bcx+ux*_ox9+nx*_oy9,y:_bcy+uy*_ox9+ny*_oy9,r:_cr9});
+  }
  });
  /* [BUILD2204] 현황선 — 실물 표준 레이어 DORO(색4). ★현황결선은 insp:true가 정상이라 insp 제외 금지(2203 결함). 기존 도엽에만 배정 */
  function shpeek(x,y){var c=_posSheetOf(x,y);return (c&&SH[c.no])?SH[c.no]:null;}
