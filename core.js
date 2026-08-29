@@ -19732,8 +19732,8 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    var placedF=false;
    if(_fu9){
     var ex9=m.wx+_fu9[0],ey9=m.wy+_fu9[1];var hx9=(_fu9[0]>=0)?1:-1;
-    S.items.push({t:'pl',lay:'SD911-1',pts:[[m.wx,m.wy],[ex9,ey9],[ex9+hx9*w9,ey9]],cl:0,lk:_fk9,ax:m.wx,ay:m.wy});
-    S.items.push({t:'tx',lay:'SD219',x:(hx9>0?ex9:ex9-w9),y:ey9+0.2,h:1.0,s:lb,lk:_fk9});
+    S.items.push({t:'pl',lay:'SD911-1',pts:[[m.wx,m.wy],[ex9,ey9],[ex9+hx9*w9,ey9]],cl:0,lk:_fk9,ax:m.wx,ay:m.wy,lw:w9,eo:[ex9-m.wx,ey9-m.wy]});
+    S.items.push({t:'tx',lay:'SD219',x:(hx9>0?ex9:ex9-w9),y:ey9+0.2,h:1.0,s:lb,lk:_fk9,ax:m.wx,ay:m.wy,lw:w9,tox:0,toy:0.2,eo:[ex9-m.wx,ey9-m.wy]});
     addBox(S,Math.min(ex9,ex9+hx9*w9),ey9-0.2,Math.max(ex9,ex9+hx9*w9),ey9+1.4);placedF=true;
    }
    var dgs=[2.8,3.9,5.0],sgs=[[1,1],[-1,1],[1,-1],[-1,-1]];
@@ -19742,8 +19742,8 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
     var ex=m.wx+sx9*dg*0.707,ey=m.wy+sy9*dg*0.707;
     var hx=(sx9>=0)?1:-1;var x0=Math.min(ex,ex+hx*w9),x1=Math.max(ex,ex+hx*w9);
     if(hitBox(S,x0,ey-0.2,x1,ey+1.4))continue;
-    S.items.push({t:'pl',lay:'SD911-1',pts:[[m.wx,m.wy],[ex,ey],[ex+hx*w9,ey]],cl:0,lk:_fk9,ax:m.wx,ay:m.wy});
-    S.items.push({t:'tx',lay:'SD219',x:(hx>0?ex:ex-w9),y:ey+0.2,h:1.0,s:lb,lk:_fk9});
+    S.items.push({t:'pl',lay:'SD911-1',pts:[[m.wx,m.wy],[ex,ey],[ex+hx*w9,ey]],cl:0,lk:_fk9,ax:m.wx,ay:m.wy,lw:w9,eo:[ex-m.wx,ey-m.wy]});
+    S.items.push({t:'tx',lay:'SD219',x:(hx>0?ex:ex-w9),y:ey+0.2,h:1.0,s:lb,lk:_fk9,ax:m.wx,ay:m.wy,lw:w9,tox:0,toy:0.2,eo:[ex-m.wx,ey-m.wy]});
     addBox(S,x0,ey-0.2,x1,ey+1.4);placedF=true;
    }
    if(!placedF){var tx=m.wx+1.5,ty=m.wy+1.5,w=lb.length*1.0;
@@ -19769,8 +19769,8 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var _uo9=(state.sdLead9&&state.sdLead9[_lk9])||null;
   if(_uo9){/* 사용자가 옮긴 위치 우선 */
    var ex=mx+_uo9[0],ey=my+_uo9[1];var hx=(_uo9[0]>=0)?1:-1;
-   S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0,lk:_lk9,ax:mx,ay:my});
-   S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+0.35:ex+hx*(tw+2)+0.35),y:ey+0.35,h:1.0,s:spec,lk:_lk9});/* [BUILD2257] 완성본 오프셋 */
+   S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0,lk:_lk9,ax:mx,ay:my,lw:(tw+2),eo:[ex-mx,ey-my]});
+   S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+0.35:ex+hx*(tw+2)+0.35),y:ey+0.35,h:1.0,s:spec,lk:_lk9,ax:mx,ay:my,lw:(tw+2),tox:0.35,toy:0.35,eo:[ex-mx,ey-my]});/* [BUILD2257] 완성본 오프셋 */
    addBox(S,Math.min(ex,ex+hx*(tw+2)),ey-0.2,Math.max(ex,ex+hx*(tw+2)),ey+1.6);placed=true;
   }
   var offs=[7,11,15,19];var sides=[1,-1];
@@ -19779,8 +19779,8 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    var hx=(nx*sgn>=0)?1:-1;
    var tx0=ex,tx1=ex+hx*(tw+2);
    if(hitBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6))continue;
-   S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0,lk:_lk9,ax:mx,ay:my});
-   S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+0.35:ex+hx*(tw+2)+0.35),y:ey+0.35,h:1.0,s:spec,lk:_lk9});/* [BUILD2257] 완성본 오프셋 */
+   S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0,lk:_lk9,ax:mx,ay:my,lw:(tw+2),eo:[ex-mx,ey-my]});
+   S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+0.35:ex+hx*(tw+2)+0.35),y:ey+0.35,h:1.0,s:spec,lk:_lk9,ax:mx,ay:my,lw:(tw+2),tox:0.35,toy:0.35,eo:[ex-mx,ey-my]});/* [BUILD2257] 완성본 오프셋 */
    addBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6);placed=true;
   }
   /* SD983: 중점 부근 공수 원 + 밴드 */
@@ -19869,54 +19869,73 @@ function _sdDrawSym9(g,name,x,y){/* 블록 심볼 — tpl_pos_legend.dxf 실측 
   g.appendChild(el('circle',{cx:cx,cy:cy,r:0.4,fill:'none',stroke:'#111','stroke-width':0.07,'pointer-events':'none'}));
  }
 }
-function _sdLeadDrag9(node,it){/* [BUILD2256] SD 인출선 이동 — 화면(SVG) 좌표계 기준(S()의 y반전 대응) */
+var _sdLeadReg9={};/* [BUILD2260] lk -> 노드 배열 (드래그 라이브 갱신용) */
+function _sdLeadMv9(lk,ox,oy){/* [BUILD2260] 재빌드 없이 해당 인출선 노드만 즉시 이동 */
+ var arr=_sdLeadReg9[lk];if(!arr||!arr.length)return;
+ for(var i=0;i<arr.length;i++){var n=arr[i],it=n._it9;if(!it||!n.parentNode)continue;
+  var ax=(it.ax!=null?it.ax:0),ay=(it.ay!=null?it.ay:0),lw=(it.lw!=null?it.lw:0);
+  var ex=ax+ox,ey=ay+oy,hx=(ox>=0)?1:-1;
+  if(it.t==='pl'){
+   var a=S(ax,ay),b=S(ex,ey),c=S(ex+hx*lw,ey);
+   n.setAttribute('points',a[0].toFixed(3)+','+a[1].toFixed(3)+' '+b[0].toFixed(3)+','+b[1].toFixed(3)+' '+c[0].toFixed(3)+','+c[1].toFixed(3));
+  }else if(it.t==='tx'){
+   var tx=(hx>0?ex:ex+hx*lw)+(it.tox||0),ty=ey+(it.toy||0);
+   var s2=S(tx,ty);n.setAttribute('x',s2[0]);n.setAttribute('y',s2[1]);
+   if(it.rot)n.setAttribute('transform','rotate('+(-it.rot)+' '+s2[0]+' '+s2[1]+')');
+  }
+ }
+}
+function _sdLeadDrag9(node,it){/* [BUILD2260] SD 인출선 이동 — window 리스너 + 라이브 갱신(재빌드는 놓을 때 1회) */
  var st=null;
  function _sxy9(e){/* client → SVG 사용자좌표(= S() 결과계) */
   try{var m=cv.getScreenCTM();if(m&&m.a){var im=m.inverse();return [im.a*e.clientX+im.c*e.clientY+im.e, im.b*e.clientX+im.d*e.clientY+im.f];}}catch(_c){}
   var r=cv.getBoundingClientRect();
   return [vb.x+(e.clientX-r.left)/r.width*vb.w, vb.y+(e.clientY-r.top)/r.height*vb.h];
  }
+ function _mv(e){
+  if(!st)return;e.preventDefault();e.stopPropagation();
+  var p=_sxy9(e);if(!p)return;
+  var ox=st.ox+(p[0]-st.sx),oy=st.oy-(p[1]-st.sy);/* 월드 y는 화면 y의 반대 */
+  state.sdLead9=state.sdLead9||{};state.sdLead9[it.lk]=[ox,oy];
+  try{_sdLeadMv9(it.lk,ox,oy);}catch(_d){}
+ }
+ function _up(e){
+  if(!st)return;st=null;
+  try{window.removeEventListener('pointermove',_mv,true);window.removeEventListener('pointerup',_up,true);window.removeEventListener('pointercancel',_up,true);}catch(_r){}
+  try{window._sdCache9=null;if(typeof posDrawSD9==='function')posDrawSD9(true);}catch(_e2){}
+  try{if(typeof saveProject==='function'){window._silentSave=true;saveProject();}}catch(_s){}
+ }
  node.addEventListener('pointerdown',function(e){
   if(e.button!=null&&e.button!==0)return;
   e.preventDefault();e.stopPropagation();
   var p0=_sxy9(e);if(!p0)return;
   var cur=(state.sdLead9&&state.sdLead9[it.lk])||null;
-  var ax=(it.ax!=null?it.ax:0),ay=(it.ay!=null?it.ay:0);
-  if(!cur){var p1=(it.t==='pl')?it.pts[1]:[it.x,it.y];cur=[p1[0]-ax,p1[1]-ay];}
+  if(!cur&&it.eo)cur=[it.eo[0],it.eo[1]];/* [BUILD2260] 텍스트 드래그 시 ax/ay 누락으로 절대좌표가 오프셋이 되던 사고 차단 */
+  if(!cur){var ax0=(it.ax!=null?it.ax:0),ay0=(it.ay!=null?it.ay:0);var p1=(it.t==='pl')?it.pts[1]:[it.x,it.y];cur=[p1[0]-ax0,p1[1]-ay0];}
   st={sx:p0[0],sy:p0[1],ox:cur[0],oy:cur[1]};
-  try{node.setPointerCapture(e.pointerId);}catch(_c2){}
+  window.addEventListener('pointermove',_mv,true);
+  window.addEventListener('pointerup',_up,true);
+  window.addEventListener('pointercancel',_up,true);
  });
- node.addEventListener('pointermove',function(e){
-  if(!st)return;e.preventDefault();e.stopPropagation();
-  var p=_sxy9(e);if(!p)return;
-  var dxs=p[0]-st.sx, dys=p[1]-st.sy;/* 화면 이동량 */
-  state.sdLead9=state.sdLead9||{};
-  state.sdLead9[it.lk]=[st.ox+dxs, st.oy-dys];/* 월드 y는 화면 y의 반대 */
-  try{if(typeof posDrawSD9==='function')posDrawSD9(true);}catch(_d){}
- });
- function _end(e){if(!st)return;st=null;
-  try{node.releasePointerCapture(e.pointerId);}catch(_r){}
-  try{if(typeof saveProject==='function'){window._silentSave=true;saveProject();}}catch(_s){}
- }
- node.addEventListener('pointerup',_end);node.addEventListener('pointercancel',_end);
 }
 
+function _sdLeadPut9(n,it){try{n._it9=it;(_sdLeadReg9[it.lk]=_sdLeadReg9[it.lk]||[]).push(n);}catch(_e){}}
 function _sdDrawItem9(g,it){
  var col=_sdCol9(it.lay);
  if(it.t==='pl'){
   if(!/^SD/.test(it.lay)){var _sl9=it.slay||it.lay;col=(typeof LINECOL!=='undefined'&&LINECOL[_sl9])?LINECOL[_sl9].c:'#00a6b8';}/* [BUILD2204] 현황=원레이어 색, DORO 폴백 시안 */
   var ps='';for(var i=0;i<it.pts.length;i++){var sc=S(it.pts[i][0],it.pts[i][1]);ps+=(i?' ':'')+sc[0].toFixed(3)+','+sc[1].toFixed(3);}
   var _pn9=el(it.cl?'polygon':'polyline',{points:ps,fill:'none',stroke:col,'stroke-width':(it.lay==='SD001'?0.15:(!/^SD/.test(it.lay)?0.1:0.08)),'pointer-events':(it.lk?'stroke':'none')});
-  if(it.lk){_pn9.setAttribute('stroke-width',0.14);_pn9.style.cursor='move';_sdLeadDrag9(_pn9,it);
+  if(it.lk){_pn9.setAttribute('stroke-width',0.14);_pn9.style.cursor='move';_sdLeadDrag9(_pn9,it);_sdLeadPut9(_pn9,it);
    var _ht9=el('polyline',{points:ps,fill:'none',stroke:'transparent','stroke-width':1.2,'pointer-events':'stroke'});/* [BUILD2256] 넓은 히트 영역 */
-   _ht9.style.cursor='move';_sdLeadDrag9(_ht9,it);g.appendChild(_ht9);}
+   _ht9.style.cursor='move';_sdLeadDrag9(_ht9,it);_sdLeadPut9(_ht9,it);g.appendChild(_ht9);}
   g.appendChild(_pn9);
  }else if(it.t==='ci'){
   var c=S(it.x,it.y);g.appendChild(el('circle',{cx:c[0],cy:c[1],r:it.r,fill:'none',stroke:col,'stroke-width':0.07,'pointer-events':'none'}));
  }else if(it.t==='tx'){
   var c2=S(it.x,it.y);
   var tn=el('text',{x:c2[0],y:c2[1],'font-size':(it.h*1.5),fill:col,'text-anchor':'start','pointer-events':(it.lk?'auto':'none')});
-  if(it.lk){tn.style.cursor='move';_sdLeadDrag9(tn,it);}/* [BUILD2254] 제원 텍스트 드래그 */
+  if(it.lk){tn.style.cursor='move';_sdLeadDrag9(tn,it);_sdLeadPut9(tn,it);}/* [BUILD2254] 제원 텍스트 드래그 */
   if(it.rot)tn.setAttribute('transform','rotate('+(-it.rot)+' '+c2[0]+' '+c2[1]+')');
   tn.textContent=String(it.s).replace(/%%C/g,'\u00D8');
   g.appendChild(tn);
@@ -19937,7 +19956,7 @@ function posDrawSD9(force){
   var sc=null;try{sc=posScene9();}catch(_er){console.error('[SD미리보기]',_er);}
   window._sdCache9={sig:sig,sc:sc};g._built9=0;}
  if(!g._built9){
-  while(g.firstChild)g.removeChild(g.firstChild);
+  while(g.firstChild)g.removeChild(g.firstChild);_sdLeadReg9={};/* [BUILD2260] 레지스트리 초기화 */
   var sc2=window._sdCache9.sc;
   if(sc2){/* [BUILD2203] 2패스 — 현황선(비SD 레이어) 먼저 깔고 SD 위에 */
    var _hy9=[],_sd9=[];
