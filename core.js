@@ -19901,6 +19901,10 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var _mkU9,_mkV9;
   if(_lkEX9!=null){var _dvx=_lkEX9-mx,_dvy=_lkEY9-my,_dl9=Math.hypot(_dvx,_dvy)||1;_mkU9=[_dvx/_dl9,_dvy/_dl9];}
   else{var _sg9=_lkSgn9||1;_mkU9=[nx*_sg9,ny*_sg9];}/* 인출선 미배치 시 법선 폴백 */
+  /* [BUILD2286] 관표시 선을 관정보 대각에서 3.76도 위로 벌림 — 샘플 실측(−16.64 vs −12.86 / −10.86 vs −7.12) = 두 선으로 보임 */
+  var _dv9=3.76*Math.PI/180*((_mkU9[0]>=0)?1:-1);
+  var _dc9=Math.cos(_dv9),_ds9=Math.sin(_dv9);
+  _mkU9=[_mkU9[0]*_dc9-_mkU9[1]*_ds9, _mkU9[0]*_ds9+_mkU9[1]*_dc9];
   _mkV9=[-_mkU9[1],_mkU9[0]];if(_mkV9[1]<0){_mkV9=[-_mkV9[0],-_mkV9[1]];}/* 박스는 항상 인출선 위쪽 */
   var _ax9=mx+_mkU9[0]*3.0,_ay9=my+_mkU9[1]*3.0;/* 박스 시작 모서리(인출선 위) */
   var _bx9=_ax9+_mkU9[0]*_bw9,_by9=_ay9+_mkU9[1]*_bw9;
