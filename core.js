@@ -19975,6 +19975,15 @@ function _sdDensK9(x,y){/* 조밀할수록 작게 — 3x3 셀 합계 기준 */
  return 1;/* [BUILD2263] 밀집 축소 원상복구 (정렬 체계 정리 후 재적용) */
  /* n>=14?0.5:(n>=9?0.62:(n>=6?0.74:(n>=4?0.86:1))) */
 }
+function _sdAscR9(g){/* [BUILD2268] 베이스라인 위 실제 글자높이 비율 — 추정 금지, getBBox 실측 */
+ if(window._sdAscC9!=null)return window._sdAscC9;
+ var r=0.72;
+ try{var t=el('text',{x:0,y:0,'font-size':100,'font-weight':_SDVW9.fw,'font-family':_SDVW9.ff,fill:'none','pointer-events':'none'});
+  t.textContent='(0.9)';g.appendChild(t);
+  var b=t.getBBox();if(b&&b.height>0)r=(-b.y)/100;
+  g.removeChild(t);}catch(_e){}
+ window._sdAscC9=r;return r;
+}
 function _sdLeadPut9(n,it){try{n._it9=it;(_sdLeadReg9[it.lk]=_sdLeadReg9[it.lk]||[]).push(n);}catch(_e){}}
 function _sdDrawItem9(g,it){
  var col=_sdCol9(it.lay);
@@ -19992,7 +20001,7 @@ function _sdDrawItem9(g,it){
   var c2;
   if(it.mid&&it.side!=null&&it.bx!=null){/* [BUILD2267] 위 0.2 / 아래 (0.2+화면글자높이) — 시각 간격 동일 */
    var _gp9=0.2,_fs9=(it.h||1)*_SDVW9.txt;
-   var _of9=(it.side>0)?_gp9:-(_gp9+_fs9);
+   var _of9=(it.side>0)?_gp9:-(_gp9+_fs9*_sdAscR9(g));/* [BUILD2268] 실측 비율 적용 */
    c2=S(it.bx+it.nx9*_of9, it.by+it.ny9*_of9);
   }else c2=(it.mid&&it.cx!=null)?S(it.cx,it.cy):S(it.x,it.y);/* [BUILD2264] */
   var _fk=(it.lk?1:_sdDensK9(it.x,it.y));/* [BUILD2262] 인출선 글자는 축소 제외 */
@@ -20023,7 +20032,7 @@ function posDrawSD9(force){
   var sc=null;try{sc=posScene9();}catch(_er){console.error('[SD미리보기]',_er);}
   window._sdCache9={sig:sig,sc:sc};g._built9=0;}
  if(!g._built9){
-  while(g.firstChild)g.removeChild(g.firstChild);_sdLeadReg9={};try{_sdDens9();}catch(_dn){}/* [BUILD2260] 레지스트리 초기화 */
+  while(g.firstChild)g.removeChild(g.firstChild);_sdLeadReg9={};window._sdAscC9=null;try{_sdDens9();}catch(_dn){}/* [BUILD2260] 레지스트리 초기화 */
   var sc2=window._sdCache9.sc;
   if(sc2){/* [BUILD2203] 2패스 — 현황선(비SD 레이어) 먼저 깔고 SD 위에 */
    var _hy9=[],_sd9=[];
