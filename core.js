@@ -6724,7 +6724,7 @@ function _lnGuard9(ls,sil,onOk){
 }
 function saveProject(cb){ if(readOnly){if(typeof cb==='function')cb();return;} var _sil=!!window._silentSave;window._silentSave=false;
   try{if(typeof mhFixStamp9==='function'){(state.manholes||[]).forEach(function(m){if(m&&m.wx!=null&&!m._fx0&&mhFixed9(m))m._fx0=[+m.wx,+m.wy];});}if(typeof mhFixGuard9==='function')mhFixGuard9(_sil);}catch(_fg9){}/* [BUILD1955] 측량 좌표 이탈분 저장 전 복구 *//* [1358] 자동저장 플래그 진입 시 캐처 */
-  var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,rtToSvDone9:state.rtToSvDone9||null,svFldReg9:state.svFldReg9||null,rtDaily:state.rtDaily||[],trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,rtRawMeta9:state.rtRawMeta9||null,rtRawSrc9:(state.rtRawSrc9||null),aftRawMeta9:state.aftRawMeta9||null,finalCsv:null/* [1491] heavy 컬럼으로 이동 */,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,depthManual:state._depthManual||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,tgSegLabelOff:state.tgSegLabelOff||null,mnList:state.mnList||[],tangoDone:state.tangoDone||null,tgCarrier:state.tgCarrier||null,mhDel:state.mhDel||null,tgNotes:state.tgNotes||null,refCrop:state.refCrop||null/* [BUILD1994] 크롭 영역 영속 — 미저장이라 재로드 시 REF 가림막이 풀려 '바깥이 살아난' 것처럼 보였음 */,tgAddSegs:state.tgAddSegs||[]/* [BUILD1994] 구간추가 영속 — payload·tgStore 어디에도 없어 새로고침 시 소실됐음 */,refMhLbl:state.refMhLbl||null,hyunPts:state.hyunPts||null,csvTrash:state._csvTrash||[],rtCsvHead9:state.rtCsvHead9||null/* [BUILD2068] 원본 CSV 헤더 영속 */,rtRawMeta9:state.rtRawMeta9||null,rtRawSrc9:state.rtRawSrc9||null,aftRawMeta9:state.aftRawMeta9||null,rtJgBoard9:state.rtJgBoard9||null/* [BUILD2122] 지거 현황판 입력 */,phoTrash9:state.phoTrash9||null/* [BUILD2179] 사진 휴지통 *//* [BUILD2085] 원시ZIP 메타 *//* [BUILD1867] CSV \uC0AD\uC81C\uBCF4\uAD00 \uC601\uC18D\uD654 */,rtBoardName:state.rtBoardName||null,rtBoardPos:state.rtBoardPos||null,joseoBoard:state.joseoBoard?1:null,posSync9:state.posSync9||null/* [BUILD2198] */,fldCsvEd9:state.fldCsvEd9||null/* [BUILD2199] *//* [BUILD1873] \ud604\ud669\ud310 \uc0ac\uc5c5\uba85\u00b7\uc704\uce58 \uc601\uc18d\ud654 */};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
+  var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,rtToSvDone9:state.rtToSvDone9||null,svFldReg9:state.svFldReg9||null,rtDaily:state.rtDaily||[],trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,rtRawMeta9:state.rtRawMeta9||null,rtRawSrc9:(state.rtRawSrc9||null),aftRawMeta9:state.aftRawMeta9||null,finalCsv:null/* [1491] heavy 컬럼으로 이동 */,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,depthManual:state._depthManual||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,tgSegLabelOff:state.tgSegLabelOff||null,mnList:state.mnList||[],tangoDone:state.tangoDone||null,tgCarrier:state.tgCarrier||null,mhDel:state.mhDel||null,tgNotes:state.tgNotes||null,refCrop:state.refCrop||null/* [BUILD1994] 크롭 영역 영속 — 미저장이라 재로드 시 REF 가림막이 풀려 '바깥이 살아난' 것처럼 보였음 */,tgAddSegs:state.tgAddSegs||[]/* [BUILD1994] 구간추가 영속 — payload·tgStore 어디에도 없어 새로고침 시 소실됐음 */,refMhLbl:state.refMhLbl||null,hyunPts:state.hyunPts||null,csvTrash:state._csvTrash||[],rtCsvHead9:state.rtCsvHead9||null/* [BUILD2068] 원본 CSV 헤더 영속 */,rtRawMeta9:state.rtRawMeta9||null,rtRawSrc9:state.rtRawSrc9||null,aftRawMeta9:state.aftRawMeta9||null,sdLead9:state.sdLead9||null,rtJgBoard9:state.rtJgBoard9||null/* [BUILD2122] 지거 현황판 입력 */,phoTrash9:state.phoTrash9||null/* [BUILD2179] 사진 휴지통 *//* [BUILD2085] 원시ZIP 메타 *//* [BUILD1867] CSV \uC0AD\uC81C\uBCF4\uAD00 \uC601\uC18D\uD654 */,rtBoardName:state.rtBoardName||null,rtBoardPos:state.rtBoardPos||null,joseoBoard:state.joseoBoard?1:null,posSync9:state.posSync9||null/* [BUILD2198] */,fldCsvEd9:state.fldCsvEd9||null/* [BUILD2199] *//* [BUILD1873] \ud604\ud669\ud310 \uc0ac\uc5c5\uba85\u00b7\uc704\uce58 \uc601\uc18d\ud654 */};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
   if(!state.projectName){toast('사업명을 먼저 정하세요(새 사업)');return;}if(!_lnGuard9(payload.lines,_sil,function(){window._silentSave=_sil;saveProject(cb);}))return;/* [BUILD1937] 관로선 급감 시 저장 차단 */
   payload.stage=STAGE;
   if(state.loadedStage&&state.loadedStage!==STAGE){state.projectId=null;} // 다운스트림 분리: 다른 단계 사업은 처음 저장 시 새 사본 생성(원본 보호)
@@ -6774,7 +6774,7 @@ function _loadProjectRaw(id,ro,cb){ if(!online||!id)return; try{if(typeof mnClos
     if(res.error||!res.data){toast('불러오기 실패');return;}if(typeof _tgStageBackup==='function'&&state.tgStore&&(state._pointsOrig||state._linesOrig||state._depthOrig))_tgStageBackup();if(typeof _tgStageOut==='function')_tgStageOut();var _xp=document.getElementById('tangoPanel');if(_xp)_xp.style.display='none';var _xi=document.getElementById('tgInfoPanel');if(_xi)_xi.style.display='none';if(typeof tgPanelLayout==='function')tgPanelLayout(false);if(typeof tgUpdateBtn==='function')tgUpdateBtn(false);if(typeof tgSeg!=='undefined')tgSeg=-1;if(typeof _segFix!=='undefined')_segFix=null;if(typeof _segAdd!=='undefined')_segAdd=null;if(typeof _tgSegs!=='undefined')_tgSegs=null;if(typeof mode!=='undefined'&&mode&&mode.indexOf('tg')===0){mode='pan';if(typeof setModeUI==='function')setModeUI();}state.tgSegLabelOff={};['tgSegHLG','tgSegHLF','tgSegHL'].forEach(function(_xid){var _xe=document.getElementById(_xid);if(_xe)_xe.remove();});
     var p=res.data.payload||{};state.projectId=res.data.id;
     try{var _hv=res.data.heavy;try{state.bpFull=(_hv&&_hv.bpFull)?_hv.bpFull:[];state.bpTexts=(_hv&&_hv.bpTexts)?_hv.bpTexts:[];}catch(_bf4){state.bpFull=[];state.bpTexts=[];}/* [BUILD1996] 백판 원본 복원 — 없으면 빈 배열(사업 전환 유출 차단) */if(_hv&&_hv.finalCsv!==undefined){p.finalCsv=_hv.finalCsv;window._hvSaved=res.data.id+'#'+((_hv.finalCsv||[]).map(function(f){return (f.name||'')+':'+((f.text||'').length);}).join('|'));}else{window._hvSaved=null;}}catch(_h3){window._hvSaved=null;}/* [1491] heavy 병합 — 구사업은 다음 저장때 자동 이사 */state.projectName=res.data.name;state.loadedStage=p.stage||'survey';state._importSrc=[];
-    state.points=p.points||[];state.gpsPts=p.gpsPts||[];state.tangoEdit=p.tangoEdit||null;if(p.tangoManual)state.tangoManual=p.tangoManual;state.tgStore=p.tgStore||null;state.tgSegLabelOff=p.tgSegLabelOff||{};/* [BUILD2029] \uAD6C\uAC04\uB77C\uBCA8 \uC624\uD504\uC14B \uC601\uC18D */if(!state.tgStore&&(p.tangoEdit||p.tangoManual)){state.tgStore={tango:{edit:p.tangoEdit,manual:p.tangoManual||{},segDel:{}}};}_tgCtx='tango';try{if((!state.bpFull||!state.bpFull.length)&&p.bpFull&&p.bpFull.length){state.bpFull=p.bpFull;state.bpTexts=p.bpTexts||[];}}catch(_bf5){}/* [BUILD1997] 인계본은 payload에 백판 원본이 실려 온다 — heavy가 비어 있을 때만 채운다(heavy 우선) */state.refCrop=p.refCrop||null;state.tgAddSegs=p.tgAddSegs||[];try{if(typeof refCropBtn==='function')refCropBtn();}catch(_rc94){}/* [BUILD1994] 크롭 영역·구간추가 복원 — 미존재 시 초기화(사업 전환 유출 차단) */state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];try{state._lnBase9=null;_lnBaseSet9(state.lines);}catch(_lb8){}/* [BUILD1937] */state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];if(typeof _mhIdFix==='function')_mhIdFix();/* [1554] */state.bpzones=p.bpzones||[];state.roadZones=p.roadZones||[];state.depthCheck=p.depthCheck||[];if(typeof classifyRoad==='function')classifyRoad();state.depthGround=p.depthGround||null;state._depthManual=p.depthManual||null;/* [1541] */state._depthAlign=null;state.titleBlock=p.titleBlock||null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.tangoDone=p.tangoDone||null;state.tgCarrier=p.tgCarrier||null;state.mhDel=p.mhDel||null;state.tgNotes=p.tgNotes||[];state.refMhLbl=p.refMhLbl||{};/* [1461] */state._csvTrash=p.csvTrash||[];state.rtCsvHead9=p.rtCsvHead9||{};state.rtRawMeta9=p.rtRawMeta9||{};state.rtRawSrc9=p.rtRawSrc9||null;state.aftRawMeta9=p.aftRawMeta9||{};/* [BUILD2248] 원시 소스 사업ID 승계 *//* [BUILD2234] */state.rtJgBoard9=p.rtJgBoard9||{};/* [BUILD2122] */state.phoTrash9=p.phoTrash9||[];state.posSync9=p.posSync9||null;/* [BUILD2198] */state.fldCsvEd9=p.fldCsvEd9||{};/* [BUILD2199] *//* [BUILD2179] */try{if(typeof jgMigrate9==='function')jgMigrate9();}catch(_jm9){}/* [BUILD2187] */
+    state.points=p.points||[];state.gpsPts=p.gpsPts||[];state.tangoEdit=p.tangoEdit||null;if(p.tangoManual)state.tangoManual=p.tangoManual;state.tgStore=p.tgStore||null;state.tgSegLabelOff=p.tgSegLabelOff||{};/* [BUILD2029] \uAD6C\uAC04\uB77C\uBCA8 \uC624\uD504\uC14B \uC601\uC18D */if(!state.tgStore&&(p.tangoEdit||p.tangoManual)){state.tgStore={tango:{edit:p.tangoEdit,manual:p.tangoManual||{},segDel:{}}};}_tgCtx='tango';try{if((!state.bpFull||!state.bpFull.length)&&p.bpFull&&p.bpFull.length){state.bpFull=p.bpFull;state.bpTexts=p.bpTexts||[];}}catch(_bf5){}/* [BUILD1997] 인계본은 payload에 백판 원본이 실려 온다 — heavy가 비어 있을 때만 채운다(heavy 우선) */state.refCrop=p.refCrop||null;state.tgAddSegs=p.tgAddSegs||[];try{if(typeof refCropBtn==='function')refCropBtn();}catch(_rc94){}/* [BUILD1994] 크롭 영역·구간추가 복원 — 미존재 시 초기화(사업 전환 유출 차단) */state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];try{state._lnBase9=null;_lnBaseSet9(state.lines);}catch(_lb8){}/* [BUILD1937] */state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];if(typeof _mhIdFix==='function')_mhIdFix();/* [1554] */state.bpzones=p.bpzones||[];state.roadZones=p.roadZones||[];state.depthCheck=p.depthCheck||[];if(typeof classifyRoad==='function')classifyRoad();state.depthGround=p.depthGround||null;state._depthManual=p.depthManual||null;/* [1541] */state._depthAlign=null;state.titleBlock=p.titleBlock||null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.routingDone=!!p.routingDone;state.tangoDone=p.tangoDone||null;state.tgCarrier=p.tgCarrier||null;state.mhDel=p.mhDel||null;state.tgNotes=p.tgNotes||[];state.refMhLbl=p.refMhLbl||{};/* [1461] */state._csvTrash=p.csvTrash||[];state.rtCsvHead9=p.rtCsvHead9||{};state.rtRawMeta9=p.rtRawMeta9||{};state.rtRawSrc9=p.rtRawSrc9||null;state.aftRawMeta9=p.aftRawMeta9||{};state.sdLead9=p.sdLead9||null;/* [BUILD2254] SD 인출선 수동 위치 *//* [BUILD2248] 원시 소스 사업ID 승계 *//* [BUILD2234] */state.rtJgBoard9=p.rtJgBoard9||{};/* [BUILD2122] */state.phoTrash9=p.phoTrash9||[];state.posSync9=p.posSync9||null;/* [BUILD2198] */state.fldCsvEd9=p.fldCsvEd9||{};/* [BUILD2199] *//* [BUILD2179] */try{if(typeof jgMigrate9==='function')jgMigrate9();}catch(_jm9){}/* [BUILD2187] */
   try{if(typeof STAGE!=='undefined'&&STAGE==='survey'&&state.points&&state.points.length){/* [BUILD2156] 과거 사업 소급 — 시설물 좌표와 겹친 지거점 정리 */
     var _b4=state.points.length;
     state.points=state.points.filter(function(q){
@@ -19701,14 +19701,22 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var spec=yy+'/'+oKind+'/%%C'+oDia+'x'+gongsu+'('+naeg+')/L'+Lm.toFixed(1)+'/D'+(Dv!=null?Dv.toFixed(1):'-');
   var tw=spec.length*0.72;
   var placed=false;
+  var _lk9='L'+mx.toFixed(2)+'_'+my.toFixed(2);/* [BUILD2254] 구간 인출선 키 */
+  var _uo9=(state.sdLead9&&state.sdLead9[_lk9])||null;
+  if(_uo9){/* 사용자가 옮긴 위치 우선 */
+   var ex=mx+_uo9[0],ey=my+_uo9[1];var hx=(_uo9[0]>=0)?1:-1;
+   S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0,lk:_lk9,ax:mx,ay:my});
+   S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+1:ex+hx*(tw+1)),y:ey+0.4,h:1.0,s:spec,lk:_lk9});
+   addBox(S,Math.min(ex,ex+hx*(tw+2)),ey-0.2,Math.max(ex,ex+hx*(tw+2)),ey+1.6);placed=true;
+  }
   var offs=[7,11,15,19];var sides=[1,-1];
   for(var oi=0;oi<offs.length&&!placed;oi++)for(var si=0;si<2&&!placed;si++){
    var sgn=sides[si];var ex=mx+nx*offs[oi]*sgn,ey=my+ny*offs[oi]*sgn;
    var hx=(nx*sgn>=0)?1:-1;
    var tx0=ex,tx1=ex+hx*(tw+2);
    if(hitBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6))continue;
-   S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0});
-   S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+1:ex+hx*(tw+1)),y:ey+0.4,h:1.0,s:spec});
+   S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0,lk:_lk9,ax:mx,ay:my});
+   S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+1:ex+hx*(tw+1)),y:ey+0.4,h:1.0,s:spec,lk:_lk9});
    addBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6);placed=true;
   }
   /* SD983: 중점 부근 공수 원 + 밴드 */
@@ -19777,7 +19785,7 @@ function posExportDxf(){
  });}
 /* ===== [BUILD2201] SD 성과 미리보기 렌더러 — 3단 토글(OFF→오버레이→SD전용) ===== */
 var gSD9=null;window._sdPrev9=0;window._sdCache9=null;
-function _sdG9(){if(!gSD9){gSD9=document.createElementNS(SVGNS,'g');gSD9.setAttribute('id','sdPrev9');gSD9.setAttribute('pointer-events','none');cv.appendChild(gSD9);}if(gSD9.parentNode!==cv)cv.appendChild(gSD9);return gSD9;}
+function _sdG9(){if(!gSD9){gSD9=document.createElementNS(SVGNS,'g');gSD9.setAttribute('id','sdPrev9');gSD9.setAttribute('pointer-events','painted');/* [BUILD2254] 개별 요소(인출선)만 이벤트 수신 */cv.appendChild(gSD9);}if(gSD9.parentNode!==cv)cv.appendChild(gSD9);return gSD9;}
 var _SD_COL9={'SD001':'#00a33e','SD901':'#00a33e','SD_관상고':'#00a33e','SDSIM_T':'#8a8a8a','SDDIM':'#00a6b8','SDDIM1':'#00a6b8'};
 function _sdCol9(l){return _SD_COL9[l]||'#111';}
 function _sdDrawSym9(g,name,x,y){/* 블록 심볼 — tpl_pos_legend.dxf 실측 기하 재현 */
@@ -19797,17 +19805,49 @@ function _sdDrawSym9(g,name,x,y){/* 블록 심볼 — tpl_pos_legend.dxf 실측 
   g.appendChild(el('circle',{cx:cx,cy:cy,r:0.4,fill:'none',stroke:'#111','stroke-width':0.07,'pointer-events':'none'}));
  }
 }
+function _sdLeadDrag9(node,it){/* [BUILD2254] SD 구간 제원 인출선 이동 — 맨홀·입상주와 동일 감각 */
+ var st=null;
+ node.addEventListener('pointerdown',function(e){
+  if(e.button!=null&&e.button!==0)return;
+  e.preventDefault();e.stopPropagation();
+  var w0=(typeof toWorld==='function')?toWorld(e.clientX,e.clientY):null;
+  if(!w0)return;
+  var cur=(state.sdLead9&&state.sdLead9[it.lk])||null;
+  var ax=(it.ax!=null?it.ax:0),ay=(it.ay!=null?it.ay:0);
+  if(!cur){/* 현재 화면 위치를 시작 오프셋으로 */
+   var p1=(it.t==='pl')?it.pts[1]:[it.x,it.y];
+   cur=[p1[0]-ax,p1[1]-ay];
+  }
+  st={sx:w0[0],sy:w0[1],ox:cur[0],oy:cur[1]};
+  try{node.setPointerCapture(e.pointerId);}catch(_c){}
+ });
+ node.addEventListener('pointermove',function(e){
+  if(!st)return;e.preventDefault();e.stopPropagation();
+  var w=(typeof toWorld==='function')?toWorld(e.clientX,e.clientY):null;if(!w)return;
+  state.sdLead9=state.sdLead9||{};
+  state.sdLead9[it.lk]=[st.ox+(w[0]-st.sx),st.oy+(w[1]-st.sy)];
+  try{if(typeof posDrawSD9==='function')posDrawSD9(true);}catch(_d){}
+ });
+ function _end(e){if(!st)return;st=null;
+  try{node.releasePointerCapture(e.pointerId);}catch(_r){}
+  try{if(typeof saveProject==='function'){window._silentSave=true;saveProject();}}catch(_s){}
+ }
+ node.addEventListener('pointerup',_end);node.addEventListener('pointercancel',_end);
+}
 function _sdDrawItem9(g,it){
  var col=_sdCol9(it.lay);
  if(it.t==='pl'){
   if(!/^SD/.test(it.lay)){var _sl9=it.slay||it.lay;col=(typeof LINECOL!=='undefined'&&LINECOL[_sl9])?LINECOL[_sl9].c:'#00a6b8';}/* [BUILD2204] 현황=원레이어 색, DORO 폴백 시안 */
   var ps='';for(var i=0;i<it.pts.length;i++){var sc=S(it.pts[i][0],it.pts[i][1]);ps+=(i?' ':'')+sc[0].toFixed(3)+','+sc[1].toFixed(3);}
-  g.appendChild(el(it.cl?'polygon':'polyline',{points:ps,fill:'none',stroke:col,'stroke-width':(it.lay==='SD001'?0.15:(!/^SD/.test(it.lay)?0.1:0.08)),'pointer-events':'none'}));
+  var _pn9=el(it.cl?'polygon':'polyline',{points:ps,fill:'none',stroke:col,'stroke-width':(it.lay==='SD001'?0.15:(!/^SD/.test(it.lay)?0.1:0.08)),'pointer-events':(it.lk?'stroke':'none')});
+  if(it.lk){_pn9.setAttribute('stroke-width',0.14);_pn9.style.cursor='move';_sdLeadDrag9(_pn9,it);}/* [BUILD2254] 인출선 드래그 */
+  g.appendChild(_pn9);
  }else if(it.t==='ci'){
   var c=S(it.x,it.y);g.appendChild(el('circle',{cx:c[0],cy:c[1],r:it.r,fill:'none',stroke:col,'stroke-width':0.07,'pointer-events':'none'}));
  }else if(it.t==='tx'){
   var c2=S(it.x,it.y);
-  var tn=el('text',{x:c2[0],y:c2[1],'font-size':(it.h*1.5),fill:col,'text-anchor':'start','pointer-events':'none'});
+  var tn=el('text',{x:c2[0],y:c2[1],'font-size':(it.h*1.5),fill:col,'text-anchor':'start','pointer-events':(it.lk?'auto':'none')});
+  if(it.lk){tn.style.cursor='move';_sdLeadDrag9(tn,it);}/* [BUILD2254] 제원 텍스트 드래그 */
   if(it.rot)tn.setAttribute('transform','rotate('+(-it.rot)+' '+c2[0]+' '+c2[1]+')');
   tn.textContent=String(it.s).replace(/%%C/g,'\u00D8');
   g.appendChild(tn);
