@@ -20015,9 +20015,10 @@ function _sdLeadGet9(lk){/* [BUILD2280] 정확 키 → 보관본 → 앵커 근�
  if(!lk)return null;
  if(!window._sdKeepInit9){window._sdKeepInit9=1;try{_sdKeepLoad9();}catch(_kl){}}/* [BUILD2282] */
  var v=(state.sdLead9&&state.sdLead9[lk])||null;
- if(v)return v;
+ if(v){window._sdSrc9='state';return v;}
  var k=window._sdLeadKeep9&&window._sdLeadKeep9[lk];
- if(k){state.sdLead9=state.sdLead9||{};state.sdLead9[lk]=[k[0],k[1]];return state.sdLead9[lk];}
+ if(k){window._sdSrc9='keep';state.sdLead9=state.sdLead9||{};state.sdLead9[lk]=[k[0],k[1]];return state.sdLead9[lk];}
+ window._sdSrc9=null;
  var me=_sdLeadKV9(lk);if(!me)return null;
  var pool={},kk;
  var S1=state.sdLead9||{};for(kk in S1)pool[kk]=S1[kk];
@@ -20030,6 +20031,7 @@ function _sdLeadGet9(lk){/* [BUILD2280] 정확 키 → 보관본 → 앵커 근�
  }
  if(best){
   if(!window._sdKeyDrift9){window._sdKeyDrift9=1;try{console.log('[SD인출선] 키 드리프트 보정 — 요청',lk,'거리',bd.toFixed(3),'m');}catch(_g){}}
+  window._sdSrc9='근접'+bd.toFixed(2);
   state.sdLead9=state.sdLead9||{};state.sdLead9[lk]=[best[0],best[1]];
   window._sdLeadKeep9=window._sdLeadKeep9||{};window._sdLeadKeep9[lk]=[best[0],best[1]];
   return state.sdLead9[lk];
@@ -20038,7 +20040,7 @@ function _sdLeadGet9(lk){/* [BUILD2280] 정확 키 → 보관본 → 앵커 근�
 }
 function _sdLeadAudit9(){/* [BUILD2280] 렌더 후 계측 — 저장 키가 화면 아이템과 매칭되는지 1회 보고 */
  window._sdAudit9=(window._sdAudit9||0)+1;
- if(window._sdAudit9>6)return;/* [BUILD2281] 초반 6회까지는 매번 계측 */
+ if(window._sdAudit9>12)return;/* [BUILD2283] 12회 */
  try{
   var pool={},kk;
   var S1=state.sdLead9||{};for(kk in S1)pool[kk]=1;
@@ -20046,8 +20048,14 @@ function _sdLeadAudit9(){/* [BUILD2280] 렌더 후 계측 — 저장 키가 화�
   var keys=Object.keys(pool);
   var have=Object.keys(_sdLeadReg9||{});
   var miss=keys.filter(function(k){return !(_sdLeadReg9&&_sdLeadReg9[k]&&_sdLeadReg9[k].length);});
+  var det='';
+  if(miss.length){var mk=_sdLeadKV9(miss[0]);
+   if(mk){var bn=null,bk=null;
+    for(var hk in (_sdLeadReg9||{})){var hv=_sdLeadKV9(hk);if(!hv||hv.p!==mk.p)continue;
+     var dd=Math.hypot(hv.x-mk.x,hv.y-mk.y);if(bn==null||dd<bn){bn=dd;bk=hk;}}
+    det=(bn!=null)?(' | 최근접 화면키 '+bk+' 거리 '+bn.toFixed(2)+'m'):' | 동종 화면키 없음';}}
   console.log('[SD인출선 계측#'+window._sdAudit9+'] 저장 '+keys.length+'건 / 화면 '+have.length+'건 / 미매칭 '+miss.length+'건'
-   +(miss.length?(' | 저장키 예: '+miss[0]):'')+(have.length?(' | 화면키 예: '+have[0]):''));
+   +(miss.length?(' | 저장키 예: '+miss[0]):'')+det+(have.length?(' | 화면키 예: '+have[0]):''));
  }catch(_a){}
 }
 var _sdLeadFW9={};/* [BUILD2276] lk -> 실측 수평선 길이 */
@@ -20089,6 +20097,7 @@ function _sdLeadDrag9(node,it){/* [BUILD2260] SD 인출선 이동 — window 리
   state.sdLead9=state.sdLead9||{};state.sdLead9[it.lk]=[ox,oy];
   window._sdLeadKeep9=window._sdLeadKeep9||{};window._sdLeadKeep9[it.lk]=[ox,oy];/* [BUILD2279] */
   try{_sdKeepSave9();}catch(_ks){}/* [BUILD2282] 즉시 영속화 — 저장 전에 재로드돼도 생존 */
+  window._sdLastDrag9=it.lk;/* [BUILD2283] */
   if(!window._sdDbg9){window._sdDbg9=1;try{console.log('[SD인출선] 이동 기록 키=',it.lk,'타입=',it.t,'레이어=',it.lay);}catch(_g){}}/* [BUILD2278] 1회 진단 */
   try{_sdLeadMv9(it.lk,ox,oy);}catch(_d){}
  }
@@ -20160,7 +20169,11 @@ function _sdDrawItem9(g,it){
  if(it.t==='pl'){
   if(!/^SD/.test(it.lay)){var _sl9=it.slay||it.lay;col=(typeof LINECOL!=='undefined'&&LINECOL[_sl9])?LINECOL[_sl9].c:'#00a6b8';}/* [BUILD2204] 현황=원레이어 색, DORO 폴백 시안 */
   var _lp9=it.pts;
-  if(it.lk&&it.lw!=null&&it.ax!=null){var G9=_sdLeadGeo9(it);_lp9=[[G9.ax,G9.ay],[G9.ex,G9.ey],[G9.ex+G9.hx*G9.lw,G9.ey]];}/* [BUILD2274] 수평선을 태그 길이에 맞춤 */
+  if(it.lk&&it.lw!=null&&it.ax!=null){var G9=_sdLeadGeo9(it);_lp9=[[G9.ax,G9.ay],[G9.ex,G9.ey],[G9.ex+G9.hx*G9.lw,G9.ey]];
+   if(window._sdLastDrag9&&it.lk===window._sdLastDrag9&&!it._trc9){it._trc9=1;
+    try{var _sv9=(state.sdLead9&&state.sdLead9[it.lk])?JSON.stringify(state.sdLead9[it.lk].map(function(z){return +z.toFixed(2);})):'없음';
+    console.log('[SD추적] 렌더 키=',it.lk,'| 소스=',window._sdSrc9||'eo폴백','| 저장값=',_sv9,'| 팔꿈치=('+G9.ex.toFixed(2)+','+G9.ey.toFixed(2)+') eo=('+(it.eo?it.eo.map(function(z){return +z.toFixed(2);}).join(','):'-')+')');}catch(_t9){}}
+  }/* [BUILD2274] 수평선을 태그 길이에 맞춤 */
   var ps='';for(var i=0;i<_lp9.length;i++){var sc=S(_lp9[i][0],_lp9[i][1]);ps+=(i?' ':'')+sc[0].toFixed(3)+','+sc[1].toFixed(3);}
   var _pn9=el(it.cl?'polygon':'polyline',{points:ps,fill:'none',stroke:col,'stroke-width':(it.lay==='SD001'?_SDVW9.pipe:(!/^SD/.test(it.lay)?_SDVW9.hyun:_SDVW9.sd)),'pointer-events':(it.lk?'stroke':'none')});
   if(it.lk){_pn9.setAttribute('stroke-width',_SDVW9.lead);_pn9.style.cursor='move';_sdLeadDrag9(_pn9,it);_sdLeadPut9(_pn9,it);
