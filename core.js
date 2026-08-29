@@ -19648,15 +19648,26 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   for(var i=0;i<l.pts.length-1;i++)hyun.push([l.pts[i],l.pts[i+1]]);});
  function distSeg(px,py,a,b){var vx=b[0]-a[0],vy=b[1]-a[1],L2=vx*vx+vy*vy;if(!L2)return Math.hypot(px-a[0],py-a[1]);var t=Math.max(0,Math.min(1,((px-a[0])*vx+(py-a[1])*vy)/L2));return Math.hypot(px-(a[0]+t*vx),py-(a[1]+t*vy));}
  function hyunDist(px,py){var bd=null;for(var i=0;i<hyun.length;i++){var d=distSeg(px,py,hyun[i][0],hyun[i][1]);if(bd==null||d<bd)bd=d;}return bd;}
- function hyunFoot(px,py){/* [BUILD2258] 현황선 수직발 — 선분 내부(진짜 수직)만 채택, 꺾임점 스냅 금지. 좌·우 후보 모두 검토 후 최단 */
-  var bd=null,fx=0,fy=0;
+ function hyunFoot(px,py,pdir){/* [BUILD2259] 수선발 선택 규칙 — ①관로 평행 현황선 우선 ②가까운 것 ③수선각 하한 */
+  var PAR=15;/* 관로선과 이 각도 이내면 '평행'으로 간주(완성본 실측 중앙 4.6°) */
+  var K=2.0;/* 평행선이 최근접의 K배 넘게 멀면 최근접 사용 */
+  var MINP=45;/* 이격선과 관로선의 최소 각도(너무 비스듬한 선 배제) */
+  function _ang9(ux,uy,vx,vy){var du=Math.hypot(ux,uy),dv=Math.hypot(vx,vy);if(!du||!dv)return 0;
+   var c=Math.abs(ux*vx+uy*vy)/(du*dv);if(c>1)c=1;return Math.acos(c)*180/Math.PI;}
+  var A=null,B=null;/* A=평행 후보 최단, B=전체 최단 */
   for(var i=0;i<hyun.length;i++){var a=hyun[i][0],b=hyun[i][1];
    var vx=b[0]-a[0],vy=b[1]-a[1],L2=vx*vx+vy*vy;if(!L2)continue;
    var t=((px-a[0])*vx+(py-a[1])*vy)/L2;
-   if(t<0||t>1)continue;/* 선분 밖 → 수직 아님(꺾임점 스냅 금지) */
+   if(t<0||t>1)continue;/* 선분 내부(진짜 수직)만 */
    var qx=a[0]+t*vx,qy=a[1]+t*vy;var d=Math.hypot(px-qx,py-qy);
-   if(bd==null||d<bd){bd=d;fx=qx;fy=qy;}}
-  return bd==null?null:{d:bd,fx:fx,fy:fy};}
+   if(d<0.01)continue;
+   if(pdir&&MINP>0&&_ang9(pdir[0],pdir[1],qx-px,qy-py)<MINP)continue;/* 수선각 하한 */
+   if(B==null||d<B.d)B={d:d,fx:qx,fy:qy};
+   if(pdir&&_ang9(pdir[0],pdir[1],vx,vy)<=PAR){if(A==null||d<A.d)A={d:d,fx:qx,fy:qy};}
+  }
+  if(A&&B&&A.d<=B.d*K)return A;/* 평행 우선 */
+  return B||A;
+}
  /* 측점 매칭: 관로 정점 ↔ state.points (0.3m) */
  function ptAt(x,y){var ps=state.points||[];for(var i=0;i<ps.length;i++){if(Math.abs(ps[i].x-x)<0.3&&Math.abs(ps[i].y-y)<0.3)return ps[i];}return null;}
  function mhAt(x,y){var ms=state.manholes||[];for(var i=0;i<ms.length;i++){if(ms[i].wx!=null&&Math.abs(ms[i].wx-x)<0.6&&Math.abs(ms[i].wy-y)<0.6)return ms[i];}return null;}
@@ -19688,7 +19699,14 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   if(z!=null)S.items.push({t:'tx',lay:'SD_관상고',x:x,y:y,h:0.5,s:z.toFixed(3)});/* 측점 정좌표 안착(완성본 규격) */
   if(dep9!=null)S.items.push({t:'tx',lay:'SDSIM_T',x:x,y:y,h:1.0,s:dep9.toFixed(1)});
   /* [BUILD2205] 이격: 측점→현황선 수선발 실선(실물 규격) + 중앙정렬 텍스트(위 거리/아래 (심도)), 읽기 정규화 회전 */
-  var F9=hyun.length?hyunFoot(x,y):null;
+  var _pdv9=null;/* [BUILD2259] 측점이 놓인 관로 세그 방향 */
+  try{var _bd9=null;(pipes||[]).forEach(function(pl9){var ps=pl9.pts;for(var q=0;q<ps.length-1;q++){
+   var ax=ps[q][0],ay=ps[q][1],bx=ps[q+1][0],by=ps[q+1][1];
+   var vx=bx-ax,vy=by-ay,L2=vx*vx+vy*vy;if(!L2)continue;
+   var tt=Math.max(0,Math.min(1,((x-ax)*vx+(y-ay)*vy)/L2));
+   var dd9=Math.hypot(x-(ax+tt*vx),y-(ay+tt*vy));
+   if(_bd9==null||dd9<_bd9){_bd9=dd9;_pdv9=[vx,vy];}}});}catch(_pe9){}
+  var F9=hyun.length?hyunFoot(x,y,_pdv9):null;
   if(F9&&F9.d>=0.3&&F9.d<=30&&dep9!=null){
    S.items.push({t:'pl',lay:'SDDIM',pts:[[x,y],[F9.fx,F9.fy]],cl:0});
    var LL9=F9.d,ux9=(F9.fx-x)/LL9,uy9=(F9.fy-y)/LL9;
