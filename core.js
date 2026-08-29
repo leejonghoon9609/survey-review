@@ -19653,6 +19653,19 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var t=((cx-ax)*s2-(cy-ay)*s1)/den,u=((cx-ax)*r2-(cy-ay)*r1)/den;
   if(t<0||t>1||u<0||u>1)return null;return [ax+t*r1,ay+t*r2];
  }
+ function _pipeX9(lp,ax,ay){/* [BUILD2262] 인출선이 관로선(SD001)을 가로지르면 true */
+  try{
+   for(var k=0;k<lp.length-1;k++){var p0=lp[k],p1=lp[k+1];
+    var x0=Math.min(p0[0],p1[0])-0.02,x1=Math.max(p0[0],p1[0])+0.02,y0=Math.min(p0[1],p1[1])-0.02,y1=Math.max(p0[1],p1[1])+0.02;
+    for(var i=0;i<pipes.length;i++){var ps=pipes[i].pts;
+     for(var q=0;q<ps.length-1;q++){var a=ps[q],b=ps[q+1];
+      if(Math.max(a[0],b[0])<x0||Math.min(a[0],b[0])>x1||Math.max(a[1],b[1])<y0||Math.min(a[1],b[1])>y1)continue;
+      var X=_segX9(p0[0],p0[1],p1[0],p1[1],a[0],a[1],b[0],b[1]);if(!X)continue;
+      if(k===0&&Math.hypot(X[0]-ax,X[1]-ay)<0.4)continue;/* [BUILD2262] 첫 세그먼트의 출발 접점만 제외 — 이후 세그먼트는 진짜 관통 */
+      return true;}}}
+  }catch(_e){}
+  return false;
+ }
  function _blk9(px,py,qx,qy){/* [BUILD2261] 이격선이 다른 현황선을 뚫고 지나가면 차단 */
   var x0=Math.min(px,qx)-0.02,x1=Math.max(px,qx)+0.02,y0=Math.min(py,qy)-0.02,y1=Math.max(py,qy)+0.02;
   for(var i=0;i<hyun.length;i++){var a=hyun[i][0],b=hyun[i][1];
@@ -19760,11 +19773,13 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
     addBox(S,Math.min(ex9,ex9+hx9*w9),ey9-0.2,Math.max(ex9,ex9+hx9*w9),ey9+1.4);placedF=true;
    }
    var dgs=[2.8,3.9,5.0],sgs=[[1,1],[-1,1],[1,-1],[-1,-1]];
+   for(var pzF=0;pzF<2&&!placedF;pzF++)/* [BUILD2262] pass0=관로 크로스 배제, pass1=폴백 */
    for(var di=0;di<dgs.length&&!placedF;di++)for(var si=0;si<4&&!placedF;si++){
     var dg=dgs[di],sx9=sgs[si][0],sy9=sgs[si][1];
     var ex=m.wx+sx9*dg*0.707,ey=m.wy+sy9*dg*0.707;
     var hx=(sx9>=0)?1:-1;var x0=Math.min(ex,ex+hx*w9),x1=Math.max(ex,ex+hx*w9);
     if(hitBox(S,x0,ey-0.2,x1,ey+1.4))continue;
+    if(pzF===0&&_pipeX9([[m.wx,m.wy],[ex,ey],[ex+hx*w9,ey]],m.wx,m.wy))continue;/* [BUILD2262] */
     S.items.push({t:'pl',lay:'SD911-1',pts:[[m.wx,m.wy],[ex,ey],[ex+hx*w9,ey]],cl:0,lk:_fk9,ax:m.wx,ay:m.wy,lw:w9,eo:[ex-m.wx,ey-m.wy]});
     S.items.push({t:'tx',lay:'SD219',x:(hx>0?ex:ex-w9),y:ey+0.2,h:1.0,s:lb,lk:_fk9,ax:m.wx,ay:m.wy,lw:w9,tox:0,toy:0.2,eo:[ex-m.wx,ey-m.wy]});
     addBox(S,x0,ey-0.2,x1,ey+1.4);placedF=true;
@@ -19797,11 +19812,13 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    addBox(S,Math.min(ex,ex+hx*(tw+2)),ey-0.2,Math.max(ex,ex+hx*(tw+2)),ey+1.6);placed=true;
   }
   var offs=[7,11,15,19];var sides=[1,-1];
+  for(var pzL=0;pzL<2&&!placed;pzL++)/* [BUILD2262] pass0=관로 크로스 배제, pass1=폴백 */
   for(var oi=0;oi<offs.length&&!placed;oi++)for(var si=0;si<2&&!placed;si++){
    var sgn=sides[si];var ex=mx+nx*offs[oi]*sgn,ey=my+ny*offs[oi]*sgn;
    var hx=(nx*sgn>=0)?1:-1;
    var tx0=ex,tx1=ex+hx*(tw+2);
    if(hitBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6))continue;
+   if(pzL===0&&_pipeX9([[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],mx,my))continue;/* [BUILD2262] */
    S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0,lk:_lk9,ax:mx,ay:my,lw:(tw+2),eo:[ex-mx,ey-my]});
    S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+0.35:ex+hx*(tw+2)+0.35),y:ey+0.35,h:1.0,s:spec,lk:_lk9,ax:mx,ay:my,lw:(tw+2),tox:0.35,toy:0.35,eo:[ex-mx,ey-my]});/* [BUILD2257] 완성본 오프셋 */
    addBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6);placed=true;
@@ -19942,27 +19959,47 @@ function _sdLeadDrag9(node,it){/* [BUILD2260] SD 인출선 이동 — window 리
  });
 }
 
+/* ===== [BUILD2262] 화면(미리보기) 전용 표시 튜닝 — posScene9 원본/DXF에는 일절 영향 없음 ===== */
+var _SDVW9={pipe:0.09,hyun:0.055,sd:0.045,lead:0.07,sym:0.62,txt:1.02};
+var _SDDG9=null;/* 측점 밀집도 그리드 */
+function _sdDens9(){/* 5m 셀 측점 카운트 — 그리기 직전 1회 */
+ var G={},ps=(state.points||[]);
+ for(var i=0;i<ps.length;i++){var p=ps[i];if(p.x==null||p._hyun)continue;
+  var k=Math.floor(p.x/5)+'_'+Math.floor(p.y/5);G[k]=(G[k]||0)+1;}
+ _SDDG9=G;
+}
+function _sdDensK9(x,y){/* 조밀할수록 작게 — 3x3 셀 합계 기준 */
+ if(!_SDDG9)return 1;
+ var cx=Math.floor(x/5),cy=Math.floor(y/5),n=0;
+ for(var a=-1;a<=1;a++)for(var b=-1;b<=1;b++){var v=_SDDG9[(cx+a)+'_'+(cy+b)];if(v)n+=v;}
+ return n>=14?0.5:(n>=9?0.62:(n>=6?0.74:(n>=4?0.86:1)));
+}
 function _sdLeadPut9(n,it){try{n._it9=it;(_sdLeadReg9[it.lk]=_sdLeadReg9[it.lk]||[]).push(n);}catch(_e){}}
 function _sdDrawItem9(g,it){
  var col=_sdCol9(it.lay);
  if(it.t==='pl'){
   if(!/^SD/.test(it.lay)){var _sl9=it.slay||it.lay;col=(typeof LINECOL!=='undefined'&&LINECOL[_sl9])?LINECOL[_sl9].c:'#00a6b8';}/* [BUILD2204] 현황=원레이어 색, DORO 폴백 시안 */
   var ps='';for(var i=0;i<it.pts.length;i++){var sc=S(it.pts[i][0],it.pts[i][1]);ps+=(i?' ':'')+sc[0].toFixed(3)+','+sc[1].toFixed(3);}
-  var _pn9=el(it.cl?'polygon':'polyline',{points:ps,fill:'none',stroke:col,'stroke-width':(it.lay==='SD001'?0.15:(!/^SD/.test(it.lay)?0.1:0.08)),'pointer-events':(it.lk?'stroke':'none')});
-  if(it.lk){_pn9.setAttribute('stroke-width',0.14);_pn9.style.cursor='move';_sdLeadDrag9(_pn9,it);_sdLeadPut9(_pn9,it);
+  var _pn9=el(it.cl?'polygon':'polyline',{points:ps,fill:'none',stroke:col,'stroke-width':(it.lay==='SD001'?_SDVW9.pipe:(!/^SD/.test(it.lay)?_SDVW9.hyun:_SDVW9.sd)),'pointer-events':(it.lk?'stroke':'none')});
+  if(it.lk){_pn9.setAttribute('stroke-width',_SDVW9.lead);_pn9.style.cursor='move';_sdLeadDrag9(_pn9,it);_sdLeadPut9(_pn9,it);
    var _ht9=el('polyline',{points:ps,fill:'none',stroke:'transparent','stroke-width':1.2,'pointer-events':'stroke'});/* [BUILD2256] 넓은 히트 영역 */
    _ht9.style.cursor='move';_sdLeadDrag9(_ht9,it);_sdLeadPut9(_ht9,it);g.appendChild(_ht9);}
   g.appendChild(_pn9);
  }else if(it.t==='ci'){
-  var c=S(it.x,it.y);g.appendChild(el('circle',{cx:c[0],cy:c[1],r:it.r,fill:'none',stroke:col,'stroke-width':0.07,'pointer-events':'none'}));
+  var c=S(it.x,it.y);g.appendChild(el('circle',{cx:c[0],cy:c[1],r:it.r,fill:'none',stroke:col,'stroke-width':(0.07*_SDVW9.sym),'pointer-events':'none'}));
  }else if(it.t==='tx'){
   var c2=S(it.x,it.y);
-  var tn=el('text',{x:c2[0],y:c2[1],'font-size':(it.h*1.5),fill:col,'text-anchor':'start','pointer-events':(it.lk?'auto':'none')});
+  var _fk=(it.lk?1:_sdDensK9(it.x,it.y));/* [BUILD2262] 인출선 글자는 축소 제외 */
+  var tn=el('text',{x:c2[0],y:c2[1],'font-size':(it.h*_SDVW9.txt*_fk),fill:col,'text-anchor':'start','pointer-events':(it.lk?'auto':'none')});
   if(it.lk){tn.style.cursor='move';_sdLeadDrag9(tn,it);_sdLeadPut9(tn,it);}/* [BUILD2254] 제원 텍스트 드래그 */
   if(it.rot)tn.setAttribute('transform','rotate('+(-it.rot)+' '+c2[0]+' '+c2[1]+')');
   tn.textContent=String(it.s).replace(/%%C/g,'\u00D8');
   g.appendChild(tn);
- }else if(it.t==='ins'){_sdDrawSym9(g,it.name,it.x,it.y);}
+ }else if(it.t==='ins'){
+  var _sg9=document.createElementNS(SVGNS,'g');_sdDrawSym9(_sg9,it.name,it.x,it.y);
+  var _cs9=_sg9.childNodes;for(var _q9=0;_q9<_cs9.length;_q9++){var _w9=parseFloat(_cs9[_q9].getAttribute&&_cs9[_q9].getAttribute('stroke-width'));
+   if(isFinite(_w9))_cs9[_q9].setAttribute('stroke-width',(_w9*_SDVW9.sym).toFixed(4));}
+  g.appendChild(_sg9);}
 }
 function _sdOnly9(on){/* SD 전용 모드: 기존 렌더 그룹·라벨 오버레이 숨김 */
  try{
@@ -19979,7 +20016,7 @@ function posDrawSD9(force){
   var sc=null;try{sc=posScene9();}catch(_er){console.error('[SD미리보기]',_er);}
   window._sdCache9={sig:sig,sc:sc};g._built9=0;}
  if(!g._built9){
-  while(g.firstChild)g.removeChild(g.firstChild);_sdLeadReg9={};/* [BUILD2260] 레지스트리 초기화 */
+  while(g.firstChild)g.removeChild(g.firstChild);_sdLeadReg9={};try{_sdDens9();}catch(_dn){}/* [BUILD2260] 레지스트리 초기화 */
   var sc2=window._sdCache9.sc;
   if(sc2){/* [BUILD2203] 2패스 — 현황선(비SD 레이어) 먼저 깔고 SD 위에 */
    var _hy9=[],_sd9=[];
