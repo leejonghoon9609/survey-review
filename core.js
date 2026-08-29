@@ -19648,22 +19648,45 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   for(var i=0;i<l.pts.length-1;i++)hyun.push([l.pts[i],l.pts[i+1]]);});
  function distSeg(px,py,a,b){var vx=b[0]-a[0],vy=b[1]-a[1],L2=vx*vx+vy*vy;if(!L2)return Math.hypot(px-a[0],py-a[1]);var t=Math.max(0,Math.min(1,((px-a[0])*vx+(py-a[1])*vy)/L2));return Math.hypot(px-(a[0]+t*vx),py-(a[1]+t*vy));}
  function hyunDist(px,py){var bd=null;for(var i=0;i<hyun.length;i++){var d=distSeg(px,py,hyun[i][0],hyun[i][1]);if(bd==null||d<bd)bd=d;}return bd;}
- function hyunFoot(px,py,pdir){/* [BUILD2259] 수선발 선택 규칙 — ①관로 평행 현황선 우선 ②가까운 것 ③수선각 하한 */
-  var PAR=15;/* 관로선과 이 각도 이내면 '평행'으로 간주(완성본 실측 중앙 4.6°) */
+ function _segX9(ax,ay,bx,by,cx,cy,dx,dy){/* [BUILD2261] 선분 교차점(엄격) */
+  var r1=bx-ax,r2=by-ay,s1=dx-cx,s2=dy-cy;var den=r1*s2-r2*s1;if(Math.abs(den)<1e-12)return null;
+  var t=((cx-ax)*s2-(cy-ay)*s1)/den,u=((cx-ax)*r2-(cy-ay)*r1)/den;
+  if(t<0||t>1||u<0||u>1)return null;return [ax+t*r1,ay+t*r2];
+ }
+ function _blk9(px,py,qx,qy){/* [BUILD2261] 이격선이 다른 현황선을 뚫고 지나가면 차단 */
+  var x0=Math.min(px,qx)-0.02,x1=Math.max(px,qx)+0.02,y0=Math.min(py,qy)-0.02,y1=Math.max(py,qy)+0.02;
+  for(var i=0;i<hyun.length;i++){var a=hyun[i][0],b=hyun[i][1];
+   if(Math.max(a[0],b[0])<x0||Math.min(a[0],b[0])>x1||Math.max(a[1],b[1])<y0||Math.min(a[1],b[1])>y1)continue;/* AABB 프리필터 */
+   var X=_segX9(px,py,qx,qy,a[0],a[1],b[0],b[1]);if(!X)continue;
+   if(Math.hypot(X[0]-qx,X[1]-qy)<0.15)continue;/* 도착 현황선 자신 및 그 이웃 선분과의 끝점 접점 */
+   if(Math.hypot(X[0]-px,X[1]-py)<0.05)continue;/* 출발 측점 접점 */
+   return true;}
+  return false;
+ }
+ function hyunFoot(px,py,pdir){/* [BUILD2261] 수선발 규칙 - (1)현황선 관통 금지 (2)관로 평행 우선 (3)가까운 것 (4)수선각 하한 */
+  var PAR=15;/* 관로선과 이 각도 이내면 평행으로 간주(완성본 실측 중앙 4.6도) */
   var K=2.0;/* 평행선이 최근접의 K배 넘게 멀면 최근접 사용 */
   var MINP=45;/* 이격선과 관로선의 최소 각도(너무 비스듬한 선 배제) */
+  var DMAX=30.5;/* 이격선 상한(호출부 30) - 후보 사전 컷으로 성능 확보 */
   function _ang9(ux,uy,vx,vy){var du=Math.hypot(ux,uy),dv=Math.hypot(vx,vy);if(!du||!dv)return 0;
    var c=Math.abs(ux*vx+uy*vy)/(du*dv);if(c>1)c=1;return Math.acos(c)*180/Math.PI;}
-  var A=null,B=null;/* A=평행 후보 최단, B=전체 최단 */
+  var C=[];
   for(var i=0;i<hyun.length;i++){var a=hyun[i][0],b=hyun[i][1];
    var vx=b[0]-a[0],vy=b[1]-a[1],L2=vx*vx+vy*vy;if(!L2)continue;
    var t=((px-a[0])*vx+(py-a[1])*vy)/L2;
    if(t<0||t>1)continue;/* 선분 내부(진짜 수직)만 */
    var qx=a[0]+t*vx,qy=a[1]+t*vy;var d=Math.hypot(px-qx,py-qy);
-   if(d<0.01)continue;
+   if(d<0.01||d>DMAX)continue;
    if(pdir&&MINP>0&&_ang9(pdir[0],pdir[1],qx-px,qy-py)<MINP)continue;/* 수선각 하한 */
-   if(B==null||d<B.d)B={d:d,fx:qx,fy:qy};
-   if(pdir&&_ang9(pdir[0],pdir[1],vx,vy)<=PAR){if(A==null||d<A.d)A={d:d,fx:qx,fy:qy};}
+   C.push({d:d,fx:qx,fy:qy,par:(pdir&&_ang9(pdir[0],pdir[1],vx,vy)<=PAR)?1:0});
+  }
+  C.sort(function(u,v){return u.d-v.d;});/* 가까운 순 - 첫 통과가 곧 최단 */
+  var A=null,B=null;
+  for(var j=0;j<C.length&&j<40;j++){var c=C[j];
+   if(_blk9(px,py,c.fx,c.fy))continue;/* 관통 후보 탈락 */
+   if(B==null)B=c;
+   if(c.par&&A==null)A=c;
+   if(A&&B)break;
   }
   if(A&&B&&A.d<=B.d*K)return A;/* 평행 우선 */
   return B||A;
