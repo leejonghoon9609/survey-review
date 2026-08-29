@@ -19752,8 +19752,8 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    var mx9=x+ux9*LL9/2,my9=y+uy9*LL9/2;
    var ds9=LL9.toFixed(1),zs9='('+dep9.toFixed(1)+')';
    var wD9=ds9.length*0.72/2,wZ9=zs9.length*0.72/2;
-   S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wD9+rnx9*0.2,y:my9-ruy9*wD9+rny9*0.2,h:1.0,s:ds9,rot:rd9});
-   S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wZ9-rnx9*1.2,y:my9-ruy9*wZ9-rny9*1.2,h:1.0,s:zs9,rot:rd9});
+   S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wD9+rnx9*0.2,y:my9-ruy9*wD9+rny9*0.2,h:1.0,s:ds9,rot:rd9,cx:mx9+rnx9*0.2,cy:my9+rny9*0.2,mid:1});/* [BUILD2264] 화면은 cx,cy+중앙정렬 — 글자크기 무관 정렬 */
+   S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wZ9-rnx9*1.2,y:my9-ruy9*wZ9-rny9*1.2,h:1.0,s:zs9,rot:rd9,cx:mx9-rnx9*1.2,cy:my9-rny9*1.2,mid:1});/* [BUILD2264] */
   }
  }});
  /* 3) 맨홀 SD100 + SD219 시설물번호 */
@@ -19960,7 +19960,7 @@ function _sdLeadDrag9(node,it){/* [BUILD2260] SD 인출선 이동 — window 리
 }
 
 /* ===== [BUILD2262] 화면(미리보기) 전용 표시 튜닝 — posScene9 원본/DXF에는 일절 영향 없음 ===== */
-var _SDVW9={pipe:0.15,hyun:0.1,sd:0.08,lead:0.14,sym:1,txt:1.5};/* [BUILD2263] 2262 표시축소 원상복구 — 이격선 텍스트 중앙정렬이 posScene9의 글자폭 0.72 고정 계산과 어긋남 */
+var _SDVW9={pipe:0.05,hyun:0.03,sd:0.03,lead:0.035,sym:0.45,txt:0.95};/* [BUILD2264] 시스템 도면창 전용 표시 — DXF 무영향 *//* [BUILD2263] 2262 표시축소 원상복구 — 이격선 텍스트 중앙정렬이 posScene9의 글자폭 0.72 고정 계산과 어긋남 */
 var _SDDG9=null;/* 측점 밀집도 그리드 */
 function _sdDens9(){/* 5m 셀 측점 카운트 — 그리기 직전 1회 */
  var G={},ps=(state.points||[]);
@@ -19989,9 +19989,9 @@ function _sdDrawItem9(g,it){
  }else if(it.t==='ci'){
   var c=S(it.x,it.y);g.appendChild(el('circle',{cx:c[0],cy:c[1],r:it.r,fill:'none',stroke:col,'stroke-width':(0.07*_SDVW9.sym),'pointer-events':'none'}));
  }else if(it.t==='tx'){
-  var c2=S(it.x,it.y);
+  var c2=(it.mid&&it.cx!=null)?S(it.cx,it.cy):S(it.x,it.y);/* [BUILD2264] */
   var _fk=(it.lk?1:_sdDensK9(it.x,it.y));/* [BUILD2262] 인출선 글자는 축소 제외 */
-  var tn=el('text',{x:c2[0],y:c2[1],'font-size':(it.h*_SDVW9.txt*_fk),fill:col,'text-anchor':'start','pointer-events':(it.lk?'auto':'none')});
+  var tn=el('text',{x:c2[0],y:c2[1],'font-size':(it.h*_SDVW9.txt*_fk),fill:col,'text-anchor':(it.mid?'middle':'start'),'pointer-events':(it.lk?'auto':'none')});
   if(it.lk){tn.style.cursor='move';_sdLeadDrag9(tn,it);_sdLeadPut9(tn,it);}/* [BUILD2254] 제원 텍스트 드래그 */
   if(it.rot)tn.setAttribute('transform','rotate('+(-it.rot)+' '+c2[0]+' '+c2[1]+')');
   tn.textContent=String(it.s).replace(/%%C/g,'\u00D8');
