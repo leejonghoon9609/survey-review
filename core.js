@@ -19993,13 +19993,51 @@ function _sdDrawSym9(g,name,x,y){/* 블록 심볼 — tpl_pos_legend.dxf 실측 
 }
 var _sdLeadReg9={};/* [BUILD2260] lk -> 노드 배열 (드래그 라이브 갱신용) */
 window._sdLeadKeep9=window._sdLeadKeep9||{};/* [BUILD2279] 세션 보관 — state 재로드에도 인출선 위치 유지 */
-function _sdLeadGet9(lk){/* state 우선, 없으면 보관본에서 복구하고 state에 되살림 */
+function _sdLeadKV9(lk){/* [BUILD2280] 키에서 접두(L/F)와 앵커 좌표 파싱 */
+ if(!lk)return null;
+ var m=/^([A-Z])(-?[0-9.]+)_(-?[0-9.]+)$/.exec(lk);
+ if(!m)return null;
+ var x=parseFloat(m[2]),y=parseFloat(m[3]);
+ if(!isFinite(x)||!isFinite(y))return null;
+ return {p:m[1],x:x,y:y};
+}
+function _sdLeadGet9(lk){/* [BUILD2280] 정확 키 → 보관본 → 앵커 근접(0.6m) 순으로 조회. 키 문자열이 미세하게 달라져도 찾음 */
  if(!lk)return null;
  var v=(state.sdLead9&&state.sdLead9[lk])||null;
  if(v)return v;
  var k=window._sdLeadKeep9&&window._sdLeadKeep9[lk];
  if(k){state.sdLead9=state.sdLead9||{};state.sdLead9[lk]=[k[0],k[1]];return state.sdLead9[lk];}
+ var me=_sdLeadKV9(lk);if(!me)return null;
+ var pool={},kk;
+ var S1=state.sdLead9||{};for(kk in S1)pool[kk]=S1[kk];
+ var S2=window._sdLeadKeep9||{};for(kk in S2)if(!pool[kk])pool[kk]=S2[kk];
+ var best=null,bd=null;
+ for(kk in pool){
+  var o=_sdLeadKV9(kk);if(!o||o.p!==me.p)continue;
+  var d=Math.hypot(o.x-me.x,o.y-me.y);
+  if(d<=0.6&&(bd==null||d<bd)){bd=d;best=pool[kk];}
+ }
+ if(best){
+  if(!window._sdKeyDrift9){window._sdKeyDrift9=1;try{console.log('[SD인출선] 키 드리프트 보정 — 요청',lk,'거리',bd.toFixed(3),'m');}catch(_g){}}
+  state.sdLead9=state.sdLead9||{};state.sdLead9[lk]=[best[0],best[1]];
+  window._sdLeadKeep9=window._sdLeadKeep9||{};window._sdLeadKeep9[lk]=[best[0],best[1]];
+  return state.sdLead9[lk];
+ }
  return null;
+}
+function _sdLeadAudit9(){/* [BUILD2280] 렌더 후 계측 — 저장 키가 화면 아이템과 매칭되는지 1회 보고 */
+ if(window._sdAudit9)return;
+ try{
+  var pool={},kk;
+  var S1=state.sdLead9||{};for(kk in S1)pool[kk]=1;
+  var S2=window._sdLeadKeep9||{};for(kk in S2)pool[kk]=1;
+  var keys=Object.keys(pool);if(!keys.length)return;
+  window._sdAudit9=1;
+  var have=Object.keys(_sdLeadReg9||{});
+  var miss=keys.filter(function(k){return !(_sdLeadReg9&&_sdLeadReg9[k]&&_sdLeadReg9[k].length);});
+  console.log('[SD인출선 계측] 저장 '+keys.length+'건 / 화면 '+have.length+'건 / 미매칭 '+miss.length+'건'
+   +(miss.length?(' | 저장키 예: '+miss[0]):'')+(have.length?(' | 화면키 예: '+have[0]):''));
+ }catch(_a){}
 }
 var _sdLeadFW9={};/* [BUILD2276] lk -> 실측 수평선 길이 */
 function _sdLeadGeo9(it,ox,oy){/* [BUILD2274] 인출선 팔꿈치·수평길이 — 화면은 글자 배수(K)로 축소해 태그와 길이 일치 */
@@ -20181,6 +20219,7 @@ function posDrawSD9(force){
    for(var j9=0;j9<_sd9.length;j9++)_sdDrawItem9(g,_sd9[j9]);}
   g._built9=1;}
  g.style.display='';
+ try{_sdLeadAudit9();}catch(_au){}/* [BUILD2280] */
  _sdOnly9(window._sdPrev9===2);
 }
 function posSdToggle9(){
