@@ -19987,6 +19987,7 @@ function _sdDrawSym9(g,name,x,y){/* 블록 심볼 — tpl_pos_legend.dxf 실측 
  }
 }
 var _sdLeadReg9={};/* [BUILD2260] lk -> 노드 배열 (드래그 라이브 갱신용) */
+var _sdLeadFW9={};/* [BUILD2276] lk -> 실측 수평선 길이 */
 function _sdLeadGeo9(it,ox,oy){/* [BUILD2274] 인출선 팔꿈치·수평길이 — 화면은 글자 배수(K)로 축소해 태그와 길이 일치 */
  var K=_SDVW9.txt;
  var ax=(it.ax!=null?it.ax:0),ay=(it.ay!=null?it.ay:0);
@@ -19994,7 +19995,7 @@ function _sdLeadGeo9(it,ox,oy){/* [BUILD2274] 인출선 팔꿈치·수평길이 
  if(ox!=null&&oy!=null)cur=[ox,oy];
  else cur=(state.sdLead9&&state.sdLead9[it.lk])||(it.eo?[it.eo[0],it.eo[1]]:null);
  if(!cur){var p1=(it.t==='pl'&&it.pts)?it.pts[1]:[it.x,it.y];cur=[p1[0]-ax,p1[1]-ay];}
- var hx=(cur[0]>=0)?1:-1,lw=(it.lw!=null?it.lw:0)*K;
+ var hx=(cur[0]>=0)?1:-1,lw=(_sdLeadFW9[it.lk]!=null?_sdLeadFW9[it.lk]:(it.lw!=null?it.lw:0)*K);/* [BUILD2276] 실측 폭 우선 */
  return {ax:ax,ay:ay,ex:ax+cur[0],ey:ay+cur[1],hx:hx,lw:lw,K:K};
 }
 function _sdLeadMv9(lk,ox,oy){/* [BUILD2260] 재빌드 없이 해당 인출선 노드만 즉시 이동 */
@@ -20070,6 +20071,23 @@ function _sdAscR9(g){/* [BUILD2268] 베이스라인 위 실제 글자높이 비�
   g.removeChild(t);}catch(_e){}
  window._sdAscC9=r;return r;
 }
+function _sdLeadFit9(it,tn){/* [BUILD2276] 그려진 태그의 실제 폭에 인출선 수평길이를 맞춤 — 잉여 제거 */
+ if(!it.lk||it.lw==null||it.ax==null)return;
+ var bb=null;try{bb=tn.getBBox();}catch(_e){return;}
+ if(!bb||!(bb.width>0))return;
+ var K=_SDVW9.txt;
+ var lw=Math.max(0.5,bb.width-0.6*K);/* DXF 규격: 수평선 = 글자폭 - 0.6 */
+ _sdLeadFW9[it.lk]=lw;
+ var G=_sdLeadGeo9(it);
+ var tx=(G.hx>0?G.ex:G.ex+G.hx*lw)+(it.tox||0)*K, ty=G.ey+(it.toy||0)*K;
+ var s2=S(tx,ty);tn.setAttribute('x',s2[0]);tn.setAttribute('y',s2[1]);
+ var arr=_sdLeadReg9[it.lk]||[];
+ for(var i=0;i<arr.length;i++){var n=arr[i],it2=n._it9;
+  if(!it2||it2.t!=='pl'||!n.parentNode)continue;
+  var a=S(G.ax,G.ay),b=S(G.ex,G.ey),c=S(G.ex+G.hx*lw,G.ey);
+  n.setAttribute('points',a[0].toFixed(3)+','+a[1].toFixed(3)+' '+b[0].toFixed(3)+','+b[1].toFixed(3)+' '+c[0].toFixed(3)+','+c[1].toFixed(3));
+ }
+}
 function _sdLeadPut9(n,it){try{n._it9=it;(_sdLeadReg9[it.lk]=_sdLeadReg9[it.lk]||[]).push(n);}catch(_e){}}
 function _sdDrawItem9(g,it){
  var col=_sdCol9(it.lay);
@@ -20098,6 +20116,7 @@ function _sdDrawItem9(g,it){
   if(it.rot)tn.setAttribute('transform','rotate('+(-it.rot)+' '+c2[0]+' '+c2[1]+')');
   tn.textContent=String(it.s).replace(/%%C/g,'\u00D8');
   g.appendChild(tn);
+  if(it.lk)try{_sdLeadFit9(it,tn);}catch(_lf9){}/* [BUILD2276] */
   if(_md9){/* [BUILD2269] 그려진 글자의 실제 경계(getBBox)로 위·아래 간격을 똑같이 맞춤 — 비율 추정 금지 */
    try{
     var _bb9=tn.getBBox();
@@ -20137,7 +20156,7 @@ function posDrawSD9(force){
   var sc=null;try{sc=posScene9();}catch(_er){console.error('[SD미리보기]',_er);}
   window._sdCache9={sig:sig,sc:sc};g._built9=0;}
  if(!g._built9){
-  while(g.firstChild)g.removeChild(g.firstChild);_sdLeadReg9={};window._sdAscC9=null;try{_sdDens9();}catch(_dn){}/* [BUILD2260] 레지스트리 초기화 */
+  while(g.firstChild)g.removeChild(g.firstChild);_sdLeadReg9={};_sdLeadFW9={};window._sdAscC9=null;try{_sdDens9();}catch(_dn){}/* [BUILD2260] 레지스트리 초기화 */
   var sc2=window._sdCache9.sc;
   if(sc2){/* [BUILD2203] 2패스 — 현황선(비SD 레이어) 먼저 깔고 SD 위에 */
    var _hy9=[],_sd9=[];
