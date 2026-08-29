@@ -19823,23 +19823,26 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+0.35:ex+hx*(tw+2)+0.35),y:ey+0.35,h:1.0,s:spec,lk:_lk9,ax:mx,ay:my,lw:(tw+2),tox:0.35,toy:0.35,eo:[ex-mx,ey-my]});/* [BUILD2257] 완성본 오프셋 */
    addBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6);placed=true;_lkSgn9=sgn;
   }
-  /* [BUILD2271] 관표시 = 관정보와 별개의 두 번째 인출선 — 관로 포인트에서 짧게 뽑아 끝에 관 단면 박스
-     범례(NGIS 양식) 실측: 관경100 → 박스 폭 7.560 / 단높이 1.000 / 원 r 0.5
-                           관경50  → 박스 폭 3.780 / 단높이 0.500 / 원 r 0.25 */
+  /* [BUILD2272] 관표시 = 관정보와 별개의 두 번째 인출선 — 인출선_샘플.dxf 실측 규격
+     · 관표시 인출선 길이 3.000 (관로 포인트 → 박스 시작 모서리), 관정보와 같은 쪽
+     · 박스 = (열수 x 원지름) x (단수 x 원지름), 열은 관로 직각 방향
+     · 원 r = 관경100 0.5 / 관경50 0.25, 박스 모서리에서 r 만큼 안쪽부터 지름 간격 격자 */
   var _d50=(parseFloat(oDia)<=50);
   var _cr9=_d50?0.25:0.5;/* [BUILD2255] 관경별 원 반경 */
-  var _bh9=(_d50?0.5:1.0)*Math.max(1,gd);/* 단수만큼 높이 */
-  var _bw9=Math.max(_d50?3.780:7.560, Math.max(1,gy)*_cr9*2+0.6);/* 열수가 많으면 넓힘 */
-  var _mkS9=_lkSgn9?-_lkSgn9:1;/* 관정보 인출선 반대편 */
-  var _mkD9=_bh9/2+2.0;/* 관표시 인출선 길이 */
-  var _bcx=mx+nx*_mkD9*_mkS9,_bcy=my+ny*_mkD9*_mkS9;/* 박스 중심 */
-  S.items.push({t:'pl',lay:'SD983',pts:[[mx,my],[_bcx-nx*(_bh9/2)*_mkS9,_bcy-ny*(_bh9/2)*_mkS9]],cl:0});/* 관표시 인출선 */
-  var _hx9=ux*_bw9/2,_hy9=uy*_bw9/2,_vx9=nx*_bh9/2,_vy9=ny*_bh9/2;
-  S.items.push({t:'pl',lay:'SD983',pts:[[_bcx-_hx9+_vx9,_bcy-_hy9+_vy9],[_bcx+_hx9+_vx9,_bcy+_hy9+_vy9],[_bcx+_hx9-_vx9,_bcy+_hy9-_vy9],[_bcx-_hx9-_vx9,_bcy-_hy9-_vy9]],cl:1});
-  var _nc9=Math.max(1,gy),_nr9=Math.max(1,gd);/* 열 × 단 */
+  var _dm9=_cr9*2;
+  var _nc9=Math.max(1,gy),_nr9=Math.max(1,gd);/* 열 x 단 */
+  var _bw9=_nc9*_dm9;/* 열 방향(관로 직각) 폭 */
+  var _bh9=_nr9*_dm9;/* 단 방향(관로 나란히) 높이 */
+  var _mkS9=_lkSgn9||1;/* 관정보 인출선과 같은 쪽 */
+  var _mkD9=3.0;/* 관표시 인출선 길이 */
+  var _ax9=mx+nx*_mkD9*_mkS9,_ay9=my+ny*_mkD9*_mkS9;/* 박스 시작 모서리 */
+  var _bx9=_ax9+nx*_bw9*_mkS9,_by9=_ay9+ny*_bw9*_mkS9;/* 박스 반대 모서리 */
+  S.items.push({t:'pl',lay:'SD983',pts:[[mx,my],[_ax9,_ay9]],cl:0});/* 관표시 인출선 */
+  var _hx9=ux*_bh9/2,_hy9=uy*_bh9/2;
+  S.items.push({t:'pl',lay:'SD983',cl:1,pts:[[_ax9+_hx9,_ay9+_hy9],[_bx9+_hx9,_by9+_hy9],[_bx9-_hx9,_by9-_hy9],[_ax9-_hx9,_ay9-_hy9]]});
   for(var _r9=0;_r9<_nr9&&_r9<8;_r9++)for(var _c9=0;_c9<_nc9&&_c9<12;_c9++){
-   var _ox9=(_c9-(_nc9-1)/2)*_cr9*2,_oy9=(_r9-(_nr9-1)/2)*_cr9*2;
-   S.items.push({t:'ci',lay:'SD983',x:_bcx+ux*_ox9+nx*_oy9,y:_bcy+uy*_ox9+ny*_oy9,r:_cr9});
+   var _ov9=(_c9+0.5)*_dm9*_mkS9,_ou9=(_r9+0.5)*_dm9-_bh9/2;
+   S.items.push({t:'ci',lay:'SD983',x:_ax9+nx*_ov9+ux*_ou9,y:_ay9+ny*_ov9+uy*_ou9,r:_cr9});
   }
  });
  /* [BUILD2204] 현황선 — 실물 표준 레이어 DORO(색4). ★현황결선은 insp:true가 정상이라 insp 제외 금지(2203 결함). 기존 도엽에만 배정 */
