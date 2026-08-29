@@ -19993,6 +19993,16 @@ function _sdDrawSym9(g,name,x,y){/* 블록 심볼 — tpl_pos_legend.dxf 실측 
 }
 var _sdLeadReg9={};/* [BUILD2260] lk -> 노드 배열 (드래그 라이브 갱신용) */
 window._sdLeadKeep9=window._sdLeadKeep9||{};/* [BUILD2279] 세션 보관 — state 재로드에도 인출선 위치 유지 */
+function _sdKeepKey9(){try{return 'sdLead9_'+(state.projectId||'x');}catch(_e){return 'sdLead9_x';}}
+function _sdKeepLoad9(){/* [BUILD2282] 페이지 재로드에도 살아남도록 sessionStorage 병합 */
+ try{var raw=sessionStorage.getItem(_sdKeepKey9());if(!raw)return;
+  var o=JSON.parse(raw)||{};window._sdLeadKeep9=window._sdLeadKeep9||{};
+  for(var k in o){if(!window._sdLeadKeep9[k])window._sdLeadKeep9[k]=o[k];}
+ }catch(_e){}
+}
+function _sdKeepSave9(){
+ try{sessionStorage.setItem(_sdKeepKey9(),JSON.stringify(window._sdLeadKeep9||{}));}catch(_e){}
+}
 function _sdLeadKV9(lk){/* [BUILD2280] 키에서 접두(L/F)와 앵커 좌표 파싱 */
  if(!lk)return null;
  var m=/^([A-Z])(-?[0-9.]+)_(-?[0-9.]+)$/.exec(lk);
@@ -20003,6 +20013,7 @@ function _sdLeadKV9(lk){/* [BUILD2280] 키에서 접두(L/F)와 앵커 좌표 �
 }
 function _sdLeadGet9(lk){/* [BUILD2280] 정확 키 → 보관본 → 앵커 근접(0.6m) 순으로 조회. 키 문자열이 미세하게 달라져도 찾음 */
  if(!lk)return null;
+ if(!window._sdKeepInit9){window._sdKeepInit9=1;try{_sdKeepLoad9();}catch(_kl){}}/* [BUILD2282] */
  var v=(state.sdLead9&&state.sdLead9[lk])||null;
  if(v)return v;
  var k=window._sdLeadKeep9&&window._sdLeadKeep9[lk];
@@ -20077,6 +20088,7 @@ function _sdLeadDrag9(node,it){/* [BUILD2260] SD 인출선 이동 — window 리
   var ox=st.ox+(p[0]-st.sx),oy=st.oy-(p[1]-st.sy);/* 월드 y는 화면 y의 반대 */
   state.sdLead9=state.sdLead9||{};state.sdLead9[it.lk]=[ox,oy];
   window._sdLeadKeep9=window._sdLeadKeep9||{};window._sdLeadKeep9[it.lk]=[ox,oy];/* [BUILD2279] */
+  try{_sdKeepSave9();}catch(_ks){}/* [BUILD2282] 즉시 영속화 — 저장 전에 재로드돼도 생존 */
   if(!window._sdDbg9){window._sdDbg9=1;try{console.log('[SD인출선] 이동 기록 키=',it.lk,'타입=',it.t,'레이어=',it.lay);}catch(_g){}}/* [BUILD2278] 1회 진단 */
   try{_sdLeadMv9(it.lk,ox,oy);}catch(_d){}
  }
@@ -20210,7 +20222,9 @@ function posDrawSD9(force){
   var sc=null;try{sc=posScene9();}catch(_er){console.error('[SD미리보기]',_er);}
   window._sdCache9={sig:sig,sc:sc};g._built9=0;}
  if(!g._built9){
-  while(g.firstChild)g.removeChild(g.firstChild);_sdLeadReg9={};_sdLeadFW9={};window._sdAscC9=null;try{_sdDens9();}catch(_dn){}/* [BUILD2260] 레지스트리 초기화 */
+  while(g.firstChild)g.removeChild(g.firstChild);_sdLeadReg9={};_sdLeadFW9={};window._sdAscC9=null;
+  try{_sdKeepLoad9();var _KP9=window._sdLeadKeep9||{};state.sdLead9=state.sdLead9||{};
+   for(var _kk9 in _KP9){if(!state.sdLead9[_kk9])state.sdLead9[_kk9]=[_KP9[_kk9][0],_KP9[_kk9][1]];}}catch(_km9){}/* [BUILD2282] 보관본을 state에 되살림 */try{_sdDens9();}catch(_dn){}/* [BUILD2260] 레지스트리 초기화 */
   var sc2=window._sdCache9.sc;
   if(sc2){/* [BUILD2203] 2패스 — 현황선(비SD 레이어) 먼저 깔고 SD 위에 */
    var _hy9=[],_sd9=[];
