@@ -8871,7 +8871,7 @@ function _posModal9(msg,okLb,onOk,onCancel){/* [BUILD2226] 공용 확인 모달(
 }
 function uiConfirm9(msg,okLb,onOk,onCancel){return _posModal9(msg,okLb,onOk,onCancel);}/* [BUILD2226] 전 공정 공용 확인창 — confirm() 대체 표준 */
 /* ===== [BUILD2198] 정위치 결선 동기화 체계 — 열 때 자동(미작업 시) + 추가수정분 선택 반영 ===== */
-function _posSig9(){try{var s=JSON.stringify({p:state.points||[],l:state.lines||[],m:state.manholes||[],n:state.mnList||[],t:state.tgStore||null,d:state._depthManual||null});var h=5381;for(var i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(i))>>>0;}return h+'-'+s.length;}catch(_e){return null;}}
+function _posSig9(){try{var s=JSON.stringify({p:state.points||[],l:state.lines||[],m:state.manholes||[],n:state.mnList||[],t:state.tgStore||null,d:state._depthManual||null,ld:state.sdLead9||null});/* [BUILD2256] 인출선 이동 시 캐시 무효화 */var h=5381;for(var i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(i))>>>0;}return h+'-'+s.length;}catch(_e){return null;}}
 function _posFldLatest9(cb){/* 같은 사업명 field 최신 완료본 */
   var base=baseName(state.projectName||'');
   sb.from('field_projects').select('id,name,updated_at,payload').then(function(res){
@@ -19805,27 +19805,29 @@ function _sdDrawSym9(g,name,x,y){/* 블록 심볼 — tpl_pos_legend.dxf 실측 
   g.appendChild(el('circle',{cx:cx,cy:cy,r:0.4,fill:'none',stroke:'#111','stroke-width':0.07,'pointer-events':'none'}));
  }
 }
-function _sdLeadDrag9(node,it){/* [BUILD2254] SD 구간 제원 인출선 이동 — 맨홀·입상주와 동일 감각 */
+function _sdLeadDrag9(node,it){/* [BUILD2256] SD 인출선 이동 — 화면(SVG) 좌표계 기준(S()의 y반전 대응) */
  var st=null;
+ function _sxy9(e){/* client → SVG 사용자좌표(= S() 결과계) */
+  try{var m=cv.getScreenCTM();if(m&&m.a){var im=m.inverse();return [im.a*e.clientX+im.c*e.clientY+im.e, im.b*e.clientX+im.d*e.clientY+im.f];}}catch(_c){}
+  var r=cv.getBoundingClientRect();
+  return [vb.x+(e.clientX-r.left)/r.width*vb.w, vb.y+(e.clientY-r.top)/r.height*vb.h];
+ }
  node.addEventListener('pointerdown',function(e){
   if(e.button!=null&&e.button!==0)return;
   e.preventDefault();e.stopPropagation();
-  var w0=(typeof toWorld==='function')?toWorld(e.clientX,e.clientY):null;
-  if(!w0)return;
+  var p0=_sxy9(e);if(!p0)return;
   var cur=(state.sdLead9&&state.sdLead9[it.lk])||null;
   var ax=(it.ax!=null?it.ax:0),ay=(it.ay!=null?it.ay:0);
-  if(!cur){/* 현재 화면 위치를 시작 오프셋으로 */
-   var p1=(it.t==='pl')?it.pts[1]:[it.x,it.y];
-   cur=[p1[0]-ax,p1[1]-ay];
-  }
-  st={sx:w0[0],sy:w0[1],ox:cur[0],oy:cur[1]};
-  try{node.setPointerCapture(e.pointerId);}catch(_c){}
+  if(!cur){var p1=(it.t==='pl')?it.pts[1]:[it.x,it.y];cur=[p1[0]-ax,p1[1]-ay];}
+  st={sx:p0[0],sy:p0[1],ox:cur[0],oy:cur[1]};
+  try{node.setPointerCapture(e.pointerId);}catch(_c2){}
  });
  node.addEventListener('pointermove',function(e){
   if(!st)return;e.preventDefault();e.stopPropagation();
-  var w=(typeof toWorld==='function')?toWorld(e.clientX,e.clientY):null;if(!w)return;
+  var p=_sxy9(e);if(!p)return;
+  var dxs=p[0]-st.sx, dys=p[1]-st.sy;/* 화면 이동량 */
   state.sdLead9=state.sdLead9||{};
-  state.sdLead9[it.lk]=[st.ox+(w[0]-st.sx),st.oy+(w[1]-st.sy)];
+  state.sdLead9[it.lk]=[st.ox+dxs, st.oy-dys];/* 월드 y는 화면 y의 반대 */
   try{if(typeof posDrawSD9==='function')posDrawSD9(true);}catch(_d){}
  });
  function _end(e){if(!st)return;st=null;
@@ -19834,13 +19836,16 @@ function _sdLeadDrag9(node,it){/* [BUILD2254] SD 구간 제원 인출선 이동 
  }
  node.addEventListener('pointerup',_end);node.addEventListener('pointercancel',_end);
 }
+
 function _sdDrawItem9(g,it){
  var col=_sdCol9(it.lay);
  if(it.t==='pl'){
   if(!/^SD/.test(it.lay)){var _sl9=it.slay||it.lay;col=(typeof LINECOL!=='undefined'&&LINECOL[_sl9])?LINECOL[_sl9].c:'#00a6b8';}/* [BUILD2204] 현황=원레이어 색, DORO 폴백 시안 */
   var ps='';for(var i=0;i<it.pts.length;i++){var sc=S(it.pts[i][0],it.pts[i][1]);ps+=(i?' ':'')+sc[0].toFixed(3)+','+sc[1].toFixed(3);}
   var _pn9=el(it.cl?'polygon':'polyline',{points:ps,fill:'none',stroke:col,'stroke-width':(it.lay==='SD001'?0.15:(!/^SD/.test(it.lay)?0.1:0.08)),'pointer-events':(it.lk?'stroke':'none')});
-  if(it.lk){_pn9.setAttribute('stroke-width',0.14);_pn9.style.cursor='move';_sdLeadDrag9(_pn9,it);}/* [BUILD2254] 인출선 드래그 */
+  if(it.lk){_pn9.setAttribute('stroke-width',0.14);_pn9.style.cursor='move';_sdLeadDrag9(_pn9,it);
+   var _ht9=el('polyline',{points:ps,fill:'none',stroke:'transparent','stroke-width':1.2,'pointer-events':'stroke'});/* [BUILD2256] 넓은 히트 영역 */
+   _ht9.style.cursor='move';_sdLeadDrag9(_ht9,it);g.appendChild(_ht9);}
   g.appendChild(_pn9);
  }else if(it.t==='ci'){
   var c=S(it.x,it.y);g.appendChild(el('circle',{cx:c[0],cy:c[1],r:it.r,fill:'none',stroke:col,'stroke-width':0.07,'pointer-events':'none'}));
