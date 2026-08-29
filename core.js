@@ -19960,7 +19960,7 @@ function _sdLeadDrag9(node,it){/* [BUILD2260] SD 인출선 이동 — window 리
 }
 
 /* ===== [BUILD2262] 화면(미리보기) 전용 표시 튜닝 — posScene9 원본/DXF에는 일절 영향 없음 ===== */
-var _SDVW9={pipe:0.09,hyun:0.055,sd:0.045,lead:0.07,sym:0.62,txt:1.02};
+var _SDVW9={pipe:0.15,hyun:0.1,sd:0.08,lead:0.14,sym:1,txt:1.5};/* [BUILD2263] 2262 표시축소 원상복구 — 이격선 텍스트 중앙정렬이 posScene9의 글자폭 0.72 고정 계산과 어긋남 */
 var _SDDG9=null;/* 측점 밀집도 그리드 */
 function _sdDens9(){/* 5m 셀 측점 카운트 — 그리기 직전 1회 */
  var G={},ps=(state.points||[]);
@@ -19972,7 +19972,8 @@ function _sdDensK9(x,y){/* 조밀할수록 작게 — 3x3 셀 합계 기준 */
  if(!_SDDG9)return 1;
  var cx=Math.floor(x/5),cy=Math.floor(y/5),n=0;
  for(var a=-1;a<=1;a++)for(var b=-1;b<=1;b++){var v=_SDDG9[(cx+a)+'_'+(cy+b)];if(v)n+=v;}
- return n>=14?0.5:(n>=9?0.62:(n>=6?0.74:(n>=4?0.86:1)));
+ return 1;/* [BUILD2263] 밀집 축소 원상복구 (정렬 체계 정리 후 재적용) */
+ /* n>=14?0.5:(n>=9?0.62:(n>=6?0.74:(n>=4?0.86:1))) */
 }
 function _sdLeadPut9(n,it){try{n._it9=it;(_sdLeadReg9[it.lk]=_sdLeadReg9[it.lk]||[]).push(n);}catch(_e){}}
 function _sdDrawItem9(g,it){
