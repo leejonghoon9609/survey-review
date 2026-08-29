@@ -19873,7 +19873,7 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+0.35:ex+hx*(tw+2)+0.35),y:ey+0.35,h:1.0,s:spec,lk:_lk9,ax:mx,ay:my,lw:(tw+2),tox:0.35,toy:0.35,eo:[ex-mx,ey-my]});/* [BUILD2257] 완성본 오프셋 */
    addBox(S,Math.min(ex,ex+hx*(tw+2)),ey-0.2,Math.max(ex,ex+hx*(tw+2)),ey+1.6);placed=true;_lkSgn9=((_uo9[0]*nx+_uo9[1]*ny)>=0)?1:-1;_lkEX9=ex;_lkEY9=ey;
   }
-  var offs=[7,11,15,19];var sides=[1,-1];
+  var offs=[13,19,25,31];var sides=[1,-1];/* [BUILD2278] 기본 인출선 간격 확대(첨부1 수준) */
   for(var pzL=0;pzL<2&&!placed;pzL++)/* [BUILD2262] pass0=관로 크로스 배제, pass1=폴백 */
   for(var oi=0;oi<offs.length&&!placed;oi++)for(var si=0;si<2&&!placed;si++){
    var sgn=sides[si];
@@ -20029,6 +20029,7 @@ function _sdLeadDrag9(node,it){/* [BUILD2260] SD 인출선 이동 — window 리
   var p=_sxy9(e);if(!p)return;
   var ox=st.ox+(p[0]-st.sx),oy=st.oy-(p[1]-st.sy);/* 월드 y는 화면 y의 반대 */
   state.sdLead9=state.sdLead9||{};state.sdLead9[it.lk]=[ox,oy];
+  if(!window._sdDbg9){window._sdDbg9=1;try{console.log('[SD인출선] 이동 기록 키=',it.lk,'타입=',it.t,'레이어=',it.lay);}catch(_g){}}/* [BUILD2278] 1회 진단 */
   try{_sdLeadMv9(it.lk,ox,oy);}catch(_d){}
  }
  function _up(e){
