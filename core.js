@@ -4666,6 +4666,34 @@ malgun.ttf
   4
 
   0
+STYLE
+  5
+2E
+330
+5
+100
+AcDbSymbolTableRecord
+100
+AcDbTextStyleTableRecord
+  2
+NGSW
+ 70
+0
+ 40
+0.0
+ 41
+1.0
+ 50
+0.0
+ 71
+0
+ 42
+2.5
+  3
+romans.shx
+  4
+ngsw.shx
+  0
 ENDTAB
   0
 TABLE
@@ -19589,7 +19617,7 @@ function _posSheetOf(x,y){var ll=toLatLng(x,y);if(!ll)return null;return _posCel
 /* --- DXF \uc5d4\ud2f0\ud2f0 \ubb38\uc790\uc5f4 --- */
 function _pdN(v){return (Math.round(v*1000)/1000).toString();}
 var _pdH=0x200000;function _pdHx(){return (++_pdH).toString(16).toUpperCase();}
-function _pdText(lay,x,y,h,txt,rot){var s='  0\r\nTEXT\r\n  5\r\n'+_pdHx()+'\r\n100\r\nAcDbEntity\r\n  8\r\n'+lay+'\r\n100\r\nAcDbText\r\n 10\r\n'+_pdN(x)+'\r\n 20\r\n'+_pdN(y)+'\r\n 30\r\n0\r\n 40\r\n'+_pdN(h)+'\r\n  1\r\n'+txt+'\r\n';if(rot)s+=' 50\r\n'+_pdN(rot)+'\r\n';s+='100\r\nAcDbText\r\n';return s;}
+function _pdText(lay,x,y,h,txt,rot){var s='  0\r\nTEXT\r\n  5\r\n'+_pdHx()+'\r\n100\r\nAcDbEntity\r\n  8\r\n'+lay+'\r\n100\r\nAcDbText\r\n 10\r\n'+_pdN(x)+'\r\n 20\r\n'+_pdN(y)+'\r\n 30\r\n0\r\n 40\r\n'+_pdN(h)+'\r\n  7\r\nNGSW\r\n  1\r\n'+txt+'\r\n';if(rot)s+=' 50\r\n'+_pdN(rot)+'\r\n';s+='100\r\nAcDbText\r\n';return s;}
 function _pdPL(lay,pts,closed,c62){var s='  0\r\nLWPOLYLINE\r\n  5\r\n'+_pdHx()+'\r\n100\r\nAcDbEntity\r\n  8\r\n'+lay+'\r\n'+(c62?(' 62\r\n'+c62+'\r\n'):'')+'100\r\nAcDbPolyline\r\n 90\r\n'+pts.length+'\r\n 70\r\n'+(closed?1:0)+'\r\n';for(var i=0;i<pts.length;i++)s+=' 10\r\n'+_pdN(pts[i][0])+'\r\n 20\r\n'+_pdN(pts[i][1])+'\r\n';return s;}
 function _pdIns(lay,name,x,y){return '  0\r\nINSERT\r\n  5\r\n'+_pdHx()+'\r\n100\r\nAcDbEntity\r\n  8\r\n'+lay+'\r\n100\r\nAcDbBlockReference\r\n  2\r\n'+name+'\r\n 10\r\n'+_pdN(x)+'\r\n 20\r\n'+_pdN(y)+'\r\n 30\r\n0\r\n';}
 function _pdCirc(lay,x,y,r){return '  0\r\nCIRCLE\r\n  5\r\n'+_pdHx()+'\r\n100\r\nAcDbEntity\r\n  8\r\n'+lay+'\r\n100\r\nAcDbCircle\r\n 10\r\n'+_pdN(x)+'\r\n 20\r\n'+_pdN(y)+'\r\n 30\r\n0\r\n 40\r\n'+_pdN(r)+'\r\n';}
@@ -19682,9 +19710,30 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var isR=(m.type==='riser');
   S.items.push({t:'ins',lay:isR?'SD300':'SD100',name:isR?'SD300':'SD100',x:m.wx,y:m.wy});
   var lb=(m.label||'').replace(/\s+/g,'');if(lb){
-   var tx=m.wx+1.5,ty=m.wy+1.5,w=lb.length*1.0;
-   if(hitBox(S,tx,ty,tx+w,ty+1.2)){ty=m.wy-2.7;}
-   S.items.push({t:'tx',lay:'SD219',x:tx,y:ty,h:1.0,s:lb});addBox(S,tx,ty,tx+w,ty+1.2);}
+   /* [BUILD2257] 완성본 규격 — SD911-1 인출선(심벌→대각→수평) + 끝에 SD219 (dy +0.20) */
+   var _fk9='F'+m.wx.toFixed(2)+'_'+m.wy.toFixed(2);
+   var _fu9=(state.sdLead9&&state.sdLead9[_fk9])||null;
+   var w9=Math.max(5.1,lb.length*0.129+4.56);/* 완성본 수평 길이 */
+   var placedF=false;
+   if(_fu9){
+    var ex9=m.wx+_fu9[0],ey9=m.wy+_fu9[1];var hx9=(_fu9[0]>=0)?1:-1;
+    S.items.push({t:'pl',lay:'SD911-1',pts:[[m.wx,m.wy],[ex9,ey9],[ex9+hx9*w9,ey9]],cl:0,lk:_fk9,ax:m.wx,ay:m.wy});
+    S.items.push({t:'tx',lay:'SD219',x:(hx9>0?ex9:ex9-w9),y:ey9+0.2,h:1.0,s:lb,lk:_fk9});
+    addBox(S,Math.min(ex9,ex9+hx9*w9),ey9-0.2,Math.max(ex9,ex9+hx9*w9),ey9+1.4);placedF=true;
+   }
+   var dgs=[2.8,3.9,5.0],sgs=[[1,1],[-1,1],[1,-1],[-1,-1]];
+   for(var di=0;di<dgs.length&&!placedF;di++)for(var si=0;si<4&&!placedF;si++){
+    var dg=dgs[di],sx9=sgs[si][0],sy9=sgs[si][1];
+    var ex=m.wx+sx9*dg*0.707,ey=m.wy+sy9*dg*0.707;
+    var hx=(sx9>=0)?1:-1;var x0=Math.min(ex,ex+hx*w9),x1=Math.max(ex,ex+hx*w9);
+    if(hitBox(S,x0,ey-0.2,x1,ey+1.4))continue;
+    S.items.push({t:'pl',lay:'SD911-1',pts:[[m.wx,m.wy],[ex,ey],[ex+hx*w9,ey]],cl:0,lk:_fk9,ax:m.wx,ay:m.wy});
+    S.items.push({t:'tx',lay:'SD219',x:(hx>0?ex:ex-w9),y:ey+0.2,h:1.0,s:lb,lk:_fk9});
+    addBox(S,x0,ey-0.2,x1,ey+1.4);placedF=true;
+   }
+   if(!placedF){var tx=m.wx+1.5,ty=m.wy+1.5,w=lb.length*1.0;
+    S.items.push({t:'tx',lay:'SD219',x:tx,y:ty,h:1.0,s:lb});addBox(S,tx,ty,tx+w,ty+1.2);}
+  }
  });
  /* 4) 구간 제원 SD911 인출선 + SD910 + SD983 공수 */
  pipes.forEach(function(l){
@@ -19699,14 +19748,14 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var S=shget(mx,my);if(!S)return;
   var dx9=pts[mi+1][0]-pts[mi][0],dy9=pts[mi+1][1]-pts[mi][1];var L9=Math.hypot(dx9,dy9)||1;var ux=dx9/L9,uy=dy9/L9,nx=-uy,ny=ux;
   var spec=yy+'/'+oKind+'/%%C'+oDia+'x'+gongsu+'('+naeg+')/L'+Lm.toFixed(1)+'/D'+(Dv!=null?Dv.toFixed(1):'__');/* [BUILD2255] 실물 D__ */
-  var tw=spec.replace(/%%C/g,'Ø').length*0.745+3.2;/* [BUILD2255] 4도엽 회귀: 글자수*0.745+5.2 (수평선=tw+2) */
+  var tw=spec.replace(/%%C/g,'Ø').length*0.954-2.6;/* [BUILD2257] 완성본 회귀 *//* [BUILD2255] 4도엽 회귀: 글자수*0.745+5.2 (수평선=tw+2) */
   var placed=false;
   var _lk9='L'+mx.toFixed(2)+'_'+my.toFixed(2);/* [BUILD2254] 구간 인출선 키 */
   var _uo9=(state.sdLead9&&state.sdLead9[_lk9])||null;
   if(_uo9){/* 사용자가 옮긴 위치 우선 */
    var ex=mx+_uo9[0],ey=my+_uo9[1];var hx=(_uo9[0]>=0)?1:-1;
    S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0,lk:_lk9,ax:mx,ay:my});
-   S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+1:ex+hx*(tw+1)),y:ey+0.4,h:1.0,s:spec,lk:_lk9});
+   S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+0.35:ex+hx*(tw+2)+0.35),y:ey+0.35,h:1.0,s:spec,lk:_lk9});/* [BUILD2257] 완성본 오프셋 */
    addBox(S,Math.min(ex,ex+hx*(tw+2)),ey-0.2,Math.max(ex,ex+hx*(tw+2)),ey+1.6);placed=true;
   }
   var offs=[7,11,15,19];var sides=[1,-1];
@@ -19716,7 +19765,7 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    var tx0=ex,tx1=ex+hx*(tw+2);
    if(hitBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6))continue;
    S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0,lk:_lk9,ax:mx,ay:my});
-   S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+1:ex+hx*(tw+1)),y:ey+0.4,h:1.0,s:spec,lk:_lk9});
+   S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+0.35:ex+hx*(tw+2)+0.35),y:ey+0.35,h:1.0,s:spec,lk:_lk9});/* [BUILD2257] 완성본 오프셋 */
    addBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6);placed=true;
   }
   /* SD983: 중점 부근 공수 원 + 밴드 */
