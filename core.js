@@ -19960,7 +19960,7 @@ function _sdLeadDrag9(node,it){/* [BUILD2260] SD 인출선 이동 — window 리
 }
 
 /* ===== [BUILD2262] 화면(미리보기) 전용 표시 튜닝 — posScene9 원본/DXF에는 일절 영향 없음 ===== */
-var _SDVW9={pipe:0.05,hyun:0.03,sd:0.03,lead:0.035,sym:0.45,txt:0.70,fw:100,ff:"'Segoe UI Light','Helvetica Neue Light','Malgun Gothic Semilight',Arial,sans-serif"};/* [BUILD2265] fw/ff = 화면 글자 획 굵기 *//* [BUILD2264] 시스템 도면창 전용 표시 — DXF 무영향 *//* [BUILD2263] 2262 표시축소 원상복구 — 이격선 텍스트 중앙정렬이 posScene9의 글자폭 0.72 고정 계산과 어긋남 */
+var _SDVW9={pipe:0.05,hyun:0.03,sd:0.03,lead:0.035,sym:0.45,txt:0.70,gapT:0.2,gapB:0.05,fw:100,ff:"'Segoe UI Light','Helvetica Neue Light','Malgun Gothic Semilight',Arial,sans-serif"};/* [BUILD2265] fw/ff = 화면 글자 획 굵기 *//* [BUILD2264] 시스템 도면창 전용 표시 — DXF 무영향 *//* [BUILD2263] 2262 표시축소 원상복구 — 이격선 텍스트 중앙정렬이 posScene9의 글자폭 0.72 고정 계산과 어긋남 */
 var _SDDG9=null;/* 측점 밀집도 그리드 */
 function _sdDens9(){/* 5m 셀 측점 카운트 — 그리기 직전 1회 */
  var G={},ps=(state.points||[]);
@@ -20012,7 +20012,7 @@ function _sdDrawItem9(g,it){
    try{
     var _bb9=tn.getBBox();
     if(_bb9&&_bb9.height>0){
-     var _gp9=0.2;/* 이격선 ↔ 글자 간격(사용자단위) */
+     var _gp9=(it.side>0)?_SDVW9.gapT:_SDVW9.gapB;/* [BUILD2270] 위·아래 간격 개별 조절 */
      var _wt9=(it.side>0)?(c2[1]-_gp9-_bb9.height):(c2[1]+_gp9);/* 원하는 글자 윗변 위치 */
      var _dy9=_wt9-_bb9.y;
      tn.setAttribute('y',c2[1]+_dy9);
