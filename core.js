@@ -19712,6 +19712,38 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
  var outer=(tb.outer||'FC(￠100)');var om=/([A-Za-z]+)\D*(\d+)/.exec(outer)||[];var oKind=om[1]||'FC',oDia=om[2]||'100';
  var gy=parseInt(tb.gyeol,10)||1,gd=parseInt(tb.gdan,10)||1;var gongsu=gy*gd;
  var naeg=0;try{var tm=state.tangoManual||{};for(var k in tm){if(tm[k]&&tm[k].naegwan){naeg=parseInt(tm[k].naegwan,10)||0;break;}}}catch(_n){}
+ /* ===== [BUILD2273] 구간별 관정보 — 관로 태그(drawTgPipeTags)와 동일 소스 재사용 ===== */
+ var _tgS9=null,_tgR9=null;
+ try{if(typeof tangoBuildSegs==='function'){_tgS9=tangoBuildSegs()||null;_tgR9=window._tgSegRaw||null;}}catch(_ts9){_tgS9=null;}
+ function _segM9(px,py){/* 점이 속한 구간의 수동입력값 */
+  if(!_tgS9||!_tgS9.length)return null;
+  var bi=-1,bd=null;
+  for(var i=0;i<_tgS9.length;i++){
+   var raw=(_tgR9&&_tgR9[i])||(_tgS9[i]||[]).map(function(n){return [n.x,n.y];});
+   for(var q=0;q<raw.length-1;q++){
+    var a=raw[q],b=raw[q+1],vx=b[0]-a[0],vy=b[1]-a[1],L2=vx*vx+vy*vy;if(!L2)continue;
+    var t=Math.max(0,Math.min(1,((px-a[0])*vx+(py-a[1])*vy)/L2));
+    var d=Math.hypot(px-(a[0]+t*vx),py-(a[1]+t*vy));
+    if(bd==null||d<bd){bd=d;bi=i;}
+   }
+  }
+  if(bi<0||bd==null||bd>1.0)return null;
+  try{var key=tgManualKey(_tgS9[bi]);return (state.tangoManual&&state.tangoManual[key])||null;}catch(_k9){return null;}
+ }
+ function _segSpec9(px,py){/* 관경/재질/공수/열/단/내관 — 없으면 사업 공통값 폴백 */
+  var M=_segM9(px,py)||{};
+  var ext=(''+(M.ext||'')).trim()||outer;
+  var em=/([A-Za-z]+)\D*(\d+)/.exec(ext)||[];
+  var kind=em[1]||oKind, dia=em[2]||oDia;
+  var gw=parseInt(M.gwansu,10)||0;
+  var c9=parseInt(M.gyeol,10)||0, r9=parseInt(M.gdan,10)||0;
+  if(!gw)gw=(c9&&r9)?(c9*r9):gongsu;
+  if(!c9||!r9){/* 열·단 미입력이면 공수에서 분해 — 짝수는 2단(샘플 6=3x2, 8=4x2) */
+   if(gw%2===0&&gw>=2){c9=gw/2;r9=2;}else{c9=gw;r9=1;}
+  }
+  var nv=(M.naegwan!=null&&(''+M.naegwan).trim()!=='')?(parseInt(M.naegwan,10)||0):naeg;
+  return {kind:kind,dia:dia,gw:gw,col:c9,row:r9,nae:nv};
+ }
  /* 도엽 버킷 */
  var SH={};function shget(x,y){var c=_posSheetOf(x,y);if(!c)return null;if(!SH[c.no])SH[c.no]={cell:c,items:[],boxes:[]};return SH[c.no];}
  function addBox(S,x0,y0,x1,y1){S.boxes.push([Math.min(x0,x1),Math.min(y0,y1),Math.max(x0,x1),Math.max(y0,y1)]);}
@@ -19799,8 +19831,9 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   for(var i=0;i<pts.length-1;i++){var sl=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);if(acc+sl>=half){mi=i;mt=(half-acc)/sl;break;}acc+=sl;}
   var mx=pts[mi][0]+(pts[mi+1][0]-pts[mi][0])*mt,my=pts[mi][1]+(pts[mi+1][1]-pts[mi][1])*mt;
   var S=shget(mx,my);if(!S)return;
+  var _SP9=_segSpec9(mx,my);/* [BUILD2273] 구간별 관정보 */
   var dx9=pts[mi+1][0]-pts[mi][0],dy9=pts[mi+1][1]-pts[mi][1];var L9=Math.hypot(dx9,dy9)||1;var ux=dx9/L9,uy=dy9/L9,nx=-uy,ny=ux;
-  var spec=yy+'/'+oKind+'/%%C'+oDia+'x'+gongsu+'('+naeg+')/L'+Lm.toFixed(1)+'/D'+(Dv!=null?Dv.toFixed(1):'__');/* [BUILD2255] 실물 D__ */
+  var spec=yy+'/'+_SP9.kind+'/%%C'+_SP9.dia+'x'+_SP9.gw+'('+_SP9.nae+')/L'+Lm.toFixed(1)+'/D'+(Dv!=null?Dv.toFixed(1):'__');/* [BUILD2273] 구간별 *//* [BUILD2255] 실물 D__ */
   var tw=spec.replace(/%%C/g,'Ø').length*0.954-2.6;/* [BUILD2257] 완성본 회귀 *//* [BUILD2255] 4도엽 회귀: 글자수*0.745+5.2 (수평선=tw+2) */
   var placed=false,_lkSgn9=0;/* [BUILD2271] 관정보 인출선이 나간 쪽 */
   var _lk9='L'+mx.toFixed(2)+'_'+my.toFixed(2);/* [BUILD2254] 구간 인출선 키 */
@@ -19827,10 +19860,10 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
      · 관표시 인출선 길이 3.000 (관로 포인트 → 박스 시작 모서리), 관정보와 같은 쪽
      · 박스 = (열수 x 원지름) x (단수 x 원지름), 열은 관로 직각 방향
      · 원 r = 관경100 0.5 / 관경50 0.25, 박스 모서리에서 r 만큼 안쪽부터 지름 간격 격자 */
-  var _d50=(parseFloat(oDia)<=50);
+  var _d50=(parseFloat(_SP9.dia)<=50);
   var _cr9=_d50?0.25:0.5;/* [BUILD2255] 관경별 원 반경 */
   var _dm9=_cr9*2;
-  var _nc9=Math.max(1,gy),_nr9=Math.max(1,gd);/* 열 x 단 */
+  var _nc9=Math.max(1,_SP9.col),_nr9=Math.max(1,_SP9.row);/* [BUILD2273] 구간별 열 x 단 */
   var _bw9=_nc9*_dm9;/* 열 방향(관로 직각) 폭 */
   var _bh9=_nr9*_dm9;/* 단 방향(관로 나란히) 높이 */
   var _mkS9=_lkSgn9||1;/* 관정보 인출선과 같은 쪽 */
