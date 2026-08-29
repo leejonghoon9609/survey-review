@@ -19960,7 +19960,7 @@ function _sdLeadDrag9(node,it){/* [BUILD2260] SD 인출선 이동 — window 리
 }
 
 /* ===== [BUILD2262] 화면(미리보기) 전용 표시 튜닝 — posScene9 원본/DXF에는 일절 영향 없음 ===== */
-var _SDVW9={pipe:0.05,hyun:0.03,sd:0.03,lead:0.035,sym:0.45,txt:0.95};/* [BUILD2264] 시스템 도면창 전용 표시 — DXF 무영향 *//* [BUILD2263] 2262 표시축소 원상복구 — 이격선 텍스트 중앙정렬이 posScene9의 글자폭 0.72 고정 계산과 어긋남 */
+var _SDVW9={pipe:0.05,hyun:0.03,sd:0.03,lead:0.035,sym:0.45,txt:0.95,fw:100,ff:"'Segoe UI Light','Helvetica Neue Light','Malgun Gothic Semilight',Arial,sans-serif"};/* [BUILD2265] fw/ff = 화면 글자 획 굵기 *//* [BUILD2264] 시스템 도면창 전용 표시 — DXF 무영향 *//* [BUILD2263] 2262 표시축소 원상복구 — 이격선 텍스트 중앙정렬이 posScene9의 글자폭 0.72 고정 계산과 어긋남 */
 var _SDDG9=null;/* 측점 밀집도 그리드 */
 function _sdDens9(){/* 5m 셀 측점 카운트 — 그리기 직전 1회 */
  var G={},ps=(state.points||[]);
@@ -19992,6 +19992,7 @@ function _sdDrawItem9(g,it){
   var c2=(it.mid&&it.cx!=null)?S(it.cx,it.cy):S(it.x,it.y);/* [BUILD2264] */
   var _fk=(it.lk?1:_sdDensK9(it.x,it.y));/* [BUILD2262] 인출선 글자는 축소 제외 */
   var tn=el('text',{x:c2[0],y:c2[1],'font-size':(it.h*_SDVW9.txt*_fk),fill:col,'text-anchor':(it.mid?'middle':'start'),'pointer-events':(it.lk?'auto':'none')});
+  tn.setAttribute('font-weight',_SDVW9.fw);tn.setAttribute('font-family',_SDVW9.ff);tn.setAttribute('stroke','none');/* [BUILD2265] 아주 얇은 획 */
   if(it.lk){tn.style.cursor='move';_sdLeadDrag9(tn,it);_sdLeadPut9(tn,it);}/* [BUILD2254] 제원 텍스트 드래그 */
   if(it.rot)tn.setAttribute('transform','rotate('+(-it.rot)+' '+c2[0]+' '+c2[1]+')');
   tn.textContent=String(it.s).replace(/%%C/g,'\u00D8');
