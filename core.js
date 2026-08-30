@@ -19666,6 +19666,10 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   }catch(_e){}
   return false;
  }
+
+  var _leads9=[];/* [BUILD2290] \ubc30\uce58 \uc644\ub8cc \uc778\ucd9c\uc120 \uc138\uadf8 \ub4f1\ub85d\ubd80(\uc804\uc5ed \u2014 \ub3c4\uc5fd \uacbd\uacc4 \uad50\ucc28\ub3c4 \ud3ec\ucc29) */
+  function _leadAdd9(lp){for(var k=0;k<lp.length-1;k++)_leads9.push([lp[k],lp[k+1]]);}
+  function _leadX9(lp){for(var k=0;k<lp.length-1;k++){var a=lp[k],b=lp[k+1];for(var q=0;q<_leads9.length;q++){var c=_leads9[q];if(_segX9(a[0],a[1],b[0],b[1],c[0][0],c[0][1],c[1][0],c[1][1]))return true;}}return false;}
  function _blk9(px,py,qx,qy){/* [BUILD2261] 이격선이 다른 현황선을 뚫고 지나가면 차단 */
   var x0=Math.min(px,qx)-0.02,x1=Math.max(px,qx)+0.02,y0=Math.min(py,qy)-0.02,y1=Math.max(py,qy)+0.02;
   for(var i=0;i<hyun.length;i++){var a=hyun[i][0],b=hyun[i][1];
@@ -19834,19 +19838,19 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
     var ex9=m.wx+_fu9[0],ey9=m.wy+_fu9[1];var hx9=(_fu9[0]>=0)?1:-1;
     S.items.push({t:'pl',lay:'SD911-1',pts:[[m.wx,m.wy],[ex9,ey9],[ex9+hx9*w9,ey9]],cl:0,lk:_fk9,ax:m.wx,ay:m.wy,lw:w9,eo:[ex9-m.wx,ey9-m.wy]});
     S.items.push({t:'tx',lay:'SD219',x:(hx9>0?ex9:ex9-w9),y:ey9+0.2,h:1.0,s:lb,lk:_fk9,ax:m.wx,ay:m.wy,lw:w9,tox:0,toy:0.2,eo:[ex9-m.wx,ey9-m.wy]});
-    addBox(S,Math.min(ex9,ex9+hx9*w9),ey9-0.2,Math.max(ex9,ex9+hx9*w9),ey9+1.4);placedF=true;
+    addBox(S,Math.min(ex9,ex9+hx9*w9),ey9-0.2,Math.max(ex9,ex9+hx9*w9),ey9+1.4);_leadAdd9([[m.wx,m.wy],[ex9,ey9],[ex9+hx9*w9,ey9]]);placedF=true;
    }
    var dgs=[2.8,3.9,5.0],sgs=[[1,1],[-1,1],[1,-1],[-1,-1]];
-   for(var pzF=0;pzF<2&&!placedF;pzF++)/* [BUILD2262] pass0=관로 크로스 배제, pass1=폴백 */
+   for(var pzF=0;pzF<4&&!placedF;pzF++)/* [BUILD2290] 0=\uad00\ub85c+\uc778\ucd9c\uc120 \ubc30\uc81c \u2192 1=\uc778\ucd9c\uc120 \ubc30\uc81c \u2192 2=\uad00\ub85c \ubc30\uc81c \u2192 3=\ud3f4\ubc31 *//* [BUILD2262] pass0=관로 크로스 배제, pass1=폴백 */
    for(var di=0;di<dgs.length&&!placedF;di++)for(var si=0;si<4&&!placedF;si++){
     var dg=dgs[di],sx9=sgs[si][0],sy9=sgs[si][1];
     var ex=m.wx+sx9*dg*0.707,ey=m.wy+sy9*dg*0.707;
     var hx=(sx9>=0)?1:-1;var x0=Math.min(ex,ex+hx*w9),x1=Math.max(ex,ex+hx*w9);
     if(hitBox(S,x0,ey-0.2,x1,ey+1.4))continue;
-    if(pzF===0&&_pipeX9([[m.wx,m.wy],[ex,ey],[ex+hx*w9,ey]],m.wx,m.wy))continue;/* [BUILD2262] */
+    var _cd9F=[[m.wx,m.wy],[ex,ey],[ex+hx*w9,ey]];if((pzF===0||pzF===2)&&_pipeX9(_cd9F,m.wx,m.wy))continue;if(pzF<=1&&_leadX9(_cd9F))continue;/* [BUILD2262] */
     S.items.push({t:'pl',lay:'SD911-1',pts:[[m.wx,m.wy],[ex,ey],[ex+hx*w9,ey]],cl:0,lk:_fk9,ax:m.wx,ay:m.wy,lw:w9,eo:[ex-m.wx,ey-m.wy]});
     S.items.push({t:'tx',lay:'SD219',x:(hx>0?ex:ex-w9),y:ey+0.2,h:1.0,s:lb,lk:_fk9,ax:m.wx,ay:m.wy,lw:w9,tox:0,toy:0.2,eo:[ex-m.wx,ey-m.wy]});
-    addBox(S,x0,ey-0.2,x1,ey+1.4);placedF=true;
+    addBox(S,x0,ey-0.2,x1,ey+1.4);_leadAdd9(_cd9F);placedF=true;
    }
    if(!placedF){var tx=m.wx+1.5,ty=m.wy+1.5,w=lb.length*1.0;
     S.items.push({t:'tx',lay:'SD219',x:tx,y:ty,h:1.0,s:lb});addBox(S,tx,ty,tx+w,ty+1.2);}
@@ -19874,10 +19878,10 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    var ex=mx+_uo9[0],ey=my+_uo9[1];var hx=(_uo9[0]>=0)?1:-1;
    S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0,lk:_lk9,ax:mx,ay:my,lw:(tw+2),eo:[ex-mx,ey-my]});
    S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+0.35:ex+hx*(tw+2)+0.35),y:ey+0.35,h:1.0,s:spec,lk:_lk9,ax:mx,ay:my,lw:(tw+2),tox:0.35,toy:0.35,eo:[ex-mx,ey-my]});/* [BUILD2257] 완성본 오프셋 */
-   addBox(S,Math.min(ex,ex+hx*(tw+2)),ey-0.2,Math.max(ex,ex+hx*(tw+2)),ey+1.6);placed=true;_lkSgn9=((_uo9[0]*nx+_uo9[1]*ny)>=0)?1:-1;_lkEX9=ex;_lkEY9=ey;
+   addBox(S,Math.min(ex,ex+hx*(tw+2)),ey-0.2,Math.max(ex,ex+hx*(tw+2)),ey+1.6);_leadAdd9([[mx,my],[ex,ey],[ex+hx*(tw+2),ey]]);placed=true;_lkSgn9=((_uo9[0]*nx+_uo9[1]*ny)>=0)?1:-1;_lkEX9=ex;_lkEY9=ey;
   }
   var offs=[13,19,25,31];var sides=[1,-1];/* [BUILD2278] 기본 인출선 간격 확대(첨부1 수준) */
-  for(var pzL=0;pzL<2&&!placed;pzL++)/* [BUILD2262] pass0=관로 크로스 배제, pass1=폴백 */
+  for(var pzL=0;pzL<4&&!placed;pzL++)/* [BUILD2290] 0=\uad00\ub85c+\uc778\ucd9c\uc120 \ubc30\uc81c \u2192 1=\uc778\ucd9c\uc120 \ubc30\uc81c \u2192 2=\uad00\ub85c \ubc30\uc81c \u2192 3=\ud3f4\ubc31 *//* [BUILD2262] pass0=관로 크로스 배제, pass1=폴백 */
   for(var oi=0;oi<offs.length&&!placed;oi++)for(var si=0;si<2&&!placed;si++){
    var sgn=sides[si];
    var _dxn=nx*sgn,_dyn=ny*sgn;/* [BUILD2277] 완료성과처럼 바깥으로 갈수록 내려가는 완만한 경사 */
@@ -19887,10 +19891,10 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    var hx=(_dxr>=0)?1:-1;
    var tx0=ex,tx1=ex+hx*(tw+2);
    if(hitBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6))continue;
-   if(pzL===0&&_pipeX9([[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],mx,my))continue;/* [BUILD2262] */
+   var _cd9L=[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]];if((pzL===0||pzL===2)&&_pipeX9(_cd9L,mx,my))continue;if(pzL<=1&&_leadX9(_cd9L))continue;/* [BUILD2262] */
    S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0,lk:_lk9,ax:mx,ay:my,lw:(tw+2),eo:[ex-mx,ey-my]});
    S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+0.35:ex+hx*(tw+2)+0.35),y:ey+0.35,h:1.0,s:spec,lk:_lk9,ax:mx,ay:my,lw:(tw+2),tox:0.35,toy:0.35,eo:[ex-mx,ey-my]});/* [BUILD2257] 완성본 오프셋 */
-   addBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6);placed=true;_lkSgn9=sgn;_lkEX9=ex;_lkEY9=ey;
+   addBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6);_leadAdd9(_cd9L);placed=true;_lkSgn9=sgn;_lkEX9=ex;_lkEY9=ey;
   }
   /* [BUILD2274] 관표시 = 관정보 인출선의 대각선 위에 얹힘(바닥이 인출선에 붙음) — 인출선_샘플.dxf 실측
      · 시작점에서 대각선 방향 3.000 지점부터 박스, 박스 길이축 = 대각선 방향
