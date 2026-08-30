@@ -20315,7 +20315,7 @@ function _sdLeadFit9(it,tn){/* [BUILD2276] 그려진 태그의 실제 폭에 인
  var s2=S(tx,ty);tn.setAttribute('x',s2[0]);tn.setAttribute('y',s2[1]);
  var arr=_sdLeadReg9[it.lk]||[];
  for(var i=0;i<arr.length;i++){var n=arr[i],it2=n._it9;
-  if(!it2||it2.t!=='pl'||!n.parentNode)continue;
+  if(!it2||it2.t!=='pl'||it2.fw9||!n.parentNode)continue;/* [BUILD2320] 관표시(fw9) 보호 — fit이 관표시 선을 인출선 모양으로 덮는 구멍 차단 */
   var a=S(G.ax,G.ay),b=S(G.ex,G.ey),c=S(G.ex+G.hx*lw,G.ey);
   n.setAttribute('points',a[0].toFixed(3)+','+a[1].toFixed(3)+' '+b[0].toFixed(3)+','+b[1].toFixed(3)+' '+c[0].toFixed(3)+','+c[1].toFixed(3));
  }
@@ -20375,6 +20375,7 @@ function posDrawSD9(force){
  if(!(typeof IS_POSITION!=='undefined'&&IS_POSITION))return;
  var g=_sdG9();
  if(!window._sdPrev9){g.style.display='none';_sdOnly9(false);return;}
+ g.style.display='';/* [BUILD2320] 빌드 전 표시 — display:none 중 getBBox 0 반환으로 언더라인 폭 보정(_sdLeadFit9)이 건너뛰던 문제(2292 동일 함정) */
  var sig='';try{sig=(typeof _posSig9==='function')?_posSig9():'';}catch(_sg){}
  if(force||!window._sdCache9||window._sdCache9.sig!==sig){
   var sc=null;try{sc=posScene9();}catch(_er){console.error('[SD미리보기]',_er);}
