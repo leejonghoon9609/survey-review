@@ -20042,7 +20042,7 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    var hx=(_dxr>=0)?1:-1;
    var tx0=ex,tx1=ex+hx*(tw+2);
    if(pzL<3){if(hitBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6))continue;}else{if(hitBoxN(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6)>(pzL-3))continue;}/* [BUILD2311] 최종 패스=박스 충돌 무시, 무조건 배치(인출선 누락 금지) */
-   var _cd9L=[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]];if(pzL<3){if((pzL===0||pzL===2)&&_pipeX9(_cd9L,mx,my))continue;if(pzL<=1&&_leadX9(_cd9L))continue;if(_symX9(_cd9L))continue;}else{if(pzL<6&&_leadX9(_cd9L))continue;if(pzL<7&&_pipeX9(_cd9L,mx,my))continue;if(pzL<9&&_symX9(_cd9L))continue;}/* [BUILD2326] 관로 가로지름·심벌 겹침 최대 회피(최후 패스에서만 허용) *//* [BUILD2318] 겹침 허용 초기엔 인출선 교차만은 계속 회피 *//* [BUILD2262] */
+   var _cd9L=[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]];if(pzL<3){if((pzL===0||pzL===2)&&_pipeX9(_cd9L,mx,my))continue;if(pzL<=1&&_leadX9(_cd9L))continue;if(_symX9(_cd9L))continue;}else{if(pzL<6&&_leadX9(_cd9L))continue;if(pzL<11&&_pipeX9(_cd9L,mx,my))continue;if(pzL<9&&_symX9(_cd9L))continue;}/* [BUILD2327] 관로 가로지름=최후 패스 단독 허용 — 반대쪽 자리가 겹침 몇 개여도 항상 우선(강제 규칙) *//* [BUILD2326] 관로 가로지름·심벌 겹침 최대 회피(최후 패스에서만 허용) *//* [BUILD2318] 겹침 허용 초기엔 인출선 교차만은 계속 회피 *//* [BUILD2262] */
    S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0,lk:_lk9,ax:mx,ay:my,lw:(tw+2),eo:[ex-mx,ey-my]});
    S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+0.35:ex+hx*(tw+2)+0.35),y:ey+0.35,h:1.0,s:spec,lk:_lk9,ax:mx,ay:my,lw:(tw+2),tox:0.35,toy:0.35,eo:[ex-mx,ey-my]});/* [BUILD2257] 완성본 오프셋 */
    addBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6);_leadAdd9(_cd9L);placed=true;_lkSgn9=sgn;_lkEX9=ex;_lkEY9=ey;
