@@ -20003,17 +20003,17 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   if(_lkEX9!=null){var _dvx=_lkEX9-mx,_dvy=_lkEY9-my,_dl9=Math.hypot(_dvx,_dvy)||1;_mkU9=[_dvx/_dl9,_dvy/_dl9];}
   else{var _sg9=_lkSgn9||1;_mkU9=[nx*_sg9,ny*_sg9];}/* 인출선 미배치 시 법선 폴백 */
   /* [BUILD2286] 관표시 선을 관정보 대각에서 3.76도 위로 벌림 — 샘플 실측(−16.64 vs −12.86 / −10.86 vs −7.12) = 두 선으로 보임 */
-  var _dv9=3.76*Math.PI/180*((_mkU9[0]>=0)?1:-1);
+  var _bo9=[_mkU9[0],_mkU9[1]];/* [BUILD2312] 회전 추종 기준 방향(보정 전) */var _dv9=3.76*Math.PI/180*((_mkU9[0]>=0)?1:-1);
   var _dc9=Math.cos(_dv9),_ds9=Math.sin(_dv9);
   _mkU9=[_mkU9[0]*_dc9-_mkU9[1]*_ds9, _mkU9[0]*_ds9+_mkU9[1]*_dc9];
   _mkV9=[-_mkU9[1],_mkU9[0]];if(_mkV9[1]<0){_mkV9=[-_mkV9[0],-_mkV9[1]];}/* 박스는 항상 인출선 위쪽 */
   var _ax9=mx+_mkU9[0]*3.0,_ay9=my+_mkU9[1]*3.0;/* 박스 시작 모서리(인출선 위) */
   var _bx9=_ax9+_mkU9[0]*_bw9,_by9=_ay9+_mkU9[1]*_bw9;
-  S.items.push({t:'pl',lay:'SD983',cl:0,pts:[[mx,my],[_ax9,_ay9]]});/* [BUILD2275] 관로 포인트 → 박스 연결선(샘플 P0→P4) */
-  S.items.push({t:'pl',lay:'SD983',cl:1,pts:[[_ax9,_ay9],[_bx9,_by9],[_bx9+_mkV9[0]*_bh9,_by9+_mkV9[1]*_bh9],[_ax9+_mkV9[0]*_bh9,_ay9+_mkV9[1]*_bh9]]});
+  S.items.push({t:'pl',lay:'SD983',cl:0,pts:[[mx,my],[_ax9,_ay9]],lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9});/* [BUILD2275] 관로 포인트 → 박스 연결선(샘플 P0→P4) */
+  S.items.push({t:'pl',lay:'SD983',cl:1,lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9,pts:[[_ax9,_ay9],[_bx9,_by9],[_bx9+_mkV9[0]*_bh9,_by9+_mkV9[1]*_bh9],[_ax9+_mkV9[0]*_bh9,_ay9+_mkV9[1]*_bh9]]});
   for(var _r9=0;_r9<_nr9&&_r9<8;_r9++)for(var _c9=0;_c9<_nc9&&_c9<12;_c9++){
    var _ou9=(_c9+0.5)*_dm9,_ov9=(_r9+0.5)*_dm9;
-   S.items.push({t:'ci',lay:'SD983',x:_ax9+_mkU9[0]*_ou9+_mkV9[0]*_ov9,y:_ay9+_mkU9[1]*_ou9+_mkV9[1]*_ov9,r:_cr9});
+   S.items.push({t:'ci',lay:'SD983',x:_ax9+_mkU9[0]*_ou9+_mkV9[0]*_ov9,y:_ay9+_mkU9[1]*_ou9+_mkV9[1]*_ov9,r:_cr9,lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9});
   }
  });
  /* [BUILD2204] 현황선 — 실물 표준 레이어 DORO(색4). ★현황결선은 insp:true가 정상이라 insp 제외 금지(2203 결함). 기존 도엽에만 배정 */
@@ -20176,6 +20176,7 @@ function _sdLeadGeo9(it,ox,oy){/* [BUILD2274] 인출선 팔꿈치·수평길이 
 function _sdLeadMv9(lk,ox,oy){/* [BUILD2260] 재빌드 없이 해당 인출선 노드만 즉시 이동 */
  var arr=_sdLeadReg9[lk];if(!arr||!arr.length)return;
  for(var i=0;i<arr.length;i++){var n=arr[i],it=n._it9;if(!it||!n.parentNode)continue;
+  if(it.fw9){var b9=it.bo9||[1,0];var a09=Math.atan2(b9[1],b9[0]),a19=Math.atan2(oy,ox);var dg9=-(a19-a09)*180/Math.PI;var sc09=S(it.ax,it.ay);n.setAttribute('transform','rotate('+dg9.toFixed(3)+' '+sc09[0].toFixed(3)+' '+sc09[1].toFixed(3)+')');continue;}/* [BUILD2312] 관표시=앵커 중심 회전 추종(화면 y반전 → 부호 −) */
   var G=_sdLeadGeo9(it,ox,oy),ax=G.ax,ay=G.ay,lw=G.lw,ex=G.ex,ey=G.ey,hx=G.hx;
   if(it.t==='pl'){
    var a=S(ax,ay),b=S(ex,ey),c=S(ex+hx*lw,ey);
@@ -20273,13 +20274,13 @@ function _sdDrawItem9(g,it){
   var _lp9=it.pts;
   if(it.lk&&it.lw!=null&&it.ax!=null){var G9=_sdLeadGeo9(it);_lp9=[[G9.ax,G9.ay],[G9.ex,G9.ey],[G9.ex+G9.hx*G9.lw,G9.ey]];}/* [BUILD2274] 수평선을 태그 길이에 맞춤 */
   var ps='';for(var i=0;i<_lp9.length;i++){var sc=S(_lp9[i][0],_lp9[i][1]);ps+=(i?' ':'')+sc[0].toFixed(3)+','+sc[1].toFixed(3);}
-  var _pn9=el(it.cl?'polygon':'polyline',{points:ps,fill:'none',stroke:col,'stroke-width':(it.lay==='SD001'?_SDVW9.pipe:(!/^SD/.test(it.lay)?_SDVW9.hyun:_SDVW9.sd)),'pointer-events':(it.lk?'stroke':'none')});
-  if(it.lk){_pn9.setAttribute('stroke-width',(window._posSelLk9&&it.lk===window._posSelLk9)?(_SDVW9.lead*2.2):_SDVW9.lead);_pn9.style.cursor='move';_sdLeadDrag9(_pn9,it);_sdLeadPut9(_pn9,it);
+  var _pn9=el(it.cl?'polygon':'polyline',{points:ps,fill:'none',stroke:col,'stroke-width':(it.lay==='SD001'?_SDVW9.pipe:(!/^SD/.test(it.lay)?_SDVW9.hyun:_SDVW9.sd)),'pointer-events':((it.lk&&!it.fw9)?'stroke':'none')});
+  if(it.lk&&it.fw9){_sdLeadPut9(_pn9,it);}else if(it.lk){_pn9.setAttribute('stroke-width',(window._posSelLk9&&it.lk===window._posSelLk9)?(_SDVW9.lead*2.2):_SDVW9.lead);_pn9.style.cursor='move';_sdLeadDrag9(_pn9,it);_sdLeadPut9(_pn9,it);
    var _ht9=el('polyline',{points:ps,fill:'none',stroke:'transparent','stroke-width':1.2,'pointer-events':'stroke'});/* [BUILD2256] 넓은 히트 영역 */
    _ht9.style.cursor='move';_sdLeadDrag9(_ht9,it);_sdLeadPut9(_ht9,it);g.appendChild(_ht9);}
   g.appendChild(_pn9);
  }else if(it.t==='ci'){
-  var c=S(it.x,it.y);g.appendChild(el('circle',{cx:c[0],cy:c[1],r:it.r,fill:'none',stroke:col,'stroke-width':(0.07*_SDVW9.sym),'pointer-events':'none'}));
+  var c=S(it.x,it.y);var _cn9=el('circle',{cx:c[0],cy:c[1],r:it.r,fill:'none',stroke:col,'stroke-width':(0.07*_SDVW9.sym),'pointer-events':'none'});if(it.lk&&it.fw9)_sdLeadPut9(_cn9,it);g.appendChild(_cn9);
  }else if(it.t==='tx'){
   var c2,_md9=(it.mid&&it.side!=null&&it.bx!=null);
   if(_md9)c2=S(it.bx,it.by);/* [BUILD2269] 이격선 위의 기준점 — 상하 배치는 그린 뒤 실측 보정 */
