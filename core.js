@@ -15395,14 +15395,14 @@ function fldLayerBox(){
 }
 function fldLayerToggle(inp){ if(typeof setLayerVis==='function') setLayerVis(inp.getAttribute('data-tglv'),inp.checked); }
 var _sdLV9=null;/* [BUILD2293] SD 전용 레이어 가시성(화면 전용) */
-function _sdLVinit9(){if(!_sdLV9){_sdLV9={};['pipe','pt','gwan','sim','dim','spec','fac','mh','hyun'].forEach(function(k){_sdLV9[k]=1;});}return _sdLV9;}
+function _sdLVinit9(){if(!_sdLV9){_sdLV9={};['pipe','pipeT','pt','gwan','sim','dim','spec','fac','mh','hyun'].forEach(function(k){_sdLV9[k]=1;});}return _sdLV9;}
 function _sdGrpOf9(it){var L=it.lay||'';
  if(it.t==='pl'&&!/^SD/.test(L))return 'hyun';
- if(L==='SD001')return 'pipe';if(L==='SD901')return 'pt';if(L==='SD_관상고')return 'gwan';if(L==='SDSIM_T')return 'sim';
+ if(L==='SD001')return (it.tam?'pipeT':'pipe');/* [BUILD2294] 실시간/탐사 분리 */if(L==='SD901')return 'pt';if(L==='SD_관상고')return 'gwan';if(L==='SDSIM_T')return 'sim';
  if(L==='SDDIM'||L==='SDDIM1')return 'dim';if(L==='SD910'||L==='SD911'||L==='SD983')return 'spec';
  if(L==='SD219'||L==='SD911-1')return 'fac';if(L==='SD100'||L==='SD300')return 'mh';return null;}
 function _sdLayerBox9(){var LVs=_sdLVinit9();
- var defs=[['pipe','관로선'],['pt','측점'],['gwan','관상고'],['sim','심도'],['dim','이격선·치수'],['spec','구간 제원'],['fac','시설물번호'],['mh','맨홀·입상주'],['hyun','현황선']];
+ var defs=[['pipe','관로선(실시간)'],['pipeT','관로선(탐사)'],['pt','측점'],['gwan','관상고'],['sim','심도'],['dim','이격선·치수'],['spec','구간 제원'],['fac','시설물번호'],['mh','맨홀·입상주'],['hyun','현황선']];
  var open=(function(){try{return localStorage.getItem('fldLayerOpen')!=='0';}catch(e){return true;}})();
  var h='<div style="border:1px solid #6d28d9;border-radius:8px;padding:6px 10px;background:#faf7ff;box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:92px">';
  h+='<div onclick="fldLayerToggleOpen()" style="font-weight:700;font-size:12px;color:#6d28d9;cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none'+(open?';margin-bottom:5px':'')+'">SD 레이어 <span style="font-size:9px">'+(open?'▼':'▶')+'</span></div>';
