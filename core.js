@@ -13701,7 +13701,8 @@ function posGwanAudit9(){/* [BUILD2313] 1단=구간 내 일관성(구간 내 전
   var reps=[],bad=[];
   for(var i=0;i<segs.length;i++){
    var cnt={},list=[];
-   (segs[i]||[]).forEach(function(n){if(n.mh||n.tamsa||!n.no)return;var pt=(typeof pointByNo==='function')?pointByNo(n.no):null;var v=_posGwVec9(pt?pt.code:null);if(!v)return;var k=v[0]+'|'+v[1];cnt[k]=(cnt[k]||0)+1;list.push({no:n.no,x:n.x,y:n.y,v:v,k:k});});
+   var _sg9a=segs[i]||[];
+   _sg9a.forEach(function(n,ni){if(ni===0||ni===_sg9a.length-1)return;/* [BUILD2316] 경계(분기점) 측점 제외 — 분기점 값=합산값이라 상류 구간과 다른 게 정상(8번=4+4 사례). 검증은 2단 합산이 담당 */if(n.mh||n.tamsa||!n.no)return;var pt=(typeof pointByNo==='function')?pointByNo(n.no):null;var v=_posGwVec9(pt?pt.code:null);if(!v)return;var k=v[0]+'|'+v[1];cnt[k]=(cnt[k]||0)+1;list.push({no:n.no,x:n.x,y:n.y,v:v,k:k});});
    var bk=null,bc=0;for(var k in cnt){if(cnt[k]>bc){bc=cnt[k];bk=k;}}
    var rep=bk?bk.split('|').map(Number):null;reps.push(rep);
    if(bk)list.forEach(function(e){if(e.k!==bk)bad.push({si:i,no:e.no,x:e.x,y:e.y,v:e.v,rep:rep});});
