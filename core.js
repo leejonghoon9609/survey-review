@@ -20010,11 +20010,15 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
  window._posGwBlue9=[];/* [BUILD2329] 제원 태그 관수 ≠ 측점 통계 — 파란원 대상 */
  var _syms9=[];try{(state.manholes||[]).forEach(function(m){if(m&&m.wx!=null&&m.wy!=null)_syms9.push([m.wx,m.wy]);});}catch(_sy0){}
  function _symX9(pth){for(var _i9=1;_i9<pth.length;_i9++){var a=pth[_i9-1],b=pth[_i9];for(var _s9=0;_s9<_syms9.length;_s9++){var c=_syms9[_s9];var vx=b[0]-a[0],vy=b[1]-a[1];var L2=vx*vx+vy*vy||1;var t=((c[0]-a[0])*vx+(c[1]-a[1])*vy)/L2;t=Math.max(0,Math.min(1,t));var dx=a[0]+vx*t-c[0],dy=a[1]+vy*t-c[1];if(dx*dx+dy*dy<1.69)return true;}}return false;}/* [BUILD2326] 심벌(맨홀) 회피 */
+ var _tamD9=[];try{if(typeof _fldTamsaPts==='function')(_fldTamsaPts()||[]).forEach(function(t){if(t&&t.z!=null&&isFinite(t.z))_tamD9.push([t.x,t.y,+t.z]);});}catch(_td9){}/* [BUILD2331] 탐사측점 심도 원천 */
  var _psReps9=null,_psSegs9=null;try{if(typeof posGwanAudit9==='function')_psReps9=posGwanAudit9().reps;}catch(_rp9){}try{if(typeof posSplitSegs9==='function')_psSegs9=posSplitSegs9().segs;}catch(_sp9){}/* [BUILD2321] 관표시 원천=구간 대표 [100,50] */
  (_psR9||pipes.map(function(l){return l.pts;})).forEach(function(_pp9,_pi9){
   var pts=_pp9;var Lm=0;for(var i=0;i<pts.length-1;i++)Lm+=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);
   if(Lm<0.05)return;/* [BUILD2311] 1m 미만 구간도 제원 생성(퇴화 점만 제외) */
-  var zs=[];pts.forEach(function(pt){var p=ptAt(pt[0],pt[1]);if(p&&!mhAt(pt[0],pt[1])){var d9=state.tamsa?((p.z!=null&&isFinite(p.z))?p.z:null):((state._depthByNo&&state._depthByNo[p.no]!=null&&isFinite(state._depthByNo[p.no]))?+state._depthByNo[p.no]:null);if(d9!=null)zs.push(d9);}});/* [BUILD2207] D=평균 심도(_depthByNo 동일 원천) */
+  var zs=[];pts.forEach(function(pt){if(mhAt(pt[0],pt[1]))return;var p=ptAt(pt[0],pt[1]);var d9=null;
+  if(p){d9=state.tamsa?((p.z!=null&&isFinite(p.z))?p.z:null):((state._depthByNo&&state._depthByNo[p.no]!=null&&isFinite(state._depthByNo[p.no]))?+state._depthByNo[p.no]:null);}
+  if(d9==null){for(var _q9=0;_q9<_tamD9.length;_q9++){var _tt9=_tamD9[_q9];if(Math.hypot(pt[0]-_tt9[0],pt[1]-_tt9[1])<=0.3){d9=_tt9[2];break;}}}/* [BUILD2331] 탐사구간 D 평균심도 — 탐사측점 심도 0.3m 좌표매칭 폴백 */
+  if(d9!=null)zs.push(d9);});/* [BUILD2207] D=평균 심도(_depthByNo 동일 원천) */
   var Dv=zs.length?(zs.reduce(function(a,b){return a+b;},0)/zs.length):null;
   /* 중점 */
   var half=Lm/2,acc=0,mi=0,mt=0;
