@@ -13715,8 +13715,8 @@ function posGwanAudit9(){/* [BUILD2313] 1단=구간 내 일관성(구간 내 전
    if(us.length<3)continue;
    var vs=us.map(function(si){return reps[si];});
    if(vs.some(function(v){return !v;}))continue;/* 대표값 없는 구간 포함 시 보류 */
-   var ok=false;
-   for(var a=0;a<vs.length&&!ok;a++){var s0=0,s1=0;for(var b=0;b<vs.length;b++){if(b===a)continue;s0+=vs[b][0];s1+=vs[b][1];}if(vs[a][0]===s0&&vs[a][1]===s1)ok=true;}
+   var ok=false,nn=vs.length;/* [BUILD2317] 관수 보존 — 접속 구간을 들어옴/나감 두 그룹으로 나눠 관경별 합이 같으면 통과. 4갈래 (2+6)=(4+4) 통과형 포함(33번 사례). 3갈래 {A}|{B,C}는 특수형 */
+   for(var mk=1;mk<(1<<nn)-1&&!ok;mk++){var g0=0,g1=0,h0=0,h1=0;for(var b=0;b<nn;b++){if(mk&(1<<b)){g0+=vs[b][0];g1+=vs[b][1];}else{h0+=vs[b][0];h1+=vs[b][1];}}if(g0===h0&&g1===h1)ok=true;}
    if(!ok)jbad.push({x:j.x,y:j.y,segs:us.map(function(si){return si+1;}),vecs:vs});
   }
   return {reps:reps,bad:bad,jbad:jbad};
