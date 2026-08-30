@@ -13663,6 +13663,23 @@ function posSplitSegs9(){/* [BUILD2303] 정위치 구간 = 기존 구간(tangoBu
     oS.push(subN);oR.push(subR);
    }
   }
+  /* [BUILD2305] 복선(SKT/LG 병행) 중복 제거 — 정위치 심사용은 관로선 1본. 양끝·중점·길이 근사 경로만 접는다(다른 길로 도는 실제 루프는 중점이 멀어 보존) */
+  (function(){var ET=2.0,MT=2.0,LT=3.0;
+   function _ln(rw){var t=0;for(var q=1;q<rw.length;q++)t+=Math.hypot(rw[q][0]-rw[q-1][0],rw[q][1]-rw[q-1][1]);return t;}
+   function _md(rw){return rw[Math.floor(rw.length/2)];}
+   var fS=[],fR=[],nDup=0;
+   for(var a=0;a<oR.length;a++){var ra=oR[a],dup=false;
+    for(var b=0;b<fR.length;b++){var rb=fR[b];
+     var a0=ra[0],a1=ra[ra.length-1],b0=rb[0],b1=rb[rb.length-1];
+     var m1=Math.hypot(a0[0]-b0[0],a0[1]-b0[1])<=ET&&Math.hypot(a1[0]-b1[0],a1[1]-b1[1])<=ET;
+     var m2=Math.hypot(a0[0]-b1[0],a0[1]-b1[1])<=ET&&Math.hypot(a1[0]-b0[0],a1[1]-b0[1])<=ET;
+     if(!m1&&!m2)continue;
+     if(Math.abs(_ln(ra)-_ln(rb))>LT)continue;
+     var ma=_md(ra),mb=_md(rb);if(Math.hypot(ma[0]-mb[0],ma[1]-mb[1])>MT)continue;
+     dup=true;break;}
+    if(!dup){fS.push(oS[a]);fR.push(ra);}else nDup++;}
+   if(nDup){oS.length=0;oR.length=0;for(var f=0;f<fS.length;f++){oS.push(fS[f]);oR.push(fR[f]);}try{console.log('[posSeg] 복선 중복 '+nDup+'구간 제거');}catch(_c){}}
+  })();
   try{if(typeof _tgOrderFinal==='function')_tgOrderFinal(oS,oR);}catch(_of){}/* 기존 순번 로직(남→북·좌→우) */
   window._posSegC9={k:sig,segs:oS,raws:oR};
   return window._posSegC9;
@@ -13672,7 +13689,9 @@ function posSegButtons9(){/* [BUILD2303] 정위치 편집(SD 전용) 구간 버�
  var R=posSplitSegs9();var n=(R.segs||[]).length;
  var bs='display:inline-block;padding:4px 11px;margin:0 4px 5px 0;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700';
  var sel=(window._posSegSel9==null)?-1:window._posSegSel9;
- var h='<div style="margin-bottom:8px"><button onclick="posSegGo9(-1)" style="'+bs+';border:1.5px solid #6d28d9;background:'+(sel<0?'#6d28d9':'#fff')+';color:'+(sel<0?'#fff':'#6d28d9')+'">\uc804\uccb4</button>';
+ var cs='display:inline-block;padding:4px 11px;margin:0 4px 5px 0;border:1px solid #f1c40f;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;background:#fff';
+ var h='<div style="margin-bottom:6px"><button onclick="tgUndo()" style="'+cs+'">\u21ba \ub418\ub3cc\ub9ac\uae30</button><button onclick="tgRedo()" style="'+cs+'">\u21bb \ub2e4\uc2dc\uc2e4\ud589</button><button id="tgFitLockBtn" onclick="tgFitLockToggle()" style="'+cs+(window._tgFitLock?';background:#ffe9b8':'')+'">'+(window._tgFitLock?'\ud83d\udccc \uace0\uc815\uc911':'\ud83e\udded \uc790\ub3d9\uc774\ub3d9')+'</button></div>'/* [BUILD2305] 기존 구간설정 상단 버튼 동일 */
+ +'<div style="margin-bottom:8px"><button onclick="posSegGo9(-1)" style="'+bs+';border:1.5px solid #6d28d9;background:'+(sel<0?'#6d28d9':'#fff')+';color:'+(sel<0?'#fff':'#6d28d9')+'">\uc804\uccb4</button>';
  for(var i=0;i<n;i++){var c9=TG_COLS[i%TG_COLS.length];h+='<button onclick="posSegGo9('+i+')" style="'+bs+';border:1.5px solid '+c9+';background:'+(sel===i?c9:c9+'33')+';color:#1f2937'+(sel===i?';outline:2px solid #333':'')+'">'+(i+1)+'\uad6c\uac04</button>';}/* [BUILD2304] 버튼색=도면 색과 동일(TG_COLS) */
  h+='</div><div style="margin:4px 0 8px;padding:7px 10px;background:#f5f0ff;border:1px solid #c4b5fd;border-radius:6px;color:#5b21b6;font-size:12px;font-weight:700">\uc815\uc704\uce58 \uad6c\uac04 '+n+'\uac1c — \ubd84\uae30\uc810 \uae30\uc900 \uc790\ub3d9 \ubd84\ud560</div>';
  return h;
