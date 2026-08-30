@@ -13664,10 +13664,10 @@ function posSplitSegs9(){/* [BUILD2303] 정위치 구간 = 기존 구간(tangoBu
    }
   }
   /* [BUILD2305] 복선(SKT/LG 병행) 중복 제거 — 정위치 심사용은 관로선 1본. 양끝·중점·길이 근사 경로만 접는다(다른 길로 도는 실제 루프는 중점이 멀어 보존) */
-  (function(){var PT=2.5;/* [BUILD2306] 복선 판정=호길이 비율 5점 샘플 근접(정/역방향) — 정점 밀도 무관, 긴 본선 복선도 포착 */
+  (function(){var PT=0.5;/* [BUILD2309] 2.5→0.5m — 실측(콘솔 덤프) 결과 쌍둥이는 전부 동일 좌표 겹셈. 0.5m=시스템 좌표매칭 관례(§10-I-2) *//* [BUILD2306] 복선 판정=호길이 비율 5점 샘플 근접(정/역방향) — 정점 밀도 무관, 긴 본선 복선도 포착 */
    function _ln(rw){var t=0;for(var q=1;q<rw.length;q++)t+=Math.hypot(rw[q][0]-rw[q-1][0],rw[q][1]-rw[q-1][1]);return t;}
    function _samp(rw,f){var T=_ln(rw)*f,ac=0;for(var q=1;q<rw.length;q++){var sl=Math.hypot(rw[q][0]-rw[q-1][0],rw[q][1]-rw[q-1][1]);if(ac+sl>=T||q===rw.length-1){var t=sl?Math.max(0,Math.min(1,(T-ac)/sl)):0;return [rw[q-1][0]+(rw[q][0]-rw[q-1][0])*t,rw[q-1][1]+(rw[q][1]-rw[q-1][1])*t];}ac+=sl;}return rw[rw.length-1];}
-   function _same(ra,rb){var la=_ln(ra),lb=_ln(rb);if(Math.abs(la-lb)>Math.max(3,la*0.03))return false;var fr=[0,0.25,0.5,0.75,1],okF=true,okR=true;
+   function _same(ra,rb){var la=_ln(ra),lb=_ln(rb);if(Math.abs(la-lb)>Math.max(1,la*0.01))return false;var fr=[0,0.25,0.5,0.75,1],okF=true,okR=true;
     for(var i=0;i<fr.length;i++){var pa=_samp(ra,fr[i]);
      if(okF){var pf=_samp(rb,fr[i]);if(Math.hypot(pa[0]-pf[0],pa[1]-pf[1])>PT)okF=false;}
      if(okR){var pr=_samp(rb,1-fr[i]);if(Math.hypot(pa[0]-pr[0],pa[1]-pr[1])>PT)okR=false;}
