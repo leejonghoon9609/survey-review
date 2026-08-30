@@ -20067,6 +20067,16 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var _H9=(_n100>0?_rows9*1.0:0)+(_n50>0?0.5:0);if(_H9<=0)_H9=0.5;
   var _st9=3.0;/* [BUILD2323] 앵커 3.0m 고정 — 연결선 항상 짧게(엘보 부착 폐지: 폭 좁으면 연결선 늘어지고 텍스트 언더라인과 충돌) */
   var _ax9=mx+_mkU9[0]*_st9,_ay9=my+_mkU9[1]*_st9;
+  /* [BUILD2324] 강력규칙: 인출선 대각선과 관표시 박스 절대 비겹침 — 겹치면 무조건 위 배치, 예외 없음 */
+  (function(){
+   function _nOri9(){var N=[-_bo9[1],_bo9[0]];if(N[0]*_mkV9[0]+N[1]*_mkV9[1]<0)N=[-N[0],-N[1]];return N;}
+   function _dmin9(N){var cs=[[_ax9,_ay9],[_ax9+_mkU9[0]*_W9,_ay9+_mkU9[1]*_W9]];cs.push([cs[0][0]+_mkV9[0]*_H9,cs[0][1]+_mkV9[1]*_H9],[cs[1][0]+_mkV9[0]*_H9,cs[1][1]+_mkV9[1]*_H9]);var m=1e9;for(var q=0;q<4;q++){var d=(cs[q][0]-mx)*N[0]+(cs[q][1]-my)*N[1];if(d<m)m=d;}return m;}
+   var N=_nOri9(),dm=_dmin9(N);
+   if(dm<0.15){
+    if(_mkV9[1]<0){_mkV9=[-_mkV9[0],-_mkV9[1]];N=_nOri9();dm=_dmin9(N);}/* 겹침 → 위쪽 강제 */
+    if(dm<0.15){var sh=0.15-dm;_ax9+=_mkV9[0]*sh;_ay9+=_mkV9[1]*sh;}/* 잔여 관통도 이격 보증 */
+   }
+  })();
   S.items.push({t:'pl',lay:'SD983',cl:0,pts:[[mx,my],[_ax9,_ay9]],lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9});/* 연결선 */
   var _bx9=_ax9+_mkU9[0]*_W9,_by9=_ay9+_mkU9[1]*_W9;
   S.items.push({t:'pl',lay:'SD983',cl:1,lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9,pts:[[_ax9,_ay9],[_bx9,_by9],[_bx9+_mkV9[0]*_H9,_by9+_mkV9[1]*_H9],[_ax9+_mkV9[0]*_H9,_ay9+_mkV9[1]*_H9]]});/* [BUILD2322] 외곽 박스 복원(완료본 규격: 열x단) */
