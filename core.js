@@ -19924,6 +19924,7 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
  /* 도엽 버킷 */
  var SH={};function shget(x,y){var c=_posSheetOf(x,y);if(!c)return null;if(!SH[c.no])SH[c.no]={cell:c,items:[],boxes:[]};return SH[c.no];}
  function addBox(S,x0,y0,x1,y1){S.boxes.push([Math.min(x0,x1),Math.min(y0,y1),Math.max(x0,x1),Math.max(y0,y1)]);}
+ function hitBoxN(S,x0,y0,x1,y1){var a=[Math.min(x0,x1),Math.min(y0,y1),Math.max(x0,x1),Math.max(y0,y1)];var n=0;for(var i=0;i<S.boxes.length;i++){var b=S.boxes[i];if(a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1])n++;}return n;}/* [BUILD2318] 겹침 개수 */
  function hitBox(S,x0,y0,x1,y1){var a=[Math.min(x0,x1),Math.min(y0,y1),Math.max(x0,x1),Math.max(y0,y1)];for(var i=0;i<S.boxes.length;i++){var b=S.boxes[i];if(a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1])return true;}return false;}
  /* 1) 관로 SD001 — 세그먼트 중점 도엽 배정 */
  pipes.forEach(function(l){var cur=null,buf=[];var _tm9=(l.bult?1:0);/* [BUILD2287] \ubd88\ud0d0(\ud0d0\uc0ac)\uad00\ub85c\uc120 \ud45c\uc2dd */
@@ -20025,8 +20026,8 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+0.35:ex+hx*(tw+2)+0.35),y:ey+0.35,h:1.0,s:spec,lk:_lk9,ax:mx,ay:my,lw:(tw+2),tox:0.35,toy:0.35,eo:[ex-mx,ey-my]});/* [BUILD2257] 완성본 오프셋 */
    addBox(S,Math.min(ex,ex+hx*(tw+2)),ey-0.2,Math.max(ex,ex+hx*(tw+2)),ey+1.6);_leadAdd9([[mx,my],[ex,ey],[ex+hx*(tw+2),ey]]);placed=true;_lkSgn9=((_uo9[0]*nx+_uo9[1]*ny)>=0)?1:-1;_lkEX9=ex;_lkEY9=ey;
   }
-  var offs=[13,19,25,31];var sides=[1,-1];/* [BUILD2278] 기본 인출선 간격 확대(첨부1 수준) */
-  for(var pzL=0;pzL<4&&!placed;pzL++)/* [BUILD2290] 0=\uad00\ub85c+\uc778\ucd9c\uc120 \ubc30\uc81c \u2192 1=\uc778\ucd9c\uc120 \ubc30\uc81c \u2192 2=\uad00\ub85c \ubc30\uc81c \u2192 3=\ud3f4\ubc31 *//* [BUILD2262] pass0=관로 크로스 배제, pass1=폴백 */
+  var offs=[13,19,25,31,38,46,55,65];var sides=[1,-1];/* [BUILD2318] 밀집 구역 확산용 외곳 링 추가 *//* [BUILD2278] 기본 인출선 간격 확대(첨부1 수준) */
+  for(var pzL=0;pzL<12&&!placed;pzL++)/* [BUILD2318] 3부터 겹침 허용 단계 상향 — 누락 없이 최소 겹침 자리 *//* [BUILD2290] 0=\uad00\ub85c+\uc778\ucd9c\uc120 \ubc30\uc81c \u2192 1=\uc778\ucd9c\uc120 \ubc30\uc81c \u2192 2=\uad00\ub85c \ubc30\uc81c \u2192 3=\ud3f4\ubc31 *//* [BUILD2262] pass0=관로 크로스 배제, pass1=폴백 */
   for(var oi=0;oi<offs.length&&!placed;oi++)for(var si=0;si<2&&!placed;si++){
    var sgn=sides[si];
    var _dxn=nx*sgn,_dyn=ny*sgn;/* [BUILD2277] 완료성과처럼 바깥으로 갈수록 내려가는 완만한 경사 */
@@ -20035,8 +20036,8 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    var ex=mx+_dxr*offs[oi],ey=my+_dyr*offs[oi];
    var hx=(_dxr>=0)?1:-1;
    var tx0=ex,tx1=ex+hx*(tw+2);
-   if(pzL<3&&hitBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6))continue;/* [BUILD2311] 최종 패스=박스 충돌 무시, 무조건 배치(인출선 누락 금지) */
-   var _cd9L=[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]];if((pzL===0||pzL===2)&&_pipeX9(_cd9L,mx,my))continue;if(pzL<=1&&_leadX9(_cd9L))continue;/* [BUILD2262] */
+   if(pzL<3){if(hitBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6))continue;}else{if(hitBoxN(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6)>(pzL-3))continue;}/* [BUILD2311] 최종 패스=박스 충돌 무시, 무조건 배치(인출선 누락 금지) */
+   var _cd9L=[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]];if(pzL<3){if((pzL===0||pzL===2)&&_pipeX9(_cd9L,mx,my))continue;if(pzL<=1&&_leadX9(_cd9L))continue;}else{if(pzL<6&&_leadX9(_cd9L))continue;}/* [BUILD2318] 겹침 허용 초기엔 인출선 교차만은 계속 회피 *//* [BUILD2262] */
    S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0,lk:_lk9,ax:mx,ay:my,lw:(tw+2),eo:[ex-mx,ey-my]});
    S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+0.35:ex+hx*(tw+2)+0.35),y:ey+0.35,h:1.0,s:spec,lk:_lk9,ax:mx,ay:my,lw:(tw+2),tox:0.35,toy:0.35,eo:[ex-mx,ey-my]});/* [BUILD2257] 완성본 오프셋 */
    addBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6);_leadAdd9(_cd9L);placed=true;_lkSgn9=sgn;_lkEX9=ex;_lkEY9=ey;
