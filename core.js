@@ -20130,7 +20130,7 @@ function _sdLeadDrag9(node,it){/* [BUILD2260] SD 인출선 이동 — window 리
 }
 
 /* ===== [BUILD2262] 화면(미리보기) 전용 표시 튜닝 — posScene9 원본/DXF에는 일절 영향 없음 ===== */
-var _SDVW9={pipe:0.05,hyun:0.03,sd:0.03,lead:0.035,sym:0.45,txt:0.70,gapT:0.2,gapB:0.05,fw:100,ff:"'Segoe UI Light','Helvetica Neue Light','Malgun Gothic Semilight',Arial,sans-serif"};/* [BUILD2265] fw/ff = 화면 글자 획 굵기 *//* [BUILD2264] 시스템 도면창 전용 표시 — DXF 무영향 *//* [BUILD2263] 2262 표시축소 원상복구 — 이격선 텍스트 중앙정렬이 posScene9의 글자폭 0.72 고정 계산과 어긋남 */
+var _SDVW9={pipe:0.05,hyun:0.05,/* [BUILD2291] \ud604\ud669\uc120=\uad00\ub85c\uc120 \ub450\uaed8(\ucd95\uc18c \uc2dc \uac00\uc2dc\uc131) */sd:0.03,lead:0.035,sym:0.45,txt:0.70,gapT:0.2,gapB:0.05,fw:100,ff:"'Segoe UI Light','Helvetica Neue Light','Malgun Gothic Semilight',Arial,sans-serif"};/* [BUILD2265] fw/ff = 화면 글자 획 굵기 *//* [BUILD2264] 시스템 도면창 전용 표시 — DXF 무영향 *//* [BUILD2263] 2262 표시축소 원상복구 — 이격선 텍스트 중앙정렬이 posScene9의 글자폭 0.72 고정 계산과 어긋남 */
 var _SDDG9=null;/* 측점 밀집도 그리드 */
 function _sdDens9(){/* 5m 셀 측점 카운트 — 그리기 직전 1회 */
  var G={},ps=(state.points||[]);
