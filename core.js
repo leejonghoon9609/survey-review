@@ -13664,19 +13664,18 @@ function posSplitSegs9(){/* [BUILD2303] 정위치 구간 = 기존 구간(tangoBu
    }
   }
   /* [BUILD2305] 복선(SKT/LG 병행) 중복 제거 — 정위치 심사용은 관로선 1본. 양끝·중점·길이 근사 경로만 접는다(다른 길로 도는 실제 루프는 중점이 멀어 보존) */
-  (function(){var ET=2.0,MT=2.0,LT=3.0;
+  (function(){var PT=2.5;/* [BUILD2306] 복선 판정=호길이 비율 5점 샘플 근접(정/역방향) — 정점 밀도 무관, 긴 본선 복선도 포착 */
    function _ln(rw){var t=0;for(var q=1;q<rw.length;q++)t+=Math.hypot(rw[q][0]-rw[q-1][0],rw[q][1]-rw[q-1][1]);return t;}
-   function _md(rw){return rw[Math.floor(rw.length/2)];}
+   function _samp(rw,f){var T=_ln(rw)*f,ac=0;for(var q=1;q<rw.length;q++){var sl=Math.hypot(rw[q][0]-rw[q-1][0],rw[q][1]-rw[q-1][1]);if(ac+sl>=T||q===rw.length-1){var t=sl?Math.max(0,Math.min(1,(T-ac)/sl)):0;return [rw[q-1][0]+(rw[q][0]-rw[q-1][0])*t,rw[q-1][1]+(rw[q][1]-rw[q-1][1])*t];}ac+=sl;}return rw[rw.length-1];}
+   function _same(ra,rb){var la=_ln(ra),lb=_ln(rb);if(Math.abs(la-lb)>Math.max(3,la*0.03))return false;var fr=[0,0.25,0.5,0.75,1],okF=true,okR=true;
+    for(var i=0;i<fr.length;i++){var pa=_samp(ra,fr[i]);
+     if(okF){var pf=_samp(rb,fr[i]);if(Math.hypot(pa[0]-pf[0],pa[1]-pf[1])>PT)okF=false;}
+     if(okR){var pr=_samp(rb,1-fr[i]);if(Math.hypot(pa[0]-pr[0],pa[1]-pr[1])>PT)okR=false;}
+     if(!okF&&!okR)return false;}
+    return okF||okR;}
    var fS=[],fR=[],nDup=0;
    for(var a=0;a<oR.length;a++){var ra=oR[a],dup=false;
-    for(var b=0;b<fR.length;b++){var rb=fR[b];
-     var a0=ra[0],a1=ra[ra.length-1],b0=rb[0],b1=rb[rb.length-1];
-     var m1=Math.hypot(a0[0]-b0[0],a0[1]-b0[1])<=ET&&Math.hypot(a1[0]-b1[0],a1[1]-b1[1])<=ET;
-     var m2=Math.hypot(a0[0]-b1[0],a0[1]-b1[1])<=ET&&Math.hypot(a1[0]-b0[0],a1[1]-b0[1])<=ET;
-     if(!m1&&!m2)continue;
-     if(Math.abs(_ln(ra)-_ln(rb))>LT)continue;
-     var ma=_md(ra),mb=_md(rb);if(Math.hypot(ma[0]-mb[0],ma[1]-mb[1])>MT)continue;
-     dup=true;break;}
+    for(var b=0;b<fR.length;b++){if(_same(ra,fR[b])){dup=true;break;}}
     if(!dup){fS.push(oS[a]);fR.push(ra);}else nDup++;}
    if(nDup){oS.length=0;oR.length=0;for(var f=0;f<fS.length;f++){oS.push(fS[f]);oR.push(fR[f]);}try{console.log('[posSeg] 복선 중복 '+nDup+'구간 제거');}catch(_c){}}
   })();
