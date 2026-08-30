@@ -19794,8 +19794,9 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var z=(p.z!=null)?p.z:null;/* 실시간 CSV z = 관상고 */
   var gz=(p._nm&&elev[p._nm]!=null)?elev[p._nm]:null;/* 후측량 Z(레벨) = 지반고 */
   var dep9=state.tamsa?((p.z!=null&&isFinite(p.z))?p.z:null):((state._depthByNo&&state._depthByNo[p.no]!=null&&isFinite(state._depthByNo[p.no]))?+state._depthByNo[p.no]:null);/* [BUILD2207] 심도 = 도면 파란 심도 라벨과 동일 원천(_depthByNo, 수동입력 포함) */
-  if(z!=null)S.items.push({t:'tx',lay:'SD_관상고',x:x,y:y,h:0.5,s:z.toFixed(3)});/* 측점 정좌표 안착(완성본 규격) */
   if(_tp9&&dep9==null&&_tp9.z!=null&&isFinite(_tp9.z))dep9=+_tp9.z;/* [BUILD2287] \ud0d0\uc0ac \uc2ec\ub3c4=T\ucf54\ub4dc \uac12(\uc218\ub3d9\uc785\ub825 \uc6b0\uc120 [1924]) */
+  if(_tp9&&z==null&&dep9!=null){var _gb9=null,_gd9=1e18;(state.depthGround||[]).forEach(function(gp){var d=Math.hypot(gp.Y-x,gp.X-y);if(d<_gd9){_gd9=d;_gb9=gp;}});if(_gb9&&_gd9<=3.0&&isFinite(+_gb9.z))z=+_gb9.z-dep9;}/* [BUILD2288] 탐사 관상고=지반고−심도 역산(검증식 관상고+심도=지반고). 지반고=후측량 L 지반점 좌표 최근접 3m([1538] 조서 심도 도구 반경) — 이름 매칭 금지(2206) */
+  if(z!=null)S.items.push({t:'tx',lay:'SD_관상고',x:x,y:y,h:0.5,s:z.toFixed(3),tam:(_tp9?1:0)});
   if(dep9!=null)S.items.push({t:'tx',lay:'SDSIM_T',x:x,y:y,h:1.0,s:dep9.toFixed(1),tam:(_tp9?1:0)});
   /* [BUILD2205] 이격: 측점→현황선 수선발 실선(실물 규격) + 중앙정렬 텍스트(위 거리/아래 (심도)), 읽기 정규화 회전 */
   var _pdv9=null;/* [BUILD2259] 측점이 놓인 관로 세그 방향 */
