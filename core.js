@@ -20077,6 +20077,24 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
     if(dm<0.15){var sh=0.15-dm;_ax9+=_mkV9[0]*sh;_ay9+=_mkV9[1]*sh;}/* 잔여 관통도 이격 보증 */
    }
   })();
+  /* [BUILD2325] 강력규칙2: 관표시 박스와 태그 텍스트 절대 비겹침 — 겹치면 태그 인출선을 늘려 회피 */
+  if(_lkEX9!=null){(function(){
+   var dlx=_lkEX9-mx,dly=_lkEY9-my,dl0=Math.hypot(dlx,dly)||1,de=[dlx/dl0,dly/dl0];
+   var hx2=(dlx>=0)?1:-1;var tw2=(typeof tw!=='undefined')?tw:8;
+   var cs=[[_ax9,_ay9],[_ax9+_mkU9[0]*_W9,_ay9+_mkU9[1]*_W9]];cs.push([cs[0][0]+_mkV9[0]*_H9,cs[0][1]+_mkV9[1]*_H9],[cs[1][0]+_mkV9[0]*_H9,cs[1][1]+_mkV9[1]*_H9],[(cs[0][0]+cs[1][0])/2,(cs[0][1]+cs[1][1])/2]);
+   cs.push([(cs[2][0]+cs[3][0])/2,(cs[2][1]+cs[3][1])/2]);
+   function hit(ex,ey){var x0=Math.min(ex,ex+hx2*(tw2+2))-0.3,x1=Math.max(ex,ex+hx2*(tw2+2))+0.3,y0=ey-0.5,y1=ey+1.9;
+    for(var q=0;q<cs.length;q++){if(cs[q][0]>x0&&cs[q][0]<x1&&cs[q][1]>y0&&cs[q][1]<y1)return true;}return false;}
+   var add=0;while(hit(mx+de[0]*(dl0+add),my+de[1]*(dl0+add))&&add<20)add+=1.0;
+   if(add>0){var ex2=mx+de[0]*(dl0+add),ey2=my+de[1]*(dl0+add),dx2=ex2-_lkEX9,dy2=ey2-_lkEY9;
+    for(var qi=0;qi<S.items.length;qi++){var it2=S.items[qi];if(it2.lk!==_lk9||it2.fw9)continue;
+     if(it2.t==='pl'&&it2.pts&&it2.pts.length===3){it2.pts[1][0]+=dx2;it2.pts[1][1]+=dy2;it2.pts[2][0]+=dx2;it2.pts[2][1]+=dy2;}
+     else if(it2.t==='tx'){it2.x+=dx2;it2.y+=dy2;}
+     if(it2.eo){it2.eo=[it2.eo[0]+dx2,it2.eo[1]+dy2];}}
+    try{if(state.sdLead9&&state.sdLead9[_lk9]){state.sdLead9[_lk9]=[ex2-mx,ey2-my];window._sdLeadKeep9=window._sdLeadKeep9||{};window._sdLeadKeep9[_lk9]=[ex2-mx,ey2-my];if(typeof _sdKeepSave9==='function')_sdKeepSave9();}}catch(_kx){}
+    _lkEX9=ex2;_lkEY9=ey2;
+   }
+  })();}
   S.items.push({t:'pl',lay:'SD983',cl:0,pts:[[mx,my],[_ax9,_ay9]],lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9});/* 연결선 */
   var _bx9=_ax9+_mkU9[0]*_W9,_by9=_ay9+_mkU9[1]*_W9;
   S.items.push({t:'pl',lay:'SD983',cl:1,lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9,pts:[[_ax9,_ay9],[_bx9,_by9],[_bx9+_mkV9[0]*_H9,_by9+_mkV9[1]*_H9],[_ax9+_mkV9[0]*_H9,_ay9+_mkV9[1]*_H9]]});/* [BUILD2322] 외곽 박스 복원(완료본 규격: 열x단) */
