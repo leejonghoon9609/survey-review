@@ -20065,7 +20065,7 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var _cpr9=(_n100>0)?Math.ceil(_n100/_rows9):0;
   var _W9=Math.max(_cpr9*1.0,_n50*0.5,0.5);/* 배열 폭(대각 방향) */
   var _H9=(_n100>0?_rows9*1.0:0)+(_n50>0?0.5:0);if(_H9<=0)_H9=0.5;
-  var _st9=(_dg9!=null)?Math.max(0.5,_dg9-_W9):3.0;/* [BUILD2322] 배열 끝=엘보 — 이격 텍스트 구역 회피 */
+  var _st9=3.0;/* [BUILD2323] 앵커 3.0m 고정 — 연결선 항상 짧게(엘보 부착 폐지: 폭 좁으면 연결선 늘어지고 텍스트 언더라인과 충돌) */
   var _ax9=mx+_mkU9[0]*_st9,_ay9=my+_mkU9[1]*_st9;
   S.items.push({t:'pl',lay:'SD983',cl:0,pts:[[mx,my],[_ax9,_ay9]],lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9});/* 연결선 */
   var _bx9=_ax9+_mkU9[0]*_W9,_by9=_ay9+_mkU9[1]*_W9;
