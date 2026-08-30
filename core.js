@@ -19853,8 +19853,23 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    if(c.par&&A==null)A=c;
    if(A&&B)break;
   }
-  if(A&&B&&A.d<=B.d*K)return A;/* 평행 우선 */
-  return B||A;
+  var sel=(A&&B&&A.d<=B.d*K)?A:(B||A);/* 평행 우선 */
+  if(sel&&pdir){/* [BUILD2332] 반대편 규칙: 이격선이 관로와 60° 이하로 비스듬하면 반대편 후보 검토 — 더 직각(+3° 이상)이면 교체 */
+   var angSel=_ang9(pdir[0],pdir[1],sel.fx-px,sel.fy-py);
+   if(angSel<60){
+    var sd9=(pdir[0]*(sel.fy-py)-pdir[1]*(sel.fx-px))>=0?1:-1;
+    var opp=null,oppAng=-1;
+    for(var j2=0;j2<C.length&&j2<40;j2++){var c2=C[j2];
+     var s2=(pdir[0]*(c2.fy-py)-pdir[1]*(c2.fx-px))>=0?1:-1;
+     if(s2===sd9)continue;
+     if(_blk9(px,py,c2.fx,c2.fy))continue;
+     var a2=_ang9(pdir[0],pdir[1],c2.fx-px,c2.fy-py);
+     if(a2>oppAng){oppAng=a2;opp=c2;}
+    }
+    if(opp&&oppAng>angSel+3)sel=opp;
+   }
+  }
+  return sel;
 }
  /* 측점 매칭: 관로 정점 ↔ state.points (0.3m) */
  function ptAt(x,y){var ps=state.points||[];for(var i=0;i<ps.length;i++){if(Math.abs(ps[i].x-x)<0.3&&Math.abs(ps[i].y-y)<0.3)return ps[i];}return null;}
