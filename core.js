@@ -20048,30 +20048,34 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   /* [BUILD2274] 관표시 = 관정보 인출선의 대각선 위에 얹힘(바닥이 인출선에 붙음) — 인출선_샘플.dxf 실측
      · 시작점에서 대각선 방향 3.000 지점부터 박스, 박스 길이축 = 대각선 방향
      · 박스 = (열수 x 원지름) x (단수 x 원지름), 원 r = 관경100 0.5 / 관경50 0.25 */
-  /* [BUILD2321] 관표시 v2 — 범례(376072426) 실측 양식 */
-  var _mkU9,_mkV9;
-  if(_lkEX9!=null){var _dvx=_lkEX9-mx,_dvy=_lkEY9-my,_dl9=Math.hypot(_dvx,_dvy)||1;_mkU9=[_dvx/_dl9,_dvy/_dl9];}
+  /* [BUILD2322] 관표시 v3 — 완료본(376072426) 정밀 대조: 박스 복원·위치=엘보 직전(100x8(5) 클러스터 실측) */
+  var _mkU9,_mkV9,_dg9=null;
+  if(_lkEX9!=null){var _dvx=_lkEX9-mx,_dvy=_lkEY9-my,_dl9=Math.hypot(_dvx,_dvy)||1;_mkU9=[_dvx/_dl9,_dvy/_dl9];_dg9=_dl9;}
   else{var _sg9=_lkSgn9||1;_mkU9=[nx*_sg9,ny*_sg9];}
   var _bo9=[_mkU9[0],_mkU9[1]];/* [BUILD2312] 회전 추종 기준 */var _dv9=3.76*Math.PI/180*((_mkU9[0]>=0)?1:-1);
   var _dc9=Math.cos(_dv9),_ds9=Math.sin(_dv9);
   _mkU9=[_mkU9[0]*_dc9-_mkU9[1]*_ds9, _mkU9[0]*_ds9+_mkU9[1]*_dc9];
   _mkV9=[-_mkU9[1],_mkU9[0]];
-  var _up9=(_lkEY9!=null)?(_lkEY9>=my):(_mkU9[1]>=0);/* 인출선이 관로 위로 뻗으면 원도 위, 아래면 아래(규칙 3) */
+  var _up9=(_lkEY9!=null)?(_lkEY9>=my):(_mkU9[1]>=0);
   if((_mkV9[1]>=0)!==_up9){_mkV9=[-_mkV9[0],-_mkV9[1]];}
-  var _ax9=mx+_mkU9[0]*3.0,_ay9=my+_mkU9[1]*3.0;/* 앵커서 대각 3.0m */
-  S.items.push({t:'pl',lay:'SD983',cl:0,pts:[[mx,my],[_ax9,_ay9]],lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9});/* [BUILD2275] 연결선 */
-  /* 관수 원천: 구간 대표 [n100,n50] 우선(2313), 없으면 제원 폴백 */
   var _v9=(_psReps9&&_psReps9[_pi9])?_psReps9[_pi9]:null;
   var _n100=_v9?_v9[0]:((parseFloat(_SP9.dia)<=50)?0:(_SP9.gw||0));
   var _n50=_v9?_v9[1]:((parseFloat(_SP9.dia)<=50)?(_SP9.gw||0):0);
-  /* 맨홀 인접 구간 = 맨홀도 단수(1/2/3단) 승계 — 100mm에 적용 */
   var _rows9=1;try{var _sgN9=(_psSegs9&&_psSegs9[_pi9])||null;if(_sgN9&&_sgN9.length>=2&&((_sgN9[0]&&_sgN9[0].mh)||(_sgN9[_sgN9.length-1]&&_sgN9[_sgN9.length-1].mh))){var _mr9=(typeof _mnRows9==='function')?_mnRows9(mx,my):0;if(_mr9>0)_rows9=_mr9;}}catch(_mrx){}
+  var _cpr9=(_n100>0)?Math.ceil(_n100/_rows9):0;
+  var _W9=Math.max(_cpr9*1.0,_n50*0.5,0.5);/* 배열 폭(대각 방향) */
+  var _H9=(_n100>0?_rows9*1.0:0)+(_n50>0?0.5:0);if(_H9<=0)_H9=0.5;
+  var _st9=(_dg9!=null)?Math.max(0.5,_dg9-_W9):3.0;/* [BUILD2322] 배열 끝=엘보 — 이격 텍스트 구역 회피 */
+  var _ax9=mx+_mkU9[0]*_st9,_ay9=my+_mkU9[1]*_st9;
+  S.items.push({t:'pl',lay:'SD983',cl:0,pts:[[mx,my],[_ax9,_ay9]],lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9});/* 연결선 */
+  var _bx9=_ax9+_mkU9[0]*_W9,_by9=_ay9+_mkU9[1]*_W9;
+  S.items.push({t:'pl',lay:'SD983',cl:1,lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9,pts:[[_ax9,_ay9],[_bx9,_by9],[_bx9+_mkV9[0]*_H9,_by9+_mkV9[1]*_H9],[_ax9+_mkV9[0]*_H9,_ay9+_mkV9[1]*_H9]]});/* [BUILD2322] 외곽 박스 복원(완료본 규격: 열x단) */
   function _mkRow9(cnt,r0,vOff){var _dm=r0*2;for(var _c9=0;_c9<cnt&&_c9<12;_c9++){var _ou9=(_c9+0.5)*_dm,_ov9=vOff+r0;
    S.items.push({t:'ci',lay:'SD983',x:_ax9+_mkU9[0]*_ou9+_mkV9[0]*_ov9,y:_ay9+_mkU9[1]*_ou9+_mkV9[1]*_ov9,r:r0,lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9});}}
   var _vo9=0;
-  if(_n100>0){var _cpr9=Math.ceil(_n100/_rows9);for(var _rr9=0;_rr9<_rows9;_rr9++){var _cnt9=Math.min(_cpr9,_n100-_rr9*_cpr9);if(_cnt9<=0)break;_mkRow9(_cnt9,0.5,_vo9);_vo9+=1.0;}}
-  if(_n50>0){_mkRow9(_n50,0.25,_vo9);_vo9+=0.5;}/* 50mm=100 위단 */
-  /* 채움(내관)·관종 분리는 입력 체계 확정 후(내일) — 현재 전부 빈 원 */
+  if(_n100>0){for(var _rr9=0;_rr9<_rows9;_rr9++){var _cnt9=Math.min(_cpr9,_n100-_rr9*_cpr9);if(_cnt9<=0)break;_mkRow9(_cnt9,0.5,_vo9);_vo9+=1.0;}}
+  if(_n50>0){_mkRow9(_n50,0.25,_vo9);_vo9+=0.5;}
+  /* 채움(내관 해치)·관종 분리 = 내일 입력 체계와 함께(완료본 해치 위치 불규칙=작업자 지정 영역 실측) */
  });
  /* [BUILD2204] 현황선 — 실물 표준 레이어 DORO(색4). ★현황결선은 insp:true가 정상이라 insp 제외 금지(2203 결함). 기존 도엽에만 배정 */
  function shpeek(x,y){var c=_posSheetOf(x,y);return (c&&SH[c.no])?SH[c.no]:null;}
