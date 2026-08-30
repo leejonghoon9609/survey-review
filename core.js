@@ -20025,6 +20025,16 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var placed=false,_lkSgn9=0,_lkEX9=null,_lkEY9=null;/* [BUILD2274] 인출선 팔꿈치(대각 끝) */
   var _lk9='L'+mx.toFixed(2)+'_'+my.toFixed(2);/* [BUILD2254] 구간 인출선 키 */
   var _uo9=((typeof _sdLeadGet9==='function')?_sdLeadGet9(_lk9):null)||(state.sdLead9&&state.sdLead9[_lk9])||null;/* [BUILD2279] */
+  if(_uo9){/* [BUILD2328] 저장 위치도 강제 규칙: 관로 가로지르면 좌우 반전 → 그래도 교차면 저장 폐기(자동 배치 사다리로) */
+   var _hx0=(_uo9[0]>=0)?1:-1;
+   var _cx9=[[mx,my],[mx+_uo9[0],my+_uo9[1]],[mx+_uo9[0]+_hx0*(tw+2),my+_uo9[1]]];
+   if(_pipeX9(_cx9,mx,my)){
+    var _mo9=[-_uo9[0],_uo9[1]];var _hm0=(_mo9[0]>=0)?1:-1;
+    var _cm9=[[mx,my],[mx+_mo9[0],my+_mo9[1]],[mx+_mo9[0]+_hm0*(tw+2),my+_mo9[1]]];
+    if(!_pipeX9(_cm9,mx,my)){_uo9=_mo9;try{state.sdLead9=state.sdLead9||{};state.sdLead9[_lk9]=_mo9;window._sdLeadKeep9=window._sdLeadKeep9||{};window._sdLeadKeep9[_lk9]=_mo9;if(typeof _sdKeepSave9==='function')_sdKeepSave9();}catch(_mk9){}}
+    else{_uo9=null;try{if(state.sdLead9)delete state.sdLead9[_lk9];if(window._sdLeadKeep9)delete window._sdLeadKeep9[_lk9];}catch(_dk9){}}
+   }
+  }
   if(_uo9){/* 사용자가 옮긴 위치 우선 */
    var ex=mx+_uo9[0],ey=my+_uo9[1];var hx=(_uo9[0]>=0)?1:-1;
    S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0,lk:_lk9,ax:mx,ay:my,lw:(tw+2),eo:[ex-mx,ey-my]});
