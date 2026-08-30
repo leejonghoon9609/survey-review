@@ -20130,7 +20130,7 @@ function _sdLeadDrag9(node,it){/* [BUILD2260] SD 인출선 이동 — window 리
 }
 
 /* ===== [BUILD2262] 화면(미리보기) 전용 표시 튜닝 — posScene9 원본/DXF에는 일절 영향 없음 ===== */
-var _SDVW9={pipe:0.05,hyun:0.05,/* [BUILD2291] \ud604\ud669\uc120=\uad00\ub85c\uc120 \ub450\uaed8(\ucd95\uc18c \uc2dc \uac00\uc2dc\uc131) */sd:0.03,lead:0.035,sym:0.45,txt:0.70,gapT:0.2,gapB:0.05,fw:100,ff:"'Segoe UI Light','Helvetica Neue Light','Malgun Gothic Semilight',Arial,sans-serif"};/* [BUILD2265] fw/ff = 화면 글자 획 굵기 *//* [BUILD2264] 시스템 도면창 전용 표시 — DXF 무영향 *//* [BUILD2263] 2262 표시축소 원상복구 — 이격선 텍스트 중앙정렬이 posScene9의 글자폭 0.72 고정 계산과 어긋남 */
+var _SDVW9={pipe:0.05,hyun:0.05,/* [BUILD2291] \ud604\ud669\uc120=\uad00\ub85c\uc120 \ub450\uaed8(\ucd95\uc18c \uc2dc \uac00\uc2dc\uc131) */sd:0.03,lead:0.035,sym:0.45,txt:0.70,gapT:0.2,gapB:0.2,/* [BUILD2292] DXF \uc0c1\u00b7\ud558 0.2 \ub3d9\uc77c */fw:100,ff:"'Segoe UI Light','Helvetica Neue Light','Malgun Gothic Semilight',Arial,sans-serif"};/* [BUILD2265] fw/ff = 화면 글자 획 굵기 *//* [BUILD2264] 시스템 도면창 전용 표시 — DXF 무영향 *//* [BUILD2263] 2262 표시축소 원상복구 — 이격선 텍스트 중앙정렬이 posScene9의 글자폭 0.72 고정 계산과 어긋남 */
 var _SDDG9=null;/* 측점 밀집도 그리드 */
 function _sdDens9(){/* 5m 셀 측점 카운트 — 그리기 직전 1회 */
  var G={},ps=(state.points||[]);
@@ -20200,21 +20200,13 @@ function _sdDrawItem9(g,it){
   tn.textContent=String(it.s).replace(/%%C/g,'\u00D8');
   g.appendChild(tn);
   if(it.lk)try{_sdLeadFit9(it,tn);}catch(_lf9){}/* [BUILD2276] */
-  if(_md9){/* [BUILD2269] 그려진 글자의 실제 경계(getBBox)로 위·아래 간격을 똑같이 맞춤 — 비율 추정 금지 */
+  if(_md9){/* [BUILD2292] DXF \ubbf8\ub7ec \uacf5\uc2dd \uc77c\uc6d0\ud654 \u2014 getBBox \ud3d0\uc9c0(em\ubc15\uc2a4 \uacfc\ub300\uce21\uc815 + display:none \ube4c\ub4dc \uc2dc 0 \ubc18\ud658\uc73c\ub85c \uac04\uaca9\uc774 \ub9e4\ubc88 \ub2ec\ub77c\uc9d0). \uac70\ub9ac=\uae30\uc900\uc120 \uc120 \uc704 +gapT(DXF +0.2 \ub3d9\uc77c), \uc2ec\ub3c4=\uae00\uc790 \uc717\ubcc0\uc774 \uc120 \uc544\ub798 gapB(DXF \u22121.2+h1.0=\u22120.2 \ub3d9\uc77c) */
    try{
-    var _bb9=tn.getBBox();
-    if(_bb9&&_bb9.height>0){
-     var _gp9=(it.side>0)?_SDVW9.gapT:_SDVW9.gapB;/* [BUILD2270] 위·아래 간격 개별 조절 */
-     var _wt9=(it.side>0)?(c2[1]-_gp9-_bb9.height):(c2[1]+_gp9);/* 원하는 글자 윗변 위치 */
-     var _dy9=_wt9-_bb9.y;
-     tn.setAttribute('y',c2[1]+_dy9);
-     if(it.rot)tn.setAttribute('transform','rotate('+(-it.rot)+' '+c2[0]+' '+c2[1]+')');/* 회전 중심은 기준점 고정 → 이동이 이격선 법선 방향이 됨 */
-    }else{/* 실측 실패 시에만 기존 계산식 폴백 */
-     var _fs9=(it.h||1)*_SDVW9.txt,_of9=(it.side>0)?0.2:-(0.2+_fs9*0.72);
-     var _c39=S(it.bx+it.nx9*_of9,it.by+it.ny9*_of9);
-     tn.setAttribute('x',_c39[0]);tn.setAttribute('y',_c39[1]);
-     if(it.rot)tn.setAttribute('transform','rotate('+(-it.rot)+' '+_c39[0]+' '+_c39[1]+')');
-    }
+    var _fk2=(it.lk?1:_sdDensK9(it.x,it.y));var _fs9=(it.h||1)*_SDVW9.txt*_fk2;
+    var _of9=(it.side>0)?_SDVW9.gapT:-(_SDVW9.gapB+_fs9*0.72);
+    var _c39=S(it.bx+it.nx9*_of9,it.by+it.ny9*_of9);
+    tn.setAttribute('x',_c39[0]);tn.setAttribute('y',_c39[1]);
+    if(it.rot)tn.setAttribute('transform','rotate('+(-it.rot)+' '+_c39[0]+' '+_c39[1]+')');
    }catch(_bx9){}
   }
  
