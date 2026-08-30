@@ -13664,20 +13664,15 @@ function posSplitSegs9(){/* [BUILD2303] 정위치 구간 = 기존 구간(tangoBu
    }
   }
   /* [BUILD2305] 복선(SKT/LG 병행) 중복 제거 — 정위치 심사용은 관로선 1본. 양끝·중점·길이 근사 경로만 접는다(다른 길로 도는 실제 루프는 중점이 멀어 보존) */
-  (function(){var PT=0.5;/* [BUILD2309] 2.5→0.5m — 실측(콘솔 덤프) 결과 쌍둥이는 전부 동일 좌표 겹셈. 0.5m=시스템 좌표매칭 관례(§10-I-2) *//* [BUILD2306] 복선 판정=호길이 비율 5점 샘플 근접(정/역방향) — 정점 밀도 무관, 긴 본선 복선도 포착 */
-   function _ln(rw){var t=0;for(var q=1;q<rw.length;q++)t+=Math.hypot(rw[q][0]-rw[q-1][0],rw[q][1]-rw[q-1][1]);return t;}
-   function _samp(rw,f){var T=_ln(rw)*f,ac=0;for(var q=1;q<rw.length;q++){var sl=Math.hypot(rw[q][0]-rw[q-1][0],rw[q][1]-rw[q-1][1]);if(ac+sl>=T||q===rw.length-1){var t=sl?Math.max(0,Math.min(1,(T-ac)/sl)):0;return [rw[q-1][0]+(rw[q][0]-rw[q-1][0])*t,rw[q-1][1]+(rw[q][1]-rw[q-1][1])*t];}ac+=sl;}return rw[rw.length-1];}
-   function _same(ra,rb){var la=_ln(ra),lb=_ln(rb);if(Math.abs(la-lb)>Math.max(1,la*0.01))return false;var fr=[0,0.25,0.5,0.75,1],okF=true,okR=true;
-    for(var i=0;i<fr.length;i++){var pa=_samp(ra,fr[i]);
-     if(okF){var pf=_samp(rb,fr[i]);if(Math.hypot(pa[0]-pf[0],pa[1]-pf[1])>PT)okF=false;}
-     if(okR){var pr=_samp(rb,1-fr[i]);if(Math.hypot(pa[0]-pr[0],pa[1]-pr[1])>PT)okR=false;}
-     if(!okF&&!okR)return false;}
-    return okF||okR;}
-   var fS=[],fR=[],nDup=0,dRx=[];
-   for(var a=0;a<oR.length;a++){var ra=oR[a],dup=false;
-    for(var b=0;b<fR.length;b++){if(_same(ra,fR[b])){dup=true;(fR[b]._twins9=fR[b]._twins9||[]).push(ra);break;}}/* [BUILD2308] 쌍둥이 경로 보관 — 대표 구간 색으로 함께 칠함 */
-    if(!dup){fS.push(oS[a]);fR.push(ra);}else{dRx.push(ra);nDup++;}}
-   if(nDup){oS.length=0;oR.length=0;for(var f=0;f<fS.length;f++){oS.push(fS[f]);oR.push(fR[f]);}try{console.log('[posSeg] 복선 중복 '+nDup+'구간 제거');}catch(_c){}}window._posDupTmp9=dRx;
+  (function(){/* [BUILD2310] 허용치 폐지 — 겹친 선=정점열 완전 일치(qk 1cm, tangoBuildSegs 동일 양자화)만 인정. 실측(2309 덤프): 쌍둥이 전부 정확 동일 좌표 */
+   function _qk(x,y){return Math.round(x*100)+'_'+Math.round(y*100);}
+   function _key(rw){var a='';for(var q=0;q<rw.length;q++)a+=_qk(rw[q][0],rw[q][1])+'>';var r='';for(q=rw.length-1;q>=0;q--)r+=_qk(rw[q][0],rw[q][1])+'>';return a<r?a:r;}
+   var fS=[],fR=[],nDup=0,seen={};
+   for(var a=0;a<oR.length;a++){var ra=oR[a],k=_key(ra);
+    if(seen[k]!=null){(fR[seen[k]]._twins9=fR[seen[k]]._twins9||[]).push(ra);nDup++;continue;}
+    seen[k]=fR.length;fS.push(oS[a]);fR.push(ra);}
+   if(nDup){oS.length=0;oR.length=0;for(var f=0;f<fS.length;f++){oS.push(fS[f]);oR.push(fR[f]);}try{console.log('[posSeg] 정확 겹침 '+nDup+'구간 병합');}catch(_c){}}
+   window._posDupTmp9=[];for(var t=0;t<fR.length;t++){if(fR[t]._twins9)for(var u=0;u<fR[t]._twins9.length;u++)window._posDupTmp9.push(fR[t]._twins9[u]);}
   })();
   try{if(typeof _tgOrderFinal==='function')_tgOrderFinal(oS,oR);}catch(_of){}/* 기존 순번 로직(남→북·좌→우) */
   var _dup9=window._posDupTmp9||[];window._posDupTmp9=null;window._posSegC9={k:sig,segs:oS,raws:oR,dup:_dup9};
