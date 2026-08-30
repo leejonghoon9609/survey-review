@@ -20005,6 +20005,8 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
  });
  /* 4) 구간 제원 SD911 인출선 + SD910 + SD983 공수 */
  var _psR9=null;try{var _pv9=(typeof posSplitSegs9==='function')?posSplitSegs9():null;if(_pv9&&_pv9.raws&&_pv9.raws.length)_psR9=_pv9.raws;}catch(_pe0){}/* [BUILD2303] 제원=정위치 구간당 1개(L·D 구간 재계산) */
+ var _syms9=[];try{(state.manholes||[]).forEach(function(m){if(m&&m.wx!=null&&m.wy!=null)_syms9.push([m.wx,m.wy]);});}catch(_sy0){}
+ function _symX9(pth){for(var _i9=1;_i9<pth.length;_i9++){var a=pth[_i9-1],b=pth[_i9];for(var _s9=0;_s9<_syms9.length;_s9++){var c=_syms9[_s9];var vx=b[0]-a[0],vy=b[1]-a[1];var L2=vx*vx+vy*vy||1;var t=((c[0]-a[0])*vx+(c[1]-a[1])*vy)/L2;t=Math.max(0,Math.min(1,t));var dx=a[0]+vx*t-c[0],dy=a[1]+vy*t-c[1];if(dx*dx+dy*dy<1.69)return true;}}return false;}/* [BUILD2326] 심벌(맨홀) 회피 */
  var _psReps9=null,_psSegs9=null;try{if(typeof posGwanAudit9==='function')_psReps9=posGwanAudit9().reps;}catch(_rp9){}try{if(typeof posSplitSegs9==='function')_psSegs9=posSplitSegs9().segs;}catch(_sp9){}/* [BUILD2321] 관표시 원천=구간 대표 [100,50] */
  (_psR9||pipes.map(function(l){return l.pts;})).forEach(function(_pp9,_pi9){
   var pts=_pp9;var Lm=0;for(var i=0;i<pts.length-1;i++)Lm+=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);
@@ -20040,7 +20042,7 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    var hx=(_dxr>=0)?1:-1;
    var tx0=ex,tx1=ex+hx*(tw+2);
    if(pzL<3){if(hitBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6))continue;}else{if(hitBoxN(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6)>(pzL-3))continue;}/* [BUILD2311] 최종 패스=박스 충돌 무시, 무조건 배치(인출선 누락 금지) */
-   var _cd9L=[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]];if(pzL<3){if((pzL===0||pzL===2)&&_pipeX9(_cd9L,mx,my))continue;if(pzL<=1&&_leadX9(_cd9L))continue;}else{if(pzL<6&&_leadX9(_cd9L))continue;}/* [BUILD2318] 겹침 허용 초기엔 인출선 교차만은 계속 회피 *//* [BUILD2262] */
+   var _cd9L=[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]];if(pzL<3){if((pzL===0||pzL===2)&&_pipeX9(_cd9L,mx,my))continue;if(pzL<=1&&_leadX9(_cd9L))continue;if(_symX9(_cd9L))continue;}else{if(pzL<6&&_leadX9(_cd9L))continue;if(pzL<7&&_pipeX9(_cd9L,mx,my))continue;if(pzL<9&&_symX9(_cd9L))continue;}/* [BUILD2326] 관로 가로지름·심벌 겹침 최대 회피(최후 패스에서만 허용) *//* [BUILD2318] 겹침 허용 초기엔 인출선 교차만은 계속 회피 *//* [BUILD2262] */
    S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0,lk:_lk9,ax:mx,ay:my,lw:(tw+2),eo:[ex-mx,ey-my]});
    S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+0.35:ex+hx*(tw+2)+0.35),y:ey+0.35,h:1.0,s:spec,lk:_lk9,ax:mx,ay:my,lw:(tw+2),tox:0.35,toy:0.35,eo:[ex-mx,ey-my]});/* [BUILD2257] 완성본 오프셋 */
    addBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6);_leadAdd9(_cd9L);placed=true;_lkSgn9=sgn;_lkEX9=ex;_lkEY9=ey;
