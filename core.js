@@ -20042,7 +20042,10 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var S=shget(mx,my);if(!S)return;
   var _SP9=_segSpec9(mx,my);/* [BUILD2273] 구간별 관정보 */
   var dx9=pts[mi+1][0]-pts[mi][0],dy9=pts[mi+1][1]-pts[mi][1];var L9=Math.hypot(dx9,dy9)||1;var ux=dx9/L9,uy=dy9/L9,nx=-uy,ny=ux;
-  var spec=yy+'/'+_SP9.kind+'/%%C'+_SP9.dia+'x'+_SP9.gw+'('+_SP9.nae+')/L'+Lm.toFixed(1)+'/D'+(Dv!=null?Dv.toFixed(1):'__');/* [BUILD2273] 구간별 *//* [BUILD2255] 실물 D__ */
+  var _vT9=(_psReps9&&_psReps9[_pi9])?_psReps9[_pi9]:null;var _gwT9=(_vT9&&_vT9[1]===0&&_vT9[0]>0)?_vT9[0]:((_vT9&&_vT9[0]===0&&_vT9[1]>0)?_vT9[1]:_SP9.gw);
+  var _diaT9=_SP9.dia;if(_vT9){if(_vT9[0]>0&&_vT9[1]===0)_diaT9='100';else if(_vT9[1]>0&&_vT9[0]===0)_diaT9='50';}
+  var _kT9=_SP9.kind;try{var _sgK9=_psSegs9&&_psSegs9[_pi9];if(_sgK9){var _kc9={},_kb9=null,_kn9=0;_sgK9.forEach(function(n){if(n.mh||!n.no)return;var pt=(typeof pointByNo==='function')?pointByNo(n.no):null;var m=(((pt&&pt.code)||'')+'').match(/\b(FC|COD|PE|PVC)\b/i);if(m){var kk=m[1].toUpperCase();_kc9[kk]=(_kc9[kk]||0)+1;if(_kc9[kk]>_kn9){_kn9=_kc9[kk];_kb9=kk;}}});if(_kb9)_kT9=_kb9;}}catch(_kx9){}/* [BUILD2335] 관종·관경도 측점 통계 자동 *//* [BUILD2334] 태그 관수=측점 통계 자동(100mm 단일 구간) — 50 병기는 관종 체계와 함께 */
+  var spec=yy+'/'+_kT9+'/%%C'+_diaT9+'x'+_gwT9+'('+_SP9.nae+')/L'+Lm.toFixed(1)+'/D'+(Dv!=null?Dv.toFixed(1):'__');/* [BUILD2273] 구간별 *//* [BUILD2255] 실물 D__ */
   var tw=spec.replace(/%%C/g,'Ø').length*0.954-2.6;/* [BUILD2257] 완성본 회귀 *//* [BUILD2255] 4도엽 회귀: 글자수*0.745+5.2 (수평선=tw+2) */
   var placed=false,_lkSgn9=0,_lkEX9=null,_lkEY9=null;/* [BUILD2274] 인출선 팔꿈치(대각 끝) */
   var _lk9='L'+mx.toFixed(2)+'_'+my.toFixed(2);/* [BUILD2254] 구간 인출선 키 */
@@ -20097,7 +20100,7 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var _v9=(_psReps9&&_psReps9[_pi9])?_psReps9[_pi9]:null;
   var _n100=_v9?_v9[0]:((parseFloat(_SP9.dia)<=50)?0:(_SP9.gw||0));
   var _n50=_v9?_v9[1]:((parseFloat(_SP9.dia)<=50)?(_SP9.gw||0):0);
-  try{var _gwm9=parseInt(_SP9.gw,10);if(_v9&&isFinite(_gwm9)&&_gwm9!==(_v9[0]+_v9[1])){(window._posGwBlue9=window._posGwBlue9||[]).push([mx,my]);}}catch(_bx29){}/* [BUILD2329] */
+  try{var _gwm9=parseInt(_gwT9,10);if(_v9&&isFinite(_gwm9)&&_gwm9!==(_v9[0]+_v9[1])){(window._posGwBlue9=window._posGwBlue9||[]).push([mx,my]);}}catch(_bx29){}/* [BUILD2334] 태그 최종값 기준 */
   var _rows9=1;try{var _sgN9=(_psSegs9&&_psSegs9[_pi9])||null;if(_sgN9&&_sgN9.length>=2&&((_sgN9[0]&&_sgN9[0].mh)||(_sgN9[_sgN9.length-1]&&_sgN9[_sgN9.length-1].mh))){var _mr9=(typeof _mnRows9==='function')?_mnRows9(mx,my):0;if(_mr9>0)_rows9=_mr9;}}catch(_mrx){}
   var _cpr9=(_n100>0)?Math.ceil(_n100/_rows9):0;
   var _W9=Math.max(_cpr9*1.0,_n50*0.5,0.5);/* 배열 폭(대각 방향) */
