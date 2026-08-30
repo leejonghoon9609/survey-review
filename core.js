@@ -20044,10 +20044,12 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+0.35:ex+hx*(tw+2)+0.35),y:ey+0.35,h:1.0,s:spec,lk:_lk9,ax:mx,ay:my,lw:(tw+2),tox:0.35,toy:0.35,eo:[ex-mx,ey-my]});/* [BUILD2257] 완성본 오프셋 */
    addBox(S,Math.min(ex,ex+hx*(tw+2)),ey-0.2,Math.max(ex,ex+hx*(tw+2)),ey+1.6);_leadAdd9([[mx,my],[ex,ey],[ex+hx*(tw+2),ey]]);placed=true;_lkSgn9=((_uo9[0]*nx+_uo9[1]*ny)>=0)?1:-1;_lkEX9=ex;_lkEY9=ey;
   }
+  var _sdPref9=0;try{var _sgP9=_psSegs9&&_psSegs9[_pi9];if(_sgP9&&_sgP9.length>=2){var _e0P=_sgP9[0],_e1P=_sgP9[_sgP9.length-1];var _oP=null,_jP=null;if(_e0P.mh&&!_e1P.mh){_oP=_e0P;_jP=_e1P;}else if(_e1P.mh&&!_e0P.mh){_oP=_e1P;_jP=_e0P;}if(_oP&&_jP){var _ddx9=_oP.x-_jP.x;if(Math.abs(_ddx9)>1.0)_sdPref9=(_ddx9>0?1:-1);}}}catch(_pf9){}/* [BUILD2330] 구간이 뻗은 쪽(바깥 끝 방향)으로 인출선 좌/우 강제 — 오른쪽 가지=오른쪽 인출선 */
   var offs=[13,19,25,31,38,46,55,65];var sides=[1,-1];/* [BUILD2318] 밀집 구역 확산용 외곳 링 추가 *//* [BUILD2278] 기본 인출선 간격 확대(첨부1 수준) */
   for(var pzL=0;pzL<12&&!placed;pzL++)/* [BUILD2318] 3부터 겹침 허용 단계 상향 — 누락 없이 최소 겹침 자리 *//* [BUILD2290] 0=\uad00\ub85c+\uc778\ucd9c\uc120 \ubc30\uc81c \u2192 1=\uc778\ucd9c\uc120 \ubc30\uc81c \u2192 2=\uad00\ub85c \ubc30\uc81c \u2192 3=\ud3f4\ubc31 *//* [BUILD2262] pass0=관로 크로스 배제, pass1=폴백 */
   for(var oi=0;oi<offs.length&&!placed;oi++)for(var si=0;si<2&&!placed;si++){
    var sgn=sides[si];
+   if(_sdPref9&&pzL<9&&Math.abs(nx)>0.05){if(((nx*sgn)>0?1:-1)!==_sdPref9)continue;}/* [BUILD2330] 선호 반대쪽은 마지막 폴백에서만 */
    var _dxn=nx*sgn,_dyn=ny*sgn;/* [BUILD2277] 완료성과처럼 바깥으로 갈수록 내려가는 완만한 경사 */
    var _rt9=(_dxn>=0)?-_SDSLOPE9:_SDSLOPE9;
    var _dxr=_dxn*Math.cos(_rt9)-_dyn*Math.sin(_rt9),_dyr=_dxn*Math.sin(_rt9)+_dyn*Math.cos(_rt9);
