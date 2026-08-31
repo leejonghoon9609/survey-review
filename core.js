@@ -2855,7 +2855,7 @@ function exportSurveyCsv(){
   var _pts=state.points; if(_sv)_pts=_pts.filter(function(p){return !/보강판/.test(''+ptNum(p));});
   var _xr9=[];/* [BUILD2200] 수정표시 엑셀용 원본행 */var rows=_pts.map(function(p){
     var nm=ptNum(p);
-    if(_sv){var _dd=(p&&(p._d0||(''+p.no).split('-')[0]))||'';if(/^[0-9]{6}$/.test(_dd))nm=_dd+'_'+nm;}
+    if(_sv||(typeof IS_FIELD!=='undefined'&&IS_FIELD)){var _dd=(p&&(p._d0||(''+p.no).split('-')[0]))||'';if(/^[0-9]{6}$/.test(_dd))nm=_dd+'_'+nm;}/* [BUILD2346] 측량현장도 이름=날짜_번호 */
     else if(typeof STAGE!=='undefined'&&STAGE==='realtime'){var _no9=(''+(p.no||''));var _m9=/^([0-9]{6})-(.+)$/.exec(_no9);if(_m9)nm=_m9[1]+'_'+_m9[2];}/* [BUILD1930] 실시간: 이름=날짜-번호 — 야간보정 반영된 현재 번호 그대로 */
     var X=(p.y!=null&&!isNaN(p.y))?(+p.y).toFixed(3):'';   // CSV X = 앱 p.y (북)
     var Y=(p.x!=null&&!isNaN(p.x))?(+p.x).toFixed(3):'';   // CSV Y = 앱 p.x (동)
@@ -9167,7 +9167,7 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
  function _calc9(){/* [BUILD2235] 매 렌더마다 재계산 — 결선DB 조회 후 즉시 반영 */
   var SV9=window._fldSvCache9||null;
   var _svRM9=(SV9&&SV9.rawMeta)||state.rtRawMeta9||{},_svRawN9=0;for(var rk in _svRM9)_svRawN9++;
-  var _svPtN9=((SV9&&SV9.points&&SV9.points.length)?SV9.points:(state.points||[])).length;
+  var _svPtN9=(state.points||[]).filter(function(p){return p&&!p._hyun;}).length;if(!_svPtN9&&SV9&&SV9.points)_svPtN9=SV9.points.length;/* [BUILD2346] */
   var _aftRM9=state.aftRawMeta9||{},aftRawN=0;for(var ak in _aftRM9)aftRawN++;
   var fcN=(state.finalCsv||[]).length;
   var exN=0,afN=0;try{for(var k1 in (typeof photoMap!=='undefined'?photoMap:{}))exN++;}catch(_e1){}
@@ -9179,7 +9179,7 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
   return [
    ['raw','원시데이터(노출관로)',(_svRawN9?_svRawN9+'건':'-'),'결선DB 원시 ZIP 통합 — 원본 그대로',_svRawN9>0,'ZIP'],
    ['rawAft','원시데이터(후측량)',(aftRawN?aftRawN+'건':'-'),'후측량 업로드 원시 ZIP',aftRawN>0,'ZIP'],
-   ['csvExp','노출관로 CSV',(_svPtN9?'통합 1건':'-'),'결선DB 통합본 · 야간보정 반영 · 측점 '+_svPtN9+'개',_svPtN9>0,'CSV'],
+   ['csvExp','노출관로 CSV',(_svPtN9?'통합 1건':'-'),'현재 도면 반영 통합본(수정·삭제 포함) · 측점 '+_svPtN9+'개',_svPtN9>0,'CSV'],
    ['csv','후측량 CSV',(fcN?fcN+'건':'-'),'후측량 업로드 CSV '+fcN+'건',fcN>0,'CSV'],
    ['line','결선',(seg?'DXF 1건':'-'),'후측량 반영 최종 결선 · 거리 '+(+tot.toFixed(1))+'m · '+seg+'개',seg>0,'DXF'],
    ['exPhoto','노출관로 사진',(exN?exN+'장':'-'),'실시간 측점 사진',exN>0,'ZIP'],
@@ -9203,7 +9203,7 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
    else if(k==='rawAft'){if(typeof aftRawAllZip9==='function')aftRawAllZip9();else toast('후측량 원시 ZIP이 없습니다');}
    else if(k==='line'){if(typeof exportDXF==='function')exportDXF();}
    else if(k==='joseo'){if(typeof joseoDownloadFinal==='function')joseoDownloadFinal();}
-   else if(k==='csvExp'){var _S2=window._fldSvCache9;var _pp=(_S2&&_S2.points&&_S2.points.length)?_S2.points:(state.points||[]);if(typeof _fldCsvFromPoints==='function')_fldCsvFromPoints(_pp,state.projectName);}
+   else if(k==='csvExp'){var _pp=(state.points||[]).filter(function(p){return p&&!p._hyun;});if(!_pp.length){var _S2=window._fldSvCache9;_pp=(_S2&&_S2.points)||[];}if(typeof _fldCsvFromPoints==='function')_fldCsvFromPoints(_pp,state.projectName);}/* [BUILD2346] 현재 도면(현장 수정·삭제 반영) 기준 — 결선DB 캐시는 폴백 */
    else if(k==='csv'){downloadFinalCsvDxf();}
    else if(k==='exPhoto'){exPhotoZip();}
    else if(k==='aftPhoto'){aftPhotoZip();}
@@ -14680,7 +14680,7 @@ function drawMeasure(){clearSvg(gMeasure);clearLabels('measure');if(!measurePts.
     toast('거리: '+d.toFixed(3)+' m');
   }
 }
-function ptNum(p){return (p.no||'').toString().split('-').pop();}
+function ptNum(p){var s=(p.no||'').toString();var m=/^[0-9]{6}-(.+)$/.exec(s);return m?m[1]:s.split('-').pop();}/* [BUILD2346] 날짜(6자리) 뒤 전체가 번호 — 지거 '260826-13-1'→'13-1'(구: 마지막 조각 '1'로 전부 동일 번호). 실시간·결선·현장 공통 */
 function pointByNum(n){for(var i=0;i<state.points.length;i++)if(ptNum(state.points[i])===String(n))return state.points[i];return null;}
 function sortedNums(){return state.points.map(ptNum).filter(function(v){return v!=='';}).sort(function(a,b){return (parseFloat(a)||0)-(parseFloat(b)||0);});}
 function pointByNo(no){if(no==null)return null;for(var i=0;i<state.points.length;i++)if(state.points[i].no===no)return state.points[i];return pointByNum(no);}
