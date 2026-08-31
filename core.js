@@ -11090,19 +11090,26 @@ function fldSegAudit9(si){
       var nm=/\((\d+)\)/.exec(code);if(nm)nn=+nm[1];
       var z=(state._depthByNo&&state._depthByNo[q.no]!=null)?+state._depthByNo[q.no]:((q.z!=null&&isFinite(q.z))?+q.z:null);
       dep.push(z);if(z==null)miss++;
-      if(c>0)cntV[c]=(cntV[c]||0)+1;if(nn!=null)naeV[nn]=(naeV[nn]||0)+1;if(kk)kindV[kk]=(kindV[kk]||0)+1;if(dd)diaV[dd]=(diaV[dd]||0)+1;
-      pts.push({no:q.no,code:code,z:z,cnt:c||null,nae:nn});
+      /* [BUILD2362] 측점 기대값 = 그 점을 지나는 구간 전부의 합산(겹침 구간 포함) — 구간 몫과 직접 비교하지 않음 */
+      var ex=null,exN=null;try{var g=(typeof _tamsaGwan9==='function')?_tamsaGwan9(q.x,q.y,true):null;if(g&&g.parts&&g.parts.length){ex=0;g.parts.forEach(function(pp){ex+=pp.n;});exN=(g.nae!=null)?g.nae:null;}}catch(_g){}
+      var okC=(ex==null||!c)?null:(c===ex);var okN=(exN==null||nn==null)?null:(nn===exN);
+      if(kk)kindV[kk]=(kindV[kk]||0)+1;if(dd)diaV[dd]=(diaV[dd]||0)+1;
+      pts.push({no:q.no,code:code,z:z,cnt:c||null,nae:nn,exp:ex,expNae:exN,okC:okC,okN:okN});
     });
     function mode(o){var b=null,bn=0,k=0;for(var x in o){k++;if(o[x]>bn){bn=o[x];b=x;}}return {v:b,mixed:k>1};}
-    var pc=mode(cntV),pn=mode(naeV),pk=mode(kindV),pd=mode(diaV);
-    function row(nm,vals,mixed){var vs=[];for(var k in vals){var v=vals[k];if(v==null||v==='')continue;vs.push(String(v));}var uniq=vs.filter(function(v,i){return vs.indexOf(v)===i;});
-      var st=(!vs.length)?'none':((uniq.length>1||mixed)?'bad':(vs.length===1?'single':'ok'));return {name:nm,vals:vals,st:st,mixed:!!mixed};}
+    var pk=mode(kindV),pd=mode(diaV);
+    var cChk={n:0,bad:0,list:[]},nChk={n:0,bad:0,list:[]};pts.forEach(function(q){if(q.okC!=null){cChk.n++;if(!q.okC){cChk.bad++;cChk.list.push(q.no);}}if(q.okN!=null){nChk.n++;if(!q.okN){nChk.bad++;nChk.list.push(q.no);}}});
+    var chkTxt=function(k){return k.n?((k.bad?('\u26A0 '+k.bad+'\uC810 \uBD88\uC77C\uCE58'):(k.n+'\uC810 \uC77C\uCE58'))):null;};
+    function row(nm,vals,mixed,chk){var vs=[];for(var k in vals){if(k==='\uCE21\uC810')continue;var v=vals[k];if(v==null||v==='')continue;vs.push(String(v));}var uniq=vs.filter(function(v,i){return vs.indexOf(v)===i;});
+      var st=(uniq.length>1||mixed||(chk&&chk.bad>0))?'bad':((vs.length>=2)?'ok':((vs.length===1||(chk&&chk.n>0))?'single':'none'));return {name:nm,vals:vals,st:st,mixed:!!mixed,chk:chk||null};}
     var rows=[
-      row('\uAD00\uC218',{'\uC57C\uC7A5':(yj&&yj.cnt!=null)?yj.cnt:null,'\uC778\uC785':(ax&&ax.cnt!=null)?ax.cnt:null,'\uAD6C\uAC04':isFinite(mg)?mg:null,'\uCE21\uC810':pc.v},pc.mixed||!!(yj&&yj.cntConflict)),
-      row('\uB0B4\uAD00',{'\uC57C\uC7A5':(yj&&yj.nae!=null)?yj.nae:null,'\uC778\uC785':(ax&&ax.nae!=null)?ax.nae:null,'\uAD6C\uAC04':isFinite(mn)?mn:null,'\uCE21\uC810':pn.v},pn.mixed||!!(yj&&yj.naeConflict)),
+      row('\uAD00\uC218',{'\uC57C\uC7A5':(yj&&yj.cnt!=null)?yj.cnt:null,'\uC778\uC785':(ax&&ax.cnt!=null)?ax.cnt:null,'\uAD6C\uAC04':isFinite(mg)?mg:null,'\uCE21\uC810':chkTxt(cChk)},!!(yj&&yj.cntConflict),cChk),
+      row('\uB0B4\uAD00',{'\uC57C\uC7A5':(yj&&yj.nae!=null)?yj.nae:null,'\uC778\uC785':(ax&&ax.nae!=null)?ax.nae:null,'\uAD6C\uAC04':isFinite(mn)?mn:null,'\uCE21\uC810':chkTxt(nChk)},!!(yj&&yj.naeConflict),nChk),
       row('\uAD00\uC885',{'\uC57C\uC7A5':(yj&&yj.kind)||null,'\uC778\uC785':(ax&&ax.kind)||null,'\uAD6C\uAC04':(mes.kind||'').toUpperCase()||null,'\uCE21\uC810':pk.v},pk.mixed),
       row('\uAD00\uACBD',{'\uC57C\uC7A5':(yj&&yj.dia)||null,'\uC778\uC785':(ax&&ax.dia)||null,'\uAD6C\uAC04':mes.dia||null,'\uCE21\uC810':pd.v},pd.mixed)
     ];
+    /* 관종·관경은 측점 최빈값도 같은 값이어야 함 */
+    [rows[2],rows[3]].forEach(function(r){var pv=r.vals['\uCE21\uC810'];if(pv==null)return;for(var k in r.vals){if(k==='\uCE21\uC810')continue;var v=r.vals[k];if(v!=null&&v!==''&&String(v)!==String(pv)){r.st='bad';}}});
     var nae=rows[1],cnt=rows[0];var naeOver=false;try{var nv=null,cv=null;for(var k1 in nae.vals)if(nae.vals[k1]!=null){nv=+nae.vals[k1];break;}for(var k2 in cnt.vals)if(cnt.vals[k2]!=null){cv=+cnt.vals[k2];break;}if(nv!=null&&cv!=null&&nv>cv)naeOver=true;}catch(_o){}
     var dz=dep.filter(function(v){return v!=null;}),avg=dz.length?dz.reduce(function(a,b){return a+b;},0)/dz.length:null;
     var A=sg[0],B=sg[sg.length-1];
@@ -11132,7 +11139,7 @@ function fldInspWin9(sel){
     if(sel===-1){
       h+='<table style="width:100%;border-collapse:collapse"><tr><th style="'+TH+'">\uAD6C\uAC04</th><th style="'+TH+'">\uC2DC\uC791 \u2192 \uC885\uB8CC</th><th style="'+TH+'">\uAD00\uC218</th><th style="'+TH+'">\uB0B4\uAD00</th><th style="'+TH+'">\uC2EC\uB3C4\uACB0\uCE21</th><th style="'+TH+'">\uD310\uC815</th></tr>';
       AU.forEach(function(a,i){if(!a){h+='<tr><td style="'+TD+'">'+(i+1)+'</td><td colspan=5 style="'+TD+';color:#999">\uD310\uC815 \uBD88\uAC00</td></tr>';return;}
-        var cv=function(r){var o=[];for(var k in r.vals)if(r.vals[k]!=null)o.push(r.vals[k]);return o.length?o.filter(function(v,j){return o.indexOf(v)===j;}).join('/'):'-';};
+        var cv=function(r){var o=[];for(var k in r.vals)if(k!=='\uCE21\uC810'&&r.vals[k]!=null)o.push(r.vals[k]);var t=o.length?o.filter(function(v,j){return o.indexOf(v)===j;}).join('/'):'-';if(r.chk&&r.chk.bad)t+=' \u26A0'+r.chk.bad;return t;};
         h+='<tr class="fiRow9" data-i="'+i+'" style="cursor:pointer;background:'+(a.ok?'#fff':'#fff5f5')+'"><td style="'+TD+'">'+(i+1)+'</td><td style="'+TD+';text-align:left;max-width:180px;overflow:hidden;text-overflow:ellipsis">'+E(a.from)+' \u2192 '+E(a.to)+'</td><td style="'+TD+';color:'+stC(a.rows[0].st)+'">'+cv(a.rows[0])+'</td><td style="'+TD+';color:'+stC(a.rows[1].st)+'">'+cv(a.rows[1])+(a.naeOver?' \u26A0':'')+'</td><td style="'+TD+';color:'+(a.depth.miss?'#c62828':'#2e7d32')+'">'+a.depth.miss+'/'+a.depth.n+'</td><td style="'+TD+';font-weight:800;color:'+(a.ok?'#2e7d32':'#c62828')+'">'+(a.ok?'\uC77C\uCE58':'\u26A0 '+a.bad)+'</td></tr>';});
       h+='</table>';
     }else{
@@ -11140,13 +11147,13 @@ function fldInspWin9(sel){
       if(!a)h+='<div style="color:#999;padding:12px;text-align:center">\uD310\uC815 \uBD88\uAC00</div>';
       else{
         h+='<div style="font-size:12px;font-weight:800;color:#333;margin-bottom:6px">'+(sel+1)+'\uAD6C\uAC04 \u00B7 '+E(a.from)+' \u2192 '+E(a.to)+'<span style="font-weight:400;color:#666"> \u00B7 \uCE21\uC810 '+a.pts.length+' \u00B7 \uD0D0\uC0AC '+a.depth.tamsa+' \u00B7 \uD3C9\uADE0\uC2EC\uB3C4 '+(a.depth.avg!=null?a.depth.avg.toFixed(2):'-')+'m</span></div>';
-        h+='<table style="width:100%;border-collapse:collapse;margin-bottom:8px"><tr><th style="'+TH+'">\uD56D\uBAA9</th><th style="'+TH+'">\uC57C\uC7A5</th><th style="'+TH+'">\uC778\uC785\uCC3D</th><th style="'+TH+'">\uAD6C\uAC04\uC18D\uC131</th><th style="'+TH+'">\uCE21\uC810</th><th style="'+TH+'">\uD310\uC815</th></tr>';
+        h+='<table style="width:100%;border-collapse:collapse;margin-bottom:8px"><tr><th style="'+TH+'">\uD56D\uBAA9</th><th style="'+TH+'">\uC57C\uC7A5</th><th style="'+TH+'">\uC778\uC785\uCC3D</th><th style="'+TH+'">\uAD6C\uAC04\uC18D\uC131</th><th style="'+TH+'" title="\uCE21\uC810 \uCF54\uB4DC \u2194 \uADF8 \uC810\uC744 \uC9C0\uB098\uB294 \uAD6C\uAC04 \uD569\uC0B0">\uCE21\uC810\u2194\uD569\uC0B0</th><th style="'+TH+'">\uD310\uC815</th></tr>';
         a.rows.forEach(function(r){h+='<tr><td style="'+TD+';font-weight:800">'+r.name+'</td>'+['\uC57C\uC7A5','\uC778\uC785','\uAD6C\uAC04','\uCE21\uC810'].map(function(k){var v=r.vals[k];return '<td style="'+TD+'">'+(v==null||v===''?'<span style=\"color:#bbb\">\u2013</span>':E(v)+((k==='\uCE21\uC810'&&r.mixed)?' <span style=\"color:#c62828\">\uD63C\uC7AC</span>':''))+'</td>';}).join('')+'<td style="'+TD+';font-weight:800;color:'+stC(r.st)+'">'+stT(r.st)+'</td></tr>';});
         h+='<tr><td style="'+TD+';font-weight:800">\uC2EC\uB3C4</td><td colspan=4 style="'+TD+'">\uACB0\uCE21 '+a.depth.miss+' / '+a.depth.n+(a.depth.avg!=null?(' \u00B7 \uD3C9\uADE0 '+a.depth.avg.toFixed(2)+'m'):'')+'</td><td style="'+TD+';font-weight:800;color:'+(a.depth.miss?'#c62828':'#2e7d32')+'">'+(a.depth.miss?'\u26A0 \uACB0\uCE21':'\uC77C\uCE58')+'</td></tr>';
         if(a.naeOver)h+='<tr><td colspan=6 style="'+TD+';color:#c62828;font-weight:800;text-align:left">\u26A0 \uB0B4\uAD00\uC218\uAC00 \uAD00\uC218\uBCF4\uB2E4 \uD07D\uB2C8\uB2E4</td></tr>';
         h+='</table>';
-        h+='<div style="max-height:220px;overflow:auto"><table style="width:100%;border-collapse:collapse"><tr><th style="'+TH+'">\uCE21\uC810</th><th style="'+TH+'">\uCF54\uB4DC</th><th style="'+TH+'">\uAD00\uC218</th><th style="'+TH+'">\uB0B4\uAD00</th><th style="'+TH+'">\uC2EC\uB3C4</th></tr>';
-        a.pts.forEach(function(q){h+='<tr><td style="'+TD+'">'+E(q.no)+'</td><td style="'+TD+';text-align:left">'+E(q.code)+'</td><td style="'+TD+'">'+(q.cnt!=null?q.cnt:'\u2013')+'</td><td style="'+TD+'">'+(q.nae!=null?q.nae:'\u2013')+'</td><td style="'+TD+';color:'+(q.z==null?'#c62828':'#333')+'">'+(q.z!=null?q.z.toFixed(2):'\uACB0\uCE21')+'</td></tr>';});
+        h+='<div style="max-height:220px;overflow:auto"><table style="width:100%;border-collapse:collapse"><tr><th style="'+TH+'">\uCE21\uC810</th><th style="'+TH+'">\uCF54\uB4DC</th><th style="'+TH+'">\uAD00\uC218</th><th style="'+TH+'" title="\uADF8 \uC810\uC744 \uC9C0\uB098\uB294 \uAD6C\uAC04 \uC804\uBD80\uC758 \uD569\uC0B0">\uD569\uC0B0(\uAE30\uB300)</th><th style="'+TH+'">\uB0B4\uAD00</th><th style="'+TH+'">\uB0B4\uAD00\uAE30\uB300</th><th style="'+TH+'">\uC2EC\uB3C4</th></tr>';
+        a.pts.forEach(function(q){var cc=(q.okC===false)?'#c62828':'#333',cn=(q.okN===false)?'#c62828':'#333';h+='<tr style="background:'+((q.okC===false||q.okN===false)?'#fff5f5':'#fff')+'"><td style="'+TD+'">'+E(q.no)+'</td><td style="'+TD+';text-align:left">'+E(q.code)+'</td><td style="'+TD+';color:'+cc+';font-weight:'+(q.okC===false?'800':'400')+'">'+(q.cnt!=null?q.cnt:'\u2013')+'</td><td style="'+TD+';color:#555">'+(q.exp!=null?q.exp:'\u2013')+'</td><td style="'+TD+';color:'+cn+'">'+(q.nae!=null?q.nae:'\u2013')+'</td><td style="'+TD+';color:#555">'+(q.expNae!=null?q.expNae:'\u2013')+'</td><td style="'+TD+';color:'+(q.z==null?'#c62828':'#333')+'">'+(q.z!=null?q.z.toFixed(2):'\uACB0\uCE21')+'</td></tr>';});
         h+='</table></div>';
       }
     }
