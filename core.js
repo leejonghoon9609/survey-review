@@ -2852,7 +2852,7 @@ function exportSurveyCsv(){
   if(!state.points||!state.points.length){toast('내보낼 측점이 없습니다');return;}
   var head='이름,X,Y,Z(레벨),코드';
   var _sv=(typeof STAGE!=='undefined'&&STAGE==='survey');/* [1237] 결선DB만: 보강판 제외·이름=날짜_번호 (타 공정 기존 유지) */
-  var _pts=state.points; if(_sv)_pts=_pts.filter(function(p){return !/보강판/.test(''+ptNum(p));});
+  var _pts=(typeof _csvExportPts9==='function')?_csvExportPts9():state.points;/* [BUILD2347] 현재 도면 반영 */ if(_sv)_pts=_pts.filter(function(p){return !/보강판/.test(''+ptNum(p));});
   var _xr9=[];/* [BUILD2200] 수정표시 엑셀용 원본행 */var rows=_pts.map(function(p){
     var nm=ptNum(p);
     if(_sv||(typeof IS_FIELD!=='undefined'&&IS_FIELD)){var _dd=(p&&(p._d0||(''+p.no).split('-')[0]))||'';if(/^[0-9]{6}$/.test(_dd))nm=_dd+'_'+nm;}/* [BUILD2346] 측량현장도 이름=날짜_번호 */
@@ -8409,6 +8409,29 @@ function _fldStakePhSync(){ /* [1298] field 전용 — 측설사진 등록 토�
   b.style.cssText='border-radius:8px;padding:3px 7px;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap;flex:none;'+(on?'background:#16a34a;color:#fff;border:1px solid #16a34a':'background:#fff8e1;color:#b7791f;border:1.5px solid #e0a800');
 }
 function finalCsvArr(){var f=state.finalCsv;if(!f)return [];return Array.isArray(f)?f:[f];}
+function _csvExportPts9(){/* [BUILD2347] CSV 내보내기 공통 원천 = 현재 도면 측점 — 현황점(_hyun)·건너뜀(skip)·휴지통(_trash) 제외. 도면에서 지우면 빠지고 추가하면 들어감 */
+  var tr={};(state._trash||[]).forEach(function(t){if(t&&t.no!=null)tr[String(t.no)]=1;});
+  return (state.points||[]).filter(function(p){return p&&!p._hyun&&!p.skip&&p.x!=null&&p.y!=null&&!tr[String(p.no)];});
+}
+function _aftCsvMerged9(){/* [BUILD2347] 후측량 CSV 통합본 — 원본 N건을 한 파일로, 도면에서 삭제된 측점(맨홀·탐사보완점·입상 묘비 mhDel, 1cm) 행 제거. 열=이름,X,Y,Z(레벨),코드,원본파일 (원시 ZIP은 별도 보관) */
+  var arr=finalCsvArr();if(!arr.length)return null;
+  var tomb={};try{for(var k in (state.mhDel||{})){var kk=k.split('_');if(kk.length===2){var kx=parseFloat(kk[0]),ky=parseFloat(kk[1]);if(isFinite(kx)&&isFinite(ky))tomb[Math.round(kx*100)+'_'+Math.round(ky*100)]=1;}}}catch(_t){}
+  var out=[],total=0,dropped=0;
+  arr.forEach(function(it){
+    var txt=(it&&it.text)||'';var lines=txt.replace(/^\uFEFF/,'').replace(/\r/g,'').split('\n').filter(function(l){return l.trim().length;});if(lines.length<2)return;
+    var h=lines[0].split(',').map(function(x){return x.trim();});
+    function ci(ns){for(var q=0;q<ns.length;q++){var x=h.indexOf(ns[q]);if(x>=0)return x;}return -1;}
+    var iN=ci(['이름']),iX=ci(['X']),iY=ci(['Y']),iZ=ci(['Z(레벨)','Z']),iC=ci(['코드']);
+    var fn=String((it&&it.name)||'');
+    for(var r=1;r<lines.length;r++){var c=lines[r].split(',');var X=parseFloat(c[iX]),Y=parseFloat(c[iY]);if(isNaN(X)||isNaN(Y))continue;total++;
+      var ax=Y,ay=X;/* 앱 x=CSV Y, 앱 y=CSV X (parseInspCsv ex/no 관례) */
+      if(tomb[Math.round(ax*100)+'_'+Math.round(ay*100)]){dropped++;continue;}
+      function q(v){v=(v==null?'':String(v)).trim();return /[",]/.test(v)?('"'+v.replace(/"/g,'""')+'"'):v;}
+      out.push([q(iN>=0?c[iN]:''),q(c[iX]),q(c[iY]),q(iZ>=0?c[iZ]:''),q(iC>=0?c[iC]:''),q(fn)].join(','));
+    }
+  });
+  return {csv:'\uFEFF'+'이름,X,Y,Z(레벨),코드,원본파일\r\n'+out.join('\r\n')+'\r\n',total:total,kept:out.length,dropped:dropped};
+}
 function _fldMnRecFor(m,force){ /* [1258] field — 맨홈 1개→야장 rec 생성/연결(mhId) · 멱등 · [1556] 삭제 묘비 존중 */
   if(!m||m.type==='riser'||m.type==='jb'||m.type==='inlet'||m.wx==null)return null;/* [1558] \ubd80\uc18d\ubb3c \uc81c\uc678 */
   var _lb0=String(m.label||'');
@@ -8896,9 +8919,10 @@ function downloadFinalCsvDxf(){
   if(typeof JSZip==='undefined'){toast('압축 모듈 없음 — 새로고침(Ctrl+Shift+R)');return;}
   var base=(state.projectName||'성과'),safe=base.replace(/[^\w가-힣\-]/g,'_');
   var zip=new JSZip(),seen={};
-  arr.forEach(function(it,i){var nm=it.name||('후측량'+(i+1)+'.csv');if(seen[nm])nm=(i+1)+'_'+nm;seen[nm]=1;zip.file(nm,'\uFEFF'+(it.text||''));});
+  var _mg=(typeof _aftCsvMerged9==='function')?_aftCsvMerged9():null;/* [BUILD2347] 통합본(도면 반영) — 원본 낱개는 원시데이터(후측량) ZIP에서 */
+  if(_mg)zip.file('후측량_통합_'+safe+'.csv',_mg.csv);else arr.forEach(function(it,i){var nm=it.name||('후측량'+(i+1)+'.csv');if(seen[nm])nm=(i+1)+'_'+nm;seen[nm]=1;zip.file(nm,'\uFEFF'+(it.text||''));});
   if(dxf){zip.file(safe+'_결선.dxf',dxf);}
-  zip.generateAsync({type:'blob'}).then(function(blob){var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='후측량성과_'+base+'.zip';document.body.appendChild(a);a.click();a.remove();toast('📦 후측량CSV+결선DXF → ZIP 다운로드');});
+  zip.generateAsync({type:'blob'}).then(function(blob){var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='후측량성과_'+base+'.zip';document.body.appendChild(a);a.click();a.remove();toast('📦 후측량 통합CSV'+(_mg?('('+_mg.kept+'점, 삭제 '+_mg.dropped+'행 제외)'):'')+'+결선DXF → ZIP 다운로드');});
 }
 async function exPhotoZip(){ /* [1302] 노출관로 사진 ZIP — 결선(_A) 완료성과(survey_photos) 우선, 없으면 현재 photoMap */
   try{
@@ -9167,7 +9191,8 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
  function _calc9(){/* [BUILD2235] 매 렌더마다 재계산 — 결선DB 조회 후 즉시 반영 */
   var SV9=window._fldSvCache9||null;
   var _svRM9=(SV9&&SV9.rawMeta)||state.rtRawMeta9||{},_svRawN9=0;for(var rk in _svRM9)_svRawN9++;
-  var _svPtN9=(state.points||[]).filter(function(p){return p&&!p._hyun;}).length;if(!_svPtN9&&SV9&&SV9.points)_svPtN9=SV9.points.length;/* [BUILD2346] */
+  var _svPtN9=_csvExportPts9().length;if(!_svPtN9&&SV9&&SV9.points)_svPtN9=SV9.points.length;/* [BUILD2346/2347] */
+  var _afM9=null;try{_afM9=_aftCsvMerged9();}catch(_am){}/* [BUILD2347] 후측량 통합본 집계 */
   var _aftRM9=state.aftRawMeta9||{},aftRawN=0;for(var ak in _aftRM9)aftRawN++;
   var fcN=(state.finalCsv||[]).length;
   var exN=0,afN=0;try{for(var k1 in (typeof photoMap!=='undefined'?photoMap:{}))exN++;}catch(_e1){}
@@ -9180,7 +9205,7 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
    ['raw','원시데이터(노출관로)',(_svRawN9?_svRawN9+'건':'-'),'결선DB 원시 ZIP 통합 — 원본 그대로',_svRawN9>0,'ZIP'],
    ['rawAft','원시데이터(후측량)',(aftRawN?aftRawN+'건':'-'),'후측량 업로드 원시 ZIP',aftRawN>0,'ZIP'],
    ['csvExp','노출관로 CSV',(_svPtN9?'통합 1건':'-'),'현재 도면 반영 통합본(수정·삭제 포함) · 측점 '+_svPtN9+'개',_svPtN9>0,'CSV'],
-   ['csv','후측량 CSV',(fcN?fcN+'건':'-'),'후측량 업로드 CSV '+fcN+'건',fcN>0,'CSV'],
+   ['csv','후측량 CSV',(fcN?'통합 1건':'-'),'원본 '+fcN+'건 통합 · 도면 반영(삭제 '+(_afM9?_afM9.dropped:0)+'행 제외) · 측점 '+(_afM9?_afM9.kept:0)+'개',fcN>0,'CSV'],
    ['line','결선',(seg?'DXF 1건':'-'),'후측량 반영 최종 결선 · 거리 '+(+tot.toFixed(1))+'m · '+seg+'개',seg>0,'DXF'],
    ['exPhoto','노출관로 사진',(exN?exN+'장':'-'),'실시간 측점 사진',exN>0,'ZIP'],
    ['joseo','실시간 사진조서',(joN?joN+'점':(fd.joseo?'등록완료':'-')),'측점 사진조서',joN>0,'ZIP'],
@@ -9203,7 +9228,7 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
    else if(k==='rawAft'){if(typeof aftRawAllZip9==='function')aftRawAllZip9();else toast('후측량 원시 ZIP이 없습니다');}
    else if(k==='line'){if(typeof exportDXF==='function')exportDXF();}
    else if(k==='joseo'){if(typeof joseoDownloadFinal==='function')joseoDownloadFinal();}
-   else if(k==='csvExp'){var _pp=(state.points||[]).filter(function(p){return p&&!p._hyun;});if(!_pp.length){var _S2=window._fldSvCache9;_pp=(_S2&&_S2.points)||[];}if(typeof _fldCsvFromPoints==='function')_fldCsvFromPoints(_pp,state.projectName);}/* [BUILD2346] 현재 도면(현장 수정·삭제 반영) 기준 — 결선DB 캐시는 폴백 */
+   else if(k==='csvExp'){var _pp=_csvExportPts9();if(!_pp.length){var _S2=window._fldSvCache9;_pp=(_S2&&_S2.points)||[];}if(typeof _fldCsvFromPoints==='function')_fldCsvFromPoints(_pp,state.projectName);}/* [BUILD2346/2347] 현재 도면(현장 수정·삭제 반영) 기준 — 결선DB 캐시는 폴백 */
    else if(k==='csv'){downloadFinalCsvDxf();}
    else if(k==='exPhoto'){exPhotoZip();}
    else if(k==='aftPhoto'){aftPhotoZip();}
