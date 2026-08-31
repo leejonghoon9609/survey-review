@@ -15768,16 +15768,17 @@ try{if(typeof IS_FIELD!=='undefined'&&IS_FIELD&&!(window.matchMedia&&matchMedia(
     L.appendChild(B('fb9Import','\uACB0\uC120DB \uCD5C\uC885\uC131\uACFC','#c0392b',clickOf('fldImport')));
     L.appendChild(B('fb9Final','\uCE21\uB7C9(\uD604\uC7A5) \uCD5C\uC885\uC131\uACFC','#15803d',clickOf('fldFinal')));
     R.appendChild(B('fb9Insp','\uD83D\uDD0D \uAD6C\uAC04\uAC80\uC218','#7b1fa2',function(){if(typeof fldInspWin9==='function')fldInspWin9();}));
-    R.appendChild(B('fb9Seg','\uD83D\uDCD0 \uAD6C\uAC04\uC124\uC815','#b8860b',function(){var p9=document.getElementById('tangoPanel'),ip9=document.getElementById('tgInfoPanel');var open9=((p9&&p9.style.display!=='none')||(ip9&&ip9.style.display==='flex'));if(open9){if(typeof closeTangoPanel==='function')closeTangoPanel();}else{if(typeof openTangoPanel==='function')openTangoPanel('attr');}setTimeout(_fbPaint9,60);}));
+    R.appendChild(B('fb9Seg','\uD83D\uDCD0 \uAD6C\uAC04\uC124\uC815','#0a3ea0',function(){var p9=document.getElementById('tangoPanel'),ip9=document.getElementById('tgInfoPanel');var open9=((p9&&p9.style.display!=='none')||(ip9&&ip9.style.display==='flex'));if(open9){if(typeof closeTangoPanel==='function')closeTangoPanel();}else{if(typeof openTangoPanel==='function')openTangoPanel('attr');}setTimeout(_fbPaint9,60);}));
     R.appendChild(B('fb9Note','\u2757 \uD2B9\uC774\uC0AC\uD56D','#d500f2',function(){if(typeof tgNoteToggle==='function')tgNoteToggle();try{if(typeof renderSub==='function')renderSub();}catch(_r){}setTimeout(_fbPaint9,60);}));
     R.appendChild(B('fb9Joseo','\u2713 \uC2E4\uC2DC\uAC04 \uC0AC\uC9C4\uC870\uC11C','#0d9488',clickOf('fldJoseo')));
     R.appendChild(B('fb9Mh','\u2713 \uB9E8\uD640\uB3C4 \uC81C\uC791','#d97706',clickOf('fldManhole')));
     bar.appendChild(L);bar.appendChild(R);
     mc.insertBefore(bar,sb);
     try{['fpcSpL','fpcSpR'].forEach(function(id){var e=document.getElementById(id);if(e)e.remove();});}catch(_c){}/* 구 프록시 제거 */
+    try{if(!document.getElementById('fldBarCss9')){var st=document.createElement('style');st.id='fldBarCss9';st.textContent='body.fpc .subbar{padding:5px 10px!important;min-height:36px!important;gap:5px!important}body.fpc .subbar button{padding:4px 9px!important;font-size:12px!important;line-height:1.25!important}body.fpc .subbar .sub-b .hk-badge{font-size:10px!important;padding:0 4px!important}';document.head.appendChild(st);}}catch(_cs){}/* [BUILD2363] 현장 PC 도구 스트립 축소(세로 62→36px) */
   };
   var _fbPaint9=function(){try{
-    var seg=document.getElementById('fb9Seg');if(seg){var p9=document.getElementById('tangoPanel'),ip9=document.getElementById('tgInfoPanel');var on=((p9&&p9.style.display!=='none')||(ip9&&ip9.style.display==='flex'));seg.style.background=on?'#ffd31a':'#fff';seg.style.color=on?'#000':'#b8860b';}
+    var seg=document.getElementById('fb9Seg');if(seg){var p9=document.getElementById('tangoPanel'),ip9=document.getElementById('tgInfoPanel');var on=((p9&&p9.style.display!=='none')||(ip9&&ip9.style.display==='flex'));seg.style.borderColor='#ffd31a';seg.style.borderWidth='2px';seg.style.background=on?'#ffd31a':'#fff';seg.style.color=on?'#000':'#0a3ea0';}/* [BUILD2363] 기존 노랑 테두리·남색 글자 */
     var nt=document.getElementById('fb9Note');if(nt){var onN=(typeof mode!=='undefined'&&mode==='tgnote');nt.style.background=onN?'#fbe9fb':'#fff';}
     var ins=document.getElementById('fb9Insp');if(ins){var onI=!!document.getElementById('fldInspOv9');ins.style.background=onI?'#f3e5f5':'#fff';}
   }catch(_p){}};
