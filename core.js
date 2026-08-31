@@ -9983,6 +9983,7 @@ function _mnDupHit9(d,lab,xy){
 /* [BUILD1950] 두 시설물을 잇는 구간 인덱스 */
 function mnSegFind9(a,b){
   try{
+    if((typeof _tgSegs==='undefined'||!_tgSegs||!_tgSegs.length)&&typeof tangoBuildSegs==='function'){try{_tgSegs=tangoBuildSegs();}catch(_b9){}}/* [BUILD2359] 구간설정 창을 열지 않아도 구간 자동 생성 — 방향창·인입창 '구간 보기'·auxPipeWrite9 공통 */
     if(typeof _tgSegs==='undefined'||!_tgSegs||!a||!b)return -1;
     for(var i=0;i<_tgSegs.length;i++){
       var sg=_tgSegs[i];if(!sg||sg.length<2)continue;
