@@ -596,18 +596,18 @@
     var old=document.getElementById('pxPcOnly9');if(old)old.remove();
     var ov=document.createElement('div');ov.id='pxPcOnly9';
     ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99999;display:flex;align-items:center;justify-content:center;padding:24px';
-    ov.innerHTML='<div style="background:#fff;border-radius:16px;width:min(88vw,340px);padding:22px 20px 18px;box-shadow:0 12px 40px rgba(0,0,0,.3);text-align:center">'
-      +'<div style="font-size:30px;margin-bottom:8px">\uD83D\uDDA5\uFE0F</div>'
-      +'<div style="font-size:16px;font-weight:800;color:#1d2a3a;margin-bottom:8px">'+name+'\uB294 PC \uC804\uC6A9\uC785\uB2C8\uB2E4</div>'
-      +'<div style="font-size:13px;color:#5a6b7a;line-height:1.55;margin-bottom:16px">\uB3C4\uBA74 \uD3B8\uC9D1\u00B7\uAC80\uC218 \uC791\uC5C5\uC740 \uD654\uBA74\uC774 \uD070 PC\uC5D0\uC11C\uB9CC \uC5F4\uB9BD\uB2C8\uB2E4.<br>\uD718\uB300\uD3F0\uC5D0\uC11C\uB294 <b>\uC2E4\uC2DC\uAC04\uCE21\uB7C9</b>\uACFC <b>\uCE21\uB7C9(\uD604\uC7A5)</b>\uB9CC \uC0AC\uC6A9\uD574 \uC8FC\uC138\uC694.</div>'
-      +'<button id="pxPcOnlyOk9" style="width:100%;border:0;background:#1e3d63;color:#fff;border-radius:11px;padding:13px;font-size:15px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;cursor:pointer">\uD655\uC778</button></div>';
+    ov.innerHTML='<div style="background:#fff5f5;border:2px solid #d32f2f;border-radius:16px;width:min(88vw,340px);padding:22px 20px 18px;box-shadow:0 12px 40px rgba(0,0,0,.3);text-align:center">'
+      +'<div style="font-size:30px;margin-bottom:8px">\uD83D\uDEAB</div>'
+      +'<div style="font-size:16px;font-weight:800;color:#b71c1c;margin-bottom:8px">'+name+'\uB294 PC \uC804\uC6A9\uC785\uB2C8\uB2E4</div>'
+      +'<div style="font-size:13px;color:#7a3b3b;line-height:1.55;margin-bottom:16px">\uB3C4\uBA74 \uD3B8\uC9D1\u00B7\uAC80\uC218 \uC791\uC5C5\uC740 \uD654\uBA74\uC774 \uD070 PC\uC5D0\uC11C\uB9CC \uC5F4\uB9BD\uB2C8\uB2E4.<br>\uD718\uB300\uD3F0\uC5D0\uC11C\uB294 <b>\uC2E4\uC2DC\uAC04\uCE21\uB7C9</b>\uACFC <b>\uCE21\uB7C9(\uD604\uC7A5)</b>\uB9CC \uC0AC\uC6A9\uD574 \uC8FC\uC138\uC694.</div>'
+      +'<button id="pxPcOnlyOk9" style="width:100%;border:0;background:#d32f2f;color:#fff;border-radius:11px;padding:13px;font-size:15px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;cursor:pointer">\uD655\uC778</button></div>';
     document.body.appendChild(ov);
     ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
     ov.querySelector('#pxPcOnlyOk9').onclick=function(){ov.remove();};
   }
   Object.keys(PC).forEach(function(cls){
     var card=document.querySelector('a.app.'+cls);if(!card)return;
-    var op=card.querySelector('.open');if(op){op.innerHTML='PC \uC804\uC6A9';op.style.color='#8a9099';}
+    var op=card.querySelector('.open');if(op){op.innerHTML='PC \uC804\uC6A9';op.style.color='#c0392b';}
     card.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();notice(PC[cls]);},true);
   });
 })();
@@ -675,6 +675,6 @@
   });
 })();
 </script>
-<script src="login.js?v=2343"></script>
+<script src="login.js?v=2344"></script>
 </body>
 </html>
