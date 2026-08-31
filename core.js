@@ -11165,7 +11165,8 @@ function fldInspWin9(sel){
     var w=document.createElement('div');w.id='fldInspOv9';w.style.cssText='position:fixed;inset:0;z-index:1325;pointer-events:none;background:transparent';
     var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
     var btn=function(i,lab,on,ok){var bg=on?'#7b1fa2':(ok===true?'#e8f5e9':(ok===false?'#ffebee':'#fff')),fg=on?'#fff':(ok===true?'#2e7d32':(ok===false?'#c62828':'#555')),bd=on?'#7b1fa2':(ok===true?'#a5d6a7':(ok===false?'#ef9a9a':'#ccc'));
-      return '<button class="fiSeg9" data-i="'+i+'" style="border:1.5px solid '+bd+';background:'+bg+';color:'+fg+';border-radius:7px;padding:5px 6px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;width:100%;align-items:center;justify-content:center;white-space:nowrap">'+E(lab)+'</button>';};/* [BUILD2370] 세로 버튼 */
+      var bd2=on?'#7b1fa2':(ok===true?'#2e7d32':(ok===false?'#c62828':'#777'));/* [BUILD2373] 테두리 진하게 */
+      return '<button class="fiSeg9" data-i="'+i+'" style="border:2px solid '+bd2+';background:'+bg+';color:'+fg+';border-radius:7px;padding:5px 6px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;width:100%;align-items:center;justify-content:center;white-space:nowrap">'+E(lab)+'</button>';};/* [BUILD2370] 세로 버튼 */
     var nb=AU.filter(function(a){return a&&!a.ok;}).length;
     var h='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><b style="font-size:14px;color:#7b1fa2">\uD83D\uDD0D \uAD6C\uAC04\uAC80\uC218 (\uCE21\uB7C9\uD604\uC7A5)</b><span style="font-size:11.5px;color:#666">\uAD6C\uAC04 '+N+' \u00B7 \uBD88\uC77C\uCE58 <b style="color:'+(nb?'#c62828':'#2e7d32')+'">'+nb+'</b></span>'
       +'<span style="display:inline-flex;gap:6px;margin-left:14px">'
@@ -11174,12 +11175,12 @@ function fldInspWin9(sel){
       +'<button id="fiFit9" style="border:1.5px solid '+(window._fldInspFitLock9?'#c62828':'#2e7d32')+';background:'+(window._fldInspFitLock9?'#ffebee':'#e8f5e9')+';color:'+(window._fldInspFitLock9?'#c62828':'#2e7d32')+';border-radius:6px;padding:3px 9px;font-size:11.5px;font-weight:800;cursor:pointer">'+(window._fldInspFitLock9?'\uD83D\uDCCC \uACE0\uC815\uC911':'\uD83C\uDFAF \uC790\uB3D9\uC774\uB3D9')+'</button></span>'/* [BUILD2371] 구간설정 창의 3버튼 복사 */
       +'<button id="fiRefresh9" title="\uC7AC\uAC80\uC218" style="margin-left:auto;border:1px solid #bbb;background:#fff;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:800;cursor:pointer">\u21BB</button><button id="fiClose9" style="border:1px solid #bbb;background:#fff;border-radius:6px;padding:3px 9px;font-size:12px;font-weight:800;cursor:pointer">\u2715</button></div>';
     /* [BUILD2370] 좌: 세로 구간 버튼 열 / 우: 내용 */
-    h+='<div style="display:flex;gap:10px;align-items:flex-start;height:calc(100% - 34px)"><div style="flex:none;width:84px;display:flex;flex-direction:column;gap:4px;max-height:100%;overflow:auto;padding-right:2px">'+btn(-1,'\uC804\uCCB4',sel===-1,null)+AU.map(function(a,i){return btn(i,(i+1)+'\uAD6C\uAC04',sel===i,a?a.ok:null);}).join('')+'</div><div style="flex:1;min-width:0;max-height:100%;overflow:auto">';
+    h+='<div style="display:flex;gap:10px;align-items:flex-start;height:calc(100% - 34px)"><div style="flex:none;width:84px;display:flex;flex-direction:column;gap:4px;max-height:100%;overflow:auto;padding-right:8px;border-right:2px solid #7b1fa2;align-self:stretch">'+btn(-1,'\uC804\uCCB4',sel===-1,null)+AU.map(function(a,i){return btn(i,(i+1)+'\uAD6C\uAC04',sel===i,a?a.ok:null);}).join('')+'</div><div style="flex:1;min-width:0;max-height:100%;overflow:auto">';
     var TH='padding:4px 6px;border:1px solid #d9c7e6;background:#f5eefa;font-weight:800;font-size:11px;color:#4a148c;white-space:nowrap',TD='padding:4px 6px;border:1px solid #e3d5ee;font-size:11.5px;text-align:center;white-space:nowrap';
     var stC=function(st){return st==='bad'?'#c62828':(st==='ok'?'#2e7d32':(st==='single'?'#8a6d00':'#999'));};
     var stT=function(st){return st==='bad'?'\u26A0 \uBD88\uC77C\uCE58':(st==='ok'?'\uC77C\uCE58':(st==='single'?'\uB2E8\uC77C\uCD9C\uCC98':'\u2013'));};
     if(sel===-1){
-      h+='<div style="color:#999;font-size:12px;padding:18px 6px">\uAD6C\uAC04\uC744 \uC120\uD0DD\uD558\uC138\uC694</div>';/* [BUILD2370] 전체 요약표 제거(추후 항목별 구성) */
+      /* [BUILD2373] 전체 선택 시 빈 화면(안내문 제거) */
     }else if(false){
       h+='<table style="width:100%;border-collapse:collapse"><tr><th style="'+TH+'">\uAD6C\uAC04</th><th style="'+TH+'">\uC2DC\uC791 \u2192 \uC885\uB8CC</th><th style="'+TH+'">\uAD00\uC218</th><th style="'+TH+'">\uB0B4\uAD00</th><th style="'+TH+'">\uC2EC\uB3C4\uACB0\uCE21</th><th style="'+TH+'">\uD310\uC815</th></tr>';
       AU.forEach(function(a,i){if(!a){h+='<tr><td style="'+TD+'">'+(i+1)+'</td><td colspan=5 style="'+TD+';color:#999">\uD310\uC815 \uBD88\uAC00</td></tr>';return;}
