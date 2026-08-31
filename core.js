@@ -8486,7 +8486,8 @@ function _fldMnRecFor(m,force){ /* [1258] field — 맨홈 1개→야장 rec 생
   if(ex){if(!ex.refXY||ex.refXY[0]!==m.wx||ex.refXY[1]!==m.wy){ex.refXY=[m.wx,m.wy];try{refGeoFill(ex,m.wx,m.wy);}catch(e){}}return ex;}
   var no=0;L.forEach(function(r){var v=parseInt(r&&r.no,10);if(isFinite(v)&&v>no)no=v;});
   var ow=/\(([^)]+)\)/.exec(m.label||'');ow=ow?ow[1].trim():'SK';
-  var rec={id:'mn'+Date.now()+'_'+m.id,no:String(no+1),owner:'_c',ownerC:ow,mhId:m.id,
+  var _nf9=mnPfOf9(m.label||'');var _nm9=(/(\d+(?:-\d+)*)\s*([MH])\s*\(/i.exec(String(m.label||'')));/* [BUILD2365] 도면 라벨의 기설/신설·번호를 야장에 그대로 */
+  var rec={id:'mn'+Date.now()+'_'+m.id,no:(_nm9?(_nm9[1]+_nm9[2].toUpperCase()):String(no+1)),suf:(_nm9?_nm9[2].toUpperCase():undefined),newFlag:_nf9,owner:'_c',ownerC:ow,mhId:m.id,
     dep:'',w12:'',w34:'',topi:'',lid:766,lidRect:'',spec:null,photos:{},pipes:{},refXY:[m.wx,m.wy],at:new Date().toISOString()};
   try{refGeoFill(rec,m.wx,m.wy);}catch(e){}
   L.push(rec);return rec;
@@ -8768,7 +8769,7 @@ function _fldMhClickAt(cx,cy){ /* [1258] field 전용 — 도면 맨홈 클릭�
     (state.manholes||[]).forEach(function(m){if(m.type==='riser'||m.wx==null)return;var d=Math.hypot(m.wx-wx,m.wy-wy);if(d<bd){bd=d;best=m;}});
     if(!best||bd>tol)return false;
     var rec=mnList().filter(function(r){return r&&!r.delAt&&r.mhId===best.id;})[0];
-    if(!rec&&typeof refNormLab==='function'&&typeof mnLabel==='function'){var _bl9=refNormLab(best.label||'');if(_bl9)rec=mnList().filter(function(r){return r&&!r.delAt&&refNormLab(mnLabel(r))===_bl9;})[0];if(rec)rec.mhId=best.id;}/* [BUILD1897] 인계 야장 mhId 불일치 → 라벨 정규화 매칭 폴백(재연결) */
+    if(!rec&&typeof refNormLab==='function'&&typeof mnLabel==='function'){var _bl9=refNormLab(best.label||''),_pf9=mnPfOf9(best.label||'');if(_bl9)rec=mnList().filter(function(r){return r&&!r.delAt&&r.mhId==null&&refNormLab(mnLabel(r))===_bl9&&mnPfRec9(r)===_pf9;})[0];if(rec)rec.mhId=best.id;}/* [BUILD1897] 인계 야장 mhId 불일치 → 라벨 정규화 매칭 폴백(재연결) · [BUILD2365] 기설/신설 접두 동일 + 이미 다른 맨홀에 연결된 야장은 빼앗지 않음 */
     if(!rec){if(typeof IS_TANGO!=='undefined'&&IS_TANGO){toast('이 맨홀의 조사 야장이 없습니다');return true;}rec=_fldMnRecFor(best,true);/* [1556] 지도 클릭=명시 의도 */if(rec&&online&&state.projectId&&typeof saveProject==='function')saveProject();}
     if(rec){try{window._fldSelMhId=best.id;}catch(_w){}mnOpenForm(rec);try{drawManholes();}catch(_d){}return true;}
   }catch(e){try{console.warn('[mhClick]',e);}catch(_c){}}
@@ -15775,7 +15776,7 @@ try{if(typeof IS_FIELD!=='undefined'&&IS_FIELD&&!(window.matchMedia&&matchMedia(
     bar.appendChild(L);bar.appendChild(R);
     mc.insertBefore(bar,sb);
     try{['fpcSpL','fpcSpR'].forEach(function(id){var e=document.getElementById(id);if(e)e.remove();});}catch(_c){}/* 구 프록시 제거 */
-    try{if(!document.getElementById('fldBarCss9')){var st=document.createElement('style');st.id='fldBarCss9';st.textContent='body.fpc .subbar{padding:5px 10px!important;min-height:36px!important;gap:5px!important}body.fpc .subbar button{padding:4px 9px!important;font-size:12px!important;line-height:1.25!important}body.fpc .subbar .sub-b .hk-badge{font-size:10px!important;padding:0 4px!important}';document.head.appendChild(st);}}catch(_cs){}/* [BUILD2363] 현장 PC 도구 스트립 축소(세로 62→36px) */
+    try{if(!document.getElementById('fldBarCss9')){var st=document.createElement('style');st.id='fldBarCss9';st.textContent='body.fpc .subbar{padding:8px 12px!important;min-height:48px!important;gap:6px!important}body.fpc .subbar button{padding:7px 12px!important;font-size:13px!important;line-height:1.25!important}body.fpc .subbar .hk-badge{font-size:11px!important;padding:0 5px!important}';/* [BUILD2364] 2363 축소분의 절반만 복원(62→36→48px) */document.head.appendChild(st);}}catch(_cs){}/* [BUILD2363] 현장 PC 도구 스트립 축소(세로 62→36px) */
   };
   var _fbPaint9=function(){try{
     var seg=document.getElementById('fb9Seg');if(seg){var p9=document.getElementById('tangoPanel'),ip9=document.getElementById('tgInfoPanel');var on=((p9&&p9.style.display!=='none')||(ip9&&ip9.style.display==='flex'));seg.style.borderColor='#ffd31a';seg.style.borderWidth='2px';seg.style.background=on?'#ffd31a':'#fff';seg.style.color=on?'#000':'#0a3ea0';}/* [BUILD2363] 기존 노랑 테두리·남색 글자 */
@@ -17409,6 +17410,9 @@ function refOwKey(ow){
   var k=String(ow||'').replace(/[\s._\-]/g,'').toUpperCase();
   return REF_OWALIAS[k]||k;
 }
+function mnPfOf9(t){/* [BUILD2365] 기설/신설 구분 — 도면 '기 1M (LG )'·야장 '기설1M(LG)'·사진폴더 '기설 1M(LG)' → '기설', 그 외(신·신설·무접두) → '신설' */
+  var x=String(t==null?'':t).replace(/^\s+/,'');return /^\uAE30(\uC124|\s)/.test(x)?'\uAE30\uC124':'\uC2E0\uC124';}
+function mnPfRec9(r){return (r&&r.newFlag==='\uAE30\uC124')?'\uAE30\uC124':'\uC2E0\uC124';}
 function refNormLab(s){
   s=String(s==null?'':s).replace(/\s+/g,'');
   var m=s.match(/(\d+(?:-\d+)*[A-Za-z]*)\(([^)]*)\)/);/* [1549] 1-1\u00b72-1 \ub300\uc2dc \ubc88\ud638 */
@@ -17431,23 +17435,23 @@ function _pzOwnSet(s){var m=String(s||'').match(/\(([^)]*)\)/);var o={};if(m)Str
 function refPzMatch(){/* [1550] \ub2e4\ub2e8\uacc4 \ub9e4\uce6d: 1\uc815\ud655\ud0a4 \u2192 2\ubc88\ud638\uc720\uc77c \u2192 3\ubc88\ud638+\uc18c\uc720\uc790\uad50\uc9d1\ud569 \u2192 4\ubb34\ubc88\ud638 \uc18c\uc720\uc790\uc77c\uce58 */
   var P=REF_PZ;if(!P)return;
   var recs=(typeof mnList==='function')?mnList().filter(function(r){return r&&!r.delAt;}):[];
-  var rinfo=recs.map(function(r){var lb=(typeof mnLabel==='function')?mnLabel(r):(r.no||'');return {r:r,lb:lb,full:refNormLab(lb),num:_pzNum(lb),own:_pzOwnSet(lb)};});
+  var rinfo=recs.map(function(r){var lb=(typeof mnLabel==='function')?mnLabel(r):(r.no||'');return {r:r,lb:lb,full:refNormLab(lb),num:_pzNum(lb),own:_pzOwnSet(lb),pf:mnPfRec9(r)};});
   var folds=Object.keys(P.map).sort();
-  var finfo=folds.map(function(fd){return {fold:fd,full:refNormLab(fd),num:_pzNum(fd),own:_pzOwnSet(fd)};});
+  var finfo=folds.map(function(fd){var _leaf=String(fd).split('/').filter(function(t){return t;}).pop()||fd;return {fold:fd,full:refNormLab(fd),num:_pzNum(fd),own:_pzOwnSet(fd),pf:mnPfOf9(_leaf)};});/* [BUILD2365] 폴더 접두(기설 N / N) */
   var usedR={},match={};
-  /* 1\ucc28: \uc815\ud655 \ud0a4(\ubc88\ud638|\uc18c\uc720\uc790) */
-  var byFull={};rinfo.forEach(function(x,i){if(x.full&&byFull[x.full]==null)byFull[x.full]=i;});
-  finfo.forEach(function(f,fi){var ri=byFull[f.full];if(ri!=null&&!usedR[ri]){match[fi]=ri;usedR[ri]=1;}});
+  /* 1\ucc28: \uc815\ud655 \ud0a4(\uae30\uc124\uc2e0\uc124|\ubc88\ud638|\uc18c\uc720\uc790) — [BUILD2365] 같은 번호라도 기설/신설은 다른 맨홀 */
+  var byFull={};rinfo.forEach(function(x,i){var k=x.pf+'|'+x.full;if(x.full&&byFull[k]==null)byFull[k]=i;});
+  finfo.forEach(function(f,fi){var ri=byFull[f.pf+'|'+f.full];if(ri!=null&&!usedR[ri]){match[fi]=ri;usedR[ri]=1;}});
   /* 2\ucc28: \ubc88\ud638 \uc720\uc77c / 3\ucc28: \ubc88\ud638 \uc911\ubcf5 \uc2dc \uc18c\uc720\uc790 \uad50\uc9d1\ud569 \uc720\uc77c */
   finfo.forEach(function(f,fi){if(match[fi]!=null||!f.num)return;
-    var cands=[];rinfo.forEach(function(x,i){if(!usedR[i]&&x.num===f.num)cands.push(i);});
+    var cands=[];rinfo.forEach(function(x,i){if(!usedR[i]&&x.num===f.num&&x.pf===f.pf)cands.push(i);});/* [BUILD2365] 접두 동일 */
     if(cands.length===1){match[fi]=cands[0];usedR[cands[0]]=1;return;}
     if(cands.length>1){var best=cands.filter(function(i){var x=rinfo[i];for(var o in f.own)if(x.own[o])return true;return false;});
       if(best.length===1){match[fi]=best[0];usedR[best[0]]=1;}}});
   /* 4\ucc28: \ubc88\ud638 \uc5c6\ub294 \ud3f4\ub354 \u2014 \ubb34\ubc88\ud638 \uc57c\uc7a5 \uc911 \uc18c\uc720\uc790 \uc9d1\ud569 \uc644\uc804\uc77c\uce58 \uc720\uc77c */
   finfo.forEach(function(f,fi){if(match[fi]!=null||f.num)return;
     var ok=Object.keys(f.own);if(!ok.length)return;
-    var cands=[];rinfo.forEach(function(x,i){if(usedR[i]||x.num)return;var xs=Object.keys(x.own);var same=(xs.length===ok.length)&&ok.every(function(o){return x.own[o];});if(same)cands.push(i);});
+    var cands=[];rinfo.forEach(function(x,i){if(usedR[i]||x.num||x.pf!==f.pf)return;var xs=Object.keys(x.own);var same=(xs.length===ok.length)&&ok.every(function(o){return x.own[o];});if(same)cands.push(i);});/* [BUILD2365] */
     if(cands.length===1){match[fi]=cands[0];usedR[cands[0]]=1;}});
   var groups=[],noRec=[],extra=[];
   folds.forEach(function(fold,fi){
