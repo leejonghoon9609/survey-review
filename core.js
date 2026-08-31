@@ -1363,7 +1363,7 @@ function drawGeo(){if(typeof _lyClr9==='function')_lyClr9();/* [BUILD2192] */_or
     var nt=mkLabel(ls[0]+off, ls[1], p.no, {fill:'#1a7a3a',weight:'400',anchor:L.anchor,grp:'pt',px:((typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&!(window.matchMedia&&matchMedia('(max-width:760px)').matches))?9.75:15)});/* [BUILD2185] 실시간 PC 측점라벨(날짜·번호·관정보) 35% 축소 */
     if(p._jgf9){nt.style.pointerEvents='auto';nt.style.cursor='pointer';nt.title='더블클릭: 지거 점번호 수정';(function(_pn9){nt.addEventListener('dblclick',function(ev){ev.stopPropagation();ev.preventDefault();if(typeof rtEditNo==='function')rtEditNo(_pn9);});})(p.no);}/* [BUILD2164] 지거 측점 태그 더블클릭 → 번호 수정(rtEditNo 재활용) */
     // 윗줄 날짜-번호에서 번호(마지막 - 뒤)만 빨간색
-    var noStr=(p.no||''), dpos=noStr.lastIndexOf('-');
+    var noStr=(p.no||''), dpos=(/^[0-9]{6}-/.test(noStr))?6:noStr.lastIndexOf('-');/* [BUILD2348] 날짜(6자리) 뒤 전체가 번호(지거 12-1 전체 빨강) — ptNum 2346 규칙과 동일 */
     if(isBp)nt.innerHTML='<span class="L-bp" style="color:#b8860b;font-weight:700">'+noStr+'</span>';else if(dpos>=0)nt.innerHTML='<span class="L-date">'+noStr.slice(0,dpos+1)+'</span><span class="L-no" style="color:#d32f2f;font-weight:700">'+noStr.slice(dpos+1)+'</span>';else nt.innerHTML='<span class="L-no">'+noStr+'</span>';
     // 코드는 번호 아래 줄로 같은 div에 추가
     if((state.tamsa?tamsaTag(p):(p.code||'')).trim()){
