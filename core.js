@@ -7156,7 +7156,7 @@ function renderRail(){
     html+='<button data-k="'+c.k+'" style="'+railStyle(c.c,c.k===activeCat)+';align-self:flex-start;width:60%;box-sizing:border-box;font-size:11px;padding:5px 8px;margin-left:10px">'+c.icon+' '+c.label+bdg+'</button>';});
   html+='</div>';
   html+='<button data-k="inspmk" style="'+railStyle({bg:'#fbe9e9',fg:'#df524b'},activeCat==='inspmk')+'">'+(IS_TANGO?'\uD83E\uDDFE \uAC80\uC218\uB370\uC774\uD130 \uC81C\uC791':((typeof IS_FIELD!=='undefined'&&IS_FIELD)?'\uD83D\uDCD0 \uD604\uD669\uCE21\uB7C9 \uD3B8\uC9D1':'\uD83D\uDCD1 \uB808\uC774\uC5B4'))+'<span style="margin-left:auto;font-size:12px">'+(activeCat==='inspmk'&&inspmkOpen?'\u25B2':'\u25BC')+'</span></button>';if(IS_TANGO&&activeCat==='inspmk'&&inspmkOpen){var _isb=function(k,l,fg,bg,act){var on=(act!=null?act:(inspmkSub===k));return '<button data-isub="'+k+'" style="border:1px solid '+fg+';'+(on?'border-left:4px solid '+fg+';':'')+'border-radius:8px;background:'+(on?bg:'#fff')+';color:'+fg+';font-weight:'+(on?'700':'600')+';justify-content:flex-start;align-self:flex-start;width:60%;box-sizing:border-box;font-size:11px;padding:6px 10px;margin-left:10px">'+l+'</button>';};html+='<div style="display:flex;flex-direction:column;gap:5px;margin-top:5px">'+_isb('bp','\uBCF4\uAC15\uD310\uD3B8\uC9D1','#b8860b','#fdf6e3')+_isb('depth','\uC2EC\uB3C4\uD3B8\uC9D1','#7a52e0','#f0eef7')+_isb('hyun','\uD604\uD669\uCE21\uB7C9 \uD3B8\uC9D1','#1a7a5e','#e3f2ee')+_isb('road','\uB3C4\uB85C\uBA74 \uD3B8\uC9D1','#e8820c','#fdf0e0')+_isb('attr','\uC18D\uC131\uC815\uBCF4 \uD3B8\uC9D1','#0a7ea0','#e4f3f7')+_isb('note','\u2757 \uD2B9\uC774\uC0AC\uD56D','#d500f2','#fbe9fb',(typeof mode!=='undefined'&&mode==='tgnote'))+'</div>';}/* [1626] field\ub3c4 \ud604\ud669\uce21\ub7c9 \ud3b8\uc9d1 \uc11c\ube0c \ub178\ucd9c(hyun\ub9cc) */
-  html+=(IS_TANGO?'<button id="tgBtn" onclick="tgTogglePanel()" style="background:#fff;color:#0a3ea0;border:2px solid #ffd31a;border-radius:8px;font-weight:800;padding:9px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:flex-start">\u{1F4CB} \uD0F1\uACE0\uC131\uACFC \uC81C\uC791</button>':'')+'<div class="sep"'+(IS_TANGO?' style="margin-top:auto"':'')+'></div>'+'<button id="dxfExport" style="background:#fff;color:#c0392b;border:1px solid #c0392b;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#c0392b">📐</span> DXF로 내보내기</button>'+'<button id="pdfExport" style="background:#fff;color:#1565c0;border:1px solid #1565c0;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#1565c0">📄</span> PDF로 내보내기</button>';
+  html+=(IS_TANGO?'<button id="tgBtn" onclick="tgTogglePanel()" style="background:#fff;color:#0a3ea0;border:2px solid #ffd31a;border-radius:8px;font-weight:800;padding:9px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:6px;justify-content:flex-start">\u{1F4CB} \uD0F1\uACE0\uC131\uACFC \uC81C\uC791</button>':'')+((typeof IS_FIELD!=='undefined'&&IS_FIELD)?'<button id="fldInspBtn" onclick="fldInspWin9()" style="background:#fff;color:#7b1fa2;border:2px solid #7b1fa2;border-radius:8px;font-weight:800;justify-content:flex-start">\uD83D\uDD0D \uAD6C\uAC04\uAC80\uC218</button>':'')/* [BUILD2360] 현장 전용 검수창 */+'<div class="sep"'+(IS_TANGO?' style="margin-top:auto"':'')+'></div>'+'<button id="dxfExport" style="background:#fff;color:#c0392b;border:1px solid #c0392b;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#c0392b">📐</span> DXF로 내보내기</button>'+'<button id="pdfExport" style="background:#fff;color:#1565c0;border:1px solid #1565c0;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#1565c0">📄</span> PDF로 내보내기</button>';
   
   if(!IS_TANGO)html+='<button id="csvExport" style="background:#fff;color:#0d7a52;border:1px solid #0d7a52;border-radius:8px;font-weight:700;justify-content:flex-start"><span style="color:#0d7a52">📄</span> 측설용 CSV 내보내기</button>';
   html+='<button id="doneReg" style="background:#16a34a;color:#fff;border:1px solid #16a34a;border-radius:8px;font-weight:700;justify-content:flex-start">✅ '+(IS_TANGO?'탱고':'결선')+'완료사업 등록</button>';
@@ -11067,13 +11067,107 @@ function auxPipeWrite9(mh){
   }catch(_e){}
   return n;
 }
+/* ===== [BUILD2360] 측량현장 전용 구간검수창 — 구간설정(탱고 공유 코드)과 완전 분리, 읽기 전용 판정 ===== */
+function fldSegAudit9(si){
+  try{
+    if((typeof _tgSegs==='undefined'||!_tgSegs||!_tgSegs.length)&&typeof tangoBuildSegs==='function'){try{_tgSegs=tangoBuildSegs();}catch(_b){}}
+    var sg=(_tgSegs||[])[si];if(!sg||sg.length<2)return null;
+    var key=tgManualKey(sg),M=(state.tangoManual||{})[key]||{};
+    var cf=function(f,b){return (typeof _tgCarFld==='function')?_tgCarFld(key,f,b):b;};
+    var mg=parseInt(cf('gwansu',(''+(M.gwansu||'')).trim()),10),mn=parseInt(cf('naegwan',(''+(M.naegwan||'')).trim()),10);
+    var mext=cf('ext',(''+(M.ext||'')).trim()),mes=(typeof _extSplit9==='function')?_extSplit9(mext):{kind:'',dia:''};
+    var yj=null,ax=null;try{yj=_segYajang9(sg);}catch(_y){}try{ax=_segAux9(sg);}catch(_a){}
+    /* 측점 */
+    var pts=[],cntV={},naeV={},kindV={},diaV={},dep=[],miss=0,tam=0;
+    sg.forEach(function(n){
+      if(!n)return;
+      if(n.tamsa){tam++;var tz=(n.z!=null&&isFinite(n.z))?+n.z:null;dep.push(tz);if(tz==null)miss++;return;}
+      if(n.mh||!n.no)return;
+      var q=(typeof pointByNo==='function')?pointByNo(n.no):null;if(!q)return;
+      var code=String(q.code||'').trim();var c=0,kk='',dd='',nn=null;
+      (code.match(/(100|50)\s*[xX×]\s*(\d+)/g)||[]).forEach(function(t){var m=/(100|50)\s*[xX×]\s*(\d+)/.exec(t);if(m){c+=+m[2];dd=dd||m[1];}});
+      var km=/^([A-Z]{1,4})/i.exec(code.replace(/^\s*T\s+/i,''));if(km)kk=km[1].toUpperCase();
+      var nm=/\((\d+)\)/.exec(code);if(nm)nn=+nm[1];
+      var z=(state._depthByNo&&state._depthByNo[q.no]!=null)?+state._depthByNo[q.no]:((q.z!=null&&isFinite(q.z))?+q.z:null);
+      dep.push(z);if(z==null)miss++;
+      if(c>0)cntV[c]=(cntV[c]||0)+1;if(nn!=null)naeV[nn]=(naeV[nn]||0)+1;if(kk)kindV[kk]=(kindV[kk]||0)+1;if(dd)diaV[dd]=(diaV[dd]||0)+1;
+      pts.push({no:q.no,code:code,z:z,cnt:c||null,nae:nn});
+    });
+    function mode(o){var b=null,bn=0,k=0;for(var x in o){k++;if(o[x]>bn){bn=o[x];b=x;}}return {v:b,mixed:k>1};}
+    var pc=mode(cntV),pn=mode(naeV),pk=mode(kindV),pd=mode(diaV);
+    function row(nm,vals,mixed){var vs=[];for(var k in vals){var v=vals[k];if(v==null||v==='')continue;vs.push(String(v));}var uniq=vs.filter(function(v,i){return vs.indexOf(v)===i;});
+      var st=(!vs.length)?'none':((uniq.length>1||mixed)?'bad':(vs.length===1?'single':'ok'));return {name:nm,vals:vals,st:st,mixed:!!mixed};}
+    var rows=[
+      row('\uAD00\uC218',{'\uC57C\uC7A5':(yj&&yj.cnt!=null)?yj.cnt:null,'\uC778\uC785':(ax&&ax.cnt!=null)?ax.cnt:null,'\uAD6C\uAC04':isFinite(mg)?mg:null,'\uCE21\uC810':pc.v},pc.mixed||!!(yj&&yj.cntConflict)),
+      row('\uB0B4\uAD00',{'\uC57C\uC7A5':(yj&&yj.nae!=null)?yj.nae:null,'\uC778\uC785':(ax&&ax.nae!=null)?ax.nae:null,'\uAD6C\uAC04':isFinite(mn)?mn:null,'\uCE21\uC810':pn.v},pn.mixed||!!(yj&&yj.naeConflict)),
+      row('\uAD00\uC885',{'\uC57C\uC7A5':(yj&&yj.kind)||null,'\uC778\uC785':(ax&&ax.kind)||null,'\uAD6C\uAC04':(mes.kind||'').toUpperCase()||null,'\uCE21\uC810':pk.v},pk.mixed),
+      row('\uAD00\uACBD',{'\uC57C\uC7A5':(yj&&yj.dia)||null,'\uC778\uC785':(ax&&ax.dia)||null,'\uAD6C\uAC04':mes.dia||null,'\uCE21\uC810':pd.v},pd.mixed)
+    ];
+    var nae=rows[1],cnt=rows[0];var naeOver=false;try{var nv=null,cv=null;for(var k1 in nae.vals)if(nae.vals[k1]!=null){nv=+nae.vals[k1];break;}for(var k2 in cnt.vals)if(cnt.vals[k2]!=null){cv=+cnt.vals[k2];break;}if(nv!=null&&cv!=null&&nv>cv)naeOver=true;}catch(_o){}
+    var dz=dep.filter(function(v){return v!=null;}),avg=dz.length?dz.reduce(function(a,b){return a+b;},0)/dz.length:null;
+    var A=sg[0],B=sg[sg.length-1];
+    var bad=rows.filter(function(r){return r.st==='bad';}).length+(miss>0?1:0)+(naeOver?1:0);
+    return {si:si,key:key,from:(A.name||A.no||''),to:(B.name||B.no||''),rows:rows,pts:pts,depth:{n:dep.length,miss:miss,avg:avg,tamsa:tam},naeOver:naeOver,bad:bad,ok:bad===0,facLab:{yj:(yj&&(yj.lab||''))||'',ax:(ax&&(ax.fac||''))||''}};
+  }catch(_e){return null;}
+}
+function fldInspWin9(sel){
+  try{
+    if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return;
+    if((typeof _tgSegs==='undefined'||!_tgSegs||!_tgSegs.length)&&typeof tangoBuildSegs==='function'){try{_tgSegs=tangoBuildSegs();}catch(_b){}}
+    var N=(_tgSegs||[]).length;
+    var old=document.getElementById('fldInspOv9');var keepPos=null;if(old){var oc=old.firstElementChild;if(oc&&oc.style.position==='fixed')keepPos={l:oc.style.left,t:oc.style.top};old.remove();}
+    if(sel==null)sel=(window._fldInspSel9!=null)?window._fldInspSel9:-1;window._fldInspSel9=sel;
+    var AU=[];for(var i=0;i<N;i++)AU.push(fldSegAudit9(i));
+    var w=document.createElement('div');w.id='fldInspOv9';w.style.cssText='position:fixed;inset:0;z-index:1325;pointer-events:none;background:transparent';
+    var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
+    var btn=function(i,lab,on,ok){var bg=on?'#7b1fa2':(ok===true?'#e8f5e9':(ok===false?'#ffebee':'#fff')),fg=on?'#fff':(ok===true?'#2e7d32':(ok===false?'#c62828':'#555')),bd=on?'#7b1fa2':(ok===true?'#a5d6a7':(ok===false?'#ef9a9a':'#ccc'));
+      return '<button class="fiSeg9" data-i="'+i+'" style="border:1.5px solid '+bd+';background:'+bg+';color:'+fg+';border-radius:7px;padding:3px 8px;font-size:11.5px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center">'+E(lab)+'</button>';};
+    var nb=AU.filter(function(a){return a&&!a.ok;}).length;
+    var h='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><b style="font-size:14px;color:#7b1fa2">\uD83D\uDD0D \uAD6C\uAC04\uAC80\uC218 (\uCE21\uB7C9\uD604\uC7A5)</b><span style="font-size:11.5px;color:#666">\uAD6C\uAC04 '+N+' \u00B7 \uBD88\uC77C\uCE58 <b style="color:'+(nb?'#c62828':'#2e7d32')+'">'+nb+'</b></span>'
+      +'<button id="fiRefresh9" title="\uC7AC\uAC80\uC218" style="margin-left:auto;border:1px solid #bbb;background:#fff;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:800;cursor:pointer">\u21BB</button><button id="fiClose9" style="border:1px solid #bbb;background:#fff;border-radius:6px;padding:3px 9px;font-size:12px;font-weight:800;cursor:pointer">\u2715</button></div>';
+    h+='<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">'+btn(-1,'\uC804\uCCB4',sel===-1,null)+AU.map(function(a,i){return btn(i,(i+1)+'\uAD6C\uAC04',sel===i,a?a.ok:null);}).join('')+'</div>';
+    var TH='padding:4px 6px;border:1px solid #d9c7e6;background:#f5eefa;font-weight:800;font-size:11px;color:#4a148c;white-space:nowrap',TD='padding:4px 6px;border:1px solid #e3d5ee;font-size:11.5px;text-align:center;white-space:nowrap';
+    var stC=function(st){return st==='bad'?'#c62828':(st==='ok'?'#2e7d32':(st==='single'?'#8a6d00':'#999'));};
+    var stT=function(st){return st==='bad'?'\u26A0 \uBD88\uC77C\uCE58':(st==='ok'?'\uC77C\uCE58':(st==='single'?'\uB2E8\uC77C\uCD9C\uCC98':'\u2013'));};
+    if(sel===-1){
+      h+='<table style="width:100%;border-collapse:collapse"><tr><th style="'+TH+'">\uAD6C\uAC04</th><th style="'+TH+'">\uC2DC\uC791 \u2192 \uC885\uB8CC</th><th style="'+TH+'">\uAD00\uC218</th><th style="'+TH+'">\uB0B4\uAD00</th><th style="'+TH+'">\uC2EC\uB3C4\uACB0\uCE21</th><th style="'+TH+'">\uD310\uC815</th></tr>';
+      AU.forEach(function(a,i){if(!a){h+='<tr><td style="'+TD+'">'+(i+1)+'</td><td colspan=5 style="'+TD+';color:#999">\uD310\uC815 \uBD88\uAC00</td></tr>';return;}
+        var cv=function(r){var o=[];for(var k in r.vals)if(r.vals[k]!=null)o.push(r.vals[k]);return o.length?o.filter(function(v,j){return o.indexOf(v)===j;}).join('/'):'-';};
+        h+='<tr class="fiRow9" data-i="'+i+'" style="cursor:pointer;background:'+(a.ok?'#fff':'#fff5f5')+'"><td style="'+TD+'">'+(i+1)+'</td><td style="'+TD+';text-align:left;max-width:180px;overflow:hidden;text-overflow:ellipsis">'+E(a.from)+' \u2192 '+E(a.to)+'</td><td style="'+TD+';color:'+stC(a.rows[0].st)+'">'+cv(a.rows[0])+'</td><td style="'+TD+';color:'+stC(a.rows[1].st)+'">'+cv(a.rows[1])+(a.naeOver?' \u26A0':'')+'</td><td style="'+TD+';color:'+(a.depth.miss?'#c62828':'#2e7d32')+'">'+a.depth.miss+'/'+a.depth.n+'</td><td style="'+TD+';font-weight:800;color:'+(a.ok?'#2e7d32':'#c62828')+'">'+(a.ok?'\uC77C\uCE58':'\u26A0 '+a.bad)+'</td></tr>';});
+      h+='</table>';
+    }else{
+      var a=AU[sel];
+      if(!a)h+='<div style="color:#999;padding:12px;text-align:center">\uD310\uC815 \uBD88\uAC00</div>';
+      else{
+        h+='<div style="font-size:12px;font-weight:800;color:#333;margin-bottom:6px">'+(sel+1)+'\uAD6C\uAC04 \u00B7 '+E(a.from)+' \u2192 '+E(a.to)+'<span style="font-weight:400;color:#666"> \u00B7 \uCE21\uC810 '+a.pts.length+' \u00B7 \uD0D0\uC0AC '+a.depth.tamsa+' \u00B7 \uD3C9\uADE0\uC2EC\uB3C4 '+(a.depth.avg!=null?a.depth.avg.toFixed(2):'-')+'m</span></div>';
+        h+='<table style="width:100%;border-collapse:collapse;margin-bottom:8px"><tr><th style="'+TH+'">\uD56D\uBAA9</th><th style="'+TH+'">\uC57C\uC7A5</th><th style="'+TH+'">\uC778\uC785\uCC3D</th><th style="'+TH+'">\uAD6C\uAC04\uC18D\uC131</th><th style="'+TH+'">\uCE21\uC810</th><th style="'+TH+'">\uD310\uC815</th></tr>';
+        a.rows.forEach(function(r){h+='<tr><td style="'+TD+';font-weight:800">'+r.name+'</td>'+['\uC57C\uC7A5','\uC778\uC785','\uAD6C\uAC04','\uCE21\uC810'].map(function(k){var v=r.vals[k];return '<td style="'+TD+'">'+(v==null||v===''?'<span style=\"color:#bbb\">\u2013</span>':E(v)+((k==='\uCE21\uC810'&&r.mixed)?' <span style=\"color:#c62828\">\uD63C\uC7AC</span>':''))+'</td>';}).join('')+'<td style="'+TD+';font-weight:800;color:'+stC(r.st)+'">'+stT(r.st)+'</td></tr>';});
+        h+='<tr><td style="'+TD+';font-weight:800">\uC2EC\uB3C4</td><td colspan=4 style="'+TD+'">\uACB0\uCE21 '+a.depth.miss+' / '+a.depth.n+(a.depth.avg!=null?(' \u00B7 \uD3C9\uADE0 '+a.depth.avg.toFixed(2)+'m'):'')+'</td><td style="'+TD+';font-weight:800;color:'+(a.depth.miss?'#c62828':'#2e7d32')+'">'+(a.depth.miss?'\u26A0 \uACB0\uCE21':'\uC77C\uCE58')+'</td></tr>';
+        if(a.naeOver)h+='<tr><td colspan=6 style="'+TD+';color:#c62828;font-weight:800;text-align:left">\u26A0 \uB0B4\uAD00\uC218\uAC00 \uAD00\uC218\uBCF4\uB2E4 \uD07D\uB2C8\uB2E4</td></tr>';
+        h+='</table>';
+        h+='<div style="max-height:220px;overflow:auto"><table style="width:100%;border-collapse:collapse"><tr><th style="'+TH+'">\uCE21\uC810</th><th style="'+TH+'">\uCF54\uB4DC</th><th style="'+TH+'">\uAD00\uC218</th><th style="'+TH+'">\uB0B4\uAD00</th><th style="'+TH+'">\uC2EC\uB3C4</th></tr>';
+        a.pts.forEach(function(q){h+='<tr><td style="'+TD+'">'+E(q.no)+'</td><td style="'+TD+';text-align:left">'+E(q.code)+'</td><td style="'+TD+'">'+(q.cnt!=null?q.cnt:'\u2013')+'</td><td style="'+TD+'">'+(q.nae!=null?q.nae:'\u2013')+'</td><td style="'+TD+';color:'+(q.z==null?'#c62828':'#333')+'">'+(q.z!=null?q.z.toFixed(2):'\uACB0\uCE21')+'</td></tr>';});
+        h+='</table></div>';
+      }
+    }
+    var card=document.createElement('div');card.style.cssText='position:fixed;pointer-events:auto;top:118px;right:14px;width:min(94vw,560px);max-height:80vh;overflow:auto;background:#fff;border:2px solid #7b1fa2;border-radius:12px;padding:12px 13px;box-shadow:0 10px 34px rgba(0,0,0,.28)';
+    if(keepPos){card.style.left=keepPos.l;card.style.top=keepPos.t;card.style.right='auto';}
+    card.innerHTML=h;w.appendChild(card);document.body.appendChild(w);
+    try{_dragCard9(w);}catch(_d){}w.style.background='transparent';/* 검수창은 도면 어둡게 안 함 */
+    card.querySelector('#fiClose9').onclick=function(){w.remove();};
+    card.querySelector('#fiRefresh9').onclick=function(){window._tgGwC9=null;try{_tgSegs=tangoBuildSegs();}catch(_r){}fldInspWin9(window._fldInspSel9);};
+    var go=function(i){window._fldInspSel9=i;if(i>=0){try{if(typeof tangoSelSeg==='function')tangoSelSeg(i);}catch(_g){}}fldInspWin9(i);};
+    card.querySelectorAll('.fiSeg9').forEach(function(b){b.onclick=function(){go(+this.getAttribute('data-i'));};});
+    card.querySelectorAll('.fiRow9').forEach(function(r){r.onclick=function(){go(+this.getAttribute('data-i'));};});
+  }catch(_e){try{console.warn('fldInspWin9',_e);}catch(_c){}}
+}
 function _dragCard9(w){/* [BUILD2357] 방향창·인입창 이동 — 오버레이 첫 자식(카드)의 첫 줄(제목행)을 잡고 드래그. 오버레이는 클릭 통과(pointer-events:none)라 도면 조작 가능 */
   try{var card=w&&w.firstElementChild;if(!card)return;var hd=card.firstElementChild;if(!hd)return;
     w.style.background='rgba(0,0,0,.10)';w.style.pointerEvents='none';card.style.pointerEvents='auto';
     hd.style.cursor='move';hd.style.userSelect='none';hd.title=(hd.title||'')+' 드래그로 이동';
     var sx=0,sy=0,ox=0,oy=0,on=false;
     hd.addEventListener('pointerdown',function(e){if(e.target&&/^(BUTTON|SELECT|INPUT)$/.test(e.target.tagName))return;var r=card.getBoundingClientRect();
-      card.style.position='fixed';card.style.left=r.left+'px';card.style.top=r.top+'px';card.style.margin='0';card.style.zIndex='1';
+      card.style.position='fixed';card.style.left=r.left+'px';card.style.top=r.top+'px';card.style.right='auto';card.style.margin='0';card.style.zIndex='1';
       sx=e.clientX;sy=e.clientY;ox=r.left;oy=r.top;on=true;try{hd.setPointerCapture(e.pointerId);}catch(_c){}e.preventDefault();});
     hd.addEventListener('pointermove',function(e){if(!on)return;var nx=ox+(e.clientX-sx),ny=oy+(e.clientY-sy);nx=Math.max(0,Math.min(nx,window.innerWidth-card.offsetWidth));ny=Math.max(0,Math.min(ny,window.innerHeight-40));card.style.left=nx+'px';card.style.top=ny+'px';});
     hd.addEventListener('pointerup',function(){on=false;});hd.addEventListener('pointercancel',function(){on=false;});
