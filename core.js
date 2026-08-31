@@ -1593,7 +1593,9 @@ function _segYajang9(sg){/* [BUILD2338] 구간 양끝 맨홀의 맨홀도 야장
     }}
    return null;
   }
-  var r=rowTo(A,B);if(r&&r.cnt!=null)return r;var r2=rowTo(B,A);if(r2&&r2.cnt!=null)return r2;return r||r2;
+  var r=rowTo(A,B),r2=rowTo(B,A);/* [BUILD2358] 양끝 병합 — 관수·내관·관종을 각각 '있는 쪽'에서 취함(종전: 한쪽에서 관수만 잡히면 반대쪽 내관을 안 봄 → 52번 내관 누락) */
+  if(r&&r2){var o={cnt:(r.cnt!=null?r.cnt:r2.cnt),nae:(r.nae!=null?r.nae:r2.nae),kind:(r.kind||r2.kind||''),dia:(r.dia||r2.dia||''),ext:(r.ext||r2.ext||''),lab:r.lab,lab2:r2.lab,k:r.k,ix:r.ix};if(r.cnt!=null&&r2.cnt!=null&&r.cnt!==r2.cnt)o.cntConflict=[r.cnt,r2.cnt];if(r.nae!=null&&r2.nae!=null&&r.nae!==r2.nae)o.naeConflict=[r.nae,r2.nae];return o;}
+  return r||r2;
  }catch(_e){return null;}
 }
 function _segAux9(sg){/* [BUILD2354] 구간 양끝의 인입·보조시설물(통신주입상 등, dests 보유) 관정보창 행 중 '상대 끝'을 가리키는 행(xy 2.5m 또는 라벨) → 관수·내관·관종. [저장] 없이도 창 입력값 즉시 반영 */
