@@ -19854,19 +19854,22 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    if(A&&B)break;
   }
   var sel=(A&&B&&A.d<=B.d*K)?A:(B||A);/* 평행 우선 */
-  if(sel&&pdir){/* [BUILD2332] 반대편 규칙: 이격선이 관로와 60° 이하로 비스듬하면 반대편 후보 검토 — 더 직각(+3° 이상)이면 교체 */
+  if(sel&&pdir){/* [BUILD2336] 반대편 강제 규칙(2332 대체): 이격선∠관로 < OPPMIN(65°)이면 그 쪽은 불가 → 관로 반대편 무관통 후보 중 각도 ≥ OPPMIN 인 것만 놓고 평행 우선→최단으로 재선정. 반대편도 전부 OPPMIN 미만(양쪽 다 누움)이면 이격선을 만들지 않는다 */
+   var OPPMIN=65;
    var angSel=_ang9(pdir[0],pdir[1],sel.fx-px,sel.fy-py);
-   if(angSel<60){
+   if(angSel<OPPMIN){
     var sd9=(pdir[0]*(sel.fy-py)-pdir[1]*(sel.fx-px))>=0?1:-1;
-    var opp=null,oppAng=-1;
+    var oA=null,oB=null;
     for(var j2=0;j2<C.length&&j2<40;j2++){var c2=C[j2];
      var s2=(pdir[0]*(c2.fy-py)-pdir[1]*(c2.fx-px))>=0?1:-1;
      if(s2===sd9)continue;
+     if(_ang9(pdir[0],pdir[1],c2.fx-px,c2.fy-py)<OPPMIN)continue;/* 반대편도 누운 후보는 제외 */
      if(_blk9(px,py,c2.fx,c2.fy))continue;
-     var a2=_ang9(pdir[0],pdir[1],c2.fx-px,c2.fy-py);
-     if(a2>oppAng){oppAng=a2;opp=c2;}
+     if(oB==null)oB=c2;
+     if(c2.par&&oA==null)oA=c2;
+     if(oA&&oB)break;
     }
-    if(opp&&oppAng>angSel+3)sel=opp;
+    sel=(oA&&oB&&oA.d<=oB.d*K)?oA:(oB||oA);/* 반대편 후보 없으면 null → 미생성 */
    }
   }
   return sel;
