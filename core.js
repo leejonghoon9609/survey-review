@@ -11118,9 +11118,21 @@ function fldSegAudit9(si){
     return {si:si,key:key,from:(A.name||A.no||''),to:(B.name||B.no||''),rows:rows,pts:pts,depth:{n:dep.length,miss:miss,avg:avg,tamsa:tam},naeOver:naeOver,bad:bad,ok:bad===0,facLab:{yj:(yj&&(yj.lab||''))||'',ax:(ax&&(ax.fac||''))||''}};
   }catch(_e){return null;}
 }
-function fldInspClose9(){try{var w=document.getElementById('fldInspOv9');if(w)w.remove();window._fldInspOpen9=false;var cw=document.querySelector('.canvas-wrap');if(cw){var ip=document.getElementById('tgInfoPanel');cw.style.marginRight=(ip&&ip.style.display==='flex')?'42%':'';}setTimeout(function(){if(typeof fitView==='function')fitView();},120);}catch(_e){}}
+function fldInspHL9(i){/* [BUILD2371] 검수 전용 구간 색칠(구간설정 tgDrawSegHL 복사·단순화, 레이어 tgseg와 무관) — 선택 구간 자주색 굵은 선 */
+  try{var cv=document.getElementById('cv');if(!cv)return;var old=document.getElementById('fldInspHLG9');if(old)old.remove();if(i==null||i<0)return;
+    if((typeof _tgSegs==='undefined'||!_tgSegs||!_tgSegs.length)&&typeof tangoBuildSegs==='function'){try{_tgSegs=tangoBuildSegs();}catch(_b){}}
+    var rw=(window._tgSegRaw||[])[i];var sg=(_tgSegs||[])[i];if((!rw||rw.length<2)&&sg)rw=sg.map(function(n){return [n.x,n.y];});if(!rw||rw.length<2)return;
+    var NS='http://www.w3.org/2000/svg';var g=document.createElementNS(NS,'g');g.id='fldInspHLG9';g.setAttribute('pointer-events','none');
+    var ps='';for(var q=0;q<rw.length;q++){var sc=S(rw[q][0],rw[q][1]);ps+=(q?' ':'')+sc[0]+','+sc[1];}
+    var pl=document.createElementNS(NS,'polyline');pl.setAttribute('points',ps);pl.setAttribute('fill','none');pl.setAttribute('stroke','#7b1fa2');pl.setAttribute('stroke-opacity','0.45');pl.setAttribute('stroke-width','10');pl.setAttribute('vector-effect','non-scaling-stroke');pl.setAttribute('stroke-linecap','round');pl.setAttribute('stroke-linejoin','round');g.appendChild(pl);
+    cv.insertBefore(g,cv.firstChild);}catch(_e){}}
+function fldInspFit9(nodes){/* [BUILD2371] 검수 전용 자동이동(tangoFitSeg 복사) — 검수창 자체 잠금(_fldInspFitLock9)만 따름 */
+  try{if(window._fldInspFitLock9)return;if(!nodes||!nodes.length){if(typeof fitView==='function')fitView();return;}var xs=[],ys=[];nodes.forEach(function(n){if(n.x==null)return;var s=S(n.x,n.y);xs.push(s[0]);ys.push(s[1]);});if(!xs.length)return;
+    var pad=8,minx=Math.min.apply(0,xs),maxx=Math.max.apply(0,xs),miny=Math.min.apply(0,ys),maxy=Math.max.apply(0,ys);vb0={x:minx-pad,y:miny-pad,w:(maxx-minx)+2*pad,h:(maxy-miny)+2*pad};vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};if(typeof fixAspect==='function')fixAspect();if(typeof applyVB==='function')applyVB();if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();if(typeof highlightSel==='function')highlightSel();}catch(_e){}}
+function fldInspClose9(){try{fldInspHL9(-1);}catch(_h){}try{var w=document.getElementById('fldInspOv9');if(w)w.remove();window._fldInspOpen9=false;var cw=document.querySelector('.canvas-wrap');if(cw){var ip=document.getElementById('tgInfoPanel');cw.style.marginRight=(ip&&ip.style.display==='flex')?'42%':'';}setTimeout(function(){if(typeof fitView==='function')fitView();},120);}catch(_e){}}
 function fldInspWin9(sel){
   try{
+    if(window._fldInspFitLock9==null){try{window._fldInspFitLock9=(localStorage.getItem('fldInspFitLock9')==='1');}catch(_l0){window._fldInspFitLock9=false;}}
     if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return;
     if((typeof _tgSegs==='undefined'||!_tgSegs||!_tgSegs.length)&&typeof tangoBuildSegs==='function'){try{_tgSegs=tangoBuildSegs();}catch(_b){}}
     var N=(_tgSegs||[]).length;
@@ -11134,6 +11146,10 @@ function fldInspWin9(sel){
       return '<button class="fiSeg9" data-i="'+i+'" style="border:1.5px solid '+bd+';background:'+bg+';color:'+fg+';border-radius:7px;padding:5px 6px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;width:100%;align-items:center;justify-content:center;white-space:nowrap">'+E(lab)+'</button>';};/* [BUILD2370] 세로 버튼 */
     var nb=AU.filter(function(a){return a&&!a.ok;}).length;
     var h='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><b style="font-size:14px;color:#7b1fa2">\uD83D\uDD0D \uAD6C\uAC04\uAC80\uC218 (\uCE21\uB7C9\uD604\uC7A5)</b><span style="font-size:11.5px;color:#666">\uAD6C\uAC04 '+N+' \u00B7 \uBD88\uC77C\uCE58 <b style="color:'+(nb?'#c62828':'#2e7d32')+'">'+nb+'</b></span>'
+      +'<span style="display:inline-flex;gap:6px;margin-left:14px">'
+      +'<button id="fiUndo9" style="border:1px solid #c9b7a8;background:#fff;color:#5d4037;border-radius:6px;padding:3px 9px;font-size:11.5px;font-weight:800;cursor:pointer">\u21BA \uB418\uB3CC\uB9AC\uAE30</button>'
+      +'<button id="fiRedo9" style="border:1px solid #c9b7a8;background:#fff;color:#5d4037;border-radius:6px;padding:3px 9px;font-size:11.5px;font-weight:800;cursor:pointer">\u21BB \uB2E4\uC2DC\uC2E4\uD589</button>'
+      +'<button id="fiFit9" style="border:1.5px solid '+(window._fldInspFitLock9?'#c62828':'#2e7d32')+';background:'+(window._fldInspFitLock9?'#ffebee':'#e8f5e9')+';color:'+(window._fldInspFitLock9?'#c62828':'#2e7d32')+';border-radius:6px;padding:3px 9px;font-size:11.5px;font-weight:800;cursor:pointer">'+(window._fldInspFitLock9?'\uD83D\uDCCC \uACE0\uC815\uC911':'\uD83C\uDFAF \uC790\uB3D9\uC774\uB3D9')+'</button></span>'/* [BUILD2371] 구간설정 창의 3버튼 복사 */
       +'<button id="fiRefresh9" title="\uC7AC\uAC80\uC218" style="margin-left:auto;border:1px solid #bbb;background:#fff;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:800;cursor:pointer">\u21BB</button><button id="fiClose9" style="border:1px solid #bbb;background:#fff;border-radius:6px;padding:3px 9px;font-size:12px;font-weight:800;cursor:pointer">\u2715</button></div>';
     /* [BUILD2370] 좌: 세로 구간 버튼 열 / 우: 내용 */
     h+='<div style="display:flex;gap:10px;align-items:flex-start;height:calc(100% - 34px)"><div style="flex:none;width:84px;display:flex;flex-direction:column;gap:4px;max-height:100%;overflow:auto;padding-right:2px">'+btn(-1,'\uC804\uCCB4',sel===-1,null)+AU.map(function(a,i){return btn(i,(i+1)+'\uAD6C\uAC04',sel===i,a?a.ok:null);}).join('')+'</div><div style="flex:1;min-width:0;max-height:100%;overflow:auto">';
@@ -11169,10 +11185,14 @@ function fldInspWin9(sel){
     var card=document.createElement('div');card.style.cssText='position:absolute;right:0;top:'+_top9+'px;bottom:0;width:60%;border-left:3px solid #7b1fa2;background:#fff;overflow:auto;padding:10px 14px;font-size:12px;z-index:7;box-sizing:border-box';/* [BUILD2366] 구간설정과 같은 방식의 우측 패널 · [BUILD2369] 폭 60%(검수 6:도면 4), 폭 60% */
     card.innerHTML=h;w.id='fldInspOv9';w.style.cssText='display:contents';w.appendChild(card);mc.appendChild(w);
     cw.style.marginRight='60%';if(getComputedStyle(cw).position==='static')cw.style.position='relative';
-    window._fldInspOpen9=true;try{setTimeout(function(){if(typeof fitView==='function')fitView();},120);}catch(_fv){}
+    window._fldInspOpen9=true;
+    try{fldInspHL9(sel);if(sel>=0){var _sgF=(_tgSegs||[])[sel];setTimeout(function(){fldInspFit9(_sgF);},60);}else{setTimeout(function(){if(!window._fldInspFitLock9&&typeof fitView==='function')fitView();},120);}}catch(_fv){}/* [BUILD2371] 선택 구간 색칠·자동이동 */
     card.querySelector('#fiClose9').onclick=function(){fldInspClose9();};
+    try{card.querySelector('#fiUndo9').onclick=function(){if(typeof doUndo==='function')doUndo();else if(typeof undo==='function')undo();setTimeout(function(){fldInspWin9(window._fldInspSel9);},80);};
+      card.querySelector('#fiRedo9').onclick=function(){if(typeof doRedo==='function')doRedo();else if(typeof redo==='function')redo();setTimeout(function(){fldInspWin9(window._fldInspSel9);},80);};
+      card.querySelector('#fiFit9').onclick=function(){window._fldInspFitLock9=!window._fldInspFitLock9;try{localStorage.setItem('fldInspFitLock9',window._fldInspFitLock9?'1':'0');}catch(_l){}fldInspWin9(window._fldInspSel9);};}catch(_hb){}
     card.querySelector('#fiRefresh9').onclick=function(){window._tgGwC9=null;try{_tgSegs=tangoBuildSegs();}catch(_r){}fldInspWin9(window._fldInspSel9);};
-    var go=function(i){window._fldInspSel9=i;if(i>=0){try{if(typeof tangoSelSeg==='function')tangoSelSeg(i);}catch(_g){}}fldInspWin9(i);};
+    var go=function(i){window._fldInspSel9=i;fldInspWin9(i);};
     card.querySelectorAll('.fiSeg9').forEach(function(b){b.onclick=function(){go(+this.getAttribute('data-i'));};});
     card.querySelectorAll('.fiRow9').forEach(function(r){r.onclick=function(){go(+this.getAttribute('data-i'));};});
   }catch(_e){try{console.warn('fldInspWin9',_e);}catch(_c){}}
@@ -15790,6 +15810,7 @@ try{if(typeof IS_FIELD!=='undefined'&&IS_FIELD&&!(window.matchMedia&&matchMedia(
     var seg=document.getElementById('fb9Seg');if(seg){var p9=document.getElementById('tangoPanel'),ip9=document.getElementById('tgInfoPanel');var on=((p9&&p9.style.display!=='none')||(ip9&&ip9.style.display==='flex'));seg.style.borderColor='#ffd31a';seg.style.borderWidth='2px';seg.style.background=on?'#ffd31a':'#fff';seg.style.color=on?'#000':'#0a3ea0';}/* [BUILD2363] 기존 노랑 테두리·남색 글자 */
     var nt=document.getElementById('fb9Note');if(nt){var onN=(typeof mode!=='undefined'&&mode==='tgnote');nt.style.background=onN?'#fbe9fb':'#fff';}
     var ins=document.getElementById('fb9Insp');if(ins){var onI=!!document.getElementById('fldInspOv9');ins.style.background=onI?'#f3e5f5':'#fff';}
+    if(document.getElementById('fldInspOv9')&&window._fldInspSel9>=0&&!document.getElementById('fldInspHLG9'))fldInspHL9(window._fldInspSel9);/* [BUILD2371] 재그리기로 지워지면 복원 */
     if(document.getElementById('fldInspOv9')){var _ipx=document.getElementById('tgInfoPanel'),_tpx=document.getElementById('tangoPanel');if((_ipx&&_ipx.style.display==='flex')||(_tpx&&_tpx.style.display!=='none')){fldInspClose9();}else{var _cwx=document.querySelector('.canvas-wrap');if(_cwx&&_cwx.style.marginRight!=='60%')_cwx.style.marginRight='60%';}}/* [BUILD2366/2367] 구간설정이 열리면 검수 패널 닫힘, 아니면 55% 여백 유지 */
   }catch(_p){}};
   var _fbTick9=function(){try{_fbMk9();_fbPaint9();}catch(_t){}};
