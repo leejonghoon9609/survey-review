@@ -1516,7 +1516,7 @@ function mhLabelBase(mh, txtW){
 function mergeAftMh(){/* [1445] 자동병합 중단 — 후측 CSV 맨홀/입상은 그대로 추가(검정), 실시간 맨홀(파랑) 유지, 결선은 작업자 수정 */}
 function _refTxtFix(){/* [1564] REF \ud14d\uc2a4\ud2b8 \uc6d4\ub4dc \uace0\uc815 \u2014 [1460] px\uace0\uc815 \ud3d0\uae30(\ucd95\uc18c \uc2dc \uac70\ub300\ud654) */try{var host=document.getElementById('gRefDxf');if(!host)return;var ts=host.getElementsByTagName('text');for(var i=0;i<ts.length;i++){var t=ts[i];if(t._rht==null)continue;if(t.getAttribute('font-size')!=String(t._rht))t.setAttribute('font-size',t._rht);}}catch(_e){}}
 function _mhLeadSync(){/* [1457] 줄 중 인출선·라벨 좌표만 경량 갱신 — DOM 재생성 없음 */try{if(!(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))))return;var U=(typeof pxToWorld==='function')?pxToWorld():0.06;var EM=15*(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))?0.12:U);/* [1517] 완전 월드고정 */var upd={};var proc=function(mh){var k=mh.id;if(upd[k])return upd[k];var s9=S(mh.wx,mh.wy);var mx=s9[0],my=s9[1];var txtW=0,_lb=(typeof mhDisp==='function')?(''+mhDisp(mh)):(mh.label||'');for(var i=0;i<_lb.length;i++)txtW+=(_lb.charCodeAt(i)>127?EM:EM*0.55);txtW+=EM*0.5;txtW*=0.73;var lp=mhLabelBase(mh,txtW);var ls=S(lp.lx,lp.ly);var isR=(ls[0]>=mx);var u1=ls[0],u2=isR?ls[0]+txtW:ls[0]-txtW,uy=ls[1];return upd[k]={mx:mx,my:my,kx:ls[0],ky:ls[1],u1:u1,u2:u2,uy:uy,tc:(u1+u2)/2,ty:uy-EM*0.55};};var ns=gMH.querySelectorAll('line');for(var i2=0;i2<ns.length;i2++){var e=ns[i2],m=e._mSync;if(!m)continue;var P=proc(m.mh);if(m.t==='d'){e.setAttribute('x1',P.mx);e.setAttribute('y1',P.my);e.setAttribute('x2',P.kx);e.setAttribute('y2',P.ky);}else{e.setAttribute('x1',P.u1);e.setAttribute('y1',P.uy);e.setAttribute('x2',P.u2);e.setAttribute('y2',P.uy);}}if(typeof lblOverlay!=='undefined'&&lblOverlay){var ds=lblOverlay.children;for(var j2=0;j2<ds.length;j2++){var d=ds[j2];if(!d._mSync)continue;var P2=proc(d._mSync.mh);if(d._mSync.t==='db'){d._sx=P2.u2+((P2.u2>=P2.u1)?0.22:-0.22);d._sy=P2.ty;}else{d._sx=P2.tc;d._sy=P2.ty;}/* [BUILD1934] */if(typeof placeLabelDiv==='function')placeLabelDiv(d);}}}catch(_s){}}
-function _fldTamsaPts(){try{if(!((typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO)))return [];var arr=(typeof finalCsvArr==='function')?finalCsvArr():[];var key=arr.map(function(f){return (f.name||'')+':'+((f.text||'').length);}).join('|')+'#'+((state.points||[]).length)+'#'+(state.mhDel?Object.keys(state.mhDel).length:0);if(window._ftpC&&window._ftpC.k===key)return window._ftpC.v;var det=/^[tT]?\s*(\d+(?:\.\d+)?)(\s*\([^)]*\))?$/;var out=[];arr.forEach(function(it){var rs=[];try{rs=parseInspCsv(it.text||'');}catch(e){}rs.forEach(function(q){if(q.skip)return;var c=((q.code||'')+'').trim();if(/^l$/i.test(c))return;var m=det.exec(c);if(!m)return;var ex=false,pts=state.points||[];for(var i=0;i<pts.length;i++){if(Math.hypot(pts[i].x-q.ex,pts[i].y-q.no)<0.3){ex=true;break;}}if(ex)return;if(state.mhDel&&state.mhDel[q.ex+'_'+q.no])return;out.push({no:q.name||'',x:q.ex,y:q.no,z:parseFloat(m[1]),gz:(q.gz9!=null?q.gz9:null),code:c});/* [BUILD2289] gz=\uc790\uae30 \ud589 Z=\uc9c0\ubc18\uace0 */});});window._ftpC={k:key,v:out};return out;}catch(_e){return [];}}function _tamsaGwan9(x,y){/* [BUILD2337] 탐사점 관정보 자동 — 그 점을 지나는(0.3m) 측량현장 구간(라인)마다 공수 1개(tangoManual.gwansu) → 겹치는 구간은 합산, 분기 후는 자기 라인 값으로 복귀. 원천=시설물 관정보창 [저장]→auxPipeWrite9→tangoManual. 키 중복(쌍둥이 복제)은 1회만 */
+function _fldTamsaPts(){try{if(!((typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO)))return [];var arr=(typeof finalCsvArr==='function')?finalCsvArr():[];var key=arr.map(function(f){return (f.name||'')+':'+((f.text||'').length);}).join('|')+'#'+((state.points||[]).length)+'#'+(state.mhDel?Object.keys(state.mhDel).length:0);if(window._ftpC&&window._ftpC.k===key)return window._ftpC.v;var det=/^[tT]?\s*(\d+(?:\.\d+)?)(\s*\([^)]*\))?$/;var out=[];arr.forEach(function(it){var rs=[];try{rs=parseInspCsv(it.text||'');}catch(e){}rs.forEach(function(q){if(q.skip)return;var c=((q.code||'')+'').trim();if(/^l$/i.test(c))return;var m=det.exec(c);if(!m)return;var ex=false,pts=state.points||[];for(var i=0;i<pts.length;i++){if(Math.hypot(pts[i].x-q.ex,pts[i].y-q.no)<0.3){ex=true;break;}}if(ex)return;if(state.mhDel&&state.mhDel[q.ex+'_'+q.no])return;out.push({no:q.name||'',x:q.ex,y:q.no,z:parseFloat(m[1]),gz:(q.gz9!=null?q.gz9:null),code:c});/* [BUILD2289] gz=\uc790\uae30 \ud589 Z=\uc9c0\ubc18\uace0 */});});window._ftpC={k:key,v:out};return out;}catch(_e){return [];}}function _tamsaGwan9(x,y){/* [BUILD2337] 탐사점 관정보 자동 · [BUILD2338] 관수 원천 우선순위: ①맨홀도 야장 방향(dest) 관수 ②구간 tangoManual.gwansu(시설물 관정보창 [저장]→auxPipeWrite9) — 그 점을 지나는(0.3m) 측량현장 구간(라인)마다 공수 1개(tangoManual.gwansu) → 겹치는 구간은 합산, 분기 후는 자기 라인 값으로 복귀. 원천=시설물 관정보창 [저장]→auxPipeWrite9→tangoManual. 키 중복(쌍둥이 복제)은 1회만 */
  try{
   if(typeof tangoBuildSegs!=='function')return null;
   var C=window._tgGwC9;var tmk=(function(){try{return JSON.stringify(state.tangoManual||{}).length+'#'+((state.lines||[]).length)+'#'+((state.tgAddSegs||[]).length)+'#'+((state.tgFixSegs||[]).length);}catch(_e){return '';}})();
@@ -1533,17 +1533,47 @@ function _fldTamsaPts(){try{if(!((typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typ
    var key=tgManualKey(segs[i]);if(seen[key])continue;seen[key]=1;nSeg++;
    var M=TM[key]||{};
    var gwS=(typeof _tgCarFld==='function')?_tgCarFld(key,'gwansu',(''+(M.gwansu||'')).trim()):(''+(M.gwansu||'')).trim();
-   var gw=parseInt(gwS,10);if(!isFinite(gw)||gw<=0){nMiss++;continue;}
+   var gw=parseInt(gwS,10);var src='구간';
    var ext=(typeof _tgCarFld==='function')?_tgCarFld(key,'ext',(''+(M.ext||'')).trim()):(''+(M.ext||'')).trim();
+   var yj=null;try{yj=_segYajang9(segs[i]);}catch(_yj){yj=null;}/* [BUILD2338] 맨홀도 야장 방향(dest) 관수 — 있으면 우선 */
+   if(yj&&yj.cnt!=null&&yj.cnt>0){gw=yj.cnt;src='야장';if(yj.ext)ext=yj.ext;}
+   if(!isFinite(gw)||gw<=0){nMiss++;continue;}
    var es=(typeof _extSplit9==='function')?_extSplit9(ext):{kind:ext,dia:''};
    var kind=(es.kind||'').toUpperCase().replace(/[^A-Z0-9]/g,'')||'FC',dia=es.dia||'100';
+   if(yj&&yj.kind){kind=yj.kind;if(yj.dia)dia=yj.dia;}
    var gk=kind+'|'+dia;if(!grp[gk]){grp[gk]={kind:kind,dia:dia,n:0,segs:[]};ord.push(gk);}
-   grp[gk].n+=gw;grp[gk].segs.push({key:key,gw:gw});
+   grp[gk].n+=gw;grp[gk].segs.push({key:key,gw:gw,src:src,lab:(yj&&yj.lab)||''});
   }
   if(!ord.length)return null;
   var parts=ord.map(function(k){return grp[k];});
   var code=parts.map(function(g){return g.kind+' '+g.dia+'x'+g.n;}).join(' ');
   return {code:code,parts:parts,nSeg:nSeg,nMiss:nMiss};
+ }catch(_e){return null;}
+}
+function _segYajang9(sg){/* [BUILD2338] 구간 양끝 맨홀의 맨홀도 야장(d1~d4 dest)에서 '상대 끝 시설물'을 가리키는 행의 관수·관종·관경. 매칭=dest xy 2.5m(2039 관례) 또는 라벨. 양끝 다 있으면 시작 쪽 우선 */
+ try{
+  if(!sg||sg.length<2||typeof mhSheetRec9!=='function'||typeof mnDestList!=='function')return null;
+  var A=sg[0],B=sg[sg.length-1];
+  function mhNear(n){if(!n||n.x==null)return null;var best=null,bd=1.2;(state.manholes||[]).forEach(function(m){if(!m||m.wx==null)return;if(m.type&&m.type!=='mh')return;var d=Math.hypot(m.wx-n.x,m.wy-n.y);if(d<bd){bd=d;best=m;}});return best;}
+  function rowTo(from,to){
+   var m=mhNear(from);if(!m)return null;var rec=mhSheetRec9(m);if(!rec)return null;
+   var toM=mhNear(to);var toLab=(toM&&toM.label)?String(toM.label):'';
+   var ks=['d1','d2','d3','d4'];
+   for(var q=0;q<ks.length;q++){var k=ks[q];var L=mnDestList(rec,k)||[];
+    for(var i=0;i<L.length;i++){var e=L[i];if(!e)continue;var hit=false;
+     if(e.xy&&e.xy.length===2&&Math.hypot(e.xy[0]-to.x,e.xy[1]-to.y)<2.5)hit=true;
+     if(!hit&&e.lab&&toLab&&typeof mnStripPf==='function'){try{hit=(mnStripPf(String(e.lab))===mnStripPf(toLab));}catch(_l){}}
+     if(!hit&&e.lab&&typeof _lblMh9==='function'){try{var xy=_lblMh9(m.wx,m.wy,e.lab);if(xy&&Math.hypot(xy[0]-to.x,xy[1]-to.y)<2.5)hit=true;}catch(_l2){}}
+     if(!hit)continue;
+     var v=(typeof _mnCntShow9==='function')?_mnCntShow9(rec,k,i):(e.cnt);var cnt=((v===''||v==null)?null:parseInt(v,10));
+     var kind='',dia='',ext='';
+     if(e.ext){ext=String(e.ext);var es=(typeof _extSplit9==='function')?_extSplit9(ext):{kind:'',dia:''};kind=(es.kind||'').toUpperCase().replace(/[^A-Z0-9]/g,'');dia=es.dia||'';}
+     if(!kind&&typeof _wallPipe9==='function'){var wp=_wallPipe9(rec,k);if(wp&&wp.kind){kind=wp.kind;dia=wp.dia||'';}}
+     return {cnt:(isFinite(cnt)?cnt:null),kind:kind,dia:dia,ext:ext,lab:(String(e.lab||'')),k:k,ix:i};
+    }}
+   return null;
+  }
+  var r=rowTo(A,B);if(r&&r.cnt!=null)return r;var r2=rowTo(B,A);if(r2&&r2.cnt!=null)return r2;return r||r2;
  }catch(_e){return null;}
 }
 function drawTamsaPts(){try{if(!((typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO)))return;clearLabels('tamsapt');if(typeof LV!=='undefined'&&LV&&LV.tamsaPt===0)return;var _og9=gMH.querySelectorAll('.sym-tamsapt');for(var _oi9=0;_oi9<_og9.length;_oi9++)_og9[_oi9].remove();var L=_fldTamsaPts();if(!L.length)return;var YC='#e6b800';L.forEach(function(q){var s0=S(q.x,q.y);var _g9=el('g',{'class':'sym-tamsapt'});
