@@ -1371,6 +1371,10 @@ function drawGeo(){if(typeof _lyClr9==='function')_lyClr9();/* [BUILD2192] */_or
       var code=(state.tamsa?tamsaTag(p):(p.code||'')).trim();
       if(isTpoint(p)){sub.innerHTML=code.replace(/(^|\s)(T)(?=\s|\d|$)/,'$1<span style="color:#1d4ed8;font-weight:700">T</span>');}
       else{sub.textContent=code;}
+      try{/* [BUILD2352] 측량현장: 실시간 측점도 같은 관로선의 구간 관정보(야장·인입 합산)에서 내관수 연동 — 코드에 (n)이 없으면 (n) 병기. 탐사점(FC 100x6(3))과 동일 표기 */
+        if((typeof IS_FIELD!=='undefined'&&IS_FIELD)&&!p._hyun&&!p._jgf9&&/(100|50)\s*[xX×]\s*\d/.test(code)&&!/\(\s*\d+\s*\)/.test(code)&&typeof _tamsaGwan9==='function'&&!(typeof LV!=='undefined'&&LV&&LV.code===0)){
+          var _gw8=_tamsaGwan9(p.x,p.y);if(_gw8&&_gw8.nae!=null){var _ns8=document.createElement('span');_ns8.textContent='('+_gw8.nae+')';_ns8.style.cssText='color:#5d4037;font-weight:600;';_ns8.title='내관수(구간 야장·인입 합산)';sub.appendChild(_ns8);}}
+      }catch(_nl8){}
       sub.style.cssText='color:#0f7a86;font-weight:400;margin-top:2px;';/* [BUILD2185] 65%는 라벨 전체(px)에서 적용 — 이중 축소 방지 */
       nt.appendChild(sub);
     }
