@@ -19995,6 +19995,7 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var em=/([A-Za-z]+)\D*(\d+)/.exec(ext)||[];
   var kind=em[1]||oKind, dia=em[2]||oDia;
   var gw=parseInt(M.gwansu,10)||0;
+  try{var _sm9=(typeof _tamsaGwan9==='function')?_tamsaGwan9(px,py):null;if(_sm9&&_sm9.parts&&_sm9.parts.length){var _tot9=0,_big9=null;_sm9.parts.forEach(function(g){_tot9+=g.n;if(!_big9||g.n>_big9.n)_big9=g;});if(_tot9>0){gw=_tot9;if(_big9.kind)kind=_big9.kind;if(_big9.dia)dia=_big9.dia;}}}catch(_sm8){}/* [BUILD2340] 공수·관종·관경 = 그 점을 지나는 측량현장 구간 전체 합산(야장 방향 우선→tangoManual) — _segM9 최근접 1구간 값 대체. 겹치는 트렁크 1→2, 5H~6H 야장 3 반영. 열·단·내관은 기존 최근접 구간 값 유지 */
   var c9=parseInt(M.gyeol,10)||0, r9=parseInt(M.gdan,10)||0;
   if(!gw)gw=(c9&&r9)?(c9*r9):gongsu;
   if(!r9){var mr=_mnRows9(px,py);if(mr>0&&gw%mr===0)r9=mr;}/* [BUILD2274] 맨홀도 관배치 단수 */
