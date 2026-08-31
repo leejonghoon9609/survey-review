@@ -11162,9 +11162,9 @@ function fldInspWin9(sel){
     }
     var mc=document.querySelector('.maincol'),cw=document.querySelector('.canvas-wrap');if(!mc||!cw)return;
     if(mc)mc.style.position='relative';var _top9=cw.offsetTop||0;
-    var card=document.createElement('div');card.style.cssText='position:absolute;right:0;top:'+_top9+'px;bottom:0;width:40%;border-left:3px solid #7b1fa2;background:#fff;overflow:auto;padding:10px 14px;font-size:12px;z-index:7;box-sizing:border-box';/* [BUILD2366] 구간설정과 같은 방식의 우측 패널 · [BUILD2368] 폭 40%(도면 6:패널 4), 폭 60% */
+    var card=document.createElement('div');card.style.cssText='position:absolute;right:0;top:'+_top9+'px;bottom:0;width:60%;border-left:3px solid #7b1fa2;background:#fff;overflow:auto;padding:10px 14px;font-size:12px;z-index:7;box-sizing:border-box';/* [BUILD2366] 구간설정과 같은 방식의 우측 패널 · [BUILD2369] 폭 60%(검수 6:도면 4), 폭 60% */
     card.innerHTML=h;w.id='fldInspOv9';w.style.cssText='display:contents';w.appendChild(card);mc.appendChild(w);
-    cw.style.marginRight='40%';if(getComputedStyle(cw).position==='static')cw.style.position='relative';
+    cw.style.marginRight='60%';if(getComputedStyle(cw).position==='static')cw.style.position='relative';
     window._fldInspOpen9=true;try{setTimeout(function(){if(typeof fitView==='function')fitView();},120);}catch(_fv){}
     card.querySelector('#fiClose9').onclick=function(){fldInspClose9();};
     card.querySelector('#fiRefresh9').onclick=function(){window._tgGwC9=null;try{_tgSegs=tangoBuildSegs();}catch(_r){}fldInspWin9(window._fldInspSel9);};
@@ -15786,7 +15786,7 @@ try{if(typeof IS_FIELD!=='undefined'&&IS_FIELD&&!(window.matchMedia&&matchMedia(
     var seg=document.getElementById('fb9Seg');if(seg){var p9=document.getElementById('tangoPanel'),ip9=document.getElementById('tgInfoPanel');var on=((p9&&p9.style.display!=='none')||(ip9&&ip9.style.display==='flex'));seg.style.borderColor='#ffd31a';seg.style.borderWidth='2px';seg.style.background=on?'#ffd31a':'#fff';seg.style.color=on?'#000':'#0a3ea0';}/* [BUILD2363] 기존 노랑 테두리·남색 글자 */
     var nt=document.getElementById('fb9Note');if(nt){var onN=(typeof mode!=='undefined'&&mode==='tgnote');nt.style.background=onN?'#fbe9fb':'#fff';}
     var ins=document.getElementById('fb9Insp');if(ins){var onI=!!document.getElementById('fldInspOv9');ins.style.background=onI?'#f3e5f5':'#fff';}
-    if(document.getElementById('fldInspOv9')){var _ipx=document.getElementById('tgInfoPanel'),_tpx=document.getElementById('tangoPanel');if((_ipx&&_ipx.style.display==='flex')||(_tpx&&_tpx.style.display!=='none')){fldInspClose9();}else{var _cwx=document.querySelector('.canvas-wrap');if(_cwx&&_cwx.style.marginRight!=='40%')_cwx.style.marginRight='40%';}}/* [BUILD2366/2367] 구간설정이 열리면 검수 패널 닫힘, 아니면 55% 여백 유지 */
+    if(document.getElementById('fldInspOv9')){var _ipx=document.getElementById('tgInfoPanel'),_tpx=document.getElementById('tangoPanel');if((_ipx&&_ipx.style.display==='flex')||(_tpx&&_tpx.style.display!=='none')){fldInspClose9();}else{var _cwx=document.querySelector('.canvas-wrap');if(_cwx&&_cwx.style.marginRight!=='60%')_cwx.style.marginRight='60%';}}/* [BUILD2366/2367] 구간설정이 열리면 검수 패널 닫힘, 아니면 55% 여백 유지 */
   }catch(_p){}};
   var _fbTick9=function(){try{_fbMk9();_fbPaint9();}catch(_t){}};
   _fbTick9();setInterval(_fbTick9,500);
