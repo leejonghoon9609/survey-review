@@ -11166,17 +11166,18 @@ function fldInspWin9(sel){
     var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
     var btn=function(i,lab,on,ok){var bg=on?'#7b1fa2':(ok===true?'#e8f5e9':(ok===false?'#ffebee':'#fff')),fg=on?'#fff':(ok===true?'#2e7d32':(ok===false?'#c62828':'#555')),bd=on?'#7b1fa2':(ok===true?'#a5d6a7':(ok===false?'#ef9a9a':'#ccc'));
       var bd2=on?'#7b1fa2':(ok===true?'#2e7d32':(ok===false?'#c62828':'#777'));/* [BUILD2373] 테두리 진하게 */
+      if(i===-1){bg=on?'#c62828':'#fff';fg=on?'#fff':'#c62828';bd2='#c62828';}/* [BUILD2374] 전체 버튼 붉은색 */
       return '<button class="fiSeg9" data-i="'+i+'" style="border:2px solid '+bd2+';background:'+bg+';color:'+fg+';border-radius:7px;padding:5px 6px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;width:100%;align-items:center;justify-content:center;white-space:nowrap">'+E(lab)+'</button>';};/* [BUILD2370] 세로 버튼 */
     var nb=AU.filter(function(a){return a&&!a.ok;}).length;
-    var h='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><b style="font-size:14px;color:#7b1fa2">\uD83D\uDD0D \uAD6C\uAC04\uAC80\uC218 (\uCE21\uB7C9\uD604\uC7A5)</b><span style="font-size:11.5px;color:#666">\uAD6C\uAC04 '+N+' \u00B7 \uBD88\uC77C\uCE58 <b style="color:'+(nb?'#c62828':'#2e7d32')+'">'+nb+'</b></span>'
+    var h='<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid #c62828"><b style="font-size:14px;color:#c62828">\uD83D\uDD0D \uAD6C\uAC04\uAC80\uC218 (\uCE21\uB7C9\uD604\uC7A5)</b><span style="font-size:11.5px;color:#666">\uAD6C\uAC04 '+N+' \u00B7 \uBD88\uC77C\uCE58 <b style="color:'+(nb?'#c62828':'#2e7d32')+'">'+nb+'</b></span>'
       +'<span style="display:inline-flex;gap:6px;margin-left:14px">'
       +'<button id="fiUndo9" style="border:1px solid #c9b7a8;background:#fff;color:#5d4037;border-radius:6px;padding:3px 9px;font-size:11.5px;font-weight:800;cursor:pointer">\u21BA \uB418\uB3CC\uB9AC\uAE30</button>'
       +'<button id="fiRedo9" style="border:1px solid #c9b7a8;background:#fff;color:#5d4037;border-radius:6px;padding:3px 9px;font-size:11.5px;font-weight:800;cursor:pointer">\u21BB \uB2E4\uC2DC\uC2E4\uD589</button>'
       +'<button id="fiFit9" style="border:1.5px solid '+(window._fldInspFitLock9?'#c62828':'#2e7d32')+';background:'+(window._fldInspFitLock9?'#ffebee':'#e8f5e9')+';color:'+(window._fldInspFitLock9?'#c62828':'#2e7d32')+';border-radius:6px;padding:3px 9px;font-size:11.5px;font-weight:800;cursor:pointer">'+(window._fldInspFitLock9?'\uD83D\uDCCC \uACE0\uC815\uC911':'\uD83C\uDFAF \uC790\uB3D9\uC774\uB3D9')+'</button></span>'/* [BUILD2371] 구간설정 창의 3버튼 복사 */
       +'<button id="fiRefresh9" title="\uC7AC\uAC80\uC218" style="margin-left:auto;border:1px solid #bbb;background:#fff;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:800;cursor:pointer">\u21BB</button><button id="fiClose9" style="border:1px solid #bbb;background:#fff;border-radius:6px;padding:3px 9px;font-size:12px;font-weight:800;cursor:pointer">\u2715</button></div>';
     /* [BUILD2370] 좌: 세로 구간 버튼 열 / 우: 내용 */
-    h+='<div style="display:flex;gap:10px;align-items:flex-start;height:calc(100% - 34px)"><div style="flex:none;width:84px;display:flex;flex-direction:column;gap:4px;max-height:100%;overflow:auto;padding-right:8px;border-right:2px solid #7b1fa2;align-self:stretch">'+btn(-1,'\uC804\uCCB4',sel===-1,null)+AU.map(function(a,i){return btn(i,(i+1)+'\uAD6C\uAC04',sel===i,a?a.ok:null);}).join('')+'</div><div style="flex:1;min-width:0;max-height:100%;overflow:auto">';
-    var TH='padding:4px 6px;border:1px solid #d9c7e6;background:#f5eefa;font-weight:800;font-size:11px;color:#4a148c;white-space:nowrap',TD='padding:4px 6px;border:1px solid #e3d5ee;font-size:11.5px;text-align:center;white-space:nowrap';
+    h+='<div style="display:flex;gap:10px;align-items:flex-start;height:calc(100% - 34px)"><div style="flex:none;width:84px;display:flex;flex-direction:column;gap:4px;max-height:100%;overflow:auto;padding-right:8px;border-right:2px solid #c62828;align-self:stretch">'+btn(-1,'\uC804\uCCB4',sel===-1,null)+AU.map(function(a,i){return btn(i,(i+1)+'\uAD6C\uAC04',sel===i,a?a.ok:null);}).join('')+'</div><div style="flex:1;min-width:0;max-height:100%;overflow:auto">';
+    var TH='padding:4px 6px;border:1px solid #e6b8b8;background:#fbeeee;font-weight:800;font-size:11px;color:#8c1d1d;white-space:nowrap',TD='padding:4px 6px;border:1px solid #efd3d3;font-size:11.5px;text-align:center;white-space:nowrap';/* [BUILD2374] 붉은 계열 */
     var stC=function(st){return st==='bad'?'#c62828':(st==='ok'?'#2e7d32':(st==='single'?'#8a6d00':'#999'));};
     var stT=function(st){return st==='bad'?'\u26A0 \uBD88\uC77C\uCE58':(st==='ok'?'\uC77C\uCE58':(st==='single'?'\uB2E8\uC77C\uCD9C\uCC98':'\u2013'));};
     if(sel===-1){
@@ -11205,7 +11206,7 @@ function fldInspWin9(sel){
     h+='</div></div>';/* [BUILD2370] 내용/행 닫기 */
     var mc=document.querySelector('.maincol'),cw=document.querySelector('.canvas-wrap');if(!mc||!cw)return;
     if(mc)mc.style.position='relative';var _top9=cw.offsetTop||0;
-    var card=document.createElement('div');card.style.cssText='position:absolute;right:0;top:'+_top9+'px;bottom:0;width:60%;border-left:3px solid #7b1fa2;background:#fff;overflow:auto;padding:10px 14px;font-size:12px;z-index:7;box-sizing:border-box';/* [BUILD2366] 구간설정과 같은 방식의 우측 패널 · [BUILD2369] 폭 60%(검수 6:도면 4), 폭 60% */
+    var card=document.createElement('div');card.style.cssText='position:absolute;right:0;top:'+_top9+'px;bottom:0;width:60%;border-left:3px solid #c62828;background:#fff;overflow:auto;padding:10px 14px;font-size:12px;z-index:7;box-sizing:border-box';/* [BUILD2366] 구간설정과 같은 방식의 우측 패널 · [BUILD2369] 폭 60%(검수 6:도면 4), 폭 60% */
     card.innerHTML=h;w.id='fldInspOv9';w.style.cssText='display:contents';w.appendChild(card);mc.appendChild(w);
     cw.style.marginRight='60%';if(getComputedStyle(cw).position==='static')cw.style.position='relative';
     window._fldInspOpen9=true;
@@ -15820,7 +15821,7 @@ try{if(typeof IS_FIELD!=='undefined'&&IS_FIELD&&!(window.matchMedia&&matchMedia(
     var R=document.createElement('div');R.style.cssText='display:inline-flex;gap:6px;align-items:center;flex:none;margin-left:auto';
     L.appendChild(B('fb9Import','\uACB0\uC120DB \uCD5C\uC885\uC131\uACFC','#c0392b',clickOf('fldImport')));
     L.appendChild(B('fb9Final','\uCE21\uB7C9(\uD604\uC7A5) \uCD5C\uC885\uC131\uACFC','#15803d',clickOf('fldFinal')));
-    R.appendChild(B('fb9Insp','\uD83D\uDD0D \uAD6C\uAC04\uAC80\uC218','#7b1fa2',function(){if(document.getElementById('fldInspOv9')){fldInspClose9();return;}if(typeof fldInspWin9==='function')fldInspWin9();}));
+    R.appendChild(B('fb9Insp','\uD83D\uDD0D \uAD6C\uAC04\uAC80\uC218','#c62828',function(){if(document.getElementById('fldInspOv9')){fldInspClose9();return;}if(typeof fldInspWin9==='function')fldInspWin9();}));
     R.appendChild(B('fb9Seg','\uD83D\uDCD0 \uAD6C\uAC04\uC124\uC815','#0a3ea0',function(){var p9=document.getElementById('tangoPanel'),ip9=document.getElementById('tgInfoPanel');var open9=((p9&&p9.style.display!=='none')||(ip9&&ip9.style.display==='flex'));if(open9){if(typeof closeTangoPanel==='function')closeTangoPanel();}else{if(typeof openTangoPanel==='function')openTangoPanel('attr');}setTimeout(_fbPaint9,60);}));
     R.appendChild(B('fb9Note','\u2757 \uD2B9\uC774\uC0AC\uD56D','#d500f2',function(){if(typeof tgNoteToggle==='function')tgNoteToggle();try{if(typeof renderSub==='function')renderSub();}catch(_r){}setTimeout(_fbPaint9,60);}));
     R.appendChild(B('fb9Joseo','\u2713 \uC2E4\uC2DC\uAC04 \uC0AC\uC9C4\uC870\uC11C','#0d9488',clickOf('fldJoseo')));
@@ -15833,7 +15834,7 @@ try{if(typeof IS_FIELD!=='undefined'&&IS_FIELD&&!(window.matchMedia&&matchMedia(
   var _fbPaint9=function(){try{
     var seg=document.getElementById('fb9Seg');if(seg){var p9=document.getElementById('tangoPanel'),ip9=document.getElementById('tgInfoPanel');var on=((p9&&p9.style.display!=='none')||(ip9&&ip9.style.display==='flex'));seg.style.borderColor='#ffd31a';seg.style.borderWidth='2px';seg.style.background=on?'#ffd31a':'#fff';seg.style.color=on?'#000':'#0a3ea0';}/* [BUILD2363] 기존 노랑 테두리·남색 글자 */
     var nt=document.getElementById('fb9Note');if(nt){var onN=(typeof mode!=='undefined'&&mode==='tgnote');nt.style.background=onN?'#fbe9fb':'#fff';}
-    var ins=document.getElementById('fb9Insp');if(ins){var onI=!!document.getElementById('fldInspOv9');ins.style.background=onI?'#f3e5f5':'#fff';}
+    var ins=document.getElementById('fb9Insp');if(ins){var onI=!!document.getElementById('fldInspOv9');ins.style.background=onI?'#ffebee':'#fff';}
     if(document.getElementById('fldInspOv9')&&window._fldInspSel9>=0&&!document.getElementById('fldInspHLG9'))fldInspHL9(window._fldInspSel9);/* [BUILD2371] 재그리기로 지워지면 복원 */
     if(document.getElementById('fldInspOv9')){var _uNow=(typeof pxToWorld==='function')?pxToWorld():0;if(!document.getElementById('fldInspTagG9')||(window._fldInspTagU9&&Math.abs(_uNow-window._fldInspTagU9)>window._fldInspTagU9*0.02))fldInspTags9();}/* [BUILD2372] 태그 복원·줌 추종 */
     if(document.getElementById('fldInspOv9')){var _ipx=document.getElementById('tgInfoPanel'),_tpx=document.getElementById('tangoPanel');if((_ipx&&_ipx.style.display==='flex')||(_tpx&&_tpx.style.display!=='none')){fldInspClose9();}else{var _cwx=document.querySelector('.canvas-wrap');if(_cwx&&_cwx.style.marginRight!=='60%')_cwx.style.marginRight='60%';}}/* [BUILD2366/2367] 구간설정이 열리면 검수 패널 닫힘, 아니면 55% 여백 유지 */
