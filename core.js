@@ -11118,12 +11118,14 @@ function fldSegAudit9(si){
     return {si:si,key:key,from:(A.name||A.no||''),to:(B.name||B.no||''),rows:rows,pts:pts,depth:{n:dep.length,miss:miss,avg:avg,tamsa:tam},naeOver:naeOver,bad:bad,ok:bad===0,facLab:{yj:(yj&&(yj.lab||''))||'',ax:(ax&&(ax.fac||''))||''}};
   }catch(_e){return null;}
 }
+function fldInspClose9(){try{var w=document.getElementById('fldInspOv9');if(w)w.remove();window._fldInspOpen9=false;var cw=document.querySelector('.canvas-wrap');if(cw){var ip=document.getElementById('tgInfoPanel');cw.style.marginRight=(ip&&ip.style.display==='flex')?'42%':'';}setTimeout(function(){if(typeof fitView==='function')fitView();},120);}catch(_e){}}
 function fldInspWin9(sel){
   try{
     if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return;
     if((typeof _tgSegs==='undefined'||!_tgSegs||!_tgSegs.length)&&typeof tangoBuildSegs==='function'){try{_tgSegs=tangoBuildSegs();}catch(_b){}}
     var N=(_tgSegs||[]).length;
-    var old=document.getElementById('fldInspOv9');var keepPos=null;if(old){var oc=old.firstElementChild;if(oc&&oc.style.position==='fixed')keepPos={l:oc.style.left,t:oc.style.top};old.remove();}
+    var old=document.getElementById('fldInspOv9');if(old)old.remove();/* [BUILD2366] 부동창 → 우측 패널 */
+    try{var _ip0=document.getElementById('tgInfoPanel'),_tp0=document.getElementById('tangoPanel');if((_ip0&&_ip0.style.display==='flex')||(_tp0&&_tp0.style.display!=='none')){if(typeof closeTangoPanel==='function')closeTangoPanel();}}catch(_ct){}/* 구간설정 패널과 동시 열림 방지 */
     if(sel==null)sel=(window._fldInspSel9!=null)?window._fldInspSel9:-1;window._fldInspSel9=sel;
     var AU=[];for(var i=0;i<N;i++)AU.push(fldSegAudit9(i));
     var w=document.createElement('div');w.id='fldInspOv9';w.style.cssText='position:fixed;inset:0;z-index:1325;pointer-events:none;background:transparent';
@@ -11158,11 +11160,13 @@ function fldInspWin9(sel){
         h+='</table></div>';
       }
     }
-    var card=document.createElement('div');card.style.cssText='position:fixed;pointer-events:auto;top:118px;right:14px;width:min(94vw,560px);max-height:80vh;overflow:auto;background:#fff;border:2px solid #7b1fa2;border-radius:12px;padding:12px 13px;box-shadow:0 10px 34px rgba(0,0,0,.28)';
-    if(keepPos){card.style.left=keepPos.l;card.style.top=keepPos.t;card.style.right='auto';}
-    card.innerHTML=h;w.appendChild(card);document.body.appendChild(w);
-    try{_dragCard9(w);}catch(_d){}w.style.background='transparent';/* 검수창은 도면 어둡게 안 함 */
-    card.querySelector('#fiClose9').onclick=function(){w.remove();};
+    var mc=document.querySelector('.maincol'),cw=document.querySelector('.canvas-wrap');if(!mc||!cw)return;
+    if(mc)mc.style.position='relative';var _top9=cw.offsetTop||0;
+    var card=document.createElement('div');card.style.cssText='position:absolute;right:0;top:'+_top9+'px;bottom:0;width:60%;border-left:3px solid #7b1fa2;background:#fff;overflow:auto;padding:10px 14px;font-size:12px;z-index:7;box-sizing:border-box';/* [BUILD2366] 구간설정과 같은 방식의 우측 패널, 폭 60% */
+    card.innerHTML=h;w.id='fldInspOv9';w.style.cssText='display:contents';w.appendChild(card);mc.appendChild(w);
+    cw.style.marginRight='60%';if(getComputedStyle(cw).position==='static')cw.style.position='relative';
+    window._fldInspOpen9=true;try{setTimeout(function(){if(typeof fitView==='function')fitView();},120);}catch(_fv){}
+    card.querySelector('#fiClose9').onclick=function(){fldInspClose9();};
     card.querySelector('#fiRefresh9').onclick=function(){window._tgGwC9=null;try{_tgSegs=tangoBuildSegs();}catch(_r){}fldInspWin9(window._fldInspSel9);};
     var go=function(i){window._fldInspSel9=i;if(i>=0){try{if(typeof tangoSelSeg==='function')tangoSelSeg(i);}catch(_g){}}fldInspWin9(i);};
     card.querySelectorAll('.fiSeg9').forEach(function(b){b.onclick=function(){go(+this.getAttribute('data-i'));};});
@@ -15768,7 +15772,7 @@ try{if(typeof IS_FIELD!=='undefined'&&IS_FIELD&&!(window.matchMedia&&matchMedia(
     var R=document.createElement('div');R.style.cssText='display:inline-flex;gap:6px;align-items:center;flex:none;margin-left:auto';
     L.appendChild(B('fb9Import','\uACB0\uC120DB \uCD5C\uC885\uC131\uACFC','#c0392b',clickOf('fldImport')));
     L.appendChild(B('fb9Final','\uCE21\uB7C9(\uD604\uC7A5) \uCD5C\uC885\uC131\uACFC','#15803d',clickOf('fldFinal')));
-    R.appendChild(B('fb9Insp','\uD83D\uDD0D \uAD6C\uAC04\uAC80\uC218','#7b1fa2',function(){if(typeof fldInspWin9==='function')fldInspWin9();}));
+    R.appendChild(B('fb9Insp','\uD83D\uDD0D \uAD6C\uAC04\uAC80\uC218','#7b1fa2',function(){if(document.getElementById('fldInspOv9')){fldInspClose9();return;}if(typeof fldInspWin9==='function')fldInspWin9();}));
     R.appendChild(B('fb9Seg','\uD83D\uDCD0 \uAD6C\uAC04\uC124\uC815','#0a3ea0',function(){var p9=document.getElementById('tangoPanel'),ip9=document.getElementById('tgInfoPanel');var open9=((p9&&p9.style.display!=='none')||(ip9&&ip9.style.display==='flex'));if(open9){if(typeof closeTangoPanel==='function')closeTangoPanel();}else{if(typeof openTangoPanel==='function')openTangoPanel('attr');}setTimeout(_fbPaint9,60);}));
     R.appendChild(B('fb9Note','\u2757 \uD2B9\uC774\uC0AC\uD56D','#d500f2',function(){if(typeof tgNoteToggle==='function')tgNoteToggle();try{if(typeof renderSub==='function')renderSub();}catch(_r){}setTimeout(_fbPaint9,60);}));
     R.appendChild(B('fb9Joseo','\u2713 \uC2E4\uC2DC\uAC04 \uC0AC\uC9C4\uC870\uC11C','#0d9488',clickOf('fldJoseo')));
@@ -15782,6 +15786,7 @@ try{if(typeof IS_FIELD!=='undefined'&&IS_FIELD&&!(window.matchMedia&&matchMedia(
     var seg=document.getElementById('fb9Seg');if(seg){var p9=document.getElementById('tangoPanel'),ip9=document.getElementById('tgInfoPanel');var on=((p9&&p9.style.display!=='none')||(ip9&&ip9.style.display==='flex'));seg.style.borderColor='#ffd31a';seg.style.borderWidth='2px';seg.style.background=on?'#ffd31a':'#fff';seg.style.color=on?'#000':'#0a3ea0';}/* [BUILD2363] 기존 노랑 테두리·남색 글자 */
     var nt=document.getElementById('fb9Note');if(nt){var onN=(typeof mode!=='undefined'&&mode==='tgnote');nt.style.background=onN?'#fbe9fb':'#fff';}
     var ins=document.getElementById('fb9Insp');if(ins){var onI=!!document.getElementById('fldInspOv9');ins.style.background=onI?'#f3e5f5':'#fff';}
+    if(document.getElementById('fldInspOv9')){var _ipx=document.getElementById('tgInfoPanel'),_tpx=document.getElementById('tangoPanel');if((_ipx&&_ipx.style.display==='flex')||(_tpx&&_tpx.style.display!=='none')){fldInspClose9();}else{var _cwx=document.querySelector('.canvas-wrap');if(_cwx&&_cwx.style.marginRight!=='60%')_cwx.style.marginRight='60%';}}/* [BUILD2366] 구간설정이 열리면 검수 패널 닫힘, 아니면 60% 여백 유지 */
   }catch(_p){}};
   var _fbTick9=function(){try{_fbMk9();_fbPaint9();}catch(_t){}};
   _fbTick9();setInterval(_fbTick9,500);
