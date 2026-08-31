@@ -11131,19 +11131,19 @@ function fldInspTags9(){/* [BUILD2372] 검수 전용 구간 태그+인출선(구
     if(!document.getElementById('fldInspOv9'))return;
     var raws=window._tgSegRaw||[];var segs=_tgSegs||[];if(!segs.length)return;
     var NS='http://www.w3.org/2000/svg';var g=document.createElementNS(NS,'g');g.id='fldInspTagG9';
-    var u=(typeof pxToWorld==='function')?pxToWorld():0.06;var fs=u*12;var sel=(window._fldInspSel9==null)?-1:window._fldInspSel9;
+    var u=(typeof pxToWorld==='function')?pxToWorld():0.06;var fs=1.0;/* [BUILD2376] 태그 글자 1.0m 월드고정(제원 태그와 동일) — 인출선 5m와 같은 축척 */var sel=(window._fldInspSel9==null)?-1:window._fldInspSel9;
     var AU=window._fldInspAU9||[];
     for(var si=0;si<segs.length;si++){var raw=raws[si];if(!raw||raw.length<2)raw=segs[si].map(function(n){return [n.x,n.y];});if(!raw||raw.length<2)continue;
       /* 앵커: 타 구간과 가장 먼 지점(8샘플) — 겹치는 트렁크에서 라벨 충돌 회피 */
       var bF=0.5,bS=-1;for(var c=0;c<8;c++){var f=0.15+0.7*c/7;var ix=Math.max(0,Math.min(raw.length-1,Math.round((raw.length-1)*f)));var pp=raw[ix];var sc=1e18;for(var sj=0;sj<raws.length;sj++){if(sj===si)continue;var R=raws[sj]||[];for(var q=0;q<R.length;q++){var d=Math.hypot(R[q][0]-pp[0],R[q][1]-pp[1]);if(d<sc)sc=d;}}if(sc>bS){bS=sc;bF=f;}}
       var mi=Math.max(0,Math.min(raw.length-1,Math.round((raw.length-1)*bF)));var mid=raw[mi];var nx=raw[Math.min(raw.length-1,mi+1)],px=raw[Math.max(0,mi-1)];
       var ap=S(mid[0],mid[1]);var dx=nx[0]-px[0],dy=-(nx[1]-px[1]);var dl=Math.hypot(dx,dy)||1;var pex=-dy/dl,pey=dx/dl;/* 화면좌표 수직 */
-      var off=(state.tgSegLabelOff||{})[si];var lp=off?S(off.x,off.y):[ap[0]+pex*u*46,ap[1]+pey*u*46];
+      var off=(state.tgSegLabelOff||{})[si];var lp=off?S(off.x,off.y):[ap[0]+pex*5,ap[1]+pey*5];/* [BUILD2375] 인출선 5m 월드고정 · 관로선 직각 */
       var a=AU[si];var col=(si===sel)?'#7b1fa2':(a?(a.ok?'#2e7d32':'#c62828'):'#666');
-      var ln=document.createElementNS(NS,'line');ln.setAttribute('x1',ap[0]);ln.setAttribute('y1',ap[1]);ln.setAttribute('x2',lp[0]);ln.setAttribute('y2',lp[1]);ln.setAttribute('stroke',col);ln.setAttribute('stroke-width',si===sel?2:1.2);ln.setAttribute('vector-effect','non-scaling-stroke');ln.setAttribute('pointer-events','none');g.appendChild(ln);
-      var dot=document.createElementNS(NS,'circle');dot.setAttribute('cx',ap[0]);dot.setAttribute('cy',ap[1]);dot.setAttribute('r',u*3);dot.setAttribute('fill',col);dot.setAttribute('pointer-events','none');g.appendChild(dot);
+      var ln=document.createElementNS(NS,'line');ln.setAttribute('x1',ap[0]);ln.setAttribute('y1',ap[1]);ln.setAttribute('x2',lp[0]);ln.setAttribute('y2',lp[1]);ln.setAttribute('stroke',col);ln.setAttribute('stroke-width',si===sel?0.18:0.1);/* [BUILD2376] 월드 두께 */ln.setAttribute('pointer-events','none');g.appendChild(ln);
+      var dot=document.createElementNS(NS,'circle');dot.setAttribute('cx',ap[0]);dot.setAttribute('cy',ap[1]);dot.setAttribute('r',0.25);/* [BUILD2376] 월드고정 */dot.setAttribute('fill',col);dot.setAttribute('pointer-events','none');g.appendChild(dot);
       var txt=(si+1)+'\uAD6C\uAC04'+(a&&!a.ok?' \u26A0':'');var tw=fs*(0.62*txt.length+1.4),th=fs*1.5;
-      var bg=document.createElementNS(NS,'rect');bg.setAttribute('x',lp[0]-tw/2);bg.setAttribute('y',lp[1]-th/2);bg.setAttribute('width',tw);bg.setAttribute('height',th);bg.setAttribute('rx',fs*0.3);bg.setAttribute('fill',si===sel?'#7b1fa2':'#fff');bg.setAttribute('fill-opacity',si===sel?'0.95':'0.9');bg.setAttribute('stroke',col);bg.setAttribute('stroke-width',1.2);bg.setAttribute('vector-effect','non-scaling-stroke');bg.style.cursor='pointer';
+      var bg=document.createElementNS(NS,'rect');bg.setAttribute('x',lp[0]-tw/2);bg.setAttribute('y',lp[1]-th/2);bg.setAttribute('width',tw);bg.setAttribute('height',th);bg.setAttribute('rx',fs*0.3);bg.setAttribute('fill',si===sel?'#7b1fa2':'#fff');bg.setAttribute('fill-opacity',si===sel?'0.95':'0.9');bg.setAttribute('stroke',col);bg.setAttribute('stroke-width',0.1);bg.style.cursor='pointer';/* [BUILD2376] 월드 두께 */
       var t=document.createElementNS(NS,'text');t.setAttribute('x',lp[0]);t.setAttribute('y',lp[1]);t.setAttribute('text-anchor','middle');t.setAttribute('dominant-baseline','central');t.setAttribute('font-size',fs);t.setAttribute('font-weight','800');t.setAttribute('fill',si===sel?'#fff':col);t.setAttribute('font-family','Malgun Gothic,Apple SD Gothic Neo,sans-serif');t.textContent=txt;t.style.cursor='pointer';t.setAttribute('pointer-events','all');
       (function(i){var h=function(ev){try{ev.stopPropagation();ev.preventDefault();}catch(_e){}window._fldInspSel9=i;fldInspWin9(i);};bg.addEventListener('pointerdown',h);t.addEventListener('pointerdown',h);})(si);
       g.appendChild(bg);g.appendChild(t);}
@@ -15836,7 +15836,7 @@ try{if(typeof IS_FIELD!=='undefined'&&IS_FIELD&&!(window.matchMedia&&matchMedia(
     var nt=document.getElementById('fb9Note');if(nt){var onN=(typeof mode!=='undefined'&&mode==='tgnote');nt.style.background=onN?'#fbe9fb':'#fff';}
     var ins=document.getElementById('fb9Insp');if(ins){var onI=!!document.getElementById('fldInspOv9');ins.style.background=onI?'#ffebee':'#fff';}
     if(document.getElementById('fldInspOv9')&&window._fldInspSel9>=0&&!document.getElementById('fldInspHLG9'))fldInspHL9(window._fldInspSel9);/* [BUILD2371] 재그리기로 지워지면 복원 */
-    if(document.getElementById('fldInspOv9')){var _uNow=(typeof pxToWorld==='function')?pxToWorld():0;if(!document.getElementById('fldInspTagG9')||(window._fldInspTagU9&&Math.abs(_uNow-window._fldInspTagU9)>window._fldInspTagU9*0.02))fldInspTags9();}/* [BUILD2372] 태그 복원·줌 추종 */
+    if(document.getElementById('fldInspOv9')&&!document.getElementById('fldInspTagG9'))fldInspTags9();/* [BUILD2372] 태그 복원 · [BUILD2376] 전부 월드고정이라 줌 추종 불필요 */
     if(document.getElementById('fldInspOv9')){var _ipx=document.getElementById('tgInfoPanel'),_tpx=document.getElementById('tangoPanel');if((_ipx&&_ipx.style.display==='flex')||(_tpx&&_tpx.style.display!=='none')){fldInspClose9();}else{var _cwx=document.querySelector('.canvas-wrap');if(_cwx&&_cwx.style.marginRight!=='60%')_cwx.style.marginRight='60%';}}/* [BUILD2366/2367] 구간설정이 열리면 검수 패널 닫힘, 아니면 55% 여백 유지 */
   }catch(_p){}};
   var _fbTick9=function(){try{_fbMk9();_fbPaint9();}catch(_t){}};
