@@ -1538,16 +1538,20 @@ function _fldTamsaPts(){try{if(!((typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typ
    var yj=null;try{yj=_segYajang9(segs[i]);}catch(_yj){yj=null;}/* [BUILD2338] 맨홀도 야장 방향(dest) 관수 — 있으면 우선 */
    if(yj&&yj.cnt!=null&&yj.cnt>0){gw=yj.cnt;src='야장';if(yj.ext)ext=yj.ext;}
    if(!isFinite(gw)||gw<=0){nMiss++;continue;}
+   var nae=null,nsrc='';/* [BUILD2345] 내관수: 야장 행 nae → tangoManual.naegwan */
+   if(yj&&yj.nae!=null){nae=yj.nae;nsrc='야장';}
+   else{var nS=(typeof _tgCarFld==='function')?_tgCarFld(key,'naegwan',(''+(M.naegwan||'')).trim()):(''+(M.naegwan||'')).trim();var nn=parseInt(nS,10);if(isFinite(nn)&&nS!==''){nae=nn;nsrc='구간';}}
    var es=(typeof _extSplit9==='function')?_extSplit9(ext):{kind:ext,dia:''};
    var kind=(es.kind||'').toUpperCase().replace(/[^A-Z0-9]/g,'')||'FC',dia=es.dia||'100';
    if(yj&&yj.kind){kind=yj.kind;if(yj.dia)dia=yj.dia;}
-   var gk=kind+'|'+dia;if(!grp[gk]){grp[gk]={kind:kind,dia:dia,n:0,segs:[]};ord.push(gk);}
-   grp[gk].n+=gw;grp[gk].segs.push({key:key,gw:gw,src:src,lab:(yj&&yj.lab)||''});
+   var gk=kind+'|'+dia;if(!grp[gk]){grp[gk]={kind:kind,dia:dia,n:0,nae:null,segs:[]};ord.push(gk);}
+   grp[gk].n+=gw;if(nae!=null)grp[gk].nae=(grp[gk].nae||0)+nae;grp[gk].segs.push({key:key,gw:gw,nae:nae,src:src,nsrc:nsrc,lab:(yj&&yj.lab)||''});
   }
   if(!ord.length)return null;
   var parts=ord.map(function(k){return grp[k];});
-  var code=parts.map(function(g){return g.kind+' '+g.dia+'x'+g.n;}).join(' ');
-  return {code:code,parts:parts,nSeg:nSeg,nMiss:nMiss};
+  var naeT=null;parts.forEach(function(g){if(g.nae!=null)naeT=(naeT||0)+g.nae;});
+  var code=parts.map(function(g){return g.kind+' '+g.dia+'x'+g.n+((g.nae!=null)?('('+g.nae+')'):'');}).join(' ');/* [BUILD2345] (내관수) */
+  return {code:code,parts:parts,nae:naeT,nSeg:nSeg,nMiss:nMiss};
  }catch(_e){return null;}
 }
 function _segYajang9(sg){/* [BUILD2338] 구간 양끝 맨홀의 맨홀도 야장(d1~d4 dest)에서 '상대 끝 시설물'을 가리키는 행의 관수·관종·관경. 매칭=dest xy 2.5m(2039 관례) 또는 라벨. 양끝 다 있으면 시작 쪽 우선 */
@@ -1568,10 +1572,11 @@ function _segYajang9(sg){/* [BUILD2338] 구간 양끝 맨홀의 맨홀도 야장
      if(!hit&&e.lab&&typeof _lblMh9==='function'){try{var xy=_lblMh9(m.wx,m.wy,e.lab);if(xy&&Math.hypot(xy[0]-to.x,xy[1]-to.y)<2.5)hit=true;}catch(_l2){}}
      if(!hit)continue;
      var v=(typeof _mnCntShow9==='function')?_mnCntShow9(rec,k,i):(e.cnt);var cnt=((v===''||v==null)?null:parseInt(v,10));
+     var nv9=(typeof _mnNaeShow9==='function')?_mnNaeShow9(rec,k,i):(e.nae);var nae=((nv9===''||nv9==null)?null:parseInt(nv9,10));/* [BUILD2345] 행 내관수(행 1개면 벽 fill 자동) */
      var kind='',dia='',ext='';
      if(e.ext){ext=String(e.ext);var es=(typeof _extSplit9==='function')?_extSplit9(ext):{kind:'',dia:''};kind=(es.kind||'').toUpperCase().replace(/[^A-Z0-9]/g,'');dia=es.dia||'';}
      if(!kind&&typeof _wallPipe9==='function'){var wp=_wallPipe9(rec,k);if(wp&&wp.kind){kind=wp.kind;dia=wp.dia||'';}}
-     return {cnt:(isFinite(cnt)?cnt:null),kind:kind,dia:dia,ext:ext,lab:(String(e.lab||'')),k:k,ix:i};
+     return {cnt:(isFinite(cnt)?cnt:null),nae:(isFinite(nae)?nae:null),kind:kind,dia:dia,ext:ext,lab:(String(e.lab||'')),k:k,ix:i};
     }}
    return null;
   }
@@ -10096,11 +10101,12 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
    +'<tr style="background:#f4f7f0">'
    +'<th style="padding:3px 2px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:26px">\uC8FC</th>'
    +((allW===true)?'<th style="padding:3px 2px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:26px">\uBCBD</th>':'')
-   +'<th style="padding:3px 2px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:34px">\uAD00\uC885</th>'
-   +'<th style="padding:3px 2px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:38px">\uAD00\uACBD</th>'
-   +'<th style="padding:3px 2px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:58px">\uAD00\uC218</th>'
+   +'<th style="padding:3px 2px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:30px">\uAD00\uC885</th>'
+   +'<th style="padding:3px 2px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:34px">\uAD00\uACBD</th>'
+   +'<th style="padding:3px 2px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:52px">\uAD00\uC218</th>'
+   +'<th style="padding:3px 2px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:46px">\uB0B4\uAD00</th>'/* [BUILD2345] 내관 열 */
    +'<th style="padding:3px 2px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f">\uC5F0\uACB0\uC2DC\uC124\uBB3C</th>'
-   +'<th style="padding:3px 2px;border:1px solid #9bb089;width:32px"></th></tr>';
+   +'<th style="padding:3px 2px;border:1px solid #9bb089;width:24px"></th></tr>';
   rows+=ALL8.map(function(q){
     var on=q.main,dv=q.dv,WP=_wallPipe9(rec,q.k)||{};
     var _pk8=null;var _fp7=(!(dv&&dv.ext)&&_src9&&dv&&dv.xy&&typeof _dirFrontXY9==='function')?_dirFrontXY9(_src9.wx,_src9.wy,dv):null;/* [BUILD2038] \uC678\uAD00 \uAE30\uBCF8=\uC55E\uC810 */
@@ -10115,8 +10121,9 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
       +'<td style="padding:3px 2px;border:1px solid #b7c9a9;text-align:center;color:#0f7a86;font-weight:800;white-space:nowrap">'+(e9.kind||'-')+'</td>'
       +'<td style="padding:3px 2px;border:1px solid #b7c9a9;text-align:center;color:#0f7a86;font-weight:800;white-space:nowrap">'+(e9.dia||'-')+'</td>'
       +'<td style="padding:2px;border:1px solid #b7c9a9;text-align:center">'+_cntSel9('mnDCnt',ALL8.indexOf(q),c9)+'</td>'
+      +'<td style="padding:2px;border:1px solid #b7c9a9;text-align:center">'+_naeSel9('mnDNae',ALL8.indexOf(q),_mnNaeShow9(rec,q.k,q.ix,WP))+'</td>'/* [BUILD2345] */
       +'<td class="mnDGoR" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uAD6C\uAC04 \uBCF4\uAE30" style="padding:3px 3px;border:1px solid #b7c9a9;color:'+(on?'#1b5e20':'#33691e')+';font-weight:'+(on?'800':'700')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer">'+((typeof joseoEsc==='function')?joseoEsc(_labShort9((dv&&dv.lab)||'')):_labShort9((dv&&dv.lab)||''))+((dv&&dv._auto)?'<span style="color:#b0bcb0;font-size:9px;font-weight:800"> \uC790\uB3D9</span>':'')+'</td>'
-      +'<td style="padding:2px;border:1px solid #b7c9a9;text-align:center"><button class="mnDDelR" data-k="'+q.k+'" data-i="'+q.ix+'" style="background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:5px;padding:2px 4px;font-size:10px;font-weight:800;cursor:pointer">\uC0AD\uC81C</button></td></tr>';
+      +'<td style="padding:2px 1px;border:1px solid #b7c9a9;text-align:center"><button class="mnDDelR" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uC0AD\uC81C" style="background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:5px;padding:2px 0;width:20px;font-size:11px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center">\u2715</button></td></tr>';
   }).join('');
   rows+='</table>';
   if(!ALL8.length)rows='<div style="background:#fff;border:1.5px dashed #dbe4d2;border-radius:8px;padding:12px 9px;margin:4px 0;font-size:12px;color:#9aa;text-align:center">\uC9C0\uC815\uB41C \uBC29\uD5A5\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div>';
@@ -10154,6 +10161,15 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
         +'<span style="flex:none">'+_WNO8[k]+'('+_WN8[k]+')</span>'
         +'<span style="flex:1">\uBC30\uBD84 \uD569\uACC4 '+sm+' / \uCD1D '+WP.cnt+'</span>'
         +'<span>'+(ok?'\uC77C\uCE58':'\u26A0 \uBD88\uC77C\uCE58')+'</span></div>');
+      try{/* [BUILD2345] 내관 합계 검증 — 행 내관수 합 ↔ 벽 야장 (fill) */
+        var nm=null;LK.forEach(function(d,_ci){var v=_mnNaeShow9(rec,k,_ci,WP);if(v!=null&&v!=='')nm=(nm||0)+(+v||0);});
+        if(nm!=null||WP.fill!=null){var okN=(nm!=null&&WP.fill!=null)?(nm===WP.fill):null;if(okN===false)_bad9++;
+          var bgN=(okN==null)?'#f5f5f2':(okN?'#e8f5e9':'#ffe5e5'),bcN=(okN==null)?'#dcdcd8':(okN?'#a5d6a7':'#ff8a80'),fgN=(okN==null)?'#8a8a86':(okN?'#2e7d32':'#d32f2f');
+          _bars9.push('<div style="display:flex;align-items:center;gap:6px;margin-top:4px;font-size:10.5px;font-weight:800;padding:4px 8px;border-radius:7px;background:'+bgN+';border:1px solid '+bcN+';color:'+fgN+'">'
+            +'<span style="flex:none">'+_WNO8[k]+'('+_WN8[k]+') \uB0B4\uAD00</span>'
+            +'<span style="flex:1">\uB0B4\uAD00 \uD569\uACC4 '+((nm==null)?'-':nm)+' / \uBCBD ('+((WP.fill==null)?'-':WP.fill)+')</span>'
+            +'<span>'+((okN==null)?'\u2013':(okN?'\uC77C\uCE58':'\u26A0 \uBD88\uC77C\uCE58'))+'</span></div>');}
+      }catch(_nb9){}
     });
     sumBar=_fBar9+_bars9.join('');
     _allOk9=(_bars9.length>0&&_bad9===0);/* [BUILD1971] */
@@ -10292,6 +10308,20 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     _mnCnt9(n,this.value);
   };});
   w.querySelectorAll('.mnDCntC').forEach(function(b){b.onchange=function(){_mnCnt9(+this.getAttribute('data-i'),this.value);};});
+  function _mnNae9(n,v){/* [BUILD2345] 행 내관수 배분 */
+    var q=ALL8[n];if(!q)return;
+    var LK=mnDestList(rec,q.k);if(!LK[q.ix])return;
+    var d=String(v==null?'':v).replace(/[^0-9]/g,'');
+    if(d==='')delete LK[q.ix].nae;else LK[q.ix].nae=+d;
+    try{mnDestSync(rec,q.k);}catch(_ds){}_touch();
+    _re(false);
+  }
+  w.querySelectorAll('.mnDNae').forEach(function(b){b.onchange=function(){
+    var n=+this.getAttribute('data-i');
+    if(this.value==='_c'){var ci=w.querySelector('.mnDNaeC[data-i="'+n+'"]');if(ci){ci.style.display='inline-block';ci.focus();}return;}
+    _mnNae9(n,this.value);
+  };});
+  w.querySelectorAll('.mnDNaeC').forEach(function(b){b.onchange=function(){_mnNae9(+this.getAttribute('data-i'),this.value);};});
   var _bAdd=w.querySelector('#mnDAdd');if(_bAdd)_bAdd.onclick=function(){_re(true);};
   if(_aj9||_mv9){try{_touch();}catch(_t9){}
     if(typeof toast==='function')toast((_aj9?('\uB3C4\uBA74 \uC5F0\uACB0 '+_aj9+'\uAC74 \uC790\uB3D9 \uD3B8\uC785'):'')+((_aj9&&_mv9)?' \u00B7 ':'')+(_mv9?(_mv9+'\uAC74 \uBCBD \uC7AC\uBC30\uCE58'):''));}
@@ -10904,6 +10934,27 @@ function _wallPipe9(rec,dk){
     return {raw:t,kind:m[1].toUpperCase(),dia:m[2],cnt:+m[3],fill:(m[4]!=null?+m[4]:null)};
   }catch(_e){return null;}
 }
+/* [BUILD2345] 내관수 선택 — 0~10 드롭다운 + 직접입력(_c). 폭 40px */
+function _naeSel9(cls,ix,cur){
+  var v=(cur===''||cur==null)?'':String(cur);
+  var std=(v!==''&&/^([0-9]|10)$/.test(v));
+  var cst=(v!==''&&!std);
+  var o='<option value=""></option>';
+  for(var i=0;i<=10;i++)o+='<option value="'+i+'"'+((std&&+v===i)?' selected':'')+'>'+i+'</option>';
+  o+='<option value="_c"'+(cst?' selected':'')+'>\uC9C1\uC811\uC785\uB825</option>';
+  var idA=(ix>=0)?(' data-i="'+ix+'"'):'';
+  return '<span style="display:inline-flex;align-items:center;justify-content:center;gap:2px;flex:none">'
+    +'<select class="'+cls+'"'+idA+' style="margin:0 auto;width:'+(cst?'44':'40')+'px;text-align:center;font-size:12px;font-weight:800;color:#5d4037;border:1px solid #c9b7a8;border-radius:4px;padding:3px 1px;background:#fff;cursor:pointer">'+o+'</select>'
+    +'<input class="'+cls+'C"'+idA+' value="'+(cst?v:'')+'" inputmode="numeric" style="display:'+(cst?'inline-block':'none')+';width:30px;text-align:center;font-size:12px;font-weight:800;color:#5d4037;border:1px solid #c9b7a8;border-radius:4px;padding:3px 1px">'
+    +'</span>';
+}
+/* [BUILD2345] 맨홀 방향 행 내관수 표시값 — 행 nae → 없으면 벽 행 1개일 때 벽 내관수(fill) 자동 */
+function _mnNaeShow9(rec,dk,ix,WP){
+  try{var LK=mnDestList(rec,dk)||[];var d=LK[ix];if(!d)return '';
+    if(d.nae!=null&&d.nae!=='')return String(d.nae);
+    var W=WP||_wallPipe9(rec,dk);if(LK.length===1&&W&&W.fill!=null)return String(W.fill);
+    return '';}catch(_e){return '';}
+}
 /* [BUILD1961] 관수 선택 — 1~10 드롭다운 + 직접입력(_c) */
 function _cntSel9(cls,ix,cur){
   var v=(cur===''||cur==null)?'':String(cur);
@@ -10939,6 +10990,7 @@ function auxPipeWrite9(mh){
       var ch=false;
       if(e&&M.ext!==e){M.ext=e;ch=true;}
       if(c!=null&&String(M.gwansu||'')!==String(c)){M.gwansu=String(c);ch=true;}
+      if(dv.nae!=null&&dv.nae!==''&&String(M.naegwan||'')!==String(dv.nae)){M.naegwan=String(dv.nae);ch=true;}/* [BUILD2345] 내관수 */
       if(ch)n++;
     });
     if(n&&typeof saveProject==='function'){try{saveProject();}catch(_s){}}
@@ -10958,11 +11010,12 @@ function mhDestPanel(mh,forcePick){
   if(_PA9.ext&&_optE9.indexOf(_PA9.ext)<0)_optE9.unshift(_PA9.ext);
   var rows='<table style="width:100%;border-collapse:collapse;font-size:10.5px;table-layout:fixed">'
    +'<tr style="background:#fbf1ef"><th style="padding:3px 2px;border:1px solid #d99a91;font-weight:800;color:#8c2f22;white-space:nowrap">\uC2DC\uC124\uBA85</th>'
-   +'<th style="padding:3px 2px;border:1px solid #d99a91;font-weight:800;color:#8c2f22;white-space:nowrap;width:34px">\uAD00\uC885</th>'
-   +'<th style="padding:3px 2px;border:1px solid #d99a91;font-weight:800;color:#8c2f22;white-space:nowrap;width:38px">\uAD00\uACBD</th>'
-   +'<th style="padding:3px 2px;border:1px solid #d99a91;font-weight:800;color:#8c2f22;white-space:nowrap;width:58px">\uAD00\uC218</th>'
+   +'<th style="padding:3px 2px;border:1px solid #d99a91;font-weight:800;color:#8c2f22;white-space:nowrap;width:30px">\uAD00\uC885</th>'
+   +'<th style="padding:3px 2px;border:1px solid #d99a91;font-weight:800;color:#8c2f22;white-space:nowrap;width:34px">\uAD00\uACBD</th>'
+   +'<th style="padding:3px 2px;border:1px solid #d99a91;font-weight:800;color:#8c2f22;white-space:nowrap;width:52px">\uAD00\uC218</th>'
+   +'<th style="padding:3px 2px;border:1px solid #d99a91;font-weight:800;color:#8c2f22;white-space:nowrap;width:46px">\uB0B4\uAD00</th>'/* [BUILD2345] 내관 열 */
    +'<th style="padding:3px 2px;border:1px solid #d99a91;font-weight:800;color:#8c2f22;white-space:nowrap">\uC2DC\uC791\uC2DC\uC124\uBB3C</th>'
-   +'<th style="padding:5px 3px;border:1px solid #d99a91;width:34px"></th></tr>';
+   +'<th style="padding:5px 2px;border:1px solid #d99a91;width:24px"></th></tr>';
   rows+=L.map(function(dv,ix){var _wt8=(ix===0)?';border-top:2.5px solid #c0392b':'';
     var e9=(dv&&dv.ext)?dv.ext:((dv&&dv.xy)?(_PA9.ext):_PA9.ext), sp9=_extSplit9(e9);
     var c9=_auxCntShow9(mh,ix,_PA9);/* [BUILD1978] */
@@ -10972,14 +11025,15 @@ function mhDestPanel(mh,forcePick){
       +'<td style="padding:3px 2px;border:1px solid #dcb4ad;text-align:center;color:#0f7a86;font-weight:800;white-space:nowrap">'+(sp9.kind||'-')+'</td>'
       +'<td style="padding:3px 2px;border:1px solid #dcb4ad;text-align:center;color:#0f7a86;font-weight:800;white-space:nowrap">'+(sp9.dia||'-')+'</td>'
       +'<td style="padding:2px;border:1px solid #dcb4ad;text-align:center">'+_cntSel9('mhDCnt',ix,c9)+'</td>'
+      +'<td style="padding:2px;border:1px solid #dcb4ad;text-align:center">'+_naeSel9('mhDNae',ix,(dv&&dv.nae!=null)?dv.nae:'')+'</td>'/* [BUILD2345] */
       +'<td style="padding:3px 3px;border:1px solid #dcb4ad;color:#8c3a30;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+_labShort9((dv&&dv.lab)||'')+'</td>'
-      +'<td style="padding:2px;border:1px solid #dcb4ad;text-align:center"><button class="mhDDelR" data-i="'+ix+'" style="background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:5px;padding:2px 4px;font-size:10px;font-weight:800;cursor:pointer">\uC0AD\uC81C</button></td></tr>';
+      +'<td style="padding:2px 1px;border:1px solid #dcb4ad;text-align:center"><button class="mhDDelR" data-i="'+ix+'" title="\uC0AD\uC81C" style="background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:5px;padding:2px 0;width:20px;font-size:11px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center">\u2715</button></td></tr>';
   }).join('');
   rows+='</table>';
   if(!L.length)rows='<div style="background:#fff;border:1.5px dashed #f0c5c0;border-radius:8px;padding:12px 9px;margin:4px 0;font-size:12px;color:#9aa;text-align:center">\uC9C0\uC815\uB41C \uC5F0\uACB0 \uAD6C\uAC04\uC774 \uC5C6\uC2B5\uB2C8\uB2E4</div>';
   var _okSum9=(_PA9.cnt==null)||(_SUM9==null)||(_SUM9===_PA9.cnt);
   var sumBar=L.length?('<div style="display:flex;align-items:center;gap:6px;margin-top:7px;font-size:11.5px;font-weight:800;padding:6px 8px;border-radius:7px;background:'+((_SUM9==null)?'#fff':(_okSum9?'#e8f5e9':'#ffe5e5'))+';border:1px solid '+((_SUM9==null)?'#dcdcd8':(_okSum9?'#a5d6a7':'#ff8a80'))+';color:'+((_SUM9==null)?'#8a8a86':(_okSum9?'#2e7d32':'#d32f2f'))+'">'
-   +'<span style="flex:1">\uBC30\uBD84 \uD569\uACC4 '+((_SUM9==null)?'-':_SUM9)+' / \uCD1D '+((_PA9.cnt==null)?'-':_PA9.cnt)+'</span>'
+   +'<span id="mhDSum9" style="flex:1">\uBC30\uBD84 \uD569\uACC4 '+((_SUM9==null)?'-':_SUM9)+' / \uCD1D '+((_PA9.cnt==null)?'-':_PA9.cnt)+(function(){var nm=null;L.forEach(function(d){if(d&&d.nae!=null&&d.nae!=='')nm=(nm||0)+(+d.nae||0);});return (nm==null)?'':(' \u00B7 \uB0B4\uAD00 '+nm);})()+'</span>'/* [BUILD2345] 내관 합계 */
    +'<span>'+(_okSum9?'\uC77C\uCE58':'\u26A0 \uBD88\uC77C\uCE58')+'</span></div>'):'';
   try{/* [BUILD2042] \uBCF4\uC870 \uAD50\uCC28\uAC80\uC218 */
     var _xa9='';L.forEach(function(dv,ix){
@@ -11065,6 +11119,21 @@ function mhDestPanel(mh,forcePick){
   };}
   var _clC=w.querySelectorAll('.mhDCntC');
   for(var _ci3=0;_ci3<_clC.length;_ci3++){_clC[_ci3].onchange=function(){_rowCnt9(+this.getAttribute('data-i'),this.value);};}
+  function _rowNae9(ix,v){/* [BUILD2345] 행 내관수 */
+    if(!mh.dests[ix])return;
+    var n=(v===''||v==null)?null:(String(v).replace(/[^0-9]/g,'')===''?null:+String(v).replace(/[^0-9]/g,''));
+    if(n==null)delete mh.dests[ix].nae;else mh.dests[ix].nae=n;
+    if(typeof saveProject==='function')try{saveProject();}catch(_s4){}
+    var sb=w.querySelector('#mhDSum9');if(sb){var nm=null;mh.dests.forEach(function(d){if(d&&d.nae!=null&&d.nae!=='')nm=(nm||0)+(+d.nae||0);});var t=sb.textContent.replace(/\s*\u00B7\s*\uB0B4\uAD00\s*\d+/,'');sb.textContent=t+((nm==null)?'':(' \u00B7 \uB0B4\uAD00 '+nm));}
+  }
+  var _nl=w.querySelectorAll('.mhDNae');
+  for(var _ni=0;_ni<_nl.length;_ni++){_nl[_ni].onchange=function(){
+    var ix=+this.getAttribute('data-i');
+    if(this.value==='_c'){var ci=w.querySelector('.mhDNaeC[data-i="'+ix+'"]');if(ci){ci.style.display='inline-block';ci.focus();}return;}
+    _rowNae9(ix,this.value);
+  };}
+  var _nlC=w.querySelectorAll('.mhDNaeC');
+  for(var _ni2=0;_ni2<_nlC.length;_ni2++){_nlC[_ni2].onchange=function(){_rowNae9(+this.getAttribute('data-i'),this.value);};}
   var _dl=w.querySelectorAll('.mhDDelR');
   for(var _di=0;_di<_dl.length;_di++){_dl[_di].onclick=function(){
     var ix=+this.getAttribute('data-i');
@@ -20004,6 +20073,7 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    if(gw%2===0&&gw>=2){c9=gw/2;r9=2;}else{c9=gw;r9=1;}
   }
   var nv=(M.naegwan!=null&&(''+M.naegwan).trim()!=='')?(parseInt(M.naegwan,10)||0):naeg;
+  try{if(_sm9&&_sm9.nae!=null)nv=_sm9.nae;}catch(_nv8){}/* [BUILD2345] 내관수 합산(야장 행 → 구간 naegwan) 우선 */
   return {kind:kind,dia:dia,gw:gw,col:c9,row:r9,nae:nv};
  }
  /* 도엽 버킷 */
