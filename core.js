@@ -1558,11 +1558,13 @@ function _segYajang9(sg){/* [BUILD2338] 구간 양끝 맨홀의 맨홀도 야장
   function rowTo(from,to){
    var m=mhNear(from);if(!m)return null;var rec=mhSheetRec9(m);if(!rec)return null;
    var toM=mhNear(to);var toLab=(toM&&toM.label)?String(toM.label):'';
+   function nz(t){t=String(t||'');try{if(typeof mnStripPf==='function')t=mnStripPf(t);}catch(_a){}return t.replace(/\s+/g,'').toUpperCase();}/* [BUILD2339] 야장 라벨 '신설6H(LG)' ↔ 도면 라벨 '6H (LG )' 정규화(접두·공백 제거) — 2338은 공백 차이로 불일치 + _lblMh9 80m 상한에 걸려 매칭 실패 */
+   var toRec=toM?mhSheetRec9(toM):null;var toN1=nz(toLab),toN2=(toRec&&typeof mnLabel==='function')?nz(mnLabel(toRec)):'';
    var ks=['d1','d2','d3','d4'];
    for(var q=0;q<ks.length;q++){var k=ks[q];var L=mnDestList(rec,k)||[];
     for(var i=0;i<L.length;i++){var e=L[i];if(!e)continue;var hit=false;
      if(e.xy&&e.xy.length===2&&Math.hypot(e.xy[0]-to.x,e.xy[1]-to.y)<2.5)hit=true;
-     if(!hit&&e.lab&&toLab&&typeof mnStripPf==='function'){try{hit=(mnStripPf(String(e.lab))===mnStripPf(toLab));}catch(_l){}}
+     if(!hit&&e.lab){var en=nz(e.lab);if(en&&((toN1&&en===toN1)||(toN2&&en===toN2)))hit=true;}
      if(!hit&&e.lab&&typeof _lblMh9==='function'){try{var xy=_lblMh9(m.wx,m.wy,e.lab);if(xy&&Math.hypot(xy[0]-to.x,xy[1]-to.y)<2.5)hit=true;}catch(_l2){}}
      if(!hit)continue;
      var v=(typeof _mnCntShow9==='function')?_mnCntShow9(rec,k,i):(e.cnt);var cnt=((v===''||v==null)?null:parseInt(v,10));
