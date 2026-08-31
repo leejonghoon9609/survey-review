@@ -20449,7 +20449,7 @@ function _sdLeadFit9(it,tn){/* [BUILD2276] 그려진 태그의 실제 폭에 인
  var bb=null;try{bb=tn.getBBox();}catch(_e){return;}
  if(!bb||!(bb.width>0))return;
  var K=_SDVW9.txt;
- var lw=Math.max(0.5,bb.width-0.6*K);/* DXF 규격: 수평선 = 글자폭 - 0.6 */
+ var lw=Math.max(0.5,bb.width+2*(it.tox||0)*K);/* [BUILD2341] 화면 수평선 = 좌여백(tox) + 실측 글자폭 + 우여백(tox) — 글자가 선 끝을 0.95 넘던 잉여 제거(2276의 -0.6은 NGSW 글자수 회귀식 잔재). DXF 원본 lw 무영향 */
  _sdLeadFW9[it.lk]=lw;
  var G=_sdLeadGeo9(it);
  var tx=(G.hx>0?G.ex:G.ex+G.hx*lw)+(it.tox||0)*K, ty=G.ey+(it.toy||0)*K;
