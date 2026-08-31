@@ -10301,7 +10301,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
       +'<button id="mnDReg2" style="flex:1;min-width:0;background:#2e7d32;color:#fff;border:0;border-radius:8px;padding:9px;font-weight:800;font-size:13.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center"><span style="letter-spacing:3px;margin-right:-3px">\uB4F1\uB85D</span></button>'
       +'<button id="mnDNo2" style="flex:1;min-width:0;background:#fff;color:#555;border:1px solid #ddd;border-radius:8px;padding:9px;font-weight:700;font-size:13.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;text-align:center"><span style="letter-spacing:3px;margin-right:-3px">\uB2EB\uAE30</span></button>'
     +'</div></div>';
-  document.body.appendChild(w);
+  document.body.appendChild(w);try{_dragCard9(w);}catch(_dc9){}/* [BUILD2357] */
   /* [BUILD1948] 등록 — 픽커가 rec.destXY[dk]에 쓴 좌표를 회수해 목록 항목으로 이관 후 미러 재동기 */
   function _reg(lab){
     if(!lab||lab==='__DEL__'){_re(false);return;}
@@ -10350,7 +10350,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     if(!t){if(typeof toast==='function')toast('\uB300\uC0C1 \uC88C\uD45C\uB97C \uCC3E\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4');return;}
     var si=(typeof mnSegFind9==='function')?mnSegFind9(_src9,{wx:t.x,wy:t.y}):-1;
     if(si<0){if(typeof toast==='function')toast('\uC5F0\uACB0\uB41C \uAD6C\uAC04\uC774 \uC544\uC9C1 \uC5C6\uC2B5\uB2C8\uB2E4');return;}
-    w.remove();
+    /* [BUILD2357] 창 유지 — 구간 색칠만 (종전 w.remove()) */
     try{if(typeof tangoSelSeg==='function')tangoSelSeg(si);}catch(_g9){}
     if(typeof toast==='function')toast((si+1)+'\uAD6C\uAC04 \u2014 '+(dv.lab||''));
   };});
@@ -11064,6 +11064,17 @@ function auxPipeWrite9(mh){
   }catch(_e){}
   return n;
 }
+function _dragCard9(w){/* [BUILD2357] 방향창·인입창 이동 — 오버레이 첫 자식(카드)의 첫 줄(제목행)을 잡고 드래그. 오버레이는 클릭 통과(pointer-events:none)라 도면 조작 가능 */
+  try{var card=w&&w.firstElementChild;if(!card)return;var hd=card.firstElementChild;if(!hd)return;
+    w.style.background='rgba(0,0,0,.10)';w.style.pointerEvents='none';card.style.pointerEvents='auto';
+    hd.style.cursor='move';hd.style.userSelect='none';hd.title=(hd.title||'')+' 드래그로 이동';
+    var sx=0,sy=0,ox=0,oy=0,on=false;
+    hd.addEventListener('pointerdown',function(e){if(e.target&&/^(BUTTON|SELECT|INPUT)$/.test(e.target.tagName))return;var r=card.getBoundingClientRect();
+      card.style.position='fixed';card.style.left=r.left+'px';card.style.top=r.top+'px';card.style.margin='0';card.style.zIndex='1';
+      sx=e.clientX;sy=e.clientY;ox=r.left;oy=r.top;on=true;try{hd.setPointerCapture(e.pointerId);}catch(_c){}e.preventDefault();});
+    hd.addEventListener('pointermove',function(e){if(!on)return;var nx=ox+(e.clientX-sx),ny=oy+(e.clientY-sy);nx=Math.max(0,Math.min(nx,window.innerWidth-card.offsetWidth));ny=Math.max(0,Math.min(ny,window.innerHeight-40));card.style.left=nx+'px';card.style.top=ny+'px';});
+    hd.addEventListener('pointerup',function(){on=false;});hd.addEventListener('pointercancel',function(){on=false;});
+  }catch(_e){}}
 function mhDestPanel(mh,forcePick){
   if(!mh)return;
   var old=document.getElementById('mhDestModal');if(old)old.remove();
@@ -11093,7 +11104,7 @@ function mhDestPanel(mh,forcePick){
       +'<td style="padding:3px 2px;border:1px solid #dcb4ad;text-align:center;color:#0f7a86;font-weight:800;white-space:nowrap">'+(sp9.dia||'-')+'</td>'
       +'<td style="padding:2px;border:1px solid #dcb4ad;text-align:center">'+_cntSel9('mhDCnt',ix,c9)+'</td>'
       +'<td style="padding:2px;border:1px solid #dcb4ad;text-align:center">'+_naeSel9('mhDNae',ix,(dv&&dv.nae!=null)?dv.nae:'')+'</td>'/* [BUILD2345] */
-      +'<td style="padding:3px 3px;border:1px solid #dcb4ad;color:#8c3a30;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+_labShort9((dv&&dv.lab)||'')+'</td>'
+      +'<td class="mhDGoR" data-i="'+ix+'" title="\uAD6C\uAC04 \uBCF4\uAE30" style="padding:3px 3px;border:1px solid #dcb4ad;color:#8c3a30;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer">'+_labShort9((dv&&dv.lab)||'')+'</td>'/* [BUILD2357] 클릭=구간 보기 */
       +'<td style="padding:2px 1px;border:1px solid #dcb4ad;text-align:center"><button class="mhDDelR" data-i="'+ix+'" title="\uC0AD\uC81C" style="background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:5px;padding:2px 0;width:20px;font-size:11px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center">\u2715</button></td></tr>';
   }).join('');
   rows+='</table>';
@@ -11140,7 +11151,10 @@ function mhDestPanel(mh,forcePick){
     +pick
     +'<div style="border:1.5px solid #c0392b;border-radius:8px;background:#fff;max-height:32dvh;overflow:auto;padding:3px 4px">'+rows+'</div>'+sumBar
     +'<div style="display:flex;gap:7px;margin-top:11px">'+'<button id="mhDReg" style="flex:1;background:#c0392b;color:#fff;border:0;border-radius:8px;padding:8px;font-weight:800;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;">'+(((typeof IS_TANGO!=='undefined')&&IS_TANGO)?'구간등록':'저장')+'</button>'+'<button id="mhDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:8px;padding:8px;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;">닫기</button></div></div>';
-  document.body.appendChild(w);
+  document.body.appendChild(w);try{_dragCard9(w);}catch(_dc8){}/* [BUILD2357] */
+  try{w.querySelectorAll('.mhDGoR').forEach(function(td){td.onclick=function(){var dv=mh.dests[+this.getAttribute('data-i')];if(!dv||!dv.xy||dv.xy.length!==2){if(typeof toast==='function')toast('\uB300\uC0C1 \uC88C\uD45C\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4');return;}
+    var si=(typeof mnSegFind9==='function')?mnSegFind9(mh,{wx:dv.xy[0],wy:dv.xy[1]}):-1;if(si<0){if(typeof toast==='function')toast('\uC5F0\uACB0\uB41C \uAD6C\uAC04\uC774 \uC544\uC9C1 \uC5C6\uC2B5\uB2C8\uB2E4');return;}
+    try{if(typeof tangoSelSeg==='function')tangoSelSeg(si);}catch(_g8){}if(typeof toast==='function')toast((si+1)+'\uAD6C\uAC04 \u2014 '+(dv.lab||''));};});}catch(_go8){}/* [BUILD2357] 인입창 시작시설물 클릭 → 구간 색칠(창 유지) */
   var _ad=w.querySelector('#mhDAdd');if(_ad)_ad.onclick=function(){var pk=w.querySelector('#mhDPick');if(pk)pk.style.display=(pk.style.display==='none')?'block':'none';};
   var _b1=w.querySelector('#mhDMh2');if(_b1)_b1.onclick=function(){w.remove();_facAddDest(mh,'mh',null);};
   var _b2=w.querySelector('#mhDJeon2');if(_b2)_b2.onclick=function(){w.remove();_facAddDest(mh,'riser',/한전주|전주/);};
