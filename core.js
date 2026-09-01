@@ -16022,7 +16022,7 @@ var on=false;try{on=localStorage.getItem('railHide9')==='1';}catch(_l){}
 function pos(){try{var hid=!on&&getComputedStyle(rail).display==='none';tab.style.display=hid?'none':'flex';var l=on?0:Math.round(rail.getBoundingClientRect().right-st.getBoundingClientRect().left);tab.style.left=l+'px';var ch=document.getElementById('railTabChev9');if(ch)ch.setAttribute('points',on?'3,2 8,8 3,14':'7,2 2,8 7,14');}catch(_g){}}
 function ap(){if(on)rail.style.setProperty('display','none','important');else rail.style.removeProperty('display');try{localStorage.setItem('railHide9',on?'1':'0');}catch(_s){}pos();setTimeout(function(){pos();try{window.dispatchEvent(new Event('resize'));}catch(_r){}},30);}
 tab.onclick=function(ev){try{ev.stopPropagation();}catch(_c){}on=!on;ap();};window.railHide9=function(v){on=(v==null)?!on:!!v;ap();};
-st.appendChild(tab);ap();setInterval(pos,600);}catch(_e){}})();
+st.appendChild(tab);ap();setInterval(pos,600);try{var cs9=document.createElement('style');cs9.id='cvBorder9';cs9.textContent='.canvas-wrap{border:1px solid #c9c9c3!important;box-sizing:border-box}';document.head.appendChild(cs9);}catch(_cb){}/* [BUILD2397] PC 도면창 얇은 테두리(1px 연회색) — 메뉴 접힘 시 도면 경계 표시 */}catch(_e){}})();
 // 캔버스 영역 크기 변화(사진패널 열기/닫기·창 크기 등) 감지 → 배경지도 relayout + 종횡비 재맞춤
 if(window.ResizeObserver){
   var _cwEl=document.querySelector('.canvas-wrap');
