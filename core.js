@@ -10194,7 +10194,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     return '<tr style="background:'+(on?'#dcedc8':'#fff')+_tb8+_bb8+'">'
       +'<td style="padding:2px;border:1px solid #b7c9a9;text-align:center"><button class="mnDMainB" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uC8FC\uBC29\uD5A5" style="width:22px;height:20px;border-radius:4px;border:1.5px solid '+(on?'#2e7d32':'#cfd8c0')+';background:'+(on?'#2e7d32':'#fff')+';color:'+(on?'#fff':'#9aa89a')+';font-size:10px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;margin:0 auto;line-height:1">\uC8FC</button></td>'
       +((allW===true)?('<td style="padding:3px 2px;border:1px solid #b7c9a9;text-align:center;font-weight:800;color:'+(_first8?'#2e5a1f':'#c3d2b6')+';background:'+(_first8?'#eef4e6':'transparent')+';white-space:nowrap">'+(_first8?(_WNO8[q.k]+_WN8[q.k]):'\u00B7')+'</td>'):'')
-      +(function(){var GW=_mnRowGw9(rec,q.k,q.ix,WP);if(!GW.length)GW=[{kind:e9.kind||'',dia:e9.dia||'',cnt:((c9===''||c9==null)?null:+c9),nae:null}];var C=_gwCells9(GW,'mnD',ALL8.indexOf(q));/* [BUILD2384] 관종·관경별 줄 */
+      +(function(){var GW=_mnRowGw9(rec,q.k,q.ix,WP);if(!GW.length)GW=[{kind:e9.kind||'',dia:e9.dia||'',cnt:((c9===''||c9==null)?null:+c9),nae:null}];var C=_gwCells9(GW,'mnD',ALL8.indexOf(q),null,on?'#dcedc8':null);/* [BUILD2384] 관종·관경별 줄 *//* [BUILD2387] 주방향 행 선택칸 행 색 */
         return '<td style="padding:0 2px;border:1px solid #b7c9a9;text-align:center;color:#0f7a86;font-weight:800">'+C.kind+'</td>'
         +'<td style="padding:0 2px;border:1px solid #b7c9a9;text-align:center;color:#0f7a86;font-weight:800">'+C.dia+'</td>'
         +'<td style="padding:0 2px;border:1px solid #b7c9a9;text-align:center">'+C.cnt+'</td>'
@@ -10584,14 +10584,15 @@ function _auxRowGw9(mh,ix,A){/* 보조시설물(JB·입상·인입) 인입창 �
     return _gwApplyOv9(base,dv);
   }catch(_e){return [];}}
 function _auxNaeShow9(mh,ix,A){try{var t=_gwTot9(_auxRowGw9(mh,ix,A),'nae');return (t==null)?'':String(t);}catch(_e){return '';}}
-function _gwCells9(GW,cls,n,bc){/* 관종·관경·관수·내관 4셀 — 그룹별 줄 */
+function _gwCells9(GW,cls,n,bc,bg){/* [BUILD2387] bg=주방향 행이면 관수·내관 선택칸도 행 색으로 *//* 관종·관경·관수·내관 4셀 — 그룹별 줄 */
   if(!GW||!GW.length)GW=[{kind:'',dia:'',cnt:null,nae:null}];
   var sep=function(gi){return (gi<GW.length-1)?(';border-bottom:1px solid '+(bc||'#b7c9a9')):'';};/* [BUILD2386] 관경 그룹 구분선 = 표 기존 테두리색(맨홀 #b7c9a9 · 인입 #dcb4ad) */
   var ln='height:24px;line-height:24px;white-space:nowrap;box-sizing:border-box';
   var kc=GW.map(function(g,gi){return '<div style="'+ln+sep(gi)+'">'+(g.kind||'-')+'</div>';}).join('');
   var dc=GW.map(function(g,gi){return '<div style="'+ln+sep(gi)+'">'+(g.dia||'-')+'</div>';}).join('');
-  var cc=GW.map(function(g,gi){return '<div style="height:24px;display:flex;align-items:center;justify-content:center;box-sizing:border-box'+sep(gi)+'">'+_cntSel9(cls+'Cnt',n,g.cnt,gi)+'</div>';}).join('');
-  var nc=GW.map(function(g,gi){return '<div style="height:24px;display:flex;align-items:center;justify-content:center;box-sizing:border-box'+sep(gi)+'">'+_naeSel9(cls+'Nae',n,g.nae,gi)+'</div>';}).join('');
+  var tint=function(h){return bg?h.replace(/background:#fff;cursor:pointer/g,'background:'+bg+';cursor:pointer'):h;};
+  var cc=GW.map(function(g,gi){return '<div style="height:24px;display:flex;align-items:center;justify-content:center;box-sizing:border-box'+sep(gi)+'">'+tint(_cntSel9(cls+'Cnt',n,g.cnt,gi))+'</div>';}).join('');
+  var nc=GW.map(function(g,gi){return '<div style="height:24px;display:flex;align-items:center;justify-content:center;box-sizing:border-box'+sep(gi)+'">'+tint(_naeSel9(cls+'Nae',n,g.nae,gi))+'</div>';}).join('');
   return {kind:kc,dia:dc,cnt:cc,nae:nc};}
 function _pipeParse9(code){var r=_pipeParse9Base(code);if(r){try{r.gw=_gwParseAll9(code);}catch(_g){}}return r;}/* [BUILD2384] 전 그룹 gw 동반 */
 function _pipeParse9Base(code){
