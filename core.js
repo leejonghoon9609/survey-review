@@ -10176,8 +10176,8 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
   var _mb9=(typeof isMobileDevice==='function')&&isMobileDevice();/* [BUILD2391] 폰 모드 */
   var rows='<table style="width:100%;border-collapse:collapse;font-size:10px;table-layout:fixed">'
    +'<tr style="background:#f4f7f0">'
-   +'<th style="padding:3px 1px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:22px">\uC8FC</th>'
-   +((allW===true)?'<th style="padding:3px 1px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:30px">\uBCBD</th>':'<th style="padding:3px 1px;border:1px solid #9bb089;width:22px"></th>')
+   +'<th style="padding:3px 1px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:32px">\uC8FC</th>'
+   +((allW===true)?'<th style="padding:3px 1px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:42px">\uBCBD</th>':'<th style="padding:3px 1px;border:1px solid #9bb089;width:30px"></th>')/* [BUILD2392] 주 32·벽 42 — 3북·+ 버튼이 구분선과 안 겹치게, 연결시설물 열은 그만큼 축소 */
    +'<th style="padding:3px 1px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:52px">\uAD00\uC885</th>'
    +'<th style="padding:3px 1px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:50px">\uAD00\uACBD</th>'
    +'<th style="padding:3px 1px;border:1px solid #9bb089;font-weight:800;color:#2e5a1f;width:50px">\uAD00\uC218</th>'
