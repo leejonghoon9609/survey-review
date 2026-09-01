@@ -10053,12 +10053,12 @@ function mnAutoJoin9(rec){
     if(!links.length)return 0;
     links.forEach(function(a){
       if(!a||!a.dk||!a.m||a.m.wx==null)return;
-      if(a.via!=='reach'){return;}/* [BUILD1975] 관로로 실제 이어진 것만 자동 편입 — 오배정 근절 */
+      /* [BUILD2408] 1975의 'reach 한정' 해제 — 벽이 판정된 연결은 전부 즉시 편입([편입] 버튼 폐기). 근거가 약한 것(직선 방위·편차 30° 초과)은 _low 표식 → 행에 '방향 확인' 배지, 작업자가 벽 이동/삭제로 수정 */
       if(mnDestBanned9(rec,a.m.wx,a.m.wy)){return;}/* [BUILD1975] 사용자가 지운 건 되살리지 않는다 */
       var LL=mnDestList(rec,a.dk),dup=false;
       LL.forEach(function(d){if(_mnDupHit9(d,a.lab,[a.m.wx,a.m.wy]))dup=true;});
       if(dup)return;
-      LL.push({lab:String(a.lab),xy:[a.m.wx,a.m.wy],_auto:1});
+      LL.push({lab:String(a.lab),xy:[a.m.wx,a.m.wy],_auto:1,_low:(a.low||a.via!=='reach')?1:0});
       mnDestSync(rec,a.dk);n++;
     });
     if(n){
@@ -10214,7 +10214,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
         +'<td style="padding:0 2px;border:1px solid #b7c9a9;text-align:center;color:#0f7a86;font-weight:800">'+C.dia+'</td>'
         +'<td style="padding:0 2px;border:1px solid #b7c9a9;text-align:center">'+C.cnt+'</td>'
         +'<td style="padding:0 2px;border:1px solid #b7c9a9;text-align:center">'+C.nae+'</td>';})()
-      +'<td class="mnDGoR" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uAD6C\uAC04 \uBCF4\uAE30" style="padding:3px 3px;border:1px solid #b7c9a9;color:'+(on?'#1b5e20':'#33691e')+';font-weight:'+(on?'800':'700')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer">'+((typeof joseoEsc==='function')?joseoEsc(_labShort9(auxNoLab9((dv&&dv.lab)||'',dv&&dv.xy))):_labShort9(auxNoLab9((dv&&dv.lab)||'',dv&&dv.xy)))+((dv&&dv._auto)?'<span style="color:#b0bcb0;font-size:9px;font-weight:800"> \uC790\uB3D9</span>':'')+'</td>'
+      +'<td class="mnDGoR" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uAD6C\uAC04 \uBCF4\uAE30" style="padding:3px 3px;border:1px solid #b7c9a9;color:'+(on?'#1b5e20':'#33691e')+';font-weight:'+(on?'800':'700')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer">'+((typeof joseoEsc==='function')?joseoEsc(_labShort9(auxNoLab9((dv&&dv.lab)||'',dv&&dv.xy))):_labShort9(auxNoLab9((dv&&dv.lab)||'',dv&&dv.xy)))+((dv&&dv._auto)?'<span style="color:#b0bcb0;font-size:9px;font-weight:800"> \uC790\uB3D9</span>':'')+((dv&&dv._low)?'<span style="color:#c62828;font-size:9px;font-weight:800"> \uBC29\uD5A5 \uD655\uC778</span>':'')+'</td>'/* [BUILD2408] */
       +'<td style="padding:2px 1px;border:1px solid #b7c9a9;text-align:center"><button class="mnDDelR" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uC0AD\uC81C" style="background:#fff;color:#d32f2f;border:1px solid #ef9a9a;border-radius:5px;padding:2px 0;width:20px;font-size:11px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center">\u2715</button></td></tr>';
   }).join('');
   rows+='</table>';
