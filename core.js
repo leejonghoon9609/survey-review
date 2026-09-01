@@ -10409,7 +10409,25 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
   w.querySelectorAll('.mnDDia').forEach(function(b){b.onchange=function(){_mnLine9(+this.getAttribute('data-i'),this.getAttribute('data-g')||'0','dia',this.value);};});
   w.querySelectorAll('.mnDAddG').forEach(function(b){b.onclick=function(){var q=ALL8[+this.getAttribute('data-i')];if(!q)return;var LK=mnDestList(rec,q.k);if(!LK[q.ix])return;var WPa=_wallPipe9(rec,q.k);_gwAddLine9(LK[q.ix],_mnRowGw9(rec,q.k,q.ix,WPa),(WPa&&WPa.gw)||[]);mnDestSync(rec,q.k);_touch();_re(false);};});
   w.querySelectorAll('.mnDDelG').forEach(function(b){b.onclick=function(){var q=ALL8[+this.getAttribute('data-i')];if(!q)return;var LK=mnDestList(rec,q.k);if(!LK[q.ix])return;var GWd=_mnRowGw9(rec,q.k,q.ix);_gwDelLine9(LK[q.ix],GWd,GWd.length-1);mnDestSync(rec,q.k);_touch();try{window._tgGwC9=null;if(typeof drawGeo==='function')drawGeo();}catch(_d2){}_re(false);};});
-  var _bAdd=w.querySelector('#mnDAdd');if(_bAdd)_bAdd.onclick=function(){_re(true);};
+  var _bAdd=w.querySelector('#mnDAdd');if(_bAdd)_bAdd.onclick=function(){
+    if(allW!==true){_re(true);return;}
+    /* [BUILD2395] 4벽 창에서 추가 = 벽 선택 모달(흰 바탕·붉은 계열) → 선택한 벽으로 대상 선택 화면 */
+    try{var o=document.getElementById('mnWallPick9');if(o)o.remove();
+      var ov=document.createElement('div');ov.id='mnWallPick9';ov.style.cssText='position:fixed;inset:0;z-index:1336;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center';
+      var bx='display:flex;align-items:center;justify-content:center;padding:11px 6px;border-radius:9px;font-weight:800;font-size:14px;cursor:pointer;border:1.5px solid #e57373;background:#fff;color:#c62828';
+      var cur9=';background:#c62828;color:#fff;border-color:#c62828';
+      ov.innerHTML='<div style="background:#fff;border:2px solid #c0392b;border-radius:12px;width:min(88vw,300px);padding:14px 14px 12px;box-shadow:0 8px 28px rgba(0,0,0,.25)">'
+        +'<div style="font-weight:800;font-size:13.5px;color:#b03a2e;margin-bottom:10px;text-align:center">\uCD94\uAC00\uD560 \uBCBD \uC120\uD0DD</div>'
+        +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+        +['d1','d2','d3','d4'].map(function(k){return '<button class="mnWP9" data-k="'+k+'" style="'+bx+((k===dk)?cur9:'')+'">'+_WNO8[k]+'. '+_WN8[k]+'</button>';}).join('')
+        +'</div>'
+        +'<button id="mnWPNo9" style="margin-top:10px;width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;background:#fff;color:#555;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center">\uCDE8\uC18C</button></div>';
+      document.body.appendChild(ov);
+      ov.querySelector('#mnWPNo9').onclick=function(){ov.remove();};
+      ov.addEventListener('click',function(ev){if(ev.target===ov)ov.remove();});
+      ov.querySelectorAll('.mnWP9').forEach(function(b){b.onclick=function(){var k=this.getAttribute('data-k');ov.remove();mnAskDest(cur,_WNO8[k],cb,rec,k,true,allW);};});
+    }catch(_wp9){_re(true);}
+  };
   if(_aj9||_mv9){try{_touch();}catch(_t9){}
     if(typeof toast==='function')toast((_aj9?('\uB3C4\uBA74 \uC5F0\uACB0 '+_aj9+'\uAC74 \uC790\uB3D9 \uD3B8\uC785'):'')+((_aj9&&_mv9)?' \u00B7 ':'')+(_mv9?(_mv9+'\uAC74 \uBCBD \uC7AC\uBC30\uCE58'):''));}
   var _bRg=w.querySelector('#mnDReg2');if(_bRg)_bRg.onclick=function(){/* [BUILD1974] */
