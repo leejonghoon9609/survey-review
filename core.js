@@ -10600,10 +10600,18 @@ function _gwSetOv9(dv,GW,gi,f,v){/* 행 dv의 gi번째 그룹 f(cnt|nae)를 v로
     if(d==='')delete ov[f];else ov[f]=+d;
     if(!Object.keys(ov).length)delete dv.gwOv[key];if(!Object.keys(dv.gwOv).length)delete dv.gwOv;}catch(_e){}}
 function _gwFromOv9(dv){var L=[];try{for(var key in dv.gwOv){var ov=dv.gwOv[key]||{};var kd=key.split('|');L.push({kind:kd[0]||'',dia:kd[1]||'',cnt:(ov.cnt!=null?ov.cnt:null),nae:(ov.nae!=null?ov.nae:null)});}}catch(_e){}return _gwSort9(L);}
+function _hasExplicitGw9(dv){try{return !!(dv&&((dv.gw&&dv.gw.length)||(dv.gwOv&&Object.keys(dv.gwOv).length)||(dv.cnt!=null&&dv.cnt!=='')));}catch(_e){return false;}}
+function _peerGw9(srcXY,dv){/* [BUILD2409] 상대편이 이쪽을 가리키는 행에 명시 관정보가 있으면 그대로 승계('그대로 주고 그대로 받고'). srcXY=[x,y] 이쪽 시설물, dv=이쪽 행(상대 좌표 dv.xy) */
+  try{if(!srcXY||!dv||!dv.xy||dv.xy.length!==2)return null;var tx=+dv.xy[0],ty=+dv.xy[1];function nz(t){t=String(t||'');try{if(typeof mnStripPf==='function')t=mnStripPf(t);}catch(_a){}return t.replace(/\s+/g,'').toUpperCase();}
+    var L=state.manholes||[];var tm=null,bd=0.5;for(var i=0;i<L.length;i++){var q=L[i];if(!q||q.wx==null)continue;var d=Math.hypot(q.wx-tx,q.wy-ty);if(d<bd){bd=d;tm=q;}}if(!tm)return null;
+    var back=function(e){if(!e)return false;if(e.xy&&e.xy.length===2&&Math.hypot(e.xy[0]-srcXY[0],e.xy[1]-srcXY[1])<0.5)return true;return false;};
+    if(tm.type&&tm.type!=='mh'){var D=tm.dests||[];for(var j=0;j<D.length;j++){if(back(D[j])&&_hasExplicitGw9(D[j]))return _auxRowGw9(tm,j);}return null;}
+    var rec=(typeof mhSheetRec9==='function')?mhSheetRec9(tm):null;if(!rec)return null;var ks=['d1','d2','d3','d4'];for(var k=0;k<ks.length;k++){var LK=mnDestList(rec,ks[k])||[];for(var i2=0;i2<LK.length;i2++){if(back(LK[i2])&&_hasExplicitGw9(LK[i2]))return _mnRowGw9(rec,ks[k],i2);}}return null;}catch(_e){return null;}}
 function _mnRowGw9(rec,k,ix,WP){/* [BUILD2390] 행 관정보 줄 목록 — ①dv.gw(사용자 명시, +/−로 관리) ②dv.gwOv(2384~2389 저장분) ③단독 방향=벽 구성 전체 승계 ④기본 1줄: 앞점 첫 그룹(관종·관경·관수=종전 단일값 규칙) → 벽 첫 그룹 → ext. legacy dv.cnt/nae는 그 1줄에(ext 있으면 ext 관경으로) */
   try{var LK=mnDestList(rec,k);var dv=LK[ix];if(!dv)return [];
     if(dv.gw&&dv.gw.length)return _gwClone9(dv.gw);
     if(dv.gwOv&&Object.keys(dv.gwOv).length)return _gwFromOv9(dv);
+    if(dv.cnt==null||dv.cnt===''){try{var src9=(typeof _mnMhOfRec9==='function')?_mnMhOfRec9(rec):null;var pg9=src9?_peerGw9([src9.wx,src9.wy],dv):null;if(pg9&&pg9.length)return _gwClone9(pg9);}catch(_pg){}}/* [BUILD2409] 상대(인입·맨홀) 행 명시값 그대로 승계 — 벽 총계에 안 맞아도 그대로, 불일치는 배분 합계가 표시 */
     if(!WP&&typeof _wallPipe9==='function')WP=_wallPipe9(rec,k);
     var wg=(WP&&WP.gw)?WP.gw:[];
     if(LK.length===1&&wg.length&&dv.cnt==null&&dv.nae==null)return _gwClone9(wg);
@@ -10622,6 +10630,7 @@ function _auxRowGw9(mh,ix,A){/* [BUILD2390] 보조시설물 인입창 행 — �
   try{var L=(mh&&mh.dests)||[];var dv=L[ix];if(!dv)return [];
     if(dv.gw&&dv.gw.length)return _gwClone9(dv.gw);
     if(dv.gwOv&&Object.keys(dv.gwOv).length)return _gwFromOv9(dv);
+    if(dv.cnt==null||dv.cnt===''){try{var pg9=(mh&&mh.wx!=null)?_peerGw9([mh.wx,mh.wy],dv):null;if(pg9&&pg9.length)return _gwClone9(pg9);}catch(_pg){}}/* [BUILD2409] */
     if(!A&&typeof auxPipeAll9==='function')A=auxPipeAll9(mh);
     var ag=(A&&A.gw)?A.gw:[];
     if(L.length===1&&ag.length&&_gwTot9(ag,'cnt')!=null&&dv.cnt==null&&dv.nae==null)return _gwClone9(ag);
@@ -11491,7 +11500,7 @@ function mhDestPanel(mh,forcePick){
     var tag9=(dv&&dv.xy&&dv.xy.length===2&&typeof mnPosTag9==='function')?mnPosTag9(mh.wx,mh.wy,dv.xy[0],dv.xy[1]):'';
     return '<tr style="background:#fff'+_wt8+'">'
       +(function(){var GW=_auxRowGw9(mh,ix,_PA9);if(!GW.length)GW=[{kind:sp9.kind||'',dia:sp9.dia||'',cnt:((c9===''||c9==null)?null:+c9),nae:((dv&&dv.nae!=null)?dv.nae:null)}];var C=_gwCells9(GW,'mhD',ix,'#dcb4ad');/* [BUILD2384] */
-        return '<td style="padding:3px 3px;border:1px solid #dcb4ad;font-weight:700;color:#b03a2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(ix+1)+'. '+_labShort9(_facNm9)+C.pm+'</td>'/* [BUILD2390] +/− */
+        return '<td style="padding:3px 3px;border:1px solid #dcb4ad;font-weight:700;color:#b03a2e;white-space:nowrap;overflow:hidden"><div style="display:flex;align-items:center;gap:5px"><span style="overflow:hidden;text-overflow:ellipsis">'+(ix+1)+'. '+_labShort9(_facNm9)+'</span>'+C.pm.replace('margin-top:2px','margin-top:0')+'</div></td>'/* [BUILD2390] +/− *//* [BUILD2409] 한 줄 */
         + '<td style="padding:0 2px;border:1px solid #dcb4ad;text-align:center;color:#0f7a86;font-weight:800">'+C.kind+'</td>'
         +'<td style="padding:0 2px;border:1px solid #dcb4ad;text-align:center;color:#0f7a86;font-weight:800">'+C.dia+'</td>'
         +'<td style="padding:0 2px;border:1px solid #dcb4ad;text-align:center">'+C.cnt+'</td>'
