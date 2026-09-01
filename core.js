@@ -15854,9 +15854,17 @@ cwrap.addEventListener('mousemove',function(e){
 });
 cwrap.addEventListener('mouseleave',coordReset);
 window.addEventListener('resize',function(){fixAspect();applyVB();placeCoord();if(typeof drawGeo==='function'){drawGeo();drawManholes();highlightSel();}});
-/* [BUILD2379·2378] PC 전 공정 좌측 메뉴(rail) 접기/펴기 — 레일 오른쪽 세로 손잡이 탭(◀/▶), localStorage railHide9 기억. 폰 제외. 접힌 상태에서도 viewer 등으로 레일이 CSS 숨김이면 탭도 숨김 */
-(function(){try{if(typeof isMobileDevice==='function'&&isMobileDevice())return;var rail=document.getElementById('rail');if(!rail||!rail.parentNode)return;var st=rail.parentNode;var tab=document.createElement('div');tab.id='railTab9';tab.title='\uBA54\uB274 \uC811\uAE30/\uD3B4\uAE30';tab.style.cssText='flex:none;width:14px;align-self:stretch;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#ece9e3;border-right:1px solid #d9d5cc;color:#8a6d3b;font-size:10px;font-weight:800;user-select:none;z-index:5';var on=false;try{on=localStorage.getItem('railHide9')==='1';}catch(_l){}window.railHide9=function(v){on=(v==null)?!on:!!v;ap();};function ap(){rail.style.display=on?'none':'';tab.textContent=on?'\u25B6':'\u25C0';try{localStorage.setItem('railHide9',on?'1':'0');}catch(_s){}setTimeout(function(){try{window.dispatchEvent(new Event('resize'));}catch(_r){}},30);}
-tab.onclick=function(){on=!on;ap();};st.insertBefore(tab,rail.nextSibling);ap();setInterval(function(){try{var hid=!on&&getComputedStyle(rail).display==='none';tab.style.display=hid?'none':'flex';}catch(_g){}},600);}catch(_e){}})();
+/* [BUILD2380] PC 전 공정 좌측 메뉴(rail) 접기/펴기 — 레일 오른쪽 가장자리 중앙에 떠 있는 알약형 손잡이(흰 바탕·그림자·쉐브론). localStorage railHide9 기억. 폰 제외.
+   2379 실패 원인: 측량현장 `.fpage.fpc.viewer #rail{display:flex!important}`가 inline display:none을 이김 → setProperty(...,'important')로 교체 */
+(function(){try{if(typeof isMobileDevice==='function'&&isMobileDevice())return;var rail=document.getElementById('rail');if(!rail||!rail.parentNode)return;var st=rail.parentNode;if(getComputedStyle(st).position==='static')st.style.position='relative';
+var tab=document.createElement('div');tab.id='railTab9';tab.title='\uBA54\uB274 \uC811\uAE30/\uD3B4\uAE30';tab.style.cssText='position:absolute;top:50%;left:0;transform:translateY(-50%);width:18px;height:64px;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#fff;border:1px solid #d5d1c8;border-left:none;border-radius:0 10px 10px 0;box-shadow:2px 0 8px rgba(0,0,0,.14);color:#7a6a55;user-select:none;z-index:40;transition:background .15s,left .05s';
+tab.innerHTML='<svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline id="railTabChev9" points="7,2 2,8 7,14"/></svg>';
+tab.onmouseenter=function(){tab.style.background='#f4efe6';};tab.onmouseleave=function(){tab.style.background='#fff';};
+var on=false;try{on=localStorage.getItem('railHide9')==='1';}catch(_l){}
+function pos(){try{var hid=!on&&getComputedStyle(rail).display==='none';tab.style.display=hid?'none':'flex';var l=on?0:Math.round(rail.getBoundingClientRect().right-st.getBoundingClientRect().left);tab.style.left=l+'px';var ch=document.getElementById('railTabChev9');if(ch)ch.setAttribute('points',on?'3,2 8,8 3,14':'7,2 2,8 7,14');}catch(_g){}}
+function ap(){if(on)rail.style.setProperty('display','none','important');else rail.style.removeProperty('display');try{localStorage.setItem('railHide9',on?'1':'0');}catch(_s){}pos();setTimeout(function(){pos();try{window.dispatchEvent(new Event('resize'));}catch(_r){}},30);}
+tab.onclick=function(ev){try{ev.stopPropagation();}catch(_c){}on=!on;ap();};window.railHide9=function(v){on=(v==null)?!on:!!v;ap();};
+st.appendChild(tab);ap();setInterval(pos,600);}catch(_e){}})();
 // 캔버스 영역 크기 변화(사진패널 열기/닫기·창 크기 등) 감지 → 배경지도 relayout + 종횡비 재맞춤
 if(window.ResizeObserver){
   var _cwEl=document.querySelector('.canvas-wrap');
