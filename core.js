@@ -10587,12 +10587,12 @@ function _auxNaeShow9(mh,ix,A){try{var t=_gwTot9(_auxRowGw9(mh,ix,A),'nae');retu
 function _gwCells9(GW,cls,n,bc,bg){/* [BUILD2387] bg=주방향 행이면 관수·내관 선택칸도 행 색으로 *//* 관종·관경·관수·내관 4셀 — 그룹별 줄 */
   if(!GW||!GW.length)GW=[{kind:'',dia:'',cnt:null,nae:null}];
   var sep=function(gi){return (gi<GW.length-1)?(';border-bottom:1px solid '+(bc||'#b7c9a9')):'';};/* [BUILD2386] 관경 그룹 구분선 = 표 기존 테두리색(맨홀 #b7c9a9 · 인입 #dcb4ad) */
-  var ln='height:24px;line-height:24px;white-space:nowrap;box-sizing:border-box';
+  var ln='height:28px;line-height:28px;white-space:nowrap;box-sizing:border-box';/* [BUILD2388] 24→28px — 선택칸(약 26px)이 넘쳐 두꺼운 상단선에 잘리던 것 */
   var kc=GW.map(function(g,gi){return '<div style="'+ln+sep(gi)+'">'+(g.kind||'-')+'</div>';}).join('');
   var dc=GW.map(function(g,gi){return '<div style="'+ln+sep(gi)+'">'+(g.dia||'-')+'</div>';}).join('');
   var tint=function(h){return bg?h.replace(/background:#fff;cursor:pointer/g,'background:'+bg+';cursor:pointer'):h;};
-  var cc=GW.map(function(g,gi){return '<div style="height:24px;display:flex;align-items:center;justify-content:center;box-sizing:border-box'+sep(gi)+'">'+tint(_cntSel9(cls+'Cnt',n,g.cnt,gi))+'</div>';}).join('');
-  var nc=GW.map(function(g,gi){return '<div style="height:24px;display:flex;align-items:center;justify-content:center;box-sizing:border-box'+sep(gi)+'">'+tint(_naeSel9(cls+'Nae',n,g.nae,gi))+'</div>';}).join('');
+  var cc=GW.map(function(g,gi){return '<div style="height:28px;display:flex;align-items:center;justify-content:center;box-sizing:border-box'+sep(gi)+'">'+tint(_cntSel9(cls+'Cnt',n,g.cnt,gi))+'</div>';}).join('');
+  var nc=GW.map(function(g,gi){return '<div style="height:28px;display:flex;align-items:center;justify-content:center;box-sizing:border-box'+sep(gi)+'">'+tint(_naeSel9(cls+'Nae',n,g.nae,gi))+'</div>';}).join('');
   return {kind:kc,dia:dc,cnt:cc,nae:nc};}
 function _pipeParse9(code){var r=_pipeParse9Base(code);if(r){try{r.gw=_gwParseAll9(code);}catch(_g){}}return r;}/* [BUILD2384] 전 그룹 gw 동반 */
 function _pipeParse9Base(code){
