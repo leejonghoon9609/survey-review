@@ -11285,7 +11285,7 @@ function fldInspTags9(){/* [BUILD2372] 검수 전용 구간 태그+인출선(구
 function fldInspFit9(nodes){/* [BUILD2371] 검수 전용 자동이동(tangoFitSeg 복사) — 검수창 자체 잠금(_fldInspFitLock9)만 따름 */
   try{if(window._fldInspFitLock9)return;if(!nodes||!nodes.length){if(typeof fitView==='function')fitView();return;}var xs=[],ys=[];nodes.forEach(function(n){if(n.x==null)return;var s=S(n.x,n.y);xs.push(s[0]);ys.push(s[1]);});if(!xs.length)return;
     var pad=8,minx=Math.min.apply(0,xs),maxx=Math.max.apply(0,xs),miny=Math.min.apply(0,ys),maxy=Math.max.apply(0,ys);vb0={x:minx-pad,y:miny-pad,w:(maxx-minx)+2*pad,h:(maxy-miny)+2*pad};vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};if(typeof fixAspect==='function')fixAspect();if(typeof applyVB==='function')applyVB();if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();if(typeof highlightSel==='function')highlightSel();}catch(_e){}}
-function fldInspClose9(){try{fldInspHL9(-1);}catch(_h){}try{var _tg9=document.getElementById('fldInspTagG9');if(_tg9)_tg9.remove();}catch(_t9){}try{var w=document.getElementById('fldInspOv9');if(w)w.remove();window._fldInspOpen9=false;var cw=document.querySelector('.canvas-wrap');if(cw){var ip=document.getElementById('tgInfoPanel');cw.style.marginRight=(ip&&ip.style.display==='flex')?'42%':'';}setTimeout(function(){if(typeof fitView==='function')fitView();},120);}catch(_e){}}
+function fldInspClose9(){try{document.body.classList.remove('fldInspOn9');}catch(_bc){}/* [BUILD2394] 도구 스트립 복원 */try{fldInspHL9(-1);}catch(_h){}try{var _tg9=document.getElementById('fldInspTagG9');if(_tg9)_tg9.remove();}catch(_t9){}try{var w=document.getElementById('fldInspOv9');if(w)w.remove();window._fldInspOpen9=false;var cw=document.querySelector('.canvas-wrap');if(cw){var ip=document.getElementById('tgInfoPanel');cw.style.marginRight=(ip&&ip.style.display==='flex')?'42%':'';}setTimeout(function(){if(typeof fitView==='function')fitView();},120);}catch(_e){}}
 function fldInspWin9(sel){
   try{
     if(window._fldInspFitLock9==null){try{window._fldInspFitLock9=(localStorage.getItem('fldInspFitLock9')==='1');}catch(_l0){window._fldInspFitLock9=false;}}
@@ -11297,6 +11297,7 @@ function fldInspWin9(sel){
     if(sel==null)sel=(window._fldInspSel9!=null)?window._fldInspSel9:-1;window._fldInspSel9=sel;
     var AU=[];for(var i=0;i<N;i++)AU.push(fldSegAudit9(i));window._fldInspAU9=AU;/* [BUILD2372] 태그 색용 */
     var w=document.createElement('div');w.id='fldInspOv9';w.style.cssText='position:fixed;inset:0;z-index:1325;pointer-events:none;background:transparent';
+    try{document.body.classList.add('fldInspOn9');}catch(_bc){}/* [BUILD2394] */
     var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
     var btn=function(i,lab,on,ok){var bg=on?'#7b1fa2':(ok===true?'#e8f5e9':(ok===false?'#ffebee':'#fff')),fg=on?'#fff':(ok===true?'#2e7d32':(ok===false?'#c62828':'#555')),bd=on?'#7b1fa2':(ok===true?'#a5d6a7':(ok===false?'#ef9a9a':'#ccc'));
       var bd2=on?'#7b1fa2':(ok===true?'#2e7d32':(ok===false?'#c62828':'#777'));/* [BUILD2373] 테두리 진하게 */
@@ -15968,7 +15969,7 @@ try{if(typeof IS_FIELD!=='undefined'&&IS_FIELD&&!(window.matchMedia&&matchMedia(
     bar.appendChild(L);bar.appendChild(R);
     mc.insertBefore(bar,sb);
     try{['fpcSpL','fpcSpR'].forEach(function(id){var e=document.getElementById(id);if(e)e.remove();});}catch(_c){}/* 구 프록시 제거 */
-    try{if(!document.getElementById('fldBarCss9')){var st=document.createElement('style');st.id='fldBarCss9';st.textContent='body.fpc .subbar{padding:8px 12px!important;min-height:48px!important;gap:6px!important}body.fpc .subbar button{padding:7px 12px!important;font-size:13px!important;line-height:1.25!important}body.fpc .subbar .hk-badge{font-size:11px!important;padding:0 5px!important}';/* [BUILD2364] 2363 축소분의 절반만 복원(62→36→48px) */document.head.appendChild(st);}}catch(_cs){}/* [BUILD2363] 현장 PC 도구 스트립 축소(세로 62→36px) */
+    try{if(!document.getElementById('fldBarCss9')){var st=document.createElement('style');st.id='fldBarCss9';st.textContent='body.fpc .subbar{padding:8px 12px!important;min-height:48px!important;gap:6px!important}body.fpc .subbar button{padding:7px 12px!important;font-size:13px!important;line-height:1.25!important}body.fpc .subbar .hk-badge{font-size:11px!important;padding:0 5px!important}body.fpc.fldInspOn9 .subbar{display:none!important}';/* [BUILD2394] 구간검수 열림 동안 빈 도구 스트립 숨김 *//* [BUILD2364] 2363 축소분의 절반만 복원(62→36→48px) */document.head.appendChild(st);}}catch(_cs){}/* [BUILD2363] 현장 PC 도구 스트립 축소(세로 62→36px) */
   };
   var _fbPaint9=function(){try{
     var seg=document.getElementById('fb9Seg');if(seg){var p9=document.getElementById('tangoPanel'),ip9=document.getElementById('tgInfoPanel');var on=((p9&&p9.style.display!=='none')||(ip9&&ip9.style.display==='flex'));seg.style.borderColor='#ffd31a';seg.style.borderWidth='2px';seg.style.background=on?'#ffd31a':'#fff';seg.style.color=on?'#000':'#0a3ea0';}/* [BUILD2363] 기존 노랑 테두리·남색 글자 */
