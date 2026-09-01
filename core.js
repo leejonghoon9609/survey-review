@@ -10550,13 +10550,14 @@ function _gwSort9(L){/* 관종 첫 등장 순 → 관경 내림차순(100 먼저
 function _gwKey9(g){return (g.kind||'')+'|'+String(g.dia||'');}
 function _gwApplyOv9(base,dv){/* legacy 단일값(dv.cnt/nae)은 gwOv 없을 때만 첫 그룹에, gwOv는 그룹별 */
   try{var hasOv=!!(dv&&dv.gwOv&&Object.keys(dv.gwOv).length);
-    if(!hasOv&&dv){if(dv.cnt!=null&&dv.cnt!==''){if(base.length)base[0].cnt=+dv.cnt;else base.push({kind:'',dia:'',cnt:+dv.cnt,nae:null});}
-      if(dv.nae!=null&&dv.nae!==''&&base.length)base[0].nae=+dv.nae;}
+    if(!hasOv&&dv){var tg=base[0]||null;try{if(dv.ext){var es=_extSplit9(dv.ext);var h0=_gwFind9(base,{kind:(es.kind||'').toUpperCase().replace(/[^A-Z0-9]/g,''),dia:es.dia||''});if(h0)tg=h0;}}catch(_x){}/* [BUILD2385] legacy 단일값은 저장된 ext 관경 그룹에(구 코드가 ext=벽 첫 관경으로 고정했으므로) */
+      if(dv.cnt!=null&&dv.cnt!==''){if(tg)tg.cnt=+dv.cnt;else base.push({kind:'',dia:'',cnt:+dv.cnt,nae:null});}
+      if(dv.nae!=null&&dv.nae!==''&&tg)tg.nae=+dv.nae;}
     if(hasOv){for(var key in dv.gwOv){var ov=dv.gwOv[key];if(!ov)continue;var kd=key.split('|');var h=_gwFind9(base,{kind:kd[0],dia:kd[1]});if(!h){h={kind:kd[0],dia:kd[1],cnt:null,nae:null};base.push(h);}if(ov.cnt!==undefined)h.cnt=ov.cnt;if(ov.nae!==undefined)h.nae=ov.nae;}}
   }catch(_e){}return _gwSort9(base);}
 function _gwSetOv9(dv,GW,gi,f,v){/* 행 dv의 gi번째 그룹 f(cnt|nae)를 v로. ''=기본값 복귀. legacy 단일값은 첫 그룹 gwOv로 이관 후 제거 */
   try{if(!dv)return;var g=GW[gi]||GW[0]||{kind:'',dia:''};var key=_gwKey9(g);
-    if(!dv.gwOv){dv.gwOv={};if(GW[0]){var k0=_gwKey9(GW[0]);if(dv.cnt!=null&&dv.cnt!==''){dv.gwOv[k0]=dv.gwOv[k0]||{};dv.gwOv[k0].cnt=+dv.cnt;}if(dv.nae!=null&&dv.nae!==''){dv.gwOv[k0]=dv.gwOv[k0]||{};dv.gwOv[k0].nae=+dv.nae;}}delete dv.cnt;delete dv.nae;}
+    if(!dv.gwOv){dv.gwOv={};var G0=GW[0]||null;try{if(dv.ext){var es0=_extSplit9(dv.ext);var h00=_gwFind9(GW,{kind:(es0.kind||'').toUpperCase().replace(/[^A-Z0-9]/g,''),dia:es0.dia||''});if(h00)G0=h00;}}catch(_x0){}if(G0){var k0=_gwKey9(G0);if(dv.cnt!=null&&dv.cnt!==''){dv.gwOv[k0]=dv.gwOv[k0]||{};dv.gwOv[k0].cnt=+dv.cnt;}if(dv.nae!=null&&dv.nae!==''){dv.gwOv[k0]=dv.gwOv[k0]||{};dv.gwOv[k0].nae=+dv.nae;}}delete dv.cnt;delete dv.nae;}
     var ov=dv.gwOv[key]||(dv.gwOv[key]={});var d=String(v==null?'':v).replace(/[^0-9]/g,'');
     if(d==='')delete ov[f];else ov[f]=+d;
     if(!Object.keys(ov).length)delete dv.gwOv[key];if(!Object.keys(dv.gwOv).length)delete dv.gwOv;}catch(_e){}}
@@ -10564,10 +10565,10 @@ function _mnRowGw9(rec,k,ix,WP){/* 맨홀 야장 방향 행 관정보 목록: dv
   try{var LK=mnDestList(rec,k);var dv=LK[ix];if(!dv)return [];
     if(!WP&&typeof _wallPipe9==='function')WP=_wallPipe9(rec,k);
     var base=[];
-    if(dv.ext){var es=_extSplit9(dv.ext);base=[{kind:(es.kind||'').toUpperCase().replace(/[^A-Z0-9]/g,''),dia:es.dia||'',cnt:null,nae:null}];}
-    else{var fp=(typeof _mnDirFront9==='function')?_mnDirFront9(rec,dv):null;
-      if(fp&&fp.gw&&fp.gw.length){base=_gwClone9(fp.gw);base.forEach(function(g){g.nae=null;});}
-      else if(WP&&WP.gw&&WP.gw.length)base=WP.gw.map(function(g){return {kind:g.kind,dia:String(g.dia),cnt:null,nae:null};});}
+    var fp=(typeof _mnDirFront9==='function')?_mnDirFront9(rec,dv):null;
+    if(fp&&fp.gw&&fp.gw.length){base=_gwClone9(fp.gw);base.forEach(function(g){g.nae=null;});}
+    else if(WP&&WP.gw&&WP.gw.length)base=WP.gw.map(function(g){return {kind:g.kind,dia:String(g.dia),cnt:null,nae:null};});
+    else if(dv.ext){var es=_extSplit9(dv.ext);base=[{kind:(es.kind||'').toUpperCase().replace(/[^A-Z0-9]/g,''),dia:es.dia||'',cnt:null,nae:null}];}/* [BUILD2385] 저장된 ext(구 코드가 벽 첫 관경으로 자동 고정한 값)는 폴백으로만 — 남쪽 4번이 50만 남던 원인 */
     if(LK.length===1&&WP&&WP.gw&&WP.gw.length){WP.gw.forEach(function(g){var h=_gwFind9(base,g);if(h){h.cnt=g.cnt;h.nae=g.nae;if(!h.kind)h.kind=g.kind;}else base.push({kind:g.kind,dia:String(g.dia),cnt:g.cnt,nae:g.nae});});}
     return _gwApplyOv9(base,dv);
   }catch(_e){return [];}}
@@ -10575,21 +10576,22 @@ function _auxRowGw9(mh,ix,A){/* 보조시설물(JB·입상·인입) 인입창 �
   try{var L=(mh&&mh.dests)||[];var dv=L[ix];if(!dv)return [];
     if(!A&&typeof auxPipeAll9==='function')A=auxPipeAll9(mh);
     var base=[];
-    if(dv.ext){var es=_extSplit9(dv.ext);base=[{kind:(es.kind||'').toUpperCase().replace(/[^A-Z0-9]/g,''),dia:es.dia||'',cnt:null,nae:null}];}
-    else{var fp=(mh&&mh.wx!=null&&typeof _dirFrontXY9==='function')?_dirFrontXY9(mh.wx,mh.wy,dv):null;
-      if(fp&&fp.gw&&fp.gw.length){base=_gwClone9(fp.gw);base.forEach(function(g){g.nae=null;});}
-      else if(A&&A.gw&&A.gw.length)base=A.gw.map(function(g){return {kind:g.kind,dia:String(g.dia),cnt:null,nae:null};});}
+    var fp=(mh&&mh.wx!=null&&typeof _dirFrontXY9==='function')?_dirFrontXY9(mh.wx,mh.wy,dv):null;
+    if(fp&&fp.gw&&fp.gw.length){base=_gwClone9(fp.gw);base.forEach(function(g){g.nae=null;});}
+    else if(A&&A.gw&&A.gw.length)base=A.gw.map(function(g){return {kind:g.kind,dia:String(g.dia),cnt:null,nae:null};});
+    else if(dv.ext){var es=_extSplit9(dv.ext);base=[{kind:(es.kind||'').toUpperCase().replace(/[^A-Z0-9]/g,''),dia:es.dia||'',cnt:null,nae:null}];}/* [BUILD2385] ext는 폴백 */
     if(L.length===1&&A&&A.gw&&A.gw.length){A.gw.forEach(function(g){if(g.cnt==null)return;var h=_gwFind9(base,g);if(h){h.cnt=g.cnt;if(!h.kind)h.kind=g.kind;}else base.push({kind:g.kind,dia:String(g.dia),cnt:g.cnt,nae:null});});}
     return _gwApplyOv9(base,dv);
   }catch(_e){return [];}}
 function _auxNaeShow9(mh,ix,A){try{var t=_gwTot9(_auxRowGw9(mh,ix,A),'nae');return (t==null)?'':String(t);}catch(_e){return '';}}
 function _gwCells9(GW,cls,n){/* 관종·관경·관수·내관 4셀 — 그룹별 줄 */
   if(!GW||!GW.length)GW=[{kind:'',dia:'',cnt:null,nae:null}];
-  var ln='height:24px;line-height:24px;white-space:nowrap';
-  var kc=GW.map(function(g){return '<div style="'+ln+'">'+(g.kind||'-')+'</div>';}).join('');
-  var dc=GW.map(function(g){return '<div style="'+ln+'">'+(g.dia||'-')+'</div>';}).join('');
-  var cc=GW.map(function(g,gi){return '<div style="height:24px;display:flex;align-items:center;justify-content:center">'+_cntSel9(cls+'Cnt',n,g.cnt,gi)+'</div>';}).join('');
-  var nc=GW.map(function(g,gi){return '<div style="height:24px;display:flex;align-items:center;justify-content:center">'+_naeSel9(cls+'Nae',n,g.nae,gi)+'</div>';}).join('');
+  var sep=function(gi){return (gi<GW.length-1)?';border-bottom:1.5px solid #e53935':'';};/* [BUILD2385] 관경 그룹 사이 빨간 구분선 */
+  var ln='height:24px;line-height:24px;white-space:nowrap;box-sizing:border-box';
+  var kc=GW.map(function(g,gi){return '<div style="'+ln+sep(gi)+'">'+(g.kind||'-')+'</div>';}).join('');
+  var dc=GW.map(function(g,gi){return '<div style="'+ln+sep(gi)+'">'+(g.dia||'-')+'</div>';}).join('');
+  var cc=GW.map(function(g,gi){return '<div style="height:24px;display:flex;align-items:center;justify-content:center;box-sizing:border-box'+sep(gi)+'">'+_cntSel9(cls+'Cnt',n,g.cnt,gi)+'</div>';}).join('');
+  var nc=GW.map(function(g,gi){return '<div style="height:24px;display:flex;align-items:center;justify-content:center;box-sizing:border-box'+sep(gi)+'">'+_naeSel9(cls+'Nae',n,g.nae,gi)+'</div>';}).join('');
   return {kind:kc,dia:dc,cnt:cc,nae:nc};}
 function _pipeParse9(code){var r=_pipeParse9Base(code);if(r){try{r.gw=_gwParseAll9(code);}catch(_g){}}return r;}/* [BUILD2384] 전 그룹 gw 동반 */
 function _pipeParse9Base(code){
