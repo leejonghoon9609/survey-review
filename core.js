@@ -10584,9 +10584,9 @@ function _auxRowGw9(mh,ix,A){/* 보조시설물(JB·입상·인입) 인입창 �
     return _gwApplyOv9(base,dv);
   }catch(_e){return [];}}
 function _auxNaeShow9(mh,ix,A){try{var t=_gwTot9(_auxRowGw9(mh,ix,A),'nae');return (t==null)?'':String(t);}catch(_e){return '';}}
-function _gwCells9(GW,cls,n){/* 관종·관경·관수·내관 4셀 — 그룹별 줄 */
+function _gwCells9(GW,cls,n,bc){/* 관종·관경·관수·내관 4셀 — 그룹별 줄 */
   if(!GW||!GW.length)GW=[{kind:'',dia:'',cnt:null,nae:null}];
-  var sep=function(gi){return (gi<GW.length-1)?';border-bottom:1.5px solid #e53935':'';};/* [BUILD2385] 관경 그룹 사이 빨간 구분선 */
+  var sep=function(gi){return (gi<GW.length-1)?(';border-bottom:1px solid '+(bc||'#b7c9a9')):'';};/* [BUILD2386] 관경 그룹 구분선 = 표 기존 테두리색(맨홀 #b7c9a9 · 인입 #dcb4ad) */
   var ln='height:24px;line-height:24px;white-space:nowrap;box-sizing:border-box';
   var kc=GW.map(function(g,gi){return '<div style="'+ln+sep(gi)+'">'+(g.kind||'-')+'</div>';}).join('');
   var dc=GW.map(function(g,gi){return '<div style="'+ln+sep(gi)+'">'+(g.dia||'-')+'</div>';}).join('');
@@ -11335,7 +11335,7 @@ function mhDestPanel(mh,forcePick){
     var tag9=(dv&&dv.xy&&dv.xy.length===2&&typeof mnPosTag9==='function')?mnPosTag9(mh.wx,mh.wy,dv.xy[0],dv.xy[1]):'';
     return '<tr style="background:#fff'+_wt8+'">'
       +'<td style="padding:3px 3px;border:1px solid #dcb4ad;font-weight:700;color:#b03a2e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(ix+1)+'. '+_labShort9(_facNm9)+'</td>'
-      +(function(){var GW=_auxRowGw9(mh,ix,_PA9);if(!GW.length)GW=[{kind:sp9.kind||'',dia:sp9.dia||'',cnt:((c9===''||c9==null)?null:+c9),nae:((dv&&dv.nae!=null)?dv.nae:null)}];var C=_gwCells9(GW,'mhD',ix);/* [BUILD2384] */
+      +(function(){var GW=_auxRowGw9(mh,ix,_PA9);if(!GW.length)GW=[{kind:sp9.kind||'',dia:sp9.dia||'',cnt:((c9===''||c9==null)?null:+c9),nae:((dv&&dv.nae!=null)?dv.nae:null)}];var C=_gwCells9(GW,'mhD',ix,'#dcb4ad');/* [BUILD2384] */
         return '<td style="padding:0 2px;border:1px solid #dcb4ad;text-align:center;color:#0f7a86;font-weight:800">'+C.kind+'</td>'
         +'<td style="padding:0 2px;border:1px solid #dcb4ad;text-align:center;color:#0f7a86;font-weight:800">'+C.dia+'</td>'
         +'<td style="padding:0 2px;border:1px solid #dcb4ad;text-align:center">'+C.cnt+'</td>'
