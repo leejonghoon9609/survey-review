@@ -12566,10 +12566,10 @@ function mnOpenForm(rec){
       +'<line x1="548" y1="500" x2="568" y2="500" stroke="#333" stroke-width="1.2" marker-end="url(#mnArw)"/>'
       +'<text x="571" y="505" font-size="15" font-weight="700" fill="#333">2</text>'
       +destPill('d2',586,485,58,30,0)
-      +wallPhoto('p3',250,280,140,150,0)+wallPhoto('p4',250,570,140,150,0)/* [BUILD2381] 4번(남) 벽 사진 180° 회전 해제 — 거꾸로 표시. 관 원(wallCircles)은 실벽폭 좌표라 무영향 */+wallPhoto('p1',100,430,150,140,-90)+wallPhoto('p2',390,430,150,140,90)
+      +wallPhoto('p3',250,280,140,150,0)+wallPhoto('p4',250,570,140,150,180)/* [BUILD2383] 4번(남) 벽 = 편집기 화면의 180° 회전(사용자 확정, 바닥=위 570). 사진·관 원 동일 규칙. 2381(사진만 0°)·2382(원만 바닥 아래) 폐기 */+wallPhoto('p1',100,430,150,140,-90)+wallPhoto('p2',390,430,150,140,90)
       +wallHint(320,355)+wallHint(320,645)+wallHint(175,500)+wallHint(465,500)
       +wallCircles('p3',function(nx,ny){return [250+nx*140,430-ny*150];})
-      +wallCircles('p4',function(nx,ny){return [250+nx*140,720-ny*150];})/* [BUILD2382] 4번(남) 관 원=편집기와 동일 방향(바닥=아래 720, 위=−y). 2381에서 사진 회전을 풀자 원만 상하 뒤집혀 왼/오·상하 배치가 편집기와 달라 보이던 것 정정 — 구 570+ny */
+      +wallCircles('p4',function(nx,ny){return [390-nx*140,570+ny*150];})/* [BUILD2383] 4번 관 원=편집기 180° 회전(좌우 반전+바닥 위). 구 250+nx(좌우 그대로)는 사진 180°와 어긋났음 */
       +wallCircles('p1',function(nx,ny){return [250-ny*150,570-nx*140];})
       +wallCircles('p2',function(nx,ny){return [390+ny*150,430+nx*140];})
       +mnLbl('p1')+mnLbl('p3')+mnLbl('p2')+mnLbl('p4')
