@@ -10191,7 +10191,11 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     var c9=_mnCntShow9(rec,q.k,q.ix,WP);/* [BUILD1978] 표시값 산출 일원화 */
     var _gi8=ALL8.indexOf(q), _first8=(_gi8===0)||(ALL8[_gi8-1].k!==q.k), _last8=(_gi8===ALL8.length-1)||(ALL8[_gi8+1].k!==q.k);
     var _tb8=_first8?';border-top:2.5px solid #2e7d32':'', _bb8=_last8?';border-bottom:2.5px solid #2e7d32':'';
-    return '<tr style="background:'+(on?'#dcedc8':'#fff')+_tb8+_bb8+'">'
+    var _hd9='';if(_first8){try{var FC=_wallFrontChk9(rec,q.k);var _cs9=(allW===true)?8:7;var _wt9=_gwFmt9(FC.wall,true);
+      var _bgH=(FC.ok===true)?'#e8f5e9':((FC.ok===false)?'#ffe5e5':'#f5f5f2'),_fgH=(FC.ok===true)?'#2e7d32':((FC.ok===false)?'#d32f2f':'#8a8a86');
+      var _txH=(FC.ok===false)?('\u26A0 \uBD88\uC77C\uCE58 \u2014 \uC55E\uC810 '+_gwFmt9(FC.front,false)+' \u2260 \uC57C\uC7A5 '+_wt9):('\uB9E8\uD640 \uC804\uCCB4 \uACF5\uC218 '+(_wt9||'-')+((FC.ok===true)?' \u2713':''));
+      _hd9='<tr><td colspan="'+_cs9+'" style="padding:4px 6px;border:1px solid #b7c9a9;border-top:2.5px solid #2e7d32;background:'+_bgH+';color:'+_fgH+';font-weight:800;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+_WNO8[q.k]+'('+_WN8[q.k]+') '+_txH+'</td></tr>';}catch(_hd8){_hd9='';}}/* [BUILD2389] 벽 그룹 머리행: 맨홀에서 나간 전체 공수(1차 일치 시) / 불일치 */
+    return _hd9+'<tr style="background:'+(on?'#dcedc8':'#fff')+_tb8+_bb8+'">'
       +'<td style="padding:2px;border:1px solid #b7c9a9;text-align:center"><button class="mnDMainB" data-k="'+q.k+'" data-i="'+q.ix+'" title="\uC8FC\uBC29\uD5A5" style="width:22px;height:20px;border-radius:4px;border:1.5px solid '+(on?'#2e7d32':'#cfd8c0')+';background:'+(on?'#2e7d32':'#fff')+';color:'+(on?'#fff':'#9aa89a')+';font-size:10px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0;margin:0 auto;line-height:1">\uC8FC</button></td>'
       +((allW===true)?('<td style="padding:3px 2px;border:1px solid #b7c9a9;text-align:center;font-weight:800;color:'+(_first8?'#2e5a1f':'#c3d2b6')+';background:'+(_first8?'#eef4e6':'transparent')+';white-space:nowrap">'+(_first8?(_WNO8[q.k]+_WN8[q.k]):'\u00B7')+'</td>'):'')
       +(function(){var GW=_mnRowGw9(rec,q.k,q.ix,WP);if(!GW.length)GW=[{kind:e9.kind||'',dia:e9.dia||'',cnt:((c9===''||c9==null)?null:+c9),nae:null}];var C=_gwCells9(GW,'mnD',ALL8.indexOf(q),null,on?'#dcedc8':null);/* [BUILD2384] 관종·관경별 줄 *//* [BUILD2387] 주방향 행 선택칸 행 색 */
@@ -10898,6 +10902,14 @@ function _auxPeerBack9(mh,dv){
   }catch(_e){return null;}
 }
 /* [BUILD2042] \uBD88\uC77C\uCE58 \uBAA9\uB85D \u2014 \uB9E8\uD640: 1\uCC28\u00B7\uD569\uACC4\u00B7\uAD50\uCC28 / \uBC29\uD5A5 \uD14D\uC2A4\uD2B8\uC6A9 */
+function _wallFrontChk9(rec,k){/* [BUILD2389] 벽 야장 관구성(맨홀에서 나간 전체 공수) ↔ 주방향 앞점 코드 그룹별 대조 → {has,ok,wall:[gw],front:[gw]} */
+  try{var WP=(typeof _wallPipe9==='function')?_wallPipe9(rec,k):null;var LK=(typeof mnDestList==='function')?mnDestList(rec,k):[];
+    var wall=(WP&&WP.gw)?WP.gw:[];if(!LK.length)return {has:false,ok:null,wall:wall,front:[]};
+    var mk=(typeof mnDestMain==='function')?mnDestMain(rec,k):0;var dvm=LK[(mk>=0&&mk<LK.length)?mk:0];
+    var fp=(dvm&&typeof _mnDirFront9==='function')?_mnDirFront9(rec,dvm):null;var has=!!(fp&&fp.cnt!=null);
+    var front=(fp&&fp.gw&&fp.gw.length)?_gwSort9(fp.gw):[];
+    var ok=has&&wall.length>0&&front.length===wall.length&&front.every(function(g){var h=_gwFind9(wall,g);return !!h&&h.cnt===g.cnt&&(!g.kind||!h.kind||g.kind===h.kind);});
+    return {has:has,ok:(has?ok:null),wall:wall,front:front};}catch(_e){return {has:false,ok:null,wall:[],front:[]};}}
 function _wallChkBad9(rec,k){
   try{
     var WP=(typeof _wallPipe9==='function')?_wallPipe9(rec,k):null;
