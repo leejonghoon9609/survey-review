@@ -11348,8 +11348,8 @@ function fldInspWin9(sel){
       +'<button id="fiRefresh9" title="\uC7AC\uAC80\uC218" style="margin-left:auto;border:1px solid #bbb;background:#fff;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:800;cursor:pointer">\u21BB</button><button id="fiClose9" style="border:1px solid #bbb;background:#fff;border-radius:6px;padding:3px 9px;font-size:12px;font-weight:800;cursor:pointer">\u2715</button></div>';
     /* [BUILD2370] 좌: 세로 구간 버튼 열 / 우: 내용 */
     var cat=window._fldInspCat9||'all';/* [BUILD2401] 검수 카테고리: all 통합 / gw 관공(관정보·관수) / pt 측점·CSV / dep 심도 */
-    var cbtn=function(k,lab){var on=(cat===k);return '<button class="fiCat9" data-k="'+k+'" style="border:1.5px solid '+(on?'#c62828':'#d9a3a3')+';background:'+(on?'#c62828':'#fff')+';color:'+(on?'#fff':'#8c1d1d')+';border-radius:7px;padding:5px 4px;font-size:11px;font-weight:800;cursor:pointer;display:flex;width:100%;align-items:center;justify-content:center;white-space:nowrap">'+lab+'</button>';};
-    h+='<div style="display:flex;gap:10px;align-items:flex-start;height:calc(100% - 34px)"><div style="flex:none;width:104px;display:flex;flex-direction:column;gap:4px;max-height:100%;overflow:auto;padding-right:8px;border-right:1px solid #e0b4b4;align-self:stretch">'
+    var cbtn=function(k,lab){var on=(cat===k);return '<button class="fiCat9" data-k="'+k+'" style="border:1.5px solid '+(on?'#c62828':'#d9a3a3')+';background:'+(on?'#c62828':'#fff')+';color:'+(on?'#fff':'#8c1d1d')+';border-radius:7px;padding:4px 2px;font-size:10.5px;font-weight:800;cursor:pointer;display:flex;width:100%;align-items:center;justify-content:center;white-space:nowrap">'+lab+'</button>';};/* [BUILD2402] */
+    h+='<div style="display:flex;gap:8px;align-items:flex-start;height:calc(100% - 34px)"><div style="flex:none;width:88px;display:flex;flex-direction:column;gap:3px;max-height:100%;overflow:auto;padding-right:6px;border-right:1px solid #e0b4b4;align-self:stretch">'/* [BUILD2402] 목록 열 104→88px */
       +'<div style="font-size:12.5px;font-weight:800;color:#c62828;text-align:center;padding:2px 0 3px;border-bottom:1px solid #e0b4b4;margin-bottom:2px">\uAC80\uC218\uBAA9\uB85D</div>'
       +cbtn('all','\uD1B5\uD569\uAC80\uC218')+cbtn('gw','\uAD00\uACF5\uAC80\uC218')+cbtn('pt','\uCE21\uC810\u00B7CSV\uAC80\uC218')+cbtn('dep','\uC2EC\uB3C4\uAC80\uC218')
       +'<div style="height:1px;background:#e0b4b4;margin:4px 0 2px"></div>'
@@ -11387,9 +11387,9 @@ function fldInspWin9(sel){
     h+='</div></div>';/* [BUILD2370] 내용/행 닫기 */
     var mc=document.querySelector('.maincol'),cw=document.querySelector('.canvas-wrap');if(!mc||!cw)return;
     if(mc)mc.style.position='relative';var _top9=cw.offsetTop||0;
-    var card=document.createElement('div');card.style.cssText='position:absolute;right:0;top:'+_top9+'px;bottom:0;width:50%;border-left:1px solid #d9a3a3;background:#fff;overflow:auto;padding:10px 14px;font-size:12px;z-index:7;box-sizing:border-box';/* [BUILD2366] 구간설정과 같은 방식의 우측 패널 · [BUILD2369] 폭 60%(검수 6:도면 4), 폭 60% */
+    var card=document.createElement('div');card.style.cssText='position:absolute;right:0;top:'+_top9+'px;bottom:0;width:60%;border-left:1px solid #d9a3a3;background:#fff;overflow:auto;padding:10px 14px;font-size:12px;z-index:7;box-sizing:border-box';/* [BUILD2366] 구간설정과 같은 방식의 우측 패널 · [BUILD2369] 폭 60%(검수 6:도면 4), 폭 60% */
     card.innerHTML=h;w.id='fldInspOv9';w.style.cssText='display:contents';w.appendChild(card);mc.appendChild(w);
-    cw.style.marginRight='50%';if(getComputedStyle(cw).position==='static')cw.style.position='relative';/* [BUILD2401] 60→50% (검수 5:도면 5) */
+    cw.style.marginRight='60%';if(getComputedStyle(cw).position==='static')cw.style.position='relative';/* [BUILD2402] 패널 60% 복원 — 목록 열을 도면 옆(구 빈 영역)으로 붙이고 열 폭만 축소 */
     window._fldInspOpen9=true;
     try{fldInspHL9(sel);if(sel>=0){var _sgF=(_tgSegs||[])[sel];setTimeout(function(){fldInspFit9(_sgF);fldInspTags9();},60);}else{setTimeout(function(){if(!window._fldInspFitLock9&&typeof fitView==='function')fitView();fldInspTags9();},120);}}catch(_fv){}/* [BUILD2371] 선택 구간 색칠·자동이동 · [BUILD2372] 태그 */
     try{fldInspTags9();}catch(_tg){}
