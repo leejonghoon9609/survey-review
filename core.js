@@ -10720,9 +10720,13 @@ function _auxFrontPt9(m){
 /* 총계 확정 — 저장값 우선, 없으면 앞점에서 */
 function auxPipeAll9(m){
   var f=_auxFrontPt9(m);
-  var ext=(m&&m._pExt!=null&&m._pExt!=='')?m._pExt:(f?_extOf9(f.kind,f.dia):'');
-  var cnt=(m&&m._pCnt!=null&&m._pCnt!=='')?(+m._pCnt):((f&&f.gw&&f.gw.length&&_gwTot9(f.gw,'cnt')!=null)?_gwTot9(f.gw,'cnt'):((f&&f.cnt!=null)?f.cnt:null));/* [BUILD2412] 총=앞점 전 관경 합(구: 첫 그룹만 → 100x3 50x1이 총 3으로 잡혀 배분 불일치) */
-  var gw=[];try{if(m&&((m._pExt!=null&&m._pExt!=='')||(m._pCnt!=null&&m._pCnt!==''))){var es=_extSplit9(ext);gw=[{kind:(es.kind||'').toUpperCase().replace(/[^A-Z0-9]/g,''),dia:es.dia||'',cnt:cnt,nae:null}];}else if(f&&f.gw&&f.gw.length)gw=_gwClone9(f.gw);}catch(_g){}/* [BUILD2384] 저장값(단일) 우선, 없으면 앞점 전 그룹 */
+  var gw=[];try{
+    if(m&&m._pGw9&&Object.keys(m._pGw9).length){for(var key in m._pGw9){var kd=key.split('|');var v=m._pGw9[key];if(v==null||v==='')continue;gw.push({kind:kd[0]||'FC',dia:kd[1]||'',cnt:+v,nae:null});}gw=_gwSort9(gw);}/* [BUILD2413] 관경별 총 저장값 최우선 */
+    else if(m&&((m._pExt!=null&&m._pExt!=='')||(m._pCnt!=null&&m._pCnt!==''))){var es=_extSplit9((m._pExt!=null&&m._pExt!=='')?m._pExt:(f?_extOf9(f.kind,f.dia):''));gw=[{kind:(es.kind||'').toUpperCase().replace(/[^A-Z0-9]/g,''),dia:es.dia||'',cnt:((m._pCnt!=null&&m._pCnt!=='')?+m._pCnt:((f&&f.cnt!=null)?f.cnt:null)),nae:null}];}
+    else if(f&&f.gw&&f.gw.length)gw=_gwSort9(_gwClone9(f.gw));
+  }catch(_g){}
+  var ext=(m&&m._pExt!=null&&m._pExt!=='')?m._pExt:(gw[0]?_extOf9(gw[0].kind,gw[0].dia):(f?_extOf9(f.kind,f.dia):''));
+  var cnt=(gw.length&&_gwTot9(gw,'cnt')!=null)?_gwTot9(gw,'cnt'):((m&&m._pCnt!=null&&m._pCnt!=='')?(+m._pCnt):((f&&f.cnt!=null)?f.cnt:null));/* [BUILD2412] 총=전 관경 합 */
   return {ext:ext,cnt:cnt,front:f,gw:gw};
 }
 function auxPipeSum9(m){
@@ -11549,11 +11553,14 @@ function mhDestPanel(mh,forcePick){
       +'<button id="mhDAdd" style="flex:none;background:#fff;color:#d32f2f;border:1.5px solid #d32f2f;border-radius:7px;padding:4px 10px;font-weight:800;font-size:11.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;">추가</button></div>'
     +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:9px;background:#fff;border:1.5px solid #c0392b;border-radius:8px;padding:6px 7px">'
       +'<span style="flex:none;font-size:10.5px;font-weight:800;color:#b03a2e">\uC55E\uC810</span>'
-      +'<select id="mhPExt" style="flex:1;min-width:0;font-size:11.5px;font-weight:800;color:#0f7a86;border:1px solid #e0b4ae;border-radius:5px;padding:3px 2px;background:#fff"><option value="">(\uC678\uAD00)</option>'+_optE9.map(function(o){return '<option'+((o===_PA9.ext)?' selected':'')+'>'+o+'</option>';}).join('')+'</select>'
+      +((_PA9.gw&&_PA9.gw.length>1)?
+        _gwSort9(_PA9.gw).map(function(g,gi){return (gi?'<span style="flex:none;color:#dcb4ad;font-weight:800">|</span>':'')
+          +'<span style="flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:4px"><span style="font-size:11.5px;font-weight:800;color:#0f7a86;white-space:nowrap">'+(g.kind||'FC')+'(\uFFE0'+(g.dia||'-')+')</span>'
+          +_cntSel9('mhPGCnt',-1,((g.cnt==null)?'':g.cnt),(g.kind||'FC')+'|'+(g.dia||''))+'</span>';}).join('')/* [BUILD2413] 앞점을 관경별로 반씩 한 줄(수정=관경별 총 저장 _pGw9) */
+        :('<select id="mhPExt" style="flex:1;min-width:0;font-size:11.5px;font-weight:800;color:#0f7a86;border:1px solid #e0b4ae;border-radius:5px;padding:3px 2px;background:#fff"><option value="">(\uC678\uAD00)</option>'+_optE9.map(function(o){return '<option'+((o===_PA9.ext)?' selected':'')+'>'+o+'</option>';}).join('')+'</select>'
       +'<span style="flex:none;font-size:11px;font-weight:800;color:#b03a2e">\uCD1D</span>'
-      +_cntSel9('mhPCntS',-1,((_PA9.cnt==null)?'':_PA9.cnt))
+      +_cntSel9('mhPCntS',-1,((_PA9.cnt==null)?'':_PA9.cnt))))
       +'</div>'
-      +((_PA9.gw&&_PA9.gw.length>1)?('<div style="margin:-4px 0 9px;font-size:10.5px;font-weight:800;color:#0f7a86;padding:0 3px">\uC55E\uC810 \uAD6C\uC131 '+_gwFmt9(_gwSort9(_PA9.gw),true)+'</div>'):'')/* [BUILD2412] 관경 2개 이상이면 전체 구성 표기 */
     +pick
     +'<div style="border:1.5px solid #c0392b;border-radius:8px;background:#fff;'+(_mb9?'':'max-height:40dvh;')+'overflow:auto;padding:3px 4px">'/* [BUILD2391] 폰=바깥 한 스크롤 */+rows+'</div>'+sumBar
     +'<div style="display:flex;gap:7px;margin-top:11px">'+'<button id="mhDReg" style="flex:1;background:#c0392b;color:#fff;border:0;border-radius:8px;padding:8px;font-weight:800;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;">'+(((typeof IS_TANGO!=='undefined')&&IS_TANGO)?'구간등록':'저장')+'</button>'+'<button id="mhDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:8px;padding:8px;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;">닫기</button></div></div>';
@@ -11586,6 +11593,18 @@ function mhDestPanel(mh,forcePick){
     _cntApply9(this.value,function(n){mh._pCnt=n;});
   };
   if(_pcC)_pcC.onchange=function(){_cntApply9(this.value,function(n){mh._pCnt=n;});};
+  w.querySelectorAll('.mhPGCnt').forEach(function(b){b.onchange=function(){var key=this.getAttribute('data-g')||'';var el=this;
+    if(this.value==='_c'){var ci=w.querySelector('.mhPGCntC[data-g="'+key+'"]');if(ci){ci.style.display='inline-block';ci.focus();}return;}
+    var d=String(this.value==null?'':this.value).replace(/[^0-9]/g,'');
+    if(!mh._pGw9){mh._pGw9={};try{_gwSort9((auxPipeAll9(mh).gw)||[]).forEach(function(g){if(g.cnt!=null)mh._pGw9[(g.kind||'FC')+'|'+(g.dia||'')]=g.cnt;});}catch(_m){}}/* 현 표시값 스냅샷 후 해당 관경만 변경 */
+    if(d==='')delete mh._pGw9[key];else mh._pGw9[key]=+d;if(!Object.keys(mh._pGw9).length)delete mh._pGw9;
+    if(typeof saveProject==='function')try{saveProject();}catch(_s9){}try{_dirLinkRefresh9();}catch(_r9){}mhDestPanel(mh);
+  };});
+  w.querySelectorAll('.mhPGCntC').forEach(function(b){b.onchange=function(){var ev={target:this};var key=this.getAttribute('data-g')||'';var d=String(this.value==null?'':this.value).replace(/[^0-9]/g,'');
+    if(!mh._pGw9){mh._pGw9={};try{_gwSort9((auxPipeAll9(mh).gw)||[]).forEach(function(g){if(g.cnt!=null)mh._pGw9[(g.kind||'FC')+'|'+(g.dia||'')]=g.cnt;});}catch(_m2){}}
+    if(d==='')delete mh._pGw9[key];else mh._pGw9[key]=+d;if(!Object.keys(mh._pGw9).length)delete mh._pGw9;
+    if(typeof saveProject==='function')try{saveProject();}catch(_s0){}try{_dirLinkRefresh9();}catch(_r0){}mhDestPanel(mh);
+  };});/* [BUILD2413] */
   /* [BUILD1960] 행별 관수 배분 */
   function _rowCnt9(ix,v,gi){
     if(!mh.dests[ix])return;
