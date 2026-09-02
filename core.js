@@ -10901,14 +10901,19 @@ function _dirFrontXY9(wx,wy,dv){/* [BUILD2040] 1\uC21C\uC704: \uAD6C\uAC04 \uACB
           SG=window._dfSegs9.s;
         }
         if(SG){
+          /* [BUILD2418] 후보 구간을 전부 모아 '반대쪽 끝이 대상과 가장 가까운' 구간부터 걷는다 — 구: 배열 첫 매칭 구간을 썼고, 대상 근처를 스치기만 하는 긴 구간이 먼저 잡히면 엉뚱한 첫 관정보(예 100x2)를 앞점으로 반환 */
+          var _cand9=[];
           for(var i=0;i<SG.length;i++){var sg=SG[i];if(!sg||sg.length<2)continue;
             var A=sg[0],B=sg[sg.length-1];
             var aM=Math.hypot(A.x-wx,A.y-wy)<2.5, bM=Math.hypot(B.x-wx,B.y-wy)<2.5;
             if(!aM&&!bM)continue;
-            var hit=false;
-            for(var q=0;q<sg.length;q++){if(Math.hypot(sg[q].x-tx,sg[q].y-ty)<2.5){hit=true;break;}}
+            var far=aM?B:A;var eD=Math.hypot(far.x-tx,far.y-ty);
+            var hit=false;for(var q=0;q<sg.length;q++){if(Math.hypot(sg[q].x-tx,sg[q].y-ty)<2.5){hit=true;break;}}
             if(!hit)continue;
-            var ord=aM?sg:sg.slice().reverse();
+            _cand9.push({ord:(aM?sg:sg.slice().reverse()),eD:eD});
+          }
+          _cand9.sort(function(a,b){return a.eD-b.eD;});
+          for(var c9=0;c9<_cand9.length;c9++){var ord=_cand9[c9].ord;
             for(var w=0;w<ord.length;w++){var nd=ord[w];
               if(Math.hypot(nd.x-wx,nd.y-wy)<0.3)continue;
               var pr=codeAt(nd);
