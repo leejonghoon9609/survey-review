@@ -10721,7 +10721,7 @@ function _auxFrontPt9(m){
 function auxPipeAll9(m){
   var f=_auxFrontPt9(m);
   var ext=(m&&m._pExt!=null&&m._pExt!=='')?m._pExt:(f?_extOf9(f.kind,f.dia):'');
-  var cnt=(m&&m._pCnt!=null&&m._pCnt!=='')?(+m._pCnt):((f&&f.cnt!=null)?f.cnt:null);
+  var cnt=(m&&m._pCnt!=null&&m._pCnt!=='')?(+m._pCnt):((f&&f.gw&&f.gw.length&&_gwTot9(f.gw,'cnt')!=null)?_gwTot9(f.gw,'cnt'):((f&&f.cnt!=null)?f.cnt:null));/* [BUILD2412] 총=앞점 전 관경 합(구: 첫 그룹만 → 100x3 50x1이 총 3으로 잡혀 배분 불일치) */
   var gw=[];try{if(m&&((m._pExt!=null&&m._pExt!=='')||(m._pCnt!=null&&m._pCnt!==''))){var es=_extSplit9(ext);gw=[{kind:(es.kind||'').toUpperCase().replace(/[^A-Z0-9]/g,''),dia:es.dia||'',cnt:cnt,nae:null}];}else if(f&&f.gw&&f.gw.length)gw=_gwClone9(f.gw);}catch(_g){}/* [BUILD2384] 저장값(단일) 우선, 없으면 앞점 전 그룹 */
   return {ext:ext,cnt:cnt,front:f,gw:gw};
 }
@@ -11553,6 +11553,7 @@ function mhDestPanel(mh,forcePick){
       +'<span style="flex:none;font-size:11px;font-weight:800;color:#b03a2e">\uCD1D</span>'
       +_cntSel9('mhPCntS',-1,((_PA9.cnt==null)?'':_PA9.cnt))
       +'</div>'
+      +((_PA9.gw&&_PA9.gw.length>1)?('<div style="margin:-4px 0 9px;font-size:10.5px;font-weight:800;color:#0f7a86;padding:0 3px">\uC55E\uC810 \uAD6C\uC131 '+_gwFmt9(_gwSort9(_PA9.gw),true)+'</div>'):'')/* [BUILD2412] 관경 2개 이상이면 전체 구성 표기 */
     +pick
     +'<div style="border:1.5px solid #c0392b;border-radius:8px;background:#fff;'+(_mb9?'':'max-height:40dvh;')+'overflow:auto;padding:3px 4px">'/* [BUILD2391] 폰=바깥 한 스크롤 */+rows+'</div>'+sumBar
     +'<div style="display:flex;gap:7px;margin-top:11px">'+'<button id="mhDReg" style="flex:1;background:#c0392b;color:#fff;border:0;border-radius:8px;padding:8px;font-weight:800;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;">'+(((typeof IS_TANGO!=='undefined')&&IS_TANGO)?'구간등록':'저장')+'</button>'+'<button id="mhDNo2" style="flex:1;background:#fff;color:#555;border:1px solid #ddd;border-radius:8px;padding:8px;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;">닫기</button></div></div>';
