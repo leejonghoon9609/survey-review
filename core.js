@@ -1455,8 +1455,10 @@ function nearestPipeDir(wx,wy,maxR){
   return [vx/vl,vy/vl,bd];
 }
 // 맨홀/입상주 라벨 기본 위치(world) — 화면·DXF 공용. txtW=라벨 폭(각자 단위)
-function auxNo9(m){/* [BUILD2406] 보조시설물(입상·JB·인입) 작업자 식별 번호 — state.manholes 등록 순서 1..N(맨홀 제외). 저장값 아님, 표시 전용 */
-  try{if(!m||!m.type||m.type==='mh')return 0;var n=0;var L=state.manholes||[];for(var i=0;i<L.length;i++){var q=L[i];if(!q||!q.type||q.type==='mh'||q.wx==null)continue;n++;if(q===m)return n;}return 0;}catch(_e){return 0;}}
+function auxNo9(m){/* [BUILD2406] 보조시설물(입상·JB·인입) 작업자 식별 번호 — state.manholes 등록 순서 1..N(맨홀 제외). 저장값 아님, 표시 전용 *//* [BUILD2417] 1회 스캔 캐시 — _mhLeadSync가 줌 프레임마다 라벨 수만큼 호출해 O(N²)로 느려지던 것 */
+  try{if(!m||!m.type||m.type==='mh')return 0;var C=window._auxNoC9;var L=state.manholes||[];
+    if(!C||C.len!==L.length){C=window._auxNoC9={len:L.length,map:new Map()};var n=0;for(var i=0;i<L.length;i++){var q=L[i];if(!q||!q.type||q.type==='mh'||q.wx==null)continue;n++;C.map.set(q,n);}}
+    return C.map.get(m)||0;}catch(_e){return 0;}}
 function auxNoAt9(x,y){/* 좌표(0.5m)로 보조시설물 찾아 번호 */try{if(x==null||y==null)return 0;var L=state.manholes||[];for(var i=0;i<L.length;i++){var q=L[i];if(!q||!q.type||q.type==='mh'||q.wx==null)continue;if(Math.hypot(q.wx-x,q.wy-y)<0.5)return auxNo9(q);}return 0;}catch(_e){return 0;}}
 function auxNoLab9(lab,xy){/* 방향창 행 라벨 앞 번호 접두(좌표 있을 때만) */try{var n=(xy&&xy.length===2)?auxNoAt9(+xy[0],+xy[1]):0;return n?(n+'.'+String(lab||'')):String(lab||'');}catch(_e){return String(lab||'');}}
 function mhDisp(mh){if(mh&&(mh.type==='jb'||mh.type==='inlet')){var _jf=(mh.type==='jb'?'JB':'인입');var _jo=((mh._own||'')+'').trim();var _jn=((mh.note||'')+'').trim();
@@ -1646,7 +1648,7 @@ function _pillEm9(el){/* [BUILD2398] 측량현장 방향 pill 월드고정 — �
   try{if(!el||!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return;var bw=parseFloat(el.style.borderWidth||el.style.border||'1')||1;el.style.borderWidth=(bw>=2?0.17:0.085)+'em';el.style.padding='0 0.25em';el.style.borderRadius='0.25em';
     if(el.style.boxShadow&&el.style.boxShadow!=='none')el.style.boxShadow='0 0 0 0.21em #ffd54f,0 0 0 0.33em #6d4c00';
     var ch=el.children;for(var i=0;i<ch.length;i++){var c=ch[i];c.style.top='calc(100% + 0.33em)';c.style.borderWidth='0.125em';c.style.borderRadius='0.33em';c.style.padding='0 0.33em';}}catch(_e){}}
-function drawManholes(){_orgSync();/* [1524] */
+function drawManholes(){_orgSync();try{window._auxNoC9=null;}catch(_an){}/* [BUILD2417] 번호 캐시 무효화 *//* [1524] */
   clearSvg(gMH); try{clearSvg(gJBI);}catch(_g7){} clearLabels('mh');clearLabels('riser');clearLabels('tgnotemh');try{drawTamsaPts();}catch(_tp){}/* [1473] IP주 연결선 제거 */
   (state.manholes||[]).forEach(function(mh){if(typeof tgCarMhShow==='function'&&!tgCarMhShow(mh))return;/* [1327] */if(mh.type==='jb'||mh.type==='inlet'){var _s2=S(mh.wx,mh.wy);var _jx=_s2[0],_jy=_s2[1];var _g2=el('g',{'class':'sym-'+mh.type});var _symc=((mh.insp||mh._fromCsv)?'#111':'#1f6fd6');/* [1463] realtime JB/inlet blue */if(mh.type==='jb'){var _U7=((typeof pxToWorld==='function'&&pxToWorld())||0.06);if(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO)))_U7=0.294/22;/* [1656] tango JB \uc6d4\ub4dc\uace0\uc815(\ub9e8\ud640 \uc77c\uce58) *//* [1494] JB=\uce21\uc810\ub3d9\uc77c \uc6d4\ub4dc 0.294m \uc644\uc804\uace0\uc815 */var _gj=el('g',{'class':'jbfix','data-cx':_jx,'data-cy':_jy,transform:'translate('+_jx+' '+_jy+') scale('+_U7+')'});_gj.appendChild(el('rect',{x:-11,y:-11,width:22,height:22,fill:'none',stroke:_symc,'stroke-width':2.2,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));/* [1494] \ud14c\ub450\ub9ac px \uc720\uc9c0 */var _tB=el('text',{x:0,y:4.3,'text-anchor':'middle','font-size':'12',fill:_symc,'font-weight':'700','pointer-events':'none'});_tB.textContent='B';_gj.appendChild(_tB);_g2.appendChild(_gj);/* [1490] JB px비율 완전고정(스케일 그룹) */}else{var _ir7=(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof IS_TANGO!=='undefined'&&IS_TANGO)||(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)))?0.147:(((typeof pxToWorld==='function'&&pxToWorld())||0.06)*5.5);/* [BUILD2218] 실시간 인입 월드고정 *//* [1656] tango \uc778\uc785 \uc6d4\ub4dc\uace0\uc815 *//* [1494] \uc778\uc785=\uce21\uc810\ub3d9\uc77c \uc6d4\ub4dc r0.147 \uc644\uc804\uace0\uc815 */var _ic7=el('circle',{cx:_jx,cy:_jy,r:_ir7,fill:_symc,'class':'inlt','pointer-events':'none'});gJBI.appendChild(_ic7);/* [1488] 인입 px고정 크기·관로선 아래 */}/* [1443] JB=맨홀사이즈(0.294)·인입=속찬 원(SD214 bulge 재해석) */gMH.appendChild(_g2);if(!viewerMode&&!readOnly){var _jh=el('circle',{cx:_jx,cy:_jy,r:Math.max((typeof pxToWorld==='function'?pxToWorld():0.06)*12,0.3),fill:'transparent','pointer-events':'all'});_jh.style.cursor='pointer';_jh.addEventListener('mouseenter',function(){if(mode==='delall2'||mode==='delmh'){_jh.setAttribute('fill','rgba(211,47,47,0.28)');_jh.setAttribute('stroke','#d32f2f');_jh.setAttribute('stroke-width','2');_jh.setAttribute('vector-effect','non-scaling-stroke');}});_jh.addEventListener('mouseleave',function(){_jh.setAttribute('fill','transparent');_jh.removeAttribute('stroke');});_jh.addEventListener('pointerdown',function(ev){if(mode!=='delall2'&&mode!=='delmh')return;ev.stopPropagation();ev.preventDefault();pushHist();var _ix=state.manholes.indexOf(mh);if(_ix>=0)state.manholes.splice(_ix,1);if(typeof saveProject==='function'){try{saveProject();}catch(_e){}}redrawAll();toast(mh.type==='jb'?'JB 삭제':'인입 삭제');_da2Off();});gMH.appendChild(_jh);}/* [BUILD1733] fall-through: jb/inlet도 라벨+인출선(공용 machinery) */}/* [1442] JB/인입 심벌 */
     var isRiser=(mh.type==='riser');var MHC=(mh._fromCsv&&isRiser)?'#111':((mh._aft||mh.insp||(state.tamsa&&!isRiser))?'#111':'#1f6fd6');/* [1445] 후측 CSV 맨홀 검정 고정 *//* [1380] CSV 전주 검정 */
@@ -10405,7 +10407,7 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     var LK=mnDestList(rec,q.k);if(!LK[q.ix])return;
     _gwSetLine9(LK[q.ix],_mnRowGw9(rec,q.k,q.ix),(gi==null?0:+gi),'nae',v);
     try{mnDestSync(rec,q.k);}catch(_ds){}_touch();
-    try{window._tgGwC9=null;if(typeof drawGeo==='function')drawGeo();}catch(_dg5){}/* [BUILD2354] */
+    try{window._tgGwC9=null;window._peerGwC9=null;if(typeof drawGeo==='function')drawGeo();}catch(_dg5){}/* [BUILD2354] */
     _re(false);
   }
   w.querySelectorAll('.mnDNae').forEach(function(b){b.onchange=function(){
@@ -10414,11 +10416,11 @@ function mnAskDest(cur,dn,cb,rec,dk,fp,allW){/* [BUILD1959] allW=true면 4벽 �
     _mnNae9(n,this.value,gi);
   };});
   w.querySelectorAll('.mnDNaeC').forEach(function(b){b.onchange=function(){_mnNae9(+this.getAttribute('data-i'),this.value,this.getAttribute('data-g')||'0');};});
-  function _mnLine9(n,gi,f,v){var q=ALL8[n];if(!q)return;var LK=mnDestList(rec,q.k);if(!LK[q.ix])return;_gwSetLine9(LK[q.ix],_mnRowGw9(rec,q.k,q.ix),+gi,f,v);mnDestSync(rec,q.k);_touch();try{window._tgGwC9=null;if(typeof drawGeo==='function')drawGeo();}catch(_d){}_re(false);}/* [BUILD2390] 관종·관경 드롭다운 */
+  function _mnLine9(n,gi,f,v){var q=ALL8[n];if(!q)return;var LK=mnDestList(rec,q.k);if(!LK[q.ix])return;_gwSetLine9(LK[q.ix],_mnRowGw9(rec,q.k,q.ix),+gi,f,v);mnDestSync(rec,q.k);_touch();try{window._tgGwC9=null;window._peerGwC9=null;if(typeof drawGeo==='function')drawGeo();}catch(_d){}_re(false);}/* [BUILD2390] 관종·관경 드롭다운 */
   w.querySelectorAll('.mnDKind').forEach(function(b){b.onchange=function(){_mnLine9(+this.getAttribute('data-i'),this.getAttribute('data-g')||'0','kind',this.value);};});
   w.querySelectorAll('.mnDDia').forEach(function(b){b.onchange=function(){_mnLine9(+this.getAttribute('data-i'),this.getAttribute('data-g')||'0','dia',this.value);};});
   w.querySelectorAll('.mnDAddG').forEach(function(b){b.onclick=function(){var q=ALL8[+this.getAttribute('data-i')];if(!q)return;var LK=mnDestList(rec,q.k);if(!LK[q.ix])return;var WPa=_wallPipe9(rec,q.k);_gwAddLine9(LK[q.ix],_mnRowGw9(rec,q.k,q.ix,WPa),(WPa&&WPa.gw)||[]);mnDestSync(rec,q.k);_touch();_re(false);};});
-  w.querySelectorAll('.mnDDelG').forEach(function(b){b.onclick=function(){var q=ALL8[+this.getAttribute('data-i')];if(!q)return;var LK=mnDestList(rec,q.k);if(!LK[q.ix])return;var GWd=_mnRowGw9(rec,q.k,q.ix);_gwDelLine9(LK[q.ix],GWd,GWd.length-1);mnDestSync(rec,q.k);_touch();try{window._tgGwC9=null;if(typeof drawGeo==='function')drawGeo();}catch(_d2){}_re(false);};});
+  w.querySelectorAll('.mnDDelG').forEach(function(b){b.onclick=function(){var q=ALL8[+this.getAttribute('data-i')];if(!q)return;var LK=mnDestList(rec,q.k);if(!LK[q.ix])return;var GWd=_mnRowGw9(rec,q.k,q.ix);_gwDelLine9(LK[q.ix],GWd,GWd.length-1);mnDestSync(rec,q.k);_touch();try{window._tgGwC9=null;window._peerGwC9=null;if(typeof drawGeo==='function')drawGeo();}catch(_d2){}_re(false);};});
   var _bAdd=w.querySelector('#mnDAdd');if(_bAdd)_bAdd.onclick=function(){
     if(allW!==true){_re(true);return;}
     /* [BUILD2395] 4벽 창에서 추가 = 벽 선택 모달(흰 바탕·붉은 계열) → 선택한 벽으로 대상 선택 화면 */
@@ -10605,12 +10607,17 @@ function _gwFromOv9(dv){var L=[];try{for(var key in dv.gwOv){var ov=dv.gwOv[key]
 function _hasExplicitGw9(dv){try{return !!(dv&&((dv.gw&&dv.gw.length)||(dv.gwOv&&Object.keys(dv.gwOv).length)||(dv.cnt!=null&&dv.cnt!=='')));}catch(_e){return false;}}
 function _peerGw9(srcXY,dv,srcLab){/* [BUILD2409/2411] 상대편이 이쪽을 가리키는 행의 '표시값'을 그대로 승계('그대로 주고 그대로 받고'). 명시값 여부 무관(앞점 총계에서 온 기본값도 승계). 재귀 가드로 서로 참조 무한루프 차단. 상대 행 매칭=좌표 0.5m 또는 라벨 */
   try{if(window._peerGwBusy9)return null;if(!srcXY||!dv||!dv.xy||dv.xy.length!==2)return null;var tx=+dv.xy[0],ty=+dv.xy[1];
+    var _ck9=tx.toFixed(2)+','+ty.toFixed(2)+'|'+(+srcXY[0]).toFixed(2)+','+(+srcXY[1]).toFixed(2)+'|'+String(srcLab||'')+'|'+String((dv&&dv.lab)||'');
+    var _PC9=window._peerGwC9;if(_PC9&&_PC9.has&&_PC9.has(_ck9))return _PC9.get(_ck9);/* [BUILD2417] 메모 — 라벨·검수·야장이 같은 상대 행을 수십 번 되묻던 것 */
     function nz(t){t=String(t||'');try{if(typeof mnStripPf==='function')t=mnStripPf(t);}catch(_a){}return t.replace(/\s+/g,'').toUpperCase();}var sN=nz(srcLab);
     var L=state.manholes||[];var tm=null,bd=0.5;for(var i=0;i<L.length;i++){var q=L[i];if(!q||q.wx==null)continue;var d=Math.hypot(q.wx-tx,q.wy-ty);if(d<bd){bd=d;tm=q;}}if(!tm)return null;
     var back=function(e){if(!e)return false;if(e.xy&&e.xy.length===2&&Math.hypot(e.xy[0]-srcXY[0],e.xy[1]-srcXY[1])<0.5)return true;if(sN&&e.lab&&nz(e.lab)===sN)return true;return false;};
     window._peerGwBusy9=true;try{
-      if(tm.type&&tm.type!=='mh'){var D=tm.dests||[];for(var j=0;j<D.length;j++){if(back(D[j])){var g1=_auxRowGw9(tm,j);if(g1&&g1.length&&_gwTot9(g1,'cnt')!=null)return g1;}}return null;}
-      var rec=(typeof mhSheetRec9==='function')?mhSheetRec9(tm):null;if(!rec)return null;var ks=['d1','d2','d3','d4'];for(var k=0;k<ks.length;k++){var LK=mnDestList(rec,ks[k])||[];for(var i2=0;i2<LK.length;i2++){if(back(LK[i2])){var g2=_mnRowGw9(rec,ks[k],i2);if(g2&&g2.length&&_gwTot9(g2,'cnt')!=null)return g2;}}}return null;
+      var _rz9=null;
+      if(tm.type&&tm.type!=='mh'){var D=tm.dests||[];for(var j=0;j<D.length&&!_rz9;j++){if(back(D[j])){var g1=_auxRowGw9(tm,j);if(g1&&g1.length&&_gwTot9(g1,'cnt')!=null)_rz9=g1;}}}
+      else{var rec=(typeof mhSheetRec9==='function')?mhSheetRec9(tm):null;if(rec){var ks=['d1','d2','d3','d4'];for(var k=0;k<ks.length&&!_rz9;k++){var LK=mnDestList(rec,ks[k])||[];for(var i2=0;i2<LK.length&&!_rz9;i2++){if(back(LK[i2])){var g2=_mnRowGw9(rec,ks[k],i2);if(g2&&g2.length&&_gwTot9(g2,'cnt')!=null)_rz9=g2;}}}}}
+      if(!window._peerGwC9||!window._peerGwC9.has)window._peerGwC9=new Map();window._peerGwC9.set(_ck9,_rz9);if(window._peerGwC9.size>4000)window._peerGwC9.clear();
+      return _rz9;
     }finally{window._peerGwBusy9=false;}}catch(_e){window._peerGwBusy9=false;return null;}}
 
 function _mnRowGw9(rec,k,ix,WP){/* [BUILD2390] 행 관정보 줄 목록 — ①dv.gw(사용자 명시, +/−로 관리) ②dv.gwOv(2384~2389 저장분) ③단독 방향=벽 구성 전체 승계 ④기본 1줄: 앞점 첫 그룹(관종·관경·관수=종전 단일값 규칙) → 벽 첫 그룹 → ext. legacy dv.cnt/nae는 그 1줄에(ext 있으면 ext 관경으로) */
@@ -11466,7 +11473,7 @@ function fldInspWin9(sel){
     try{card.querySelector('#fiUndo9').onclick=function(){if(typeof doUndo==='function')doUndo();else if(typeof undo==='function')undo();setTimeout(function(){fldInspWin9(window._fldInspSel9);},80);};
       card.querySelector('#fiRedo9').onclick=function(){if(typeof doRedo==='function')doRedo();else if(typeof redo==='function')redo();setTimeout(function(){fldInspWin9(window._fldInspSel9);},80);};
       card.querySelector('#fiFit9').onclick=function(){window._fldInspFitLock9=!window._fldInspFitLock9;try{localStorage.setItem('fldInspFitLock9',window._fldInspFitLock9?'1':'0');}catch(_l){}fldInspWin9(window._fldInspSel9);};}catch(_hb){}
-    card.querySelector('#fiRefresh9').onclick=function(){window._tgGwC9=null;try{_tgSegs=tangoBuildSegs();}catch(_r){}fldInspWin9(window._fldInspSel9);};
+    card.querySelector('#fiRefresh9').onclick=function(){window._tgGwC9=null;window._peerGwC9=null;try{_tgSegs=tangoBuildSegs();}catch(_r){}fldInspWin9(window._fldInspSel9);};
     var go=function(i){window._fldInspSel9=i;fldInspWin9(i);};
     card.querySelectorAll('.fiSeg9').forEach(function(b){b.onclick=function(){go(+this.getAttribute('data-i'));};});
     card.querySelectorAll('.fiCat9').forEach(function(b){b.onclick=function(){window._fldInspCat9=this.getAttribute('data-k');fldInspWin9(window._fldInspSel9);};});/* [BUILD2401] */
@@ -11630,7 +11637,7 @@ function mhDestPanel(mh,forcePick){
     if(!mh.dests[ix])return;
     _gwSetLine9(mh.dests[ix],_auxRowGw9(mh,ix),(gi==null?0:+gi),'nae',v);
     if(typeof saveProject==='function')try{saveProject();}catch(_s4){}
-    try{window._tgGwC9=null;if(typeof drawGeo==='function')drawGeo();}catch(_dg4){}/* [BUILD2354] 측점 라벨 (n) 즉시 반영 */
+    try{window._tgGwC9=null;window._peerGwC9=null;if(typeof drawGeo==='function')drawGeo();}catch(_dg4){}/* [BUILD2354] 측점 라벨 (n) 즉시 반영 */
     mhDestPanel(mh);
   }
   var _nl=w.querySelectorAll('.mhDNae');
@@ -11641,11 +11648,11 @@ function mhDestPanel(mh,forcePick){
   };}
   var _nlC=w.querySelectorAll('.mhDNaeC');
   for(var _ni2=0;_ni2<_nlC.length;_ni2++){_nlC[_ni2].onchange=function(){_rowNae9(+this.getAttribute('data-i'),this.value,this.getAttribute('data-g')||'0');};}
-  function _rowLine9(ix,gi,f,v){if(!mh.dests[ix])return;_gwSetLine9(mh.dests[ix],_auxRowGw9(mh,ix),+gi,f,v);if(typeof saveProject==='function')try{saveProject();}catch(_s5){}try{window._tgGwC9=null;if(typeof drawGeo==='function')drawGeo();}catch(_d5){}mhDestPanel(mh);}/* [BUILD2390] */
+  function _rowLine9(ix,gi,f,v){if(!mh.dests[ix])return;_gwSetLine9(mh.dests[ix],_auxRowGw9(mh,ix),+gi,f,v);if(typeof saveProject==='function')try{saveProject();}catch(_s5){}try{window._tgGwC9=null;window._peerGwC9=null;if(typeof drawGeo==='function')drawGeo();}catch(_d5){}mhDestPanel(mh);}/* [BUILD2390] */
   w.querySelectorAll('.mhDKind').forEach(function(b){b.onchange=function(){_rowLine9(+this.getAttribute('data-i'),this.getAttribute('data-g')||'0','kind',this.value);};});
   w.querySelectorAll('.mhDDia').forEach(function(b){b.onchange=function(){_rowLine9(+this.getAttribute('data-i'),this.getAttribute('data-g')||'0','dia',this.value);};});
   w.querySelectorAll('.mhDAddG').forEach(function(b){b.onclick=function(){var ix=+this.getAttribute('data-i');if(!mh.dests[ix])return;_gwAddLine9(mh.dests[ix],_auxRowGw9(mh,ix),(_PA9&&_PA9.gw)||[]);if(typeof saveProject==='function')try{saveProject();}catch(_s6){}mhDestPanel(mh);};});
-  w.querySelectorAll('.mhDDelG').forEach(function(b){b.onclick=function(){var ix=+this.getAttribute('data-i');if(!mh.dests[ix])return;var GWd=_auxRowGw9(mh,ix);_gwDelLine9(mh.dests[ix],GWd,GWd.length-1);if(typeof saveProject==='function')try{saveProject();}catch(_s7){}try{window._tgGwC9=null;if(typeof drawGeo==='function')drawGeo();}catch(_d7){}mhDestPanel(mh);};});
+  w.querySelectorAll('.mhDDelG').forEach(function(b){b.onclick=function(){var ix=+this.getAttribute('data-i');if(!mh.dests[ix])return;var GWd=_auxRowGw9(mh,ix);_gwDelLine9(mh.dests[ix],GWd,GWd.length-1);if(typeof saveProject==='function')try{saveProject();}catch(_s7){}try{window._tgGwC9=null;window._peerGwC9=null;if(typeof drawGeo==='function')drawGeo();}catch(_d7){}mhDestPanel(mh);};});
   var _dl=w.querySelectorAll('.mhDDelR');
   for(var _di=0;_di<_dl.length;_di++){_dl[_di].onclick=function(){
     var ix=+this.getAttribute('data-i');
