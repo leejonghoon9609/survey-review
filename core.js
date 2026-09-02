@@ -2728,10 +2728,10 @@ function removeDupLines(){
     var keep=[L.pts[0]];
     for(var i=0;i<L.pts.length-1;i++){
       var k=segKey(L.pts[i],L.pts[i+1]);
-      if(seen[k]){ if(keep.length>=2)out.push({layer:L.layer,pts:keep,note:L.note}); keep=[L.pts[i+1]]; }
+      if(seen[k]){ if(keep.length>=2)out.push(_lnClone9(L,keep)); keep=[L.pts[i+1]]; }/* [BUILD2429] */
       else { seen[k]=true; keep.push(L.pts[i+1]); }
     }
-    if(keep.length>=2)out.push({layer:L.layer,pts:keep,note:L.note});
+    if(keep.length>=2)out.push(_lnClone9(L,keep));/* [BUILD2429] */
   });
   state.lines=out;
 }
@@ -6537,8 +6537,8 @@ function deleteSegmentAt(wx,wy){wx-=ORG.x;wy+=ORG.y;/* [1524] */
   if(!best||bd>vb.w*0.03){toast('지울 선에 더 가까이 클릭하세요');return;}
   pushHist();
   var L=state.lines[best.li],left=L.pts.slice(0,best.si+1),right=L.pts.slice(best.si+1),repl=[];
-  if(left.length>=2)repl.push({layer:L.layer,pts:left,note:L.note});
-  if(right.length>=2)repl.push({layer:L.layer,pts:right});
+  if(left.length>=2)repl.push(_lnClone9(L,left));
+  if(right.length>=2){var _r9=_lnClone9(L,right);delete _r9.note;repl.push(_r9);}/* [BUILD2429] 속성 보존 */
   state.lines.splice.apply(state.lines,[best.li,1].concat(repl));
   clearSvg(gDraw);drawGeo();updMeta();toast('선 1개 삭제');_da2Off();
 }
@@ -20428,6 +20428,7 @@ function tgCarMhShow(mh){if(!_tgCarGeom||!mh||mh.wx==null)return true;if(_tgCarG
  for(var k in _tgCarGeom.xy){var q=k.split('_');if(Math.hypot(q[0]/100-mh.wx,q[1]/100-mh.wy)<0.3)return true;}return false;}
 
 /* ===== [1329] 관로선 엣지 분할 + 보기 버튼 헤더 배치 (탱고 전용) ===== */
+function _lnClone9(L,pts){/* [BUILD2429] 선 분할·복제 시 layer만 남기고 bult(탐사)·color·free·note 등 속성이 사라져 파랑 탐사선이 빨강으로 되돌아가던 것 — pts 외 전 키 복사 */var n={};for(var k in L){if(k!=='pts')n[k]=L[k];}n.pts=pts;return n;}
 function _tgCarLines(arr){if(!_tgCarGeom)return arr;var out=[];(arr||[]).forEach(function(L){
  if(!L||!L.pts){out.push(L);return;}
  if(L.layer!=='통신관로'){if(tgCarLineShow(L))out.push(L);return;}
