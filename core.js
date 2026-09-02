@@ -1312,7 +1312,7 @@ function drawGeo(){if(typeof _lyClr9==='function')_lyClr9();/* [BUILD2192] */_or
   ((typeof _tgCarLines==='function')?_tgCarLines(state.lines):state.lines).forEach(function(L,_LI9){if(bpOff&&L.base)return;/* [1329] 엣지 분할 필터 */
     if(!(LINECOL[L.layer]||L.crop))return;      // 백판은 위 통합 path로 처리됨
     if(L.crop&&(typeof LV!=='undefined')&&LV.bizbox===0)return;   /* [1092] 사업정보 끔 → 크롭 테두리도 같이 */
-    var def=LINECOL[L.layer]||{c:"#bbb",w:1.2};if(L.color)def={c:L.color,w:def.w,dash:def.dash};if(L.free)def={c:def.c,w:def.w,dash:"7 5"};/* [BUILD1846] 위치표시=점선 */if(L.crop)def={c:"#000",w:1.4};
+    var def=LINECOL[L.layer]||{c:"#bbb",w:1.2};if(L.color)def={c:L.color,w:def.w,dash:def.dash};if(L.bult)def={c:'#1565c0',w:def.w,dash:def.dash};/* [BUILD2428] 탐사관로선=파랑(기존 노랑 저장분도 파랑으로 표시) */if(L.free)def={c:def.c,w:def.w,dash:"7 5"};/* [BUILD1846] 위치표시=점선 */if(L.crop)def={c:"#000",w:1.4};
     var pts=(function(){var _G9=(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD)));var _o9=[],_P9=((typeof _xhPts9==='function')?_xhPts9(L,_LI9):L.pts),_i9,_a9,_b9;/* [BUILD1988] 크로스 반원 삽입 */for(_i9=0;_i9<_P9.length;_i9++){_a9=_P9[_i9];if(_G9&&_i9>0){_b9=_P9[_i9-1];var _dx9=_a9[0]-_b9[0],_dy9=_a9[1]-_b9[1],_dl9=Math.hypot(_dx9,_dy9);if(_dl9>5){var _n9=Math.ceil(_dl9/5);/* [1518] 50m→5m — 깊은 줌 컸링 커버 */for(var _k9=1;_k9<_n9;_k9++){var _t9=_k9/_n9,_sI9=S(_b9[0]+_dx9*_t9,_b9[1]+_dy9*_t9);_o9.push(_sI9[0]+','+_sI9[1]);}}}var _s9=S(_a9[0],_a9[1]);_o9.push(_s9[0]+','+_s9[1]);}return _o9.join(' ');})();/* [1494] 50m \ucd08\uacfc \uc138\uadf8 \ubcf4\uac04\uc810 \uc0bd\uc785 \u2014 Chromium vector-effect \ucef8\ub9c1 \ud68c\ud53c(\ud654\uba74 \ub3d9\uc77c) */
     var pl=el('polyline',{points:pts,fill:'none',stroke:def.c,'stroke-width':def.w,'vector-effect':'non-scaling-stroke','stroke-linejoin':'round','stroke-linecap':def.dash?'butt':'round'});
     if(def.dash)pl.setAttribute('stroke-dasharray',def.dash);
@@ -6410,7 +6410,7 @@ if(!((typeof LV!=='undefined')&&LV.depthchk===0))(state.depthCheck||[]).forEach(
   toast('DXF 내보내기 완료 — 다운로드됨');
 }
 function renderDraft(){clearSvg(gDraft);previewLine=null;if(!lineDraft)return;
-  var col=(window._drawBult?'#e6b800':((LINECOL[drawLayer]||{}).c||'#d92b2b')), lw=(LINECOL[drawLayer]||{}).w||1.6;/* [1511] */
+  var col=(window._drawBult?'#1565c0':((LINECOL[drawLayer]||{}).c||'#d92b2b')), lw=(LINECOL[drawLayer]||{}).w||1.6;/* [1511] *//* [BUILD2428] */
   for(var i=1;i<lineDraft.length;i++){var a=S(lineDraft[i-1][0],lineDraft[i-1][1]),b=S(lineDraft[i][0],lineDraft[i][1]);
     gDraft.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:col,'stroke-width':(window._drawFree?lw+1:lw),'stroke-dasharray':(window._drawFree?'7 5':'4 3'),'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}/* [BUILD1844] 위치표시=실선 */
   lineDraft.forEach(function(p){var s=S(p[0],p[1]);if(window._drawFree){if(drawLayer==='지거'){gDraft.appendChild(el('rect',{x:s[0]-0.147,y:s[1]-0.147,width:0.294,height:0.294,fill:'none',stroke:'#e6a800','stroke-width':2.5,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}else gDraft.appendChild(el('circle',{cx:s[0],cy:s[1],r:Math.max(0.3,7*((typeof pxToWorld==='function'&&pxToWorld())||0.06)),fill:'#f2b400',stroke:'#b8860b','stroke-width':1.6,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));/* [BUILD2155] 지거=측점 사각 미리보기 */}else{gDraft.appendChild(el('line',{x1:s[0],y1:s[1],x2:s[0],y2:s[1],stroke:'#1f6fd6','stroke-width':8,'stroke-linecap':'round','vector-effect':'non-scaling-stroke','pointer-events':'none'}));}});/* [BUILD1844] 위치표시 클릭점=노란 원 */
@@ -6493,7 +6493,7 @@ function _rtDrawPick(layer,bult){/* [BUILD1843] 지거/압입/탐사 그리기 �
   document.getElementById('rtDpFree').onclick=function(){ov.remove();startDraw(layer,bult,'free');};
 }
 function startDraw(layer,bult,pick){if(!pick&&((typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&(layer==='지거'||layer==='압입구간'||layer==='탐사구간'))||(typeof STAGE!=='undefined'&&STAGE==='survey'&&layer==='지거'))){_rtDrawPick(layer,bult);return;}/* [BUILD1843→2148] 후측량 지거선도 방식 선택(측점 연결/위치 표시) */window._drawFree=(pick==='free');drawLayer=layer||'통신관로';window._drawBult=!!bult;/* [1511] */mode='line';setModeUI();lineDraft=[];clearSvg(gDraft);clearSvg(gDraw);toast((drawLayer==='지거'?'지거선':(drawLayer==='압입구간'?'압입구간':(drawLayer==='탐사구간'?'탐사구간':'관로선')))+' 그리기: '+(window._drawFree?'화면 아무 곳이나 클릭(측점 무관)':'점 클릭')+' → Enter/Space 또는 "완료" (되돌리기=한 점 취소)');}
-function finishDraw(){if(lineDraft&&lineDraft.length>=2){pushHist();var rec={layer:drawLayer,pts:lineDraft.slice()};if(window._drawFree)rec.free=1;/* [BUILD1843] 표시용 — 측점 로직 제외 */if(window._drawBult){rec.color='#e6b800';rec.bult=1;}/* [1511] 불탐관로선=노랑 *//* [BUILD2168] 지거선 자동 태그 폐지 — 태그·인출선은 [지거 인출선/태그 넣기]로 수동 부착 */
+function finishDraw(){if(lineDraft&&lineDraft.length>=2){pushHist();var rec={layer:drawLayer,pts:lineDraft.slice()};if(window._drawFree)rec.free=1;/* [BUILD1843] 표시용 — 측점 로직 제외 */if(window._drawBult){rec.color='#1565c0';rec.bult=1;}/* [1511] 불탐관로선=노랑 → [BUILD2428] 탐사관로선=파랑 *//* [BUILD2168] 지거선 자동 태그 폐지 — 태그·인출선은 [지거 인출선/태그 넣기]로 수동 부착 */
     if(drawLayer==='지거'&&window._drawFree&&((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_REALTIME!=='undefined'&&IS_REALTIME))){/* [BUILD2153→2174] 위치표시=간접측량 — 후측량·실시간 공용, 정점마다 지거 측점 생성 */
       var _d9=(function(){var d=new Date();return String(d.getFullYear()).slice(2)+('0'+(d.getMonth()+1)).slice(-2)+('0'+d.getDate()).slice(-2);})();
       var _mx9=0;(state.points||[]).forEach(function(q){if(q&&q._jgf9){var m=new RegExp('^'+_d9+'-([0-9]+)(?:-1)?$')/* [BUILD2187] N·N-1 모두 */.exec(String(q.no||''));if(m)_mx9=Math.max(_mx9,parseInt(m[1],10)||0);}});if(window._jgStartNo9>0)_mx9=window._jgStartNo9-1;window._jgStartNo9=null;/* [BUILD2168] 팝업 지정 시작 번호 */
@@ -6660,7 +6660,7 @@ cv.addEventListener('pointermove',function(e){
   if(midPanning){var rr=cv.getBoundingClientRect();var ddx=(e.clientX-startC[0])/rr.width*startVB.w,ddy=(e.clientY-startC[1])/rr.height*startVB.h;vb.x=startVB.x-ddx;vb.y=startVB.y-ddy;applyVB();return;}
   if(dragging){var r=cv.getBoundingClientRect();var dx=(e.clientX-startC[0])/r.width*startVB.w,dy=(e.clientY-startC[1])/r.height*startVB.h;vb.x=startVB.x-dx;vb.y=startVB.y-dy;applyVB();}
   else if(mode==='line'&&lineDraft&&lineDraft.length){var w=toWorld(e.clientX,e.clientY);var last=S(lineDraft[lineDraft.length-1][0],lineDraft[lineDraft.length-1][1]);
-    if(!previewLine){previewLine=el('line',{stroke:(window._drawBult?'#e6b800':((LINECOL[drawLayer]||{}).c||'#d92b2b')),'stroke-width':1.2,'stroke-dasharray':'4 3','vector-effect':'non-scaling-stroke','pointer-events':'none'});gDraft.appendChild(previewLine);}
+    if(!previewLine){previewLine=el('line',{stroke:(window._drawBult?'#1565c0':((LINECOL[drawLayer]||{}).c||'#d92b2b')),'stroke-width':1.2,'stroke-dasharray':'4 3','vector-effect':'non-scaling-stroke','pointer-events':'none'});gDraft.appendChild(previewLine);}
     previewLine.setAttribute('x1',last[0]);previewLine.setAttribute('y1',last[1]);previewLine.setAttribute('x2',w[0]-ORG.x);previewLine.setAttribute('y2',w[1]+ORG.y);}
   else if(drawing&&cur){var w=SL(toWorld(e.clientX,e.clientY)),x=w[0],y=w[1];
     if(mode==='box'){cur.setAttribute('x',Math.min(sx,x));cur.setAttribute('y',Math.min(sy,y));cur.setAttribute('width',Math.abs(x-sx));cur.setAttribute('height',Math.abs(y-sy));}
@@ -7122,7 +7122,7 @@ var TB=[
     {t:'결선지우기(전체)',tone:'delall',fn:clearLines}]},
   {k:'pipe',label:'관로선편집',icon:'✎',c:{bg:'#e6effb',fg:'#2f7fe0'},tools:[
     {t:'관로선 그리기',tone:'draw',fn:function(){startDraw('통신관로');},activeMode:'line',bultChk:false},/* [1515] */
-    {t:'불탐관로선 그리기',tone:'bult',fn:function(){startDraw('통신관로',true);},activeMode:'line',bultChk:true},/* [1515] */
+    {t:'탐사관로선 그리기',tone:'bult',fn:function(){startDraw('통신관로',true);},activeMode:'line',bultChk:true},/* [1515] *//* [BUILD2428] 명칭 불탐→탐사 */
     {t:'관로선 지우기',tone:'del',mode:'delline',delLayer:'통신관로',hint:'지울 관로선 위에 마우스→두껍게 표시되면 클릭'},
     {t:'전체삭제',tone:'delall',fn:clearAllDraw}]},
   {k:'jiger',label:'지거편집',icon:'〰',c:{bg:'#fdf7e3',fg:'#c9920a'},tools:[
@@ -7150,7 +7150,7 @@ var TB=[
     {t:'끝점 검수',tone:'insp3',fn:inspectEndpoints,hint:'결선 끝점이 측점·맨홀에 붙어있는지 검수'}]},
   {k:'inspmk',label:'검수데이터 제작',icon:'\uD83E\uDDFE',c:{bg:'#fbe9e9',fg:'#df524b'},tools:[],custom:1}
 ];
-var TONE={data:{bg:'#eceef1',fg:'#6e757f'},draw:{bg:'#e7f3ea',fg:'#2a9e50'},del:{bg:'#fdf1dd',fg:'#d98200'},delall:{bg:'#fbe9e9',fg:'#df524b'},pick:{bg:'#e6effb',fg:'#2f7fe0'},shape:{bg:'#e6effb',fg:'#2f7fe0'},ok:{bg:'#e7f3ea',fg:'#2a9e50'},bad:{bg:'#fbe9e9',fg:'#df524b'},pt:{bg:'#efeafa',fg:'#7a52e0'},insp1:{bg:'#e6effb',fg:'#2f7fe0'},insp2:{bg:'#efeafa',fg:'#7a52e0'},insp3:{bg:'#e3f4ef',fg:'#109a82'},bult:{bg:'#fff3c4',fg:'#d4a900'}};/* [1512] 불탐=노랑 */
+var TONE={data:{bg:'#eceef1',fg:'#6e757f'},draw:{bg:'#e7f3ea',fg:'#2a9e50'},del:{bg:'#fdf1dd',fg:'#d98200'},delall:{bg:'#fbe9e9',fg:'#df524b'},pick:{bg:'#e6effb',fg:'#2f7fe0'},shape:{bg:'#e6effb',fg:'#2f7fe0'},ok:{bg:'#e7f3ea',fg:'#2a9e50'},bad:{bg:'#fbe9e9',fg:'#df524b'},pt:{bg:'#efeafa',fg:'#7a52e0'},insp1:{bg:'#e6effb',fg:'#2f7fe0'},insp2:{bg:'#efeafa',fg:'#7a52e0'},insp3:{bg:'#e3f4ef',fg:'#109a82'},bult:{bg:'#e3edfb',fg:'#1565c0'}};/* [1512] 불탐=노랑 → [BUILD2428] 탐사=파랑 */
 function toneStyle(tone,active){var c=TONE[tone]||{bg:'#f3f3f0',fg:'#333'};return active?('background:'+c.fg+';color:#fff;border:1px solid '+c.fg+';border-left:4px solid '+c.fg+';border-radius:0 8px 8px 0;font-weight:700;'):('background:#fff;color:'+c.fg+';border:1px solid #e3e3df;border-left:4px solid '+c.fg+';border-radius:0 8px 8px 0;font-weight:600;');}
 function railStyle(col,active){col=col||{bg:'#f3f3f0',fg:'#333'};return active?('background:'+col.bg+';color:'+col.fg+';border:1px solid '+col.fg+';border-left:4px solid '+col.fg+';border-radius:0 8px 8px 0;font-weight:700;'):('background:#fff;color:'+col.fg+';border:1px solid #e3e3df;border-left:4px solid '+col.fg+';border-radius:0 8px 8px 0;font-weight:600;');}
 var activeCat='pan';
