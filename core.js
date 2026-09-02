@@ -7399,7 +7399,7 @@ function tamsaDelTool(){/* [1502] 노란측점(탐사보완점) 전용 지우기
   var _bt=document.getElementById('tamsaDelBtn');if(_bt){_bt.style.background='#b8860b';_bt.style.color='#fff';}
   var sx,sy,dg=false,midP=false,mpx,mpy,mvb;
   function fin(){try{ov.remove();}catch(_e){}window._tdOv=null;document.removeEventListener('keydown',ek);if(_bt){_bt.style.background='#fff';_bt.style.color='#b8860b';}}
-  function ek(e){if(e.key==='Escape'){fin();toast('\ub178\ub780\uce21\uc810 \uc0ad\uc81c \uc885\ub8cc');}}
+  function ek(e){if(e.key==='Escape'||e.key==='Enter'||e.key===' '||e.code==='Space'){e.preventDefault();fin();toast('\ub178\ub780\uce21\uc810 \uc0ad\uc81c \uc885\ub8cc');}}/* [BUILD2425] 스페이스·엔터로도 종료 */
   document.addEventListener('keydown',ek);
   ov.addEventListener('wheel',function(e){e.preventDefault();if(typeof zoomAt==='function'){var _wf=(typeof wheelFactor==='function')?wheelFactor():1.13;zoomAt(e.deltaY>0?_wf:1/_wf,e.clientX,e.clientY);}},{passive:false});
   ov.addEventListener('pointerdown',function(e){if(e.button===1){e.preventDefault();midP=true;mpx=e.clientX;mpy=e.clientY;mvb={x:vb.x,y:vb.y};try{ov.setPointerCapture(e.pointerId);}catch(_){}return;}if(e.button!==0)return;dg=true;var r=wrap.getBoundingClientRect();sx=e.clientX-r.left;sy=e.clientY-r.top;box.style.display='block';box.style.left=sx+'px';box.style.top=sy+'px';box.style.width='0';box.style.height='0';try{ov.setPointerCapture(e.pointerId);}catch(_){}});
