@@ -16202,9 +16202,11 @@ st.appendChild(tab);ap();setInterval(pos,600);try{var cs9=document.createElement
     var anc=gb;
     var put=function(id,txt,bd,fg,fn,ml){var e=document.getElementById(id);if(!e){e=mk(id,txt,bd,fg,fn,ml);anc.insertAdjacentElement('afterend',e);}e.style.order=vw?'9':'';anc=e;};
     put('fldUndo9','\u21A9 \uB418\uB3CC\uB9AC\uAE30','#6d4c00','#6d4c00',function(){if(typeof doUndo==='function')doUndo();},'14px');
+    try{document.getElementById('fldUndo9').style.marginLeft='auto';document.getElementById('fldUndo9').style.order=vw?'9':'';}catch(_c1){}/* [BUILD2424] 왼쪽 auto */
     put('fldRedo9','\u21AA \uC55E\uC73C\uB85C','#6d4c00','#6d4c00',function(){if(typeof doRedo==='function')doRedo();},'8px');
     put('fldRestoreBtn','\u267B \uCE21\uC810 \uB418\uC0B4\uB9AC\uAE30','#1e7e34','#1e7e34',function(){if(typeof ptRestoreTool==='function')ptRestoreTool();},'12px');
     put('tamsaDelBtn','\uD83D\uDFE1 \uD0D0\uC0AC\uC810 \uC9C0\uC6B0\uAE30','#b8860b','#b8860b',function(){if(typeof tamsaDelTool==='function')tamsaDelTool();},'8px');/* [BUILD2421] 노란측점 전용 지우기(1502) — 클릭=1개·드래그=일괄 */
+    try{document.getElementById('tamsaDelBtn').style.marginRight='auto';}catch(_c2){}/* [BUILD2424] 오른쪽 auto — 거리산출↔보기 사이 가운데 정렬 */
   }catch(_e){}};
   ensure();setInterval(ensure,900);
 }catch(_e){}})();
