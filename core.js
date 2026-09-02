@@ -16197,8 +16197,8 @@ st.appendChild(tab);ap();setInterval(pos,600);try{var cs9=document.createElement
     b.style.cssText='display:inline-flex;align-items:center;justify-content:center;background:#fff;border:1.5px solid '+bd+';color:'+fg+';font-weight:800;padding:7px 12px;font-size:12.5px;border-radius:7px;cursor:pointer;white-space:nowrap;margin-left:'+(ml||'8px');
     b.onclick=function(){try{fn();}catch(_f){}};return b;};
   var ensure=function(){try{
-    var sb=document.getElementById('subbar');if(!sb)return;
-    var anc=sb.querySelector('button[data-g="measure"]');/* [BUILD2421] 거리산출 바로 뒤(보기 앞) 빈 자리 — 줄바꿈으로 2행에 떨어지던 것 */
+    var anc=document.querySelector('button[data-g="measure"]');/* [BUILD2422] 거리산출 버튼은 부바가 아니라 헤더 행에 있음 — 문서 전체에서 찾아 그 바로 뒤에 삽입(보기 전체와의 사이 빈 칸) */
+    var sb=anc?anc.parentNode:document.getElementById('subbar');if(!sb)return;
     var put=function(b){if(anc){anc.insertAdjacentElement('afterend',b);anc=b;}else sb.appendChild(b);};
     if(!document.getElementById('fldUndo9')){
       put(mk('fldUndo9','\u21A9 \uB418\uB3CC\uB9AC\uAE30','#6d4c00','#6d4c00',function(){if(typeof doUndo==='function')doUndo();},'14px'));
