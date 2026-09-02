@@ -4739,7 +4739,7 @@ STYLE
 100
 AcDbSymbolTable
  70
-2
+3
   0
 STYLE
   5
@@ -4799,7 +4799,7 @@ malgun.ttf
   0
 STYLE
   5
-2E
+4E
 330
 5
 100
