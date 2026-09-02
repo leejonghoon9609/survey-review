@@ -16197,19 +16197,14 @@ st.appendChild(tab);ap();setInterval(pos,600);try{var cs9=document.createElement
     b.style.cssText='display:inline-flex;align-items:center;justify-content:center;background:#fff;border:1.5px solid '+bd+';color:'+fg+';font-weight:800;padding:7px 12px;font-size:12.5px;border-radius:7px;cursor:pointer;white-space:nowrap;margin-left:'+(ml||'8px');
     b.onclick=function(){try{fn();}catch(_f){}};return b;};
   var ensure=function(){try{
-    var anc=document.querySelector('button[data-g="measure"]');/* [BUILD2422] 거리산출 버튼은 부바가 아니라 헤더 행에 있음 — 문서 전체에서 찾아 그 바로 뒤에 삽입(보기 전체와의 사이 빈 칸) */
-    var sb=anc?anc.parentNode:document.getElementById('subbar');if(!sb)return;
-    var put=function(b){if(anc){anc.insertAdjacentElement('afterend',b);anc=b;}else sb.appendChild(b);};
-    if(!document.getElementById('fldUndo9')){
-      put(mk('fldUndo9','\u21A9 \uB418\uB3CC\uB9AC\uAE30','#6d4c00','#6d4c00',function(){if(typeof doUndo==='function')doUndo();},'14px'));
-      put(mk('fldRedo9','\u21AA \uC55E\uC73C\uB85C','#6d4c00','#6d4c00',function(){if(typeof doRedo==='function')doRedo();}));
-    }else{anc=document.getElementById('fldRedo9')||anc;}
-    if(!document.getElementById('fldRestoreBtn')){
-      put(mk('fldRestoreBtn','\u267B \uCE21\uC810 \uB418\uC0B4\uB9AC\uAE30','#1e7e34','#1e7e34',function(){if(typeof ptRestoreTool==='function')ptRestoreTool();},'12px'));
-    }else{anc=document.getElementById('fldRestoreBtn')||anc;}
-    if(!document.getElementById('tamsaDelBtn')){
-      put(mk('tamsaDelBtn','\uD83D\uDFE1 \uD0D0\uC0AC\uC810 \uC9C0\uC6B0\uAE30','#b8860b','#b8860b',function(){if(typeof tamsaDelTool==='function')tamsaDelTool();},'8px'));/* [BUILD2421] 노란측점 전용 지우기(1502) — 클릭=1개·드래그=일괄 */
-    }
+    var gb=document.getElementById('globalbtns');if(!gb||!gb.parentNode)return;/* [BUILD2423] 실측: 거리산출은 header 안 #globalbtns 자식. viewer CSS `.viewer #globalbtns>*{display:none!important}` + renderSub의 innerHTML 재작성 때문에 안에 넣으면 사라짐(2422 실패 원인). BUILD2117 휴지통처럼 #globalbtns '형제'로 바로 뒤에 배치 — display:contents라 시각상 거리산출 바로 옆 */
+    var vw=document.body.classList.contains('viewer');
+    var anc=gb;
+    var put=function(id,txt,bd,fg,fn,ml){var e=document.getElementById(id);if(!e){e=mk(id,txt,bd,fg,fn,ml);anc.insertAdjacentElement('afterend',e);}e.style.order=vw?'9':'';anc=e;};
+    put('fldUndo9','\u21A9 \uB418\uB3CC\uB9AC\uAE30','#6d4c00','#6d4c00',function(){if(typeof doUndo==='function')doUndo();},'14px');
+    put('fldRedo9','\u21AA \uC55E\uC73C\uB85C','#6d4c00','#6d4c00',function(){if(typeof doRedo==='function')doRedo();},'8px');
+    put('fldRestoreBtn','\u267B \uCE21\uC810 \uB418\uC0B4\uB9AC\uAE30','#1e7e34','#1e7e34',function(){if(typeof ptRestoreTool==='function')ptRestoreTool();},'12px');
+    put('tamsaDelBtn','\uD83D\uDFE1 \uD0D0\uC0AC\uC810 \uC9C0\uC6B0\uAE30','#b8860b','#b8860b',function(){if(typeof tamsaDelTool==='function')tamsaDelTool();},'8px');/* [BUILD2421] 노란측점 전용 지우기(1502) — 클릭=1개·드래그=일괄 */
   }catch(_e){}};
   ensure();setInterval(ensure,900);
 }catch(_e){}})();
