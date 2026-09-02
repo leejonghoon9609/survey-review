@@ -18905,14 +18905,21 @@ function fldMapPick(items,title,cb,listFn,opts){
     var g=document.createElementNS(SVGNS,'g');g.id='gFldPick';
     cv.appendChild(g);
     fldPickSel={cb:cb,title:title,n:items.length,mob:mob,pend:null,listFn:listFn||null,opts:opts,hidden:(mob&&typeof _refHideSheet==='function')?_refHideSheet():[]};
+    var _mind9=1e18;for(var _i9=0;_i9<items.length&&_i9<400;_i9++)for(var _j9=_i9+1;_j9<items.length&&_j9<400;_j9++){var _dd9=Math.hypot(items[_i9].x-items[_j9].x,items[_i9].y-items[_j9].y);if(_dd9>0.01&&_dd9<_mind9)_mind9=_dd9;}
+    var _u9=(typeof pxToWorld==='function')?pxToWorld():0.1;
+    var _r9=Math.max(_u9*9,Math.min(2.1,(_mind9<1e17?_mind9*0.45:2.1)));/* [BUILD2414] 쌍둥이 맨홀(1~2m)도 안 겹치게: 반경=최근접 쌍 거리의 45%(최소 화면 9px) */
     items.forEach(function(q){
       var s2=S(q.x,q.y);
       var _pc=(opts.colorFn?opts.colorFn(q):null);
-      var c=el('circle',{cx:s2[0],cy:s2[1],r:2.1,fill:_pc||'#4fc3f7','fill-opacity':0.25,
+      var c=el('circle',{cx:s2[0],cy:s2[1],r:_r9,fill:_pc||'#4fc3f7','fill-opacity':0.25,
         stroke:_pc||'#0288d1','stroke-width':3.6,'vector-effect':'non-scaling-stroke'});
       if(_pc)c.setAttribute('data-pc',_pc);/* [1637] */
-      c.style.cursor='pointer';c.setAttribute('pointer-events','auto');
-      c.addEventListener('click',function(ev){ev.stopPropagation();fldPickChoose(q,c);});
+      c.style.cursor='pointer';c.setAttribute('pointer-events','auto');q._pickEl9=c;
+      c.addEventListener('mouseenter',function(){c.setAttribute('stroke-width',6.5);c.setAttribute('fill-opacity',0.45);});
+      c.addEventListener('mouseleave',function(){c.setAttribute('stroke-width',3.6);c.setAttribute('fill-opacity',0.25);});/* [BUILD2414] 선택 전 강조 */
+      c.addEventListener('click',function(ev){ev.stopPropagation();
+        var q2=q;try{var w=toWorld(ev.clientX,ev.clientY);var wx=w[0],wy=-w[1];var bd=1e18;items.forEach(function(t){var d=Math.hypot(t.x-wx,t.y-wy);if(d<bd){bd=d;q2=t;}});}catch(_nw){}/* [BUILD2414] 겹쳐도 클릭 지점 최근접 대상 선택(위에 그려진 원이 가로채던 것) */
+        fldPickChoose(q2,q2._pickEl9||c);});
       g.appendChild(c);
     });
     if(opts.anchor&&opts.anchor.length===2){/* [1646] \uae30\uc900 \ub9e8\ud640 \ud45c\uc2dc \u2014 \ucd08\ub85d \uc810\uc120 \uc6d0(\uc120\ud0dd \ubd88\uac00) */
