@@ -16189,6 +16189,26 @@ function pos(){try{var hid=!on&&getComputedStyle(rail).display==='none';tab.styl
 function ap(){if(on)rail.style.setProperty('display','none','important');else rail.style.removeProperty('display');try{localStorage.setItem('railHide9',on?'1':'0');}catch(_s){}pos();setTimeout(function(){pos();try{window.dispatchEvent(new Event('resize'));}catch(_r){}},30);}
 tab.onclick=function(ev){try{ev.stopPropagation();}catch(_c){}on=!on;ap();};window.railHide9=function(v){on=(v==null)?!on:!!v;ap();};
 st.appendChild(tab);ap();setInterval(pos,600);try{var cs9=document.createElement('style');cs9.id='cvBorder9';cs9.textContent='.canvas-wrap{border:1px solid #c9c9c3!important;box-sizing:border-box}';document.head.appendChild(cs9);}catch(_cb){}/* [BUILD2397] PC 도면창 얇은 테두리(1px 연회색) — 메뉴 접힘 시 도면 경계 표시 */}catch(_e){}})();
+/* [BUILD2420] 측량현장 PC 상단바: 강력 되돌리기(↩)·앞으로(↪) + ♻ 측점 되살리기(탱고와 동일 ptRestoreTool). 부바 재렌더에도 살아남게 주기 보증 */
+(function(){try{
+  if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return;if(typeof IS_POSITION!=='undefined'&&IS_POSITION)return;
+  if(typeof isMobileDevice==='function'&&isMobileDevice())return;
+  var mk=function(id,txt,bd,fg,fn,ml){var b=document.createElement('button');b.id=id;b.textContent=txt;
+    b.style.cssText='display:inline-flex;align-items:center;justify-content:center;background:#fff;border:1.5px solid '+bd+';color:'+fg+';font-weight:800;padding:7px 12px;font-size:12.5px;border-radius:7px;cursor:pointer;white-space:nowrap;margin-left:'+(ml||'8px');
+    b.onclick=function(){try{fn();}catch(_f){}};return b;};
+  var ensure=function(){try{
+    var sb=document.getElementById('subbar');if(!sb)return;
+    if(!document.getElementById('fldUndo9')){
+      sb.appendChild(mk('fldUndo9','\u21A9 \uB418\uB3CC\uB9AC\uAE30','#6d4c00','#6d4c00',function(){if(typeof doUndo==='function')doUndo();},'14px'));
+      sb.appendChild(mk('fldRedo9','\u21AA \uC55E\uC73C\uB85C','#6d4c00','#6d4c00',function(){if(typeof doRedo==='function')doRedo();}));
+    }
+    if(!document.getElementById('fldRestoreBtn')){
+      sb.appendChild(mk('fldRestoreBtn','\u267B \uCE21\uC810 \uB418\uC0B4\uB9AC\uAE30','#1e7e34','#1e7e34',function(){if(typeof ptRestoreTool==='function')ptRestoreTool();},'14px'));
+    }
+  }catch(_e){}};
+  ensure();setInterval(ensure,900);
+}catch(_e){}})();
+
 // 캔버스 영역 크기 변화(사진패널 열기/닫기·창 크기 등) 감지 → 배경지도 relayout + 종횡비 재맞춤
 if(window.ResizeObserver){
   var _cwEl=document.querySelector('.canvas-wrap');
