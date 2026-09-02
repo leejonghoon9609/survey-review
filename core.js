@@ -16198,12 +16198,17 @@ st.appendChild(tab);ap();setInterval(pos,600);try{var cs9=document.createElement
     b.onclick=function(){try{fn();}catch(_f){}};return b;};
   var ensure=function(){try{
     var sb=document.getElementById('subbar');if(!sb)return;
+    var anc=sb.querySelector('button[data-g="measure"]');/* [BUILD2421] 거리산출 바로 뒤(보기 앞) 빈 자리 — 줄바꿈으로 2행에 떨어지던 것 */
+    var put=function(b){if(anc){anc.insertAdjacentElement('afterend',b);anc=b;}else sb.appendChild(b);};
     if(!document.getElementById('fldUndo9')){
-      sb.appendChild(mk('fldUndo9','\u21A9 \uB418\uB3CC\uB9AC\uAE30','#6d4c00','#6d4c00',function(){if(typeof doUndo==='function')doUndo();},'14px'));
-      sb.appendChild(mk('fldRedo9','\u21AA \uC55E\uC73C\uB85C','#6d4c00','#6d4c00',function(){if(typeof doRedo==='function')doRedo();}));
-    }
+      put(mk('fldUndo9','\u21A9 \uB418\uB3CC\uB9AC\uAE30','#6d4c00','#6d4c00',function(){if(typeof doUndo==='function')doUndo();},'14px'));
+      put(mk('fldRedo9','\u21AA \uC55E\uC73C\uB85C','#6d4c00','#6d4c00',function(){if(typeof doRedo==='function')doRedo();}));
+    }else{anc=document.getElementById('fldRedo9')||anc;}
     if(!document.getElementById('fldRestoreBtn')){
-      sb.appendChild(mk('fldRestoreBtn','\u267B \uCE21\uC810 \uB418\uC0B4\uB9AC\uAE30','#1e7e34','#1e7e34',function(){if(typeof ptRestoreTool==='function')ptRestoreTool();},'14px'));
+      put(mk('fldRestoreBtn','\u267B \uCE21\uC810 \uB418\uC0B4\uB9AC\uAE30','#1e7e34','#1e7e34',function(){if(typeof ptRestoreTool==='function')ptRestoreTool();},'12px'));
+    }else{anc=document.getElementById('fldRestoreBtn')||anc;}
+    if(!document.getElementById('tamsaDelBtn')){
+      put(mk('tamsaDelBtn','\uD83D\uDFE1 \uD0D0\uC0AC\uC810 \uC9C0\uC6B0\uAE30','#b8860b','#b8860b',function(){if(typeof tamsaDelTool==='function')tamsaDelTool();},'8px'));/* [BUILD2421] 노란측점 전용 지우기(1502) — 클릭=1개·드래그=일괄 */
     }
   }catch(_e){}};
   ensure();setInterval(ensure,900);
