@@ -11309,10 +11309,18 @@ function fldInspHL9(i){/* [BUILD2371] 검수 전용 구간 색칠(구간설정 t
     var pl=document.createElementNS(NS,'polyline');pl.setAttribute('points',ps);pl.setAttribute('fill','none');pl.setAttribute('stroke','#7b1fa2');pl.setAttribute('stroke-opacity','0.45');pl.setAttribute('stroke-width','10');pl.setAttribute('vector-effect','non-scaling-stroke');pl.setAttribute('stroke-linecap','round');pl.setAttribute('stroke-linejoin','round');g.appendChild(pl);
     cv.insertBefore(g,cv.firstChild);}catch(_e){}}
 function _fldInspSnap9(raw,x,y){/* [BUILD2393] 점(x,y)을 구간 관로선(raw)에 사영 — {x,y,i(변 인덱스)} */try{var best=null,bd=1e18;for(var i=0;i<raw.length-1;i++){var a=raw[i],b=raw[i+1],vx=b[0]-a[0],vy=b[1]-a[1],L2=vx*vx+vy*vy;var t=L2?(((x-a[0])*vx+(y-a[1])*vy)/L2):0;if(t<0)t=0;if(t>1)t=1;var qx=a[0]+t*vx,qy=a[1]+t*vy;var d=Math.hypot(x-qx,y-qy);if(d<bd){bd=d;best={x:qx,y:qy,i:i};}}return best;}catch(_e){return null;}}
-function fldInspSheetSvg9(rec){/* [BUILD2405] 맨홀 야장 전개도 축소본 — rec 깊은 복사로 원본 무변경, 전개도 영역만 잘라(viewBox) 읽기 전용 */
+var _FI_WALL9={p1:[100,430,150,140],p2:[390,430,150,140],p3:[250,280,140,150],p4:[250,570,140,150]};/* [BUILD2419] 전개도 벽 판 좌표 */
+function fldInspSheetSvg9(rec,hl){/* [BUILD2405] 축소본 — rec 깊은 복사, 읽기 전용 *//* [BUILD2419] hl='d1~d4' 해당 벽 빨간 두꺼운 테두리 */
   try{if(!rec||typeof mnOpenForm!=='function')return '';var cp=JSON.parse(JSON.stringify(rec));var svg=mnOpenForm(cp,true)||'';if(!svg)return '';
     svg=svg.replace(/viewBox="0 0 720 980"/,'viewBox="30 225 640 545"').replace(/style="display:block;background:#fff;[^"]*"/,'style="display:block;background:#fff;width:100%;height:auto;pointer-events:none"');
+    try{var wk={d1:'p1',d2:'p2',d3:'p3',d4:'p4'}[hl];if(wk&&_FI_WALL9[wk]){var R=_FI_WALL9[wk];svg=svg.replace('</svg>','<g transform="translate(40,-12)"><rect x="'+R[0]+'" y="'+R[1]+'" width="'+R[2]+'" height="'+R[3]+'" fill="none" stroke="#e53935" stroke-width="5"/></g></svg>');}}catch(_hw){}
     return svg;}catch(_e){return '';}}
+function _fldInspPhoto9(url,tit){/* [BUILD2419] 벽 사진 라이트박스 */
+  try{if(!url)return;var o=document.getElementById('fiPhoto9');if(o)o.remove();
+    o=document.createElement('div');o.id='fiPhoto9';o.style.cssText='position:fixed;inset:0;z-index:13600;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;cursor:zoom-out';
+    o.innerHTML='<div style="color:#fff;font-weight:800;font-size:14px">'+String(tit||'')+'</div><img src="'+url+'" style="max-width:92vw;max-height:86vh;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,.5)">';
+    o.onclick=function(){o.remove();};document.body.appendChild(o);}catch(_e){}}
+
 function fldInspAuxTable9(mh){/* [BUILD2405] 보조시설물(JB·입상·인입) 인입창 읽기 전용 복사 — 앞점/총 + 행(관종·관경·관수·내관·시작시설물) + 배분 합계 */
   try{if(!mh)return '';var A=(typeof auxPipeAll9==='function')?auxPipeAll9(mh):{};var L=mh.dests||[];var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
     var TH='padding:3px 4px;border:1px solid #d99a91;background:#fbf1ef;font-weight:800;font-size:10.5px;color:#8c2f22;white-space:nowrap',TD='padding:3px 4px;border:1px solid #dcb4ad;font-size:11px;text-align:center;white-space:nowrap';
@@ -11328,7 +11336,7 @@ function _fldInspDirGw9(fac,from,to){/* 시설물 fac에서 to 쪽으로 나가�
   try{if(!fac)return null;function nz(t){t=String(t||'');try{if(typeof mnStripPf==='function')t=mnStripPf(t);}catch(_a){}return t.replace(/\s+/g,'').toUpperCase();}
     var toM=_fldInspFacAt9(to);var toN=toM?nz(toM.label):'';
     if(!fac.type||fac.type==='mh'){var rec=(typeof mhSheetRec9==='function')?mhSheetRec9(fac):null;if(!rec)return null;var ks=['d1','d2','d3','d4'];
-      for(var q=0;q<ks.length;q++){var L=mnDestList(rec,ks[q])||[];for(var i=0;i<L.length;i++){var e=L[i];if(!e)continue;var hit=false;if(e.xy&&e.xy.length===2&&Math.hypot(e.xy[0]-to.x,e.xy[1]-to.y)<2.5)hit=true;if(!hit&&e.lab&&toN&&nz(e.lab)===toN)hit=true;if(!hit&&e.lab&&typeof _lblMh9==='function'){try{var xy=_lblMh9(fac.wx,fac.wy,e.lab);if(xy&&Math.hypot(xy[0]-to.x,xy[1]-to.y)<2.5)hit=true;}catch(_l){}}if(!hit)continue;return {gw:_mnRowGw9(rec,ks[q],i),lab:String(e.lab||''),wall:{d1:'1(\uC11C)',d2:'2(\uB3D9)',d3:'3(\uBD81)',d4:'4(\uB0A8)'}[ks[q]]};}}return null;}
+      for(var q=0;q<ks.length;q++){var L=mnDestList(rec,ks[q])||[];for(var i=0;i<L.length;i++){var e=L[i];if(!e)continue;var hit=false;if(e.xy&&e.xy.length===2&&Math.hypot(e.xy[0]-to.x,e.xy[1]-to.y)<2.5)hit=true;if(!hit&&e.lab&&toN&&nz(e.lab)===toN)hit=true;if(!hit&&e.lab&&typeof _lblMh9==='function'){try{var xy=_lblMh9(fac.wx,fac.wy,e.lab);if(xy&&Math.hypot(xy[0]-to.x,xy[1]-to.y)<2.5)hit=true;}catch(_l){}}if(!hit)continue;return {gw:_mnRowGw9(rec,ks[q],i),lab:String(e.lab||''),wall:{d1:'1(\uC11C)',d2:'2(\uB3D9)',d3:'3(\uBD81)',d4:'4(\uB0A8)'}[ks[q]],wk:ks[q]};/* [BUILD2419] */}}return null;}
     var D=fac.dests||[];for(var j=0;j<D.length;j++){var d=D[j];if(!d)continue;var h2=false;if(d.xy&&d.xy.length===2&&Math.hypot(d.xy[0]-to.x,d.xy[1]-to.y)<2.5)h2=true;if(!h2&&d.lab&&toN&&nz(d.lab)===toN)h2=true;if(!h2)continue;return {gw:_auxRowGw9(fac,j),lab:String(d.lab||''),wall:''};}
     return null;}catch(_e){return null;}}
 function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시설물 | 종료시설물 | 인입·분기 정보] 3열 큰 틀 */
@@ -11341,17 +11349,32 @@ function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시�
       h+='<div style="flex:1;min-width:0;border:2px solid '+color+';border-radius:7px;padding:4px 8px;font-size:11.5px;display:flex;flex-direction:column;justify-content:center"><div style="font-weight:800;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+nm+(dg&&dg.wall?(' <span style="color:#888;font-weight:700">'+dg.wall+'</span>'):'')+'</div><div style="color:#0f7a86;font-weight:800">'+E(gt)+'</div></div></div>';
       h+='<div style="border:2px solid '+color+';border-radius:8px;padding:6px;min-height:260px;background:#fff;overflow:auto">';
       if(!fac)h+='<div style="color:#999;text-align:center;padding:20px 0">\uC5F0\uACB0\uB41C \uC2DC\uC124\uBB3C\uC744 \uCC3E\uC9C0 \uBABB\uD568</div>';
-      else if(isMh(fac)){var rec=(typeof mhSheetRec9==='function')?mhSheetRec9(fac):null;var svg=rec?fldInspSheetSvg9(rec):'';h+=svg||'<div style="color:#999;text-align:center;padding:20px 0">\uB9E8\uD640\uB3C4 \uC57C\uC7A5 \uC5C6\uC74C</div>';}
+      else if(isMh(fac)){var rec=(typeof mhSheetRec9==='function')?mhSheetRec9(fac):null;var svg=rec?fldInspSheetSvg9(rec,(dg&&dg.wk)||null):'';
+        if(svg){var sid='fiS'+Math.random().toString(36).slice(2,8);window._fldInspSheet9=window._fldInspSheet9||{};window._fldInspSheet9[sid]=rec;
+          h+='<div class="fiSheet9" data-sid="'+sid+'" style="cursor:pointer" title="\uBCBD \uD074\uB9AD=\uC0AC\uC9C4">'+svg+'</div>';}
+        else h+='<div style="color:#999;text-align:center;padding:20px 0">\uB9E8\uD640\uB3C4 \uC57C\uC7A5 \uC5C6\uC74C</div>';}
       else h+=fldInspAuxTable9(fac);
       h+='</div></div>';return h;}
     var h='<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:10px">';
     h+=col('\uC2DC\uC791\uC2DC\uC124\uBB3C','#2e7d32',fA,A,B);
     h+=col('\uC885\uB8CC\uC2DC\uC124\uBB3C','#c62828',fB,B,A);
     /* 인입·분기: 구간 관로선 위(끝점 제외) 1.5m 이내 보조 시설물 */
-    var raw=(window._tgSegRaw||[])[sel]||sg.map(function(n){return [n.x,n.y];});var mids=[];(state.manholes||[]).forEach(function(m){if(!m||m.wx==null)return;if(m===fA||m===fB)return;if(Math.hypot(m.wx-A.x,m.wy-A.y)<1.2||Math.hypot(m.wx-B.x,m.wy-B.y)<1.2)return;var sn=_fldInspSnap9(raw,m.wx,m.wy);if(sn&&Math.hypot(sn.x-m.wx,sn.y-m.wy)<1.5)mids.push(m);});
+    var raw=(window._tgSegRaw||[])[sel]||sg.map(function(n){return [n.x,n.y];});var mids=[],_seen9={};
+    var addM=function(m,gwTxt){if(!m)return;var k=(m.id!=null?('i'+m.id):(m.wx+'_'+m.wy));if(_seen9[k])return;_seen9[k]=1;mids.push({m:m,gw:gwTxt||''});};
+    (state.manholes||[]).forEach(function(m){if(!m||m.wx==null)return;if(m===fA||m===fB)return;if(Math.hypot(m.wx-A.x,m.wy-A.y)<1.2||Math.hypot(m.wx-B.x,m.wy-B.y)<1.2)return;var sn=_fldInspSnap9(raw,m.wx,m.wy);if(sn&&Math.hypot(sn.x-m.wx,sn.y-m.wy)<1.5)addM(m,'');});
+    try{(_tgSegs||[]).forEach(function(s2,i2){if(i2===sel||!s2||s2.length<2)return;var A2=s2[0],B2=s2[s2.length-1];
+      var tch=function(n){if(!n)return false;if(Math.hypot(n.x-A.x,n.y-A.y)<1.2||Math.hypot(n.x-B.x,n.y-B.y)<1.2)return false;var sn=_fldInspSnap9(raw,n.x,n.y);return sn&&Math.hypot(sn.x-n.x,sn.y-n.y)<0.6;};
+      var far=null;if(tch(A2))far=B2;else if(tch(B2))far=A2;if(!far)return;
+      var fm=_fldInspFacAt9(far);if(!fm||fm===fA||fm===fB)return;
+      var gwT='';try{var yj=(typeof _segAux9==='function')?_segAux9(s2):null;if(!yj||!yj.gw||!yj.gw.length)yj=(typeof _segYajang9==='function')?_segYajang9(s2):null;if(yj&&yj.gw&&yj.gw.length)gwT=_gwFmt9(_gwSort9(yj.gw),false);}catch(_gt){}
+      addM(fm,gwT);});}catch(_br){}/* [BUILD2419] 이 구간에 접속한 분기 구간의 반대편 시설물(빠지고 들어오는 것) */
     h+='<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px"><div style="border:2px solid #222;border-radius:7px;padding:4px 10px;font-weight:800;font-size:12px;color:#222;text-align:center">\uC778\uC785 / \uBD84\uAE30 \uC815\uBCF4 <span style="color:#888;font-weight:700">'+mids.length+'</span></div>';
     if(!mids.length)h+='<div style="border:2px solid #222;border-radius:8px;padding:20px 6px;color:#999;text-align:center;min-height:120px">\uAD6C\uAC04 \uB0B4 \uBD84\uAE30 \uC2DC\uC124\uBB3C \uC5C6\uC74C</div>';
-    mids.forEach(function(m){h+='<div style="border:2px solid #222;border-radius:8px;padding:6px;background:#fff">'+(isMh(m)?('<div style="font-weight:800;font-size:11px">'+E(m.label||'')+' (\uB9E8\uD640)</div>'):fldInspAuxTable9(m))+'</div>';});
+    mids.forEach(function(en){var m=en.m;var gwT=en.gw;
+      if(!gwT){try{if(!isMh(m)){var Am=auxPipeAll9(m);if(Am&&Am.gw&&Am.gw.length)gwT=_gwFmt9(_gwSort9(Am.gw),false);}}catch(_g2){}}
+      h+='<div style="border:2px solid #222;border-radius:8px;padding:6px;background:#fff">'
+        +'<div style="display:flex;align-items:center;gap:6px;font-weight:800;font-size:11px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(!isMh(m)&&typeof auxNo9==='function'&&auxNo9(m)?(auxNo9(m)+'.'):'')+E(m.label||'')+(isMh(m)?' (\uB9E8\uD640)':'')+'</span>'+(gwT?('<span style="color:#0f7a86;white-space:nowrap">'+E(gwT)+'</span>'):'')+'</div>'
+        +(isMh(m)?'':fldInspAuxTable9(m))+'</div>';});/* [BUILD2419] 관종·관경·관수 표기 */
     h+='</div></div>';return h;}catch(_e){try{console.warn('fldInspGwView9',_e);}catch(_c){}return '';}}
 function fldInspTags9(){/* [BUILD2372] 검수 전용 구간 태그+인출선(구간설정 tgDrawSegHL 태그부 복사·단순화). 판정색: 초록=일치·빨강=불일치·자주=선택. 수동 이동값(state.tgSegLabelOff)은 읽기만 */
   try{var cv=document.getElementById('cv');if(!cv)return;var old=document.getElementById('fldInspTagG9');if(old)old.remove();
@@ -11482,6 +11505,15 @@ function fldInspWin9(sel){
     var go=function(i){window._fldInspSel9=i;fldInspWin9(i);};
     card.querySelectorAll('.fiSeg9').forEach(function(b){b.onclick=function(){go(+this.getAttribute('data-i'));};});
     card.querySelectorAll('.fiCat9').forEach(function(b){b.onclick=function(){window._fldInspCat9=this.getAttribute('data-k');fldInspWin9(window._fldInspSel9);};});/* [BUILD2401] */
+    card.querySelectorAll('.fiSheet9').forEach(function(bx){bx.onclick=function(ev){try{
+      var rec=(window._fldInspSheet9||{})[this.getAttribute('data-sid')];if(!rec)return;
+      var sv=this.querySelector('svg');if(!sv)return;var r=sv.getBoundingClientRect();if(!r.width)return;
+      var sx=30+(ev.clientX-r.left)*(640/r.width),sy=225+(ev.clientY-r.top)*(545/r.height);sx-=40;sy+=12;/* 전개도 g translate(40,-12) 역보정 */
+      var hitK=null;for(var wk in _FI_WALL9){var R=_FI_WALL9[wk];if(sx>=R[0]&&sx<=R[0]+R[2]&&sy>=R[1]&&sy<=R[1]+R[3]){hitK=wk;break;}}
+      if(!hitK)return;var u=rec.photos&&rec.photos[hitK];var nm={p1:'1(\uC11C)',p2:'2(\uB3D9)',p3:'3(\uBD81)',p4:'4(\uB0A8)'}[hitK];
+      if(u)_fldInspPhoto9(u,(typeof mnLabel==='function'?mnLabel(rec):'')+' \u2014 '+nm+' \uBCBD \uC0AC\uC9C4');
+      else if(typeof toast==='function')toast(nm+' \uBCBD \uC0AC\uC9C4 \uC5C6\uC74C');
+    }catch(_sc){}};});/* [BUILD2419] 축소 야장 벽 클릭=사진 */
     card.querySelectorAll('.fiRow9').forEach(function(r){r.onclick=function(){go(+this.getAttribute('data-i'));};});
   }catch(_e){try{console.warn('fldInspWin9',_e);}catch(_c){}}
 }
