@@ -7623,6 +7623,7 @@ function updRegStatus(){
 if(_cnt){var _nL=0,_nH=0,_nM=0;(typeof finalCsvArr==='function'?finalCsvArr():[]).forEach(function(it){var _pp=(typeof parseInspCsv==='function')?parseInspCsv(it.text||''):[];_pp.forEach(function(p){if(p.skip)return;if(p.code==='l')_nL++;else if(p.code==='SKTM'||(typeof isMhCode==='function'&&isMhCode(p.code)))_nM++;else if(p.code==='B'||p.code==='D'||p.code==='BD')_nH++;});});/* [1354] */_cnt.textContent=(_nL||_nH||_nM)?('측점 '+_nL+'점 · 현황 '+_nH+'점 · 맨홀 '+_nM+'개'):'';}if(state.depthGround&&state.depthGround.length){var _r=(typeof computeDepth==='function')?computeDepth():{avg:0,ok:0,total:state.depthGround.length};if(_st)_st.textContent='복구후 '+state.depthGround.length+'점 등록됨'+((typeof finalCsvArr==='function'&&finalCsvArr().length)?(' ('+finalCsvArr().length+'CSV)'):'');if(_o&&_r)_o.textContent='✅ 평균심도 '+(_r.avg||0).toFixed(2)+'m · '+_r.ok+'/'+_r.total+'점 매칭';}})();
   _tg('clrDxf', (state.lines||[]).filter(function(l){return l.base;}).length>0);
   _tg('clrPho', !!(pendingPhotos&&pendingPhotos.length)||_upn9>0);/* [BUILD2179] */
+  try{var _ap=document.getElementById('rcAftPho');if(_ap){var _an=(typeof afterMap!=='undefined'&&afterMap)?Object.keys(afterMap).length:0;if(_an){_ap.textContent='후측량 사진 '+_an+'장 로딩됨';_ap.classList.add('done');}else{_ap.textContent='후측량 사진 (파일명=측점번호)';_ap.classList.remove('done');}_tg('clrAftPho',_an>0);}}catch(_ap9){}/* [BUILD2435] */
   if(typeof updRegStatusTamsa==='function')updRegStatusTamsa(); /* [1310] 탐사 카드 로딩상태 항상 동기화 */
 }
 function _openRegNow(){
@@ -7821,6 +7822,13 @@ function openAsbuilt(){
 document.getElementById('rcCsvBtn').onclick=function(){if(typeof IS_REALTIME==='undefined'||!IS_REALTIME){document.getElementById('fCsv').click();return;}var i9=document.getElementById('rcRawInp9');if(!i9){i9=document.createElement('input');i9.type='file';i9.id='rcRawInp9';i9.accept='.zip,.csv,.txt';i9.multiple=true;i9.style.display='none';document.body.appendChild(i9);i9.onchange=function(){var fs=[].slice.call(this.files||[]);this.value='';if(!fs.length)return;var zips=fs.filter(function(f){return /\.zip$/i.test(f.name||'');});var csvs=fs.filter(function(f){return /\.(csv|txt)$/i.test(f.name||'');});if(zips.length&&typeof rtRawZipUpMany9==='function')rtRawZipUpMany9(zips);if(csvs.length){var fc=document.getElementById('fCsv');if(fc){try{var dt=new DataTransfer();csvs.forEach(function(f){dt.items.add(f);});fc.files=dt.files;fc.dispatchEvent(new Event('change',{bubbles:true}));}catch(_d9){toast('CSV 주입 실패 — 드롭으로 올려주세요');}}}};}i9.click();};/* [BUILD2110] 직접 로딩=원시 ZIP·CSV 다중 */document.getElementById('rcAftBtn').onclick=function(){if(typeof openFinalCsvUpload==='function')openFinalCsvUpload();else document.getElementById('fAft').click();};var _clrAft=document.getElementById('clrAft');if(_clrAft)_clrAft.onclick=function(){state.finalCsv=[];if(state.fieldDone)state.fieldDone.csv=false;try{if(typeof aftRawClear9==='function')aftRawClear9();}catch(_ac9){}state.depthGround=null;state._depthManual=null;/* [1541] */state._depthAlign=null;if(online&&state.projectId)saveProject();if(typeof refreshFieldBar==='function')refreshFieldBar();var st=document.getElementById('rcAft');if(st)st.textContent='복구후 후측량 (.csv)';var o=document.getElementById('rcAftOut');if(o)o.textContent='';this.style.display='none';toast('심도 데이터 삭제');};(function(){if(!IS_TANGO&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD)){var c=document.getElementById('regAftCard');if(c)c.style.display='none';}})(); /* [1246] field도 표시(탱고 동일) — realtime은 계속 숨김 */
 document.getElementById('rcDxfBtn').onclick=function(){document.getElementById('fDxf').click();};
 document.getElementById('rcPhoBtn').onclick=function(){document.getElementById('fRegPhotos').click();};
+(function(){/* [BUILD2435] 후측량 사진 로딩 카드(측량현장) — 즉시 업로드(파일명=측점번호 → 번호_A) */
+  var b=document.getElementById('rcAftPhoBtn'),inp=document.getElementById('fRegAftPhotos'),dz=document.getElementById('dropAftPho'),cl=document.getElementById('clrAftPho');if(!b||!inp)return;
+  var go=function(list){expandPhotoFiles(list).then(function(files){if(!files.length){toast('처리할 사진이 없습니다');return;}if(typeof uploadAfterPhotos==='function')uploadAfterPhotos(files);else toast('후측량 업로드 함수 없음');setTimeout(function(){try{if(regOpen())updRegStatus();}catch(_e){}},1500);});};
+  b.onclick=function(){inp.click();};inp.addEventListener('change',function(e){go(e.target.files);e.target.value='';});
+  if(dz){dz.addEventListener('click',function(){inp.click();});if(typeof setupDrop==='function')setupDrop('dropAftPho',function(fs){go(fs);});}
+  if(cl)cl.onclick=function(){aftUpPhoList9();};
+})();
 (function(){
   var c1=document.getElementById('clrCsv');if(c1)c1.onclick=openCsvList;var c2=document.getElementById('clrAftList');if(c2)c2.onclick=openAftCsvList; /* [1248] field 전용 버튼(타 공정 html에 없음=무동작) */
   var c2=document.getElementById('clrPho');if(c2)c2.onclick=openPhotoList;
@@ -7828,7 +7836,7 @@ document.getElementById('rcPhoBtn').onclick=function(){document.getElementById('
 })();
 function openPhotoList(){
   if(!pendingPhotos||!pendingPhotos.length){
-    if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&typeof photoMap!=='undefined'&&photoMap&&(Object.keys(photoMap).length||(state.phoTrash9&&state.phoTrash9.length))){rtUpPhoList9();return;}/* [BUILD2179] 업로드 사진 목록 */
+    if(typeof photoMap!=='undefined'&&photoMap&&(Object.keys(photoMap).length||(state.phoTrash9&&state.phoTrash9.length))){rtUpPhoList9();return;}/* [BUILD2179] 업로드 사진 목록 *//* [BUILD2435] 실시간 전용 게이트 해제 — 측량현장에서 '선택된 사진이 없습니다'만 뜨던 원인 */
     toast('선택된 사진이 없습니다');return;}
   var ov=document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center';
@@ -7909,6 +7917,19 @@ function rtPhoDelAll9(cb){/* [BUILD2181] 업로드 사진 전체 삭제 — 3일
       ['catch'](function(e){console.error('phoDelAll',e);toast('삭제 오류: '+(e&&e.message||e));cb&&cb();});
   }else{toast('사진 전체 '+ks.length+'장 삭제 — 3일 내 복구 가능');cb&&cb();}
 }
+function aftUpPhoList9(){/* [BUILD2435] 후측량(_A) 업로드 사진 날짜별 목록·삭제(즉시 삭제, DB행+afterMap) */
+  try{var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center';
+    var box=document.createElement('div');box.style.cssText='background:#fff;border-radius:12px;max-width:460px;width:88%;max-height:74vh;display:flex;flex-direction:column;box-shadow:0 8px 30px rgba(0,0,0,.25)';
+    function render(){var G={};Object.keys(afterMap||{}).forEach(function(k){var d=_phoDay9(k);(G[d]=G[d]||[]).push(k);});var days=Object.keys(G).sort(),tot=Object.keys(afterMap||{}).length;
+      var rows=days.map(function(d){return '<div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid #f2f2f2;font-size:13px"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+_phoDayLbl9(d)+' <b style="color:#1a7a3a">'+G[d].length+'장</b></span><button data-d="'+d+'" data-arm="0" class="upl-x" style="flex:none;border:1px solid #e3b4ae;background:#fff;color:#c0392b;border-radius:6px;padding:3px 10px;font-size:12px;cursor:pointer">✕ 삭제</button></div>';}).join('');
+      if(!days.length)rows='<div style="color:#999;font-size:12px;padding:16px;text-align:center">업로드된 후측량 사진이 없습니다</div>';
+      box.innerHTML='<div style="display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid #eee"><b style="flex:1;font-size:15px">후측량 사진 ('+tot+'장)</b><button id="uplClose" style="border:none;background:#f2f2f2;border-radius:7px;padding:5px 11px;cursor:pointer">닫기</button></div><div style="overflow:auto">'+rows+'</div>';
+      box.querySelector('#uplClose').onclick=function(){ov.remove();};
+      [].forEach.call(box.querySelectorAll('.upl-x'),function(bt){bt.onclick=function(){var d=this.getAttribute('data-d');if(this.getAttribute('data-arm')!=='1'){this.setAttribute('data-arm','1');this.textContent='정말 삭제?';this.style.background='#c0392b';this.style.color='#fff';return;}
+        var keys=Object.keys(afterMap||{}).filter(function(k){return _phoDay9(k)===d;});keys.forEach(function(k){delete afterMap[k];});
+        try{if(typeof online!=='undefined'&&online&&typeof sb!=='undefined'&&state.projectId){keys.forEach(function(k){sb.from(DB+'_photos')['delete']().eq('project_id',state.projectId).eq('point_no',k+'_A').then(function(){});});}}catch(_e){}
+        toast('후측량 사진 '+keys.length+'장 삭제');try{drawGeo();}catch(_d){}try{if(regOpen())updRegStatus();}catch(_u){}render();};});}
+    render();ov.appendChild(box);ov.onclick=function(e){if(e.target===ov)ov.remove();};document.body.appendChild(ov);}catch(_e){}}
 function rtUpPhoList9(){
   _phoPurge9();
   var ov=document.createElement('div');
