@@ -161,6 +161,7 @@ function parseInspCsv(txt){
     var code=(iC>=0?(c[iC]||''):'').trim();
     var pdop=(iP>=0?(c[iP]||''):'').trim();
     if(code==='100x6'){out.push({code:'100x6',skip:true});continue;}   // 측설용 노출관로 성과 = 무시
+    if(/^\d+\s*[aA]$/.test(code)){out.push({code:code,skip:true});continue;}/* [BUILD2437] 지거 이격기준점 'Na' — 심도 6m로 오해석 방지(지거 편입은 _fldJgFromAft9) */
     if(code===''&&pdop==='')continue;                                   // 품질 빈칸·코드 없음 = 무시
     var _gz9=(isNaN(Z)?null:Z);/* [BUILD2289] \uc6d0\ubcf8 Z(\ub808\ubca8)=\uc9c0\ubc18\uace0 \ubcf4\uc874 \u2014 \uc544\ub798 [1446]\uc774 \ucf54\ub4dc \uc2ec\ub3c4\ub85c Z\ub97c \ub36e\uc5b4\uc4f4\ub2e4 */var _psf='',_ppv='';var _rawc=code;if(state.tamsa){var _tc=parseTamsaCode(code);if(_tc){_psf=_tc.surface||'';_ppv=_tc.pave||'';code=(_tc.code||(_tc.isT?'T':''));if(_tc.z!=null)Z=_tc.z;}}else{var _dm=/^[tT]?\s*([0-9]+(?:\.[0-9]+)?)\s*(\(|$)/.exec(code);if(_dm){Z=parseFloat(_dm[1]);}}/* [1446] 비탐사도 코드 심도(0.54·t0.84·0.65(100*3)) → z 반영 — 탐사 보완 구간 */
     out.push({name:(c[iN]||'').trim(),ex:Y,no:X,z:Z,gz9:_gz9,code:code,surface:_psf,pave:_ppv,_rawc:_rawc,_hyun:/^([BDS]|BD|DB)$/i.test((_rawc||'').trim())});        // ex=동(앱x)=CSV Y, no=북(앱y)=CSV X
@@ -8839,7 +8840,14 @@ function _fldAutoRisers(){ /* [1255] field 전용 — 후측량 CSV 전주입상
   try{drawManholes();}catch(e){}
   return n;
 }
-function finalCsvDepthSync(){
+function _fldJgFromAft9(){/* [BUILD2437] 후측량 CSV 카드에 넣은 지거 CSV(코드 Na / Ng d / Na 다음 심도숫자) → 측점으로 편입해 도면에 X(기준점)·측점+심도 표시. 재실행 시 이전 편입분(_fromAft9) 교체, 같은 번호 측점이 이미 있으면 건너뜀 */
+  try{if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return 0;if(typeof parseCsv!=='function')return 0;
+    state.points=(state.points||[]).filter(function(p){return !(p&&p._fromAft9);});
+    var arr=(typeof finalCsvArr==='function')?finalCsvArr():[],n=0,have={};(state.points||[]).forEach(function(p){if(p&&p.no)have[p.no]=1;});
+    arr.forEach(function(it){if(!it||!it.text)return;var pts;try{pts=parseCsv(it.text,it.name||'');}catch(_e){pts=[];}
+      pts.forEach(function(p){if(!p||(p.jg==null&&p.jgRef==null))return;if(have[p.no])return;p._fromAft9=1;p._csv=it.name||'';state.points.push(p);have[p.no]=1;n++;});});
+    return n;}catch(_e){return 0;}}
+function finalCsvDepthSync(){try{_fldJgFromAft9();}catch(_jg){}/* [BUILD2437] */
   var arr=finalCsvArr();
   if(typeof IS_FIELD!=='undefined'&&IS_FIELD){try{_fldAutoRisers();}catch(_ar){}try{_fldAutoAftMh();}catch(_am){}try{_fldAutoMnRecs();}catch(_mr){}} /* [1255~1258] 입상주·맨홈·야장 자동 */
   if(!arr.length){return;}
