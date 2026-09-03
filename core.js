@@ -6257,9 +6257,11 @@ EOF
     var cdOut=(cd&&(_bp||_LV.code!==0))?cd:'';
     var _dep=(_bp||_LV.depth===0)?null:(state.tamsa?((p.z!=null&&isFinite(p.z))?p.z:null):(state._depthByNo&&state._depthByNo[p.no]));var _hasDep=(_dep!=null&&isFinite(_dep));
     if(_bpHide){noOut='';cdOut='';}
-    if(noOut||cdOut)line(p.x,p.y,lo.lx,lo.ly,'PT_LEADER',7,'DASHED');
+    var _svAt9=(typeof STAGE!=='undefined'&&STAGE==='survey')&&!_bp;/* [BUILD2444] 후측량 결선 DXF: 번호·코드 텍스트 정렬점 = 측점 좌표(심도 [1507] 강력규칙과 동일). 번호=좌·기준선(점 위로), 코드=좌·상단정렬(점 아래로) → 같은 점에 붙어도 안 겹침. 인출선·라벨 이동값(lo) 미사용 */
+    if(_svAt9){if(noOut)text(p.x,p.y,TH,noOut,'PT_LABEL',3,0);if(cdOut)text(p.x,p.y,TH,cdOut,'PT_CODE',4,0,0,3);}
+    else{if(noOut||cdOut)line(p.x,p.y,lo.lx,lo.ly,'PT_LEADER',7,'DASHED');
     if(noOut)text(lo.lx,lo.ly+TH*0.1,TH,noOut,'PT_LABEL',_bp?2:3,al);
-    if(cdOut)text(lo.lx,lo.ly-TH*1.1,TH,cdOut,'PT_CODE',_bp?2:4,al);
+    if(cdOut)text(lo.lx,lo.ly-TH*1.1,TH,cdOut,'PT_CODE',_bp?2:4,al);}
     if(_hasDep){var _w3=(typeof pipeDirAt==='function')?pipeDirAt(p):null,_drot3=0,_vA3=1,_dpx=p.x,_dpy=p.y,_DH=(state.tamsa?TH*0.168:TH*0.1925)/* [1508] 30% 추가 축소 *//* [1504] 심도 절반 *//* [1360] 심도 30% 축소 0.12→0.084 */,_gap=state.tamsa?0.165:0;/* [1352] NaN 방지 */if(_w3){_drot3=Math.atan2(_w3[1],_w3[0])*180/Math.PI;if(_drot3>90)_drot3-=180;if(_drot3<-90)_drot3+=180;var _th3=_drot3*Math.PI/180,_lux3=-Math.sin(_th3),_luy3=Math.cos(_th3),_tnx=(lo.lx-p.x),_tny=(lo.ly-p.y),_s3;if(state.tamsa){_s3=((_lux3*_tnx+_luy3*_tny)<0)?1:-1;}else{_s3=(_dpSeq%2===0)?1:-1;_dpSeq++;}/* [1507] 정렬점=측점 좌표 부착(강력규칙), 위아래=valign 교대 *//* [1505] 결선: 순서 교대+관로선 이격 */_vA3=(_s3>0)?1:3;_dpx=p.x+_lux3*_s3*_gap;_dpy=p.y+_luy3*_s3*_gap;}var _dstr=(Math.round(_dep*100)/100).toFixed(2)+(state.tamsa?((p.surface==='도로')?'/AS':((p.surface==='보도')?'/B':'')):'');/* [1320] 도로=/AS 보도=/B *//* [1343] 심도 소속 명확화 배치 */if(state.tamsa&&_w3&&typeof _depOwnPick==='function'){var _tw2=_dstr.length*_DH*0.62,_ux2=Math.cos(_th3),_uy2=Math.sin(_th3);var _pk2=_depOwnPick(p.x,p.y,_ux2,_uy2,_lux3,_luy3,_tw2,_DH,_gap,_s3);_s3=_pk2.s;_gap=_pk2.g;_vA3=(_s3>0)?1:3;_dpx=p.x+_lux3*_s3*_gap;_dpy=p.y+_luy3*_s3*_gap;}if(state.tamsa){depthBlk(p.x,p.y,_DH,_dstr,_drot3,_vA3,_dpx,_dpy);}else text(_dpx,_dpy,_DH,_dstr,'PT_DEPTH',5,1,_drot3,_vA3,null,null);}
   });
   // 결선: LWPOLYLINE (압입=점선) + 지거/압입 멘트(인출선 점선 + 밑줄 + 중앙 글자)
@@ -6296,7 +6298,7 @@ EOF
     var _p=mhLabelBase(mh,w); var lx=_p.lx, lyy=_p.ly;
     var isRight=(lx>=mh.wx);
     var uw=w+MTH*0.12+1.2; var ux2=isRight?lx+uw:lx-uw; // 밑줄=글자폭+여유 +1.2m 연장(종훈님 CAD 실측)
-    pline([[mh.wx,mh.wy],[lx,lyy],[ux2,lyy]],lyr,col,false,null,null,0.10); // 대각선+밑줄=폴리선 1개(붙음)
+    pline([[mh.wx,mh.wy],[lx,lyy],[ux2,lyy]],lyr,col,false,null,null,((typeof STAGE!=='undefined'&&STAGE==='survey')?0.05:0.10)); // 대각선+밑줄=폴리선 1개(붙음) [BUILD2444] 후측량 결선은 두께 절반(0.05)
     if(mh.label)text((lx+ux2)/2,lyy+MTH*0.62,MTH,mhDisp(mh),lyr+'_LABEL',col,1);/* [1412] 간격 */if(!((typeof LV!=='undefined')&&LV.tgnote===0)){var _mn9=null,_mns9=state.tgNotes||[];for(var _m9=0;_m9<_mns9.length;_m9++){if(_mns9[_m9].mh&&Math.abs(_mns9[_m9].x-mh.wx)<0.5&&Math.abs(_mns9[_m9].y-mh.wy)<0.5){_mn9=_mns9[_m9];break;}}if(_mn9){var _ml9=(_mn9.text||'').split('\n').filter(function(t){return (''+t).trim()!=='';});for(var _y9=0;_y9<_ml9.length;_y9++)text(Math.min(lx,ux2),lyy-MTH*(1.95+_y9*1.35),MTH,_ml9[_y9],'NOTE',6,0);/* [1412] *//* [1380] 인출선 겹침 방지 *//* [1374] 왼쪽 정렬 */}}/* [1370] 여러 줄 */ // 꺾임점 기준 정렬(R=좌0,L=우2)
   });
   // 보강판 구역(관로결선 ±5M 밴드 + 연한 해치 + 태그/인출선) — true color 보강판색(#B8860B)
