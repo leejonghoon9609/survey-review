@@ -6258,7 +6258,7 @@ EOF
     var _dep=(_bp||_LV.depth===0)?null:(state.tamsa?((p.z!=null&&isFinite(p.z))?p.z:null):(state._depthByNo&&state._depthByNo[p.no]));var _hasDep=(_dep!=null&&isFinite(_dep));
     if(_bpHide){noOut='';cdOut='';}
     var _svAt9=(typeof STAGE!=='undefined'&&STAGE==='survey')&&!_bp;/* [BUILD2444] 후측량 결선 DXF: 번호·코드 텍스트 정렬점 = 측점 좌표(심도 [1507] 강력규칙과 동일). 번호=좌·기준선(점 위로), 코드=좌·상단정렬(점 아래로) → 같은 점에 붙어도 안 겹침. 인출선·라벨 이동값(lo) 미사용 */
-    if(_svAt9){if(noOut)text(p.x,p.y,TH,noOut,'PT_LABEL',3,0);if(cdOut)text(p.x,p.y,TH,cdOut,'PT_CODE',4,0,0,3);}
+    if(_svAt9){var _th6=TH*0.6;/* [BUILD2446] 측점 밀집 시 글자 겹침 → 번호·코드 높이 0.35→0.21(60%) */if(noOut)text(p.x,p.y,_th6,noOut,'PT_LABEL',3,0);if(cdOut)text(p.x,p.y,_th6,cdOut,'PT_CODE',4,0,0,3);}
     else{if(noOut||cdOut)line(p.x,p.y,lo.lx,lo.ly,'PT_LEADER',7,'DASHED');
     if(noOut)text(lo.lx,lo.ly+TH*0.1,TH,noOut,'PT_LABEL',_bp?2:3,al);
     if(cdOut)text(lo.lx,lo.ly-TH*1.1,TH,cdOut,'PT_CODE',_bp?2:4,al);}
@@ -6298,7 +6298,7 @@ EOF
     var _p=mhLabelBase(mh,w); var lx=_p.lx, lyy=_p.ly;
     var isRight=(lx>=mh.wx);
     var uw=w+MTH*0.12+1.2; var ux2=isRight?lx+uw:lx-uw; // 밑줄=글자폭+여유 +1.2m 연장(종훈님 CAD 실측)
-    pline([[mh.wx,mh.wy],[lx,lyy],[ux2,lyy]],lyr,col,false,null,null,((typeof STAGE!=='undefined'&&STAGE==='survey')?0.05:0.10)); // 대각선+밑줄=폴리선 1개(붙음) [BUILD2444] 후측량 결선은 두께 절반(0.05)
+    pline([[mh.wx,mh.wy],[lx,lyy],[ux2,lyy]],lyr,col,false,null,null,((typeof STAGE!=='undefined'&&STAGE==='survey')?0.025:0.10)); // 대각선+밑줄=폴리선 1개(붙음) [BUILD2444→2446] 후측량 결선은 두께 1/4(0.025)
     if(mh.label)text((lx+ux2)/2,lyy+MTH*0.62,MTH,mhDisp(mh),lyr+'_LABEL',col,1);/* [1412] 간격 */if(!((typeof LV!=='undefined')&&LV.tgnote===0)){var _mn9=null,_mns9=state.tgNotes||[];for(var _m9=0;_m9<_mns9.length;_m9++){if(_mns9[_m9].mh&&Math.abs(_mns9[_m9].x-mh.wx)<0.5&&Math.abs(_mns9[_m9].y-mh.wy)<0.5){_mn9=_mns9[_m9];break;}}if(_mn9){var _ml9=(_mn9.text||'').split('\n').filter(function(t){return (''+t).trim()!=='';});for(var _y9=0;_y9<_ml9.length;_y9++)text(Math.min(lx,ux2),lyy-MTH*(1.95+_y9*1.35),MTH,_ml9[_y9],'NOTE',6,0);/* [1412] *//* [1380] 인출선 겹침 방지 *//* [1374] 왼쪽 정렬 */}}/* [1370] 여러 줄 */ // 꺾임점 기준 정렬(R=좌0,L=우2)
   });
   // 보강판 구역(관로결선 ±5M 밴드 + 연한 해치 + 태그/인출선) — true color 보강판색(#B8860B)
