@@ -10071,6 +10071,82 @@ function mnSegFind9(a,b){
   return -1;
 }
 /* [BUILD1957] 맨홀 태그 방향 버튼 — 맨홀도 야장(dest d1~d4)과 직결 */
+/* ===== [BUILD2451] 맨홀 매칭 — 실시간 임의 맨홀(파랑) → 후측량 CSV 맨홀(검정)로 태그·야장·특이사항·관로선 끝점 이관, 파랑 자동삭제, 되돌리기 ===== */
+function mhMatchBlue9(m){return !!(m&&m.type==='mh'&&!m.insp&&!m._fromCsv&&!m._aft);}
+function mhMatchBlack9(m){return !!(m&&m.type==='mh'&&(m.insp||m._fromCsv||m._aft));}
+function mhMatchFlash9(mh){try{clearSvg(gSel);if(!mh)return;var sp=S(mh.wx,mh.wy);gSel.appendChild(el('circle',{cx:sp[0],cy:sp[1],r:1.1,fill:'none',stroke:'#e91ec4','stroke-width':3,'vector-effect':'non-scaling-stroke','pointer-events':'none'}));}catch(_e){}}
+function _mhById9(id){var A=state.manholes||[];for(var i=0;i<A.length;i++){if(A[i]&&String(A[i].id)===String(id))return A[i];}return null;}
+function mhMatchApply9(src,dst){
+  if(!src||!dst||src===dst)return false;
+  var sn={srcCopy:JSON.parse(JSON.stringify(src)),dstId:dst.id,dstBefore:JSON.parse(JSON.stringify(dst)),recs:[],notes:[],lines:JSON.stringify(state.lines||[])};
+  try{if(typeof pushHist==='function')pushHist();}catch(_h){}
+  /* 야장(mnList) mhId 이관 */
+  var L=(typeof mnList==='function')?mnList():(state.mnList||[]);
+  L.forEach(function(r){if(r&&r.mhId!=null&&String(r.mhId)===String(src.id)){sn.recs.push({id:r.id,prev:r.mhId});r.mhId=dst.id;r.up=new Date().toISOString();}});
+  /* 맨홀 특이사항(tgNotes mh) 좌표 이관 */
+  (state.tgNotes||[]).forEach(function(n,i){if(n&&n.mh&&Math.abs(n.x-src.wx)<0.5&&Math.abs(n.y-src.wy)<0.5){sn.notes.push({i:i,x:n.x,y:n.y});n.x=dst.wx;n.y=dst.wy;}});
+  /* 태그·방향·관정보 등 속성 이관(위치·출처 표식·라벨 오프셋 제외) */
+  var skip={id:1,wx:1,wy:1,type:1,insp:1,_fromCsv:1,_aft:1,_mhMatched:1,lx:1,ly:1};
+  for(var k in src){if(!Object.prototype.hasOwnProperty.call(src,k)||skip[k])continue;dst[k]=src[k];}
+  dst._edited=true;dst._mhMatched9={from:src.id,lab:(src.label||''),at:new Date().toISOString()};
+  /* 파랑 위치에 붙어 있던 관로선 끝점을 검정 위치로 */
+  try{if(typeof moveMhLines==='function')moveMhLines(dst,src.wx,src.wy);}catch(_l){}
+  /* 파랑 삭제 */
+  state.manholes=(state.manholes||[]).filter(function(m){return m!==src;});
+  (window._mhMatchUndo9=window._mhMatchUndo9||[]).push(sn);
+  try{if(typeof redrawAll==='function')redrawAll();else{drawGeo();drawManholes();}}catch(_d){}
+  try{if(typeof window.mnRerenderSheet==='function')window.mnRerenderSheet();}catch(_r){}
+  try{saveProject();}catch(_s){}
+  return true;
+}
+function mhMatchUndo9(){
+  var q=window._mhMatchUndo9;if(!q||!q.length){toast('되돌릴 매칭이 없습니다');return false;}
+  var sn=q.pop();
+  var dst=_mhById9(sn.dstId);if(dst){for(var k in dst){if(Object.prototype.hasOwnProperty.call(dst,k))delete dst[k];}for(var k2 in sn.dstBefore)dst[k2]=sn.dstBefore[k2];}
+  if(!_mhById9(sn.srcCopy.id))(state.manholes=state.manholes||[]).push(sn.srcCopy);
+  var L=(typeof mnList==='function')?mnList():(state.mnList||[]);
+  sn.recs.forEach(function(rr){for(var i=0;i<L.length;i++){if(L[i]&&L[i].id===rr.id){L[i].mhId=rr.prev;L[i].up=new Date().toISOString();}}});
+  sn.notes.forEach(function(nn){var n=(state.tgNotes||[])[nn.i];if(n){n.x=nn.x;n.y=nn.y;}});
+  try{state.lines=JSON.parse(sn.lines);}catch(_j){}
+  try{if(typeof redrawAll==='function')redrawAll();else{drawGeo();drawManholes();}}catch(_d){}
+  try{if(typeof window.mnRerenderSheet==='function')window.mnRerenderSheet();}catch(_r){}
+  try{saveProject();}catch(_s){}
+  toast('매칭 되돌림 — 파랑 '+(sn.srcCopy.label||'')+' 복구');
+  return true;
+}
+function mhMatchOpen9(){
+  var old=document.getElementById('mhMatchPanel9');if(old)old.remove();
+  var sel=null;
+  var pn=document.createElement('div');pn.id='mhMatchPanel9';
+  pn.style.cssText='position:fixed;left:230px;top:120px;width:560px;max-width:96vw;background:#fff;border:2px solid #1f6fd6;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,0.28);z-index:100000;font-size:13px;display:flex;flex-direction:column;overflow:hidden;';
+  pn.innerHTML='<div id="mhmHd9" style="padding:8px 12px;background:#e8f0fe;border-bottom:1px solid #c5d5f5;display:flex;align-items:center;gap:8px;cursor:move;user-select:none"><b style="font-size:14px">맨홀 매칭</b><span style="color:#555;font-size:12px">① 왼쪽 실시간 맨홀(파랑) 선택 → ② 오른쪽 후측량 맨홀(검정) 클릭 = 태그·야장 이관 후 파랑 삭제</span><span style="flex:1"></span><button id="mhmX9" style="border:1px solid #d32f2f;color:#d32f2f;background:#fff;border-radius:8px;padding:4px 12px;font-weight:800;cursor:pointer">닫기</button></div>'
+    +'<div style="display:flex;gap:8px;padding:8px 10px"><div style="flex:1;min-width:0"><div style="font-weight:800;color:#1f6fd6;margin-bottom:4px">실시간 맨홀(파랑)</div><div id="mhmL9" style="max-height:320px;overflow:auto;border:1px solid #dde;border-radius:8px"></div></div><div style="flex:1;min-width:0"><div style="font-weight:800;color:#222;margin-bottom:4px">후측량 맨홀(검정) — 가까운 순</div><div id="mhmR9" style="max-height:320px;overflow:auto;border:1px solid #dde;border-radius:8px"></div></div></div>'
+    +'<div style="display:flex;gap:8px;padding:6px 10px 10px;justify-content:center;border-top:1px solid #eee"><button id="mhmUndo9" style="border:1px solid #b58900;background:#fdf6e3;color:#8a6d00;border-radius:8px;padding:6px 14px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center">↶ 매칭 되돌리기</button><span id="mhmInfo9" style="align-self:center;color:#666;font-size:12px"></span></div>';
+  document.body.appendChild(pn);
+  var hd=pn.querySelector('#mhmHd9'),dx=0,dy=0,dr=false;
+  hd.addEventListener('pointerdown',function(e){if(e.target&&e.target.id==='mhmX9')return;dr=true;dx=e.clientX-pn.offsetLeft;dy=e.clientY-pn.offsetTop;try{hd.setPointerCapture(e.pointerId);}catch(_c){}});
+  hd.addEventListener('pointermove',function(e){if(!dr)return;pn.style.left=Math.max(0,e.clientX-dx)+'px';pn.style.top=Math.max(0,e.clientY-dy)+'px';});
+  hd.addEventListener('pointerup',function(){dr=false;});
+  function sheetOf(m){try{return (typeof mhSheetRec9==='function')?mhSheetRec9(m):null;}catch(_e){return null;}}
+  function row(txt,sub,on,hl){var d=document.createElement('div');d.style.cssText='padding:6px 8px;border-bottom:1px solid #f0f0f0;cursor:pointer;'+(hl?'background:#e3f2fd;outline:2px solid #1f6fd6;':'');d.innerHTML='<div style="font-weight:700">'+txt+'</div>'+(sub?('<div style="font-size:11.5px;color:#666">'+sub+'</div>'):'');d.onclick=on;d.onmouseenter=function(){d.style.background=hl?'#dbeafe':'#f7f9fc';};d.onmouseleave=function(){d.style.background=hl?'#e3f2fd':'';};return d;}
+  function esc(t){return String(t==null?'':t).replace(/</g,'&lt;');}
+  function render(){
+    var Lb=pn.querySelector('#mhmL9'),Rb=pn.querySelector('#mhmR9');Lb.innerHTML='';Rb.innerHTML='';
+    var blues=(state.manholes||[]).filter(mhMatchBlue9),blacks=(state.manholes||[]).filter(mhMatchBlack9);
+    if(sel&&blues.indexOf(sel)<0)sel=null;
+    if(!blues.length)Lb.innerHTML='<div style="padding:10px;color:#888">파랑(실시간 임의) 맨홀 없음</div>';
+    blues.forEach(function(m){var rc=sheetOf(m);var dn=(typeof mhSheetDestCount9==='function')?mhSheetDestCount9(m):0;Lb.appendChild(row(esc(m.label||'(라벨 없음)'),(rc?'야장 ✓':'야장 없음')+(dn?(' · 방향 '+dn):'')+(m.dests&&m.dests.length?(' · dests '+m.dests.length):''),function(){sel=m;mhMatchFlash9(m);render();},sel===m));});
+    if(!sel){Rb.innerHTML='<div style="padding:10px;color:#888">왼쪽에서 파랑 맨홀을 먼저 선택하세요</div>';}
+    else{
+      if(!blacks.length)Rb.innerHTML='<div style="padding:10px;color:#888">후측량(검정) 맨홀 없음 — 후측량 CSV를 먼저 로딩하세요</div>';
+      blacks.map(function(m){return {m:m,d:Math.hypot(m.wx-sel.wx,m.wy-sel.wy)};}).sort(function(a,b){return a.d-b.d;}).forEach(function(o){var m=o.m;var rc=sheetOf(m);Rb.appendChild(row(esc(m.label||'(라벨 없음)')+' <span style="color:#1f6fd6;font-weight:600">'+o.d.toFixed(1)+'m</span>',(rc?'야장 있음(덮어쓰지 않음, 파랑 야장이 추가됨)':'')+(m._mhMatched9?(' · 이미 매칭됨('+esc(m._mhMatched9.lab)+')'):''),function(){var s0=sel;mhMatchFlash9(m);if(mhMatchApply9(s0,m)){toast('매칭 완료 — '+(s0.label||'')+' → '+(m.label||'')+' (파랑 삭제)');sel=null;render();}},false));});
+    }
+    var q=window._mhMatchUndo9||[];pn.querySelector('#mhmInfo9').textContent=q.length?('되돌릴 수 있는 매칭 '+q.length+'건'):'';
+  }
+  pn.querySelector('#mhmX9').onclick=function(){pn.remove();try{clearSvg(gSel);}catch(_e){}};
+  pn.querySelector('#mhmUndo9').onclick=function(){if(mhMatchUndo9())render();};
+  render();
+}
 function mhSheetRec9(mh){
   try{
     if(!mh||mh.id==null)return null;
@@ -12723,7 +12799,7 @@ function mnOpenForm(rec,_hl9){/* [BUILD2405] _hl9=true: 화면 없이 야장 SVG
   var old=_hl9?null:document.getElementById('mnFormModal');if(old)old.remove();
   var wrap=null;
   var inner='<div style="background:#fff;'+(host?'width:100%;height:100%;border-radius:0':(mob?'width:100vw;height:100dvh;border-radius:0':'border-radius:14px;width:min(96vw,540px);max-height:95dvh'))+';display:flex;flex-direction:column;overflow:hidden">'
-    +'<div style="padding:9px 14px 7px;border-bottom:1px solid #f2f2f0;display:flex;align-items:center;flex:none"><b style="font-size:15.5px;white-space:nowrap">맨홀 조사야장</b><button id="mnFTrash" style="border:1px solid #b58900;background:#fdf6e3;color:#8a6d00;border-radius:9px;padding:7px 11px;margin-left:10px;cursor:pointer;font-weight:800;font-size:12px">🗑 삭제(야장)</button><span style="flex:1"></span><button id="mnFClose" style="border:1.5px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:9px;padding:8px 20px;cursor:pointer;font-size:14.5px;font-weight:800">닫기</button></div>'
+    +'<div style="padding:9px 14px 7px;border-bottom:1px solid #f2f2f0;display:flex;align-items:center;flex:none"><b style="font-size:15.5px;white-space:nowrap">맨홀 조사야장</b><button id="mnFTrash" style="border:1px solid #b58900;background:#fdf6e3;color:#8a6d00;border-radius:9px;padding:7px 11px;margin-left:10px;cursor:pointer;font-weight:800;font-size:12px">🗑 삭제(야장)</button>'+(((typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof STAGE!=='undefined'&&STAGE==='survey'))?'<button id="mnMatchBtn9" style="border:1px solid #1f6fd6;background:#e8f0fe;color:#1f6fd6;border-radius:9px;padding:7px 11px;margin-left:8px;cursor:pointer;font-weight:800;font-size:12px;display:inline-flex;align-items:center;justify-content:center">⇄ 맨홀 매칭</button>':'')+'<span style="flex:1"></span><button id="mnFClose" style="border:1.5px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:9px;padding:8px 20px;cursor:pointer;font-size:14.5px;font-weight:800">닫기</button></div>'
     +'<div style="padding:7px 12px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:4px;flex:none;flex-wrap:nowrap;overflow-x:auto"><button id="mnDxfBtn" style="flex:1;text-align:center;display:flex;align-items:center;justify-content:center;border:1px solid #c0392b;background:#fdeaea;color:#c0392b;border-radius:8px;padding:6px 2px;cursor:pointer;font-weight:700;font-size:11px;white-space:nowrap">📐 맨홀도DXF</button><button id="mnEqXls" style="flex:1;text-align:center;display:flex;align-items:center;justify-content:center;border:1px solid #1d9e75;background:#e1f5ee;color:#0f6e56;border-radius:8px;padding:6px 2px;cursor:pointer;font-weight:700;font-size:11px;white-space:nowrap">📄 설비사진엑셀</button><button id="mnPhotoDl" style="flex:1;text-align:center;display:flex;align-items:center;justify-content:center;border:1px solid #2471a3;background:#eef6fc;color:#2471a3;border-radius:8px;padding:6px 2px;cursor:pointer;font-weight:700;font-size:11px;white-space:nowrap">📥 맨홀사진다운</button><button id="mnEfb" style="flex:1;text-align:center;display:flex;align-items:center;justify-content:center;border:1px solid #8e44ad;background:#f4ecf9;color:#8e44ad;border-radius:8px;padding:6px 2px;cursor:pointer;font-weight:700;font-size:11px;white-space:nowrap">🖋 현장전자야장</button></div>'
     +'<div id="mnSheetBox" style="flex:1;overflow:auto;-webkit-overflow-scrolling:touch;background:#f4f4f2"></div>'
     +'<div style="display:flex;gap:8px;padding:10px 14px;border-top:1px solid #eee;flex:none">'
@@ -13114,6 +13190,7 @@ function mnOpenForm(rec,_hl9){/* [BUILD2405] _hl9=true: 화면 없이 야장 SVG
   }
   root.querySelector('#mnFClose').onclick=uClose;
   var _ft=root.querySelector('#mnFTrash');if(_ft)_ft.onclick=function(){mnTrashList(null);};
+  var _mm9=root.querySelector('#mnMatchBtn9');if(_mm9)_mm9.onclick=function(){try{mhMatchOpen9();}catch(_e){toast('맨홀 매칭 열기 오류: '+(_e&&_e.message||_e));}};/* [BUILD2451] */
   var _pdl=root.querySelector('#mnPhotoDl');if(_pdl)_pdl.onclick=function(){mnExpAsk('zip',rec);};
   var _eqx=root.querySelector('#mnEqXls');if(_eqx)_eqx.onclick=function(){mnExpAsk('xls',rec);};
   var _dxb=root.querySelector('#mnDxfBtn');if(_dxb)_dxb.onclick=function(){mnExpAsk('dxf',rec);};
