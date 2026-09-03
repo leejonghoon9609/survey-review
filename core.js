@@ -11506,35 +11506,41 @@ function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시�
     h+=col('\uC2DC\uC791\uC2DC\uC124\uBB3C','#2e7d32',fA,A,B);
     h+=col('\uC885\uB8CC\uC2DC\uC124\uBB3C','#c62828',fB,B,A);
     /* 인입·분기: 구간 관로선 위(끝점 제외) 1.5m 이내 보조 시설물 */
-    var raw=(window._tgSegRaw||[])[sel]||sg.map(function(n){return [n.x,n.y];});var mids=[],_seen9={};
-    var addM=function(m,gwTxt,jp,s2,i2){if(!m)return;var k=(m.id!=null?('i'+m.id):(m.wx+'_'+m.wy));if(_seen9[k])return;_seen9[k]=1;mids.push({m:m,gw:gwTxt||'',jp:jp||null,s2:s2||null,i2:(i2!=null?i2:-1)});};/* [BUILD2460] jp=이 구간 관로선 위 접속점 [BUILD2461] s2/i2=분기 구간 */
-    (state.manholes||[]).forEach(function(m){if(!m||m.wx==null)return;if(m===fA||m===fB)return;if(Math.hypot(m.wx-A.x,m.wy-A.y)<1.2||Math.hypot(m.wx-B.x,m.wy-B.y)<1.2)return;var sn=_fldInspSnap9(raw,m.wx,m.wy);if(sn&&Math.hypot(sn.x-m.wx,sn.y-m.wy)<1.5)addM(m,'',[sn.x,sn.y]);});
-    try{(_tgSegs||[]).forEach(function(s2,i2){if(i2===sel||!s2||s2.length<2)return;var A2=s2[0],B2=s2[s2.length-1];
-      var tch=function(n){if(!n)return false;if(Math.hypot(n.x-A.x,n.y-A.y)<0.35||Math.hypot(n.x-B.x,n.y-B.y)<0.35)return false;var sn=_fldInspSnap9(raw,n.x,n.y);return sn&&Math.hypot(sn.x-n.x,sn.y-n.y)<0.6;};/* [BUILD2431] 끝점 제외 1.2→0.35m — 맨홀 바로 옆에서 갈라지는 통신주·합류 구간도 인식 */
-      var far=null,_jp9=null;if(tch(A2)){far=B2;_jp9=[A2.x,A2.y];}else if(tch(B2)){far=A2;_jp9=[B2.x,B2.y];}
-      if(!far){/* [BUILD2432] 실측 대응: 분기 구간이 맨홀에서 출발해 이 구간과 겹쳐 달리다 갈라지는 경우(2구간→통신주, 3구간 합류) — 끝점을 공유하고 내부 노드 하나 이상이 이 구간 선 위(0.6m)에 있으면 분기 */
-        var shA=(Math.hypot(A2.x-A.x,A2.y-A.y)<0.35||Math.hypot(A2.x-B.x,A2.y-B.y)<0.35),shB=(Math.hypot(B2.x-A.x,B2.y-A.y)<0.35||Math.hypot(B2.x-B.x,B2.y-B.y)<0.35);
-        if(shA!==shB){var sh=shA?A2:B2,ov=false,_lastOn9=null,_farD9=-1;for(var q2=1;q2<s2.length-1;q2++){var n2=s2[q2];if(!n2||n2.x==null)continue;if(Math.hypot(n2.x-sh.x,n2.y-sh.y)<0.35)continue;var sn2=_fldInspSnap9(raw,n2.x,n2.y);if(sn2&&Math.hypot(sn2.x-n2.x,sn2.y-n2.y)<0.6){ov=true;var _dd9=Math.hypot(n2.x-sh.x,n2.y-sh.y);if(_dd9>_farD9){_farD9=_dd9;_lastOn9=[sn2.x,sn2.y];}}}/* [BUILD2462] 접속점 = 공유 끝점에서 가장 먼 선 위 노드(s2 순서 무관) */
-          if(ov){far=shA?B2:A2;_jp9=_lastOn9;}}}
-      if(!far)return;
-      var fm=_fldInspFacAt9(far);if(!fm||fm===fA||fm===fB)return;
-      var gwT='';try{var yj=(typeof _segAux9==='function')?_segAux9(s2):null;if(!yj||!yj.gw||!yj.gw.length)yj=(typeof _segYajang9==='function')?_segYajang9(s2):null;if(yj&&yj.gw&&yj.gw.length)gwT=_gwFmt9(_gwSort9(yj.gw),false);}catch(_gt){}
-      addM(fm,gwT,_jp9,s2,i2);});}catch(_br){}/* [BUILD2419] 이 구간에 접속한 분기 구간의 반대편 시설물(빠지고 들어오는 것) */
-    /* [BUILD2460] 인입/분기 판정(사용자 정의): 접속점 앞뒤 측점 코드 관수 비교 — 늘면 인입(+), 줄면 분기(−). 기준 = 구간 진행방향(시작→종료) 측점 체인 */
-    var _rawD9=raw;try{if(raw&&raw.length>=2&&Math.hypot(raw[0][0]-A.x,raw[0][1]-A.y)>Math.hypot(raw[raw.length-1][0]-A.x,raw[raw.length-1][1]-A.y))_rawD9=raw.slice().reverse();}catch(_rd){}/* [BUILD2462] raw가 종료→시작 순이면 뒤집어 체인 거리 = 시작시설물 기준 */
-    var _chain9=function(x,y){try{var sn=_fldInspSnap9(_rawD9,x,y);if(!sn)return null;var c=0;for(var q=0;q<sn.i;q++)c+=Math.hypot(_rawD9[q+1][0]-_rawD9[q][0],_rawD9[q+1][1]-_rawD9[q][1]);return c+Math.hypot(sn.x-_rawD9[sn.i][0],sn.y-_rawD9[sn.i][1]);}catch(_e){return null;}};
-    var _ptsC9=[];try{sg.forEach(function(n){if(!n||n.x==null||n.mh||n.tamsa||!n.no)return;var q=(typeof pointByNo==='function')?pointByNo(n.no):null;if(!q)return;/* [BUILD2461] 구간 노드에는 코드가 없음(fldSegAudit9와 동일하게 pointByNo) */var g=(typeof _gwParseAll9==='function')?_gwParseAll9(q.code||''):[];var t=_gwTot9(g,'cnt');if(t==null)return;var c=_chain9(n.x,n.y);if(c==null)return;_ptsC9.push({c:c,cnt:t,no:n.no||''});});}catch(_pc){}_ptsC9.sort(function(a,b){return a.c-b.c;});
-    var _judge9=function(jp){if(!jp||!_ptsC9.length)return null;var jc=_chain9(jp[0],jp[1]);if(jc==null)return null;var bf=null,af=null;for(var q=0;q<_ptsC9.length;q++){var pp=_ptsC9[q];if(pp.c<jc-0.3)bf=pp;else if(pp.c>jc+0.3&&!af)af=pp;}if(!bf||!af)return {k:'?',bf:bf,af:af,jc:jc};var d=af.cnt-bf.cnt;return {k:d>0?'in':(d<0?'br':'eq'),d:d,bf:bf,af:af,jc:jc};};
-    mids.forEach(function(en){en.j=_judge9(en.jp);});mids.sort(function(a,b){return ((a.j&&a.j.jc!=null)?a.j.jc:1e9)-((b.j&&b.j.jc!=null)?b.j.jc:1e9);});
-    var _badge9=function(j){if(!j)return '<span style="background:#eee;color:#777;border-radius:6px;padding:1px 6px;font-size:10.5px">접속점 없음</span>';if(j.k==='?')return '<span style="background:#eee;color:#777;border-radius:6px;padding:1px 6px;font-size:10.5px">판정불가(앞뒤 측점 부족)</span>';var t=j.k==='in'?('인입 +'+j.d):(j.k==='br'?('분기 −'+(-j.d)):'변화 없음');var bg=j.k==='in'?'#e8f5e9':(j.k==='br'?'#ffe5e5':'#f1f1f1'),fg=j.k==='in'?'#2e7d32':(j.k==='br'?'#c62828':'#666');return '<span style="background:'+bg+';color:'+fg+';border-radius:6px;padding:1px 7px;font-size:11px;font-weight:900;white-space:nowrap">'+t+'</span><span style="color:#888;font-size:10.5px;white-space:nowrap"> 관수 '+j.bf.cnt+'→'+j.af.cnt+' ('+E(j.bf.no)+'→'+E(j.af.no)+')</span>';};
+    var raw=(window._tgSegRaw||[])[sel]||sg.map(function(n){return [n.x,n.y];});var mids=[];
+    /* ===== [BUILD2463] 인입/분기 = 측점 관수 변화 추적(사용자 절차) =====
+       ① 선택 구간 노드를 시작→종료 순서로 걸으며 코드 측점 관수 변화점(Δ) 검출
+       ② 변화점 노드(앞·뒤)를 공유하는 다른 구간에서, 선택 구간과 겹치지 않는 쪽으로 걸어 나가 첫 코드 측점 = 들어오는/나가는 관정보, 끝 노드 = 시설물
+       ③ Δ>0 인입 / Δ<0 분기, 상대 구간 없으면 접속점 1.5m 안 보조시설물(인입창) → 그것도 없으면 미확인
+       기존 근접 시설물 스캔·2432 겹침 판정은 폐기 */
+    var _onS9=function(x,y){try{var sn=_fldInspSnap9(raw,x,y);return !!(sn&&Math.hypot(sn.x-x,sn.y-y)<0.6);}catch(_e){return false;}};
+    var _codeOf9=function(n){try{if(!n||n.mh||n.tamsa||!n.no)return null;var q=(typeof pointByNo==='function')?pointByNo(n.no):null;if(!q)return null;var g=_gwParseAll9(q.code||'');var t=_gwTot9(g,'cnt');if(t==null)return null;return {cnt:t,fmt:_gwFmt9(_gwSort9(g),false),no:q.no,code:q.code};}catch(_e){return null;}};
+    var NC=[];sg.forEach(function(n,idx){var c=_codeOf9(n);if(c){c.idx=idx;c.n=n;NC.push(c);}});
+    var JS=[];for(var ci=1;ci<NC.length;ci++){var d=NC[ci].cnt-NC[ci-1].cnt;if(d!==0)JS.push({d:d,bf:NC[ci-1],af:NC[ci]});}
+    var _walk9=function(s2,i2,k){/* s2[k]가 선택 구간과 공유되는 노드. 겹치지 않는 방향으로 끝까지 → {fmt,cnt,endNode,line} */
+      var dirs=[];if(k+1<s2.length&&!_onS9(s2[k+1].x,s2[k+1].y))dirs.push(1);if(k-1>=0&&!_onS9(s2[k-1].x,s2[k-1].y))dirs.push(-1);
+      if(!dirs.length)return null;var dr=dirs[0];var line=[[s2[k].x,s2[k].y]],first=null,q=k+dr,endN=s2[k];
+      while(q>=0&&q<s2.length){var n=s2[q];if(!n||n.x==null)break;line.push([n.x,n.y]);endN=n;if(!first){var c=_codeOf9(n);if(c)first=c;}q+=dr;}
+      return {fmt:first?first.fmt:'',cnt:first?first.cnt:null,firstNo:first?first.no:'',endNode:endN,line:line,s2:s2,i2:i2};};
+    var _seen9={};
+    JS.forEach(function(J){var jn=(J.d>0)?[J.af.n,J.bf.n]:[J.bf.n,J.af.n];/* 인입=늘어난 측점(T점) 우선, 분기=줄기 직전 측점 우선 */var found=null;
+      for(var t=0;t<jn.length&&!found;t++){var jnode=jn[t];
+        (_tgSegs||[]).forEach(function(s2,i2){if(found||i2===sel||!s2||s2.length<2)return;for(var k=0;k<s2.length;k++){var n2=s2[k];if(!n2||n2.x==null)continue;if(Math.hypot(n2.x-jnode.x,n2.y-jnode.y)>0.35)continue;var w=_walk9(s2,i2,k);if(w){w.jp=[jnode.x,jnode.y];w.jn=jnode;found=w;}break;}});}
+      var fac=found?(found.endNode.mh?_fldInspFacAt9(found.endNode):(_fldInspFacAt9(found.endNode)||null)):null;
+      if(!found){/* 상대 구간 없음 → 접속점 근처 보조시설물 */var jn0=jn[0];var best=null,bd=1.5;(state.manholes||[]).forEach(function(m){if(!m||m.wx==null||m===fA||m===fB)return;var dd=Math.hypot(m.wx-jn0.x,m.wy-jn0.y);if(dd<bd){bd=dd;best=m;}});if(best){fac=best;found={fmt:'',cnt:null,firstNo:'',endNode:null,line:[[best.wx,best.wy],[jn0.x,jn0.y]],s2:null,i2:-1,jp:[jn0.x,jn0.y],jn:jn0};}}
+      if(found&&!found.fmt&&fac&&!isMh(fac)){try{var Am=auxPipeAll9(fac);if(Am&&Am.gw&&Am.gw.length){found.fmt=_gwFmt9(_gwSort9(Am.gw),false);found.cnt=_gwTot9(Am.gw,'cnt');found.src='인입창';}}catch(_a){}}
+      if(found&&found.fmt&&!found.src)found.src='측점';
+      var key=(fac?('f'+(fac.id!=null?fac.id:(fac.wx+'_'+fac.wy))):'x')+'@'+(J.d>0?J.af.no:J.bf.no);if(_seen9[key])return;_seen9[key]=1;
+      mids.push({m:fac||{label:'(상대 라인 미확인)',type:'?'},gw:'',gwF:found?found.fmt:'',gwSrc:found?(found.src||''):'',gwCnt:found?found.cnt:null,jp:found?found.jp:[jn[0].x,jn[0].y],s2:found?found.s2:null,i2:found?found.i2:-1,line:found?found.line:null,j:{k:J.d>0?'in':'br',d:J.d,bf:J.bf,af:J.af,jc:J.af.idx}});});
+    mids.sort(function(a,b){return a.j.jc-b.j.jc;});
     var _nIn9=mids.filter(function(e){return e.j&&e.j.k==='in';}).length,_nBr9=mids.filter(function(e){return e.j&&e.j.k==='br';}).length;
     /* [BUILD2461] 인입/분기 표 — 구분 · 시설물 · 관종 관경x관수(분기 구간 측점 코드 최빈값 → 야장 → 보조 인입창) · 관수 변화. 행 클릭 = 도면에 그 라인 강조 */
     var _brGw9=function(en){try{
+      if(en.gwF){var _mm9=(en.gwCnt!=null&&en.j&&Math.abs(en.j.d)!==en.gwCnt);return E(en.gwF)+' <span style="color:#999;font-weight:600">('+E(en.gwSrc||'측점')+')</span>'+(_mm9?'<div style="color:#c62828;font-size:10px;font-weight:800">⚠ 변화 '+Math.abs(en.j.d)+' ≠ 라인 '+en.gwCnt+'</div>':'');}/* [BUILD2463] 상대 라인 첫 측점 관정보 · |Δ|와 다르면 경고 */
       if(en.s2&&en.s2.length){var cnt={},best='',bn=0;en.s2.forEach(function(n){if(!n||n.mh||n.tamsa||!n.no)return;var q=(typeof pointByNo==='function')?pointByNo(n.no):null;if(!q)return;var f=_gwFmt9(_gwSort9(_gwParseAll9(q.code||'')),false);if(!f)return;cnt[f]=(cnt[f]||0)+1;if(cnt[f]>bn){bn=cnt[f];best=f;}});if(best)return best+' <span style="color:#999;font-weight:600">(측점)</span>';}
       if(en.gw)return E(en.gw)+' <span style="color:#999;font-weight:600">(야장)</span>';
       if(!isMh(en.m)){var Am=auxPipeAll9(en.m);if(Am&&Am.gw&&Am.gw.length)return E(_gwFmt9(_gwSort9(Am.gw),false))+' <span style="color:#999;font-weight:600">(인입창)</span>';}
       return '-';}catch(_e){return '-';}};
-    var _lines9=mids.map(function(en){try{var rw2=(en.i2>=0)?((window._tgSegRaw||[])[en.i2]):null;if((!rw2||rw2.length<2)&&en.s2)rw2=en.s2.map(function(n){return [n.x,n.y];});if(rw2&&rw2.length>=2)return rw2;if(en.jp&&en.m&&en.m.wx!=null)return [[en.m.wx,en.m.wy],[en.jp[0],en.jp[1]]];}catch(_e){}return null;});
+    var _lines9=mids.map(function(en){try{if(en.line&&en.line.length>=2)return en.line;var rw2=(en.i2>=0)?((window._tgSegRaw||[])[en.i2]):null;if((!rw2||rw2.length<2)&&en.s2)rw2=en.s2.map(function(n){return [n.x,n.y];});if(rw2&&rw2.length>=2)return rw2;if(en.jp&&en.m&&en.m.wx!=null)return [[en.m.wx,en.m.wy],[en.jp[0],en.jp[1]]];}catch(_e){}return null;});
     window._fldInspMidL9=_lines9;
     h+='<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px"><div style="border:2px solid #222;border-radius:7px;padding:4px 10px;font-weight:800;font-size:12px;color:#222;text-align:center">\uC778\uC785 / \uBD84\uAE30 \uC815\uBCF4 <span style="color:#888;font-weight:700">'+mids.length+'</span> · <span style="color:#2e7d32">인입 '+_nIn9+'</span> · <span style="color:#c62828">분기 '+_nBr9+'</span></div>';
     if(!mids.length)h+='<div style="border:2px solid #222;border-radius:8px;padding:20px 6px;color:#999;text-align:center;min-height:120px">\uAD6C\uAC04 \uB0B4 \uBD84\uAE30 \uC2DC\uC124\uBB3C \uC5C6\uC74C</div>';
@@ -11548,6 +11554,11 @@ function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시�
         h+='<tr class="fiMidRow9" data-mi="'+ix+'" title="클릭 = 도면에 라인 표시" style="cursor:pointer;background:'+rc+'"><td style="'+TD9+'">'+gb+'</td><td style="'+TD9+';text-align:left;font-weight:800;word-break:break-all">'+lab+'</td><td style="'+TD9+';color:#0f7a86;font-weight:800">'+_brGw9(en)+'</td><td style="'+TD9+'">'+chg+'</td></tr>';});
       h+='</table></div>';
     }
+    /* [BUILD2463] 관수 대차: 시작 벽 + Σ인입 − Σ분기 = 종료 벽 */
+    try{var _sc9=(NC.length?NC[0].cnt:null),_ec9=(NC.length?NC[NC.length-1].cnt:null);var _si9=0,_sb9=0;mids.forEach(function(en){if(en.j.k==='in')_si9+=en.j.d;else if(en.j.k==='br')_sb9+=(-en.j.d);});
+      var _sw9=null,_ew9=null;try{var rA=fA&&isMh(fA)?mhSheetRec9(fA):null,rB=fB&&isMh(fB)?mhSheetRec9(fB):null;var wA=rA?_wallPipe9(rA,(_fldInspDirGw9(fA,A,B)||{}).wk||_fldInspWallGeo9(fA,B)):null,wB=rB?_wallPipe9(rB,(_fldInspDirGw9(fB,B,A)||{}).wk||_fldInspWallGeo9(fB,A)):null;if(wA&&wA.gw)_sw9=_gwTot9(wA.gw,'cnt');if(wB&&wB.gw)_ew9=_gwTot9(wB.gw,'cnt');}catch(_w){}
+      var _calc9=(_sc9!=null)?(_sc9+_si9-_sb9):null;var _okE=(_calc9!=null&&_ec9!=null&&_calc9===_ec9),_okW=(_ew9==null||_calc9==null)?null:(_calc9===_ew9),_okS=(_sw9==null||_sc9==null)?null:(_sw9===_sc9);
+      h+='<div style="border:2px solid '+(_okE?'#2e7d32':'#c62828')+';border-radius:8px;padding:6px 8px;font-size:11.5px;font-weight:800;background:'+(_okE?'#f1f8f1':'#fff3f3')+'">관수 대차: 시작 측점 '+(_sc9==null?'-':_sc9)+(_okS===false?'<span style="color:#c62828"> (시작 벽 '+_sw9+' ≠)</span>':(_sw9!=null?'<span style="color:#888"> (벽 '+_sw9+')</span>':''))+' + 인입 '+_si9+' − 분기 '+_sb9+' = <b>'+(_calc9==null?'-':_calc9)+'</b> / 종료 측점 '+(_ec9==null?'-':_ec9)+(_ew9!=null?('<span style="color:'+(_okW===false?'#c62828':'#888')+'"> (벽 '+_ew9+(_okW===false?' ≠':'')+')</span>'):'')+' → '+(_okE?'<span style="color:#2e7d32">일치</span>':'<span style="color:#c62828">⚠ 불일치</span>')+'</div>';}catch(_bal){}
     h+='</div></div>';return h;}catch(_e){try{console.warn('fldInspGwView9',_e);}catch(_c){}return '';}}
 function fldInspTags9(){/* [BUILD2372] 검수 전용 구간 태그+인출선(구간설정 tgDrawSegHL 태그부 복사·단순화). 판정색: 초록=일치·빨강=불일치·자주=선택. 수동 이동값(state.tgSegLabelOff)은 읽기만 */
   try{var cv=document.getElementById('cv');if(!cv)return;var old=document.getElementById('fldInspTagG9');if(old)old.remove();
