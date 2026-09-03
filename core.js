@@ -11444,10 +11444,12 @@ function fldInspHL9(i){/* [BUILD2371] 검수 전용 구간 색칠(구간설정 t
     cv.insertBefore(g,cv.firstChild);}catch(_e){}}
 function _fldInspSnap9(raw,x,y){/* [BUILD2393] 점(x,y)을 구간 관로선(raw)에 사영 — {x,y,i(변 인덱스)} */try{var best=null,bd=1e18;for(var i=0;i<raw.length-1;i++){var a=raw[i],b=raw[i+1],vx=b[0]-a[0],vy=b[1]-a[1],L2=vx*vx+vy*vy;var t=L2?(((x-a[0])*vx+(y-a[1])*vy)/L2):0;if(t<0)t=0;if(t>1)t=1;var qx=a[0]+t*vx,qy=a[1]+t*vy;var d=Math.hypot(x-qx,y-qy);if(d<bd){bd=d;best={x:qx,y:qy,i:i};}}return best;}catch(_e){return null;}}
 var _FI_WALL9={p1:[100,430,150,140],p2:[390,430,150,140],p3:[250,280,140,150],p4:[250,570,140,150]};/* [BUILD2419] 전개도 벽 판 좌표 */
+function _fldInspHlRect9(wk){var R=_FI_WALL9[wk];if(!R)return '';var pd=6;return '<rect class="fiHl9" x="'+(R[0]-pd)+'" y="'+(R[1]-pd)+'" width="'+(R[2]+pd*2)+'" height="'+(R[3]+pd*2)+'" rx="4" fill="#e53935" fill-opacity="0.10" stroke="#e53935" stroke-width="7" pointer-events="none"/>';}
+function _fldInspHlDom9(bx){/* [BUILD2453] 문자열 삽입이 어떤 이유로든 안 살아남으면 DOM으로 한 번 더 — 같은 히트 rect 뒤에 createElementNS로 삽입(중복 방지 .fiHl9) */try{var wk=bx.getAttribute('data-hl');if(!wk||!_FI_WALL9[wk])return;var sv=bx.querySelector('svg');if(!sv||sv.querySelector('.fiHl9'))return;var NS9='http://www.w3.org/2000/svg',R=_FI_WALL9[wk],pd=6;var r=document.createElementNS(NS9,'rect');r.setAttribute('class','fiHl9');r.setAttribute('x',R[0]-pd);r.setAttribute('y',R[1]-pd);r.setAttribute('width',R[2]+pd*2);r.setAttribute('height',R[3]+pd*2);r.setAttribute('rx',4);r.setAttribute('fill','#e53935');r.setAttribute('fill-opacity','0.10');r.setAttribute('stroke','#e53935');r.setAttribute('stroke-width','7');r.setAttribute('pointer-events','none');var hit=sv.querySelector('rect[data-w="'+wk+'"]');if(hit&&hit.parentNode)hit.parentNode.insertBefore(r,hit.nextSibling);else{var g=document.createElementNS(NS9,'g');g.setAttribute('transform','translate(40,-12)');g.appendChild(r);sv.appendChild(g);}}catch(_e){}}
 function fldInspSheetSvg9(rec,hl){/* [BUILD2405] 축소본 — rec 깊은 복사, 읽기 전용 *//* [BUILD2419] hl='d1~d4' 해당 벽 빨간 두꺼운 테두리 */
   try{if(!rec||typeof mnOpenForm!=='function')return '';var cp=JSON.parse(JSON.stringify(rec));var svg=mnOpenForm(cp,true)||'';if(!svg)return '';
     svg=svg.replace(/viewBox="0 0 720 980"/,'viewBox="30 225 640 545"').replace(/style="display:block;background:#fff;[^"]*"/,'style="display:block;background:#fff;width:100%;height:auto;pointer-events:none"');
-    try{var wk={d1:'p1',d2:'p2',d3:'p3',d4:'p4'}[hl];if(wk&&_FI_WALL9[wk]){var R=_FI_WALL9[wk];var _pd=6;svg=svg.replace('</svg>','<rect x="'+(R[0]-_pd)+'" y="'+(R[1]-_pd)+'" width="'+(R[2]+_pd*2)+'" height="'+(R[3]+_pd*2)+'" rx="4" fill="#e53935" fill-opacity="0.10" stroke="#e53935" stroke-width="7"/></svg>');}}catch(_hw){}/* [BUILD2452] 벽 판(wallPhoto p1~p4)과 같은 좌표계에 그대로 — 2419의 translate(40,-12) 오프셋 제거, 굵기 7·연한 붉은 채움 */
+    try{var wk={d1:'p1',d2:'p2',d3:'p3',d4:'p4'}[hl];if(wk&&_FI_WALL9[wk]){var HL=_fldInspHlRect9(wk);var re9=new RegExp('(<rect [^>]*data-act="wall" data-w="'+wk+'"[^>]*/>)');if(re9.test(svg))svg=svg.replace(re9,'$1'+HL);else svg=svg.replace('</svg>','<g transform="translate(40,-12)">'+HL+'</g></svg>');}}catch(_hw){}/* [BUILD2453] 실측: 전개도 전체가 <g transform=translate(40,-12)> 안에 있고 벽 히트 rect(data-w=pN)가 그 그룹의 마지막 요소 → 강조 rect를 그 히트 rect 바로 뒤(같은 그룹·같은 좌표계·맨 위)에 삽입. 2452의 루트 삽입은 40/12 어긋남 *//* [BUILD2452] 벽 판(wallPhoto p1~p4)과 같은 좌표계에 그대로 — 2419의 translate(40,-12) 오프셋 제거, 굵기 7·연한 붉은 채움 */
     return svg;}catch(_e){return '';}}
 function _fldInspPhoto9(url,tit){/* [BUILD2419] 벽 사진 라이트박스 */
   try{if(!url)return;var o=document.getElementById('fiPhoto9');if(o)o.remove();
@@ -11486,7 +11488,7 @@ function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시�
       if(!fac)h+='<div style="color:#999;text-align:center;padding:20px 0">\uC5F0\uACB0\uB41C \uC2DC\uC124\uBB3C\uC744 \uCC3E\uC9C0 \uBABB\uD568</div>';
       else if(isMh(fac)){var rec=(typeof mhSheetRec9==='function')?mhSheetRec9(fac):null;var _hlk9=(dg&&dg.wk)||_fldInspWallGeo9(fac,to);/* [BUILD2452] 벽 강조 키: 야장 행 → 없으면 기하 */var svg=rec?fldInspSheetSvg9(rec,_hlk9||null):'';
         if(svg){var sid='fiS'+Math.random().toString(36).slice(2,8);window._fldInspSheet9=window._fldInspSheet9||{};window._fldInspSheet9[sid]=rec;
-          h+='<div class="fiSheet9" data-sid="'+sid+'" style="cursor:pointer" title="\uBCBD \uD074\uB9AD=\uC0AC\uC9C4">'+svg+'</div>';}
+          h+='<div class="fiSheet9" data-sid="'+sid+'" data-hl="'+(({d1:'p1',d2:'p2',d3:'p3',d4:'p4'})[_hlk9]||'')+'" style="cursor:pointer" title="\uBCBD \uD074\uB9AD=\uC0AC\uC9C4">'+svg+'</div>';}
         else h+='<div style="color:#999;text-align:center;padding:20px 0">\uB9E8\uD640\uB3C4 \uC57C\uC7A5 \uC5C6\uC74C</div>';}
       else h+=fldInspAuxTable9(fac);
       h+='</div></div>';return h;}
@@ -11646,6 +11648,7 @@ function fldInspWin9(sel){
     var go=function(i){window._fldInspSel9=i;fldInspWin9(i);};
     card.querySelectorAll('.fiSeg9').forEach(function(b){b.onclick=function(){go(+this.getAttribute('data-i'));};});
     card.querySelectorAll('.fiCat9').forEach(function(b){b.onclick=function(){window._fldInspCat9=this.getAttribute('data-k');fldInspWin9(window._fldInspSel9);};});/* [BUILD2401] */
+    try{card.querySelectorAll('.fiSheet9[data-hl]').forEach(function(bx){_fldInspHlDom9(bx);});}catch(_hd9){}/* [BUILD2453] 벽 강조 DOM 보강 */
     card.querySelectorAll('.fiSheet9').forEach(function(bx){bx.onclick=function(ev){try{
       var rec=(window._fldInspSheet9||{})[this.getAttribute('data-sid')];if(!rec)return;
       var sv=this.querySelector('svg');if(!sv)return;var r=sv.getBoundingClientRect();if(!r.width)return;
