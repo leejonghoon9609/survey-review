@@ -8841,8 +8841,8 @@ function _fldAutoRisers(){ /* [1255] field 전용 — 후측량 CSV 전주입상
   try{drawManholes();}catch(e){}
   return n;
 }
-function _fldJgDropCsv9(names){/* [BUILD2439] 후측량 CSV 파일 삭제 → 그 파일명(_csv)에서 온 지거점(Ng)·이격기준점(Na)을 도면에서도 제거. _fromAft9 표식 유무와 무관(노출관로 카드 경로로 들어온 같은 파일 점도 대상) */
-  try{if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return 0;var set={};(names||[]).forEach(function(n){if(n)set[n]=1;});var n0=(state.points||[]).length;state.points=(state.points||[]).filter(function(p){return !(p&&(p.jg!=null||p.jgRef!=null)&&set[p._csv||'']);});var d=n0-state.points.length;if(d>0){try{selNum=null;clearSvg(gSel);}catch(_c){}try{drawGeo();}catch(_g){}try{updMeta();}catch(_u){}}return d;}catch(_e){return 0;}}
+function _fldJgDropCsv9(names){/* [BUILD2439→2440] 사업등록 후측량 CSV 파일 삭제 → 그 파일명(_csv)에서 온 측점 전부(지거·후측량 편입 가리지 않음) 도면에서 제거. 규칙(사용자, 2440): 등록창에서 CSV를 지우면 그 CSV의 측점도 도면에서 사라진다 — 노출관로 카드는 removeCsvGroup이 같은 규칙 */
+  try{if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return 0;var set={};(names||[]).forEach(function(n){if(n)set[n]=1;});var n0=(state.points||[]).length;state.points=(state.points||[]).filter(function(p){return !(p&&set[p._csv||'']);});var d=n0-state.points.length;if(d>0&&typeof toast==='function')try{toast(d+'개 측점 제거(삭제한 CSV)');}catch(_t){}if(d>0){try{selNum=null;clearSvg(gSel);}catch(_c){}try{drawGeo();}catch(_g){}try{updMeta();}catch(_u){}}return d;}catch(_e){return 0;}}
 function _fldJgFromAft9(){/* [BUILD2437] 후측량 CSV 카드에 넣은 지거 CSV(코드 Na / Ng d / Na 다음 심도숫자) → 측점으로 편입해 도면에 X(기준점)·측점+심도 표시. 재실행 시 이전 편입분(_fromAft9) 교체, 같은 번호 측점이 이미 있으면 건너뜀 */
   try{if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return 0;if(typeof parseCsv!=='function')return 0;
     state.points=(state.points||[]).filter(function(p){return !(p&&p._fromAft9);});
@@ -15120,7 +15120,7 @@ function expandPhotoFiles(list){
     });
   })).then(function(groups){groups.forEach(function(g){out=out.concat(g);});return out;}).catch(function(err){console.error('zip',err);toast('압축 해제 실패');return out;});
 }
-function csvGroups(){var g={},order=[];(state.points||[]).forEach(function(p){var k=p._csv||'(파일명 없음)';if(g[k]==null){g[k]=0;order.push(k);}g[k]++;});return order.map(function(k){return {name:k,count:g[k]};});}
+function csvGroups(){var g={},order=[];(state.points||[]).forEach(function(p){if(p&&p._fromAft9)return;/* [BUILD2440] 후측량 CSV에서 편입된 점은 후측량 카드 소속 — 노출관로 목록에 안 보임(여기서 지워도 finalCsvDepthSync가 되살리던 혼선 차단) */var k=p._csv||'(파일명 없음)';if(g[k]==null){g[k]=0;order.push(k);}g[k]++;});return order.map(function(k){return {name:k,count:g[k]};});}
 function removeCsvGroup(name){state.points=(state.points||[]).filter(function(p){return (p._csv||'(파일명 없음)')!==name;});selNum=null;clearSvg(gSel);drawGeo();drawMarks();drawManholes();fitView();updMeta();updRegStatus();toast('"'+name+'" 측점 제거됨');}
 function openCsvList(){
   if(!csvGroups().length){toast('로딩된 CSV가 없습니다');return;}
