@@ -11499,25 +11499,34 @@ function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시�
     h+=col('\uC885\uB8CC\uC2DC\uC124\uBB3C','#c62828',fB,B,A);
     /* 인입·분기: 구간 관로선 위(끝점 제외) 1.5m 이내 보조 시설물 */
     var raw=(window._tgSegRaw||[])[sel]||sg.map(function(n){return [n.x,n.y];});var mids=[],_seen9={};
-    var addM=function(m,gwTxt){if(!m)return;var k=(m.id!=null?('i'+m.id):(m.wx+'_'+m.wy));if(_seen9[k])return;_seen9[k]=1;mids.push({m:m,gw:gwTxt||''});};
-    (state.manholes||[]).forEach(function(m){if(!m||m.wx==null)return;if(m===fA||m===fB)return;if(Math.hypot(m.wx-A.x,m.wy-A.y)<1.2||Math.hypot(m.wx-B.x,m.wy-B.y)<1.2)return;var sn=_fldInspSnap9(raw,m.wx,m.wy);if(sn&&Math.hypot(sn.x-m.wx,sn.y-m.wy)<1.5)addM(m,'');});
+    var addM=function(m,gwTxt,jp){if(!m)return;var k=(m.id!=null?('i'+m.id):(m.wx+'_'+m.wy));if(_seen9[k])return;_seen9[k]=1;mids.push({m:m,gw:gwTxt||'',jp:jp||null});};/* [BUILD2460] jp=이 구간 관로선 위 접속점 */
+    (state.manholes||[]).forEach(function(m){if(!m||m.wx==null)return;if(m===fA||m===fB)return;if(Math.hypot(m.wx-A.x,m.wy-A.y)<1.2||Math.hypot(m.wx-B.x,m.wy-B.y)<1.2)return;var sn=_fldInspSnap9(raw,m.wx,m.wy);if(sn&&Math.hypot(sn.x-m.wx,sn.y-m.wy)<1.5)addM(m,'',[sn.x,sn.y]);});
     try{(_tgSegs||[]).forEach(function(s2,i2){if(i2===sel||!s2||s2.length<2)return;var A2=s2[0],B2=s2[s2.length-1];
       var tch=function(n){if(!n)return false;if(Math.hypot(n.x-A.x,n.y-A.y)<0.35||Math.hypot(n.x-B.x,n.y-B.y)<0.35)return false;var sn=_fldInspSnap9(raw,n.x,n.y);return sn&&Math.hypot(sn.x-n.x,sn.y-n.y)<0.6;};/* [BUILD2431] 끝점 제외 1.2→0.35m — 맨홀 바로 옆에서 갈라지는 통신주·합류 구간도 인식 */
-      var far=null;if(tch(A2))far=B2;else if(tch(B2))far=A2;
+      var far=null,_jp9=null;if(tch(A2)){far=B2;_jp9=[A2.x,A2.y];}else if(tch(B2)){far=A2;_jp9=[B2.x,B2.y];}
       if(!far){/* [BUILD2432] 실측 대응: 분기 구간이 맨홀에서 출발해 이 구간과 겹쳐 달리다 갈라지는 경우(2구간→통신주, 3구간 합류) — 끝점을 공유하고 내부 노드 하나 이상이 이 구간 선 위(0.6m)에 있으면 분기 */
         var shA=(Math.hypot(A2.x-A.x,A2.y-A.y)<0.35||Math.hypot(A2.x-B.x,A2.y-B.y)<0.35),shB=(Math.hypot(B2.x-A.x,B2.y-A.y)<0.35||Math.hypot(B2.x-B.x,B2.y-B.y)<0.35);
-        if(shA!==shB){var sh=shA?A2:B2,ov=false;for(var q2=1;q2<s2.length-1;q2++){var n2=s2[q2];if(!n2||n2.x==null)continue;if(Math.hypot(n2.x-sh.x,n2.y-sh.y)<0.35)continue;var sn2=_fldInspSnap9(raw,n2.x,n2.y);if(sn2&&Math.hypot(sn2.x-n2.x,sn2.y-n2.y)<0.6){ov=true;break;}}
-          if(ov)far=shA?B2:A2;}}
+        if(shA!==shB){var sh=shA?A2:B2,ov=false,_lastOn9=null;for(var q2=1;q2<s2.length-1;q2++){var n2=s2[q2];if(!n2||n2.x==null)continue;if(Math.hypot(n2.x-sh.x,n2.y-sh.y)<0.35)continue;var sn2=_fldInspSnap9(raw,n2.x,n2.y);if(sn2&&Math.hypot(sn2.x-n2.x,sn2.y-n2.y)<0.6){ov=true;_lastOn9=[sn2.x,sn2.y];}}/* [BUILD2460] break 제거 — 선 위에 남는 마지막 노드 = 갈라지는 접속점 */
+          if(ov){far=shA?B2:A2;_jp9=_lastOn9;}}}
       if(!far)return;
       var fm=_fldInspFacAt9(far);if(!fm||fm===fA||fm===fB)return;
       var gwT='';try{var yj=(typeof _segAux9==='function')?_segAux9(s2):null;if(!yj||!yj.gw||!yj.gw.length)yj=(typeof _segYajang9==='function')?_segYajang9(s2):null;if(yj&&yj.gw&&yj.gw.length)gwT=_gwFmt9(_gwSort9(yj.gw),false);}catch(_gt){}
-      addM(fm,gwT);});}catch(_br){}/* [BUILD2419] 이 구간에 접속한 분기 구간의 반대편 시설물(빠지고 들어오는 것) */
-    h+='<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px"><div style="border:2px solid #222;border-radius:7px;padding:4px 10px;font-weight:800;font-size:12px;color:#222;text-align:center">\uC778\uC785 / \uBD84\uAE30 \uC815\uBCF4 <span style="color:#888;font-weight:700">'+mids.length+'</span></div>';
+      addM(fm,gwT,_jp9);});}catch(_br){}/* [BUILD2419] 이 구간에 접속한 분기 구간의 반대편 시설물(빠지고 들어오는 것) */
+    /* [BUILD2460] 인입/분기 판정(사용자 정의): 접속점 앞뒤 측점 코드 관수 비교 — 늘면 인입(+), 줄면 분기(−). 기준 = 구간 진행방향(시작→종료) 측점 체인 */
+    var _chain9=function(x,y){try{var sn=_fldInspSnap9(raw,x,y);if(!sn)return null;var c=0;for(var q=0;q<sn.i;q++)c+=Math.hypot(raw[q+1][0]-raw[q][0],raw[q+1][1]-raw[q][1]);return c+Math.hypot(sn.x-raw[sn.i][0],sn.y-raw[sn.i][1]);}catch(_e){return null;}};
+    var _ptsC9=[];try{sg.forEach(function(n){if(!n||n.x==null)return;var g=(typeof _gwParseAll9==='function')?_gwParseAll9(n.code||''):[];var t=_gwTot9(g,'cnt');if(t==null)return;var c=_chain9(n.x,n.y);if(c==null)return;_ptsC9.push({c:c,cnt:t,no:n.no||''});});}catch(_pc){}_ptsC9.sort(function(a,b){return a.c-b.c;});
+    var _judge9=function(jp){if(!jp||!_ptsC9.length)return null;var jc=_chain9(jp[0],jp[1]);if(jc==null)return null;var bf=null,af=null;for(var q=0;q<_ptsC9.length;q++){var pp=_ptsC9[q];if(pp.c<jc-0.3)bf=pp;else if(pp.c>jc+0.3&&!af)af=pp;}if(!bf||!af)return {k:'?',bf:bf,af:af,jc:jc};var d=af.cnt-bf.cnt;return {k:d>0?'in':(d<0?'br':'eq'),d:d,bf:bf,af:af,jc:jc};};
+    mids.forEach(function(en){en.j=_judge9(en.jp);});mids.sort(function(a,b){return ((a.j&&a.j.jc!=null)?a.j.jc:1e9)-((b.j&&b.j.jc!=null)?b.j.jc:1e9);});
+    var _badge9=function(j){if(!j)return '<span style="background:#eee;color:#777;border-radius:6px;padding:1px 6px;font-size:10.5px">접속점 없음</span>';if(j.k==='?')return '<span style="background:#eee;color:#777;border-radius:6px;padding:1px 6px;font-size:10.5px">판정불가(앞뒤 측점 부족)</span>';var t=j.k==='in'?('인입 +'+j.d):(j.k==='br'?('분기 −'+(-j.d)):'변화 없음');var bg=j.k==='in'?'#e8f5e9':(j.k==='br'?'#ffe5e5':'#f1f1f1'),fg=j.k==='in'?'#2e7d32':(j.k==='br'?'#c62828':'#666');return '<span style="background:'+bg+';color:'+fg+';border-radius:6px;padding:1px 7px;font-size:11px;font-weight:900;white-space:nowrap">'+t+'</span><span style="color:#888;font-size:10.5px;white-space:nowrap"> 관수 '+j.bf.cnt+'→'+j.af.cnt+' ('+E(j.bf.no)+'→'+E(j.af.no)+')</span>';};
+    var _nIn9=mids.filter(function(e){return e.j&&e.j.k==='in';}).length,_nBr9=mids.filter(function(e){return e.j&&e.j.k==='br';}).length;
+    h+='<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px"><div style="border:2px solid #222;border-radius:7px;padding:4px 10px;font-weight:800;font-size:12px;color:#222;text-align:center">\uC778\uC785 / \uBD84\uAE30 \uC815\uBCF4 <span style="color:#888;font-weight:700">'+mids.length+'</span> <span style="color:#2e7d32">인입 '+_nIn9+'</span> · <span style="color:#c62828">분기 '+_nBr9+'</span></div>';
     if(!mids.length)h+='<div style="border:2px solid #222;border-radius:8px;padding:20px 6px;color:#999;text-align:center;min-height:120px">\uAD6C\uAC04 \uB0B4 \uBD84\uAE30 \uC2DC\uC124\uBB3C \uC5C6\uC74C</div>';
     mids.forEach(function(en){var m=en.m;var gwT=en.gw;
       if(!gwT){try{if(!isMh(m)){var Am=auxPipeAll9(m);if(Am&&Am.gw&&Am.gw.length)gwT=_gwFmt9(_gwSort9(Am.gw),false);}else{var dgm=_fldInspDirGw9(m,{x:m.wx,y:m.wy},B)||_fldInspDirGw9(m,{x:m.wx,y:m.wy},A);if(dgm&&dgm.gw&&dgm.gw.length)gwT=_gwFmt9(_gwSort9(dgm.gw),true)+(dgm.wall?(' · '+dgm.wall):'');
         else{var rcm=(typeof mhSheetRec9==='function')?mhSheetRec9(m):null;if(rcm){var wl=[];['d1','d2','d3','d4'].forEach(function(k){var WPm=_wallPipe9(rcm,k);if(WPm&&WPm.gw&&WPm.gw.length)wl.push({d1:'1(서)',d2:'2(동)',d3:'3(북)',d4:'4(남)'}[k]+' '+_gwFmt9(WPm.gw,true));});gwT=wl.join(' / ');}}}/* [BUILD2432] 이 구간 쪽 행이 없으면 벽별 야장 구성 */}catch(_g2){}}/* [BUILD2431] 맨홀도 관종·관경·관수(구간 방향 행) */
-      h+='<div style="border:2px solid #222;border-radius:8px;padding:6px;background:#fff">'
+      var _bc9=en.j?(en.j.k==='in'?'#2e7d32':(en.j.k==='br'?'#c62828':'#222')):'#222';
+      h+='<div style="border:2px solid '+_bc9+';border-radius:8px;padding:6px;background:#fff">'
+        +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;flex-wrap:wrap">'+_badge9(en.j)+'</div>'
         +'<div style="display:flex;align-items:center;gap:6px;font-weight:800;font-size:11px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(!isMh(m)&&typeof auxNo9==='function'&&auxNo9(m)?(auxNo9(m)+'.'):'')+E(m.label||'')+(isMh(m)?' (\uB9E8\uD640)':'')+'</span>'+(gwT?('<span style="color:#0f7a86;white-space:nowrap">'+E(gwT)+'</span>'):'')+'</div>'
         +(isMh(m)?'':fldInspAuxTable9(m))+'</div>';});/* [BUILD2419] 관종·관경·관수 표기 */
     h+='</div></div>';return h;}catch(_e){try{console.warn('fldInspGwView9',_e);}catch(_c){}return '';}}
