@@ -11447,7 +11447,7 @@ var _FI_WALL9={p1:[100,430,150,140],p2:[390,430,150,140],p3:[250,280,140,150],p4
 function fldInspSheetSvg9(rec,hl){/* [BUILD2405] 축소본 — rec 깊은 복사, 읽기 전용 *//* [BUILD2419] hl='d1~d4' 해당 벽 빨간 두꺼운 테두리 */
   try{if(!rec||typeof mnOpenForm!=='function')return '';var cp=JSON.parse(JSON.stringify(rec));var svg=mnOpenForm(cp,true)||'';if(!svg)return '';
     svg=svg.replace(/viewBox="0 0 720 980"/,'viewBox="30 225 640 545"').replace(/style="display:block;background:#fff;[^"]*"/,'style="display:block;background:#fff;width:100%;height:auto;pointer-events:none"');
-    try{var wk={d1:'p1',d2:'p2',d3:'p3',d4:'p4'}[hl];if(wk&&_FI_WALL9[wk]){var R=_FI_WALL9[wk];svg=svg.replace('</svg>','<g transform="translate(40,-12)"><rect x="'+R[0]+'" y="'+R[1]+'" width="'+R[2]+'" height="'+R[3]+'" fill="none" stroke="#e53935" stroke-width="5"/></g></svg>');}}catch(_hw){}
+    try{var wk={d1:'p1',d2:'p2',d3:'p3',d4:'p4'}[hl];if(wk&&_FI_WALL9[wk]){var R=_FI_WALL9[wk];var _pd=6;svg=svg.replace('</svg>','<rect x="'+(R[0]-_pd)+'" y="'+(R[1]-_pd)+'" width="'+(R[2]+_pd*2)+'" height="'+(R[3]+_pd*2)+'" rx="4" fill="#e53935" fill-opacity="0.10" stroke="#e53935" stroke-width="7"/></svg>');}}catch(_hw){}/* [BUILD2452] 벽 판(wallPhoto p1~p4)과 같은 좌표계에 그대로 — 2419의 translate(40,-12) 오프셋 제거, 굵기 7·연한 붉은 채움 */
     return svg;}catch(_e){return '';}}
 function _fldInspPhoto9(url,tit){/* [BUILD2419] 벽 사진 라이트박스 */
   try{if(!url)return;var o=document.getElementById('fiPhoto9');if(o)o.remove();
@@ -11473,6 +11473,7 @@ function _fldInspDirGw9(fac,from,to){/* 시설물 fac에서 to 쪽으로 나가�
       for(var q=0;q<ks.length;q++){var L=mnDestList(rec,ks[q])||[];for(var i=0;i<L.length;i++){var e=L[i];if(!e)continue;var hit=false;if(e.xy&&e.xy.length===2&&Math.hypot(e.xy[0]-to.x,e.xy[1]-to.y)<2.5)hit=true;if(!hit&&e.lab&&toN&&nz(e.lab)===toN)hit=true;if(!hit&&e.lab&&typeof _lblMh9==='function'){try{var xy=_lblMh9(fac.wx,fac.wy,e.lab);if(xy&&Math.hypot(xy[0]-to.x,xy[1]-to.y)<2.5)hit=true;}catch(_l){}}if(!hit)continue;return {gw:_mnRowGw9(rec,ks[q],i),lab:String(e.lab||''),wall:{d1:'1(\uC11C)',d2:'2(\uB3D9)',d3:'3(\uBD81)',d4:'4(\uB0A8)'}[ks[q]],wk:ks[q]};/* [BUILD2419] */}}return null;}
     var D=fac.dests||[];for(var j=0;j<D.length;j++){var d=D[j];if(!d)continue;var h2=false;if(d.xy&&d.xy.length===2&&Math.hypot(d.xy[0]-to.x,d.xy[1]-to.y)<2.5)h2=true;if(!h2&&d.lab&&toN&&nz(d.lab)===toN)h2=true;if(!h2)continue;return {gw:_auxRowGw9(fac,j),lab:String(d.lab||''),wall:''};}
     return null;}catch(_e){return null;}}
+function _fldInspWallGeo9(fac,to){/* [BUILD2452] 야장 방향 행이 없어 벽 번호를 못 얻을 때 기하로 — 시설물→구간 상대점 방위: 동=2, 서=1, 북=3, 남=4 (EPSG:5186 y=북) */try{if(!fac||!to||fac.wx==null||to.x==null)return null;var dx=to.x-fac.wx,dy=to.y-fac.wy;if(Math.abs(dx)>=Math.abs(dy))return dx>=0?'d2':'d1';return dy>=0?'d3':'d4';}catch(_e){return null;}}
 function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시설물 | 종료시설물 | 인입·분기 정보] 3열 큰 틀 */
   try{var sg=(_tgSegs||[])[sel];if(!sg||sg.length<2)return '';var A=sg[0],B=sg[sg.length-1];var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
     var fA=_fldInspFacAt9(A),fB=_fldInspFacAt9(B);
@@ -11483,7 +11484,7 @@ function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시�
       h+='<div style="flex:1;min-width:0;border:2px solid '+color+';border-radius:7px;padding:4px 8px;font-size:11.5px;display:flex;flex-direction:column;justify-content:center"><div style="font-weight:800;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+nm+(dg&&dg.wall?(' <span style="color:#888;font-weight:700">'+dg.wall+'</span>'):'')+'</div><div style="color:#0f7a86;font-weight:800">'+E(gt)+'</div></div></div>';
       h+='<div style="border:2px solid '+color+';border-radius:8px;padding:6px;min-height:260px;background:#fff;overflow:auto">';
       if(!fac)h+='<div style="color:#999;text-align:center;padding:20px 0">\uC5F0\uACB0\uB41C \uC2DC\uC124\uBB3C\uC744 \uCC3E\uC9C0 \uBABB\uD568</div>';
-      else if(isMh(fac)){var rec=(typeof mhSheetRec9==='function')?mhSheetRec9(fac):null;var svg=rec?fldInspSheetSvg9(rec,(dg&&dg.wk)||null):'';
+      else if(isMh(fac)){var rec=(typeof mhSheetRec9==='function')?mhSheetRec9(fac):null;var _hlk9=(dg&&dg.wk)||_fldInspWallGeo9(fac,to);/* [BUILD2452] 벽 강조 키: 야장 행 → 없으면 기하 */var svg=rec?fldInspSheetSvg9(rec,_hlk9||null):'';
         if(svg){var sid='fiS'+Math.random().toString(36).slice(2,8);window._fldInspSheet9=window._fldInspSheet9||{};window._fldInspSheet9[sid]=rec;
           h+='<div class="fiSheet9" data-sid="'+sid+'" style="cursor:pointer" title="\uBCBD \uD074\uB9AD=\uC0AC\uC9C4">'+svg+'</div>';}
         else h+='<div style="color:#999;text-align:center;padding:20px 0">\uB9E8\uD640\uB3C4 \uC57C\uC7A5 \uC5C6\uC74C</div>';}
