@@ -11307,6 +11307,8 @@ function fldInspHL9(i){/* [BUILD2371] 검수 전용 구간 색칠(구간설정 t
     var NS='http://www.w3.org/2000/svg';var g=document.createElementNS(NS,'g');g.id='fldInspHLG9';g.setAttribute('pointer-events','none');
     var ps='';for(var q=0;q<rw.length;q++){var sc=S(rw[q][0],rw[q][1]);ps+=(q?' ':'')+sc[0]+','+sc[1];}
     var pl=document.createElementNS(NS,'polyline');pl.setAttribute('points',ps);pl.setAttribute('fill','none');pl.setAttribute('stroke','#7b1fa2');pl.setAttribute('stroke-opacity','0.45');pl.setAttribute('stroke-width','10');pl.setAttribute('vector-effect','non-scaling-stroke');pl.setAttribute('stroke-linecap','round');pl.setAttribute('stroke-linejoin','round');g.appendChild(pl);
+    try{var _u9=(typeof pxToWorld==='function')?pxToWorld():0.1;var _rr9=Math.max(1.6,_u9*14);var _mk9=function(pt,col,fill){var sc=S(pt[0],pt[1]);var c=document.createElementNS(NS,'circle');c.setAttribute('cx',sc[0]);c.setAttribute('cy',sc[1]);c.setAttribute('r',_rr9);c.setAttribute('fill',fill);c.setAttribute('stroke',col);c.setAttribute('stroke-width','2.4');c.setAttribute('vector-effect','non-scaling-stroke');g.appendChild(c);};
+      _mk9(rw[0],'#2e7d32','rgba(46,125,50,0.07)');_mk9(rw[rw.length-1],'#c62828','rgba(198,40,40,0.07)');}catch(_c9){}/* [BUILD2431] 시작시설물=초록 원, 종료시설물=빨강 원(아주 연한 같은 색 채움) */
     cv.insertBefore(g,cv.firstChild);}catch(_e){}}
 function _fldInspSnap9(raw,x,y){/* [BUILD2393] 점(x,y)을 구간 관로선(raw)에 사영 — {x,y,i(변 인덱스)} */try{var best=null,bd=1e18;for(var i=0;i<raw.length-1;i++){var a=raw[i],b=raw[i+1],vx=b[0]-a[0],vy=b[1]-a[1],L2=vx*vx+vy*vy;var t=L2?(((x-a[0])*vx+(y-a[1])*vy)/L2):0;if(t<0)t=0;if(t>1)t=1;var qx=a[0]+t*vx,qy=a[1]+t*vy;var d=Math.hypot(x-qx,y-qy);if(d<bd){bd=d;best={x:qx,y:qy,i:i};}}return best;}catch(_e){return null;}}
 var _FI_WALL9={p1:[100,430,150,140],p2:[390,430,150,140],p3:[250,280,140,150],p4:[250,570,140,150]};/* [BUILD2419] 전개도 벽 판 좌표 */
@@ -11363,7 +11365,7 @@ function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시�
     var addM=function(m,gwTxt){if(!m)return;var k=(m.id!=null?('i'+m.id):(m.wx+'_'+m.wy));if(_seen9[k])return;_seen9[k]=1;mids.push({m:m,gw:gwTxt||''});};
     (state.manholes||[]).forEach(function(m){if(!m||m.wx==null)return;if(m===fA||m===fB)return;if(Math.hypot(m.wx-A.x,m.wy-A.y)<1.2||Math.hypot(m.wx-B.x,m.wy-B.y)<1.2)return;var sn=_fldInspSnap9(raw,m.wx,m.wy);if(sn&&Math.hypot(sn.x-m.wx,sn.y-m.wy)<1.5)addM(m,'');});
     try{(_tgSegs||[]).forEach(function(s2,i2){if(i2===sel||!s2||s2.length<2)return;var A2=s2[0],B2=s2[s2.length-1];
-      var tch=function(n){if(!n)return false;if(Math.hypot(n.x-A.x,n.y-A.y)<1.2||Math.hypot(n.x-B.x,n.y-B.y)<1.2)return false;var sn=_fldInspSnap9(raw,n.x,n.y);return sn&&Math.hypot(sn.x-n.x,sn.y-n.y)<0.6;};
+      var tch=function(n){if(!n)return false;if(Math.hypot(n.x-A.x,n.y-A.y)<0.35||Math.hypot(n.x-B.x,n.y-B.y)<0.35)return false;var sn=_fldInspSnap9(raw,n.x,n.y);return sn&&Math.hypot(sn.x-n.x,sn.y-n.y)<0.6;};/* [BUILD2431] 끝점 제외 1.2→0.35m — 맨홀 바로 옆에서 갈라지는 통신주·합류 구간도 인식 */
       var far=null;if(tch(A2))far=B2;else if(tch(B2))far=A2;if(!far)return;
       var fm=_fldInspFacAt9(far);if(!fm||fm===fA||fm===fB)return;
       var gwT='';try{var yj=(typeof _segAux9==='function')?_segAux9(s2):null;if(!yj||!yj.gw||!yj.gw.length)yj=(typeof _segYajang9==='function')?_segYajang9(s2):null;if(yj&&yj.gw&&yj.gw.length)gwT=_gwFmt9(_gwSort9(yj.gw),false);}catch(_gt){}
@@ -11371,7 +11373,7 @@ function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시�
     h+='<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px"><div style="border:2px solid #222;border-radius:7px;padding:4px 10px;font-weight:800;font-size:12px;color:#222;text-align:center">\uC778\uC785 / \uBD84\uAE30 \uC815\uBCF4 <span style="color:#888;font-weight:700">'+mids.length+'</span></div>';
     if(!mids.length)h+='<div style="border:2px solid #222;border-radius:8px;padding:20px 6px;color:#999;text-align:center;min-height:120px">\uAD6C\uAC04 \uB0B4 \uBD84\uAE30 \uC2DC\uC124\uBB3C \uC5C6\uC74C</div>';
     mids.forEach(function(en){var m=en.m;var gwT=en.gw;
-      if(!gwT){try{if(!isMh(m)){var Am=auxPipeAll9(m);if(Am&&Am.gw&&Am.gw.length)gwT=_gwFmt9(_gwSort9(Am.gw),false);}}catch(_g2){}}
+      if(!gwT){try{if(!isMh(m)){var Am=auxPipeAll9(m);if(Am&&Am.gw&&Am.gw.length)gwT=_gwFmt9(_gwSort9(Am.gw),false);}else{var dgm=_fldInspDirGw9(m,{x:m.wx,y:m.wy},B)||_fldInspDirGw9(m,{x:m.wx,y:m.wy},A);if(dgm&&dgm.gw&&dgm.gw.length)gwT=_gwFmt9(_gwSort9(dgm.gw),true)+(dgm.wall?(' · '+dgm.wall):'');}}catch(_g2){}}/* [BUILD2431] 맨홀도 관종·관경·관수(구간 방향 행) */
       h+='<div style="border:2px solid #222;border-radius:8px;padding:6px;background:#fff">'
         +'<div style="display:flex;align-items:center;gap:6px;font-weight:800;font-size:11px"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(!isMh(m)&&typeof auxNo9==='function'&&auxNo9(m)?(auxNo9(m)+'.'):'')+E(m.label||'')+(isMh(m)?' (\uB9E8\uD640)':'')+'</span>'+(gwT?('<span style="color:#0f7a86;white-space:nowrap">'+E(gwT)+'</span>'):'')+'</div>'
         +(isMh(m)?'':fldInspAuxTable9(m))+'</div>';});/* [BUILD2419] 관종·관경·관수 표기 */
