@@ -6904,7 +6904,7 @@ function saveProject(cb){ if(readOnly){if(typeof cb==='function')cb();return;} v
   /* [1227] ★삭제 부활 방지 — 절대 제거 금지: 다른 기기에서 삭제(delAt)된 사업은 저장으로 되살리지 않음 */
   var _doUpsert=function(){ var _up=function(_rt){ sb.from(DB+'_projects').upsert(row).select().then(function(res){
     if(res.error){if(!_rt&&row.heavy!==undefined){delete row.heavy;row.payload.finalCsv=state.finalCsv||null;_up(true);return;}/* [1491] heavy 미설치 폴백 — 구방식 통짜저장 */toast('저장 오류: '+res.error.message);return;}
-    var saved=res.data&&res.data[0];if(saved){state.projectId=saved.id;state.loadedStage=STAGE;}
+    var saved=res.data&&res.data[0];if(saved){state.projectId=saved.id;state.loadedStage=STAGE;try{if(typeof svRawPendingFlush9==='function')setTimeout(svRawPendingFlush9,200);}catch(_rp9){}/* [BUILD2450] */}
     if(row.heavy!==undefined){try{window._hvSaved=(state.projectId||'NEW')+'#'+_hvSig;}catch(_h2){}}
     if(!_sil)sb.from(DB+'_history').insert({project_id:state.projectId,payload:payload}); // 이력(수동만 [1358])
     try{_lnBaseSet9(payload.lines);}catch(_lb9){}/* [BUILD1937] */if(!_sil){refreshProjects();loadPhotos();toast('저장 완료');}/* [1358] 자동저장은 목록·사진 재조회 생략 — Disk IO 절감 */if(state._importSrc&&state._importSrc.length&&state.projectId){var _srcs=state._importSrc.slice();state._importSrc=[];(function _nx(){if(!_srcs.length)return;var _sid=_srcs.shift();copyPhotos(_sid,state.projectId,_nx);})();}if(typeof cb==='function')cb(state.projectId);
@@ -7691,7 +7691,7 @@ function registerProject(_appr){
   toast('등록 중…');
   sb.from(DB+'_projects').upsert(row).select().then(function(res){
     if(res.error){toast('등록 오류: '+res.error.message);return;}
-    var saved=res.data&&res.data[0];if(saved){state.projectId=saved.id;state.loadedStage=STAGE;}
+    var saved=res.data&&res.data[0];if(saved){state.projectId=saved.id;state.loadedStage=STAGE;try{if(typeof svRawPendingFlush9==='function')setTimeout(svRawPendingFlush9,200);}catch(_rp9){}/* [BUILD2450] */}
     sb.from(DB+'_history').insert({project_id:state.projectId,payload:payload});
     refreshProjects();
     closeRegModal();
@@ -8009,7 +8009,7 @@ function svRawZipToCsv9(zips,done){
 }
 function svRawZipKeep9(zips){/* [BUILD2447] 결선DB(시스템 이전 사업) 원시 ZIP 보관 — 실시간 rtRawZipUp9의 보관부만 미러: 원본 ZIP을 storage photos/{pid}/raw_{ymd}.zip 에 올리고 state.rtRawMeta9[ymd] 기록 → 결선완료 등록 '원시데이터(노출관로)' 행·통합 ZIP(rtRawAllZip9) 그대로 동작. CSV 추출(svRawZipToCsv9)은 종전대로 별도. 작업일=ZIP 파일명 20YYMMDD → 없으면 첫 CSV 2행 현재날짜 열 */
   try{if(!(typeof STAGE!=='undefined'&&STAGE==='survey'))return;var arr=[].slice.call(zips||[]).filter(function(f){return f&&/\.zip$/i.test(f.name||'');});if(!arr.length)return;
-    if(typeof sb==='undefined'||!state.projectId||(typeof online!=='undefined'&&!online)){toast('원시 ZIP은 사업 저장 후 다시 올리면 서버에 보관됩니다',4500);return;}
+    if(typeof sb==='undefined'||!state.projectId||(typeof online!=='undefined'&&!online)){window._svRawPend9=(window._svRawPend9||[]).concat(arr);toast('원시 ZIP '+arr.length+'개 대기 — 사업 등록(저장)되면 자동 보관됩니다',4500);return;}/* [BUILD2450] 신규 사업(미저장) 상태에서 드롭한 원시 ZIP은 대기열에 두었다가 projectId 생기면 보관 */
     var i=0;(function nx(){if(i>=arr.length)return;var f=arr[i++];
       var fin=function(ymd){if(!ymd){toast('원시 보관 건너뜀 — 작업일 판별 실패: '+(f.name||''),5000);setTimeout(nx,300);return;}
         sb.storage.from('photos').upload(state.projectId+'/raw_'+ymd+'.zip',f,{upsert:true,contentType:'application/zip'}).then(function(u1){
@@ -8021,6 +8021,7 @@ function svRawZipKeep9(zips){/* [BUILD2447] 결선DB(시스템 이전 사업) �
       var m=/20(\d{6})/.exec(f.name||'');if(m){fin(m[1]);return;}
       try{JSZip.loadAsync(f).then(function(zip){var ent=null;zip.forEach(function(path,e){if(!e.dir&&/\.csv$/i.test(path)&&!ent)ent=e;});if(!ent)return null;return ent.async('uint8array');}).then(function(bytes){var ymd=null;if(bytes){try{var head=new TextDecoder('euc-kr').decode(bytes.slice(0,4000));var l2=head.split(/\r?\n/)[1]||'';var c=l2.split(',');if(c[8])ymd=String(c[8]).replace(/-/g,'').slice(2,8);}catch(_e){}}fin(ymd);})['catch'](function(){fin(null);});}catch(_z){fin(null);}
     })();}catch(_e){}}
+function svRawPendingFlush9(){/* [BUILD2450] 사업 등록/저장으로 projectId가 생긴 직후 대기 중 원시 ZIP 보관 */try{var q=window._svRawPend9;if(!q||!q.length||!state.projectId)return;window._svRawPend9=[];svRawZipKeep9(q);}catch(_e){}}
 function svCsvDispatch9(fs){/* 기존 분기 그대로 */
   if(regOpen()){if(state.tamsa&&typeof regAddCsvFilesTamsa==='function')regAddCsvFilesTamsa(fs);else regAddCsvFiles(fs);}
   else loadCsvFile(fs[0]);
