@@ -6229,7 +6229,7 @@ EOF
   function line(x1,y1,x2,y2,layer,col,lt){if(_PDF){_pdfLine(x1,y1,x2,y2,col,lt,layer);return;}var a=['0','LINE','5',H(),'330','17','100','AcDbEntity','8',layer];if(lt)a.push('6',lt);a.push('62',String(col),'100','AcDbLine','10',N(x1),'20',N(y1),'30','0','11',N(x2),'21',N(y2),'31','0');push(a);}
   function box(cx,cy,sz,layer,col){var h=sz/2;pline([[cx-h,cy-h],[cx+h,cy-h],[cx+h,cy+h],[cx-h,cy+h]],layer,col,true);}
   function insert(name,x,y,sc,layer,col){if(_PDF){_pdfInsert(name,x,y,sc,col);return;}push(['0','INSERT','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbBlockReference','2',name,'10',N(x),'20',N(y),'30','0','41',N(sc),'42',N(sc),'43',N(sc),'50','0']);}
-  function text(x,y,h,s,layer,col,align,rot,valign,x11,y11){if(_PDF){_pdfText(x,y,h,s,layer,col,align,rot,valign);return;}var hangul=/[^\x00-\x7F]/.test(s);var es=uesc(s);var a=['0','TEXT','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbText','10',N(x),'20',N(y),'30','0','40',N(h),'1',es];if(rot){a.push('50',N(rot));}if(hangul)a.push('7','HANGUL');a.push('72',String(align||0),'11',N(x11!=null?x11:x),'21',N(y11!=null?y11:y),'31','0','100','AcDbText');if(valign){a.push('73',String(valign));}push(a);}
+  function text(x,y,h,s,layer,col,align,rot,valign,x11,y11,sty){if(_PDF){_pdfText(x,y,h,s,layer,col,align,rot,valign);return;}var hangul=/[^\x00-\x7F]/.test(s);var es=uesc(s);var a=['0','TEXT','5',H(),'330','17','100','AcDbEntity','8',layer,'62',String(col),'100','AcDbText','10',N(x),'20',N(y),'30','0','40',N(h),'1',es];if(rot){a.push('50',N(rot));}if(hangul||sty)a.push('7',sty||'HANGUL');/* [BUILD2449] sty: 스타일 지정(HANGUL=malgun.ttf, romans.shx보다 획이 두꺼움) */a.push('72',String(align||0),'11',N(x11!=null?x11:x),'21',N(y11!=null?y11:y),'31','0','100','AcDbText');if(valign){a.push('73',String(valign));}push(a);}
   var _depBlkUsed=false;/* [1320] 탐사 심도 블록+속성 */
   function depthBlk(x,y,h,str,rot,valign,ax,ay){if(_PDF){_pdfText(ax,ay,h,str,'PT_DEPTH',5,1,rot,valign);return;}_depBlkUsed=true;var IH=H();
     push(['0','INSERT','5',IH,'330','17','100','AcDbEntity','8','PT_DEPTH','62','5','100','AcDbBlockReference','66','1','2','PT_DEPTH_BLK','10',N(x),'20',N(y),'30','0','41','1','42','1','43','1','50','0']);
@@ -6258,7 +6258,7 @@ EOF
     var _dep=(_bp||_LV.depth===0)?null:(state.tamsa?((p.z!=null&&isFinite(p.z))?p.z:null):(state._depthByNo&&state._depthByNo[p.no]));var _hasDep=(_dep!=null&&isFinite(_dep));
     if(_bpHide){noOut='';cdOut='';}
     var _svAt9=(typeof STAGE!=='undefined'&&STAGE==='survey')&&!_bp;/* [BUILD2444] 후측량 결선 DXF: 번호·코드 텍스트 정렬점 = 측점 좌표(심도 [1507] 강력규칙과 동일). 번호=좌·기준선(점 위로), 코드=좌·상단정렬(점 아래로) → 같은 점에 붙어도 안 겹침. 인출선·라벨 이동값(lo) 미사용 */
-    if(_svAt9){var _th6=0.10;/* [BUILD2446→2448] 후측량 결선 번호·코드 글자 높이 고정 0.10 (사용자 지정) */if(noOut)text(p.x,p.y,_th6,noOut,'PT_LABEL',3,0);if(cdOut)text(p.x,p.y,_th6,cdOut,'PT_CODE',4,0,0,3);}
+    if(_svAt9){var _th6=0.10;/* [BUILD2446→2448] 후측량 결선 번호·코드 글자 높이 고정 0.10 (사용자 지정) */if(noOut)text(p.x,p.y,_th6,noOut,'PT_LABEL',3,0,0,null,null,null,'HANGUL');if(cdOut)text(p.x,p.y,_th6,cdOut,'PT_CODE',4,0,0,3,null,null,'HANGUL');/* [BUILD2449] 글자 조금 두껍게 — 단선 폰트(romans.shx)→HANGUL 스타일(malgun.ttf) */}
     else{if(noOut||cdOut)line(p.x,p.y,lo.lx,lo.ly,'PT_LEADER',7,'DASHED');
     if(noOut)text(lo.lx,lo.ly+TH*0.1,TH,noOut,'PT_LABEL',_bp?2:3,al);
     if(cdOut)text(lo.lx,lo.ly-TH*1.1,TH,cdOut,'PT_CODE',_bp?2:4,al);}
@@ -6298,7 +6298,7 @@ EOF
     var _p=mhLabelBase(mh,w); var lx=_p.lx, lyy=_p.ly;
     var isRight=(lx>=mh.wx);
     var uw=w+MTH*0.12+1.2; var ux2=isRight?lx+uw:lx-uw; // 밑줄=글자폭+여유 +1.2m 연장(종훈님 CAD 실측)
-    pline([[mh.wx,mh.wy],[lx,lyy],[ux2,lyy]],lyr,col,false,null,null,((typeof STAGE!=='undefined'&&STAGE==='survey')?0.025:0.10)); // 대각선+밑줄=폴리선 1개(붙음) [BUILD2444→2446] 후측량 결선은 두께 1/4(0.025)
+    pline([[mh.wx,mh.wy],[lx,lyy],[ux2,lyy]],lyr,col,false,null,null,((typeof STAGE!=='undefined'&&STAGE==='survey')?0.0175:0.10)); // 대각선+밑줄=폴리선 1개(붙음) [BUILD2444→2449] 후측량 결선 두께 0.0175(0.025의 70%)
     if(mh.label)text((lx+ux2)/2,lyy+MTH*0.62,MTH,mhDisp(mh),lyr+'_LABEL',col,1);/* [1412] 간격 */if(!((typeof LV!=='undefined')&&LV.tgnote===0)){var _mn9=null,_mns9=state.tgNotes||[];for(var _m9=0;_m9<_mns9.length;_m9++){if(_mns9[_m9].mh&&Math.abs(_mns9[_m9].x-mh.wx)<0.5&&Math.abs(_mns9[_m9].y-mh.wy)<0.5){_mn9=_mns9[_m9];break;}}if(_mn9){var _ml9=(_mn9.text||'').split('\n').filter(function(t){return (''+t).trim()!=='';});for(var _y9=0;_y9<_ml9.length;_y9++)text(Math.min(lx,ux2),lyy-MTH*(1.95+_y9*1.35),MTH,_ml9[_y9],'NOTE',6,0);/* [1412] *//* [1380] 인출선 겹침 방지 *//* [1374] 왼쪽 정렬 */}}/* [1370] 여러 줄 */ // 꺾임점 기준 정렬(R=좌0,L=우2)
   });
   // 보강판 구역(관로결선 ±5M 밴드 + 연한 해치 + 태그/인출선) — true color 보강판색(#B8860B)
