@@ -11481,7 +11481,7 @@ function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시�
     var fA=_fldInspFacAt9(A),fB=_fldInspFacAt9(B);
     function isMh(f){return f&&(!f.type||f.type==='mh');}
     function col(title,color,fac,from,to){var h='<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">';
-      h+='<div style="display:flex;gap:6px;align-items:stretch"><div style="flex:none;border:2px solid '+color+';border-radius:7px;padding:4px 10px;font-weight:800;font-size:12px;color:'+color+';display:flex;align-items:center;justify-content:center;white-space:nowrap">'+title+'</div>';
+      h+='<div style="display:flex;gap:6px;align-items:stretch"><div style="flex:none;border:2px solid '+color+';background:'+color+';border-radius:7px;padding:4px 10px;font-weight:800;font-size:12px;color:#fff;display:flex;align-items:center;justify-content:center;white-space:nowrap">'+title+'</div>'/* [BUILD2454] 시작(초록)·종료(빨강) 제목 필: 배경=각 색, 글자 흰색 */;
       var nm=fac?E(fac.label||''):'(\uC2DC\uC124\uBB3C \uC5C6\uC74C)';var dg=fac?_fldInspDirGw9(fac,from,to):null;var gt=(dg&&dg.gw&&dg.gw.length)?_gwFmt9(dg.gw,true):'-';
       h+='<div style="flex:1;min-width:0;border:2px solid '+color+';border-radius:7px;padding:4px 8px;font-size:11.5px;display:flex;flex-direction:column;justify-content:center"><div style="font-weight:800;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+nm+(dg&&dg.wall?(' <span style="color:#888;font-weight:700">'+dg.wall+'</span>'):'')+'</div><div style="color:#0f7a86;font-weight:800">'+E(gt)+'</div></div></div>';
       h+='<div style="border:2px solid '+color+';border-radius:8px;padding:6px;min-height:260px;background:#fff;overflow:auto">';
