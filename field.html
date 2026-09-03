@@ -75,6 +75,7 @@
   .reginfo input,.reginfo select{padding:7px 10px;border:1px solid var(--line);border-radius:8px;font-size:13.5px;outline:none;font-weight:400;background:#fff}
   .reginfo input:focus,.reginfo select:focus{border-color:var(--accent)}
   .regcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;padding:14px 20px 6px}
+  @media (min-width:761px){.regbox{width:min(1380px,97vw)}.regcards{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}}/* [BUILD2436] 측량현장 PC: 카드 6개 한 줄 — 모달 1060→1380px, 카드 최소폭 165→150 */
   .regcard{border:1px solid var(--line);border-top:3px solid var(--rc,#ccc);border-radius:11px;padding:14px 13px;display:flex;flex-direction:column;min-height:212px;background:#fcfcfb}
   .regcard.csv{--rc:#1f6fd6}
   .regcard.pho{--rc:#2a9e50}
@@ -866,7 +867,7 @@ window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
     </div>
   </div>
 
-<script src="login.js?v=2435"></script><script src="core.js?v=2435"></script>
+<script src="login.js?v=2436"></script><script src="core.js?v=2436"></script>
 <script>
 /* [BUILD2079] 폰 body 높이 = 실측 픽셀 고정 — dvh를 못 믿는 웹뷰(카톡 인앱 등)에서 패널 바닥이 화면 밖으로 나가던 문제 종결. 회전해야 고쳐지던 증상의 근본 원인 제거 */
 (function(){
