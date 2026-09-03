@@ -20049,6 +20049,8 @@ function svFldDoneTable9(el,phByDate){/* [BUILD2221] 결선완료 등록 — 성
  if(!el)return;
  var pts=state.points||[],lns=state.lines||[];
  var regD={};(state.rtDaily||[]).forEach(function(r){if(r&&r.date)regD[r.date]=1;});
+ var _legacy9=!Object.keys(regD).length;/* [BUILD2445] 실시간측량 없이 결선DB 사업등록(CSV·사진 직접 로딩)으로 시작한 시스템 이전 사업: 실시간 일별등록(rtDaily)이 없으니 도면의 측점 전체 날짜를 등록분으로 삼아 CSV·결선·사진 성과를 채우고 측량(현장) 등록이 되게 한다. 실시간에서 넘어온 사업은 종전대로 rtDaily 기준 */
+ if(_legacy9)pts.forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0)regD[d0]=1;});
  var dm=svDistMap(pts,lns);var tot=0,seg=0;for(var _k in dm.dist)if(regD[_k])tot+=dm.dist[_k];for(var _k2 in dm.seg)if(regD[_k2])seg+=dm.seg[_k2];
  var np=0;pts.forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0&&regD[d0])np++;});
  var dayN=Object.keys(regD).length;
@@ -20071,7 +20073,7 @@ function svFldDoneTable9(el,phByDate){/* [BUILD2221] 결선완료 등록 — 성
   +'<td style="text-align:center;padding:6px 3px;'+VL+'"><button class="'+cls+'" '+(on?'':'disabled ')+'style="'+bs+';border-radius:7px;padding:'+(ph9?'5px':'6px')+' 0;width:'+Zw+'px;font-weight:800;font-size:'+Zf+'px;display:inline-flex;align-items:center;justify-content:center;margin:0 auto;cursor:'+(on?'pointer':'default')+'">'+btn+'</button></td>'
   +'<td style="text-align:center;padding:6px 3px">'+cb+'</td></tr>';}
  var h='<div style="display:flex;align-items:center;gap:10px;padding:2px 0 9px;'+WB9+'">'
-  +'<div style="font-size:12.5px;color:'+G1+';font-weight:800">거리 합계 <span style="color:#0f6e56">'+(+tot.toFixed(1))+'m</span> · 측점 '+np+'개 · 결선 '+seg+'개 · '+dayN+'일치<span style="color:#98a1ad;font-weight:600;font-size:11px"> (등록분)</span></div>'
+  +'<div style="font-size:12.5px;color:'+G1+';font-weight:800">거리 합계 <span style="color:#0f6e56">'+(+tot.toFixed(1))+'m</span> · 측점 '+np+'개 · 결선 '+seg+'개 · '+dayN+'일치<span style="color:#98a1ad;font-weight:600;font-size:11px">'+(_legacy9?' (결선DB 직접등록 · 전체)':' (등록분)')+'</span></div>'
   +'<button id="svdaToFld9" style="margin-left:auto;padding:7px 14px;border-radius:8px;font-weight:800;font-size:12.5px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer">측량(현장) 등록</button></div>'
   +'<table style="'+WB9+';border-collapse:collapse;font-size:13px;border:1.5px solid '+G2+';table-layout:fixed">'
   +(ph9?'<colgroup><col style="width:26px"><col><col style="width:58px"><col style="width:54px"><col style="width:54px"></colgroup>':'<colgroup><col style="width:30px"><col style="width:290px"><col style="width:88px"><col style="width:70px"><col style="width:76px"></colgroup>')
