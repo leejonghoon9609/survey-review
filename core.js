@@ -8007,12 +8007,26 @@ function svRawZipToCsv9(zips,done){
     }});
   });
 }
+function svRawZipKeep9(zips){/* [BUILD2447] 결선DB(시스템 이전 사업) 원시 ZIP 보관 — 실시간 rtRawZipUp9의 보관부만 미러: 원본 ZIP을 storage photos/{pid}/raw_{ymd}.zip 에 올리고 state.rtRawMeta9[ymd] 기록 → 결선완료 등록 '원시데이터(노출관로)' 행·통합 ZIP(rtRawAllZip9) 그대로 동작. CSV 추출(svRawZipToCsv9)은 종전대로 별도. 작업일=ZIP 파일명 20YYMMDD → 없으면 첫 CSV 2행 현재날짜 열 */
+  try{if(!(typeof STAGE!=='undefined'&&STAGE==='survey'))return;var arr=[].slice.call(zips||[]).filter(function(f){return f&&/\.zip$/i.test(f.name||'');});if(!arr.length)return;
+    if(typeof sb==='undefined'||!state.projectId||(typeof online!=='undefined'&&!online)){toast('원시 ZIP은 사업 저장 후 다시 올리면 서버에 보관됩니다',4500);return;}
+    var i=0;(function nx(){if(i>=arr.length)return;var f=arr[i++];
+      var fin=function(ymd){if(!ymd){toast('원시 보관 건너뜀 — 작업일 판별 실패: '+(f.name||''),5000);setTimeout(nx,300);return;}
+        sb.storage.from('photos').upload(state.projectId+'/raw_'+ymd+'.zip',f,{upsert:true,contentType:'application/zip'}).then(function(u1){
+          if(u1&&u1.error){toast('원본 ZIP 보관 실패: '+u1.error.message,6000);return;}
+          state.rtRawMeta9=state.rtRawMeta9||{};state.rtRawMeta9[ymd]={zn:(f.name||''),size:f.size||0,at:new Date().toISOString(),night:0,cut:null,fp:[],sv:1};
+          try{window._silentSave=true;saveProject();}catch(_sv){}
+          toast('\uD83D\uDCE6 원시 보관 — '+(f.name||'')+' ('+ymd+')',4000);
+        })['catch'](function(e){toast('원시 보관 오류: '+(e&&(e.message||e))||'',6000);}).then(function(){setTimeout(nx,300);});};
+      var m=/20(\d{6})/.exec(f.name||'');if(m){fin(m[1]);return;}
+      try{JSZip.loadAsync(f).then(function(zip){var ent=null;zip.forEach(function(path,e){if(!e.dir&&/\.csv$/i.test(path)&&!ent)ent=e;});if(!ent)return null;return ent.async('uint8array');}).then(function(bytes){var ymd=null;if(bytes){try{var head=new TextDecoder('euc-kr').decode(bytes.slice(0,4000));var l2=head.split(/\r?\n/)[1]||'';var c=l2.split(',');if(c[8])ymd=String(c[8]).replace(/-/g,'').slice(2,8);}catch(_e){}}fin(ymd);})['catch'](function(){fin(null);});}catch(_z){fin(null);}
+    })();}catch(_e){}}
 function svCsvDispatch9(fs){/* 기존 분기 그대로 */
   if(regOpen()){if(state.tamsa&&typeof regAddCsvFilesTamsa==='function')regAddCsvFilesTamsa(fs);else regAddCsvFiles(fs);}
   else loadCsvFile(fs[0]);
 }
 setupDrop('dropCsv',function(fs){if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){var _z9=[],_r9=[];for(var zi=0;zi<fs.length;zi++){(/\.zip$/i.test(fs[zi].name||'')?_z9:_r9).push(fs[zi]);}if(_z9.length){if(typeof rtRawZipUpMany9==='function')rtRawZipUpMany9(_z9);if(!_r9.length)return;fs=_r9;}}else{var _z8=[],_c8=[];for(var z8=0;z8<fs.length;z8++){(/\.zip$/i.test(fs[z8].name||'')?_z8:_c8).push(fs[z8]);}
-  if(_z8.length){svRawZipToCsv9(_z8,function(csvs){var all=_c8.concat(csvs);if(!all.length){toast('ZIP 안에 CSV가 없습니다');return;}toast('원시 ZIP에서 CSV '+csvs.length+'개 추출');svCsvDispatch9(all);});return;}
+  if(_z8.length){try{if(typeof svRawZipKeep9==='function')svRawZipKeep9(_z8);}catch(_rk9){}/* [BUILD2447] 원본 ZIP 보관 */svRawZipToCsv9(_z8,function(csvs){var all=_c8.concat(csvs);if(!all.length){toast('ZIP 안에 CSV가 없습니다');return;}toast('원시 ZIP에서 CSV '+csvs.length+'개 추출');svCsvDispatch9(all);});return;}
 }/* [BUILD2110→2147] 등록카드 원시 ZIP — 후측량도 지원 */svCsvDispatch9(fs);});/* [1355] 탐사 탭 분기 */
 setupDrop('dropDxf',function(fs){loadDxfFiles(fs);});/* [1350] */
 setupDrop('dropPho',function(fs){regAddPhotos(fs);});setupDrop('dropAft',function(fs){[].forEach.call(fs,function(f){loadAfterCsv(f);});});/* [BUILD2236] 원시 ZIP·CSV 다중 드롭 */
@@ -15147,7 +15161,7 @@ function openCsvList(){
 }
 document.getElementById('fCsv').addEventListener('change',function(e){var fs=e.target.files;
   if(!(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)&&typeof svRawZipToCsv9==='function'){var _z8=[],_c8=[];for(var z8=0;z8<fs.length;z8++){(/\.zip$/i.test(fs[z8].name||'')?_z8:_c8).push(fs[z8]);}
-    if(_z8.length){svRawZipToCsv9(_z8,function(csvs){var all=_c8.concat(csvs);if(!all.length){toast('ZIP 안에 CSV가 없습니다');return;}toast('원시 ZIP에서 CSV '+csvs.length+'개 추출');svCsvDispatch9(all);});e.target.value='';return;}}/* [BUILD2147] */
+    if(_z8.length){try{if(typeof svRawZipKeep9==='function')svRawZipKeep9(_z8);}catch(_rk9){}/* [BUILD2447] 원본 ZIP 보관 */svRawZipToCsv9(_z8,function(csvs){var all=_c8.concat(csvs);if(!all.length){toast('ZIP 안에 CSV가 없습니다');return;}toast('원시 ZIP에서 CSV '+csvs.length+'개 추출');svCsvDispatch9(all);});e.target.value='';return;}}/* [BUILD2147] */
   if(regOpen()||IS_REALTIME){if(state.tamsa&&!(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)&&typeof regAddCsvFilesTamsa==='function')regAddCsvFilesTamsa(fs);else regAddCsvFiles(fs);}else loadCsvFile(fs[0]);e.target.value='';});/* [1355] */document.getElementById('fAft').addEventListener('change',function(e){[].forEach.call(e.target.files,function(f){loadAfterCsv(f);});e.target.value='';});
 function loadDxfFile(f){loadDxfFiles(f?[f]:[]);}
 function loadDxfFiles(fs){fs=Array.prototype.slice.call(fs||[]).filter(Boolean);if(!fs.length)return;/* [1350] 다중 병합 + [1371] 1/5000 지원 */
@@ -20054,7 +20068,7 @@ function svFldDoneTable9(el,phByDate){/* [BUILD2221] 결선완료 등록 — 성
  var dm=svDistMap(pts,lns);var tot=0,seg=0;for(var _k in dm.dist)if(regD[_k])tot+=dm.dist[_k];for(var _k2 in dm.seg)if(regD[_k2])seg+=dm.seg[_k2];
  var np=0;pts.forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0&&regD[d0])np++;});
  var dayN=Object.keys(regD).length;
- var RM=state.rtRawMeta9||{},rawN=0,dupN=0;for(var rk in RM){if(regD[rk]){rawN++;if(RM[rk].dup)dupN++;}}
+ var RM=state.rtRawMeta9||{},rawN=0,dupN=0;for(var rk in RM){if(regD[rk]||_legacy9){rawN++;if(RM[rk].dup)dupN++;}}/* [BUILD2447] 직접등록 사업은 보관된 원시 전부 */
  var phAll=[],phN=0;for(var dk in (phByDate||{})){if(!regD[dk])continue;(phByDate[dk]||[]).forEach(function(x){phAll.push(x);phN++;});}
  var ph9=(typeof _rtPhone9==='function'&&_rtPhone9());
  var G1='#15803d',G2='#b7dfc4',G3='#e7f7ec',VL='border-right:1px solid #d9ecdf';
