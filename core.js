@@ -7598,9 +7598,10 @@ function updRegStatus(){
   if(nb){d.textContent='백판 '+nb+'개 라인 로딩됨';d.classList.add('done');}
   else{d.textContent='백판 도면 (.dxf)';d.classList.remove('done');}
   var p=document.getElementById('rcPho');
-  var _upn9=0;try{if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&typeof photoMap!=='undefined'&&photoMap)_upn9=Object.keys(photoMap).length;}catch(_ue9){}/* [BUILD2179] 업로드 완료 사진 수 */
-  if(pendingPhotos&&pendingPhotos.length){p.textContent='사진 '+pendingPhotos.length+'장 선택됨'+(_upn9?(' · 업로드 '+_upn9+'장'):'');p.classList.add('done');}
-  else if(_upn9){p.textContent='사진 '+_upn9+'장 로딩됨';p.classList.add('done');}
+  var _upn9=0,_jgn9=0,_jgp9={};try{if(typeof photoMap!=='undefined'&&photoMap){Object.keys(photoMap).forEach(function(k){_upn9++;var m=/^(\d{6}-\d+)-[1-4]$/.exec(String(k));if(m){_jgn9++;_jgp9[m[1]]=1;}});}}catch(_ue9){}/* [BUILD2179] 업로드 완료 사진 수 *//* [BUILD2433] 실시간 전용 게이트 해제 — 측량현장 등 전 공정에서 DB(_photos) 로드된 사진 수 표시(저장 후 재진입 시 비어 보이던 원인) + 지거 사진(YYMMDD-N-K)·지거점 수 병기 */
+  var _jgt9=_jgn9?(' · 지거 '+Object.keys(_jgp9).length+'점/'+_jgn9+'장'):'';
+  if(pendingPhotos&&pendingPhotos.length){p.textContent='사진 '+pendingPhotos.length+'장 선택됨'+(_upn9?(' · 업로드 '+_upn9+'장'+_jgt9):'');p.classList.add('done');}
+  else if(_upn9){p.textContent='사진 '+_upn9+'장 로딩됨'+_jgt9;p.classList.add('done');}
   else{p.textContent='사진 (파일명=측점번호)';p.classList.remove('done');}
   if(state.points&&state.points.length&&typeof crsCheck==='function')crsCheck();
   var _tg=function(id,on){var b=document.getElementById(id);if(b)b.style.display=on?'inline-block':'none';};
@@ -15076,7 +15077,8 @@ function expandPhotoFiles(list){
         if(entry.dir)return;var base=path.split('/').pop();
         if(/^thumbs\.db$/i.test(base)||/__macosx/i.test(path))return;
         if(!/\.(jpe?g|png)$/i.test(base))return;
-        jobs.push(entry.async('blob').then(function(blob){var file=new File([blob],base,{type:'image/jpeg'});file._relpath=path;file._zipdate=zdate;file._jgzip=_isJg9;return file;}));
+        var _pd9='',_pj9=false;try{var _segs9=path.split('/');for(var _si9=_segs9.length-2;_si9>=0;_si9--){var _sg9=_segs9[_si9]||'';if(!_pd9){var _dm9=_sg9.match(/20(\d{6})/)||_sg9.match(/(\d{6})/);if(_dm9)_pd9=_dm9[1];}if(/\uC9C0\uAC70/.test(_sg9))_pj9=true;}}catch(_pe9){}/* [BUILD2433] 폴더명 "250613(지거)"에서 날짜·지거 표식 (zip 이름엔 없는 경우) */
+        jobs.push(entry.async('blob').then(function(blob){var file=new File([blob],base,{type:'image/jpeg'});file._relpath=path;file._zipdate=_pd9||zdate;file._jgzip=_isJg9||_pj9;return file;}));
       });
       return Promise.all(jobs);
     });
