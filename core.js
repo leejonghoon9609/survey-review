@@ -15805,6 +15805,17 @@ function rtBoardTable(cx,W,H,pos,no){
 /* [BUILD2121] 지거 현황판 6행 — 사업명·번호·일자 자동 / 재질·관경·거리심도는 작업자 입력(설정 UI 차기, state.rtJgBoard9[지거번호]={mat,dia,ds} 예정) */
 /* [BUILD2165] CSV 코드-지거 매칭 — 후측량·실시간 CSV의 코드 열 "N 지거"/"지거 N" 측점을 지거 N으로 인식 */
 function jgCodeNum9(p){try{var c=String((p&&p.code)||'').trim();if(!c||c.indexOf('지거')<0)return null;var m=/(?:^|[^0-9])([0-9]+)\s*지거/.exec(' '+c)||/지거\s*([0-9]+)/.exec(c);return m?String(m[1]):null;}catch(_e){return null;}}
+function _jgPaneFit9(body){/* [BUILD2478] PC 지거 사진 배치: 본문 높이 실측 → 근경(56%)+원경·이격 행(44%)이 정확히 한 화면, 후측량 사진 칸은 그 아래(본문 70% 높이) → 본문 세로 스크롤로 내려서 전체 확인. 모바일은 기존 CSS */
+  try{if(!body)return;if(typeof isMobileDevice==='function'&&isMobileDevice())return;
+    var top=body.getBoundingClientRect().top;var H=Math.max(320,Math.round(window.innerHeight-top-6));
+    body.style.maxHeight=H+'px';body.style.overflowY='auto';body.style.minHeight='0';
+    var sp=body.querySelector('.php-split');if(!sp)return;sp.style.flex='none';sp.style.minHeight='0';
+    var g=10,pad=20,inner=H-pad;var h1=Math.round((inner-g)*0.56),h2=(inner-g)-h1;
+    var kids=[].slice.call(sp.children);var m1=null,rw=null,af=null;kids.forEach(function(k){if(k.classList.contains('php-after'))af=k;else if(k.classList.contains('php-row'))rw=k;else if(!m1&&k.classList.contains('php-main'))m1=k;});
+    if(m1){m1.style.height=h1+'px';m1.style.minHeight='0';m1.style.flex='none';}
+    if(rw){rw.style.height=h2+'px';rw.style.minHeight='0';rw.style.flex='none';[].forEach.call(rw.children,function(x){x.style.height=h2+'px';x.style.minHeight='0';x.style.flex='1';x.style.minWidth='0';});}
+    if(af){af.style.height=Math.round(H*0.7)+'px';af.style.minHeight='0';af.style.flex='none';}
+  }catch(_e){}}
 function jgNumOf9(p){/* [BUILD2476] 측점의 지거 번호: 실시간 임의점(_jgf9, 번호 날짜-N-k) → N · 후측량 CSV 코드 'Ng d'(2434 jg=N) → N · 구 코드 'N 지거' → N. 실시간 1-1 ↔ 후측량 1g 매칭의 공통 키 */try{if(!p)return null;if(p._jgf9){var m=/^[0-9]{6}-([0-9]+)-[1-4]$/.exec(String(p.no||''));if(m)return m[1];var sp=String(p.no||'').split('-');return sp[1]||null;}if(p.jg!=null&&p.jg!=='')return String(p.jg);return jgCodeNum9(p);}catch(_e){return null;}}
 function jgFindDay9(n){try{var re=new RegExp('^([0-9]{6})-'+n+'-[1-4]$');var best=null;Object.keys((typeof photoMap!=='undefined'&&photoMap)||{}).forEach(function(k){var m=re.exec(k);if(m&&(!best||m[1]>best))best=m[1];});return best;}catch(_e){return null;}}
 function rtJgBoardGeom9(W,H){var bw=Math.round(W*0.275),rh=Math.round(H*0.042);return {bw:bw,rh:rh,bh:rh*6,lw:Math.round(bw*0.34)};}
@@ -16018,7 +16029,7 @@ function refreshPhotoPanel(){
     if(_jgf2){/* [BUILD2166] 후측량 CSV 코드 'N 지거' 측점 → 지거 3장 통합 + 후측량 사진 */
       var _fb2=_jgf2.d+'-'+_jgf2.n;/* [BUILD2475] 후측량 결선과 같은 배치: 근경 크게 + 원경·이격기준점 나란히 */
       var _fh2=paneImg(_fb2+'-1','지거',true,'지거 '+_jgf2.n+' · 근경 / '+_fb2+'-1')+'<div class="php-row">'+paneImg(_fb2+'-2','원경',false,'원경 / '+_fb2+'-2')+paneImg(_fb2+'-3','이격기준점',false,'이격기준점 / '+_fb2+'-3')+'</div>';
-      body.innerHTML='<div class="php-split">'+_fh2+paneAfter(selNum,'후측량 사진')+'</div>';
+      body.innerHTML='<div class="php-split">'+_fh2+paneAfter(selNum,'후측량 사진')+'</div>';try{_jgPaneFit9(body);}catch(_pf9){}/* [BUILD2478] 한 화면 배치 + 스크롤 */
     }else
     body.innerHTML='<div class="php-split">'+paneImg(selNum,'노출관로 사진',true)+paneAfter(selNum,'후측량 사진')+'</div>';
   }else if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){
@@ -16034,7 +16045,7 @@ function refreshPhotoPanel(){
     if(_jgm9){/* [BUILD2119] 지거 3장 세로 통합 — 아무 장이나 선택해도 근경·원경·이격기준점 한 번에 */
       var _JL9=['근경','원경','이격기준점'];var _h9='';
       for(var _ji9=1;_ji9<=3;_ji9++){var _no9=_jgm9[1]+'-'+_jgm9[2]+'-'+_ji9;var _p9=paneImg(_no9,'지거',true,'지거 '+_jgm9[2]+' · '+_JL9[_ji9-1]+' / '+_no9);_h9+=(_ji9===2?'<div class="php-row">':'')+_p9+(_ji9===3?'</div>':'');}/* [BUILD2475] 근경 크게 + 원경·이격기준점 나란히(php-row). 세 장 다 php-main 유지 → 2121 현황판 합성(.php-main 순서 1·2·3) 그대로 */
-      body.innerHTML=_h9;_bu=null;
+      body.innerHTML='<div class="php-split">'+_h9+'</div>';_bu=null;try{_jgPaneFit9(body);}catch(_pf9){}/* [BUILD2478] 실시간 PC도 동일 배치(php-main 순서 유지 → 현황판 합성 그대로) */
       /* [BUILD2121] 각 장에 지거 현황판 즉석 합성 — 원본 무손(표시 시 캔버스), 별도 현황판 카드 없이 사진 자체에 */
       (function(){var _mains9=body.querySelectorAll('.php-main');
         for(var _sh9=1;_sh9<=3;_sh9++){
