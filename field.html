@@ -260,7 +260,7 @@
   .php-sub .ph{flex:1;width:100%;height:auto;min-height:0;object-fit:contain;background:#f3f3f0;display:block}
   .ph.php-none{display:flex;align-items:center;justify-content:center;color:#bbb;font-size:12px}
   /* 노출/후측량 2등분 — 기본 세로(사이드패널·폰), 현장모드+넓은화면만 가로 */
-  .php-split{flex:1;display:flex;flex-direction:column;gap:10px;min-height:0}.php-split{flex:none}.php-split>.php-main{flex:none;height:34vh;min-height:220px}.php-body>.php-split>.php-row>.php-sub{min-height:200px}/* [BUILD2477] PC도 사진 고정 높이 → 후측량 사진까지 잘리지 않고 본문 스크롤 */
+  .php-split{flex:1;display:flex;flex-direction:column;gap:10px;min-height:0}/* [BUILD2485] 2477 고정높이 CSS 제거 — 일반 측점(노출관로/후측량 2분할)은 원래대로 패널 전체 채움, 지거는 JS(_jgPaneFit9)가 배치 */
   .php-split>.php-main{flex:1;min-height:0}
   .php-after .ph.php-none{color:#bbb;font-size:13px;background:#f6f6f3;flex:1}
   /* 폰 현장모드: 노출/후측량 각각 풀사이즈로 세로 스택 + 패널 스크롤 */
@@ -869,7 +869,7 @@ window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
     </div>
   </div>
 
-<script src="login.js?v=2484"></script><script src="core.js?v=2484"></script>
+<script src="login.js?v=2485"></script><script src="core.js?v=2485"></script>
 <script>
 /* [BUILD2079] 폰 body 높이 = 실측 픽셀 고정 — dvh를 못 믿는 웹뷰(카톡 인앱 등)에서 패널 바닥이 화면 밖으로 나가던 문제 종결. 회전해야 고쳐지던 증상의 근본 원인 제거 */
 (function(){
