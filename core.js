@@ -11733,6 +11733,7 @@ function fldInspWin9(sel){
     try{card.querySelectorAll('.fiSheet9[data-hl]').forEach(function(bx){_fldInspHlDom9(bx);});}catch(_hd9){}/* [BUILD2453] 벽 강조 DOM 보강 */
     try{card.querySelectorAll('.fiMidRow9').forEach(function(tr){tr.onclick=function(){_fldInspMidHL9(+this.getAttribute('data-mi'));};});}catch(_mr9){}/* [BUILD2461] 인입/분기 행 클릭 → 라인 강조 */
     try{var _sbx=card.querySelectorAll('.fiSheetBox9'),_mh9=0;_sbx.forEach(function(b){_mh9=Math.max(_mh9,b.getBoundingClientRect().height);});var _mb9=card.querySelector('.fiMidBox9');if(_mb9&&_mh9>0)_mb9.style.height=Math.round(_mh9)+'px';}catch(_eq9){}/* [BUILD2468] 인입/분기 상자 높이 = 맨홀도 상자 높이(내용 많으면 세로 스크롤) */
+    try{card.querySelectorAll('.fiStrip9').forEach(function(st){st.style.overflow='hidden';st.style.textOverflow='clip';var fs=11;st.style.fontSize=fs+'px';var g=8;st.style.gap=g+'px';var n=0;while(st.scrollWidth>st.clientWidth+1&&n<14){n++;if(g>3){g-=1;st.style.gap=g+'px';}else{fs-=0.5;st.style.fontSize=fs+'px';}if(fs<7)break;}});}catch(_fit9){}/* [BUILD2470] 한 줄 상자 글자 자동 축소 — 간격 8→3px, 그래도 넘치면 글자 11→7px까지 줄여 밀림 방지 */
     card.querySelectorAll('.fiSheet9').forEach(function(bx){bx.onclick=function(ev){try{
       var rec=(window._fldInspSheet9||{})[this.getAttribute('data-sid')];if(!rec)return;
       var sv=this.querySelector('svg');if(!sv)return;var r=sv.getBoundingClientRect();if(!r.width)return;
