@@ -14908,11 +14908,13 @@ function joseoSyncTo(no){
   if(!joseoState||!joseoLink||!no) return;
   var panel=document.getElementById('joseoPanel'); if(!panel||panel.style.display==='none') return;
   var p=pointByNo(no); if(!p) return;
-  var dk=joseoDate(p.no); if(!dk) return;
+  var target=String(p.no);var dk=joseoDate(p.no);
+  try{var N=(typeof jgNumOf9==='function')?jgNumOf9(p):null;if(N){var m=/^([0-9]{6})-/.exec(String(p.no));var day=(m&&(typeof jgFindDay9!=='function'||jgFindDay9(N)===m[1]))?m[1]:((typeof jgFindDay9==='function')?jgFindDay9(N):null);if(day){var dk2=joseoDate(day+'-0')+'_지거';if(joseoState.groups[dk2]){dk=dk2;target=day+'-'+N;}}}}catch(_jz){}/* [BUILD2482] 지거점(실시간 N-1·후측량 Ng·매칭 승계) → '_지거' 탭의 날짜-N 카드 */
+  if(!dk) return;
   if(joseoState.cur!==dk && joseoState.groups[dk]){ joseoState.cur=dk; joseoRenderTabs(); joseoRenderPreview(dk); }
   var box=document.getElementById('joseoPreview'); if(!box) return;
   var cards=box.querySelectorAll('.jz-card'), hit=null;
-  [].forEach.call(cards,function(c){ c.classList.remove('sel'); c.style.outline=''; c.style.outlineOffset=''; if(c.getAttribute('data-no')===String(p.no)) hit=c; });   /* [1108] 인라인 표시도 청소 — 이중 강조 방지 */
+  [].forEach.call(cards,function(c){ c.classList.remove('sel'); c.style.outline=''; c.style.outlineOffset=''; if(c.getAttribute('data-no')===target) hit=c; });   /* [1108] 인라인 표시도 청소 — 이중 강조 방지 */
   if(hit){ hit.classList.add('sel'); hit.scrollIntoView({behavior:'smooth',block:'center'}); }
 }
 function joseoRegisterDone(){ /* [1275] 토글 */
@@ -15120,6 +15122,7 @@ function joseoRenderPreview(dk){
         var no=cd.getAttribute('data-no');if(!no)return;
         var p=(typeof pointByNo==='function')?pointByNo(no):null;
         if(!p&&/_A\d*$/i.test(no)&&typeof pointByNo==='function')p=pointByNo(String(no).replace(/_A\d*$/i,'')); /* [1259] 후측량 카드→base 측점 폴백 */
+        if(!p){var _jm=/^([0-9]{6})-([0-9]+)$/.exec(String(no));if(_jm&&typeof jgNumOf9==='function'){var _cand=(state.points||[]).filter(function(q){return q&&jgNumOf9(q)===_jm[2];});p=_cand.filter(function(q){return !q._jgf9;})[0]||_cand[0]||null;}}/* [BUILD2482] 지거 카드 → 그 번호의 도면 측점(후측량/매칭 승계 우선, 없으면 실시간 임의점) */
         if(!p)return;
         selNum=p.no;
         if(typeof highlightSel==='function')highlightSel();
