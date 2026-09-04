@@ -14928,11 +14928,13 @@ function joseoRegisterDone(){ /* [1275] 토글 */
 (function(){
   var bt=document.getElementById('joseoBoardTgl');var bt2=document.getElementById('joseoBoardTgl2');/* [BUILD1875→2126] 현황판/원본 토글 — 조서 헤더판 동기화 */
   function _jbOne(b){if(!b)return;var on=!!state.joseoBoard;b.textContent=on?'현황판':'원본';b.style.background=on?'#d32f2f':'#FFC61A';b.style.color=on?'#fff':'#6b5300';b.style.borderColor=on?'#d32f2f':'#d9a800';}
-  function _jbSync(){_jbOne(bt);_jbOne(bt2);/* [BUILD1876] */}
+  var bt3=document.getElementById('phBoardTgl9');/* [BUILD2483] 측량현장 사진 패널 헤더 */
+  function _jbSync(){_jbOne(bt);_jbOne(bt2);_jbOne(bt3);/* [BUILD1876] */}
   var _jbClick9=function(){state.joseoBoard=!state.joseoBoard;_jbSync();try{if(online&&state.projectId)saveProject();}catch(_e){}try{if(typeof joseoState!=='undefined'&&joseoState.cur)joseoRenderPreview(joseoState.cur);}catch(_e2){}try{if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();}catch(_e3){}/* [BUILD1916] */toast(state.joseoBoard?'실시간 측량점: 현황판 합성 표시':'실시간 측량점: 사진 원본 표시');};
   if(bt){window._jbSync9=_jbSync;bt.onclick=_jbClick9;}
   if(bt2){window._jbSync9=_jbSync;bt2.onclick=_jbClick9;}
-  if(bt||bt2)_jbSync();
+  if(bt3){window._jbSync9=_jbSync;bt3.onclick=_jbClick9;}
+  if(bt||bt2||bt3)_jbSync();
   var lb=document.getElementById('joseoLinkBtn');
   if(lb) lb.onclick=function(){ joseoLink=!joseoLink; this.textContent=joseoLink?'🔗 연동':'🔓 미연동'; this.classList.toggle('off',!joseoLink); toast(joseoLink?'측점↔조서 연동 ON (점 클릭=조서 이동)':'조서 연동 OFF'); };
   var db=document.getElementById('joseoDoneBtn');
@@ -16037,6 +16039,14 @@ function refreshPhotoPanel(){
       body.innerHTML='<div class="php-split">'+_fh2+paneAfter(selNum,'후측량 사진')+'</div>';try{_jgPaneFit9(body);}catch(_pf9){}/* [BUILD2478] 한 화면 배치 + 스크롤 */
     }else
     body.innerHTML='<div class="php-split">'+paneImg(selNum,'노출관로 사진',true)+paneAfter(selNum,'후측량 사진')+'</div>';
+    if(state.joseoBoard&&typeof rtBoardURL==='function'){/* [BUILD2483] 측량현장 측점사진 현황판 합성 — 결선DB [1916/2127]과 동일. 지거는 근경(-1)·원경(-2)·이격기준점(-3) 3장 */
+      (function(){
+        function _bd9(no,img){if(no==null||!img)return;var u=img.getAttribute('src');if(!u)return;rtBoardURL(no,u,function(du){if(du)img.src=du;},(state.rtBoardPos&&state.rtBoardPos[no]));}
+        var _fb9=_jgf2?(_jgf2.d+'-'+_jgf2.n):null;
+        _bd9(_fb9?(_fb9+'-1'):selNum,body.querySelector('.php-main:not(.php-after) img.ph'));
+        if(_fb9){var _sb9=body.querySelectorAll('.php-sub img.ph');for(var _q9=0;_q9<_sb9.length&&_q9<2;_q9++)_bd9(_fb9+'-'+(_q9+2),_sb9[_q9]);}
+      })();
+    }
   }else if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){
     // 실시간측량: 선택측점 사진만 + "노출관로측량 / 번호 · 관종 · 관경x관수"
     var _rp=(typeof pointByNo==='function')?pointByNo(selNum):null;
