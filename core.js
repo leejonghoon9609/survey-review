@@ -11513,18 +11513,19 @@ function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시�
        ② 변화점 노드(앞·뒤)를 공유하는 다른 구간에서, 선택 구간과 겹치지 않는 쪽으로 걸어 나가 첫 코드 측점 = 들어오는/나가는 관정보, 끝 노드 = 시설물
        ③ Δ>0 인입 / Δ<0 분기, 상대 구간 없으면 접속점 1.5m 안 보조시설물(인입창) → 그것도 없으면 미확인
        기존 근접 시설물 스캔·2432 겹침 판정은 폐기 */
-    var _onS9=function(x,y){try{for(var q=0;q<sg.length;q++){var n=sg[q];if(n&&n.x!=null&&Math.hypot(n.x-x,n.y-y)<0.35)return true;}return false;}catch(_e){return false;}};/* [BUILD2464] 실측: LG·SKT 라인이 같은 도랑을 달려 선 근접(0.6m)으로는 전부 '겹침' → 판정을 노드 공유(같은 측점 0.35m)로 바꿈 */
+    var _same9=function(a,b){/* [BUILD2466] 같은 노드 = 같은 측점 번호, 또는 6cm 이내 동일점. 맨홀(번호 없음)끼리는 0.35m. 실측: 2구간 -10이 1구간 -9에서 0.32m라 0.35m 규칙에 걸려 걸어 나갈 방향을 잃었음 */if(!a||!b||a.x==null||b.x==null)return false;if(a.no&&b.no)return String(a.no)===String(b.no);var d=Math.hypot(a.x-b.x,a.y-b.y);if(!a.no&&!b.no)return d<0.35;return d<0.06;};
+    var _onS9=function(n){try{for(var q=0;q<sg.length;q++){if(_same9(sg[q],n))return true;}return false;}catch(_e){return false;}};/* [BUILD2464] 노드 공유 판정 [BUILD2466] 번호 동일성 */
     var _codeOf9=function(n){try{if(!n||n.mh||n.tamsa||!n.no)return null;var q=(typeof pointByNo==='function')?pointByNo(n.no):null;if(!q)return null;var g=_gwParseAll9(q.code||'');var t=_gwTot9(g,'cnt');if(t==null)return null;return {cnt:t,fmt:_gwFmt9(_gwSort9(g),false),no:q.no,code:q.code};}catch(_e){return null;}};
     var NC=[];sg.forEach(function(n,idx){var c=_codeOf9(n);if(c){c.idx=idx;c.n=n;NC.push(c);}});
     var JS=[];for(var ci=1;ci<NC.length;ci++){var d=NC[ci].cnt-NC[ci-1].cnt;if(d!==0)JS.push({d:d,bf:NC[ci-1],af:NC[ci]});}
     var _walk9=function(s2,i2,k){/* s2[k]가 선택 구간과 공유되는 노드. 겹치지 않는 방향으로 끝까지 → {fmt,cnt,endNode,line} */
-      var dirs=[];if(k+1<s2.length&&!_onS9(s2[k+1].x,s2[k+1].y))dirs.push(1);if(k-1>=0&&!_onS9(s2[k-1].x,s2[k-1].y))dirs.push(-1);
+      var dirs=[];if(k+1<s2.length&&!_onS9(s2[k+1]))dirs.push(1);if(k-1>=0&&!_onS9(s2[k-1]))dirs.push(-1);
       if(!dirs.length)return null;var dr=dirs[0];var line=[[s2[k].x,s2[k].y]],first=null,q=k+dr,endN=s2[k];
       while(q>=0&&q<s2.length){var n=s2[q];if(!n||n.x==null)break;line.push([n.x,n.y]);endN=n;if(!first){var c=_codeOf9(n);if(c)first=c;}q+=dr;}
       return {fmt:first?first.fmt:'',cnt:first?first.cnt:null,firstNo:first?first.no:'',endNode:endN,line:line,s2:s2,i2:i2};};
     var _seen9={};
     /* ===== [BUILD2465] 라인 접속(토폴로지) 우선 — 선택 구간 노드마다 '이 측점을 쓰는 다른 구간 집합'을 구해 집합이 바뀌는 곳 = 접속점. 관수 변화(Δ)는 그 접속점에 배정해 교차검증 ===== */
-    var _memb9=sg.map(function(n){var m={};if(!n||n.x==null)return m;(_tgSegs||[]).forEach(function(s2,i2){if(i2===sel||!s2||s2.length<2)return;for(var k=0;k<s2.length;k++){var n2=s2[k];if(n2&&n2.x!=null&&Math.hypot(n2.x-n.x,n2.y-n.y)<0.35){m[i2]=k;break;}}});return m;});
+    var _memb9=sg.map(function(n){var m={};if(!n||n.x==null)return m;(_tgSegs||[]).forEach(function(s2,i2){if(i2===sel||!s2||s2.length<2)return;for(var k=0;k<s2.length;k++){if(_same9(s2[k],n)){m[i2]=k;break;}}});return m;});/* [BUILD2466] */
     var EV=[];/* {i2,k,idx,kind:'join'|'leave'} */
     for(var ix=0;ix<sg.length;ix++){var cur=_memb9[ix],prv=ix?_memb9[ix-1]:{},nxt=(ix+1<sg.length)?_memb9[ix+1]:{};
       for(var id in cur){var i2=+id;if(prv[id]==null&&nxt[id]==null){continue;}/* 한 점만 스치는 교차 → 관로 접속 아님 */
