@@ -11569,11 +11569,15 @@ function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시�
        ② 변화점 노드(앞·뒤)를 공유하는 다른 구간에서, 선택 구간과 겹치지 않는 쪽으로 걸어 나가 첫 코드 측점 = 들어오는/나가는 관정보, 끝 노드 = 시설물
        ③ Δ>0 인입 / Δ<0 분기, 상대 구간 없으면 접속점 1.5m 안 보조시설물(인입창) → 그것도 없으면 미확인
        기존 근접 시설물 스캔·2432 겹침 판정은 폐기 */
-    var _same9=function(a,b){/* [BUILD2466] 같은 노드 = 같은 측점 번호, 또는 6cm 이내 동일점. 맨홀(번호 없음)끼리는 0.35m. 실측: 2구간 -10이 1구간 -9에서 0.32m라 0.35m 규칙에 걸려 걸어 나갈 방향을 잃었음 */if(!a||!b||a.x==null||b.x==null)return false;if(a.no&&b.no)return String(a.no)===String(b.no);var d=Math.hypot(a.x-b.x,a.y-b.y);if(!a.no&&!b.no)return d<0.35;return d<0.06;};
+    var _same9=function(a,b){/* [BUILD2466] 같은 노드 = 같은 측점 번호, 또는 6cm 이내 동일점. 맨홀(번호 없음)끼리는 0.35m. 실측: 2구간 -10이 1구간 -9에서 0.32m라 0.35m 규칙에 걸려 걸어 나갈 방향을 잃었음 [BUILD2497] 탐사점(tamsa)과 측점은 번호가 달라도 0.35m 안이면 같은 자리(탐사 T0.90 ↔ 측점 -90 같은 도랑 겹침) */if(!a||!b||a.x==null||b.x==null)return false;var d=Math.hypot(a.x-b.x,a.y-b.y);if((a.tamsa||b.tamsa)&&!(a.tamsa&&b.tamsa))return d<0.35;if(a.no&&b.no)return String(a.no)===String(b.no)||d<0.06;if(!a.no&&!b.no)return d<0.35;return d<0.06;};
     var _onS9=function(n){try{for(var q=0;q<sg.length;q++){if(_same9(sg[q],n))return true;}return false;}catch(_e){return false;}};/* [BUILD2464] 노드 공유 판정 [BUILD2466] 번호 동일성 */
-    var _codeOf9=function(n){try{if(!n||n.mh||n.tamsa||!n.no)return null;var q=(typeof pointByNo==='function')?pointByNo(n.no):null;if(!q)return null;var g=_gwParseAll9(q.code||'');var t=_gwTot9(g,'cnt');if(t==null)return null;return {cnt:t,fmt:_gwFmt9(_gwSort9(g),false),no:q.no,code:q.code,gw:_gwSort9(g)};}catch(_e){return null;}};
+    var _tamL9=null;var _codeOf9=function(n){try{if(!n||n.mh)return null;var q=null;
+      if(n.tamsa){/* [BUILD2497] 탐사점도 관정보 체인·상대 라인 첫 측점에 포함 — _fldTamsaPts 목록에서 번호(또는 5cm 동일점)로 */if(!_tamL9){try{_tamL9=(typeof _fldTamsaPts==='function')?_fldTamsaPts():[];}catch(_t){_tamL9=[];}}for(var q9=0;q9<_tamL9.length;q9++){var tp=_tamL9[q9];if(!tp)continue;if((n.no&&String(tp.no)===String(n.no))||(Math.hypot(tp.x-n.x,tp.y-n.y)<0.05)){q={no:tp.no||n.no||'T',code:tp.code||''};break;}}}
+      else{if(!n.no)return null;q=(typeof pointByNo==='function')?pointByNo(n.no):null;}
+      if(!q)return null;var g=_gwParseAll9(q.code||'');var t=_gwTot9(g,'cnt');if(t==null)return null;return {cnt:t,fmt:_gwFmt9(_gwSort9(g),false),no:q.no,code:q.code,gw:_gwSort9(g),tamsa:!!n.tamsa};}catch(_e){return null;}};
     var NC=[];sg.forEach(function(n,idx){var c=_codeOf9(n);if(c){c.idx=idx;c.n=n;NC.push(c);}});
-    var JS=[];for(var ci=1;ci<NC.length;ci++){var d=NC[ci].cnt-NC[ci-1].cnt;if(d!==0)JS.push({d:d,bf:NC[ci-1],af:NC[ci]});}
+    var JS=[];var _chain=NC.slice();try{var _WGx=window._fiWallGw9||{};/* [BUILD2497] 시작/종료 벽 총계를 체인 양끝에 가상 항목으로 — 벽과 첫 측점 사이에서 들어오는 인입(5H SKT: 벽 3 → 첫 측점 6)이 Δ로 잡히게 */var _sw=(_WGx.A&&_WGx.A.length)?_gwTot9(_WGx.A,'cnt'):null,_ew=(_WGx.B&&_WGx.B.length)?_gwTot9(_WGx.B,'cnt'):null;if(_sw!=null)_chain.unshift({cnt:_sw,idx:0,no:(fA&&fA.label)||'시작',n:sg[0],wall:true});if(_ew!=null)_chain.push({cnt:_ew,idx:sg.length-1,no:(fB&&fB.label)||'종료',n:sg[sg.length-1],wall:true});}catch(_wc){}
+    for(var ci=1;ci<_chain.length;ci++){var d=_chain[ci].cnt-_chain[ci-1].cnt;if(d!==0)JS.push({d:d,bf:_chain[ci-1],af:_chain[ci]});}
     var _walk9=function(s2,i2,k){/* s2[k]가 선택 구간과 공유되는 노드. 겹치지 않는 방향으로 끝까지 → {fmt,cnt,endNode,line} */
       var dirs=[];if(k+1<s2.length&&!_onS9(s2[k+1]))dirs.push(1);if(k-1>=0&&!_onS9(s2[k-1]))dirs.push(-1);
       if(!dirs.length)return null;var dr=dirs[0];var line=[[s2[k].x,s2[k].y]],first=null,q=k+dr,endN=s2[k];
@@ -11591,6 +11595,7 @@ function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시�
     var rows=[];EV.forEach(function(ev){var s2=(_tgSegs||[])[ev.i2];var w=_walk9(s2,ev.i2,ev.k);if(!w)return;w.jp=[sg[ev.idx].x,sg[ev.idx].y];w.fac=_fldInspFacAt9(w.endNode)||null;w.kind=ev.kind;w.idx=ev.idx;rows.push(w);});
     /* Δ 배정: 접속점 idx가 [bf.idx, af.idx] 안이고 방향이 맞는 Δ */
     var usedJ={};rows.forEach(function(w){var best=null;for(var q=0;q<JS.length;q++){var J=JS[q];if(usedJ[q])continue;if(w.idx<J.bf.idx||w.idx>J.af.idx)continue;if((w.kind==='join')!==(J.d>0))continue;best=q;break;}if(best!=null){usedJ[best]=1;w.J=JS[best];}});
+    rows.forEach(function(w){if(w.J)return;var best=null,bd=3;for(var q=0;q<JS.length;q++){var J=JS[q];if(usedJ[q])continue;if((w.kind==='join')!==(J.d>0))continue;var dd=Math.min(Math.abs(w.idx-J.af.idx),Math.abs(w.idx-J.bf.idx));if(dd<bd){bd=dd;best=q;}}if(best!=null){usedJ[best]=1;w.J=JS[best];}});/* [BUILD2497] 2차: 접속 노드 ±2 안의 같은 방향 Δ 배정 */
     /* 같은 접속점·같은 방향에 Δ 없는 라인이 여럿이면(같은 간선 공유) 하나로 묶어 나열 */
     var grp={};rows.forEach(function(w){var gk=w.idx+'|'+w.kind;(grp[gk]=grp[gk]||[]).push(w);});
     Object.keys(grp).forEach(function(gk){var arr=grp[gk];/* 같은 접속점·같은 방향으로 함께 들어오고 나가는 라인들 = 한 행(같은 간선 공유). 끝 시설물 중복 제거, Δ는 그 중 배정된 것 */
