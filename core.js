@@ -14254,6 +14254,7 @@ function joseoPoints(){
   return (state.points||[]).filter(function(p){
     if(!p||!p.no) return false;
     if(p._jgf9)return false;/* [BUILD2153] 지거 위치표시 측점(간접)은 조서 제외 */
+    if(p.jgRef!=null&&p.jgRef!=='')return false;/* [BUILD2501] 후측량 CSV 이격기준점(1A·2A…)은 도면 표시 전용 — 실시간조서·후측량 사진 항목 제외(사용자 확정) */
     if(p.jg!=null&&p.jg!==''||p._jgMerged9)return false;/* [BUILD2480] 후측량 'Ng d' 지거점(매칭 승계 포함)은 지거조서 탭에서만 — 실시간조서 2장 항목으로 중복되지 않게 */
     /* [1122] 맨홀 측점도 조서 포함 — 노출관로/후측량 사진 방식 그대로 적용 */
     var _bp9=String((p.no||'')+'|'+(p._nm||'')+'|'+(p.code||'')+'|'+(p._tcode||'')).replace(/\s+/g,'');if(/보강[판핀]/.test(_bp9)) return false; /* [BUILD2108] 보강판·보강핀 등 표기 변형 포함 제외 */
@@ -16077,6 +16078,7 @@ function rtViewZoom(img,opts){
 function refreshPhotoPanel(){
   if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&!state._bpMig9){state._bpMig9=true;try{rtBpMigrate9();}catch(_mg9){}}/* [BUILD2144] 레거시 보강판 키 자동 정규화(세션 1회) */
   var sel=document.getElementById('photoSel'),nos=sortedNos();
+  if(typeof IS_FIELD!=='undefined'&&IS_FIELD){var _jr9={};(state.points||[]).forEach(function(q){if(q&&q.jgRef!=null&&q.jgRef!=='')_jr9[String(q.no)]=1;});nos=nos.filter(function(n){return !_jr9[String(n)];});if(selNum!=null&&_jr9[String(selNum)]){var _bd0=document.getElementById('photoBody');if(sel)sel.value='';if(_bd0)_bd0.innerHTML='<div style="color:#999;font-size:12px;padding:14px;text-align:center;line-height:1.7">이격기준점('+selNum+')은 도면 표시 전용입니다.<br>사진·조서 대상이 아닙니다 (지거 N-3 사진 참조)</div>';return;}}/* [BUILD2501] 이격기준점은 사진 패널 목록·본문에서 제외 */
   var _ex9=[];if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){var _tr9={};(state._trash||[]).forEach(function(t){if(t&&t.no!=null)_tr9[String(t.no)]=1;});for(var _k9 in photoMap){if(_tr9[String(_k9)])continue;if(nos.indexOf(_k9)<0&&nos.indexOf(String(_k9))<0)_ex9.push(_k9);}_ex9.sort();/* [BUILD2057] 휴지통 측점 사진 숨김 */}/* [BUILD1865] 좌표 없는 촬영분 확인용 */
   var _bl9=function(n){try{if(typeof IS_REALTIME==='undefined'||!IS_REALTIME)return n;var g=(state.gpsPts||[]).filter(function(q){return String(q.no)===String(n);})[0];if(g&&g._bp)return n+' '+g._bp;var pp=(state.points||[]).filter(function(q){return String(q.no)===String(n);})[0];if(pp&&pp.code&&String(pp.code).trim().indexOf('보강판')===0)return n+' '+String(pp.code).trim();}catch(_b9){}return n;};/* [BUILD2143] 보강판 코드 병기 */
   sel.innerHTML='<option value="">측점 선택…</option>'+nos.map(function(n){return '<option value="'+n+'">'+_bl9(n)+'</option>';}).join('')+_ex9.map(function(n){return '<option value="'+n+'">⚠ '+n+' (위치없음)</option>';}).join('');
