@@ -257,7 +257,7 @@
   .php-sub .ph{flex:1;width:100%;height:auto;min-height:0;object-fit:contain;background:#f3f3f0;display:block}
   .ph.php-none{display:flex;align-items:center;justify-content:center;color:#bbb;font-size:12px}
   /* 노출/후측량 2등분 — 기본 세로(사이드패널·폰), 현장모드+넓은화면만 가로 */
-  .php-split{flex:1;display:flex;flex-direction:column;gap:10px;min-height:0}
+  .php-split{flex:1;display:flex;flex-direction:column;gap:10px;min-height:0}.php-split{flex:none}.php-split>.php-main{flex:none;height:34vh;min-height:220px}.php-body>.php-split>.php-row>.php-sub{min-height:200px}/* [BUILD2477] PC도 사진 고정 높이 → 후측량 사진까지 잘리지 않고 본문 스크롤 */
   .php-split>.php-main{flex:1;min-height:0}
   .php-after .ph.php-none{color:#bbb;font-size:13px;background:#f6f6f3;flex:1}
   /* 폰 현장모드: 노출/후측량 각각 풀사이즈로 세로 스택 + 패널 스크롤 */
@@ -900,7 +900,7 @@ function rtWireDoneFn(){try{if(typeof lineDraft!=='undefined'&&lineDraft&&lineDr
     </div>
   </div>
 
-<script src="login.js?v=2476"></script><script src="core.js?v=2476"></script>
+<script src="login.js?v=2477"></script><script src="core.js?v=2477"></script>
 <input type="file" id="rtCamInput" accept="image/*" capture="environment" style="display:none" onchange="rtCamPicked(this)">
 <script>
 /* [BUILD2070] 폰 도면:사진 비율 — 무한재적용(진동) 근본 차단: 재진입 가드+변경시에만 쓰기+클램프 캐시 */
