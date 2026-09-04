@@ -15917,6 +15917,8 @@ function rtJgLP9(el,num){
   el.addEventListener('pointermove',function(e){if(lp&&(Math.abs(e.clientX-sx)>8||Math.abs(e.clientY-sy)>8)){clearTimeout(lp);lp=null;}});
   ['pointerup','pointercancel','pointerleave'].forEach(function(ev){el.addEventListener(ev,function(){if(lp){clearTimeout(lp);lp=null;}});});
 }
+function _jgBoardBind9(imgs,num){/* [BUILD2502] 결선DB·측량현장 지거 사진 현황판 → 더블클릭 또는 1초 길게누르기 = 수정창(rtJgBoardEdit9, 실시간과 동일 저장소 rtJgBoard9) */
+  try{[].forEach.call(imgs||[],function(im){if(!im||im._jgbb9)return;im._jgbb9=1;im.title='더블클릭 / 1초 길게: 지거 '+num+' 현황판 수정';im.style.cursor='pointer';im.addEventListener('dblclick',function(ev){ev.stopPropagation();ev.preventDefault();if(typeof rtJgBoardEdit9==='function')rtJgBoardEdit9(num);});if(typeof rtJgLP9==='function')rtJgLP9(im,num);});}catch(_e){}}
 function rtJgBoardEdit9(num){
   num=String(num);
   var old=document.getElementById('rtJgEdOv9');if(old&&old.parentNode)old.parentNode.removeChild(old);
@@ -16013,6 +16015,7 @@ function rtJgBoardEdit9(num){
     state.rtJgBoard9=state.rtJgBoard9||{};
     state.rtJgBoard9[num]={mat:mat,dia:vals.join(', '),ds:(a&&b)?(a+' / '+b):(a||b||'')};
     try{if(typeof saveProject==='function')saveProject();}catch(_sv){}
+    try{_rtBoardCache={};}catch(_cc){}try{if(typeof joseoState!=='undefined'&&joseoState&&typeof joseoUiOpen==='function'&&joseoUiOpen())joseoRenderPreview(joseoState.cur);}catch(_jr){}/* [BUILD2502] 결선DB·현장 현황판 합성 캐시 무효화 + 열린 조서 갱신 */
     close();toast('\uD83D\uDCD0 지거 '+num+' 현황판 저장 — 3장 모두 적용');
     try{if(typeof refreshPhotoPanel==='function')refreshPhotoPanel();}catch(_rp){}
   };
@@ -16100,7 +16103,7 @@ function refreshPhotoPanel(){
         function _bd9(no,img){if(no==null||!img)return;var u=img.getAttribute('src');if(!u)return;rtBoardURL(no,u,function(du){if(du)img.src=du;},(state.rtBoardPos&&state.rtBoardPos[no]));}
         var _fb9=_jgf2?(_jgf2.d+'-'+_jgf2.n):null;
         _bd9(_fb9?(_fb9+'-1'):selNum,body.querySelector('.php-main:not(.php-after) img.ph'));
-        if(_fb9){var _sb9=body.querySelectorAll('.php-sub img.ph');for(var _q9=0;_q9<_sb9.length&&_q9<2;_q9++)_bd9(_fb9+'-'+(_q9+2),_sb9[_q9]);}
+        if(_fb9){var _sb9=body.querySelectorAll('.php-sub img.ph');for(var _q9=0;_q9<_sb9.length&&_q9<2;_q9++)_bd9(_fb9+'-'+(_q9+2),_sb9[_q9]);var _bm9=body.querySelector('.php-main:not(.php-after) img.ph');_jgBoardBind9([_bm9].concat([].slice.call(_sb9)),_jgf2.n);}/* [BUILD2502] */
       })();
     }
   }else if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){
@@ -16224,6 +16227,7 @@ function refreshPhotoPanel(){
         _bd9(_jgv9?(_jgv9[1]+'-'+_jgv9[2]+'-1'):selNum,body.querySelector('.php-main img.ph'));/* [BUILD2127] 지거 메인=근경 키 */
         var _sp9=body.querySelectorAll('.php-sub');var _no9=[n1,n2];
         for(var _q9=0;_q9<_sp9.length&&_q9<_no9.length;_q9++)_bd9(_no9[_q9],_sp9[_q9].querySelector('img.ph'));
+        if(_jgv9)_jgBoardBind9([body.querySelector('.php-main img.ph')].concat([].map.call(_sp9,function(e){return e.querySelector('img.ph');})),_jgv9[2]);/* [BUILD2502] */
       })();
     }
   }
