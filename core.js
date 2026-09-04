@@ -16005,8 +16005,8 @@ function refreshPhotoPanel(){
     var _jgf2=null;
     if(typeof jgCodeNum9==='function'){var _fp2=(typeof pointByNo==='function')?pointByNo(selNum):null;var _fn2=_fp2?(_fp2._jgf9?String(_fp2.no).split('-')[1]:jgCodeNum9(_fp2)):null;if(_fn2){var _fd2=jgFindDay9(_fn2);if(_fd2)_jgf2={d:_fd2,n:_fn2};}}/* [BUILD2175] */
     if(_jgf2){/* [BUILD2166] 후측량 CSV 코드 'N 지거' 측점 → 지거 3장 통합 + 후측량 사진 */
-      var _FJ2=['근경','원경','이격기준점'];var _fh2='';
-      for(var _fk2=1;_fk2<=3;_fk2++){var _fo2=_jgf2.d+'-'+_jgf2.n+'-'+_fk2;_fh2+=paneImg(_fo2,'지거',false,'지거 '+_jgf2.n+' · '+_FJ2[_fk2-1]+' / '+_fo2);}
+      var _fb2=_jgf2.d+'-'+_jgf2.n;/* [BUILD2475] 후측량 결선과 같은 배치: 근경 크게 + 원경·이격기준점 나란히 */
+      var _fh2=paneImg(_fb2+'-1','지거',true,'지거 '+_jgf2.n+' · 근경 / '+_fb2+'-1')+'<div class="php-row">'+paneImg(_fb2+'-2','원경',false,'원경 / '+_fb2+'-2')+paneImg(_fb2+'-3','이격기준점',false,'이격기준점 / '+_fb2+'-3')+'</div>';
       body.innerHTML='<div class="php-split">'+_fh2+paneAfter(selNum,'후측량 사진')+'</div>';
     }else
     body.innerHTML='<div class="php-split">'+paneImg(selNum,'노출관로 사진',true)+paneAfter(selNum,'후측량 사진')+'</div>';
@@ -16022,7 +16022,7 @@ function refreshPhotoPanel(){
     if(!_jgm9&&typeof jgCodeNum9==='function'){var _cp9=pointByNo(selNum);var _cn9=_cp9?(_cp9._jgf9?String(_cp9.no).split('-')[1]:jgCodeNum9(_cp9)):null;if(_cn9){var _cd9=jgFindDay9(_cn9);if(_cd9)_jgm9=[null,_cd9,_cn9,'1'];}}/* [BUILD2165→2175] 코드 'N 지거'·지거편집 측점 → 사진 3장 매칭 */
     if(_jgm9){/* [BUILD2119] 지거 3장 세로 통합 — 아무 장이나 선택해도 근경·원경·이격기준점 한 번에 */
       var _JL9=['근경','원경','이격기준점'];var _h9='';
-      for(var _ji9=1;_ji9<=3;_ji9++){var _no9=_jgm9[1]+'-'+_jgm9[2]+'-'+_ji9;_h9+=paneImg(_no9,'지거',true,'지거 '+_jgm9[2]+' · '+_JL9[_ji9-1]+' / '+_no9);}
+      for(var _ji9=1;_ji9<=3;_ji9++){var _no9=_jgm9[1]+'-'+_jgm9[2]+'-'+_ji9;var _p9=paneImg(_no9,'지거',true,'지거 '+_jgm9[2]+' · '+_JL9[_ji9-1]+' / '+_no9);_h9+=(_ji9===2?'<div class="php-row">':'')+_p9+(_ji9===3?'</div>':'');}/* [BUILD2475] 근경 크게 + 원경·이격기준점 나란히(php-row). 세 장 다 php-main 유지 → 2121 현황판 합성(.php-main 순서 1·2·3) 그대로 */
       body.innerHTML=_h9;_bu=null;
       /* [BUILD2121] 각 장에 지거 현황판 즉석 합성 — 원본 무손(표시 시 캔버스), 별도 현황판 카드 없이 사진 자체에 */
       (function(){var _mains9=body.querySelectorAll('.php-main');
