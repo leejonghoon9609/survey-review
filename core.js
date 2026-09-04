@@ -15810,11 +15810,11 @@ function _jgPaneFit9(body){/* [BUILD2478] PC 지거 사진 배치: 본문 높이
     var top=body.getBoundingClientRect().top;var H=Math.max(320,Math.round(window.innerHeight-top-6));
     body.style.maxHeight=H+'px';body.style.overflowY='auto';body.style.minHeight='0';
     var sp=body.querySelector('.php-split');if(!sp)return;sp.style.flex='none';sp.style.minHeight='0';
-    var g=10,pad=20,inner=H-pad;var h1=Math.round((inner-g)*0.56),h2=(inner-g)-h1;
-    var kids=[].slice.call(sp.children);var m1=null,rw=null,af=null;kids.forEach(function(k){if(k.classList.contains('php-after'))af=k;else if(k.classList.contains('php-row'))rw=k;else if(!m1&&k.classList.contains('php-main'))m1=k;});
+    var g=10,pad=20;var kids=[].slice.call(sp.children);var m1=null,rw=null,af=null;kids.forEach(function(k){if(k.classList.contains('php-after'))af=k;else if(k.classList.contains('php-row'))rw=k;else if(!m1&&k.classList.contains('php-main'))m1=k;});
+    var h1,h2,h3;if(af){var inner=H-pad-2*g;h1=Math.round(inner*0.42);h2=Math.round(inner*0.24);h3=inner-h1-h2;}else{var inner2=H-pad-g;h1=Math.round(inner2*0.56);h2=inner2-h1;h3=0;}/* [BUILD2479] 측량현장(후측량 칸 있음): 근경 42% · 원경/이격 24% · 후측량 34% = 한 화면. 실시간: 56/44 */
     if(m1){m1.style.height=h1+'px';m1.style.minHeight='0';m1.style.flex='none';}
     if(rw){rw.style.height=h2+'px';rw.style.minHeight='0';rw.style.flex='none';[].forEach.call(rw.children,function(x){x.style.height=h2+'px';x.style.minHeight='0';x.style.flex='1';x.style.minWidth='0';});}
-    if(af){af.style.height=Math.round(H*0.7)+'px';af.style.minHeight='0';af.style.flex='none';}
+    if(af){af.style.height=h3+'px';af.style.minHeight='0';af.style.flex='none';}
   }catch(_e){}}
 function jgNumOf9(p){/* [BUILD2476] 측점의 지거 번호: 실시간 임의점(_jgf9, 번호 날짜-N-k) → N · 후측량 CSV 코드 'Ng d'(2434 jg=N) → N · 구 코드 'N 지거' → N. 실시간 1-1 ↔ 후측량 1g 매칭의 공통 키 */try{if(!p)return null;if(p._jgf9){var m=/^[0-9]{6}-([0-9]+)-[1-4]$/.exec(String(p.no||''));if(m)return m[1];var sp=String(p.no||'').split('-');return sp[1]||null;}if(p.jg!=null&&p.jg!=='')return String(p.jg);return jgCodeNum9(p);}catch(_e){return null;}}
 function jgFindDay9(n){try{var re=new RegExp('^([0-9]{6})-'+n+'-[1-4]$');var best=null;Object.keys((typeof photoMap!=='undefined'&&photoMap)||{}).forEach(function(k){var m=re.exec(k);if(m&&(!best||m[1]>best))best=m[1];});return best;}catch(_e){return null;}}
