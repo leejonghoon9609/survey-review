@@ -11476,11 +11476,12 @@ function _fldInspDirGw9(fac,from,to){/* 시설물 fac에서 to 쪽으로 나가�
     return null;}catch(_e){return null;}}
 function _fldInspMidHL9(ix){/* [BUILD2461] 인입/분기 표 행 클릭 → 그 라인(분기 구간 관로선 또는 시설물↔접속점) 마젠타 강조. 같은 행 재클릭·다른 행 클릭 시 교체 */
   try{var cv=document.getElementById('cv');if(!cv)return;var old=document.getElementById('fldInspMidHL9');var was=old?+old.getAttribute('data-mi'):-1;if(old)old.remove();if(ix==null||ix<0||was===ix)return;
-    var L=(window._fldInspMidL9||[])[ix];if(!L||L.length<2){if(typeof toast==='function')toast('표시할 라인이 없습니다');return;}
+    var L0=(window._fldInspMidL9||[])[ix];if(!L0||!L0.length){if(typeof toast==='function')toast('표시할 라인이 없습니다');return;}
+    var LL=(typeof L0[0][0]==='number')?[L0]:L0;/* [BUILD2464] 폴리라인 1개 또는 여러 개 */
     var NS='http://www.w3.org/2000/svg';var g=document.createElementNS(NS,'g');g.id='fldInspMidHL9';g.setAttribute('data-mi',ix);g.setAttribute('pointer-events','none');
-    var ps='';for(var q=0;q<L.length;q++){var sc=S(L[q][0],L[q][1]);ps+=(q?' ':'')+sc[0]+','+sc[1];}
+    LL.forEach(function(L){if(!L||L.length<2)return;var ps='';for(var q=0;q<L.length;q++){var sc=S(L[q][0],L[q][1]);ps+=(q?' ':'')+sc[0]+','+sc[1];}
     var pl=document.createElementNS(NS,'polyline');pl.setAttribute('points',ps);pl.setAttribute('fill','none');pl.setAttribute('stroke','#e91ec4');pl.setAttribute('stroke-opacity','0.55');pl.setAttribute('stroke-width','12');pl.setAttribute('vector-effect','non-scaling-stroke');pl.setAttribute('stroke-linecap','round');pl.setAttribute('stroke-linejoin','round');g.appendChild(pl);
-    [L[0],L[L.length-1]].forEach(function(pt){var sc=S(pt[0],pt[1]);var c=document.createElementNS(NS,'circle');c.setAttribute('cx',sc[0]);c.setAttribute('cy',sc[1]);c.setAttribute('r',0.9);c.setAttribute('fill','rgba(233,30,196,0.12)');c.setAttribute('stroke','#e91ec4');c.setAttribute('stroke-width','2.4');c.setAttribute('vector-effect','non-scaling-stroke');g.appendChild(c);});
+    [L[0],L[L.length-1]].forEach(function(pt){var sc=S(pt[0],pt[1]);var c=document.createElementNS(NS,'circle');c.setAttribute('cx',sc[0]);c.setAttribute('cy',sc[1]);c.setAttribute('r',0.9);c.setAttribute('fill','rgba(233,30,196,0.12)');c.setAttribute('stroke','#e91ec4');c.setAttribute('stroke-width','2.4');c.setAttribute('vector-effect','non-scaling-stroke');g.appendChild(c);});});
     cv.appendChild(g);}catch(_e){}}
 function _fldInspWallGeo9(fac,to){/* [BUILD2452] 야장 방향 행이 없어 벽 번호를 못 얻을 때 기하로 — 시설물→구간 상대점 방위: 동=2, 서=1, 북=3, 남=4 (EPSG:5186 y=북) */try{if(!fac||!to||fac.wx==null||to.x==null)return null;var dx=to.x-fac.wx,dy=to.y-fac.wy;if(Math.abs(dx)>=Math.abs(dy))return dx>=0?'d2':'d1';return dy>=0?'d3':'d4';}catch(_e){return null;}}
 function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시설물 | 종료시설물 | 인입·분기 정보] 3열 큰 틀 */
@@ -11512,7 +11513,7 @@ function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시�
        ② 변화점 노드(앞·뒤)를 공유하는 다른 구간에서, 선택 구간과 겹치지 않는 쪽으로 걸어 나가 첫 코드 측점 = 들어오는/나가는 관정보, 끝 노드 = 시설물
        ③ Δ>0 인입 / Δ<0 분기, 상대 구간 없으면 접속점 1.5m 안 보조시설물(인입창) → 그것도 없으면 미확인
        기존 근접 시설물 스캔·2432 겹침 판정은 폐기 */
-    var _onS9=function(x,y){try{var sn=_fldInspSnap9(raw,x,y);return !!(sn&&Math.hypot(sn.x-x,sn.y-y)<0.6);}catch(_e){return false;}};
+    var _onS9=function(x,y){try{for(var q=0;q<sg.length;q++){var n=sg[q];if(n&&n.x!=null&&Math.hypot(n.x-x,n.y-y)<0.35)return true;}return false;}catch(_e){return false;}};/* [BUILD2464] 실측: LG·SKT 라인이 같은 도랑을 달려 선 근접(0.6m)으로는 전부 '겹침' → 판정을 노드 공유(같은 측점 0.35m)로 바꿈 */
     var _codeOf9=function(n){try{if(!n||n.mh||n.tamsa||!n.no)return null;var q=(typeof pointByNo==='function')?pointByNo(n.no):null;if(!q)return null;var g=_gwParseAll9(q.code||'');var t=_gwTot9(g,'cnt');if(t==null)return null;return {cnt:t,fmt:_gwFmt9(_gwSort9(g),false),no:q.no,code:q.code};}catch(_e){return null;}};
     var NC=[];sg.forEach(function(n,idx){var c=_codeOf9(n);if(c){c.idx=idx;c.n=n;NC.push(c);}});
     var JS=[];for(var ci=1;ci<NC.length;ci++){var d=NC[ci].cnt-NC[ci-1].cnt;if(d!==0)JS.push({d:d,bf:NC[ci-1],af:NC[ci]});}
@@ -11522,15 +11523,18 @@ function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시�
       while(q>=0&&q<s2.length){var n=s2[q];if(!n||n.x==null)break;line.push([n.x,n.y]);endN=n;if(!first){var c=_codeOf9(n);if(c)first=c;}q+=dr;}
       return {fmt:first?first.fmt:'',cnt:first?first.cnt:null,firstNo:first?first.no:'',endNode:endN,line:line,s2:s2,i2:i2};};
     var _seen9={};
-    JS.forEach(function(J){var jn=(J.d>0)?[J.af.n,J.bf.n]:[J.bf.n,J.af.n];/* 인입=늘어난 측점(T점) 우선, 분기=줄기 직전 측점 우선 */var found=null;
-      for(var t=0;t<jn.length&&!found;t++){var jnode=jn[t];
-        (_tgSegs||[]).forEach(function(s2,i2){if(found||i2===sel||!s2||s2.length<2)return;for(var k=0;k<s2.length;k++){var n2=s2[k];if(!n2||n2.x==null)continue;if(Math.hypot(n2.x-jnode.x,n2.y-jnode.y)>0.35)continue;var w=_walk9(s2,i2,k);if(w){w.jp=[jnode.x,jnode.y];w.jn=jnode;found=w;}break;}});}
-      var fac=found?(found.endNode.mh?_fldInspFacAt9(found.endNode):(_fldInspFacAt9(found.endNode)||null)):null;
+    JS.forEach(function(J){var jn=(J.d>0)?[J.af.n,J.bf.n]:[J.bf.n,J.af.n];/* 인입=늘어난 측점(T점) 우선, 분기=줄기 직전 측점 우선 */var found=null,cands=[];
+      for(var t=0;t<jn.length&&!cands.length;t++){var jnode=jn[t];
+        (_tgSegs||[]).forEach(function(s2,i2){if(i2===sel||!s2||s2.length<2)return;for(var k=0;k<s2.length;k++){var n2=s2[k];if(!n2||n2.x==null)continue;if(Math.hypot(n2.x-jnode.x,n2.y-jnode.y)>0.35)continue;var w=_walk9(s2,i2,k);if(w){w.jp=[jnode.x,jnode.y];w.jn=jnode;w.fac=_fldInspFacAt9(w.endNode)||null;cands.push(w);}break;}});}
+      /* [BUILD2464] 후보 정리: 같은 끝 시설물 중복 제거 → 첫 측점 관수가 |Δ|와 같은 후보가 있으면 그것만, 없으면 전부(같은 간선을 공유해 함께 빠지는 라인들) */
+      if(cands.length){var uniq=[],seenF={};cands.forEach(function(w){var fk=w.fac?('f'+(w.fac.id!=null?w.fac.id:(w.fac.wx+'_'+w.fac.wy))):('e'+(w.endNode.x+'_'+w.endNode.y));if(seenF[fk])return;seenF[fk]=1;uniq.push(w);});var ex=uniq.filter(function(w){return w.cnt!=null&&w.cnt===Math.abs(J.d);});var use=ex.length?ex:uniq;found=use[0];found.others=use.slice(1);found.lines=use.map(function(w){return w.line;});}
+      var fac=found?(found.fac||null):null;
       if(!found){/* 상대 구간 없음 → 접속점 근처 보조시설물 */var jn0=jn[0];var best=null,bd=1.5;(state.manholes||[]).forEach(function(m){if(!m||m.wx==null||m===fA||m===fB)return;var dd=Math.hypot(m.wx-jn0.x,m.wy-jn0.y);if(dd<bd){bd=dd;best=m;}});if(best){fac=best;found={fmt:'',cnt:null,firstNo:'',endNode:null,line:[[best.wx,best.wy],[jn0.x,jn0.y]],s2:null,i2:-1,jp:[jn0.x,jn0.y],jn:jn0};}}
       if(found&&!found.fmt&&fac&&!isMh(fac)){try{var Am=auxPipeAll9(fac);if(Am&&Am.gw&&Am.gw.length){found.fmt=_gwFmt9(_gwSort9(Am.gw),false);found.cnt=_gwTot9(Am.gw,'cnt');found.src='인입창';}}catch(_a){}}
       if(found&&found.fmt&&!found.src)found.src='측점';
       var key=(fac?('f'+(fac.id!=null?fac.id:(fac.wx+'_'+fac.wy))):'x')+'@'+(J.d>0?J.af.no:J.bf.no);if(_seen9[key])return;_seen9[key]=1;
-      mids.push({m:fac||{label:'(상대 라인 미확인)',type:'?'},gw:'',gwF:found?found.fmt:'',gwSrc:found?(found.src||''):'',gwCnt:found?found.cnt:null,jp:found?found.jp:[jn[0].x,jn[0].y],s2:found?found.s2:null,i2:found?found.i2:-1,line:found?found.line:null,j:{k:J.d>0?'in':'br',d:J.d,bf:J.bf,af:J.af,jc:J.af.idx}});});
+      var labX='';try{if(found&&found.others&&found.others.length)labX=found.others.map(function(w){return w.fac?String(w.fac.label||''):'(끝 시설물 없음)';}).join(' / ');}catch(_lx){}
+      mids.push({m:fac||{label:'(상대 라인 미확인)',type:'?'},labX:labX,gw:'',gwF:found?found.fmt:'',gwSrc:found?(found.src||''):'',gwCnt:found?found.cnt:null,jp:found?found.jp:[jn[0].x,jn[0].y],s2:found?found.s2:null,i2:found?found.i2:-1,line:found?found.line:null,lines:(found&&found.lines)?found.lines:null,j:{k:J.d>0?'in':'br',d:J.d,bf:J.bf,af:J.af,jc:J.af.idx}});});
     mids.sort(function(a,b){return a.j.jc-b.j.jc;});
     var _nIn9=mids.filter(function(e){return e.j&&e.j.k==='in';}).length,_nBr9=mids.filter(function(e){return e.j&&e.j.k==='br';}).length;
     /* [BUILD2461] 인입/분기 표 — 구분 · 시설물 · 관종 관경x관수(분기 구간 측점 코드 최빈값 → 야장 → 보조 인입창) · 관수 변화. 행 클릭 = 도면에 그 라인 강조 */
@@ -11540,14 +11544,14 @@ function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시�
       if(en.gw)return E(en.gw)+' <span style="color:#999;font-weight:600">(야장)</span>';
       if(!isMh(en.m)){var Am=auxPipeAll9(en.m);if(Am&&Am.gw&&Am.gw.length)return E(_gwFmt9(_gwSort9(Am.gw),false))+' <span style="color:#999;font-weight:600">(인입창)</span>';}
       return '-';}catch(_e){return '-';}};
-    var _lines9=mids.map(function(en){try{if(en.line&&en.line.length>=2)return en.line;var rw2=(en.i2>=0)?((window._tgSegRaw||[])[en.i2]):null;if((!rw2||rw2.length<2)&&en.s2)rw2=en.s2.map(function(n){return [n.x,n.y];});if(rw2&&rw2.length>=2)return rw2;if(en.jp&&en.m&&en.m.wx!=null)return [[en.m.wx,en.m.wy],[en.jp[0],en.jp[1]]];}catch(_e){}return null;});
+    var _lines9=mids.map(function(en){try{if(en.lines&&en.lines.length)return en.lines;if(en.line&&en.line.length>=2)return en.line;var rw2=(en.i2>=0)?((window._tgSegRaw||[])[en.i2]):null;if((!rw2||rw2.length<2)&&en.s2)rw2=en.s2.map(function(n){return [n.x,n.y];});if(rw2&&rw2.length>=2)return rw2;if(en.jp&&en.m&&en.m.wx!=null)return [[en.m.wx,en.m.wy],[en.jp[0],en.jp[1]]];}catch(_e){}return null;});
     window._fldInspMidL9=_lines9;
     h+='<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px"><div style="border:2px solid #222;border-radius:7px;padding:4px 10px;font-weight:800;font-size:12px;color:#222;text-align:center">\uC778\uC785 / \uBD84\uAE30 \uC815\uBCF4 <span style="color:#888;font-weight:700">'+mids.length+'</span> · <span style="color:#2e7d32">인입 '+_nIn9+'</span> · <span style="color:#c62828">분기 '+_nBr9+'</span></div>';
     if(!mids.length)h+='<div style="border:2px solid #222;border-radius:8px;padding:20px 6px;color:#999;text-align:center;min-height:120px">\uAD6C\uAC04 \uB0B4 \uBD84\uAE30 \uC2DC\uC124\uBB3C \uC5C6\uC74C</div>';
     else{
       var TH9='padding:4px 5px;border:1px solid #bbb;background:#f3f3f1;font-weight:800;font-size:11px;white-space:nowrap;text-align:center',TD9='padding:4px 5px;border:1px solid #ccc;font-size:11.5px;text-align:center';
       h+='<div style="border:2px solid #222;border-radius:8px;padding:6px;background:#fff;overflow:auto"><table style="width:100%;border-collapse:collapse;table-layout:fixed"><colgroup><col style="width:22%"><col style="width:32%"><col style="width:26%"><col style="width:20%"></colgroup><tr><th style="'+TH9+'">구분</th><th style="'+TH9+'">시설물</th><th style="'+TH9+'">관종 관경x관수</th><th style="'+TH9+'">관수 변화</th></tr>';
-      mids.forEach(function(en,ix){var m=en.m,j=en.j;var k=j?j.k:null;var lab=(!isMh(m)&&typeof auxNo9==='function'&&auxNo9(m)?(auxNo9(m)+'. '):'')+E(m.label||'')+(isMh(m)?'':'');
+      mids.forEach(function(en,ix){var m=en.m,j=en.j;var k=j?j.k:null;var lab=(!isMh(m)&&typeof auxNo9==='function'&&auxNo9(m)?(auxNo9(m)+'. '):'')+E(m.label||'')+(en.labX?(' <span style="color:#666;font-weight:600">/ '+E(en.labX)+'</span>'):'');/* [BUILD2464] 같은 간선을 함께 쓰는 라인은 나열 */
         var gb=(k==='in')?'<span style="color:#2e7d32;font-weight:900;font-size:12.5px">인입 +'+j.d+'</span>':(k==='br')?'<span style="color:#c62828;font-weight:900;font-size:12.5px">분기 −'+(-j.d)+'</span>':(k==='eq')?'<span style="color:#777;font-weight:800">변화 없음</span>':'<span style="color:#999">판정불가</span>';/* [BUILD2462] 배경 없이 글자색만 */
         var chg=(j&&j.bf&&j.af)?(j.bf.cnt+' → '+j.af.cnt+'<div style="font-size:10px;color:#888">'+E(j.bf.no)+' → '+E(j.af.no)+'</div>'):'<span style="color:#aaa">앞뒤 측점 없음</span>';
         var rc=(k==='in')?'#f1f8f1':(k==='br')?'#fff3f3':'#fff';
