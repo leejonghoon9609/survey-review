@@ -478,7 +478,7 @@ window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
       if(h<140)h=140;        /* 사진창 최소 140px */
       pp.style.setProperty('height',h+'px','important');
       var pm=pp.querySelector('.php-split>.php-main')||pp.querySelector('.php-main');
-      if(pm)pm.style.setProperty('height',(h-window.FLD_HEAD9)+'px','important');
+      if(pm&&!pm.hasAttribute('data-jgm9'))pm.style.setProperty('height',(h-window.FLD_HEAD9)+'px','important');/* [BUILD2500] 지거 근경은 _jgPaneFitMob9가 4:3으로 지정 */
     }catch(e){}
   }
   function kick(){ apply(); if(t)clearTimeout(t); t=setTimeout(apply,80); setTimeout(apply,300); }
@@ -869,7 +869,7 @@ window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
     </div>
   </div>
 
-<script src="login.js?v=2499"></script><script src="core.js?v=2499"></script>
+<script src="login.js?v=2500"></script><script src="core.js?v=2500"></script>
 <script>
 /* [BUILD2079] 폰 body 높이 = 실측 픽셀 고정 — dvh를 못 믿는 웹뷰(카톡 인앱 등)에서 패널 바닥이 화면 밖으로 나가던 문제 종결. 회전해야 고쳐지던 증상의 근본 원인 제거 */
 (function(){

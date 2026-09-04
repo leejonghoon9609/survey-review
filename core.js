@@ -15736,14 +15736,15 @@ function paneImg(no,label,big,capOverride){var p=no!=null?pointByNo(no):null;var
   var arrow=_dp9?('<button class="dirArrow" data-num="'+_dp9.no+'" title="사진 방향 — 클릭하면 회전">'+ARROWS[getPhotoDir(_dp9)]+'</button>'):'';
   return '<div class="'+(big?'php-main':'php-sub')+'"><div class="cap"'+(big?' style="display:flex;align-items:center;width:100%"':'')+'>'+arrow+'<span>'+cap+'</span>'+(big&&typeof _phTglBtn==='function'?_phTglBtn():'')+'</div>'+inner+'</div>';}/* [1535] \uc6b0\uce21 \uc815\ub82c */
 /* 후측량 사진 슬롯 — afterMap 표시 + 폰:촬영 / PC:새로고침 (캡션 번호 뒤 _A) */
-function paneAfter(no,label){var p=no!=null?pointByNo(no):null;var bn=p?ptNum(p):null;var url=(no!=null?afterMap[no]:null)||(bn!=null?afterMap[bn]:null)||((p&&p._aftNo9)?afterMap[p._aftNo9]:null);var dn=(p?p.no:no);/* [BUILD2477] 지거 매칭으로 번호가 바뀐 측점은 원래 후측량 번호(_aftNo9)로도 사진 조회 */
+function paneAfter(no,label,jgKey){var p=no!=null?pointByNo(no):null;var bn=p?ptNum(p):null;var _jgu9=(jgKey&&typeof photoMap!=='undefined'&&photoMap)?photoMap[jgKey]:null;var url=_jgu9||(no!=null?afterMap[no]:null)||(bn!=null?afterMap[bn]:null)||((p&&p._aftNo9)?afterMap[p._aftNo9]:null);var dn=(p?p.no:no);/* [BUILD2500] 지거점은 포장후 관로위치(photoMap 날짜-N-4, 조서 4번 칸)를 후측량 사진으로 표시 — 없으면 종전 _A 폴백 *//* [BUILD2477] 지거 매칭으로 번호가 바뀐 측점은 원래 후측량 번호(_aftNo9)로도 사진 조회 */
   var sub=p?((p.no+'_A '+((p.code||'').trim())).trim()):(no!=null?('번호 '+no+'_A'):'');
+  if(_jgu9)sub=jgKey+' 포장후 관로위치';/* [BUILD2500] */
   var cap=sub?(label+' / '+sub):label;
   var isMob=(typeof isMobileDevice==='function')?isMobileDevice():false;
   var btn='';
   if(no!=null){
     if(isMob&&viewerMode)btn='<button class="afterCap" data-num="'+dn+'" style="flex:none;margin-left:auto;border:1px solid #16a34a;background:#eafaf0;color:#16a34a;border-radius:7px;padding:4px 10px;font-size:13px;font-weight:700;cursor:pointer">📷 '+(url?'재촬영':'촬영')+'</button>';
-    else if(!isMob)btn='<button class="afterRefresh" data-num="'+dn+'" style="flex:none;margin-left:auto;border:1px solid #1f6fd6;background:#eef4fc;color:#1f6fd6;border-radius:7px;padding:4px 10px;font-size:13px;font-weight:700;cursor:pointer">🔄 새로고침</button>';
+    else if(!isMob)btn=(url?('<button class="afterDel9" data-num="'+dn+'" data-jgk="'+(_jgu9?jgKey:'')+'" style="flex:none;margin-left:auto;margin-right:6px;border:1px solid #e3b4ae;background:#fff;color:#c0392b;border-radius:7px;padding:4px 10px;font-size:13px;font-weight:700;cursor:pointer">🗑 삭제</button>'):'')+'<button class="afterRefresh" data-num="'+dn+'" style="flex:none;margin-left:auto;border:1px solid #1f6fd6;background:#eef4fc;color:#1f6fd6;border-radius:7px;padding:4px 10px;font-size:13px;font-weight:700;cursor:pointer">🔄 새로고침</button>';
   }
   var ph=url?('<div class="zoomwrap"><img class="ph zoomImgA" src="'+url+'" alt=""></div>'):/* [1568] \ud6c4\uce21\ub7c9\ub3c4 \ud655\ub300 */('<div class="ph php-none">'+((isMob&&viewerMode)?'📷 촬영 버튼으로 후측량 사진을 찍어주세요':(!isMob?'🔄 새로고침으로 최신 후측량 사진을 불러오세요':'촬영 예정'))+'</div>');
   return '<div class="php-main php-after"><div class="cap"><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+cap+'</span>'+btn+'</div>'+ph+'</div>';}
@@ -16089,7 +16090,7 @@ function refreshPhotoPanel(){
     if(_jgf2){/* [BUILD2166] 후측량 CSV 코드 'N 지거' 측점 → 지거 3장 통합 + 후측량 사진 */
       var _fb2=_jgf2.d+'-'+_jgf2.n;/* [BUILD2475] 후측량 결선과 같은 배치: 근경 크게 + 원경·이격기준점 나란히 */
       var _fh2=paneImg(_fb2+'-1','지거',true,'지거 '+_jgf2.n+' · 근경 / '+_fb2+'-1')+'<div class="php-row">'+paneImg(_fb2+'-2','원경',false,'원경 / '+_fb2+'-2')+paneImg(_fb2+'-3','이격기준점',false,'이격기준점 / '+_fb2+'-3')+'</div>';
-      body.innerHTML='<div class="php-split">'+_fh2+paneAfter(selNum,'후측량 사진')+'</div>';try{_jgPaneFit9(body);}catch(_pf9){}/* [BUILD2478] 한 화면 배치 + 스크롤 */
+      body.innerHTML='<div class="php-split">'+_fh2+paneAfter(selNum,'후측량 사진',_fb2+'-4')+'</div>';try{_jgPaneFit9(body);}catch(_pf9){}try{_jgPaneFitMob9(body);}catch(_pm9){}/* [BUILD2500] 지거 후측량=포장후 -4 · 폰 지거 배치 *//* [BUILD2478] 한 화면 배치 + 스크롤 */
     }else
     body.innerHTML='<div class="php-split">'+paneImg(selNum,'노출관로 사진',true)+paneAfter(selNum,'후측량 사진')+'</div>';
     if(state.joseoBoard&&typeof rtBoardURL==='function'){/* [BUILD2483] 측량현장 측점사진 현황판 합성 — 결선DB [1916/2127]과 동일. 지거는 근경(-1)·원경(-2)·이격기준점(-3) 3장 */
@@ -16228,7 +16229,27 @@ function refreshPhotoPanel(){
   [].forEach.call(document.querySelectorAll('img.zoomImgA'),function(_zi){setupZoom(_zi);});/* [1568] */
   var ac=document.querySelector('.afterCap');if(ac)ac.onclick=function(){afterTargetNum=this.getAttribute('data-num');document.getElementById('fAfter').click();};
   var ar=document.querySelector('.afterRefresh');if(ar)ar.onclick=function(){toast('후측량 사진 새로고침…');loadPhotos();};
+  var _ad9=document.querySelector('.afterDel9');if(_ad9)_ad9.onclick=function(){var n=this.getAttribute('data-num'),jk=this.getAttribute('data-jgk')||'';var lb=jk?(jk+' 포장후 관로위치'):(n+'_A');uiConfirm9('후측량 사진 '+lb+' 을(를) 삭제할까요?<br><span style="font-size:12px;color:#888">삭제 후 조서에도 반영됩니다</span>','삭제',function(){_aftPhotoDel9(n,jk);});};/* [BUILD2500] */
 }
+function _aftPhotoDel9(no,jgk){/* [BUILD2500] 그 번호 후측량 사진 삭제 — 지거(-4)는 photoMap·point_no 그대로, 일반은 afterMap·번호_A(+_aftNo9). DB행+스토리지+맵 → 사진창·도면·등록창·조서(열려 있으면) 갱신 */
+  try{var keys=[],paths=[],pid=state.projectId;
+    if(jgk){if(photoMap&&photoMap[jgk]){delete photoMap[jgk];keys.push(jgk);paths.push(pid+'/'+safeName(jgk)+'.jpg');}}
+    else{var p=pointByNo(no);var cand=[no];if(p&&p._aftNo9)cand.push(p._aftNo9);if(p)cand.push(ptNum(p));cand.forEach(function(k){if(k!=null&&afterMap&&afterMap[k]){delete afterMap[k];keys.push(k+'_A');paths.push(pid+'/'+safeName(k)+'_A.jpg');}});}
+    if(!keys.length){toast('삭제할 후측량 사진이 없습니다');return;}
+    try{if(typeof online!=='undefined'&&online&&typeof sb!=='undefined'&&pid){keys.forEach(function(k){sb.from(DB+'_photos')['delete']().eq('project_id',pid).eq('point_no',k).then(function(){});});if(paths.length)sb.storage.from('photos').remove(paths).then(function(){});}}catch(_e){}
+    toast('후측량 사진 삭제: '+keys.join(', '));
+    try{if(photoPanelOpen)refreshPhotoPanel();}catch(_r){}try{drawGeo();}catch(_d){}try{if(typeof regOpen==='function'&&regOpen())updRegStatus();}catch(_u){}
+    try{if(typeof joseoState!=='undefined'&&joseoState&&typeof joseoUiOpen==='function'&&joseoUiOpen()){var g=joseoGroups();joseoState.groups=g;joseoState.dates=Object.keys(g).sort();if(!g[joseoState.cur])joseoState.cur=joseoState.dates[0];joseoRenderTabs();joseoRenderPreview(joseoState.cur);}}catch(_j){}
+  }catch(_x){console.error('aft del',_x);toast('삭제 실패');}}
+function _jgPaneFitMob9(body){/* [BUILD2500] 폰 측량현장 지거 배치: fldSplit9가 근경(.php-split>.php-main)을 사진창 높이로 굳혀 4:3 사진이 잘림 → 폭 실측으로 근경=폭×0.75+캡션, 원경/이격 행=근경×0.68(PC 60/40 비율) 인라인 !important, 본문 스크롤. data-jgm9로 fldSplit9 재적용 차단 */
+  try{if(!body)return;if(!(typeof isMobileDevice==='function'&&isMobileDevice()))return;if(!(window.matchMedia&&matchMedia('(max-width:760px)').matches))return;
+    var sp=body.querySelector('.php-split');if(!sp)return;var m1=sp.querySelector(':scope>.php-main'),rw=sp.querySelector(':scope>.php-row');if(!m1)return;
+    var W=m1.clientWidth||body.clientWidth||360;var capH=36;try{var c=m1.querySelector('.cap');if(c)capH=Math.max(28,Math.round(c.getBoundingClientRect().height))||36;}catch(_c){}
+    var h1=capH+Math.round(W*0.75);m1.setAttribute('data-jgm9','1');m1.style.setProperty('height',h1+'px','important');m1.style.setProperty('flex','none','important');
+    var zw=m1.querySelector('.zoomwrap');if(zw){zw.style.setProperty('max-height','none','important');zw.style.setProperty('height',(h1-capH)+'px','important');}var im=m1.querySelector('img.ph');if(im){im.style.setProperty('max-height','none','important');im.style.setProperty('height','100%','important');im.style.setProperty('width','100%','important');im.style.setProperty('object-fit','contain','important');}
+    if(rw){var h2=Math.round(h1*0.68);rw.style.setProperty('height',h2+'px','important');rw.style.setProperty('flex','none','important');[].forEach.call(rw.querySelectorAll('.php-sub'),function(sb2){sb2.style.setProperty('height',h2+'px','important');var si=sb2.querySelector('img.ph');if(si){si.style.setProperty('height','100%','important');si.style.setProperty('object-fit','contain','important');}});}
+    sp.style.setProperty('flex','none','important');body.style.setProperty('overflow-y','auto','important');
+  }catch(_e){}}
 function centerOnNo(no){var p=null;(state.points||[]).forEach(function(q){if(q&&String(q.no)===String(no))p=q;});if(!p||!isFinite(p.x)||!isFinite(p.y))return;try{var sp=S(p.x,p.y);vb.x=sp[0]-vb.w/2;vb.y=sp[1]-vb.h/2;if(typeof applyVB==='function')applyVB();}catch(e){}}
 function selectPoint(num){selNum=String(num);drawGeo();highlightSel();if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&!photoPanelOpen&&_rtPhotoAuto&&typeof openPhotoPanel==='function')openPhotoPanel();/* [1150] */var sel=document.getElementById('photoSel');if(sel)sel.value=String(num);if(photoPanelOpen)refreshPhotoPanel();if(typeof joseoSyncTo==='function')joseoSyncTo(num);}
 function openPhotoPanel(o){photoPanelOpen=(o==null)?!photoPanelOpen:!!o;var _pp9=document.getElementById('photoPanel');_pp9.classList.toggle('open',photoPanelOpen);if(photoPanelOpen)_pp9.style.display=''; /* [1279] 야장이 심은 인라인 none 해제(함정 X) */var _pbOn=document.getElementById('photoBtn');if(_pbOn)_pbOn.classList.toggle('on',photoPanelOpen);/* [1220] 버튼 활성 표시(스타일은 realtime 폰 CSS만) */if(photoPanelOpen&&typeof closeRvPanel==='function')closeRvPanel();if(photoPanelOpen)refreshPhotoPanel();setTimeout(function(){if(typeof fixAspect==='function')fixAspect();if(typeof applyVB==='function')applyVB();if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();if(typeof highlightSel==='function')highlightSel();if(typeof placeCoord==='function')placeCoord();},30);}
