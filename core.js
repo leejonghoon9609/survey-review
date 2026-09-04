@@ -11451,6 +11451,20 @@ function fldInspSheetSvg9(rec,hl){/* [BUILD2405] 축소본 — rec 깊은 복사
     svg=svg.replace(/viewBox="0 0 720 980"/,'viewBox="30 225 640 545"').replace(/style="display:block;background:#fff;[^"]*"/,'style="display:block;background:#fff;width:100%;height:auto;pointer-events:none"');
     try{var wk={d1:'p1',d2:'p2',d3:'p3',d4:'p4'}[hl];if(wk&&_FI_WALL9[wk]){var HL=_fldInspHlRect9(wk);var re9=new RegExp('(<rect [^>]*data-act="wall" data-w="'+wk+'"[^>]*/>)');if(re9.test(svg))svg=svg.replace(re9,'$1'+HL);else svg=svg.replace('</svg>','<g transform="translate(40,-12)">'+HL+'</g></svg>');}}catch(_hw){}/* [BUILD2453] 실측: 전개도 전체가 <g transform=translate(40,-12)> 안에 있고 벽 히트 rect(data-w=pN)가 그 그룹의 마지막 요소 → 강조 rect를 그 히트 rect 바로 뒤(같은 그룹·같은 좌표계·맨 위)에 삽입. 2452의 루트 삽입은 40/12 어긋남 *//* [BUILD2452] 벽 판(wallPhoto p1~p4)과 같은 좌표계에 그대로 — 2419의 translate(40,-12) 오프셋 제거, 굵기 7·연한 붉은 채움 */
     return svg;}catch(_e){return '';}}
+function _fldInspPhotoIn9(sheet,url,tit){/* [BUILD2469] 벽 사진을 맨홀도 상자(.fiSheetBox9) 안에서 — 야장 SVG 숨기고 같은 크기로 사진, 휠=확대축소(0.5~8배, 커서 기준), 드래그=이동, 클릭=야장으로 복귀 */
+  try{if(!sheet||!url)return;var box=sheet.closest?sheet.closest('.fiSheetBox9'):null;if(!box)box=sheet.parentNode;if(!box)return;
+    var old=box.querySelector('.fiPhotoIn9');if(old){old.remove();sheet.style.display='';box.style.height='';return;}
+    var H=box.getBoundingClientRect().height;box.style.height=Math.round(H)+'px';box.style.overflow='hidden';sheet.style.display='none';
+    var w=document.createElement('div');w.className='fiPhotoIn9';w.title='클릭=야장으로 · 휠=확대축소 · 드래그=이동';w.style.cssText='position:relative;width:100%;height:100%;overflow:hidden;background:#111;border-radius:6px;cursor:zoom-out;user-select:none;touch-action:none';
+    var cap=document.createElement('div');cap.textContent=String(tit||'');cap.style.cssText='position:absolute;left:6px;top:6px;z-index:2;color:#fff;font-size:11px;font-weight:800;background:rgba(0,0,0,.45);padding:2px 6px;border-radius:5px;pointer-events:none';w.appendChild(cap);
+    var im=document.createElement('img');im.src=url;im.draggable=false;im.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;transform-origin:0 0;will-change:transform';w.appendChild(im);
+    var sc=1,tx=0,ty=0,dr=false,lx=0,ly=0,moved=false;var apply=function(){im.style.transform='translate('+tx+'px,'+ty+'px) scale('+sc+')';};
+    w.addEventListener('wheel',function(e){e.preventDefault();e.stopPropagation();var r=w.getBoundingClientRect();var mx=e.clientX-r.left,my=e.clientY-r.top;var f=(e.deltaY<0)?1.15:(1/1.15);var ns=Math.max(0.5,Math.min(8,sc*f));f=ns/sc;tx=mx-(mx-tx)*f;ty=my-(my-ty)*f;sc=ns;apply();},{passive:false});
+    w.addEventListener('pointerdown',function(e){dr=true;moved=false;lx=e.clientX;ly=e.clientY;try{w.setPointerCapture(e.pointerId);}catch(_c){}});
+    w.addEventListener('pointermove',function(e){if(!dr)return;var dx=e.clientX-lx,dy=e.clientY-ly;if(Math.abs(dx)+Math.abs(dy)>3)moved=true;tx+=dx;ty+=dy;lx=e.clientX;ly=e.clientY;apply();});
+    w.addEventListener('pointerup',function(e){dr=false;if(moved)return;e.stopPropagation();w.remove();sheet.style.display='';box.style.height='';box.style.overflow='auto';});
+    w.addEventListener('click',function(e){e.stopPropagation();});
+    box.appendChild(w);}catch(_e){}}
 function _fldInspPhoto9(url,tit){/* [BUILD2419] 벽 사진 라이트박스 */
   try{if(!url)return;var o=document.getElementById('fiPhoto9');if(o)o.remove();
     o=document.createElement('div');o.id='fiPhoto9';o.style.cssText='position:fixed;inset:0;z-index:13600;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;cursor:zoom-out';
@@ -11725,7 +11739,7 @@ function fldInspWin9(sel){
       var sx=30+(ev.clientX-r.left)*(640/r.width),sy=225+(ev.clientY-r.top)*(545/r.height);sx-=40;sy+=12;/* 전개도 g translate(40,-12) 역보정 */
       var hitK=null;for(var wk in _FI_WALL9){var R=_FI_WALL9[wk];if(sx>=R[0]&&sx<=R[0]+R[2]&&sy>=R[1]&&sy<=R[1]+R[3]){hitK=wk;break;}}
       if(!hitK)return;var u=rec.photos&&rec.photos[hitK];var nm={p1:'1(\uC11C)',p2:'2(\uB3D9)',p3:'3(\uBD81)',p4:'4(\uB0A8)'}[hitK];
-      if(u)_fldInspPhoto9(u,(typeof mnLabel==='function'?mnLabel(rec):'')+' \u2014 '+nm+' \uBCBD \uC0AC\uC9C4');
+      if(u)_fldInspPhotoIn9(this,u,(typeof mnLabel==='function'?mnLabel(rec):'')+' \u2014 '+nm+' \uBCBD \uC0AC\uC9C4');/* [BUILD2469] 전체창 라이트박스 → 맨홀도 상자 안에서 표시 */
       else if(typeof toast==='function')toast(nm+' \uBCBD \uC0AC\uC9C4 \uC5C6\uC74C');
     }catch(_sc){}};});/* [BUILD2419] 축소 야장 벽 클릭=사진 */
     card.querySelectorAll('.fiRow9').forEach(function(r){r.onclick=function(){go(+this.getAttribute('data-i'));};});
