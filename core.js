@@ -11521,7 +11521,7 @@ function _fldInspPtHL9(el){/* [BUILD2492] 표 셀 클릭 → data-hx/hy(hr) 자�
     mk(el.getAttribute('data-hx'),el.getAttribute('data-hy'),+(el.getAttribute('data-hr')||0.6));if(el.getAttribute('data-hx2'))mk(el.getAttribute('data-hx2'),el.getAttribute('data-hy2'),+(el.getAttribute('data-hr2')||0.6));
     cv.appendChild(g);}catch(_e){}}
 function _fldInspMidHL9(ix){/* [BUILD2461] 인입/분기 표 행 클릭 → 그 라인(분기 구간 관로선 또는 시설물↔접속점) 마젠타 강조. 같은 행 재클릭·다른 행 클릭 시 교체 */
-  try{var cv=document.getElementById('cv');if(!cv)return;var old=document.getElementById('fldInspMidHL9');var was=old?+old.getAttribute('data-mi'):-1;if(old)old.remove();if(ix==null||ix<0||was===ix)return;
+  try{var cv=document.getElementById('cv');if(!cv)return;var old=document.getElementById('fldInspMidHL9');var was=(window._fldInspMidHLix9!=null)?window._fldInspMidHLix9:(old?+old.getAttribute('data-mi'):-1);if(old)old.remove();window._fldInspMidHLix9=-1;if(ix==null||ix<0||was===ix){return;}/* [BUILD2493] 같은 행 재클릭=해제(그룹이 재그리기로 사라져도 전역 ix로 판정) */window._fldInspMidHLix9=ix;
     var L0=(window._fldInspMidL9||[])[ix];if(!L0||!L0.length){if(typeof toast==='function')toast('표시할 라인이 없습니다');return;}
     var LL=(typeof L0[0][0]==='number')?[L0]:L0;/* [BUILD2464] 폴리라인 1개 또는 여러 개 */
     var NS='http://www.w3.org/2000/svg';var g=document.createElementNS(NS,'g');g.id='fldInspMidHL9';g.setAttribute('data-mi',ix);g.setAttribute('pointer-events','none');
@@ -11796,6 +11796,7 @@ function fldInspWin9(sel){
     card.innerHTML=h;w.id='fldInspOv9';w.style.cssText='display:contents';w.appendChild(card);mc.appendChild(w);
     cw.style.marginRight='60%';if(getComputedStyle(cw).position==='static')cw.style.position='relative';/* [BUILD2402] 패널 60% 복원 — 목록 열을 도면 옆(구 빈 영역)으로 붙이고 열 폭만 축소 */
     window._fldInspOpen9=true;
+    try{['fldInspMidHL9','fldInspPtHL9'].forEach(function(id){var e=document.getElementById(id);if(e)e.remove();});window._fldInspMidHLix9=-1;}catch(_cl9){}/* [BUILD2493] 구간 전환·재렌더 시 이전 인입/분기 파란 라인·원 제거 — 도면엔 선택 구간만 */
     try{fldInspHL9(sel);if(sel>=0){var _sgF=(_tgSegs||[])[sel];setTimeout(function(){fldInspFit9(_sgF);fldInspTags9();},60);}else{setTimeout(function(){if(!window._fldInspFitLock9&&typeof fitView==='function')fitView();fldInspTags9();},120);}}catch(_fv){}/* [BUILD2371] 선택 구간 색칠·자동이동 · [BUILD2372] 태그 */
     try{fldInspTags9();}catch(_tg){}
     card.querySelector('#fiClose9').onclick=function(){fldInspClose9();};
