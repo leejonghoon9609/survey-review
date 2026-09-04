@@ -14206,9 +14206,10 @@ function joseoGroups(){
     Object.keys(_jg9).forEach(function(d6){
       var dk=joseoDate(d6+'-0')+'_지거';var arr=[];
       Object.keys(_jg9[d6]).sort(function(a,b){return (+a)-(+b);}).forEach(function(n){
-        var bp=(typeof pointByNo==='function')?(pointByNo(d6+'-'+n+'-1')||pointByNo(d6+'-'+n)):null;/* [BUILD2187] */
+        var bp=(state.points||[]).filter(function(q){return q&&!q._jgf9&&q.jg!=null&&String(q.jg)===String(n);})[0]||null;/* [BUILD2476] 후측량 CSV 'Ng d' 측점(측량 좌표) 최우선 — 실시간 1-1 ↔ 후측량 1g */
+        if(!bp&&typeof pointByNo==='function')bp=pointByNo(d6+'-'+n+'-1')||pointByNo(d6+'-'+n);/* [BUILD2187] 실시간 임의점 */
         if(!bp&&typeof jgCodeNum9==='function')bp=(state.points||[]).filter(function(q){return q&&jgCodeNum9(q)===String(n);})[0]||null;/* [BUILD2165] 후측량 CSV 코드 'N 지거' 기준점 좌표 연결 */
-        arr.push({no:d6+'-'+n,_jg:true,x:bp?bp.x:null,y:bp?bp.y:null,code:bp?(bp.code||''):'',depth:bp?bp.depth:null});
+        arr.push({no:d6+'-'+n,_jg:true,x:bp?bp.x:null,y:bp?bp.y:null,code:bp?(bp.code||''):'',depth:bp?(bp.depth!=null?bp.depth:(bp.jgDep!=null?bp.jgDep:null)):null,aftNo:(bp&&!bp._jgf9)?bp.no:''});
       });
       if(arr.length)g[dk]=arr;
     });
@@ -15795,6 +15796,7 @@ function rtBoardTable(cx,W,H,pos,no){
 /* [BUILD2121] 지거 현황판 6행 — 사업명·번호·일자 자동 / 재질·관경·거리심도는 작업자 입력(설정 UI 차기, state.rtJgBoard9[지거번호]={mat,dia,ds} 예정) */
 /* [BUILD2165] CSV 코드-지거 매칭 — 후측량·실시간 CSV의 코드 열 "N 지거"/"지거 N" 측점을 지거 N으로 인식 */
 function jgCodeNum9(p){try{var c=String((p&&p.code)||'').trim();if(!c||c.indexOf('지거')<0)return null;var m=/(?:^|[^0-9])([0-9]+)\s*지거/.exec(' '+c)||/지거\s*([0-9]+)/.exec(c);return m?String(m[1]):null;}catch(_e){return null;}}
+function jgNumOf9(p){/* [BUILD2476] 측점의 지거 번호: 실시간 임의점(_jgf9, 번호 날짜-N-k) → N · 후측량 CSV 코드 'Ng d'(2434 jg=N) → N · 구 코드 'N 지거' → N. 실시간 1-1 ↔ 후측량 1g 매칭의 공통 키 */try{if(!p)return null;if(p._jgf9){var m=/^[0-9]{6}-([0-9]+)-[1-4]$/.exec(String(p.no||''));if(m)return m[1];var sp=String(p.no||'').split('-');return sp[1]||null;}if(p.jg!=null&&p.jg!=='')return String(p.jg);return jgCodeNum9(p);}catch(_e){return null;}}
 function jgFindDay9(n){try{var re=new RegExp('^([0-9]{6})-'+n+'-[1-4]$');var best=null;Object.keys((typeof photoMap!=='undefined'&&photoMap)||{}).forEach(function(k){var m=re.exec(k);if(m&&(!best||m[1]>best))best=m[1];});return best;}catch(_e){return null;}}
 function rtJgBoardGeom9(W,H){var bw=Math.round(W*0.275),rh=Math.round(H*0.042);return {bw:bw,rh:rh,bh:rh*6,lw:Math.round(bw*0.34)};}
 function rtJgBoardTable9(cx,W,H,pos,no){
@@ -16003,7 +16005,7 @@ function refreshPhotoPanel(){
   if(IS_FIELD||IS_TANGO){
     // 측량(현장)·탱고: 노출관로/후측량 2등분
     var _jgf2=null;
-    if(typeof jgCodeNum9==='function'){var _fp2=(typeof pointByNo==='function')?pointByNo(selNum):null;var _fn2=_fp2?(_fp2._jgf9?String(_fp2.no).split('-')[1]:jgCodeNum9(_fp2)):null;if(_fn2){var _fd2=jgFindDay9(_fn2);if(_fd2)_jgf2={d:_fd2,n:_fn2};}}/* [BUILD2175] */
+    if(typeof jgCodeNum9==='function'){var _fp2=(typeof pointByNo==='function')?pointByNo(selNum):null;var _fn2=_fp2?jgNumOf9(_fp2):null;/* [BUILD2476] 후측량 Ng 점도 실시간 사진 3장 매칭 */if(_fn2){var _fd2=jgFindDay9(_fn2);if(_fd2)_jgf2={d:_fd2,n:_fn2};}}/* [BUILD2175] */
     if(_jgf2){/* [BUILD2166] 후측량 CSV 코드 'N 지거' 측점 → 지거 3장 통합 + 후측량 사진 */
       var _fb2=_jgf2.d+'-'+_jgf2.n;/* [BUILD2475] 후측량 결선과 같은 배치: 근경 크게 + 원경·이격기준점 나란히 */
       var _fh2=paneImg(_fb2+'-1','지거',true,'지거 '+_jgf2.n+' · 근경 / '+_fb2+'-1')+'<div class="php-row">'+paneImg(_fb2+'-2','원경',false,'원경 / '+_fb2+'-2')+paneImg(_fb2+'-3','이격기준점',false,'이격기준점 / '+_fb2+'-3')+'</div>';
@@ -16019,7 +16021,7 @@ function refreshPhotoPanel(){
     var _bp=_rp, _bn=_bp?ptNum(_bp):null;
     var _bu=photoMap[selNum]||(_bn!=null?photoMap[_bn]:null);
     var _jgm9=/^([0-9]{6})-([0-9]+)-([1-4])$/.exec(String(selNum));
-    if(!_jgm9&&typeof jgCodeNum9==='function'){var _cp9=pointByNo(selNum);var _cn9=_cp9?(_cp9._jgf9?String(_cp9.no).split('-')[1]:jgCodeNum9(_cp9)):null;if(_cn9){var _cd9=jgFindDay9(_cn9);if(_cd9)_jgm9=[null,_cd9,_cn9,'1'];}}/* [BUILD2165→2175] 코드 'N 지거'·지거편집 측점 → 사진 3장 매칭 */
+    if(!_jgm9&&typeof jgCodeNum9==='function'){var _cp9=pointByNo(selNum);var _cn9=_cp9?jgNumOf9(_cp9):null;/* [BUILD2476] */if(_cn9){var _cd9=jgFindDay9(_cn9);if(_cd9)_jgm9=[null,_cd9,_cn9,'1'];}}/* [BUILD2165→2175] 코드 'N 지거'·지거편집 측점 → 사진 3장 매칭 */
     if(_jgm9){/* [BUILD2119] 지거 3장 세로 통합 — 아무 장이나 선택해도 근경·원경·이격기준점 한 번에 */
       var _JL9=['근경','원경','이격기준점'];var _h9='';
       for(var _ji9=1;_ji9<=3;_ji9++){var _no9=_jgm9[1]+'-'+_jgm9[2]+'-'+_ji9;var _p9=paneImg(_no9,'지거',true,'지거 '+_jgm9[2]+' · '+_JL9[_ji9-1]+' / '+_no9);_h9+=(_ji9===2?'<div class="php-row">':'')+_p9+(_ji9===3?'</div>':'');}/* [BUILD2475] 근경 크게 + 원경·이격기준점 나란히(php-row). 세 장 다 php-main 유지 → 2121 현황판 합성(.php-main 순서 1·2·3) 그대로 */
@@ -16117,7 +16119,7 @@ function refreshPhotoPanel(){
     var nbs=neighborsOf(selNum),up=nbs.up,down=nbs.down;
     var n1=up?up.no:null,n2=down?down.no:null;
     var _jgv9=/^([0-9]{6})-([0-9]+)-([1-4])$/.exec(String(selNum));/* [BUILD2127] 지거점 전용 배치 */
-    if(!_jgv9&&typeof jgCodeNum9==='function'){var _cq9=pointByNo(selNum);var _cm9=_cq9?(_cq9._jgf9?String(_cq9.no).split('-')[1]:jgCodeNum9(_cq9)):null;if(_cm9){var _ce9=jgFindDay9(_cm9);if(_ce9)_jgv9=[null,_ce9,_cm9,'1'];}}/* [BUILD2165→2175] 코드·지거편집 측점 매칭 */
+    if(!_jgv9&&typeof jgCodeNum9==='function'){var _cq9=pointByNo(selNum);var _cm9=_cq9?jgNumOf9(_cq9):null;/* [BUILD2476] */if(_cm9){var _ce9=jgFindDay9(_cm9);if(_ce9)_jgv9=[null,_ce9,_cm9,'1'];}}/* [BUILD2165→2175] 코드·지거편집 측점 매칭 */
     if(_jgv9){
       var _jb9=_jgv9[1]+'-'+_jgv9[2];n1=_jb9+'-2';n2=_jb9+'-3';
       body.innerHTML=paneImg(_jb9+'-1','지거',true,'지거 '+_jgv9[2]+' · 근경 / '+_jb9+'-1')
