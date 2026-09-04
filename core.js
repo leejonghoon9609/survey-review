@@ -6710,6 +6710,13 @@ cv.addEventListener('dblclick',function(e){if(viewerMode||readOnly)return;if((mo
 function decodeBuf(buf){var u=new TextDecoder('utf-8',{fatal:false}).decode(buf);if(u.indexOf('\uFFFD')>=0){try{return new TextDecoder('euc-kr').decode(buf);}catch(e){return u;}}return u;}
 function splitCsvLine(s){var out=[],cur='',q=false;for(var i=0;i<s.length;i++){var c=s[i];if(c==='"'){q=!q;}else if(c===','&&!q){out.push(cur);cur='';}else cur+=c;}out.push(cur);return out;}
 function timeMin(s){var m=(s||'').match(/(\d{1,2}):(\d{2})/);return m?(+m[1]*60+ +m[2]):null;}
+function _rtLocalDT9(locDate,locTime,utcDate,utcTime){/* [BUILD2490] 실측(상윤테스트_동북선): 수신기 CSV를 엑셀로 거치면 시간이 'mm:ss.0'(시 잘림)로 저장됨 → 시각으로는 야간 판정 불가. 규칙: ①UTC 시간이 정상(HH:MM:SS 또는 HH:MM, 소수 없음)이면 UTC+9로 로컬 계산 ②시가 잘린 형식(\d{1,2}:\d{2}\.\d)이면 날짜 차이로 판정 — 로컬 날짜 = UTC 날짜+1 ⇒ 로컬 00:00~09:00(새벽) ⇒ tm=0, 같은 날짜 ⇒ 09:00 이후 ⇒ tm=600 */
+  try{var ld=String(locDate||'').replace(/[^0-9]/g,''),ud=String(utcDate||'').replace(/[^0-9]/g,'');var lt=String(locTime||'').trim(),ut=String(utcTime||'').trim();
+    var cut=function(t){return /^\d{1,2}:\d{2}\.\d+$/.test(t);};/* 엑셀 mm:ss.0 */
+    if(ud.length>=8&&ut&&!cut(ut)){var m=timeMin(ut);if(m!=null){var L=m+540,D=ud.slice(0,8);if(L>=1440){L-=1440;var dd=new Date(+D.slice(0,4),+D.slice(4,6)-1,+D.slice(6,8));dd.setDate(dd.getDate()+1);D=''+dd.getFullYear()+('0'+(dd.getMonth()+1)).slice(-2)+('0'+dd.getDate()).slice(-2);}return {d0:D.slice(2,8),tm:L,how:'utc'};}}
+    if(ld.length>=8&&ud.length>=8){var a=new Date(+ld.slice(0,4),+ld.slice(4,6)-1,+ld.slice(6,8)),b=new Date(+ud.slice(0,4),+ud.slice(4,6)-1,+ud.slice(6,8));var dd2=Math.round((a-b)/86400000);if(dd2>=1)return {d0:ld.slice(2,8),tm:0,how:'date+1'};if(dd2===0){if(lt&&!cut(lt)){var m2=timeMin(lt);if(m2!=null&&m2<1440)return {d0:ld.slice(2,8),tm:m2,how:'loc'};}return {d0:ld.slice(2,8),tm:600,how:'date0'};}}
+    if(ld.length>=8&&lt&&!cut(lt)){var m3=timeMin(lt);if(m3!=null&&m3<1440)return {d0:ld.slice(2,8),tm:m3,how:'loc'};}
+  }catch(_e){}return null;}
 function prevDayYMD(ymd){if(!ymd||ymd.length<6)return ymd;var dt=new Date(2000+ +ymd.slice(0,2),+ymd.slice(2,4)-1,+ymd.slice(4,6));dt.setDate(dt.getDate()-1);return (''+dt.getFullYear()).slice(2)+('0'+(dt.getMonth()+1)).slice(-2)+('0'+dt.getDate()).slice(-2);}
 function parseCsv(text,fname){
   var rows=text.replace(/\r/g,'').split('\n').filter(function(l){return l.trim().length;});
@@ -6725,7 +6732,7 @@ function parseCsv(text,fname){
     var cx=parseFloat(f[ci.x]),cy=parseFloat(f[ci.y]);if(isNaN(cx)||isNaN(cy))continue;
     var d0=fdate; if(ci.date>=0&&f[ci.date]){var raw=(f[ci.date]||'').replace(/[^0-9]/g,'');if(raw.length>=8)d0=raw.slice(2,8);}
     var tmin=ci.time>=0?timeMin(f[ci.time]):null;
-    try{if(ci.utcDate>=0&&ci.utcTime>=0){var _ud=(f[ci.utcDate]||'').replace(/[^0-9]/g,''),_ut=timeMin(f[ci.utcTime]);if(_ud.length>=8&&_ut!=null){var _lt=_ut+540;var _ld=_ud.slice(0,8);if(_lt>=1440){_lt-=1440;var _dd=new Date(+_ld.slice(0,4),+_ld.slice(4,6)-1,+_ld.slice(6,8));_dd.setDate(_dd.getDate()+1);_ld=''+_dd.getFullYear()+('0'+(_dd.getMonth()+1)).slice(-2)+('0'+_dd.getDate()).slice(-2);}d0=_ld.slice(2,8);tmin=_lt;}}}catch(_utc9){}/* [BUILD2489] UTC+9 → 로컬 날짜·시각(자정 넘김 처리) */
+    try{if(ci.utcDate>=0||ci.date>=0){var _r9=_rtLocalDT9(ci.date>=0?f[ci.date]:'',ci.time>=0?f[ci.time]:'',ci.utcDate>=0?f[ci.utcDate]:'',ci.utcTime>=0?f[ci.utcTime]:'');if(_r9){d0=_r9.d0;tmin=_r9.tm;}}}catch(_utc9){}/* [BUILD2489→2490] UTC+9 또는 날짜 차이 규칙(_rtLocalDT9) */
     var dt=d0; if(nsCut!=null&&tmin!=null&&tmin<nsCut&&d0)dt=prevDayYMD(d0);
     var name=ci.name>=0?(f[ci.name]||'').trim():String(r);
     var _rc=ci.code>=0?(f[ci.code]||'').trim():'';var _pz=ci.z>=0?parseFloat(f[ci.z]):null;var _pc=_rc,_psf=null,_ppv=null,_pIsT=false;if(state.tamsa){var _tc=parseTamsaCode(_rc);if(_tc){_pc=_tc.code||(_tc.isT?'T':'');_pz=_tc.z;_psf=_tc.surface;_ppv=_tc.pave;_pIsT=!!_tc.isT;}}var _rw9=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)?rows[r]:undefined;if(_rw9!==undefined&&d0){try{state.rtCsvHead9=state.rtCsvHead9||{};if(!state.rtCsvHead9[d0])state.rtCsvHead9[d0]=rows[0];}catch(_h9){}}var _jgA9=/^(\d+)\s*[aA]$/.exec(_rc||''),_jgG9=/^(\d+)\s*[gG](?:\s+([0-9]*\.?[0-9]+))?$/.exec(_rc||'');/* [BUILD2434] 지거 코드: 'Na'=이격기준점 N, 'Ng d'=지거점 N + 심도 d */
@@ -6735,12 +6742,12 @@ function parseCsv(text,fname){
   }
   return pts;
 }
-function _rtFixUtcTm9(){/* [BUILD2489] 과거 사업 소급: 보관된 원본 행(_raw)+머리글(rtCsvHead9)에 'UTC 날짜/시간'이 있으면 로컬(+9h) 날짜·시각으로 _d0/_tm 재계산 (parseCsv 2489와 동일 규칙) */
-  var n=0;try{if(!(typeof IS_REALTIME!=='undefined'&&IS_REALTIME))return 0;var H=state.rtCsvHead9||{};
-    (state.points||[]).forEach(function(p){if(!p||!p._raw||p._d0==null)return;var hk=p._hdk9||p._d0;var hd=H[hk]||H[p._d0];if(!hd)return;var head=splitCsvLine(hd).map(function(t){return t.trim();});var iu=head.indexOf('UTC 날짜');if(iu<0)iu=head.indexOf('UTC날짜');var it=head.indexOf('UTC 시간');if(it<0)it=head.indexOf('UTC시간');if(iu<0||it<0)return;
-      var f=splitCsvLine(p._raw);var ud=(f[iu]||'').replace(/[^0-9]/g,''),ut=timeMin(f[it]);if(ud.length<8||ut==null)return;
-      var lt=ut+540,ld=ud.slice(0,8);if(lt>=1440){lt-=1440;var dd=new Date(+ld.slice(0,4),+ld.slice(4,6)-1,+ld.slice(6,8));dd.setDate(dd.getDate()+1);ld=''+dd.getFullYear()+('0'+(dd.getMonth()+1)).slice(-2)+('0'+dd.getDate()).slice(-2);}
-      var nd=ld.slice(2,8);if(p._d0!==nd||p._tm!==lt){if(!p._hdk9)p._hdk9=hk;p._d0=nd;p._tm=lt;n++;}});
+function _rtFixUtcTm9(){/* [BUILD2489→2490] 과거 사업 소급: 보관 원본 행(_raw)+머리글(rtCsvHead9)로 _rtLocalDT9 규칙을 다시 적용해 _d0/_tm 재계산. 머리글은 점의 날짜 키 → 아무 키(같은 수신기면 동일) 순으로 폴백 */
+  var n=0;try{if(!(typeof IS_REALTIME!=='undefined'&&IS_REALTIME))return 0;var H=state.rtCsvHead9||{};var anyH=null;for(var k in H){if(H[k]){anyH=H[k];break;}}
+    (state.points||[]).forEach(function(p){if(!p||!p._raw||p._d0==null)return;var hk=p._hdk9||p._d0;var hd=H[hk]||H[p._d0]||anyH;if(!hd)return;var head=splitCsvLine(hd).map(function(t){return t.trim();});
+      var iD=head.indexOf('현재날짜'),iT=head.indexOf('현재시간'),iu=head.indexOf('UTC 날짜');if(iu<0)iu=head.indexOf('UTC날짜');var it=head.indexOf('UTC 시간');if(it<0)it=head.indexOf('UTC시간');if(iD<0&&iu<0)return;
+      var f=splitCsvLine(p._raw);var r=_rtLocalDT9(iD>=0?f[iD]:'',iT>=0?f[iT]:'',iu>=0?f[iu]:'',it>=0?f[it]:'');if(!r)return;
+      if(p._d0!==r.d0||p._tm!==r.tm){if(!p._hdk9)p._hdk9=hk;p._d0=r.d0;p._tm=r.tm;n++;}});
   }catch(_e){}return n;}
 function applyNightShift(){
   try{_rtFixUtcTm9();}catch(_ux9){}/* [BUILD2489] */
