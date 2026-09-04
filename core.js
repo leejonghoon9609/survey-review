@@ -6716,7 +6716,7 @@ function parseCsv(text,fname){
   if(!rows.length)return [];
   var head=splitCsvLine(rows[0]).map(function(s){return s.trim();});
   function col(){for(var a=0;a<arguments.length;a++){var i=head.indexOf(arguments[a]);if(i>=0)return i;}return -1;}
-  var ci={name:col('이름','번호'),x:col('X','x'),y:col('Y','y'),z:col('Z(레벨)','Z','z'),code:col('코드','code'),date:col('현재날짜'),time:col('현재시간','시간','관측시간','측정시간','시작시간','데이터 시작시간','GPS시간','UTC시간','TIME')};
+  var ci={name:col('이름','번호'),x:col('X','x'),y:col('Y','y'),z:col('Z(레벨)','Z','z'),code:col('코드','code'),date:col('현재날짜'),time:col('현재시간','시간','관측시간','측정시간','시작시간','데이터 시작시간','GPS시간','UTC시간','TIME'),utcDate:col('UTC 날짜','UTC날짜','UTC Date'),utcTime:col('UTC 시간','UTC시간','UTC Time')};/* [BUILD2489] 실측(상윤테스트_동북선): 수신기 CSV의 '데이터 시작/종료 시간'은 UTC라 '현재날짜(로컬)'와 짝이 안 맞아 새벽 측점(UTC 21:28 = KST 06:28)이 야간보정에서 빠짐 → 'UTC 날짜/시간'이 있으면 +9h로 로컬 날짜·시각을 직접 계산 */
   if(ci.time<0){var smp=splitCsvLine(rows[1]||'');for(var c0=0;c0<head.length;c0++){if(/^\s*\d{1,2}:\d{2}(:\d{2})?\s*$/.test(smp[c0]||'')){ci.time=c0;break;}}}
   var dm=(fname||'').match(/20(\d{6})/);var fdate=dm?dm[1]:'';
   var ns=state.nightShift, nsCut=ns?((ns.on)?ns.cut:null):360;/* [BUILD1929] \ubbf8\uc124\uc815=\uae30\ubcf8 06:00 \uc801\uc6a9 */
@@ -6725,6 +6725,7 @@ function parseCsv(text,fname){
     var cx=parseFloat(f[ci.x]),cy=parseFloat(f[ci.y]);if(isNaN(cx)||isNaN(cy))continue;
     var d0=fdate; if(ci.date>=0&&f[ci.date]){var raw=(f[ci.date]||'').replace(/[^0-9]/g,'');if(raw.length>=8)d0=raw.slice(2,8);}
     var tmin=ci.time>=0?timeMin(f[ci.time]):null;
+    try{if(ci.utcDate>=0&&ci.utcTime>=0){var _ud=(f[ci.utcDate]||'').replace(/[^0-9]/g,''),_ut=timeMin(f[ci.utcTime]);if(_ud.length>=8&&_ut!=null){var _lt=_ut+540;var _ld=_ud.slice(0,8);if(_lt>=1440){_lt-=1440;var _dd=new Date(+_ld.slice(0,4),+_ld.slice(4,6)-1,+_ld.slice(6,8));_dd.setDate(_dd.getDate()+1);_ld=''+_dd.getFullYear()+('0'+(_dd.getMonth()+1)).slice(-2)+('0'+_dd.getDate()).slice(-2);}d0=_ld.slice(2,8);tmin=_lt;}}}catch(_utc9){}/* [BUILD2489] UTC+9 → 로컬 날짜·시각(자정 넘김 처리) */
     var dt=d0; if(nsCut!=null&&tmin!=null&&tmin<nsCut&&d0)dt=prevDayYMD(d0);
     var name=ci.name>=0?(f[ci.name]||'').trim():String(r);
     var _rc=ci.code>=0?(f[ci.code]||'').trim():'';var _pz=ci.z>=0?parseFloat(f[ci.z]):null;var _pc=_rc,_psf=null,_ppv=null,_pIsT=false;if(state.tamsa){var _tc=parseTamsaCode(_rc);if(_tc){_pc=_tc.code||(_tc.isT?'T':'');_pz=_tc.z;_psf=_tc.surface;_ppv=_tc.pave;_pIsT=!!_tc.isT;}}var _rw9=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)?rows[r]:undefined;if(_rw9!==undefined&&d0){try{state.rtCsvHead9=state.rtCsvHead9||{};if(!state.rtCsvHead9[d0])state.rtCsvHead9[d0]=rows[0];}catch(_h9){}}var _jgA9=/^(\d+)\s*[aA]$/.exec(_rc||''),_jgG9=/^(\d+)\s*[gG](?:\s+([0-9]*\.?[0-9]+))?$/.exec(_rc||'');/* [BUILD2434] 지거 코드: 'Na'=이격기준점 N, 'Ng d'=지거점 N + 심도 d */
@@ -6734,7 +6735,15 @@ function parseCsv(text,fname){
   }
   return pts;
 }
+function _rtFixUtcTm9(){/* [BUILD2489] 과거 사업 소급: 보관된 원본 행(_raw)+머리글(rtCsvHead9)에 'UTC 날짜/시간'이 있으면 로컬(+9h) 날짜·시각으로 _d0/_tm 재계산 (parseCsv 2489와 동일 규칙) */
+  var n=0;try{if(!(typeof IS_REALTIME!=='undefined'&&IS_REALTIME))return 0;var H=state.rtCsvHead9||{};
+    (state.points||[]).forEach(function(p){if(!p||!p._raw||p._d0==null)return;var hk=p._hdk9||p._d0;var hd=H[hk]||H[p._d0];if(!hd)return;var head=splitCsvLine(hd).map(function(t){return t.trim();});var iu=head.indexOf('UTC 날짜');if(iu<0)iu=head.indexOf('UTC날짜');var it=head.indexOf('UTC 시간');if(it<0)it=head.indexOf('UTC시간');if(iu<0||it<0)return;
+      var f=splitCsvLine(p._raw);var ud=(f[iu]||'').replace(/[^0-9]/g,''),ut=timeMin(f[it]);if(ud.length<8||ut==null)return;
+      var lt=ut+540,ld=ud.slice(0,8);if(lt>=1440){lt-=1440;var dd=new Date(+ld.slice(0,4),+ld.slice(4,6)-1,+ld.slice(6,8));dd.setDate(dd.getDate()+1);ld=''+dd.getFullYear()+('0'+(dd.getMonth()+1)).slice(-2)+('0'+dd.getDate()).slice(-2);}
+      var nd=ld.slice(2,8);if(p._d0!==nd||p._tm!==lt){if(!p._hdk9)p._hdk9=hk;p._d0=nd;p._tm=lt;n++;}});
+  }catch(_e){}return n;}
 function applyNightShift(){
+  try{_rtFixUtcTm9();}catch(_ux9){}/* [BUILD2489] */
   var ns=state.nightShift, cut=(ns&&ns.on)?ns.cut:null, n=0, _rn9=[];/* [BUILD1927] */
   (state.points||[]).forEach(function(p){
     if(p._d0==null||p._nm==null)return;
