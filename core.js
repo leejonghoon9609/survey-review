@@ -16010,6 +16010,7 @@ function rtBoardTable(cx,W,H,pos,no){
 /* [BUILD2121] 지거 현황판 6행 — 사업명·번호·일자 자동 / 재질·관경·거리심도는 작업자 입력(설정 UI 차기, state.rtJgBoard9[지거번호]={mat,dia,ds} 예정) */
 /* [BUILD2165] CSV 코드-지거 매칭 — 후측량·실시간 CSV의 코드 열 "N 지거"/"지거 N" 측점을 지거 N으로 인식 */
 function jgCodeNum9(p){try{var c=String((p&&p.code)||'').trim();if(!c||c.indexOf('지거')<0)return null;var m=/(?:^|[^0-9])([0-9]+)\s*지거/.exec(' '+c)||/지거\s*([0-9]+)/.exec(c);return m?String(m[1]):null;}catch(_e){return null;}}
+(function(){try{if(typeof window==='undefined')return;var _t=null;window.addEventListener('resize',function(){if(_t)clearTimeout(_t);_t=setTimeout(function(){try{if(!(typeof IS_FIELD!=='undefined'&&IS_FIELD))return;var b=document.getElementById('photoBody');if(!b||!b.querySelector('.php-split'))return;if(b.querySelector('.php-row')){if(typeof _jgPaneFit9==='function')_jgPaneFit9(b);}else{_fldPaneFit9(b);}}catch(_e){}},120);});}catch(_e){}})();/* [BUILD2518] 창 크기 변경(개발자도구 열림 등) 시 사진 배치 재실측 — 실측: 뷰포트 948인데 split 780(995px까지)로 남아 47px 잘리던 상태 */
 function _fldPaneFit9(body){/* [BUILD2517] 측량현장 PC 일반 측점 사진창: 본문 높이를 뷰포트에서 실측(패널이 화면보다 길어 후측량 사진 아래가 잘리던 문제) → 노출관로·후측량 각 50%, 사진은 contain으로 전부 표시. 폰은 fldSplit9(기존) */
   try{if(!body)return;if(typeof isMobileDevice==='function'&&isMobileDevice())return;if(window.matchMedia&&matchMedia('(max-width:760px)').matches)return;
     var top=body.getBoundingClientRect().top;var H=Math.max(320,Math.round(window.innerHeight-top-6));body.style.maxHeight=H+'px';body.style.overflowY='hidden';body.style.minHeight='0';
