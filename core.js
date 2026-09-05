@@ -11732,12 +11732,15 @@ function _fldInspGwAll9(){/* [BUILD2551] 관공검수 '전체' — 구간마다 
   var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');};var N=((typeof _tgSegs!=='undefined'&&_tgSegs)||[]).length;if(!N)return '<div style="color:#999;padding:12px">구간 없음</div>';
   for(var i=0;i<N;i++){try{fldInspGwView9(i);}catch(_e){}}
   var TH='padding:4px 6px;border:1px solid #e6b8b8;background:#fbeeee;font-weight:800;font-size:11px;color:#8c1d1d;white-space:nowrap',TD='padding:4px 6px;border:1px solid #efd3d3;font-size:11.5px;text-align:center;white-space:nowrap';
-  var okN=0,h='<div style="font-size:12px;font-weight:800;color:#333;margin-bottom:6px">관공검수 요약 — 구간 '+N+'개 <span style="font-weight:400;color:#777">· 행 클릭=구간 열기 · 대차 = 시작 측점 + 인입 − 분기 = 종료 측점(벽은 야장)</span></div>';
+  var okN=0,h='';
   h+='<table style="width:100%;border-collapse:collapse"><tr><th style="'+TH+'">구간</th><th style="'+TH+'">시작시설물</th><th style="'+TH+'">종료시설물</th><th style="'+TH+'">시작 측점(벽)</th><th style="'+TH+'">인입</th><th style="'+TH+'">분기</th><th style="'+TH+'">계산</th><th style="'+TH+'">종료 측점(벽)</th><th style="'+TH+'">결과</th></tr>';
   for(var si=0;si<N;si++){var S9=(window._fiGwSum9||{})[String(si)];if(!S9){h+='<tr class="fiRow9" data-i="'+si+'" style="cursor:pointer"><td style="'+TD+'">'+(si+1)+'</td><td colspan="8" style="'+TD+';color:#999">판정 불가</td></tr>';continue;}
     var ok=S9.ok;if(ok)okN++;var bg=ok?'#f1f8f1':'#fff3f3';var w=function(v,wall){return (v==null?'-':v)+(wall!=null?(' <span style="color:'+((v!=null&&wall!==v)?'#c62828':'#888')+'">(벽 '+wall+')</span>'):'');};
     h+='<tr class="fiRow9" data-i="'+si+'" style="cursor:pointer;background:'+bg+'"><td style="'+TD+';font-weight:800">'+(si+1)+'구간</td><td style="'+TD+'">'+E(S9.from)+'</td><td style="'+TD+'">'+E(S9.to)+'</td><td style="'+TD+'">'+w(S9.sc,S9.sw)+'</td><td style="'+TD+';color:#c62828;text-align:left">'+(S9.si?('+'+S9.si+' '):'')+E(S9.ins.join(', '))+'</td><td style="'+TD+';color:#1565c0;text-align:left">'+(S9.sb?('−'+S9.sb+' '):'')+E(S9.brs.join(', '))+'</td><td style="'+TD+';font-weight:800">'+(S9.calc==null?'-':S9.calc)+'</td><td style="'+TD+'">'+w(S9.ec,S9.ew)+'</td><td style="'+TD+';font-weight:800;color:'+(ok?'#2e7d32':'#c62828')+'">'+(ok?'일치':'⚠ 불일치')+'</td></tr>';}
-  h+='</table><div style="margin-top:6px;font-size:12px;font-weight:800;color:'+(okN===N?'#2e7d32':'#c62828')+'">일치 '+okN+' / 불일치 '+(N-okN)+'</div>';return h;}
+  h+='</table>';
+  var badN=N-okN;var PILL=function(txt,bg){return '<span style="display:inline-flex;align-items:center;justify-content:center;min-width:120px;padding:6px 16px;border-radius:10px;background:'+bg+';color:#fff;font-weight:900;font-size:18px;letter-spacing:1px;box-shadow:0 2px 6px rgba(0,0,0,.15)">'+txt+'</span>';};
+  var head='<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px;padding:8px 12px;border:2px solid '+(badN?'#c62828':'#2e7d32')+';border-radius:10px;background:'+(badN?'#fff3f3':'#f1f8f1')+'"><div style="font-size:16px;font-weight:900;color:#1f2d3d">관공검수 요약 <span style="color:#555;font-weight:700">— 전체 '+N+'구간</span></div><div style="flex:1"></div>'+PILL('일치 '+okN+'건','#43a047')+PILL('불일치 '+badN+'건',badN?'#e53935':'#bdbdbd')+'<div style="width:100%;font-size:11.5px;color:#777">행 클릭 = 구간 열기 · 대차 = 시작 측점 + 인입 − 분기 = 종료 측점(괄호는 야장 벽)</div></div>';/* [BUILD2552] 큰 제목 + 일치/불일치 배너(결과 스타일) */
+  return head+h;}
 function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시설물 | 종료시설물 | 인입·분기 정보] 3열 큰 틀 */
   try{var sg=(_tgSegs||[])[sel];if(!sg||sg.length<2)return '';var A=sg[0],B=sg[sg.length-1];var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
     var fA=_fldInspFacAt9(A),fB=_fldInspFacAt9(B);
@@ -11951,7 +11954,7 @@ function fldInspWin9(sel){
     var w=document.createElement('div');w.id='fldInspOv9';w.style.cssText='position:fixed;inset:0;z-index:1325;pointer-events:none;background:transparent';
     try{document.body.classList.add('fldInspOn9');}catch(_bc){}/* [BUILD2394] */
     var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
-    var btn=function(i,lab,on,ok){var bg=on?'#7b1fa2':(ok===true?'#66bb6a':(ok===false?'#ffebee':'#fff')),fg=on?'#fff':(ok===true?'#fff':(ok===false?'#c62828':'#555')),bd=on?'#7b1fa2':(ok===true?'#43a047':(ok===false?'#ef9a9a':'#ccc'));/* [BUILD2551] 완료=연초록(#66bb6a) 배경+흰 글자 *//* [BUILD2548] 일치 버튼 초록 진하게(배경 #a5d6a7·글자 #1b5e20) */
+    var btn=function(i,lab,on,ok){var bg=on?'#7b1fa2':(ok===true?'#c8e6c9':(ok===false?'#ffebee':'#fff')),fg=on?'#fff':(ok===true?'#1b5e20':(ok===false?'#c62828':'#555')),bd=on?'#7b1fa2':(ok===true?'#66bb6a':(ok===false?'#ef9a9a':'#ccc'));/* [BUILD2552] 완료=방향 배지처럼 연초록(#c8e6c9) 배경+진초록 글자 *//* [BUILD2548] 일치 버튼 초록 진하게(배경 #a5d6a7·글자 #1b5e20) */
       var bd2=on?'#7b1fa2':(ok===true?'#2e7d32':(ok===false?'#c62828':'#777'));/* [BUILD2373] 테두리 진하게 */
       if(i===-1){bg=on?'#c62828':'#fff';fg=on?'#fff':'#c62828';bd2='#c62828';}/* [BUILD2374] 전체 버튼 붉은색 */
       return '<button class="fiSeg9" data-i="'+i+'" style="border:2px solid '+bd2+';background:'+bg+';color:'+fg+';border-radius:7px;padding:5px 6px;font-size:11.5px;font-weight:800;cursor:pointer;display:flex;width:100%;align-items:center;justify-content:center;white-space:nowrap">'+E(lab)+'</button>';};/* [BUILD2370] 세로 버튼 */
