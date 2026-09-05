@@ -8584,9 +8584,9 @@ function _fldAutoMnRecs(){ /* [1258] field — 후측량 확정 맨홈(_aft·신
   if(n){try{console.log('[autoMn] 야장 '+n+'개 자동 생성');}catch(e){}}
   return n;
 }
-function _fldCsvFromPoints(pts,name){ /* [1286] 통합 측설용 CSV — exportSurveyCsv(survey 규칙) 미러, payload 점 기반 */
+function _fldCsvText9(pts){/* [BUILD2503] 노출관로 CSV 성과 텍스트 — _fldCsvFromPoints(다운로드)와 측점·CSV검수 화면이 같은 생성기를 쓰도록 분리(성과 동일 보장) */
   pts=(pts||[]).filter(function(p){return !/보강판/.test(''+((typeof ptNum==='function')?ptNum(p):p.no));});
-  if(!pts.length){toast('내보낼 측점이 없습니다');return;}
+  if(!pts.length)return null;
   var head='이름,X,Y,Z(레벨),코드';
   var rows=pts.map(function(p){
     var nm=(typeof ptNum==='function')?ptNum(p):String(p.no||'');
@@ -8598,7 +8598,10 @@ function _fldCsvFromPoints(pts,name){ /* [1286] 통합 측설용 CSV — exportS
     if(/[\",]/.test(nm))nm='"'+nm.replace(/"/g,'""')+'"';
     return nm+','+X+','+Y+','+Z+','+cd;
   });
-  var csv='\uFEFF'+head+'\r\n'+rows.join('\r\n')+'\r\n';
+  return '\uFEFF'+head+'\r\n'+rows.join('\r\n')+'\r\n';
+}
+function _fldCsvFromPoints(pts,name){ /* [1286] 통합 측설용 CSV — exportSurveyCsv(survey 규칙) 미러, payload 점 기반 · [BUILD2503] 텍스트는 _fldCsvText9 */
+  var csv=_fldCsvText9(pts);if(!csv){toast('내보낼 측점이 없습니다');return;}
   var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
   var nm2=(name||'측설용').replace(/[\\/:*?"<>|]/g,'_');
   var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='측설용_'+nm2+'.csv';
@@ -11534,6 +11537,90 @@ function _fldInspMidHL9(ix){/* [BUILD2461] 인입/분기 표 행 클릭 → 그 
     try{if(!window._fldInspFitLock9){var nodes=[];LL.forEach(function(L){(L||[]).forEach(function(pt){nodes.push({x:pt[0],y:pt[1]});});});var sg0=(_tgSegs||[])[window._fldInspSel9];if(sg0)sg0.forEach(function(n){if(n&&n.x!=null)nodes.push(n);});if(nodes.length){fldInspFit9(nodes);var g2=document.getElementById('fldInspMidHL9');if(!g2)cv.appendChild(g);/* fit이 재그리기로 지웠으면 다시 */setTimeout(function(){if(!document.getElementById('fldInspMidHL9'))_fldInspMidHL9(ix);},60);}}}catch(_ft){}/* [BUILD2494] 자동이동 ON이면 선택 구간+인입/분기 라인이 한 화면에 들어오게 이동, 고정이면 화면 유지 */
   }catch(_e){}}
 function _fldInspWallGeo9(fac,to){/* [BUILD2452] 야장 방향 행이 없어 벽 번호를 못 얻을 때 기하로 — 시설물→구간 상대점 방위: 동=2, 서=1, 북=3, 남=4 (EPSG:5186 y=북) */try{if(!fac||!to||fac.wx==null||to.x==null)return null;var dx=to.x-fac.wx,dy=to.y-fac.wy;if(Math.abs(dx)>=Math.abs(dy))return dx>=0?'d2':'d1';return dy>=0?'d3':'d4';}catch(_e){return null;}}
+/* ================= [BUILD2503] 측점·CSV검수 화면 =================
+   3상자를 각각 "최종성과 생성기"에서 독립 취득 → 나란히 놓고 일치 여부를 본다(하나의 원천에서 복제 금지).
+   ① 조서 상자(빨강)  : 실시간 사진조서 성과 — joseoRec/조서 카드 템플릿 그대로(지거점은 지거조서 4칸)
+   ② 도면 위치 상자(노랑): 결선 성과 — 도면 측점 좌표·코드·관로선 연결·출처 CSV
+   ③ CSV 상자(초록)   : 노출관로 CSV(_fldCsvText9·_csvExportPts9) / 후측량 CSV(_aftCsvMerged9) 통합본 텍스트 그대로
+   선택 측점 행은 두 CSV에서 강조(이름 일치=빨강, 좌표 근접=노랑). 공차 판정은 차기(사용자 규칙 확정 후) */
+function _fldInspPtList9(sel){var out=[],seen={};var src=(sel>=0)?(((typeof _tgSegs!=='undefined'&&_tgSegs)||[])[sel]||[]):((typeof _csvExportPts9==='function')?_csvExportPts9():(state.points||[]));
+  src.forEach(function(q){if(!q||q.no==null)return;var p=(typeof pointByNo==='function')?(pointByNo(q.no)||q):q;if(!p||p._hyun||p.jgRef!=null)return;var k=String(p.no);if(seen[k])return;seen[k]=1;out.push(p);});return out;}
+function _fldInspCsvRows9(txt){var lines=String(txt||'').replace(/^\uFEFF/,'').replace(/\r/g,'').split('\n').filter(function(l){return l.trim().length;});if(!lines.length)return {head:[],rows:[]};
+  var sp=function(l){var o=[],cur='',q=false;for(var i=0;i<l.length;i++){var c=l[i];if(c==='"'){if(q&&l[i+1]==='"'){cur+='"';i++;}else q=!q;}else if(c===','&&!q){o.push(cur);cur='';}else cur+=c;}o.push(cur);return o;};
+  return {head:sp(lines[0]),rows:lines.slice(1).map(sp)};}
+function fldInspPtView9(sel){
+  try{var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
+    var list=_fldInspPtList9(sel);if(!list.length)return '<div style="color:#999;padding:12px;text-align:center">대상 측점 없음</div>';
+    var cur=window._fldInspPtSel9;var ci=-1;list.forEach(function(p,i){if(ci<0&&String(p.no)===String(cur))ci=i;});if(ci<0){ci=0;cur=String(list[0].no);window._fldInspPtSel9=cur;}
+    var p=list[ci];var nm=(typeof ptNum==='function')?ptNum(p):String(p.no);var d0=(p._d0||String(p.no).split('-')[0]||'');
+    var BX='border:3px solid #d32f2f;border-radius:6px;padding:8px;background:#fff';var BY='border:3px solid #f5c400;border-radius:6px;padding:8px;background:#fffdf3';var BG='border:3px solid #1b7f3b;border-radius:6px;padding:8px;background:#f6fbf7;display:flex;flex-direction:column;gap:6px';
+    var NB='display:inline-flex;align-items:center;justify-content:center;border:1.5px solid #90b4e0;background:#fff;color:#0d47a1;border-radius:7px;padding:3px 10px;font-size:11.5px;font-weight:800;cursor:pointer';
+    var h='<div style="display:flex;gap:10px;align-items:flex-start;min-height:0">';
+    /* ---------- 좌: ① 조서 + ② 도면 위치 ---------- */
+    h+='<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:10px">';
+    h+='<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><button class="fiPtNav9" data-d="-1" style="'+NB+'">◀ 이전</button><select id="fiPtSel9" style="flex:1;min-width:120px;max-width:260px;padding:3px 6px;border:1.5px solid #90b4e0;border-radius:7px;font-size:12px;font-weight:700">'
+      +list.map(function(q,i){return '<option value="'+E(q.no)+'"'+(i===ci?' selected':'')+'>'+E(q.no)+(q.code?(' · '+q.code):'')+'</option>';}).join('')+'</select><button class="fiPtNav9" data-d="1" style="'+NB+'">다음 ▶</button><span style="font-size:11.5px;color:#666">'+(ci+1)+' / '+list.length+'</span></div>';
+    /* ① 조서 성과 — 카드 템플릿 복사(사진변경 버튼만 제외) */
+    var jgN=null;try{if(p._jgf9||/^[0-9]{6}-[0-9]+-[1-4]$/.test(String(p.no))){jgN=String(p.no).split('-')[1];}else if(typeof jgNumOf9==='function'){jgN=jgNumOf9(p);}}catch(_j){}
+    var card='';
+    if(jgN&&typeof jgFindDay9==='function'&&jgFindDay9(jgN)){var jd=jgFindDay9(jgN),jno=jd+'-'+jgN;var jb=(state.rtJgBoard9&&state.rtJgBoard9[jgN])||{};var pc=(typeof joseoParseCode==='function')?joseoParseCode(p.code||''):{mat:'',dia:''};var mat=(jb.mat||pc.mat||''),dia=(jb.dia||pc.dia||'');var gap='',dep='';if(jb.ds){var _d=String(jb.ds).split('/');gap=(_d[0]||'').trim();dep=(_d[1]||'').trim();}if(!dep&&p.depth!=null&&p.depth!=='')dep=String(p.depth);
+      var xN=(p.y!=null&&isFinite(+p.y))?(+p.y).toFixed(3):'',yE=(p.x!=null&&isFinite(+p.x))?(+p.x).toFixed(3):'';var CAPS=['공사시 근경','공사시 원경','이격기준점','포장후 관로위치'];var cells='';
+      for(var k=1;k<=4;k++){var key=jno+'-'+k;var u=(typeof photoMap!=='undefined'&&photoMap)?photoMap[key]:null;cells+='<div class="jz-pc">'+(u?('<img src="'+E(u)+'">'):'<div class="ne">'+CAPS[k-1]+' 사진 없음</div>')+'<div class="jz-cap">'+CAPS[k-1]+' ('+jgN+'-'+k+')</div></div>';if(k===2)cells+='</div><div class="jz-ph2">';}
+      card='<div class="jz-proj">사업명 : '+E(state.projectName||'')+' <span style="color:#7a52e0;font-weight:800">[지거]</span></div><div class="jz-card" data-no="'+E(jno)+'"><table class="jz-tbl"><colgroup><col style="width:17%"><col style="width:16.5%"><col style="width:16.5%"><col style="width:12.5%"><col style="width:12.5%"><col style="width:12.5%"><col style="width:12.5%"></colgroup>'
+        +'<tr><td class="lbl">측량날짜</td><td class="val" colspan="2">'+E((typeof joseoDateK==='function')?joseoDateK(jd):jd)+'</td><td class="lbl">측점명</td><td class="val" colspan="3">'+E(jgN)+'</td></tr>'
+        +'<tr><td class="lbl" colspan="2">좌표(GRS80)</td><td class="lbl" rowspan="2">시설물종류</td><td class="lbl" rowspan="2">재질</td><td class="lbl" rowspan="2">관경</td><td class="lbl" rowspan="2">이격거리</td><td class="lbl" rowspan="2">심도</td></tr><tr><td class="lbl">X(N)</td><td class="lbl">Y(E)</td></tr>'
+        +'<tr><td class="val">'+xN+'</td><td class="val">'+yE+'</td><td class="val">통신</td><td class="val">'+E(mat)+'</td><td class="val">'+E(dia)+'</td><td class="val">'+E(gap)+'</td><td class="val">'+E(dep)+'</td></tr></table><div class="jz-ph2">'+cells+'</div></div>';
+    }else if(typeof joseoRec==='function'){var r=joseoRec(p);var exp=r.expUrl?'<img src="'+E(r.expUrl)+'">':'<div class="ne">실시간 사진 없음</div>';var aft=r.aftUrl?'<img src="'+E(r.aftUrl)+'">':'<div class="ne">공사후 사진 없음</div>';
+      card='<div class="jz-proj">사업명 : '+E(state.projectName||'')+'</div><div class="jz-card" data-no="'+E(r.fullNo||r.name)+'"><table class="jz-tbl"><colgroup><col style="width:17%"><col style="width:16.5%"><col style="width:16.5%"><col style="width:12.5%"><col style="width:12.5%"><col style="width:12.5%"><col style="width:12.5%"></colgroup>'
+        +'<tr><td class="lbl">측량날짜</td><td class="val" colspan="2">'+E((typeof joseoDateK==='function')?joseoDateK(r.date):r.date)+'</td><td class="lbl">측점명</td><td class="val" colspan="3">'+E(r.name)+'</td></tr>'
+        +'<tr><td class="lbl" colspan="2">좌표(GRS80)</td><td class="lbl" rowspan="2">시설물종류</td><td class="lbl" rowspan="2">재질</td><td class="lbl" rowspan="2">관경</td><td class="lbl" rowspan="2">이격거리</td><td class="lbl" rowspan="2">심도</td></tr><tr><td class="lbl">X(N)</td><td class="lbl">Y(E)</td></tr>'
+        +'<tr><td class="val">'+E(r.x)+'</td><td class="val">'+E(r.y)+'</td><td class="val">'+E(r.facility)+'</td><td class="val">'+E(r.mat)+'</td><td class="val">'+((r.dia||'').split(/\s+/).filter(function(_t){return _t;}).map(function(_t){return '<span style="white-space:nowrap">'+E(_t)+'</span>';}).join('<br>'))+'</td><td class="val">'+E(r.gap)+'</td><td class="val">'+E(r.depth)+'</td></tr></table>'
+        +'<div class="jz-ph2"><div class="jz-pc">'+exp+'<div class="jz-cap">실시간 측량점</div></div><div class="jz-pc">'+aft+'<div class="jz-cap">공사 후 관로</div></div></div></div>';
+      if(!(typeof joseoPoints==='function'&&joseoPoints().some(function(q){return String(q.no)===String(p.no);})))card+='<div style="font-size:11.5px;color:#c62828;font-weight:700;margin-top:4px">⚠ 이 측점은 실시간 사진조서 성과(joseoPoints) 대상이 아닙니다</div>';
+    }
+    h+='<div style="'+BX+'"><div style="font-size:12px;font-weight:800;color:#b71c1c;margin-bottom:6px">① 실시간 사진조서 성과 — '+E(p.no)+'</div>'+card+'</div>';
+    /* ② 도면 위치 성과(결선) */
+    var ln=0;try{(state.lines||[]).forEach(function(L){if(L.layer!=='통신관로')return;(L.pts||[]).forEach(function(v){if(Math.abs(v[0]-p.x)<0.06&&Math.abs(v[1]-p.y)<0.06)ln++;});});}catch(_ln){}
+    var kind=jgN?'지거 측점':(p._tamsa||p.tamsa||/^T/i.test(String(p._nm||''))?'탐사 측점':(p._fromAft9?'후측량 CSV 점':'실시간 측점'));
+    var TD2='padding:4px 8px;border:1px solid #e8d97a;font-size:12px;white-space:nowrap';
+    h+='<div style="'+BY+'"><div style="font-size:12px;font-weight:800;color:#8a6d00;margin-bottom:6px">② 도면창 위치 성과(결선) — '+E(p.no)+'</div><table style="border-collapse:collapse"><tr><td style="'+TD2+';font-weight:800;background:#fff8d6">측점</td><td style="'+TD2+'">'+E(p.no)+'</td><td style="'+TD2+';font-weight:800;background:#fff8d6">코드</td><td style="'+TD2+'">'+E(p.code||'')+'</td><td style="'+TD2+';font-weight:800;background:#fff8d6">종류</td><td style="'+TD2+'">'+kind+'</td></tr>'
+      +'<tr><td style="'+TD2+';font-weight:800;background:#fff8d6">X(N)</td><td style="'+TD2+'">'+((p.y!=null&&isFinite(+p.y))?(+p.y).toFixed(3):'')+'</td><td style="'+TD2+';font-weight:800;background:#fff8d6">Y(E)</td><td style="'+TD2+'">'+((p.x!=null&&isFinite(+p.x))?(+p.x).toFixed(3):'')+'</td><td style="'+TD2+';font-weight:800;background:#fff8d6">Z</td><td style="'+TD2+'">'+((p.z!=null&&isFinite(+p.z))?(+p.z).toFixed(3):'')+'</td></tr>'
+      +'<tr><td style="'+TD2+';font-weight:800;background:#fff8d6">관로선 연결</td><td style="'+TD2+';color:'+(ln?'#2e7d32':'#c62828')+';font-weight:800">'+(ln?(ln+'개 정점'):'없음(고아 측점)')+'</td><td style="'+TD2+';font-weight:800;background:#fff8d6">출처 CSV</td><td style="'+TD2+'" colspan="3">'+E(p._csv||'-')+'</td></tr></table>';
+    /* CSV 대조(강조용 매칭) */
+    var rt=null,af=null;try{rt=_fldInspCsvRows9((typeof _fldCsvText9==='function')?_fldCsvText9(_csvExportPts9()):'');}catch(_r1){}try{var M=_aftCsvMerged9();af=_fldInspCsvRows9(M?M.csv:'');}catch(_r2){}
+    var rtName=(/^[0-9]{6}$/.test(d0)?(d0+'_'+nm):nm);var near=function(rw,tol){var X=parseFloat(rw[1]),Y=parseFloat(rw[2]);if(!isFinite(X)||!isFinite(Y))return null;var d=Math.hypot(Y-p.x,X-p.y);return d<=tol?d:null;};
+    var mRt=null,mAf=[];if(rt)rt.rows.forEach(function(rw){if(rw[0]===rtName||rw[0]===nm){mRt=rw;}});if(af)af.rows.forEach(function(rw){var d=near(rw,0.5);var nmOk=(rw[0]===nm||rw[0]===String(p._nm||'')||(jgN&&rw[0].replace(/\s+/g,'').toLowerCase().indexOf(jgN+'g')===0));if(d!=null||nmOk)mAf.push({rw:rw,d:d,nm:nmOk});});
+    var dRt=mRt?near(mRt,1e9):null;
+    h+='<div style="margin-top:6px;font-size:11.5px;line-height:1.7"><div>노출관로 CSV: '+(mRt?('이름 <b>'+E(mRt[0])+'</b> 행 · 도면 좌표차 <b style="color:'+((dRt!=null&&dRt<=0.06)?'#2e7d32':'#c62828')+'">'+(dRt!=null?dRt.toFixed(3):'-')+'m</b>'):'<b style="color:#c62828">해당 이름 행 없음</b>')+'</div>'
+      +'<div>후측량 CSV: '+(mAf.length?mAf.map(function(m){return '<b>'+E(m.rw[0])+'</b>'+(m.nm?'(이름)':'')+(m.d!=null?(' Δ'+m.d.toFixed(3)+'m'):'')+' <span style="color:#888">'+E(m.rw[5]||'')+'</span>';}).join(' · '):'<span style="color:#888">이름 일치·0.5m 이내 행 없음</span>')+'</div></div></div>';
+    h+='</div>';
+    /* ---------- 우: ③ CSV 성과 ---------- */
+    var CT='padding:2px 6px;border:1px solid #c8e2cf;font-size:11px;white-space:nowrap;text-align:left';
+    var tbl=function(title,cs,hl){var t='<div style="flex:1;min-height:0;display:flex;flex-direction:column"><div style="font-size:12px;font-weight:800;color:#1b5e20;margin-bottom:3px">'+title+(cs?(' <span style="font-weight:400;color:#666">· '+cs.rows.length+'행</span>'):'')+'</div>';
+      if(!cs||!cs.rows.length)return t+'<div style="color:#999;font-size:11.5px;padding:8px">성과 없음</div></div>';
+      t+='<div style="flex:1;min-height:0;overflow:auto;border:1px solid #c8e2cf;background:#fff"><table style="border-collapse:collapse;width:100%"><tr>'+cs.head.map(function(x){return '<th style="'+CT+';background:#e8f5e9;position:sticky;top:0">'+E(x)+'</th>';}).join('')+'</tr>';
+      cs.rows.forEach(function(rw,i){var st=hl(rw);t+='<tr class="fiCsvRow9" data-nm="'+E(rw[0])+'" data-x="'+E(rw[1])+'" data-y="'+E(rw[2])+'"'+(st?' id="fiCsvHl9_'+(title.charAt(0))+'"':'')+' style="cursor:pointer;background:'+(st==='r'?'#ffe0e0':(st==='y'?'#fff3c4':(i%2?'#fafcfa':'#fff')))+'">'+rw.map(function(x){return '<td style="'+CT+'">'+E(x)+'</td>';}).join('')+'</tr>';});
+      return t+'</table></div></div>';};
+    h+='<div style="flex:none;width:44%;'+BG+';height:74vh"><div style="font-size:12px;font-weight:800;color:#1b5e20">③ CSV 성과(최종성과 통합본 그대로)</div>'
+      +tbl('노출관로 CSV',rt,function(rw){return (mRt&&rw===mRt)?'r':null;})
+      +'<div style="border-top:2px solid #1b7f3b"></div>'
+      +tbl('후측량 CSV',af,function(rw){for(var i=0;i<mAf.length;i++)if(mAf[i].rw===rw)return mAf[i].nm?'r':'y';return null;})+'</div>';
+    h+='</div>';
+    return h;
+  }catch(e){console.error('fldInspPtView9',e);return '<div style="color:#c62828;padding:12px">측점·CSV검수 화면 오류: '+String(e&&e.message||e)+'</div>';}
+}
+function _fldInspPtBind9(card){/* [BUILD2503] 측점·CSV검수 상호작용: 이전/다음·선택·CSV 행 클릭 → 측점 전환, 도면 원 강조, 현황판 합성, 강조행 스크롤 */
+  try{var list=_fldInspPtList9(window._fldInspSel9);var go=function(no){window._fldInspPtSel9=String(no);fldInspWin9(window._fldInspSel9);};
+    card.querySelectorAll('.fiPtNav9').forEach(function(b){b.onclick=function(){var d=+this.getAttribute('data-d'),ci=-1;list.forEach(function(p,i){if(String(p.no)===String(window._fldInspPtSel9))ci=i;});var ni=Math.max(0,Math.min(list.length-1,ci+d));if(list[ni])go(list[ni].no);};});
+    var sl=card.querySelector('#fiPtSel9');if(sl)sl.onchange=function(){go(this.value);};
+    card.querySelectorAll('.fiCsvRow9').forEach(function(tr){tr.onclick=function(){var nm=this.getAttribute('data-nm'),X=parseFloat(this.getAttribute('data-x')),Y=parseFloat(this.getAttribute('data-y'));var hit=null;list.forEach(function(p){if(hit)return;var pn=(typeof ptNum==='function')?ptNum(p):String(p.no);var d0=(p._d0||String(p.no).split('-')[0]||'');if(nm===pn||nm===(d0+'_'+pn)||nm===String(p._nm||''))hit=p;});
+      if(!hit&&isFinite(X)&&isFinite(Y)){var best=null,bd=0.5;list.forEach(function(p){var d=Math.hypot(Y-p.x,X-p.y);if(d<bd){bd=d;best=p;}});hit=best;}
+      if(hit)go(hit.no);else toast('도면에 대응 측점 없음: '+nm);};});
+    var p=(typeof pointByNo==='function')?pointByNo(window._fldInspPtSel9):null;
+    if(p&&p.x!=null){try{var old=document.getElementById('fldInspPtHL9');if(old)old.remove();var dm=document.createElement('span');dm.setAttribute('data-hx',p.x);dm.setAttribute('data-hy',p.y);dm.setAttribute('data-hr','0.6');dm.setAttribute('data-hc','#c62828');_fldInspPtHL9(dm);}catch(_h){}}
+    try{if(state.joseoBoard&&typeof rtBoardURL==='function'){[].forEach.call(card.querySelectorAll('.jz-card'),function(cd){var no=cd.getAttribute('data-no');[].forEach.call(cd.querySelectorAll('.jz-pc img'),function(im,i){var u=im.getAttribute('src');if(!u)return;var key=/^[0-9]{6}-[0-9]+$/.test(no)&&cd.parentNode&&/\[지거\]/.test(cd.parentNode.textContent||'')?(no+'-'+(i+1)):no;rtBoardURL(key,u,function(du){if(du)im.src=du;},(state.rtBoardPos&&state.rtBoardPos[key])||null);});});}}catch(_b){}
+    try{['fiCsvHl9_노','fiCsvHl9_후'].forEach(function(id){var e=card.querySelector('#'+CSS.escape(id));if(e&&e.scrollIntoView)e.scrollIntoView({block:'center'});});}catch(_s){}
+  }catch(e){console.error('_fldInspPtBind9',e);}}
 function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시설물 | 종료시설물 | 인입·분기 정보] 3열 큰 틀 */
   try{var sg=(_tgSegs||[])[sel];if(!sg||sg.length<2)return '';var A=sg[0],B=sg[sg.length-1];var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
     var fA=_fldInspFacAt9(A),fB=_fldInspFacAt9(B);
@@ -11771,6 +11858,7 @@ function fldInspWin9(sel){
     var stT=function(st){return st==='bad'?'\u26A0 \uBD88\uC77C\uCE58':(st==='ok'?'\uC77C\uCE58':(st==='single'?'\uB2E8\uC77C\uCD9C\uCC98':'\u2013'));};
     if(sel===-1){
       /* [BUILD2373] 전체 선택 시 빈 화면(안내문 제거) */
+      if(cat==='pt'){try{h+=fldInspPtView9(-1);}catch(_pv0){}}/* [BUILD2503] 전체=전 측점 순회 */
     }else if(false){
       h+='<table style="width:100%;border-collapse:collapse"><tr><th style="'+TH+'">\uAD6C\uAC04</th><th style="'+TH+'">\uC2DC\uC791 \u2192 \uC885\uB8CC</th><th style="'+TH+'">\uAD00\uC218</th><th style="'+TH+'">\uB0B4\uAD00</th><th style="'+TH+'">\uC2EC\uB3C4\uACB0\uCE21</th><th style="'+TH+'">\uD310\uC815</th></tr>';
       AU.forEach(function(a,i){if(!a){h+='<tr><td style="'+TD+'">'+(i+1)+'</td><td colspan=5 style="'+TD+';color:#999">\uD310\uC815 \uBD88\uAC00</td></tr>';return;}
@@ -11782,8 +11870,9 @@ function fldInspWin9(sel){
       if(!a)h+='<div style="color:#999;padding:12px;text-align:center">\uD310\uC815 \uBD88\uAC00</div>';
       else{
         h+='<div style="font-size:12px;font-weight:800;color:#333;margin-bottom:6px">'+(sel+1)+'\uAD6C\uAC04 \u00B7 '+E(a.from)+' \u2192 '+E(a.to)+'<span style="font-weight:400;color:#666"> \u00B7 \uCE21\uC810 '+a.pts.length+' \u00B7 \uD0D0\uC0AC '+a.depth.tamsa+' \u00B7 \uD3C9\uADE0\uC2EC\uB3C4 '+(a.depth.avg!=null?a.depth.avg.toFixed(2):'-')+'m</span></div>';
-        var showRows=(cat==='all'),showDep=(cat==='all'||cat==='dep'),/* [BUILD2471] 관공검수 탭은 관공수 검수 표로 대체 */showPts=(cat!=='gw');/* [BUILD2487] 관공검수 탭은 측점 흐름표로 대체 *//* [BUILD2401] */
+        var showRows=(cat==='all'),showDep=(cat==='all'||cat==='dep'),/* [BUILD2471] 관공검수 탭은 관공수 검수 표로 대체 */showPts=(cat!=='gw'&&cat!=='pt');/* [BUILD2487] 관공검수 탭은 측점 흐름표로 대체 · [BUILD2503] 측점·CSV 탭은 3상자 화면 *//* [BUILD2401] */
         if(cat==='gw'){try{h+=fldInspGwView9(sel);}catch(_gv){}}/* [BUILD2405] 관공검수 3열(시작·종료·분기) */
+        if(cat==='pt'){try{h+=fldInspPtView9(sel);}catch(_pv){}}/* [BUILD2503] 측점·CSV검수 3상자 */
         if(showRows||showDep)h+='<table style="width:100%;border-collapse:collapse;margin-bottom:8px"><tr><th style="'+TH+'">\uD56D\uBAA9</th><th style="'+TH+'">\uC57C\uC7A5</th><th style="'+TH+'">\uC778\uC785\uCC3D</th><th style="'+TH+'">\uAD6C\uAC04\uC18D\uC131</th><th style="'+TH+'" title="\uCE21\uC810 \uCF54\uB4DC \u2194 \uADF8 \uC810\uC744 \uC9C0\uB098\uB294 \uAD6C\uAC04 \uD569\uC0B0">\uCE21\uC810\u2194\uD569\uC0B0</th><th style="'+TH+'">\uD310\uC815</th></tr>';
         if(showRows)a.rows.forEach(function(r){h+='<tr><td style="'+TD+';font-weight:800">'+r.name+'</td>'+['\uC57C\uC7A5','\uC778\uC785','\uAD6C\uAC04','\uCE21\uC810'].map(function(k){var v=r.vals[k];return '<td style="'+TD+'">'+(v==null||v===''?'<span style=\"color:#bbb\">\u2013</span>':E(v)+((k==='\uCE21\uC810'&&r.mixed)?' <span style=\"color:#c62828\">\uD63C\uC7AC</span>':''))+'</td>';}).join('')+'<td style="'+TD+';font-weight:800;color:'+stC(r.st)+'">'+stT(r.st)+'</td></tr>';});
         if(showDep)h+='<tr><td style="'+TD+';font-weight:800">\uC2EC\uB3C4</td><td colspan=4 style="'+TD+'">\uACB0\uCE21 '+a.depth.miss+' / '+a.depth.n+(a.depth.avg!=null?(' \u00B7 \uD3C9\uADE0 '+a.depth.avg.toFixed(2)+'m'):'')+'</td><td style="'+TD+';font-weight:800;color:'+(a.depth.miss?'#c62828':'#2e7d32')+'">'+(a.depth.miss?'\u26A0 \uACB0\uCE21':'\uC77C\uCE58')+'</td></tr>';
@@ -11816,6 +11905,7 @@ function fldInspWin9(sel){
     var go=function(i){window._fldInspSel9=i;fldInspWin9(i);};
     card.querySelectorAll('.fiSeg9').forEach(function(b){b.onclick=function(){go(+this.getAttribute('data-i'));};});
     card.querySelectorAll('.fiCat9').forEach(function(b){b.onclick=function(){window._fldInspCat9=this.getAttribute('data-k');fldInspWin9(window._fldInspSel9);};});/* [BUILD2401] */
+    if(cat==='pt'){try{_fldInspPtBind9(card);}catch(_pb){}}/* [BUILD2503] */
     try{card.querySelectorAll('.fiSheet9[data-hl]').forEach(function(bx){_fldInspHlDom9(bx);});}catch(_hd9){}/* [BUILD2453] 벽 강조 DOM 보강 */
     try{card.querySelectorAll('.fiMidRow9').forEach(function(tr){tr.onclick=function(){_fldInspMidHL9(+this.getAttribute('data-mi'));};});}catch(_mr9){}/* [BUILD2461] 인입/분기 행 클릭 → 라인 강조 */
     try{card.querySelectorAll('.fiHl9').forEach(function(td){td.onclick=function(ev){ev.stopPropagation();_fldInspPtHL9(this);};});}catch(_ph9){}/* [BUILD2492] 검수표·흐름표 셀 클릭 → 도면 원 */
