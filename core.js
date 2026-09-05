@@ -11581,7 +11581,7 @@ function _fldInspPtMatch9(q,rt,af){/* [BUILD2511] 측점 1개 ↔ 노출관로 C
   var kind=qj?'지거':(q._tamsa||q.tamsa||/^T/i.test(String(q._nm||''))?'탐사':(q._fromAft9?'후측량':'실시간'));
   var same=null;if(mRt){same=(+mRt[1]===+q.y)&&(+mRt[2]===+q.x);}
   return {rt:mRt,rtName:rtName,dRt:mRt?near(mRt,1e9):null,same:same,st:(mRt?(same?'ok':'bad'):'none'),raw:!!_rtRawXY9(q),af:mAf,ln:ln,kind:kind,jg:qj};}
-var _FI_C9={ok:'#cdeccd',bad:'#ffcfcf',none:'#ffe9a8',near:'#ffe0e0'};/* [BUILD2511] 강조 배경: 일치=초록, 불일치=빨강, CSV 행 없음=노랑, 후측량 근접(이름 불일치)=연빨강 */
+var _FI_C9={ok:'#cdeccd',bad:'#ffcfcf',none:'#ffe9a8',near:'#ffe0e0'};var _FI_E9={ok:'#2e7d32',bad:'#c62828',none:'#c9a200',near:'#c62828'};/* [BUILD2512] 강조 테두리색 *//* [BUILD2511] 강조 배경: 일치=초록, 불일치=빨강, CSV 행 없음=노랑, 후측량 근접(이름 불일치)=연빨강 */
 function fldInspPtView9(sel){
   try{var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
     var list=_fldInspPtList9(sel);if(!list.length)return '<div style="color:#999;padding:12px;text-align:center">대상 측점 없음</div>';
@@ -11607,10 +11607,19 @@ function fldInspPtView9(sel){
     var TD2='padding:2px 5px;border:1px solid #e8d97a;font-size:11px;white-space:nowrap;text-align:center';var TH2=TD2+';font-weight:800;background:#fff8d6;position:sticky;top:0';
     h+='<div id="fiPtTblBox9" style="'+BY+';flex:1;min-height:0;display:flex;flex-direction:column;padding:6px"><div style="font-size:12px;font-weight:800;color:#8a6d00;margin-bottom:4px">② 도면창 위치 성과(결선) — '+(sel>=0?((sel+1)+'구간'):'전체')+' 측점 '+list.length+'개 <span style="font-weight:400;color:#777">· 행 클릭=조서·CSV 강조</span></div>'
       +'<div id="fiPtTblWrap9" style="flex:1;min-height:0;overflow:auto;background:#fff"><table style="border-collapse:collapse;width:100%"><tr><th style="'+TH2+'">측점</th><th style="'+TH2+'">코드</th><th style="'+TH2+'">종류</th><th style="'+TH2+'">X(N)</th><th style="'+TH2+'">Y(E)</th><th style="'+TH2+'">Z</th><th style="'+TH2+'">관로선</th><th style="'+TH2+'">노출관로CSV(100%)</th><th style="'+TH2+'">후측량CSV</th></tr>';
+    /* [BUILD2512] 구간 시작/종료 시설물 행(맨홀·보조시설물, 위치 기준=후측량 CSV) — 표 맨 위/맨 아래 */
+    var facRow=function(lab,fac){if(!fac)return '<tr style="background:#eef3ff"><td style="'+TD2+';font-weight:800;color:#1a3d8f">'+lab+'</td><td colspan="8" style="'+TD2+';color:#999;text-align:left">(시설물 없음)</td></tr>';
+      var fx=fac.wx,fy=fac.wy,fn=String(fac.label||'');var kind=(!fac.type||fac.type==='mh')?'맨홀':String(fac.type);var nz=function(t){return String(t||'').replace(/\s+/g,'').toUpperCase();};
+      var mAfF=[];if(af)af.rows.forEach(function(rw){var X=parseFloat(rw[1]),Y=parseFloat(rw[2]);var d=(isFinite(X)&&isFinite(Y))?Math.hypot(Y-fx,X-fy):Infinity;var nmOk=fn&&nz(rw[0])&&(nz(rw[0])===nz(fn)||nz(fn).indexOf(nz(rw[0]))>=0);if(d<=0.5||nmOk)mAfF.push(E(rw[0])+(d<=0.5?(' Δ'+d.toFixed(2)):''));});
+      var ln=0;try{(state.lines||[]).forEach(function(L){if(L.layer!=='통신관로')return;(L.pts||[]).forEach(function(v){if(Math.abs(v[0]-fx)<0.06&&Math.abs(v[1]-fy)<0.06)ln++;});});}catch(_l){}
+      return '<tr class="fiFacRow9" data-hx="'+fx+'" data-hy="'+fy+'" style="background:#eef3ff;cursor:pointer"><td style="'+TD2+';font-weight:800;color:#1a3d8f">'+lab+'</td><td style="'+TD2+';text-align:left;font-weight:800">'+E(fn)+'</td><td style="'+TD2+'">'+E(kind)+'</td><td style="'+TD2+'">'+(isFinite(fy)?(+fy).toFixed(3):'')+'</td><td style="'+TD2+'">'+(isFinite(fx)?(+fx).toFixed(3):'')+'</td><td style="'+TD2+'"></td><td style="'+TD2+';color:'+(ln?'#2e7d32':'#999')+'">'+(ln||'–')+'</td><td style="'+TD2+';color:#999">–</td><td style="'+TD2+';text-align:left">'+(mAfF.length?mAfF.join(', '):'<span style="color:#c62828;font-weight:800">없음</span>')+'</td></tr>';};
+    var sgF=(sel>=0)?(((typeof _tgSegs!=='undefined'&&_tgSegs)||[])[sel]||null):null;
+    if(sgF&&sgF.length>=2&&typeof _fldInspFacAt9==='function')h+=facRow('시작시설물',_fldInspFacAt9(sgF[0]));
     list.forEach(function(q){var m=(q===p)?mc:_fldInspPtMatch9(q,rt,af);var on=(String(q.no)===String(p.no));
       var rtC=m.rt?(m.same?'<span style="color:#2e7d32;font-weight:800">일치</span>':('<span style="color:#c62828;font-weight:800">불일치 Δ'+(m.dRt!=null?m.dRt.toFixed(3):'-')+'</span>'))+(m.raw?'':' <span style="color:#999;font-size:10px">성과기준</span>'):'<span style="color:#c62828;font-weight:800">없음</span>';
       var afC=m.af.length?m.af.map(function(x){return E(x.rw[0])+(x.d!=null?(' Δ'+x.d.toFixed(2)):'');}).join(', '):'<span style="color:#aaa">–</span>';
       h+='<tr class="fiPtRow9" data-no="'+E(q.no)+'" data-st="'+m.st+'" data-rtnm="'+E(m.rtName)+'" style="cursor:pointer;background:'+(on?_FI_C9[m.st]:'#fff')+'"><td style="'+TD2+';font-weight:800">'+E(q.no)+'</td><td style="'+TD2+';text-align:left">'+E(q.code||'')+'</td><td style="'+TD2+'">'+m.kind+'</td><td style="'+TD2+'">'+((q.y!=null&&isFinite(+q.y))?(+q.y).toFixed(3):'')+'</td><td style="'+TD2+'">'+((q.x!=null&&isFinite(+q.x))?(+q.x).toFixed(3):'')+'</td><td style="'+TD2+'">'+((q.z!=null&&isFinite(+q.z))?(+q.z).toFixed(3):'')+'</td><td style="'+TD2+';color:'+(m.ln?'#2e7d32':'#c62828')+'">'+(m.ln?m.ln:'고아')+'</td><td style="'+TD2+'">'+rtC+'</td><td style="'+TD2+';text-align:left">'+afC+'</td></tr>';});
+    if(sgF&&sgF.length>=2&&typeof _fldInspFacAt9==='function')h+=facRow('종료시설물',_fldInspFacAt9(sgF[sgF.length-1]));/* [BUILD2512] */
     h+='</table></div></div>';
     h+='</div>';
     return h;
@@ -11619,12 +11628,12 @@ function fldInspPtView9(sel){
 function _fldInspPtGo9(card,no,keepCard){/* [BUILD2511] 측점 전환을 제자리에서 — 패널 재생성 없이 조서 카드 교체 + 측점표/CSV 행 강조(일치 초록·불일치 빨강) + 도면 원. 화면·스크롤 고정 */
   try{window._fldInspPtSel9=String(no);var p=(typeof pointByNo==='function')?pointByNo(no):null;if(!p)return;
     var jz=card.querySelector('#fiJzBox9');if(jz&&!keepCard){jz.innerHTML=_fldInspJzCard9(p);_fldInspJzBoard9(jz);}
-    var st='none',rtnm='';card.querySelectorAll('.fiPtRow9').forEach(function(tr){var on=(tr.getAttribute('data-no')===String(no));if(on){st=tr.getAttribute('data-st')||'none';rtnm=tr.getAttribute('data-rtnm')||'';}tr.style.background=on?_FI_C9[st]:'#fff';if(on&&tr.scrollIntoView)tr.scrollIntoView({block:'nearest'});});
+    var st='none',rtnm='';card.querySelectorAll('.fiPtRow9').forEach(function(tr){var on=(tr.getAttribute('data-no')===String(no));if(on){st=tr.getAttribute('data-st')||'none';rtnm=tr.getAttribute('data-rtnm')||'';}tr.style.background=on?_FI_C9[st]:'#fff';tr.style.outline=on?('2px solid '+_FI_E9[st]):'';tr.style.outlineOffset='-2px';if(on&&tr.scrollIntoView)tr.scrollIntoView({block:'nearest'});});
     var qn=(typeof ptNum==='function')?ptNum(p):String(p.no);var qj=null;try{if(p._jgf9||/^[0-9]{6}-[0-9]+-[1-4]$/.test(String(p.no)))qj=String(p.no).split('-')[1];else if(typeof jgNumOf9==='function')qj=jgNumOf9(p);}catch(_e){}
-    var first={rt:null,af:null};card.querySelectorAll('.fiCsvRow9').forEach(function(tr){var src=tr.getAttribute('data-src'),nm=tr.getAttribute('data-nm')||'',bg=tr.getAttribute('data-alt')||'#fff';
-      if(src==='rt'){if(rtnm&&nm===rtnm&&!first.rt){bg=_FI_C9[st==='ok'?'ok':'bad'];first.rt=tr;}}
-      else{var X=parseFloat(tr.getAttribute('data-x')),Y=parseFloat(tr.getAttribute('data-y'));var d=(isFinite(X)&&isFinite(Y))?Math.hypot(Y-p.x,X-p.y):Infinity;var nmOk=(nm===qn||nm===String(p._nm||'')||(qj&&nm.replace(/\s+/g,'').toLowerCase().indexOf(qj+'g')===0));if(nmOk||d<=0.5){bg=nmOk?_FI_C9.ok:_FI_C9.near;if(!first.af)first.af=tr;}}
-      tr.style.background=bg;});
+    var first={rt:null,af:null};card.querySelectorAll('.fiCsvRow9').forEach(function(tr){var src=tr.getAttribute('data-src'),nm=tr.getAttribute('data-nm')||'',bg=tr.getAttribute('data-alt')||'#fff',eg='';
+      if(src==='rt'){if(rtnm&&nm===rtnm&&!first.rt){var kk=(st==='ok'?'ok':'bad');bg=_FI_C9[kk];eg=_FI_E9[kk];first.rt=tr;}}
+      else{var X=parseFloat(tr.getAttribute('data-x')),Y=parseFloat(tr.getAttribute('data-y'));var d=(isFinite(X)&&isFinite(Y))?Math.hypot(Y-p.x,X-p.y):Infinity;var nmOk=(nm===qn||nm===String(p._nm||'')||(qj&&nm.replace(/\s+/g,'').toLowerCase().indexOf(qj+'g')===0));if(nmOk||d<=0.5){bg=nmOk?_FI_C9.ok:_FI_C9.near;eg=nmOk?_FI_E9.ok:_FI_E9.near;if(!first.af)first.af=tr;}}
+      tr.style.background=bg;tr.style.outline=eg?('2px solid '+eg):'';tr.style.outlineOffset='-2px';});
     ['rt','af'].forEach(function(k){var tr=first[k];if(!tr)return;var w=tr.closest('.fiCsvWrap9');if(!w)return;var top=tr.offsetTop-w.clientHeight/2+tr.offsetHeight/2;w.scrollTop=Math.max(0,top);});/* 스크롤은 그 표 안에서만(패널·도면 고정) */
     if(p.x!=null){try{var old=document.getElementById('fldInspPtHL9');if(old)old.remove();var dm=document.createElement('span');dm.setAttribute('data-hx',p.x);dm.setAttribute('data-hy',p.y);dm.setAttribute('data-hr','0.6');dm.setAttribute('data-hc',st==='ok'?'#2e7d32':'#c62828');_fldInspPtHL9(dm);}catch(_h){}}
   }catch(e){console.error('_fldInspPtGo9',e);}}
@@ -11632,6 +11641,7 @@ function _fldInspJzBoard9(box){try{if(!(state.joseoBoard&&typeof rtBoardURL==='f
 function _fldInspPtBind9(card){/* [BUILD2503→2511] 측점·CSV검수 상호작용 — 측점표/CSV 행 클릭은 제자리 전환(_fldInspPtGo9) */
   try{var list=_fldInspPtList9(window._fldInspSel9);var go=function(no){_fldInspPtGo9(card,no);};
     card.querySelectorAll('.fiPtRow9').forEach(function(tr){tr.onclick=function(){go(this.getAttribute('data-no'));};});
+    card.querySelectorAll('.fiFacRow9').forEach(function(tr){tr.onclick=function(){try{var old=document.getElementById('fldInspPtHL9');if(old)old.remove();var dm=document.createElement('span');dm.setAttribute('data-hx',this.getAttribute('data-hx'));dm.setAttribute('data-hy',this.getAttribute('data-hy'));dm.setAttribute('data-hr','1.1');dm.setAttribute('data-hc','#1565c0');_fldInspPtHL9(dm);}catch(_f){}};});/* [BUILD2512] 시설물 행 클릭 → 도면 파란 원 */
     try{var root=card.querySelector('#fiPtRoot9');if(root){var avail=Math.max(320,Math.round(card.getBoundingClientRect().bottom-root.getBoundingClientRect().top-14));root.style.height=avail+'px';}}catch(_hz){}
     card.querySelectorAll('.fiCsvRow9').forEach(function(tr){tr.onclick=function(){var nm=this.getAttribute('data-nm'),X=parseFloat(this.getAttribute('data-x')),Y=parseFloat(this.getAttribute('data-y'));var hit=null;list.forEach(function(p){if(hit)return;var pn=(typeof ptNum==='function')?ptNum(p):String(p.no);var d0=(p._d0||String(p.no).split('-')[0]||'');if(nm===pn||nm===(d0+'_'+pn)||nm===String(p._nm||''))hit=p;});
       if(!hit&&isFinite(X)&&isFinite(Y)){var best=null,bd=0.5;list.forEach(function(p){var d=Math.hypot(Y-p.x,X-p.y);if(d<bd){bd=d;best=p;}});hit=best;}
