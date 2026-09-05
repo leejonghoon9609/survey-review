@@ -11561,13 +11561,14 @@ function _fldInspPtList9(sel){/* [BUILD2530] 검수 대상 목록 — 실시간�
     sg.forEach(function(q){if(!q||q.mh||q.tamsa)return;
       if(q.no==null)return;var p=(typeof pointByNo==='function')?pointByNo(q.no):null;if(!p)return;if(p._hyun||p.jgRef!=null||p._riserPt)return;push(p,String(p.no));});
     /* [BUILD2533] 탐사점: 구간 노드(tangoBuildSegs가 5m 내 최근접 구간에 투영 — 평행선 탐사점을 끌어오던 원인)를 쓰지 않고, 도면 탐사점 중 이 구간 관로선 위 6cm 이내인 것만 = 도면상 그 구간 탐사점. 관로 정점 순서(투영 t)로 정렬 */
-    try{var ord=[];((typeof _fldTamsaPts==='function')?_fldTamsaPts():[]).forEach(function(t){var d=dSeg(t.x,t.y,sg);if(d>0.06)return;var pos=0;for(var i=1;i<sg.length;i++){var ax=sg[i-1].x,ay=sg[i-1].y,dx=sg[i].x-ax,dy=sg[i].y-ay,L2=dx*dx+dy*dy;var tt=L2>0?(((t.x-ax)*dx+(t.y-ay)*dy)/L2):0;if(tt<0)tt=0;if(tt>1)tt=1;if(Math.hypot(t.x-(ax+tt*dx),t.y-(ay+tt*dy))<=0.06){pos=i+tt;break;}}ord.push({t:t,pos:pos});});
+    try{var ord=[];var vk={};sg.forEach(function(q,i){if(q&&q.x!=null)vk[Math.round(q.x*100)+'_'+Math.round(q.y*100)]=i;});((typeof _fldTamsaPts==='function')?_fldTamsaPts():[]).forEach(function(t){var k=Math.round(t.x*100)+'_'+Math.round(t.y*100);if(vk[k]==null)return;ord.push({t:t,pos:vk[k]});});/* [BUILD2534] 6cm 근사 폐기 → 구간 정점과 1cm 키 정확 일치(_tdFree 편입 기준과 동일) */
       ord.sort(function(a,b){return a.pos-b.pos;});ord.forEach(function(o){var t=o.t;push({no:t.no||'',x:t.x,y:t.y,z:t.z,code:t.code||'',_tamsaNode9:1,_tm9:t,_lnD9:0},'T@'+Math.round(t.x*100)+'_'+Math.round(t.y*100));});}catch(_tm){}
   }else{
     ((typeof _csvExportPts9==='function')?_csvExportPts9():(state.points||[])).forEach(function(p){if(!p||p.no==null||p._hyun||p.jgRef!=null||p._riserPt)return;push(p,String(p.no));});
     /* 전체: 관로선 정점에 편입된 탐사점 전부 + 미편입은 참고 카운트 */
     try{var polys=(state.lines||[]).filter(function(L){return L&&L.layer==='통신관로'&&L.pts&&L.pts.length>1;}).map(function(L){return L.pts.map(function(v){return {x:v[0],y:v[1]};});});
-      var free=0;((typeof _fldTamsaPts==='function')?_fldTamsaPts():[]).forEach(function(t){var on=false;for(var i=0;i<polys.length&&!on;i++)if(dSeg(t.x,t.y,polys[i])<=0.06)on=true;if(!on){free++;return;}push({no:t.no||'',x:t.x,y:t.y,z:t.z,code:t.code||'',_tamsaNode9:1,_tm9:t,_lnD9:0},'T@'+Math.round(t.x*100)+'_'+Math.round(t.y*100));});window._fiTamsaFree9=free;}catch(_t){}/* [BUILD2533] 전체: 통신관로 폴리라인 위 6cm 이내(정점뿐 아니라 선분 위) */
+      var used={};polys.forEach(function(pl){pl.forEach(function(v){used[Math.round(v.x*100)+'_'+Math.round(v.y*100)]=1;});});
+      var free=0;((typeof _fldTamsaPts==='function')?_fldTamsaPts():[]).forEach(function(t){var on=!!used[Math.round(t.x*100)+'_'+Math.round(t.y*100)];if(!on){free++;return;}/* [BUILD2534] 정점 1cm 키 정확 일치 */push({no:t.no||'',x:t.x,y:t.y,z:t.z,code:t.code||'',_tamsaNode9:1,_tm9:t,_lnD9:0},'T@'+Math.round(t.x*100)+'_'+Math.round(t.y*100));});window._fiTamsaFree9=free;}catch(_t){}/* [BUILD2533] 전체: 통신관로 폴리라인 위 6cm 이내(정점뿐 아니라 선분 위) */
   }
   window._fiList9=out;return out;}
 function _fldInspCsvRows9(txt){var lines=String(txt||'').replace(/^\uFEFF/,'').replace(/\r/g,'').split('\n').filter(function(l){return l.trim().length;});if(!lines.length)return {head:[],rows:[]};
