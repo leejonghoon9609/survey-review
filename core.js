@@ -14418,6 +14418,7 @@ function joseoPoints(){
     if(p.jg!=null&&p.jg!==''||p._jgMerged9)return false;/* [BUILD2480] 후측량 'Ng d' 지거점(매칭 승계 포함)은 지거조서 탭에서만 — 실시간조서 2장 항목으로 중복되지 않게 */
     /* [1122] 맨홀 측점도 조서 포함 → [BUILD2528] 폐기: 실시간 사진조서 규정 목록에 맨홀·입상주 없음 — 맨홀 코드(isMhCode: M·JB·SW·방송 등)·입상주 원천점 카드 생성 안 함 */
     if(typeof isMhCode==='function'&&isMhCode(p.code||''))return false;
+    if(p.isT||p._tamsa||p.tamsa||/^[tT]?\s*\d+(?:\.\d+)?(\s*\([^)]*\))?$/.test(String(p.code||'').trim()))return false;/* [BUILD2529] 탐사점(T심도 코드·isT·편입 탐사측점)도 조서 규정 목록에 없음 → 카드 생성 안 함 */
     var _bp9=String((p.no||'')+'|'+(p._nm||'')+'|'+(p.code||'')+'|'+(p._tcode||'')).replace(/\s+/g,'');if(/보강[판핀]/.test(_bp9)) return false; /* [BUILD2108] 보강판·보강핀 등 표기 변형 포함 제외 */
     return true;
   });
