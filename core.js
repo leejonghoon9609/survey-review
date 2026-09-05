@@ -8584,7 +8584,12 @@ function _fldAutoMnRecs(){ /* [1258] field — 후측량 확정 맨홈(_aft·신
   if(n){try{console.log('[autoMn] 야장 '+n+'개 자동 생성');}catch(e){}}
   return n;
 }
-function _fldCsvText9(pts){/* [BUILD2503] 노출관로 CSV 성과 텍스트 — _fldCsvFromPoints(다운로드)와 측점·CSV검수 화면이 같은 생성기를 쓰도록 분리(성과 동일 보장) */
+function _rtRawXY9(p){/* [BUILD2508] 실시간 CSV 원본 행(p._raw, 실시간 로딩 시 보관·payload 승계)+머리글(rtCsvHead9)에서 X/Y/Z 문자열 그대로 — 실시간 CSV가 관로선 측점좌표의 100% 기준 */
+  try{if(!p||p._raw==null||p._raw==='')return null;var H=state.rtCsvHead9||{};var hd=H[p._hdk9||p._d0]||H[p._d0];if(!hd){for(var k in H){if(H[k]){hd=H[k];break;}}}if(!hd)return null;
+    var head=splitCsvLine(hd).map(function(t){return String(t||'').trim();});var f=splitCsvLine(p._raw);var ix=function(){for(var i=0;i<arguments.length;i++){var j=head.indexOf(arguments[i]);if(j>=0)return j;}return -1;};
+    var iX=ix('X','x'),iY=ix('Y','y'),iZ=ix('Z(레벨)','Z','z');if(iX<0||iY<0)return null;var X=String(f[iX]||'').trim(),Y=String(f[iY]||'').trim();if(!isFinite(parseFloat(X))||!isFinite(parseFloat(Y)))return null;
+    return {X:X,Y:Y,Z:(iZ>=0?String(f[iZ]||'').trim():'')};}catch(_e){return null;}}
+function _fldCsvText9(pts){/* [BUILD2503] 노출관로 CSV 성과 텍스트 — _fldCsvFromPoints(다운로드)와 측점·CSV검수 화면이 같은 생성기를 쓰도록 분리(성과 동일 보장) *//* [BUILD2508] 실시간 원본 행이 있는 측점은 X/Y/Z를 원본 문자열 그대로 내보냄(도면에서 좌표가 바뀌어도 성과는 실시간 CSV와 100% 동일 → 검수에서 드러남). 코드·삭제는 현재 도면 반영 */
   pts=(pts||[]).filter(function(p){return !/보강판/.test(''+((typeof ptNum==='function')?ptNum(p):p.no));});
   if(!pts.length)return null;
   var head='이름,X,Y,Z(레벨),코드';
@@ -8594,6 +8599,7 @@ function _fldCsvText9(pts){/* [BUILD2503] 노출관로 CSV 성과 텍스트 — 
     var X=(p.y!=null&&!isNaN(p.y))?(+p.y).toFixed(3):'';
     var Y=(p.x!=null&&!isNaN(p.x))?(+p.x).toFixed(3):'';
     var Z=(p.z!=null&&!isNaN(p.z))?(+p.z).toFixed(3):'';
+    var _rw=_rtRawXY9(p);if(_rw){X=_rw.X;Y=_rw.Y;if(_rw.Z!=='')Z=_rw.Z;}/* [BUILD2508] */
     var cd=(p.code||'').trim();if(/[\",]/.test(cd))cd='"'+cd.replace(/"/g,'""')+'"';
     if(/[\",]/.test(nm))nm='"'+nm.replace(/"/g,'""')+'"';
     return nm+','+X+','+Y+','+Z+','+cd;
@@ -11585,13 +11591,14 @@ function fldInspPtView9(sel){
       var mRt=null,mAf=[];if(rt)rt.rows.forEach(function(rw){if(!mRt&&rw[0]===rtName)mRt=rw;});/* [BUILD2507] 이름은 날짜_번호 정확 일치·첫 행만 — 번호만 같은 다른 점(날짜 없는 '3' 등) 오매칭으로 Δ276m 나오던 버그 */if(af)af.rows.forEach(function(rw){var d=near(rw,0.5);var nmOk=(rw[0]===qn||rw[0]===String(q._nm||'')||(qj&&rw[0].replace(/\s+/g,'').toLowerCase().indexOf(qj+'g')===0));if(d!=null||nmOk)mAf.push({rw:rw,d:d,nm:nmOk});});
       var ln=0;try{(state.lines||[]).forEach(function(L){if(L.layer!=='통신관로')return;(L.pts||[]).forEach(function(v){if(Math.abs(v[0]-q.x)<0.06&&Math.abs(v[1]-q.y)<0.06)ln++;});});}catch(_ln){}
       var kind=qj?'지거':(q._tamsa||q.tamsa||/^T/i.test(String(q._nm||''))?'탐사':(q._fromAft9?'후측량':'실시간'));
-      return {rt:mRt,dRt:mRt?near(mRt,1e9):null,af:mAf,ln:ln,kind:kind,jg:qj};};
+      var same=null;if(mRt){same=(+mRt[1]===+q.y)&&(+mRt[2]===+q.x);}/* [BUILD2508] 실시간 CSV vs 도면 측점 = 수치 100% 동일만 일치(공차 없음) */
+      return {rt:mRt,dRt:mRt?near(mRt,1e9):null,same:same,raw:!!_rtRawXY9(q),af:mAf,ln:ln,kind:kind,jg:qj};};
     var mc=mt(p);var mRt=mc.rt,mAf=mc.af,jgN=mc.jg;
     var TD2='padding:2px 5px;border:1px solid #e8d97a;font-size:11px;white-space:nowrap;text-align:center';var TH2=TD2+';font-weight:800;background:#fff8d6;position:sticky;top:0';
     h+='<div style="'+BY+';flex:1;min-height:0;display:flex;flex-direction:column;padding:6px"><div style="font-size:12px;font-weight:800;color:#8a6d00;margin-bottom:4px">② 도면창 위치 성과(결선) — '+(sel>=0?((sel+1)+'구간'):'전체')+' 측점 '+list.length+'개 <span style="font-weight:400;color:#777">· 행 클릭=조서·CSV 강조</span></div>'
-      +'<div id="fiPtTblWrap9" style="flex:1;min-height:0;overflow:auto;background:#fff"><table style="border-collapse:collapse;width:100%"><tr><th style="'+TH2+'">측점</th><th style="'+TH2+'">코드</th><th style="'+TH2+'">종류</th><th style="'+TH2+'">X(N)</th><th style="'+TH2+'">Y(E)</th><th style="'+TH2+'">Z</th><th style="'+TH2+'">관로선</th><th style="'+TH2+'">노출관로CSV Δ</th><th style="'+TH2+'">후측량CSV</th></tr>';
+      +'<div id="fiPtTblWrap9" style="flex:1;min-height:0;overflow:auto;background:#fff"><table style="border-collapse:collapse;width:100%"><tr><th style="'+TH2+'">측점</th><th style="'+TH2+'">코드</th><th style="'+TH2+'">종류</th><th style="'+TH2+'">X(N)</th><th style="'+TH2+'">Y(E)</th><th style="'+TH2+'">Z</th><th style="'+TH2+'">관로선</th><th style="'+TH2+'">노출관로CSV(100%)</th><th style="'+TH2+'">후측량CSV</th></tr>';
     list.forEach(function(q){var m=(q===p)?mc:mt(q);var on=(String(q.no)===String(p.no));
-      var rtC=m.rt?('<span style="color:'+((m.dRt!=null&&m.dRt<=0.06)?'#2e7d32':'#c62828')+';font-weight:800">'+(m.dRt!=null?m.dRt.toFixed(3):'-')+'</span>'):'<span style="color:#c62828;font-weight:800">없음</span>';
+      var rtC=m.rt?(m.same?'<span style="color:#2e7d32;font-weight:800">일치</span>':('<span style="color:#c62828;font-weight:800">불일치 Δ'+(m.dRt!=null?m.dRt.toFixed(3):'-')+'</span>'))+(m.raw?'':' <span style="color:#999;font-size:10px">성과기준</span>'):'<span style="color:#c62828;font-weight:800">없음</span>';/* [BUILD2508] 100% 동일 판정 · 원본 행 없는 점(레거시)은 성과기준 표기 */
       var afC=m.af.length?m.af.map(function(x){return E(x.rw[0])+(x.d!=null?(' Δ'+x.d.toFixed(2)):'');}).join(', '):'<span style="color:#aaa">–</span>';
       h+='<tr class="fiPtRow9" data-no="'+E(q.no)+'" style="cursor:pointer;background:'+(on?'#ffe0e0':'#fff')+'"><td style="'+TD2+';font-weight:800">'+E(q.no)+'</td><td style="'+TD2+';text-align:left">'+E(q.code||'')+'</td><td style="'+TD2+'">'+m.kind+'</td><td style="'+TD2+'">'+((q.y!=null&&isFinite(+q.y))?(+q.y).toFixed(3):'')+'</td><td style="'+TD2+'">'+((q.x!=null&&isFinite(+q.x))?(+q.x).toFixed(3):'')+'</td><td style="'+TD2+'">'+((q.z!=null&&isFinite(+q.z))?(+q.z).toFixed(3):'')+'</td><td style="'+TD2+';color:'+(m.ln?'#2e7d32':'#c62828')+'">'+(m.ln?m.ln:'고아')+'</td><td style="'+TD2+'">'+rtC+'</td><td style="'+TD2+';text-align:left">'+afC+'</td></tr>';});
     h+='</table></div></div>';
