@@ -14413,9 +14413,11 @@ function joseoPoints(){
   return (state.points||[]).filter(function(p){
     if(!p||!p.no) return false;
     if(p._jgf9)return false;/* [BUILD2153] 지거 위치표시 측점(간접)은 조서 제외 */
+    if(p._riserPt)return false;/* [BUILD2527] 입상주 원천점(후측량 CSV TJ/EJ 2점, buildRisersFromCsv 보관) 조서 제외 — 실측: 조서 대상 100 중 10개가 이것(날짜 없어 탭엔 안 뜨던 상태). 시설물로 검수 */
     if(p.jgRef!=null&&p.jgRef!=='')return false;/* [BUILD2501] 후측량 CSV 이격기준점(1A·2A…)은 도면 표시 전용 — 실시간조서·후측량 사진 항목 제외(사용자 확정) */
     if(p.jg!=null&&p.jg!==''||p._jgMerged9)return false;/* [BUILD2480] 후측량 'Ng d' 지거점(매칭 승계 포함)은 지거조서 탭에서만 — 실시간조서 2장 항목으로 중복되지 않게 */
-    /* [1122] 맨홀 측점도 조서 포함 — 노출관로/후측량 사진 방식 그대로 적용 */
+    /* [1122] 맨홀 측점도 조서 포함 → [BUILD2528] 폐기: 실시간 사진조서 규정 목록에 맨홀·입상주 없음 — 맨홀 코드(isMhCode: M·JB·SW·방송 등)·입상주 원천점 카드 생성 안 함 */
+    if(typeof isMhCode==='function'&&isMhCode(p.code||''))return false;
     var _bp9=String((p.no||'')+'|'+(p._nm||'')+'|'+(p.code||'')+'|'+(p._tcode||'')).replace(/\s+/g,'');if(/보강[판핀]/.test(_bp9)) return false; /* [BUILD2108] 보강판·보강핀 등 표기 변형 포함 제외 */
     return true;
   });
