@@ -12094,6 +12094,9 @@ function _fldInspDpManOpen9(card){/* [BUILD2576] ★수동 심도검수 창 v3 �
         var yc=C3[1];var hD=(yt!=null)?(yt-yc):null;
         if(sC>0&&h3!=null&&isFinite(h3)&&h3>0&&h3<5&&yt<0&&hD!=null&&hD>0){o.depth3=Math.round(hD*100)/100;o.depth=o.depth3;o.hFloor=Math.round(h3*100)/100;o.mode=mode+(onFloor?'·바닥':'·P');o.ok=true;o.anchor=onFloor?'floor':'P';o.wb=(xbr!=null)?Math.abs(xbr-xbl):null;o.wt=(xtr!=null)?Math.abs(xtr-xtl):null;if(!o.warn&&o.wb!=null&&o.wt!=null&&o.wt<o.wb*0.95)o.warn='상단 폭이 바닥 폭보다 좁게 계산됨 — 좌우 경사가 비대칭이거나 선이 어긋남(값 신뢰 불가)';/* [BUILD2577] 대칭 가정 파탄 감지 */
           var fr=(yt-yf)>1e-9?((yc-yf)/(yt-yf)):0;var xcl=xbl+(xtl-xbl)*fr;var Ps=pix([xcl,yc,C3[2]]),Ts=pix([xtl,yt,C3[2]]);/* 밑단=crown 높이 */if(haveG&&xbr!=null&&xtr!=null){var xcr=xbr+(xtr-xbr)*fr;var Qs=pix([xcr,yc,C3[2]]),Ss=pix([xtr,yt,C3[2]]);if(Qs&&Ss){o.Q=Qs;o.S=Ss;}}
+          /* [BUILD2586] 꼭지점을 작업자가 그은 선 위로 스냅: 밑단 = 빨간선∩아래선(hitL/hitR, 정확히 선 위), 상단 T·S = 3D 투영점을 위선에 수선 투영(모델 오차로 선에서 살짝 벗어나던 것) */
+          var snapL=function(pt,line){if(!pt||!line||line.length<2)return pt;var a=line[0],b=line[1];var dx=b[0]-a[0],dy=b[1]-a[1],L2=dx*dx+dy*dy||1;var t=((pt[0]-a[0])*dx+(pt[1]-a[1])*dy)/L2;return [a[0]+dx*t,a[1]+dy*t];};
+          if(o.hitL)Ps=o.hitL;if(Ts)Ts=snapL(Ts,M.top);if(o.Q&&o.hitR)o.Q=o.hitR;if(o.S)o.S=snapL(o.S,M.gtop);
           if(Ps&&Ts){o.hit=Ps;o.T=Ts;var nx3=Ts[0]-Ps[0],ny3=Ts[1]-Ps[1],Ln3=Math.hypot(nx3,ny3)||1;o.n=[nx3/Ln3,ny3/Ln3];o.tAuto=Ln3;o.t=Ln3;o.depthPx=Ln3;o.mag=Ts;o.len=Math.hypot(Ps[0]-cpt[0],Ps[1]-cpt[1]);}}}}catch(_m3){}
       /* 수동 이동(마젠타 드래그) 또는 3D 실패 시: 비례/교차비 폴백 */
       if(!o.ok){var Tp=lineX(P,[P[0]+o.n[0]*1000,P[1]+o.n[1]*1000],M.top[0],M.top[1]);if(Tp){o.T=Tp;o.tAuto=(Tp[0]-P[0])*o.n[0]+(Tp[1]-P[1])*o.n[1];}var tt=(M.t!=null)?M.t:o.tAuto;if(tt!=null){o.t=tt;o.mag=[P[0]+o.n[0]*tt,P[1]+o.n[1]*tt];o.depthPx=Math.abs(tt);}
