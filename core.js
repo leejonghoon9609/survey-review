@@ -11563,7 +11563,7 @@ function fldInspPtView9(sel){
     var NB='display:inline-flex;align-items:center;justify-content:center;border:1.5px solid #90b4e0;background:#fff;color:#0d47a1;border-radius:7px;padding:3px 10px;font-size:11.5px;font-weight:800;cursor:pointer';
     var h='<div id="fiPtRoot9" style="display:flex;flex-direction:column;gap:8px;min-height:0">';/* [BUILD2509] 1행=조서카드|CSV성과(같은 높이), 2행=측점표 전체폭 */
     /* ---------- 좌: ① 조서 + ② 도면 위치 ---------- */
-    h+='<div id="fiPtTop9" style="display:flex;gap:10px;align-items:flex-start;flex:none">';
+    h+='<div id="fiPtTop9" style="display:flex;gap:10px;align-items:stretch;flex:none">';/* [BUILD2510] stretch: CSV 상자 높이=조서 카드(사진 로드 후에도 자동 추종) */
     /* [BUILD2506] 탐색줄(이전/선택/다음) 제거 — 아래 측점표 행 클릭으로 전환 */
     /* ① 조서 성과 — 카드 템플릿 복사(사진변경 버튼만 제외) */
     var jgN=null;try{if(p._jgf9||/^[0-9]{6}-[0-9]+-[1-4]$/.test(String(p.no))){jgN=String(p.no).split('-')[1];}else if(typeof jgNumOf9==='function'){jgN=jgNumOf9(p);}}catch(_j){}
@@ -11604,14 +11604,14 @@ function fldInspPtView9(sel){
     t2+='</table></div></div>';
     /* ---------- ③ CSV 성과(1행 우측, 조서 카드와 같은 높이, 두 표 나란히 1:1) ---------- */
     var CT='padding:2px 6px;border:1px solid #c8e2cf;font-size:11px;white-space:nowrap;text-align:left';
-    var tbl=function(title,cs,hl){var t='<div style="flex:1;min-height:0;display:flex;flex-direction:column"><div style="font-size:12px;font-weight:800;color:#1b5e20;margin-bottom:3px">'+title+(cs?(' <span style="font-weight:400;color:#666">· '+cs.rows.length+'행</span>'):'')+'</div>';
+    var tbl=function(title,cs,hl){var t='<div style="flex:1;min-height:0;min-width:0;display:flex;flex-direction:column"><div style="font-size:12px;font-weight:800;color:#1b5e20;margin-bottom:3px">'+title+(cs?(' <span style="font-weight:400;color:#666">· '+cs.rows.length+'행</span>'):'')+'</div>';
       if(!cs||!cs.rows.length)return t+'<div style="color:#999;font-size:11.5px;padding:8px">성과 없음</div></div>';
-      t+='<div style="flex:1;min-height:0;overflow:auto;border:1px solid #c8e2cf;background:#fff"><table style="border-collapse:collapse;width:100%"><tr>'+cs.head.map(function(x){return '<th style="'+CT+';background:#e8f5e9;position:sticky;top:0">'+E(x)+'</th>';}).join('')+'</tr>';
+      t+='<div style="flex:1;min-height:0;overflow:auto;border:1px solid #c8e2cf;background:#fff"><table style="border-collapse:collapse;min-width:100%"><tr>'+cs.head.map(function(x){return '<th style="'+CT+';background:#e8f5e9;position:sticky;top:0">'+E(x)+'</th>';}).join('')+'</tr>';
       cs.rows.forEach(function(rw,i){var st=hl(rw);t+='<tr class="fiCsvRow9" data-nm="'+E(rw[0])+'" data-x="'+E(rw[1])+'" data-y="'+E(rw[2])+'"'+(st?' id="fiCsvHl9_'+(title.charAt(0))+'"':'')+' style="cursor:pointer;background:'+(st==='r'?'#ffe0e0':(st==='y'?'#fff3c4':(i%2?'#fafcfa':'#fff')))+'">'+rw.map(function(x){return '<td style="'+CT+'">'+E(x)+'</td>';}).join('')+'</tr>';});
       return t+'</table></div></div>';};
-    h+='<div id="fiCsvBox9" style="flex:1;min-width:0;'+BG+';box-sizing:border-box;overflow:hidden"><div style="font-size:12px;font-weight:800;color:#1b5e20;flex:none">③ CSV 성과(최종성과 통합본 그대로)</div><div style="flex:1;min-height:0;display:flex;gap:6px">'
+    h+='<div id="fiCsvBox9" style="flex:1;min-width:0;'+BG+';box-sizing:border-box;overflow:hidden;position:relative;align-self:stretch;padding:0"><div style="position:absolute;left:8px;right:8px;top:6px;bottom:6px;display:flex;flex-direction:column;gap:4px;min-height:0"><div style="font-size:12px;font-weight:800;color:#1b5e20;flex:none">③ CSV 성과(최종성과 통합본 그대로)</div><div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:4px">'/* [BUILD2510] 절대배치 내용 → 상자 높이는 조서 카드에만 따름. 노출관로(위)·후측량(아래) 1:1 세로 */
       +tbl('노출관로 CSV',rt,function(rw){return (mRt&&rw===mRt)?'r':null;})
-      +tbl('후측량 CSV',af,function(rw){for(var i=0;i<mAf.length;i++)if(mAf[i].rw===rw)return mAf[i].nm?'r':'y';return null;})+'</div></div>';
+      +tbl('후측량 CSV',af,function(rw){for(var i=0;i<mAf.length;i++)if(mAf[i].rw===rw)return mAf[i].nm?'r':'y';return null;})+'</div></div></div>';
     h+='</div>';/* 1행 닫기 */
     h+=t2;/* 2행: 측점표 전체폭 */
     h+='</div>';
@@ -11622,7 +11622,7 @@ function _fldInspPtBind9(card){/* [BUILD2503] 측점·CSV검수 상호작용: �
   try{var list=_fldInspPtList9(window._fldInspSel9);var go=function(no){window._fldInspPtSel9=String(no);fldInspWin9(window._fldInspSel9);};
     card.querySelectorAll('.fiPtNav9').forEach(function(b){b.onclick=function(){var d=+this.getAttribute('data-d'),ci=-1;list.forEach(function(p,i){if(String(p.no)===String(window._fldInspPtSel9))ci=i;});var ni=Math.max(0,Math.min(list.length-1,ci+d));if(list[ni])go(list[ni].no);};});
     card.querySelectorAll('.fiPtRow9').forEach(function(tr){tr.onclick=function(){go(this.getAttribute('data-no'));};});/* [BUILD2506] 측점표 행 클릭 */
-    try{var root=card.querySelector('#fiPtRoot9');if(root){var avail=Math.max(320,Math.round(card.getBoundingClientRect().bottom-root.getBoundingClientRect().top-14));root.style.height=avail+'px';var jz=card.querySelector('#fiJzBox9'),gb=card.querySelector('#fiCsvBox9');if(jz&&gb){var hh=Math.round(jz.getBoundingClientRect().height);gb.style.height=hh+'px';}}}catch(_hz){}/* [BUILD2509] CSV 성과창 높이=조서 카드 높이(한 줄), 측점표=남은 높이 전체폭 *//* [BUILD2506] 초록/노랑 상자 높이=패널 남은 높이 실측 → 후측량 CSV·측점표는 상자 안에서 스크롤 */
+    try{var root=card.querySelector('#fiPtRoot9');if(root){var avail=Math.max(320,Math.round(card.getBoundingClientRect().bottom-root.getBoundingClientRect().top-14));root.style.height=avail+'px';}}catch(_hz){}/* [BUILD2510] CSV 상자 높이 강제 제거(사진 로드 전 실측값으로 굳던 문제) → stretch+절대배치 *//* [BUILD2509] CSV 성과창 높이=조서 카드 높이(한 줄), 측점표=남은 높이 전체폭 *//* [BUILD2506] 초록/노랑 상자 높이=패널 남은 높이 실측 → 후측량 CSV·측점표는 상자 안에서 스크롤 */
     try{var cr=card.querySelector('.fiPtRow9[style*="#ffe0e0"]');if(cr&&cr.scrollIntoView)cr.scrollIntoView({block:'nearest'});}catch(_sc){}
     card.querySelectorAll('.fiCsvRow9').forEach(function(tr){tr.onclick=function(){var nm=this.getAttribute('data-nm'),X=parseFloat(this.getAttribute('data-x')),Y=parseFloat(this.getAttribute('data-y'));var hit=null;list.forEach(function(p){if(hit)return;var pn=(typeof ptNum==='function')?ptNum(p):String(p.no);var d0=(p._d0||String(p.no).split('-')[0]||'');if(nm===pn||nm===(d0+'_'+pn)||nm===String(p._nm||''))hit=p;});
       if(!hit&&isFinite(X)&&isFinite(Y)){var best=null,bd=0.5;list.forEach(function(p){var d=Math.hypot(Y-p.x,X-p.y);if(d<bd){bd=d;best=p;}});hit=best;}
