@@ -12074,7 +12074,7 @@ function _fldInspDpManOpen9(card){/* [BUILD2576] ★수동 심도검수 창 v3 �
           if(Vzo){var dvx=V[0]-cx,dvy=V[1]-cy,dzx=Vzo[0]-cx,dzy=Vzo[1]-cy;var f2=-(dvx*dzx+dvy*dzy);if(f2>0&&Math.abs(dzy)>10){f=Math.sqrt(f2);o.f=f;o.fSrc='연직선'+(VZP.length>=2?'(롤 보정)':'');Vz=Vzo;
             /* V⊥: (V−c)·(Vp−c)=−f², (Vz−c)·(Vp−c)=−f² 2원 1차 */var det=dvx*dzy-dvy*dzx;if(Math.abs(det)>1e-9){var px=(-f2*dzy+f2*dvy)/det,py=(-f2*dvx+f2*dzx)/det;Vp=[cx+px,cy+py];}else Vp=null;o.roll=Math.round(Math.atan2(dzx,dzy)*180/Math.PI*10)/10;}}}}catch(_vz){}
         o.Vz=Vz;o.Vp=Vp;
-        if(Vp){var ux2=Vp[0]-cpt[0],uy2=Vp[1]-cpt[1],Lu2=Math.hypot(ux2,uy2)||1;o.u=[ux2/Lu2,uy2/Lu2];}else o.u=[1,0];var far2=[cpt[0]+o.u[0]*FAR,cpt[1]+o.u[1]*FAR];var hit2=lineX(cpt,far2,M.bot[0],M.bot[1]);if(hit2){P=hit2;o.hit=hit2;o.hitL=hit2;o.len=Math.abs((hit2[0]-cpt[0])*o.u[0]+(hit2[1]-cpt[1])*o.u[1]);}if(haveG0){var hr2=lineX(cpt,far2,M.gbot[0],M.gbot[1]);if(hr2)o.hitR=hr2;}/* 빨간선 = 가로 방향(→V⊥), 좌·우 아래선에 붙음 */
+        /* [BUILD2591] 빨간선 방향 = 노란선 경사(그 자리 관 방향 →V)에 화면 직각 — 사용자 지시(2574 방식 복귀). V⊥ 방향 재정의 폐기. 3D 심도는 바닥 앵커일 때 P와 무관 */
         var nx=Vz[0]-P[0],ny=Vz[1]-P[1],Ln2=Math.hypot(nx,ny)||1;o.n=[nx/Ln2,ny/Ln2];o.z=Ln2;}
       else{var uy=M.bot[1][1]-M.bot[0][1],ux=M.bot[1][0]-M.bot[0][0],Lu=Math.hypot(ux,uy)||1;o.n=[uy/Lu,-ux/Lu];if(o.n[1]>0)o.n=[-o.n[0],-o.n[1]];o.z=Infinity;}
       if(M.scale.length>=2)o.pipePx=Math.hypot(M.scale[1][0]-M.scale[0][0],M.scale[1][1]-M.scale[0][1]);var cm=parseFloat(ov.querySelector('#dpmCm9').value)||12;o.cm=cm;
