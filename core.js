@@ -16010,6 +16010,14 @@ function rtBoardTable(cx,W,H,pos,no){
 /* [BUILD2121] 지거 현황판 6행 — 사업명·번호·일자 자동 / 재질·관경·거리심도는 작업자 입력(설정 UI 차기, state.rtJgBoard9[지거번호]={mat,dia,ds} 예정) */
 /* [BUILD2165] CSV 코드-지거 매칭 — 후측량·실시간 CSV의 코드 열 "N 지거"/"지거 N" 측점을 지거 N으로 인식 */
 function jgCodeNum9(p){try{var c=String((p&&p.code)||'').trim();if(!c||c.indexOf('지거')<0)return null;var m=/(?:^|[^0-9])([0-9]+)\s*지거/.exec(' '+c)||/지거\s*([0-9]+)/.exec(c);return m?String(m[1]):null;}catch(_e){return null;}}
+function _fldPaneFit9(body){/* [BUILD2517] 측량현장 PC 일반 측점 사진창: 본문 높이를 뷰포트에서 실측(패널이 화면보다 길어 후측량 사진 아래가 잘리던 문제) → 노출관로·후측량 각 50%, 사진은 contain으로 전부 표시. 폰은 fldSplit9(기존) */
+  try{if(!body)return;if(typeof isMobileDevice==='function'&&isMobileDevice())return;if(window.matchMedia&&matchMedia('(max-width:760px)').matches)return;
+    var top=body.getBoundingClientRect().top;var H=Math.max(320,Math.round(window.innerHeight-top-6));body.style.maxHeight=H+'px';body.style.overflowY='hidden';body.style.minHeight='0';
+    var sp=body.querySelector('.php-split');if(!sp)return;sp.style.flex='none';sp.style.minHeight='0';sp.style.height=(H-20)+'px';
+    var kids=[].slice.call(sp.children);var m1=null,af=null;kids.forEach(function(k){if(k.classList.contains('php-after'))af=k;else if(!m1&&k.classList.contains('php-main'))m1=k;});if(!m1)return;
+    var g=10,inner=H-20-(af?g:0);var h1=af?Math.round(inner*0.5):inner,h2=af?(inner-h1):0;
+    [[m1,h1],[af,h2]].forEach(function(pr){var el=pr[0],hh=pr[1];if(!el||!hh)return;el.style.height=hh+'px';el.style.minHeight='0';el.style.flex='none';el.style.overflow='hidden';var zw=el.querySelector('.zoomwrap');if(zw){zw.style.flex='1';zw.style.minHeight='0';zw.style.height='auto';}var im=el.querySelector('img.ph');if(im){im.style.maxHeight='100%';im.style.maxWidth='100%';im.style.height='auto';im.style.width='auto';im.style.objectFit='contain';}});
+  }catch(_e){}}
 function _jgPaneFit9(body){/* [BUILD2478] PC 지거 사진 배치: 본문 높이 실측 → 근경(56%)+원경·이격 행(44%)이 정확히 한 화면, 후측량 사진 칸은 그 아래(본문 70% 높이) → 본문 세로 스크롤로 내려서 전체 확인. 모바일은 기존 CSS */
   try{if(!body)return;if(typeof isMobileDevice==='function'&&isMobileDevice())return;
     var top=body.getBoundingClientRect().top;var H=Math.max(320,Math.round(window.innerHeight-top-6));
@@ -16240,7 +16248,7 @@ function refreshPhotoPanel(){
       var _fh2=paneImg(_fb2+'-1','지거',true,'지거 '+_jgf2.n+' · 근경 / '+_fb2+'-1')+'<div class="php-row">'+paneImg(_fb2+'-2','원경',false,'원경 / '+_fb2+'-2')+paneImg(_fb2+'-3','이격기준점',false,'이격기준점 / '+_fb2+'-3')+'</div>';
       body.innerHTML='<div class="php-split">'+_fh2+paneAfter(selNum,'후측량 사진',_fb2+'-4')+'</div>';try{_jgPaneFit9(body);}catch(_pf9){}try{_jgPaneFitMob9(body);}catch(_pm9){}/* [BUILD2500] 지거 후측량=포장후 -4 · 폰 지거 배치 *//* [BUILD2478] 한 화면 배치 + 스크롤 */
     }else
-    body.innerHTML='<div class="php-split">'+paneImg(selNum,'노출관로 사진',true)+paneAfter(selNum,'후측량 사진')+'</div>';
+    body.innerHTML='<div class="php-split">'+paneImg(selNum,'노출관로 사진',true)+paneAfter(selNum,'후측량 사진')+'</div>';try{_fldPaneFit9(body);}catch(_pf2){}/* [BUILD2517] PC 일반 측점: 노출관로/후측량 50:50 한 화면 */
     if(state.joseoBoard&&typeof rtBoardURL==='function'){/* [BUILD2483] 측량현장 측점사진 현황판 합성 — 결선DB [1916/2127]과 동일. 지거는 근경(-1)·원경(-2)·이격기준점(-3) 3장 */
       (function(){
         function _bd9(no,img){if(no==null||!img)return;var u=img.getAttribute('src');if(!u)return;rtBoardURL(no,u,function(du){if(du)img.src=du;},(state.rtBoardPos&&state.rtBoardPos[no]));}
