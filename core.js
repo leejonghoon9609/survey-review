@@ -11578,7 +11578,7 @@ function fldInspPtView9(sel){
         +'<div class="jz-ph2"><div class="jz-pc">'+exp+'<div class="jz-cap">실시간 측량점</div></div><div class="jz-pc">'+aft+'<div class="jz-cap">공사 후 관로</div></div></div></div>';
       if(!(typeof joseoPoints==='function'&&joseoPoints().some(function(q){return String(q.no)===String(p.no);})))card+='<div style="font-size:11.5px;color:#c62828;font-weight:700;margin-top:4px">⚠ 이 측점은 실시간 사진조서 성과(joseoPoints) 대상이 아닙니다</div>';
     }
-    h+='<div style="'+BX+'">'+card+'</div>';/* [BUILD2504] 제목·사업명 줄 제거, 사진 레터박스 제거(height:auto) */
+    h+='<div class="fiJz9" style="'+BX+'">'+card+'</div>';/* [BUILD2504] 제목·사업명 줄 제거, 사진 레터박스 제거(height:auto) · [BUILD2505] fiJz9: 표 압축 CSS(field.html) */
     /* ② 도면 위치 성과(결선) */
     var ln=0;try{(state.lines||[]).forEach(function(L){if(L.layer!=='통신관로')return;(L.pts||[]).forEach(function(v){if(Math.abs(v[0]-p.x)<0.06&&Math.abs(v[1]-p.y)<0.06)ln++;});});}catch(_ln){}
     var kind=jgN?'지거 측점':(p._tamsa||p.tamsa||/^T/i.test(String(p._nm||''))?'탐사 측점':(p._fromAft9?'후측량 CSV 점':'실시간 측점'));
