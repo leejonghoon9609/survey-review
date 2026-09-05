@@ -11634,7 +11634,7 @@ function fldInspPtView9(sel){
     var h='<div id="fiPtRoot9" style="display:flex;flex-direction:column;gap:8px;min-height:0">';
     /* ---------- 1행: ① 조서 카드 | ③ CSV 성과 ---------- */
     h+='<div id="fiPtTop9" style="display:flex;gap:10px;align-items:stretch;flex:none">';
-    h+='<div id="fiJzBox9" class="fiJz9" style="'+BX+';flex:none;width:54%;box-sizing:border-box">'+_fldInspJzCard9(p)+'</div>';
+    h+='<div id="fiJzBox9" class="fiJz9" style="'+BX+';flex:none;width:54%;box-sizing:border-box;min-height:320px;display:flex;flex-direction:column;justify-content:center">'+_fldInspJzCard9(p)+'</div>';/* [BUILD2532] 최소 높이 320px — 탐사점 안내처럼 카드가 짧을 때 옆 CSV 성과창이 함께 납작해지던 문제 */
     var CT='padding:2px 6px;border:1px solid #c8e2cf;font-size:11px;white-space:nowrap;text-align:left';
     var tbl=function(src,title,cs){var t='<div style="flex:1;min-height:0;min-width:0;display:flex;flex-direction:column"><div style="font-size:12px;font-weight:800;color:#1b5e20;margin-bottom:3px">'+title+(cs?(' <span style="font-weight:400;color:#666">· '+cs.rows.length+'행</span>'):'')+'</div>';
       if(!cs||!cs.rows.length)return t+'<div style="color:#999;font-size:11.5px;padding:8px">성과 없음</div></div>';
