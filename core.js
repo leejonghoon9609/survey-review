@@ -11902,21 +11902,21 @@ function fldInspDepView9(sel){
     var list=_fldInspDpList9(sel);if(!list.length)return '<div style="color:#999;padding:12px;text-align:center">대상 측점 없음</div>';
     var cur=window._fldInspDpSel9;var ci=-1;list.forEach(function(p,i){if(ci<0&&String(p._fiDpKey9||p.no)===String(cur))ci=i;});if(ci<0){ci=0;cur=String(list[0]._fiDpKey9||list[0].no);window._fldInspDpSel9=cur;}
     var p=list[ci];
-    var BX='border:3px solid #d32f2f;border-radius:6px;padding:8px;background:#fff';var BY='border:3px solid #e0ad00;border-radius:6px;padding:8px;background:#fffdf3';/* [BUILD2516] 노란 테두리 진하게 */var BG='border:3px solid #1b7f3b;border-radius:6px;padding:8px;background:#f6fbf7;display:flex;flex-direction:column;gap:6px';
+    var BX='border:3px solid #d32f2f;border-radius:6px;padding:4px;background:#fff';/* [BUILD2565] 조서 상자=카드 크기 */var BY='border:3px solid #e0ad00;border-radius:6px;padding:8px;background:#fffdf3';/* [BUILD2516] 노란 테두리 진하게 */var BG='border:3px solid #1b7f3b;border-radius:6px;padding:4px;background:#f6fbf7;display:flex;flex-direction:column;gap:4px';
     var rt=null,af=null;try{rt=_fldInspDpCsvRows9((typeof _fldCsvText9==='function')?_fldCsvText9(_csvExportPts9()):'');}catch(_r1){}try{var M=_aftCsvMerged9();af=_fldInspDpCsvRows9(M?M.csv:'');}catch(_r2){}
     var mc=_fldInspDpMatch9(p,rt,af);
     var h='<div id="fiDpRoot9" style="display:flex;flex-direction:column;gap:8px;min-height:0">';
     /* ---------- 1행: ① 조서 카드 | ③ CSV 성과 ---------- */
     if(sel<0){h+='<div id="fiDpTop9" style="display:none"></div>';}else{/* [BUILD2562] 전체 모드: 조서 카드·CSV 성과 상자(1행) 제거 — 배너·대조표·측점표만. 빈 자리표시자는 배너 삽입 앵커용 */
     h+='<div id="fiDpTop9" style="display:flex;gap:10px;align-items:stretch;flex:none">';
-    h+='<div id="fiDpJzBox9" class="fiDpJz9" style="'+BX+';flex:none;width:54%;box-sizing:border-box;min-height:320px;display:flex;flex-direction:column;justify-content:center">'+_fldInspDpJzCard9(p)+'</div>';/* [BUILD2532] 최소 높이 320px — 탐사점 안내처럼 카드가 짧을 때 옆 CSV 성과창이 함께 납작해지던 문제 */
-    var CT='padding:2px 6px;border:1px solid #c8e2cf;font-size:11px;white-space:nowrap;text-align:left';
-    var tbl=function(src,title,cs){var t='<div style="flex:1;min-height:0;min-width:0;display:flex;flex-direction:column"><div style="font-size:12px;font-weight:800;color:#1b5e20;margin-bottom:3px">'+title+(cs?(' <span style="font-weight:400;color:#666">· '+cs.rows.length+'행</span>'):'')+'</div>';
+    h+='<div id="fiDpJzBox9" class="fiDpJz9" style="'+BX+';flex:none;width:54%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:flex-start">'+_fldInspDpJzCard9(p)+'</div>';/* [BUILD2532] 최소 높이 320px — 탐사점 안내처럼 카드가 짧을 때 옆 CSV 성과창이 함께 납작해지던 문제 */
+    var CT='padding:1px 4px;border:1px solid #c8e2cf;font-size:10px;white-space:nowrap;text-align:left';/* [BUILD2565] CSV 표 축소 */
+    var tbl=function(src,title,cs){var t='<div style="flex:1;min-height:0;min-width:0;display:flex;flex-direction:column"><div style="font-size:11px;font-weight:800;color:#1b5e20;margin-bottom:1px">'+title+(cs?(' <span style="font-weight:400;color:#666">· '+cs.rows.length+'행</span>'):'')+'</div>';
       if(!cs||!cs.rows.length)return t+'<div style="color:#999;font-size:11.5px;padding:8px">성과 없음</div></div>';
       t+='<div class="fiDpCsvWrap9" data-src="'+src+'" style="flex:1;min-height:0;overflow:auto;border:1px solid #c8e2cf;background:#fff"><table style="border-collapse:collapse;min-width:100%"><tr>'+cs.head.map(function(x){return '<th style="'+CT+';background:#e8f5e9;position:sticky;top:0">'+E(x)+'</th>';}).join('')+'</tr>';
       cs.rows.forEach(function(rw,i){t+='<tr class="fiDpCsvRow9" data-src="'+src+'" data-i="'+i+'" data-nm="'+E(rw[0])+'" data-x="'+E(rw[1])+'" data-y="'+E(rw[2])+'" data-alt="'+(i%2?'#fafcfa':'#fff')+'" style="cursor:pointer;background:'+(i%2?'#fafcfa':'#fff')+'">'+rw.map(function(x){return '<td style="'+CT+'">'+E(x)+'</td>';}).join('')+'</tr>';});
       return t+'</table></div></div>';};
-    h+='<div id="fiDpCsvBox9" style="flex:1;min-width:0;'+BG+';box-sizing:border-box;overflow:hidden;position:relative;align-self:stretch;padding:0"><div style="position:absolute;left:8px;right:8px;top:6px;bottom:6px;display:flex;flex-direction:column;gap:4px;min-height:0"><div style="font-size:12px;font-weight:800;color:#1b5e20;flex:none">③ CSV 성과 <span style="color:#c62828">(최종성과 통합본 성과)</span></div><div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:4px">'
+    h+='<div id="fiDpCsvBox9" style="flex:1;min-width:0;'+BG+';box-sizing:border-box;overflow:hidden;position:relative;align-self:stretch;padding:0"><div style="position:absolute;left:6px;right:6px;top:4px;bottom:4px;display:flex;flex-direction:column;gap:3px;min-height:0"><div style="font-size:11px;font-weight:800;color:#1b5e20;flex:none">③ CSV 성과 <span style="color:#c62828">(최종성과 통합본 성과)</span></div><div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:4px">'
       +'<div id="fiDpRtTbl9" style="flex:1;min-height:0;display:flex;flex-direction:column">'+tbl('rt','노출관로 CSV',rt)+'</div><div id="fiDpAfTbl9" style="flex:1;min-height:0;display:flex;flex-direction:column">'+tbl('af','후측량 CSV',af)+'</div></div></div></div>';/* [BUILD2516] 표 래퍼(시설물 선택 시 노출관로 표 흐리게) */
     h+='</div>';}
     /* ---------- 2행: ② 구간 측점표 ---------- */
@@ -12309,8 +12309,8 @@ function fldInspWin9(sel){
       var a=AU[sel];
       if(!a)h+='<div style="color:#999;padding:12px;text-align:center">\uD310\uC815 \uBD88\uAC00</div>';
       else{
-        if(cat!=='pt')/* [BUILD2557] 측점·CSV 탭은 배너가 대신 */h+='<div style="font-size:12px;font-weight:800;color:#333;margin-bottom:6px">'+(sel+1)+'\uAD6C\uAC04 \u00B7 '+E(a.from)+' \u2192 '+E(a.to)+'<span style="font-weight:400;color:#666"> \u00B7 \uCE21\uC810 '+a.pts.length+' \u00B7 \uD0D0\uC0AC '+a.depth.tamsa+' \u00B7 \uD3C9\uADE0\uC2EC\uB3C4 '+(a.depth.avg!=null?a.depth.avg.toFixed(2):'-')+'m</span></div>';
-        var showRows=(cat==='all'),showDep=(cat==='all'||cat==='dep'),/* [BUILD2471] 관공검수 탭은 관공수 검수 표로 대체 */showPts=(cat!=='gw'&&cat!=='pt');/* [BUILD2487] 관공검수 탭은 측점 흐름표로 대체 · [BUILD2503] 측점·CSV 탭은 3상자 화면 *//* [BUILD2401] */
+        if(cat!=='pt'&&cat!=='dep')/* [BUILD2557] 측점·CSV 탭은 배너가 대신 · [BUILD2565] 심도검수도 배너 */h+='<div style="font-size:12px;font-weight:800;color:#333;margin-bottom:6px">'+(sel+1)+'\uAD6C\uAC04 \u00B7 '+E(a.from)+' \u2192 '+E(a.to)+'<span style="font-weight:400;color:#666"> \u00B7 \uCE21\uC810 '+a.pts.length+' \u00B7 \uD0D0\uC0AC '+a.depth.tamsa+' \u00B7 \uD3C9\uADE0\uC2EC\uB3C4 '+(a.depth.avg!=null?a.depth.avg.toFixed(2):'-')+'m</span></div>';
+        var showRows=(cat==='all'),showDep=(cat==='all'),/* [BUILD2565] 심도검수 탭은 Dp 화면이 대신(구 심도 행 제거) *//* [BUILD2471] 관공검수 탭은 관공수 검수 표로 대체 */showPts=(cat!=='gw'&&cat!=='pt'&&cat!=='dep');/* [BUILD2487] 관공검수 탭은 측점 흐름표로 대체 · [BUILD2503] 측점·CSV 탭은 3상자 화면 *//* [BUILD2401] */
         if(cat==='gw'){try{h+=fldInspGwView9(sel);}catch(_gv){}}/* [BUILD2405] 관공검수 3열(시작·종료·분기) */
         if(cat==='pt'){try{h+=fldInspPtView9(sel);}catch(_pv){}}/* [BUILD2503] 측점·CSV검수 3상자 */
         if(cat==='dep'){try{h+=fldInspDepView9(sel);}catch(_dv){}}/* [BUILD2564] 심도검수(독립 사본) */
