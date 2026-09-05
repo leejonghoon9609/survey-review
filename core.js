@@ -11641,6 +11641,7 @@ function fldInspPtView9(sel){
     var mc=_fldInspPtMatch9(p,rt,af);
     var h='<div id="fiPtRoot9" style="display:flex;flex-direction:column;gap:8px;min-height:0">';
     /* ---------- 1행: ① 조서 카드 | ③ CSV 성과 ---------- */
+    if(sel<0){h+='<div id="fiPtTop9" style="display:none"></div>';}else{/* [BUILD2562] 전체 모드: 조서 카드·CSV 성과 상자(1행) 제거 — 배너·대조표·측점표만. 빈 자리표시자는 배너 삽입 앵커용 */
     h+='<div id="fiPtTop9" style="display:flex;gap:10px;align-items:stretch;flex:none">';
     h+='<div id="fiJzBox9" class="fiJz9" style="'+BX+';flex:none;width:54%;box-sizing:border-box;min-height:320px;display:flex;flex-direction:column;justify-content:center">'+_fldInspJzCard9(p)+'</div>';/* [BUILD2532] 최소 높이 320px — 탐사점 안내처럼 카드가 짧을 때 옆 CSV 성과창이 함께 납작해지던 문제 */
     var CT='padding:2px 6px;border:1px solid #c8e2cf;font-size:11px;white-space:nowrap;text-align:left';
@@ -11651,7 +11652,7 @@ function fldInspPtView9(sel){
       return t+'</table></div></div>';};
     h+='<div id="fiCsvBox9" style="flex:1;min-width:0;'+BG+';box-sizing:border-box;overflow:hidden;position:relative;align-self:stretch;padding:0"><div style="position:absolute;left:8px;right:8px;top:6px;bottom:6px;display:flex;flex-direction:column;gap:4px;min-height:0"><div style="font-size:12px;font-weight:800;color:#1b5e20;flex:none">③ CSV 성과 <span style="color:#c62828">(최종성과 통합본 성과)</span></div><div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:4px">'
       +'<div id="fiRtTbl9" style="flex:1;min-height:0;display:flex;flex-direction:column">'+tbl('rt','노출관로 CSV',rt)+'</div><div id="fiAfTbl9" style="flex:1;min-height:0;display:flex;flex-direction:column">'+tbl('af','후측량 CSV',af)+'</div></div></div></div>';/* [BUILD2516] 표 래퍼(시설물 선택 시 노출관로 표 흐리게) */
-    h+='</div>';
+    h+='</div>';}
     /* ---------- 2행: ② 구간 측점표 ---------- */
     var TD2='padding:2px 5px;border:1px solid #e8d97a;font-size:11px;white-space:nowrap;text-align:center';var TH2=TD2+';font-weight:800;background:#fff8d6;position:sticky;top:0';var TDJ=TD2+';border-width:2px;border-color:#d9b84a';var THJ=TH2+';border-width:2px;border-color:#d9b84a';var TDJ=TDJ+';background:#fffbe6;width:150px;min-width:150px;max-width:150px;text-align:center';var THJ=THJ+';background:#fff3c4;width:150px;min-width:150px;max-width:150px';/* [BUILD2524] 노출관로CSV 열=아주 연한 노랑 */var TDA=TDJ+';background:#eef5ff;white-space:normal;word-break:break-all';var THA=THJ+';background:#dfe9fb';/* [BUILD2516] 판정 2열 테두리 두껍게 · [BUILD2521] 후측량CSV 열=아주 연한 파랑 · [BUILD2522] 노출관로CSV 열=아주 연한 빨강, 두 열 폭 동일(150px), 가운데 정렬 */
     h+='<div id="fiPtTblBox9" style="'+BY+';flex:1;min-height:0;display:flex;flex-direction:column;padding:6px"><div style="font-size:12px;font-weight:800;color:#8a6d00;margin-bottom:4px">② 도면창 위치 성과(결선) — '+(sel>=0?((sel+1)+'구간'):'전체')+' 측점 '+list.length+'개 <span style="font-weight:400;color:#777">· 행 클릭=조서·CSV 강조</span></div>'
