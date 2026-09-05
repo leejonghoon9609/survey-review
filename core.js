@@ -11558,11 +11558,14 @@ function _fldInspPtList9(sel){/* [BUILD2530] 검수 대상 목록 — 실시간�
   var tamsaObj=function(x,y,no,z){var t=_fldInspTamsaOf9(x,y,no);if(!t)return null;return {no:(t.no||no||''),x:t.x,y:t.y,z:(t.z!=null?t.z:z),code:t.code||'',_tamsaNode9:1,_tm9:t,_lnD9:Math.hypot(t.x-x,t.y-y)};};/* [BUILD2531] _lnD9=탐사점↔관로선 투영점 거리 */
   var dSeg=function(x,y,sg){/* 점↔구간 폴리라인 최소거리 */var bd=Infinity;for(var i=1;i<sg.length;i++){var ax=sg[i-1].x,ay=sg[i-1].y,dx=sg[i].x-ax,dy=sg[i].y-ay,L2=dx*dx+dy*dy;var t=L2>0?(((x-ax)*dx+(y-ay)*dy)/L2):0;if(t<0)t=0;if(t>1)t=1;var d=Math.hypot(x-(ax+t*dx),y-(ay+t*dy));if(d<bd)bd=d;}return bd;};
   if(sel>=0){var sg=((typeof _tgSegs!=='undefined'&&_tgSegs)||[])[sel]||[];
-    sg.forEach(function(q){if(!q||q.mh||q.tamsa)return;
+    /* [BUILD2539] 구간 노드를 순서대로 걸으며 실시간·탐사 구분 없이 그 순서 그대로 목록 — 실측: 2533은 실시간을 먼저 다 넣고 탐사를 뒤에 붙여 순서가 전부 어긋났음(12구간). 탐사 노드 좌표는 2536부터 CSV 원본이라 1cm 키로 도면 탐사점과 직결 */
+    sg.forEach(function(q){if(!q||q.mh)return;
+      if(q.tamsa){var k=Math.round(q.x*100)+'_'+Math.round(q.y*100);var t=null;try{var L=(typeof _fldTamsaPts==='function')?_fldTamsaPts():[];for(var i=0;i<L.length;i++){if(Math.round(L[i].x*100)+'_'+Math.round(L[i].y*100)===k){t=L[i];break;}}}catch(_e){}
+        if(!t)t=_fldInspTamsaOf9(q.x,q.y,q.no);if(!t)return;
+        /* 같은 자리에 실시간 측점이 있으면(관로 끝점이 탐사 자리와 겹쳐 탐사노드로 전환된 경우) 실시간 측점도 함께 */
+        try{var rp=(typeof pointAtCoord==='function')?pointAtCoord(t.x,t.y):null;if(rp&&!rp._hyun&&rp.jgRef==null&&!rp._riserPt)push(rp,String(rp.no));}catch(_r){}
+        push({no:t.no||'',x:t.x,y:t.y,z:t.z,code:t.code||'',_tamsaNode9:1,_tm9:t,_lnD9:0},'T@'+Math.round(t.x*100)+'_'+Math.round(t.y*100));return;}
       if(q.no==null)return;var p=(typeof pointByNo==='function')?pointByNo(q.no):null;if(!p)return;if(p._hyun||p.jgRef!=null||p._riserPt)return;push(p,String(p.no));});
-    /* [BUILD2533] 탐사점: 구간 노드(tangoBuildSegs가 5m 내 최근접 구간에 투영 — 평행선 탐사점을 끌어오던 원인)를 쓰지 않고, 도면 탐사점 중 이 구간 관로선 위 6cm 이내인 것만 = 도면상 그 구간 탐사점. 관로 정점 순서(투영 t)로 정렬 */
-    try{var ord=[];var vk={};sg.forEach(function(q,i){if(q&&q.x!=null)vk[Math.round(q.x*100)+'_'+Math.round(q.y*100)]=i;});((typeof _fldTamsaPts==='function')?_fldTamsaPts():[]).forEach(function(t){var k=Math.round(t.x*100)+'_'+Math.round(t.y*100);if(vk[k]==null)return;ord.push({t:t,pos:vk[k]});});/* [BUILD2534] 6cm 근사 폐기 → 구간 정점과 1cm 키 정확 일치(_tdFree 편입 기준과 동일) */
-      ord.sort(function(a,b){return a.pos-b.pos;});ord.forEach(function(o){var t=o.t;push({no:t.no||'',x:t.x,y:t.y,z:t.z,code:t.code||'',_tamsaNode9:1,_tm9:t,_lnD9:0},'T@'+Math.round(t.x*100)+'_'+Math.round(t.y*100));});}catch(_tm){}
   }else{
     ((typeof _csvExportPts9==='function')?_csvExportPts9():(state.points||[])).forEach(function(p){if(!p||p.no==null||p._hyun||p.jgRef!=null||p._riserPt)return;push(p,String(p.no));});
     /* 전체: 관로선 정점에 편입된 탐사점 전부 + 미편입은 참고 카운트 */
