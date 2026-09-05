@@ -11561,9 +11561,9 @@ function fldInspPtView9(sel){
     var p=list[ci];var nm=(typeof ptNum==='function')?ptNum(p):String(p.no);var d0=(p._d0||String(p.no).split('-')[0]||'');
     var BX='border:3px solid #d32f2f;border-radius:6px;padding:8px;background:#fff';var BY='border:3px solid #f5c400;border-radius:6px;padding:8px;background:#fffdf3';var BG='border:3px solid #1b7f3b;border-radius:6px;padding:8px;background:#f6fbf7;display:flex;flex-direction:column;gap:6px';
     var NB='display:inline-flex;align-items:center;justify-content:center;border:1.5px solid #90b4e0;background:#fff;color:#0d47a1;border-radius:7px;padding:3px 10px;font-size:11.5px;font-weight:800;cursor:pointer';
-    var h='<div id="fiPtRoot9" style="display:flex;gap:10px;align-items:stretch;min-height:0">';
+    var h='<div id="fiPtRoot9" style="display:flex;flex-direction:column;gap:8px;min-height:0">';/* [BUILD2509] 1행=조서카드|CSV성과(같은 높이), 2행=측점표 전체폭 */
     /* ---------- 좌: ① 조서 + ② 도면 위치 ---------- */
-    h+='<div id="fiPtLeft9" style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;min-height:0">';
+    h+='<div id="fiPtTop9" style="display:flex;gap:10px;align-items:flex-start;flex:none">';
     /* [BUILD2506] 탐색줄(이전/선택/다음) 제거 — 아래 측점표 행 클릭으로 전환 */
     /* ① 조서 성과 — 카드 템플릿 복사(사진변경 버튼만 제외) */
     var jgN=null;try{if(p._jgf9||/^[0-9]{6}-[0-9]+-[1-4]$/.test(String(p.no))){jgN=String(p.no).split('-')[1];}else if(typeof jgNumOf9==='function'){jgN=jgNumOf9(p);}}catch(_j){}
@@ -11583,7 +11583,7 @@ function fldInspPtView9(sel){
         +'<div class="jz-ph2"><div class="jz-pc">'+exp+'<div class="jz-cap">실시간 측량점</div></div><div class="jz-pc">'+aft+'<div class="jz-cap">공사 후 관로</div></div></div></div>';
       if(!(typeof joseoPoints==='function'&&joseoPoints().some(function(q){return String(q.no)===String(p.no);})))card+='<div style="font-size:11.5px;color:#c62828;font-weight:700;margin-top:4px">⚠ 이 측점은 실시간 사진조서 성과(joseoPoints) 대상이 아닙니다</div>';
     }
-    h+='<div class="fiJz9" style="'+BX+';flex:none">'+card+'</div>';/* [BUILD2504] 제목·사업명 줄 제거, 사진 레터박스 제거(height:auto) · [BUILD2505] fiJz9: 표 압축 CSS(field.html) */
+    h+='<div id="fiJzBox9" class="fiJz9" style="'+BX+';flex:none;width:54%;box-sizing:border-box">'+card+'</div>';/* [BUILD2504] 제목·사업명 줄 제거, 사진 레터박스 제거(height:auto) · [BUILD2505] fiJz9: 표 압축 CSS(field.html) */
     /* ② 구간 측점표 — 결선 성과(도면 측점) 한 줄=한 측점 + 노출관로/후측량 CSV 대조 [BUILD2506] */
     var rt=null,af=null;try{rt=_fldInspCsvRows9((typeof _fldCsvText9==='function')?_fldCsvText9(_csvExportPts9()):'');}catch(_r1){}try{var M=_aftCsvMerged9();af=_fldInspCsvRows9(M?M.csv:'');}catch(_r2){}
     var mt=function(q){var qn=(typeof ptNum==='function')?ptNum(q):String(q.no);var qd=(q._d0||String(q.no).split('-')[0]||'');var qj=null;try{if(q._jgf9||/^[0-9]{6}-[0-9]+-[1-4]$/.test(String(q.no)))qj=String(q.no).split('-')[1];else if(typeof jgNumOf9==='function')qj=jgNumOf9(q);}catch(_e){}
@@ -11595,25 +11595,25 @@ function fldInspPtView9(sel){
       return {rt:mRt,dRt:mRt?near(mRt,1e9):null,same:same,raw:!!_rtRawXY9(q),af:mAf,ln:ln,kind:kind,jg:qj};};
     var mc=mt(p);var mRt=mc.rt,mAf=mc.af,jgN=mc.jg;
     var TD2='padding:2px 5px;border:1px solid #e8d97a;font-size:11px;white-space:nowrap;text-align:center';var TH2=TD2+';font-weight:800;background:#fff8d6;position:sticky;top:0';
-    h+='<div style="'+BY+';flex:1;min-height:0;display:flex;flex-direction:column;padding:6px"><div style="font-size:12px;font-weight:800;color:#8a6d00;margin-bottom:4px">② 도면창 위치 성과(결선) — '+(sel>=0?((sel+1)+'구간'):'전체')+' 측점 '+list.length+'개 <span style="font-weight:400;color:#777">· 행 클릭=조서·CSV 강조</span></div>'
+    var t2='';t2+='<div id="fiPtTblBox9" style="'+BY+';flex:1;min-height:0;display:flex;flex-direction:column;padding:6px"><div style="font-size:12px;font-weight:800;color:#8a6d00;margin-bottom:4px">② 도면창 위치 성과(결선) — '+(sel>=0?((sel+1)+'구간'):'전체')+' 측점 '+list.length+'개 <span style="font-weight:400;color:#777">· 행 클릭=조서·CSV 강조</span></div>'
       +'<div id="fiPtTblWrap9" style="flex:1;min-height:0;overflow:auto;background:#fff"><table style="border-collapse:collapse;width:100%"><tr><th style="'+TH2+'">측점</th><th style="'+TH2+'">코드</th><th style="'+TH2+'">종류</th><th style="'+TH2+'">X(N)</th><th style="'+TH2+'">Y(E)</th><th style="'+TH2+'">Z</th><th style="'+TH2+'">관로선</th><th style="'+TH2+'">노출관로CSV(100%)</th><th style="'+TH2+'">후측량CSV</th></tr>';
     list.forEach(function(q){var m=(q===p)?mc:mt(q);var on=(String(q.no)===String(p.no));
       var rtC=m.rt?(m.same?'<span style="color:#2e7d32;font-weight:800">일치</span>':('<span style="color:#c62828;font-weight:800">불일치 Δ'+(m.dRt!=null?m.dRt.toFixed(3):'-')+'</span>'))+(m.raw?'':' <span style="color:#999;font-size:10px">성과기준</span>'):'<span style="color:#c62828;font-weight:800">없음</span>';/* [BUILD2508] 100% 동일 판정 · 원본 행 없는 점(레거시)은 성과기준 표기 */
       var afC=m.af.length?m.af.map(function(x){return E(x.rw[0])+(x.d!=null?(' Δ'+x.d.toFixed(2)):'');}).join(', '):'<span style="color:#aaa">–</span>';
-      h+='<tr class="fiPtRow9" data-no="'+E(q.no)+'" style="cursor:pointer;background:'+(on?'#ffe0e0':'#fff')+'"><td style="'+TD2+';font-weight:800">'+E(q.no)+'</td><td style="'+TD2+';text-align:left">'+E(q.code||'')+'</td><td style="'+TD2+'">'+m.kind+'</td><td style="'+TD2+'">'+((q.y!=null&&isFinite(+q.y))?(+q.y).toFixed(3):'')+'</td><td style="'+TD2+'">'+((q.x!=null&&isFinite(+q.x))?(+q.x).toFixed(3):'')+'</td><td style="'+TD2+'">'+((q.z!=null&&isFinite(+q.z))?(+q.z).toFixed(3):'')+'</td><td style="'+TD2+';color:'+(m.ln?'#2e7d32':'#c62828')+'">'+(m.ln?m.ln:'고아')+'</td><td style="'+TD2+'">'+rtC+'</td><td style="'+TD2+';text-align:left">'+afC+'</td></tr>';});
-    h+='</table></div></div>';
-    h+='</div>';
-    /* ---------- 우: ③ CSV 성과 ---------- */
+      t2+='<tr class="fiPtRow9" data-no="'+E(q.no)+'" style="cursor:pointer;background:'+(on?'#ffe0e0':'#fff')+'"><td style="'+TD2+';font-weight:800">'+E(q.no)+'</td><td style="'+TD2+';text-align:left">'+E(q.code||'')+'</td><td style="'+TD2+'">'+m.kind+'</td><td style="'+TD2+'">'+((q.y!=null&&isFinite(+q.y))?(+q.y).toFixed(3):'')+'</td><td style="'+TD2+'">'+((q.x!=null&&isFinite(+q.x))?(+q.x).toFixed(3):'')+'</td><td style="'+TD2+'">'+((q.z!=null&&isFinite(+q.z))?(+q.z).toFixed(3):'')+'</td><td style="'+TD2+';color:'+(m.ln?'#2e7d32':'#c62828')+'">'+(m.ln?m.ln:'고아')+'</td><td style="'+TD2+'">'+rtC+'</td><td style="'+TD2+';text-align:left">'+afC+'</td></tr>';});
+    t2+='</table></div></div>';
+    /* ---------- ③ CSV 성과(1행 우측, 조서 카드와 같은 높이, 두 표 나란히 1:1) ---------- */
     var CT='padding:2px 6px;border:1px solid #c8e2cf;font-size:11px;white-space:nowrap;text-align:left';
     var tbl=function(title,cs,hl){var t='<div style="flex:1;min-height:0;display:flex;flex-direction:column"><div style="font-size:12px;font-weight:800;color:#1b5e20;margin-bottom:3px">'+title+(cs?(' <span style="font-weight:400;color:#666">· '+cs.rows.length+'행</span>'):'')+'</div>';
       if(!cs||!cs.rows.length)return t+'<div style="color:#999;font-size:11.5px;padding:8px">성과 없음</div></div>';
       t+='<div style="flex:1;min-height:0;overflow:auto;border:1px solid #c8e2cf;background:#fff"><table style="border-collapse:collapse;width:100%"><tr>'+cs.head.map(function(x){return '<th style="'+CT+';background:#e8f5e9;position:sticky;top:0">'+E(x)+'</th>';}).join('')+'</tr>';
       cs.rows.forEach(function(rw,i){var st=hl(rw);t+='<tr class="fiCsvRow9" data-nm="'+E(rw[0])+'" data-x="'+E(rw[1])+'" data-y="'+E(rw[2])+'"'+(st?' id="fiCsvHl9_'+(title.charAt(0))+'"':'')+' style="cursor:pointer;background:'+(st==='r'?'#ffe0e0':(st==='y'?'#fff3c4':(i%2?'#fafcfa':'#fff')))+'">'+rw.map(function(x){return '<td style="'+CT+'">'+E(x)+'</td>';}).join('')+'</tr>';});
       return t+'</table></div></div>';};
-    h+='<div id="fiCsvBox9" style="flex:none;width:44%;'+BG+'"><div style="font-size:12px;font-weight:800;color:#1b5e20">③ CSV 성과(최종성과 통합본 그대로)</div>'
+    h+='<div id="fiCsvBox9" style="flex:1;min-width:0;'+BG+';box-sizing:border-box;overflow:hidden"><div style="font-size:12px;font-weight:800;color:#1b5e20;flex:none">③ CSV 성과(최종성과 통합본 그대로)</div><div style="flex:1;min-height:0;display:flex;gap:6px">'
       +tbl('노출관로 CSV',rt,function(rw){return (mRt&&rw===mRt)?'r':null;})
-      +'<div style="border-top:2px solid #1b7f3b"></div>'
-      +tbl('후측량 CSV',af,function(rw){for(var i=0;i<mAf.length;i++)if(mAf[i].rw===rw)return mAf[i].nm?'r':'y';return null;})+'</div>';
+      +tbl('후측량 CSV',af,function(rw){for(var i=0;i<mAf.length;i++)if(mAf[i].rw===rw)return mAf[i].nm?'r':'y';return null;})+'</div></div>';
+    h+='</div>';/* 1행 닫기 */
+    h+=t2;/* 2행: 측점표 전체폭 */
     h+='</div>';
     return h;
   }catch(e){console.error('fldInspPtView9',e);return '<div style="color:#c62828;padding:12px">측점·CSV검수 화면 오류: '+String(e&&e.message||e)+'</div>';}
@@ -11622,7 +11622,7 @@ function _fldInspPtBind9(card){/* [BUILD2503] 측점·CSV검수 상호작용: �
   try{var list=_fldInspPtList9(window._fldInspSel9);var go=function(no){window._fldInspPtSel9=String(no);fldInspWin9(window._fldInspSel9);};
     card.querySelectorAll('.fiPtNav9').forEach(function(b){b.onclick=function(){var d=+this.getAttribute('data-d'),ci=-1;list.forEach(function(p,i){if(String(p.no)===String(window._fldInspPtSel9))ci=i;});var ni=Math.max(0,Math.min(list.length-1,ci+d));if(list[ni])go(list[ni].no);};});
     card.querySelectorAll('.fiPtRow9').forEach(function(tr){tr.onclick=function(){go(this.getAttribute('data-no'));};});/* [BUILD2506] 측점표 행 클릭 */
-    try{var root=card.querySelector('#fiPtRoot9');if(root){var avail=Math.max(320,Math.round(card.getBoundingClientRect().bottom-root.getBoundingClientRect().top-14));root.style.height=avail+'px';var gb=card.querySelector('#fiCsvBox9');if(gb)gb.style.height=avail+'px';var lf=card.querySelector('#fiPtLeft9');if(lf)lf.style.height=avail+'px';}}catch(_hz){}/* [BUILD2506] 초록/노랑 상자 높이=패널 남은 높이 실측 → 후측량 CSV·측점표는 상자 안에서 스크롤 */
+    try{var root=card.querySelector('#fiPtRoot9');if(root){var avail=Math.max(320,Math.round(card.getBoundingClientRect().bottom-root.getBoundingClientRect().top-14));root.style.height=avail+'px';var jz=card.querySelector('#fiJzBox9'),gb=card.querySelector('#fiCsvBox9');if(jz&&gb){var hh=Math.round(jz.getBoundingClientRect().height);gb.style.height=hh+'px';}}}catch(_hz){}/* [BUILD2509] CSV 성과창 높이=조서 카드 높이(한 줄), 측점표=남은 높이 전체폭 *//* [BUILD2506] 초록/노랑 상자 높이=패널 남은 높이 실측 → 후측량 CSV·측점표는 상자 안에서 스크롤 */
     try{var cr=card.querySelector('.fiPtRow9[style*="#ffe0e0"]');if(cr&&cr.scrollIntoView)cr.scrollIntoView({block:'nearest'});}catch(_sc){}
     card.querySelectorAll('.fiCsvRow9').forEach(function(tr){tr.onclick=function(){var nm=this.getAttribute('data-nm'),X=parseFloat(this.getAttribute('data-x')),Y=parseFloat(this.getAttribute('data-y'));var hit=null;list.forEach(function(p){if(hit)return;var pn=(typeof ptNum==='function')?ptNum(p):String(p.no);var d0=(p._d0||String(p.no).split('-')[0]||'');if(nm===pn||nm===(d0+'_'+pn)||nm===String(p._nm||''))hit=p;});
       if(!hit&&isFinite(X)&&isFinite(Y)){var best=null,bd=0.5;list.forEach(function(p){var d=Math.hypot(Y-p.x,X-p.y);if(d<bd){bd=d;best=p;}});hit=best;}
