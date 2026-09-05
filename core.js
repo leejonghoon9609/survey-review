@@ -8534,7 +8534,7 @@ function _fldStakePhSync(){ /* [1298] field 전용 — 측설사진 등록 토�
 function finalCsvArr(){var f=state.finalCsv;if(!f)return [];return Array.isArray(f)?f:[f];}
 function _csvExportPts9(){/* [BUILD2347] CSV 내보내기 공통 원천 = 현재 도면 측점 — 현황점(_hyun)·건너뜀(skip)·휴지통(_trash) 제외. 도면에서 지우면 빠지고 추가하면 들어감 */
   var tr={};(state._trash||[]).forEach(function(t){if(t&&t.no!=null)tr[String(t.no)]=1;});
-  return (state.points||[]).filter(function(p){return p&&!p._hyun&&!p.skip&&p.x!=null&&p.y!=null&&!tr[String(p.no)];});
+  return (state.points||[]).filter(function(p){return p&&!p._hyun&&!p.skip&&!p._riserPt&&p.x!=null&&p.y!=null&&!tr[String(p.no)];});/* [BUILD2519] 입상주 원천점(_riserPt: 후측량 CSV TJ/EJ 2점, buildRisersFromCsv가 중점 심벌용으로 보관) 제외 — 실시간 CSV 출처가 아니므로 노출관로 CSV 성과·측설용 CSV에서 빠짐. 후측량 CSV 성과에는 원래 행으로 있음 */
 }
 function _aftCsvMerged9(){/* [BUILD2347] 후측량 CSV 통합본 — 원본 N건을 한 파일로, 도면에서 삭제된 측점(맨홀·탐사보완점·입상 묘비 mhDel, 1cm) 행 제거. 열=이름,X,Y,Z(레벨),코드,원본파일 (원시 ZIP은 별도 보관) */
   var arr=finalCsvArr();if(!arr.length)return null;
@@ -11550,7 +11550,7 @@ function _fldInspWallGeo9(fac,to){/* [BUILD2452] 야장 방향 행이 없어 벽
    ③ CSV 상자(초록)   : 노출관로 CSV(_fldCsvText9·_csvExportPts9) / 후측량 CSV(_aftCsvMerged9) 통합본 텍스트 그대로
    선택 측점 행은 두 CSV에서 강조(이름 일치=빨강, 좌표 근접=노랑). 공차 판정은 차기(사용자 규칙 확정 후) */
 function _fldInspPtList9(sel){var out=[],seen={};var src=(sel>=0)?(((typeof _tgSegs!=='undefined'&&_tgSegs)||[])[sel]||[]):((typeof _csvExportPts9==='function')?_csvExportPts9():(state.points||[]));
-  src.forEach(function(q){if(!q||q.no==null)return;var p=(typeof pointByNo==='function')?(pointByNo(q.no)||q):q;if(!p||p._hyun||p.jgRef!=null)return;var k=String(p.no);if(seen[k])return;seen[k]=1;out.push(p);});return out;}
+  src.forEach(function(q){if(!q||q.no==null)return;var p=(typeof pointByNo==='function')?(pointByNo(q.no)||q):q;if(!p||p._hyun||p.jgRef!=null||p._riserPt)return;/* [BUILD2519] 입상주 원천점은 시설물(입상주) 행에서 중점으로 검수 */var k=String(p.no);if(seen[k])return;seen[k]=1;out.push(p);});return out;}
 function _fldInspCsvRows9(txt){var lines=String(txt||'').replace(/^\uFEFF/,'').replace(/\r/g,'').split('\n').filter(function(l){return l.trim().length;});if(!lines.length)return {head:[],rows:[]};
   var sp=function(l){var o=[],cur='',q=false;for(var i=0;i<l.length;i++){var c=l[i];if(c==='"'){if(q&&l[i+1]==='"'){cur+='"';i++;}else q=!q;}else if(c===','&&!q){o.push(cur);cur='';}else cur+=c;}o.push(cur);return o;};
   return {head:sp(lines[0]),rows:lines.slice(1).map(sp)};}
