@@ -12433,7 +12433,7 @@ function fldInspGwView9(sel){/* [BUILD2405] 관공검수 화면 — [시작시�
     return h;}catch(_e){try{console.warn('fldInspGwView9',_e);}catch(_c){}return '';}}
 function fldInspTags9(){/* [BUILD2372] 검수 전용 구간 태그+인출선(구간설정 tgDrawSegHL 태그부 복사·단순화). 판정색: 초록=일치·빨강=불일치·자주=선택. 수동 이동값(state.tgSegLabelOff)은 읽기만 */
   try{var cv=document.getElementById('cv');if(!cv)return;var old=document.getElementById('fldInspTagG9');if(old)old.remove();
-    if(!document.getElementById('fldInspOv9'))return;
+    if(!document.getElementById('fldInspOv9'))return;try{if(typeof IS_POSITION!=='undefined'&&IS_POSITION&&window._sdPrev9===2&&typeof _sdLVinit9==='function'&&!_sdLVinit9().insptag)return;}catch(_lv){}/* [BUILD2643] SD 레이어 '구간 텍스트·인출선(검수)' 꺼짐 → 태그 미표시 */
     var raws=window._tgSegRaw||[];var segs=_tgSegs||[];if(!segs.length)return;
     var NS='http://www.w3.org/2000/svg';var g=document.createElementNS(NS,'g');g.id='fldInspTagG9';
     var u=(typeof pxToWorld==='function')?pxToWorld():0.06;var fs=1.0;/* [BUILD2376] 태그 글자 1.0m 월드고정(제원 태그와 동일) — 인출선 5m와 같은 축척 */var sel=(window._fldInspSel9==null)?-1:window._fldInspSel9;
@@ -17524,20 +17524,20 @@ function fldLayerBox(){
 }
 function fldLayerToggle(inp){ if(typeof setLayerVis==='function') setLayerVis(inp.getAttribute('data-tglv'),inp.checked); }
 var _sdLV9=null;/* [BUILD2293] SD 전용 레이어 가시성(화면 전용) */
-function _sdLVinit9(){if(!_sdLV9){_sdLV9={};['pipe','pipeT','pt','gwan','sim','dim','spec','fac','mh','hyun'].forEach(function(k){_sdLV9[k]=1;});}return _sdLV9;}
+function _sdLVinit9(){if(!_sdLV9){_sdLV9={};['pipe','pipeT','pt','gwan','sim','dim','spec','fac','mh','hyun','insptag'].forEach(function(k){_sdLV9[k]=1;});}if(_sdLV9.insptag==null)_sdLV9.insptag=1;/* [BUILD2643] 검수 구간 텍스트·인출선 */return _sdLV9;}
 function _sdGrpOf9(it){var L=it.lay||'';
  if(it.t==='pl'&&!/^SD/.test(L))return 'hyun';
  if(L==='SD001')return (it.tam?'pipeT':'pipe');/* [BUILD2294] 실시간/탐사 분리 */if(L==='SD901')return 'pt';if(L==='SD_관상고')return 'gwan';if(L==='SDSIM_T')return 'sim';
  if(L==='SDDIM'||L==='SDDIM1')return 'dim';if(L==='SD910'||L==='SD911'||L==='SD983')return 'spec';
  if(L==='SD219'||L==='SD911-1')return 'fac';if(L==='SD100'||L==='SD300')return 'mh';return null;}
 function _sdLayerBox9(){var LVs=_sdLVinit9();
- var defs=[['pipe','관로선(실시간)'],['pipeT','관로선(탐사)'],['pt','측점'],['gwan','관상고'],['sim','심도'],['dim','이격선·치수'],['spec','구간 제원'],['fac','시설물번호'],['mh','맨홀·입상주'],['hyun','현황선']];
+ var defs=[['pipe','관로선(실시간)'],['pipeT','관로선(탐사)'],['pt','측점'],['gwan','관상고'],['sim','심도'],['dim','이격선·치수'],['spec','구간 제원'],['fac','시설물번호'],['mh','맨홀·입상주'],['hyun','현황선'],['insptag','구간 텍스트·인출선(검수)']];/* [BUILD2643] */
  var open=(function(){try{return localStorage.getItem('fldLayerOpen')!=='0';}catch(e){return true;}})();
  var h='<div style="border:1px solid #6d28d9;border-radius:8px;padding:6px 10px;background:#faf7ff;box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:92px">';
  h+='<div onclick="fldLayerToggleOpen()" style="font-weight:700;font-size:12px;color:#6d28d9;cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none'+(open?';margin-bottom:5px':'')+'">SD 레이어 <span style="font-size:9px">'+(open?'▼':'▶')+'</span></div>';
  if(open){defs.forEach(function(d){h+='<label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:2px 0;cursor:pointer;white-space:nowrap"><input type="checkbox" data-sdlv="'+d[0]+'"'+(LVs[d[0]]?' checked':'')+' onchange="_sdLayerToggle9(this)">'+d[1]+'</label>';});}
  return h+'</div>';}
-function _sdLayerToggle9(inp){_sdLVinit9()[inp.getAttribute('data-sdlv')]=inp.checked?1:0;try{if(gSD9)gSD9._built9=0;posDrawSD9();}catch(_e){}}
+function _sdLayerToggle9(inp){var k=inp.getAttribute('data-sdlv');_sdLVinit9()[k]=inp.checked?1:0;if(k==='insptag'){try{fldInspTags9();}catch(_t){}return;}/* [BUILD2643] 검수 태그만 갱신 */try{if(gSD9)gSD9._built9=0;posDrawSD9();}catch(_e){}}
 function fldLayerToggleOpen(){ var cur=true; try{cur=(localStorage.getItem('fldLayerOpen')!=='0');}catch(e){} try{localStorage.setItem('fldLayerOpen',cur?'0':'1');}catch(e){} var lw=document.getElementById('fldLayerWrap'); if(lw) lw.innerHTML=fldLayerBox(); }
 function fieldLayerBar(){
   var cw=document.querySelector('.canvas-wrap'); if(!cw) return;
