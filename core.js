@@ -12457,6 +12457,77 @@ function fldInspFit9(nodes){/* [BUILD2371] 검수 전용 자동이동(tangoFitSe
   try{if(window._fldInspFitLock9)return;if(!nodes||!nodes.length){if(typeof fitView==='function')fitView();return;}var xs=[],ys=[];nodes.forEach(function(n){if(n.x==null)return;var s=S(n.x,n.y);xs.push(s[0]);ys.push(s[1]);});if(!xs.length)return;
     var pad=8,minx=Math.min.apply(0,xs),maxx=Math.max.apply(0,xs),miny=Math.min.apply(0,ys),maxy=Math.max.apply(0,ys);vb0={x:minx-pad,y:miny-pad,w:(maxx-minx)+2*pad,h:(maxy-miny)+2*pad};vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};if(typeof fixAspect==='function')fixAspect();if(typeof applyVB==='function')applyVB();if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();if(typeof highlightSel==='function')highlightSel();}catch(_e){}}
 function fldInspClose9(){try{document.body.classList.remove('fldInspOn9');}catch(_bc){}/* [BUILD2394] 도구 스트립 복원 */try{fldInspHL9(-1);}catch(_h){}try{var _tg9=document.getElementById('fldInspTagG9');if(_tg9)_tg9.remove();}catch(_t9){}try{var w=document.getElementById('fldInspOv9');if(w)w.remove();window._fldInspOpen9=false;var cw=document.querySelector('.canvas-wrap');if(cw){var ip=document.getElementById('tgInfoPanel');cw.style.marginRight=(ip&&ip.style.display==='flex')?'42%':'';}setTimeout(function(){if(typeof fitView==='function')fitView();},120);}catch(_e){}}
+/* ===== [BUILD2625] ★통합검수(측량현장 검수창 '통합검수' 탭 · 전체 모드) =====
+   버튼 한 번으로 관공검수·측점·CSV검수·심도검수를 전 구간에 실행 → ①전체 오류 현황 ②공정별 오류 현황 ③공정별 구간 오류 목록.
+   판정은 각 탭과 100% 같은 함수(값 생성 없음): 관공=fldInspGwView9(i)→window._fiGwSum9 / 측점=_fldInspPtMatch9·_fldInspFacMatch9(+_fldInspBadList9) / 심도=_fldInspDpMatch9(+_fldInspDpBadList9)·확인요청(2621 규칙 복사).
+   pt↔Dp 상호 호출 없음 — 대시보드가 양쪽 결과를 읽기만 함. 결과는 window._fiAll9(세션 메모리, payload 미저장). */
+function _fldInspAllRun9(){
+  var R={at:Date.now(),gw:{n:0,ok:0,bad:[]},pt:{n:0,ok:0,bad:0,groups:[]},dp:{n:0,ok:0,bad:0,groups:[],flag:0,flagGroups:[]},total:0};
+  var N=((typeof _tgSegs!=='undefined'&&_tgSegs)||[]).length;var selNow=(window._fldInspSel9==null)?-1:window._fldInspSel9;
+  /* ① 관공검수 — 구간마다 fldInspGwView9(i)를 돌려 _fiGwSum9(대차 요약) 채움(_fldInspGwAll9와 동일) */
+  try{for(var i=0;i<N;i++){try{fldInspGwView9(i);}catch(_e){}}var GS=window._fiGwSum9||{};R.gw.n=N;
+    for(var si=0;si<N;si++){var S9=GS[String(si)];if(!S9){R.gw.bad.push({si:si,why:'판정 불가'});continue;}
+      if(S9.ok)R.gw.ok++;else R.gw.bad.push({si:si,why:'대차 불일치 · 시작 '+(S9.sc==null?'-':S9.sc)+(S9.si?(' +'+S9.si):'')+(S9.sb?(' −'+S9.sb):'')+' = 계산 '+(S9.calc==null?'-':S9.calc)+' ≠ 종료 '+(S9.ec==null?'-':S9.ec)+(S9.ew!=null?(' (벽 '+S9.ew+')'):'')});}}catch(_g){try{console.warn('통합검수 관공',_g);}catch(_c){}}
+  /* ② 측점·CSV검수 — 전체 모드와 같은 대상(측점 목록 + 도면 시설물 전부) · 판정 함수 동일 */
+  try{var rt=null,af=null;try{rt=_fldInspCsvRows9((typeof _fldCsvText9==='function')?_fldCsvText9(_csvExportPts9()):'');}catch(_r1){}try{var M=_aftCsvMerged9();af=_fldInspCsvRows9(M?M.csv:'');}catch(_r2){}
+    var seen={};_fldInspPtList9(-1).forEach(function(q){var k=String(q._fiKey9||q.no);if(seen[k])return;seen[k]=1;var m=_fldInspPtMatch9(q,rt,af);R.pt.n++;if(m.st==='ok')R.pt.ok++;});
+    var seenF={};(state.manholes||[]).forEach(function(m){if(!m||m.wx==null||m.wy==null)return;var k=Math.round(+m.wx*100)+'_'+Math.round(+m.wy*100);if(seenF[k])return;seenF[k]=1;var fm=_fldInspFacMatch9(m,af);R.pt.n++;if(fm.st==='ok')R.pt.ok++;});
+    var B=_fldInspBadList9();R.pt.groups=B.groups||[];R.pt.bad=B.total||0;}catch(_p){try{console.warn('통합검수 측점',_p);}catch(_c2){}}
+  /* ③ 심도검수 — 실시간 측점만 판정(skip·manual 집계 제외, 2567) + 확인요청(2621: 심도 +/20cm 차이/50cm 이하, 구간 목록 순서 기준) */
+  try{var rt2=null,af2=null;try{rt2=_fldInspDpCsvRows9((typeof _fldCsvText9==='function')?_fldCsvText9(_csvExportPts9()):'');}catch(_r3){}try{var M2=_aftCsvMerged9();af2=_fldInspDpCsvRows9(M2?M2.csv:'');}catch(_r4){}
+    var seen2={};_fldInspDpList9(-1).forEach(function(q){var k=String(q._fiDpKey9||q.no);if(seen2[k])return;seen2[k]=1;var m=_fldInspDpMatch9(q,rt2,af2);if(m.st==='skip'||m.st==='manual')return;R.dp.n++;if(m.st==='ok')R.dp.ok++;});
+    var B2=_fldInspDpBadList9();R.dp.groups=B2.groups||[];R.dp.bad=B2.total||0;
+    for(var si2=0;si2<N;si2++){var list=_fldInspDpList9(si2);var MS=list.map(function(q){return _fldInspDpMatch9(q,rt2,af2);});
+      var DEP=list.map(function(q,i){var m=MS[i];if(m.kind!=='실시간')return null;var d=parseFloat((m.dp&&m.dp.dep)||'');return isFinite(d)?d:null;});
+      var items=[];list.forEach(function(q,i){var m=MS[i];if(m.kind!=='실시간')return;var f=[];var d=DEP[i];if((m.dp&&m.dp.calc!=null&&m.dp.calc<=0)||(d!=null&&d<0))f.push('심도 +');
+        if(d!=null){var pv=null,nx=null;for(var a=i-1;a>=0;a--){if(DEP[a]!=null){pv=DEP[a];break;}}for(var b=i+1;b<list.length;b++){if(DEP[b]!=null){nx=DEP[b];break;}}var arr=[d];if(pv!=null)arr.push(pv);if(nx!=null)arr.push(nx);if(arr.length>=2&&(Math.max.apply(null,arr)-Math.min.apply(null,arr))>=0.20)f.push('20cm 차이');if(d<0.50)f.push('50cm 이하');}
+        if(f.length)items.push({key:String(q._fiDpKey9||q.no),no:String(q.no),dep:(d!=null?d.toFixed(2):'-'),flags:f});});
+      if(items.length){R.dp.flagGroups.push({si:si2,items:items});R.dp.flag+=items.length;}}
+    try{_fldInspDpList9(selNow);}catch(_z){}}catch(_d){try{console.warn('통합검수 심도',_d);}catch(_c3){}}
+  try{_fldInspPtList9(selNow);}catch(_z2){}
+  R.total=R.gw.bad.length+R.pt.bad+R.dp.bad;window._fiAll9=R;return R;}
+function fldInspAllView9(){/* [BUILD2625] 통합검수 탭 전체 모드 화면 */
+  var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');};var N=((typeof _tgSegs!=='undefined'&&_tgSegs)||[]).length;
+  var BTN='display:inline-flex;align-items:center;justify-content:center;border:2px solid #c62828;background:#c62828;color:#fff;border-radius:8px;padding:6px 18px;font-size:13px;font-weight:900;cursor:pointer;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.15)';
+  var R=window._fiAll9||null;
+  var h='<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px;padding:8px 12px;border:2px solid #c62828;border-radius:10px;background:#fff"><div style="font-size:16px;font-weight:900;color:#1f2d3d">통합검수 <span style="color:#555;font-weight:700">— 전체 '+N+'구간</span></div><div style="font-size:11.5px;color:#777">관공검수 · 측점·CSV검수 · 심도검수를 전 구간에 한 번에 실행</div><div style="flex:1"></div>'
+    +(R?('<span style="font-size:11px;color:#888">실행 '+new Date(R.at).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})+'</span>'):'')+'<button id="fiAllRun9" style="'+BTN+'">▶ 통합검수 '+(R?'다시 실행':'실행')+'</button></div>';
+  if(!R)return h+'<div style="color:#999;padding:28px;text-align:center;font-size:13px">위 <b>통합검수 실행</b> 버튼을 누르면 세 공정을 전부 검수하고 전체·공정별 오류 현황을 표시합니다</div>';
+  var PILL=function(txt,bg){return '<span style="display:inline-flex;align-items:center;justify-content:center;min-width:120px;padding:6px 16px;border-radius:10px;background:'+bg+';color:#fff;font-weight:900;font-size:18px;letter-spacing:1px;box-shadow:0 2px 6px rgba(0,0,0,.15)">'+txt+'</span>';};
+  var okAll=R.gw.ok+R.pt.ok+R.dp.ok,badAll=R.total;
+  /* ① 전체 오류 현황 */
+  h+='<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px;padding:8px 12px;border:2px solid '+(badAll?'#c62828':'#2e7d32')+';border-radius:10px;background:'+(badAll?'#fff3f3':'#f1f8f1')+'"><div style="font-size:15px;font-weight:900;color:#1f2d3d">① 전체 오류 현황</div><div style="flex:1"></div>'+PILL('일치 '+okAll+'건','#43a047')+PILL('오류 '+badAll+'건',badAll?'#e53935':'#bdbdbd')+PILL('확인요청 '+R.dp.flag+'건',R.dp.flag?'#fb8c00':'#bdbdbd')+'<div style="width:100%;font-size:11.5px;color:#777">오류 = 관공 불일치 구간 + 측점·CSV 불일치 항목 + 심도 불일치 항목 · 확인요청 = 심도검수 확인요청 열(심도 +/20cm 차이/50cm 이하, 오류 합계와 별도)</div></div>';
+  /* ② 공정별 오류 현황 */
+  var TH='padding:5px 8px;border:1px solid #e6b8b8;background:#fbeeee;font-weight:800;font-size:11.5px;color:#8c1d1d;white-space:nowrap',TD='padding:5px 8px;border:1px solid #efd3d3;font-size:12px;text-align:center;white-space:nowrap';
+  var chip=function(k,si,n,col){var lab=(si<0)?'미배정':((si+1)+'구간');return '<span class="fiAllSeg9" data-k="'+k+'" data-i="'+si+'" title="'+lab+' 열기" style="display:inline-flex;align-items:center;gap:3px;border:1.5px solid '+col+';color:'+col+';background:#fff;border-radius:12px;padding:1px 8px;font-size:11px;font-weight:800;cursor:pointer;margin:1px 2px">'+lab+' <b>'+n+'</b></span>';};
+  var row=function(k,name,tgt,ok,bad,flag,chips){var st=bad?('⚠ 불일치 '+bad):'일치';return '<tr><td class="fiAllCat9" data-k="'+k+'" title="'+name+' 탭(전체) 열기" style="'+TD+';font-weight:800;color:#0d47a1;cursor:pointer;text-decoration:underline">'+name+'</td><td style="'+TD+'">'+tgt+'</td><td style="'+TD+';color:#2e7d32;font-weight:800">'+ok+'</td><td style="'+TD+';color:'+(bad?'#c62828':'#999')+';font-weight:800">'+bad+'</td><td style="'+TD+';color:'+(flag==null?'#bbb':(flag?'#ef6c00':'#999'))+';font-weight:800">'+(flag==null?'–':flag)+'</td><td style="'+TD+';text-align:left;white-space:normal;max-width:360px">'+(chips||'<span style="color:#999">–</span>')+'</td><td style="'+TD+';font-weight:900;color:'+(bad?'#c62828':'#2e7d32')+'">'+st+'</td></tr>';};
+  var gwChips=R.gw.bad.map(function(b){return chip('gw',b.si,1,'#c62828');}).join('');
+  var ptChips=R.pt.groups.map(function(g){return chip('pt',g.si,g.items.length,'#c62828');}).join('');
+  var dpChips=R.dp.groups.map(function(g){return chip('dep',g.si,g.items.length,'#c62828');}).join('')+R.dp.flagGroups.map(function(g){return chip('dep',g.si,g.items.length,'#ef6c00');}).join('');
+  h+='<div style="font-size:14px;font-weight:900;color:#1f2d3d;margin:2px 0 4px">② 공정별 오류 현황 <span style="font-size:11px;color:#777;font-weight:400">공정명 클릭=그 탭 전체 · 구간 칩 클릭=그 탭의 구간 열기 (주황 칩=확인요청)</span></div>';
+  h+='<table style="width:100%;border-collapse:collapse;margin-bottom:12px"><tr><th style="'+TH+'">공정</th><th style="'+TH+'">대상</th><th style="'+TH+'">일치</th><th style="'+TH+'">불일치</th><th style="'+TH+'">확인요청</th><th style="'+TH+'">오류 구간</th><th style="'+TH+'">결과</th></tr>'
+    +row('gw','관공검수',R.gw.n+'구간',R.gw.ok,R.gw.bad.length,null,gwChips)
+    +row('pt','측점·CSV검수',R.pt.n+'항목',R.pt.ok,R.pt.bad,null,ptChips)
+    +row('dep','심도검수',R.dp.n+'측점',R.dp.ok,R.dp.bad,R.dp.flag,dpChips)+'</table>';
+  /* ③ 공정별 구간 오류 목록 */
+  var BOX=function(title,col,body){return '<div style="border:2px solid '+col+';border-radius:8px;margin-bottom:10px;background:#fff"><div style="padding:5px 10px;font-size:12.5px;font-weight:900;color:'+col+';border-bottom:1px solid '+col+'">'+title+'</div><div style="max-height:240px;overflow:auto;padding:4px 6px">'+body+'</div></div>';};
+  var TD3='padding:3px 6px;border:1px solid #eee;font-size:11.5px;white-space:nowrap;text-align:center',TH3=TD3+';font-weight:800;background:#fafafa;position:sticky;top:0';
+  var segLab=function(si){return (si<0)?'미배정':((si+1)+'구간');};
+  var segCell=function(k,si){return '<td class="fiAllSeg9" data-k="'+k+'" data-i="'+si+'" style="'+TD3+';font-weight:800;color:#0d47a1;cursor:pointer;text-decoration:underline">'+segLab(si)+'</td>';};
+  h+='<div style="font-size:14px;font-weight:900;color:#1f2d3d;margin:2px 0 6px">③ 공정별 구간 오류 목록</div>';
+  var gwB=R.gw.bad.length?('<table style="width:100%;border-collapse:collapse"><tr><th style="'+TH3+'">구간</th><th style="'+TH3+';text-align:left">사유</th></tr>'+R.gw.bad.map(function(b){return '<tr>'+segCell('gw',b.si)+'<td style="'+TD3+';text-align:left;color:#c62828">'+E(b.why)+'</td></tr>';}).join('')+'</table>'):'<div style="color:#2e7d32;font-weight:800;padding:6px">오류 없음</div>';
+  h+=BOX('관공검수 — 불일치 '+R.gw.bad.length+'구간','#8c1d1d',gwB);
+  var ptB=R.pt.groups.length?('<table style="width:100%;border-collapse:collapse"><tr><th style="'+TH3+'">구간</th><th style="'+TH3+'">항목</th><th style="'+TH3+'">종류</th><th style="'+TH3+';text-align:left">사유</th></tr>'+R.pt.groups.map(function(g){return g.items.map(function(it){return '<tr>'+segCell('pt',g.si)+'<td style="'+TD3+';font-weight:800">'+E(it.no)+(it.nearSi!=null?(' <span style="color:#888;font-weight:400">('+(it.nearSi+1)+'구간 근접 '+(it.nearD!=null?it.nearD.toFixed(2):'?')+'m)</span>'):'')+'</td><td style="'+TD3+'">'+E(it.kind)+'</td><td style="'+TD3+';text-align:left;color:#c62828;white-space:normal">'+E(it.why)+'</td></tr>';}).join('');}).join('')+'</table>'):'<div style="color:#2e7d32;font-weight:800;padding:6px">오류 없음</div>';
+  h+=BOX('측점·CSV검수 — 불일치 '+R.pt.bad+'항목','#8a6d00',ptB);
+  var dpRows='';R.dp.groups.forEach(function(g){g.items.forEach(function(it){dpRows+='<tr>'+segCell('dep',g.si)+'<td style="'+TD3+';font-weight:800">'+E(it.no)+'</td><td style="'+TD3+';color:#c62828;font-weight:800">불일치</td><td style="'+TD3+';text-align:left;color:#c62828;white-space:normal">'+E(it.why)+'</td></tr>';});});
+  R.dp.flagGroups.forEach(function(g){g.items.forEach(function(it){dpRows+='<tr>'+segCell('dep',g.si)+'<td style="'+TD3+';font-weight:800">'+E(it.no)+'</td><td style="'+TD3+';color:#ef6c00;font-weight:800">확인요청</td><td style="'+TD3+';text-align:left;color:#ef6c00;white-space:normal">심도 '+E(it.dep)+' · '+E(it.flags.join(' · '))+'</td></tr>';});});
+  var dpB=dpRows?('<table style="width:100%;border-collapse:collapse"><tr><th style="'+TH3+'">구간</th><th style="'+TH3+'">측점</th><th style="'+TH3+'">구분</th><th style="'+TH3+';text-align:left">사유</th></tr>'+dpRows+'</table>'):'<div style="color:#2e7d32;font-weight:800;padding:6px">오류 없음</div>';
+  h+=BOX('심도검수 — 불일치 '+R.dp.bad+'측점 · 확인요청 '+R.dp.flag+'측점','#1b7f3b',dpB);
+  return h;}
+function _fldInspAllBind9(card){/* [BUILD2625] 통합검수 화면 바인딩 */
+  try{var b=card.querySelector('#fiAllRun9');if(b)b.onclick=function(){this.disabled=true;this.textContent='검수 중…';var self=this;setTimeout(function(){try{_fldInspAllRun9();}catch(_e){}fldInspWin9(-1);},30);};
+    card.querySelectorAll('.fiAllCat9').forEach(function(td){td.onclick=function(){window._fldInspCat9=this.getAttribute('data-k');fldInspWin9(-1);};});
+    card.querySelectorAll('.fiAllSeg9').forEach(function(el){el.onclick=function(ev){ev.stopPropagation();var k=this.getAttribute('data-k'),i=+this.getAttribute('data-i');window._fldInspCat9=k;window._fldInspSel9=i;fldInspWin9(i);};});}catch(_e){}}
 function fldInspWin9(sel){
   try{
     if(window._fldInspFitLock9==null){try{window._fldInspFitLock9=(localStorage.getItem('fldInspFitLock9')==='1');}catch(_l0){window._fldInspFitLock9=false;}}
@@ -12499,6 +12570,7 @@ function fldInspWin9(sel){
       if(cat==='pt'){try{h+=fldInspPtView9(-1);}catch(_pv0){}}/* [BUILD2503] 전체=전 측점 순회 */
       if(cat==='dep'){try{h+=fldInspDepView9(-1);}catch(_dv0){}}/* [BUILD2564] 심도검수(독립 사본) */
       if(cat==='gw'){try{h+=_fldInspGwAll9();}catch(_ga0){}}/* [BUILD2551] 전체=구간별 관공 요약표 */
+      if(cat==='all'){try{h+=fldInspAllView9();}catch(_av0){}}/* [BUILD2625] 통합검수 전체=실행 버튼 + 전체·공정별 오류 현황 */
     }else if(false){
       h+='<table style="width:100%;border-collapse:collapse"><tr><th style="'+TH+'">\uAD6C\uAC04</th><th style="'+TH+'">\uC2DC\uC791 \u2192 \uC885\uB8CC</th><th style="'+TH+'">\uAD00\uC218</th><th style="'+TH+'">\uB0B4\uAD00</th><th style="'+TH+'">\uC2EC\uB3C4\uACB0\uCE21</th><th style="'+TH+'">\uD310\uC815</th></tr>';
       AU.forEach(function(a,i){if(!a){h+='<tr><td style="'+TD+'">'+(i+1)+'</td><td colspan=5 style="'+TD+';color:#999">\uD310\uC815 \uBD88\uAC00</td></tr>';return;}
@@ -12548,6 +12620,7 @@ function fldInspWin9(sel){
     card.querySelectorAll('.fiCat9').forEach(function(b){b.onclick=function(){window._fldInspCat9=this.getAttribute('data-k');fldInspWin9(window._fldInspSel9);};});/* [BUILD2401] */
     if(cat==='pt'){try{_fldInspPtBind9(card);}catch(_pb){}}/* [BUILD2503] */
     if(cat==='dep'){try{_fldInspDpBind9(card);}catch(_db){}}/* [BUILD2564] */
+    if(cat==='all'&&sel===-1){try{_fldInspAllBind9(card);}catch(_ab){}}/* [BUILD2625] 통합검수 */
     try{card.querySelectorAll('.fiSheet9[data-hl]').forEach(function(bx){_fldInspHlDom9(bx);});}catch(_hd9){}/* [BUILD2453] 벽 강조 DOM 보강 */
     try{card.querySelectorAll('.fiFit9').forEach(function(el){var fs=parseFloat(getComputedStyle(el).fontSize)||12;var n=0;while(el.scrollWidth>el.clientWidth+1&&fs>8&&n++<12){fs-=0.5;el.style.fontSize=fs+'px';}});}catch(_ft9){}/* [BUILD2550] 시설명 한 줄 자동 축소 */
     try{card.querySelectorAll('.fiMidRow9').forEach(function(tr){tr.onclick=function(){_fldInspMidHL9(+this.getAttribute('data-mi'));};});}catch(_mr9){}/* [BUILD2461] 인입/분기 행 클릭 → 라인 강조 */
