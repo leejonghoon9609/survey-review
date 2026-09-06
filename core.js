@@ -12478,7 +12478,7 @@ function fldInspTags9(){/* [BUILD2372] 검수 전용 구간 태그+인출선(구
 function fldInspFit9(nodes){/* [BUILD2371] 검수 전용 자동이동(tangoFitSeg 복사) — 검수창 자체 잠금(_fldInspFitLock9)만 따름 */
   try{if(window._fldInspFitLock9)return;if(!nodes||!nodes.length){if(typeof fitView==='function')fitView();return;}var xs=[],ys=[];nodes.forEach(function(n){if(n.x==null)return;var s=S(n.x,n.y);xs.push(s[0]);ys.push(s[1]);});if(!xs.length)return;
     var pad=8,minx=Math.min.apply(0,xs),maxx=Math.max.apply(0,xs),miny=Math.min.apply(0,ys),maxy=Math.max.apply(0,ys);vb0={x:minx-pad,y:miny-pad,w:(maxx-minx)+2*pad,h:(maxy-miny)+2*pad};vb={x:vb0.x,y:vb0.y,w:vb0.w,h:vb0.h};if(typeof fixAspect==='function')fixAspect();if(typeof applyVB==='function')applyVB();if(typeof drawGeo==='function')drawGeo();if(typeof drawManholes==='function')drawManholes();if(typeof highlightSel==='function')highlightSel();}catch(_e){}}
-function fldInspClose9(){try{document.body.classList.remove('fldInspOn9');}catch(_bc){}/* [BUILD2394] 도구 스트립 복원 */try{fldInspHL9(-1);}catch(_h){}try{var _tg9=document.getElementById('fldInspTagG9');if(_tg9)_tg9.remove();}catch(_t9){}try{var w=document.getElementById('fldInspOv9');if(w)w.remove();window._fldInspOpen9=false;var cw=document.querySelector('.canvas-wrap');if(cw){var ip=document.getElementById('tgInfoPanel');cw.style.marginRight=(ip&&ip.style.display==='flex')?'42%':'';}setTimeout(function(){if(typeof fitView==='function')fitView();},120);}catch(_e){}}
+function fldInspClose9(){try{document.body.classList.remove('fldInspOn9');}catch(_bc){}/* [BUILD2394] 도구 스트립 복원 */try{fldInspHL9(-1);}catch(_h){}try{var _tg9=document.getElementById('fldInspTagG9');if(_tg9)_tg9.remove();var _gh9=document.getElementById('fldInspGapHL9');if(_gh9)_gh9.remove();}catch(_t9){}/* [BUILD2645] */try{var w=document.getElementById('fldInspOv9');if(w)w.remove();window._fldInspOpen9=false;var cw=document.querySelector('.canvas-wrap');if(cw){var ip=document.getElementById('tgInfoPanel');cw.style.marginRight=(ip&&ip.style.display==='flex')?'42%':'';}setTimeout(function(){if(typeof fitView==='function')fitView();},120);}catch(_e){}}
 /* ===== [BUILD2625] ★통합검수(측량현장 검수창 '통합검수' 탭 · 전체 모드) =====
    버튼 한 번으로 관공검수·측점·CSV검수·심도검수를 전 구간에 실행 → ①전체 오류 현황 ②공정별 오류 현황 ③공정별 구간 오류 목록.
    판정은 각 탭과 100% 같은 함수(값 생성 없음): 관공=fldInspGwView9(i)→window._fiGwSum9 / 측점=_fldInspPtMatch9·_fldInspFacMatch9(+_fldInspBadList9) / 심도=_fldInspDpMatch9(+_fldInspDpBadList9)·확인요청(2621 규칙 복사).
@@ -12554,6 +12554,62 @@ function _fldInspAllBind9(card){/* [BUILD2625] 통합검수 화면 바인딩 */
     var flash=function(ids){ids.forEach(function(id){var e=card.querySelector('#'+id);if(!e)return;var o=e.style.boxShadow;e.style.boxShadow='0 0 0 4px #ffd600';e.style.transition='box-shadow .25s';setTimeout(function(){e.style.boxShadow=o||'';},1400);});};
     var pE=card.querySelector('#fiAllErrPill9');if(pE)pE.onclick=function(){var t=card.querySelector('#fiAllList9');if(t)t.scrollIntoView({behavior:'smooth',block:'start'});flash(['fiAllGwBox9','fiAllPtBox9','fiAllDpBox9']);};
     var pF=card.querySelector('#fiAllFlagPill9');if(pF)pF.onclick=function(){var t=card.querySelector('#fiAllDpBox9');if(t)t.scrollIntoView({behavior:'smooth',block:'start'});flash(['fiAllDpBox9']);};}catch(_e){}}
+/* ===== [BUILD2645] ★이격거리 검수 탭(측량현장 검수창 cat 'gap') — 정위치 SD 장면(window._sdCache9.sc)의 이격선(SDDIM·SDDIM1, no 태그)을 읽기만 함(값 생성 없음).
+   화면: [미니창(선택 구간 도면)] [구간별 측점 목록(측점·이격거리·심도·상태, 행 클릭=도면 강조)] / [통계]. 구간 버튼 색 = 이격선 완료(초록)/미완·없음(빨강).
+   규칙(이격선 방향)은 사용자 완성본 확인 후 확정 예정 — 현재 상태 판정 = 이격선 있음/없음 */
+function _fldInspGapData9(){
+  var out={ok:false,by:{},reason:''};try{
+    if(!(typeof IS_POSITION!=='undefined'&&IS_POSITION)){out.reason='정위치 DB에서만 이격선(SD 성과)이 만들어집니다';return out;}
+    var sc=window._sdCache9&&window._sdCache9.sc;if(!sc||!sc.SH){out.reason='상단 [SD 오버레이]/[SD 전용]을 켜서 SD 성과 미리보기를 먼저 생성하세요';return out;}
+    Object.keys(sc.SH).forEach(function(k){(sc.SH[k].items||[]).forEach(function(it){if(!it.no)return;var no=String(it.no);
+      if(it.t==='pl'&&it.lay==='SDDIM'){var r=out.by[no]||(out.by[no]={no:no});r.x=it.pts[0][0];r.y=it.pts[0][1];r.fx=it.pts[1][0];r.fy=it.pts[1][1];r.d=(it.gd!=null)?+it.gd:Math.hypot(r.fx-r.x,r.fy-r.y);}
+      else if(it.t==='tx'&&it.lay==='SDDIM1'){var r2=out.by[no]||(out.by[no]={no:no});if(it.side===1){r2.ds=String(it.s);r2.tx=it;}else{r2.zs=String(it.s);r2.tz=it;}}});});
+    out.ok=true;}catch(e){out.reason='SD 장면 읽기 오류: '+e.message;}return out;}
+function _fldInspGapRows9(si,G){/* 구간 si의 실시간 측점(탐사·시설물 제외) → 행 */
+  var rows=[];try{var list=_fldInspPtList9(si);list.forEach(function(q){if(q._tamsaNode9||q._fromAft9||q.jg||q.jgRef)return;var no=String(q.no);var g=G.by[no]||null;var dep=(state._depthByNo&&state._depthByNo[no]!=null)?+state._depthByNo[no]:null;rows.push({no:no,x:+q.x,y:+q.y,dep:dep,gap:g,st:g?'ok':'bad'});});}catch(_e){}return rows;}
+function _fldInspGapStat9(G){var N=((typeof _tgSegs!=='undefined'&&_tgSegs)||[]).length;var st={segs:[],pts:0,ok:0,bad:0,segOk:0,segBad:0};for(var si=0;si<N;si++){var rows=_fldInspGapRows9(si,G);var ok=rows.filter(function(r){return r.st==='ok';}).length;var bad=rows.length-ok;st.pts+=rows.length;st.ok+=ok;st.bad+=bad;var sOk=(rows.length>0&&bad===0);if(sOk)st.segOk++;else st.segBad++;st.segs.push({si:si,n:rows.length,ok:ok,bad:bad,done:sOk});}return st;}
+function _fldInspGapMini9(sel,G,hlNo){/* 미니창: 선택 구간 주변 SD 장면(관로·현황선·이격선·측점) */
+  try{var sc=window._sdCache9&&window._sdCache9.sc;if(!sc)return '';var N=((typeof _tgSegs!=='undefined'&&_tgSegs)||[]).length;
+    var pts=[];if(sel>=0){(_tgSegs[sel]||[]).forEach(function(n){pts.push([n.x,n.y]);});}else{for(var i=0;i<N;i++)(_tgSegs[i]||[]).forEach(function(n){pts.push([n.x,n.y]);});}
+    Object.keys(G.by).forEach(function(no){var r=G.by[no];if(r.fx!=null&&(sel<0||_fldInspGapRows9(sel,G).some(function(q){return q.no===no;})))pts.push([r.fx,r.fy]);});
+    if(!pts.length)return '<div style="color:#999;padding:20px;text-align:center">구간 없음</div>';
+    var minx=Infinity,miny=Infinity,maxx=-Infinity,maxy=-Infinity;pts.forEach(function(p){if(p[0]<minx)minx=p[0];if(p[0]>maxx)maxx=p[0];if(p[1]<miny)miny=p[1];if(p[1]>maxy)maxy=p[1];});
+    var pad=(sel>=0)?8:15;minx-=pad;maxx+=pad;miny-=pad;maxy+=pad;var Wd=maxx-minx,Hd=maxy-miny;var T=function(x,y){return [(x-minx),(maxy-y)];};
+    var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
+    var sw=Wd/420;/* 1px 상당 */var h='<svg viewBox="0 0 '+Wd.toFixed(2)+' '+Hd.toFixed(2)+'" style="width:100%;height:100%;background:#fff" preserveAspectRatio="xMidYMid meet">';
+    var inBox=function(p){return p[0]>=minx-pad&&p[0]<=maxx+pad&&p[1]>=miny-pad&&p[1]<=maxy+pad;};
+    Object.keys(sc.SH).forEach(function(k){(sc.SH[k].items||[]).forEach(function(it){if(it.t!=='pl'||!it.pts||it.pts.length<2)return;if(!it.pts.some(inBox))return;var col,wid;if(it.lay==='SD001'){col=it.tam?'#e02020':'#111';wid=1.6*sw;}else if(!/^SD/.test(it.lay)){col='#00a6b8';wid=1.0*sw;}else if(it.lay==='SDDIM'){col=(hlNo&&String(it.no)===String(hlNo))?'#d50000':'#7b1fa2';wid=((hlNo&&String(it.no)===String(hlNo))?3.5:1.2)*sw;}else return;
+      var ps=it.pts.map(function(p){var q=T(p[0],p[1]);return q[0].toFixed(2)+','+q[1].toFixed(2);}).join(' ');h+='<polyline points="'+ps+'" fill="none" stroke="'+col+'" stroke-width="'+wid.toFixed(3)+'"/>';});});
+    var rowsAll=[];if(sel>=0)rowsAll=_fldInspGapRows9(sel,G);else for(var s2=0;s2<N;s2++)rowsAll=rowsAll.concat(_fldInspGapRows9(s2,G));
+    rowsAll.forEach(function(r){var q=T(r.x,r.y);var hl=(hlNo&&r.no===String(hlNo));h+='<circle cx="'+q[0].toFixed(2)+'" cy="'+q[1].toFixed(2)+'" r="'+((hl?3.2:1.8)*sw).toFixed(3)+'" fill="'+(r.st==='ok'?(hl?'#d50000':'#2e7d32'):'#c62828')+'" stroke="#fff" stroke-width="'+(0.6*sw).toFixed(3)+'"/>';
+      if(r.gap&&r.gap.fx!=null){var m=T((r.x+r.gap.fx)/2,(r.y+r.gap.fy)/2);h+='<text x="'+m[0].toFixed(2)+'" y="'+m[1].toFixed(2)+'" font-size="'+((hl?9:7)*sw).toFixed(3)+'" font-weight="'+(hl?'900':'400')+'" fill="'+(hl?'#d50000':'#7b1fa2')+'" text-anchor="middle" dominant-baseline="central">'+E(r.gap.ds||r.gap.d.toFixed(1))+'</text>';}});
+    return h+'</svg>';}catch(e){return '<div style="color:#c62828;padding:12px">미니창 오류: '+e.message+'</div>';}}
+function _fldInspGapHL9(no){/* 도면창 강조: 측점 원 + 이격선 + 거리 텍스트 — 굵은 빨강 */
+  try{var cv=document.getElementById('cv');if(!cv)return;var old=document.getElementById('fldInspGapHL9');if(old)old.remove();if(no==null)return;var G=_fldInspGapData9();if(!G.ok)return;var r=G.by[String(no)];
+    var NS='http://www.w3.org/2000/svg';var g=document.createElementNS(NS,'g');g.id='fldInspGapHL9';g.setAttribute('pointer-events','none');var u=(typeof pxToWorld==='function')?pxToWorld():0.06;
+    var p=null;try{p=pointByNo(String(no));}catch(_p){}var px=p?+p.x:(r?r.x:null),py=p?+p.y:(r?r.y:null);if(px==null)return;
+    var c=S(px,py);var ci=document.createElementNS(NS,'circle');ci.setAttribute('cx',c[0]);ci.setAttribute('cy',c[1]);ci.setAttribute('r',Math.max(0.5,6*u));ci.setAttribute('fill','none');ci.setAttribute('stroke','#d50000');ci.setAttribute('stroke-width',2.2*u);g.appendChild(ci);
+    if(r&&r.fx!=null){var a=S(r.x,r.y),b=S(r.fx,r.fy);var ln=document.createElementNS(NS,'line');ln.setAttribute('x1',a[0]);ln.setAttribute('y1',a[1]);ln.setAttribute('x2',b[0]);ln.setAttribute('y2',b[1]);ln.setAttribute('stroke','#d50000');ln.setAttribute('stroke-width',3.2*u);ln.setAttribute('stroke-linecap','round');g.appendChild(ln);
+      var fe=document.createElementNS(NS,'circle');fe.setAttribute('cx',b[0]);fe.setAttribute('cy',b[1]);fe.setAttribute('r',Math.max(0.3,3.5*u));fe.setAttribute('fill','#d50000');g.appendChild(fe);
+      var tx=r.tx;if(tx){var c2=S(tx.bx!=null?tx.bx:tx.cx,tx.by!=null?tx.by:tx.cy);var t=document.createElementNS(NS,'text');t.setAttribute('x',c2[0]);t.setAttribute('y',c2[1]);t.setAttribute('font-size',(tx.h||1.0)*(typeof _SDVW9!=='undefined'&&_SDVW9.txt?_SDVW9.txt:1)*1.15);t.setAttribute('fill','#d50000');t.setAttribute('font-weight','900');t.setAttribute('text-anchor','middle');t.setAttribute('stroke','#fff');t.setAttribute('stroke-width',0.35*u);t.setAttribute('paint-order','stroke');if(tx.rot)t.setAttribute('transform','rotate('+(-tx.rot)+' '+c2[0]+' '+c2[1]+')');t.textContent=String(tx.s);g.appendChild(t);}}
+    cv.appendChild(g);}catch(e){console.error('_fldInspGapHL9',e);}}
+function fldInspGapView9(sel){
+  var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');};var G=_fldInspGapData9();
+  var TH='padding:4px 6px;border:1px solid #e6b8b8;background:#fbeeee;font-weight:800;font-size:11px;color:#8c1d1d;white-space:nowrap',TD='padding:4px 6px;border:1px solid #efd3d3;font-size:11.5px;text-align:center;white-space:nowrap';
+  var head='<div style="display:flex;align-items:center;gap:10px;margin-bottom:6px"><div style="font-size:15px;font-weight:900;color:#1f2d3d">이격거리 검수 <span style="color:#555;font-weight:700">— '+(sel>=0?((sel+1)+'구간'):'전체')+'</span></div><span style="font-size:11px;color:#777">이격선 = 정위치 SD 성과(SDDIM) 읽기 · 판정 규칙은 완성본 확인 후 확정(현재: 이격선 있음/없음)</span></div>';
+  if(!G.ok)return head+'<div style="color:#8c1d1d;padding:24px;text-align:center;font-size:13px;border:2px dashed #e0b4b4;border-radius:8px">'+E(G.reason)+'</div>';
+  var st=_fldInspGapStat9(G);var hlNo=window._fldInspGapSel9||null;
+  var N=st.segs.length;var rowsHtml='';var segList=(sel>=0)?[sel]:st.segs.map(function(s){return s.si;});
+  segList.forEach(function(si){var rows=_fldInspGapRows9(si,G);var sg=st.segs[si];rowsHtml+='<tr class="fiGapSeg9" data-i="'+si+'" style="cursor:pointer"><td colspan="5" style="'+TD+';text-align:left;font-weight:900;background:'+(sg.done?'#e8f5e9':'#ffebee')+';color:'+(sg.done?'#1b5e20':'#b71c1c')+'">'+(si+1)+'구간 <span style="font-weight:600;color:#666">측점 '+sg.n+' · 이격선 '+sg.ok+'/'+sg.n+'</span> <span style="float:right">'+(sg.done?'완료':'⚠ 미완')+'</span></td></tr>';
+    rows.forEach(function(r){var on=(hlNo&&r.no===String(hlNo));rowsHtml+='<tr class="fiGapRow9" data-no="'+E(r.no)+'" data-i="'+si+'" style="cursor:pointer;background:'+(on?'#fff3e0':(r.st==='ok'?'#fff':'#fff5f5'))+'"><td style="'+TD+';font-weight:800'+(on?';color:#d50000':'')+'">'+E(r.no)+'</td><td style="'+TD+'">'+(r.gap&&r.gap.d!=null?r.gap.d.toFixed(1)+' m':'<span style=\"color:#c62828;font-weight:800\">없음</span>')+'</td><td style="'+TD+'">'+(r.gap&&r.gap.ds?E(r.gap.ds):'–')+'</td><td style="'+TD+'">'+(r.dep!=null?r.dep.toFixed(2):'–')+'</td><td style="'+TD+';font-weight:800;color:'+(r.st==='ok'?'#2e7d32':'#c62828')+'">'+(r.st==='ok'?'있음':'⚠ 없음')+'</td></tr>';});});
+  var listBox='<div id="fiGapListBox9" style="flex:none;width:44%;border:3px solid #1565c0;border-radius:8px;background:#fff;display:flex;flex-direction:column;min-height:0"><div style="padding:5px 8px;font-size:12px;font-weight:900;color:#0d47a1;border-bottom:1px solid #90b4e0;flex:none">구간별 측점 목록 <span style="font-weight:400;color:#777">· 행 클릭=도면 강조(측점·이격선·텍스트 빨강)</span></div><div style="flex:1;min-height:0;overflow:auto"><table style="width:100%;border-collapse:collapse"><tr><th style="'+TH+'">측점</th><th style="'+TH+'">이격거리</th><th style="'+TH+'">텍스트</th><th style="'+TH+'">심도</th><th style="'+TH+'">상태</th></tr>'+rowsHtml+'</table></div></div>';
+  var mini='<div id="fiGapMini9" style="flex:1;min-height:0;border:3px solid #d32f2f;border-radius:8px;background:#fff;overflow:hidden;position:relative"><div style="position:absolute;left:6px;top:4px;font-size:11px;font-weight:800;color:#b71c1c;background:rgba(255,255,255,.85);padding:1px 6px;border-radius:4px;z-index:1">미니창 — '+(sel>=0?((sel+1)+'구간'):'전체')+(hlNo?(' · 강조 '+E(hlNo)):'')+'</div>'+_fldInspGapMini9(sel,G,hlNo)+'</div>';
+  var PILL=function(txt,bg){return '<span style="display:inline-flex;align-items:center;justify-content:center;min-width:96px;padding:4px 12px;border-radius:10px;background:'+bg+';color:#fff;font-weight:900;font-size:14px;letter-spacing:.5px">'+txt+'</span>';};
+  var stat='<div id="fiGapStat9" style="flex:none;border:3px solid #ffc107;border-radius:8px;background:#fffdf3;padding:8px 10px;display:flex;flex-direction:column;gap:6px"><div style="font-size:12px;font-weight:900;color:#8a6d00">통계 — 오류·일치</div><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+PILL('측점 '+st.pts,'#616161')+PILL('이격선 있음 '+st.ok,'#43a047')+PILL('없음 '+st.bad,st.bad?'#e53935':'#bdbdbd')+PILL('구간 완료 '+st.segOk+'/'+N,st.segBad?'#fb8c00':'#43a047')+'</div><div style="font-size:11px;color:#777">완료 = 구간의 실시간 측점 전부에 이격선이 있음 · 탐사점·지거점·시설물은 대상 제외 · 일치/불일치(거리·방향 규칙)는 완성본 샘플 확인 후 추가</div></div>';
+  return head+'<div style="display:flex;gap:10px;align-items:stretch;height:calc(100% - 34px);min-height:420px"><div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:10px">'+mini+stat+'</div>'+listBox+'</div>';}
+function _fldInspGapBind9(card){
+  try{card.querySelectorAll('.fiGapRow9').forEach(function(tr){tr.onclick=function(ev){ev.stopPropagation();var no=this.getAttribute('data-no');window._fldInspGapSel9=no;card.querySelectorAll('.fiGapRow9').forEach(function(x){x.style.background=(x.getAttribute('data-no')===no)?'#fff3e0':'';x.children[0].style.color=(x.getAttribute('data-no')===no)?'#d50000':'';});_fldInspGapHL9(no);try{var mini=card.querySelector('#fiGapMini9');if(mini){var G=_fldInspGapData9();var sel=(window._fldInspSel9==null)?-1:window._fldInspSel9;var lab=mini.firstElementChild;mini.innerHTML='';mini.appendChild(lab);lab.textContent='미니창 — '+(sel>=0?((sel+1)+'구간'):'전체')+' · 강조 '+no;mini.insertAdjacentHTML('beforeend',_fldInspGapMini9(sel,G,no));}}catch(_m){}};});
+    card.querySelectorAll('.fiGapSeg9').forEach(function(tr){tr.onclick=function(){var i=+this.getAttribute('data-i');window._fldInspSel9=i;fldInspWin9(i);};});}catch(_e){}}
 function fldInspWin9(sel){
   try{
     if(window._fldInspFitLock9==null){try{window._fldInspFitLock9=(localStorage.getItem('fldInspFitLock9')==='1');}catch(_l0){window._fldInspFitLock9=false;}}
@@ -12564,6 +12620,7 @@ function fldInspWin9(sel){
     try{var _ip0=document.getElementById('tgInfoPanel'),_tp0=document.getElementById('tangoPanel');if((_ip0&&_ip0.style.display==='flex')||(_tp0&&_tp0.style.display!=='none')){if(typeof closeTangoPanel==='function')closeTangoPanel();}}catch(_ct){}/* 구간설정 패널과 동시 열림 방지 */
     if(sel==null)sel=(window._fldInspSel9!=null)?window._fldInspSel9:-1;window._fldInspSel9=sel;
     var AU=[];for(var i=0;i<N;i++)AU.push(fldSegAudit9(i));window._fldInspAU9=AU;/* [BUILD2372] 태그 색용 */
+    if((window._fldInspCat9||'all')==='gap'){try{var _G9=_fldInspGapData9();window._fiGapStat9=_G9.ok?_fldInspGapStat9(_G9):null;}catch(_gs9){window._fiGapStat9=null;}}/* [BUILD2645] */
     var w=document.createElement('div');w.id='fldInspOv9';w.style.cssText='position:fixed;inset:0;z-index:1325;pointer-events:none;background:transparent';
     try{document.body.classList.add('fldInspOn9');}catch(_bc){}/* [BUILD2394] */
     var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
@@ -12586,7 +12643,7 @@ function fldInspWin9(sel){
       +cbtn('all','\uD1B5\uD569\uAC80\uC218')+cbtn('gw','\uAD00\uACF5\uAC80\uC218')+cbtn('gap','이격거리 검수')/* [BUILD2642] 이격거리 검수 버튼(기능은 후속) */+cbtn('pt','\uCE21\uC810\u00B7CSV\uAC80\uC218')+cbtn('dep','\uC2EC\uB3C4\uAC80\uC218')+'</div>';/* [BUILD2404] 검수목록 = 헤더 아래 가로 줄(사용자 시안) */
     h+='<div style="display:flex;gap:8px;align-items:flex-start;height:calc(100% - 76px)"><div style="flex:none;width:96px;display:flex;flex-direction:column;gap:0;max-height:100%;overflow:hidden;padding-right:6px;border-right:1px solid #e0b4b4;align-self:stretch">'
       +'<div style="flex:1;min-height:0;border:2px solid #2e7d32;border-radius:8px;padding:5px 4px 4px;display:flex;flex-direction:column;gap:3px;background:#f6fbf6;overflow:auto"><div style="flex:none;font-size:12px;font-weight:800;color:#1b5e20;text-align:center;padding-bottom:3px;border-bottom:1px solid #a5d6a7;margin-bottom:2px">\uAD6C\uAC04\uC124\uC815</div>'
-      +btn(-1,'\uC804\uCCB4',sel===-1,null)+AU.map(function(a,i){return btn(i,(i+1)+'\uAD6C\uAC04',sel===i,a?a.ok:null);}).join('')+'</div>'/* [BUILD2403] 구간설정 박스(초록) */
+      +btn(-1,'\uC804\uCCB4',sel===-1,null)+AU.map(function(a,i){var okv=a?a.ok:null;if(cat==='gap'){try{var _gs=window._fiGapStat9;okv=(_gs&&_gs.segs[i])?_gs.segs[i].done:false;}catch(_gk){}}/* [BUILD2645] 이격거리 탭: 완료=초록·미완=빨강 */return btn(i,(i+1)+'\uAD6C\uAC04',sel===i,okv);}).join('')+'</div>'/* [BUILD2403] 구간설정 박스(초록) */
       +'</div><div style="flex:1;min-width:0;max-height:100%;overflow:auto">';
     var TH='padding:4px 6px;border:1px solid #e6b8b8;background:#fbeeee;font-weight:800;font-size:11px;color:#8c1d1d;white-space:nowrap',TD='padding:4px 6px;border:1px solid #efd3d3;font-size:11.5px;text-align:center;white-space:nowrap';/* [BUILD2374] 붉은 계열 */
     var stC=function(st){return st==='bad'?'#c62828':(st==='ok'?'#2e7d32':(st==='single'?'#8a6d00':'#999'));};
@@ -12597,7 +12654,7 @@ function fldInspWin9(sel){
       if(cat==='dep'){try{h+=fldInspDepView9(-1);}catch(_dv0){}}/* [BUILD2564] 심도검수(독립 사본) */
       if(cat==='gw'){try{h+=_fldInspGwAll9();}catch(_ga0){}}/* [BUILD2551] 전체=구간별 관공 요약표 */
       if(cat==='all'){try{h+=fldInspAllView9();}catch(_av0){}}/* [BUILD2625] 통합검수 전체=실행 버튼 + 전체·공정별 오류 현황 */
-      if(cat==='gap'){h+='<div style="color:#999;padding:28px;text-align:center;font-size:13px">이격거리 검수 — 준비 중(기능 정의 대기)</div>';}/* [BUILD2642] */
+      if(cat==='gap'){try{h+=fldInspGapView9(-1);}catch(_gp0){h+='<div style="color:#c62828">이격거리 검수 오류: '+_gp0.message+'</div>';}}/* [BUILD2645] */
     }else if(false){
       h+='<table style="width:100%;border-collapse:collapse"><tr><th style="'+TH+'">\uAD6C\uAC04</th><th style="'+TH+'">\uC2DC\uC791 \u2192 \uC885\uB8CC</th><th style="'+TH+'">\uAD00\uC218</th><th style="'+TH+'">\uB0B4\uAD00</th><th style="'+TH+'">\uC2EC\uB3C4\uACB0\uCE21</th><th style="'+TH+'">\uD310\uC815</th></tr>';
       AU.forEach(function(a,i){if(!a){h+='<tr><td style="'+TD+'">'+(i+1)+'</td><td colspan=5 style="'+TD+';color:#999">\uD310\uC815 \uBD88\uAC00</td></tr>';return;}
@@ -12608,12 +12665,12 @@ function fldInspWin9(sel){
       var a=AU[sel];
       if(!a)h+='<div style="color:#999;padding:12px;text-align:center">\uD310\uC815 \uBD88\uAC00</div>';
       else{
-        if(cat!=='pt'&&cat!=='dep')/* [BUILD2557] 측점·CSV 탭은 배너가 대신 · [BUILD2565] 심도검수도 배너 */h+='<div style="font-size:12px;font-weight:800;color:#333;margin-bottom:6px">'+(sel+1)+'\uAD6C\uAC04 \u00B7 '+E(a.from)+' \u2192 '+E(a.to)+'<span style="font-weight:400;color:#666"> \u00B7 \uCE21\uC810 '+a.pts.length+' \u00B7 \uD0D0\uC0AC '+a.depth.tamsa+' \u00B7 \uD3C9\uADE0\uC2EC\uB3C4 '+(a.depth.avg!=null?a.depth.avg.toFixed(2):'-')+'m</span></div>';
+        if(cat!=='pt'&&cat!=='dep'&&cat!=='gap')/* [BUILD2557] 측점·CSV 탭은 배너가 대신 · [BUILD2565] 심도검수도 배너 · [BUILD2645] 이격거리 */h+='<div style="font-size:12px;font-weight:800;color:#333;margin-bottom:6px">'+(sel+1)+'\uAD6C\uAC04 \u00B7 '+E(a.from)+' \u2192 '+E(a.to)+'<span style="font-weight:400;color:#666"> \u00B7 \uCE21\uC810 '+a.pts.length+' \u00B7 \uD0D0\uC0AC '+a.depth.tamsa+' \u00B7 \uD3C9\uADE0\uC2EC\uB3C4 '+(a.depth.avg!=null?a.depth.avg.toFixed(2):'-')+'m</span></div>';
         var showRows=(cat==='all'),showDep=(cat==='all'),/* [BUILD2565] 심도검수 탭은 Dp 화면이 대신(구 심도 행 제거) *//* [BUILD2471] 관공검수 탭은 관공수 검수 표로 대체 */showPts=(cat!=='gw'&&cat!=='pt'&&cat!=='dep'&&cat!=='gap');/* [BUILD2642] *//* [BUILD2487] 관공검수 탭은 측점 흐름표로 대체 · [BUILD2503] 측점·CSV 탭은 3상자 화면 *//* [BUILD2401] */
         if(cat==='gw'){try{h+=fldInspGwView9(sel);}catch(_gv){}}/* [BUILD2405] 관공검수 3열(시작·종료·분기) */
         if(cat==='pt'){try{h+=fldInspPtView9(sel);}catch(_pv){}}/* [BUILD2503] 측점·CSV검수 3상자 */
         if(cat==='dep'){try{h+=fldInspDepView9(sel);}catch(_dv){}}/* [BUILD2564] 심도검수(독립 사본) */
-        if(cat==='gap'){h+='<div style="color:#999;padding:28px;text-align:center;font-size:13px">이격거리 검수 — 준비 중(기능 정의 대기)</div>';}/* [BUILD2642] */
+        if(cat==='gap'){try{h+=fldInspGapView9(sel);}catch(_gp){h+='<div style="color:#c62828">이격거리 검수 오류: '+_gp.message+'</div>';}}/* [BUILD2645] */
         if(showRows||showDep)h+='<table style="width:100%;border-collapse:collapse;margin-bottom:8px"><tr><th style="'+TH+'">\uD56D\uBAA9</th><th style="'+TH+'">\uC57C\uC7A5</th><th style="'+TH+'">\uC778\uC785\uCC3D</th><th style="'+TH+'">\uAD6C\uAC04\uC18D\uC131</th><th style="'+TH+'" title="\uCE21\uC810 \uCF54\uB4DC \u2194 \uADF8 \uC810\uC744 \uC9C0\uB098\uB294 \uAD6C\uAC04 \uD569\uC0B0">\uCE21\uC810\u2194\uD569\uC0B0</th><th style="'+TH+'">\uD310\uC815</th></tr>';
         if(showRows)a.rows.forEach(function(r){h+='<tr><td style="'+TD+';font-weight:800">'+r.name+'</td>'+['\uC57C\uC7A5','\uC778\uC785','\uAD6C\uAC04','\uCE21\uC810'].map(function(k){var v=r.vals[k];return '<td style="'+TD+'">'+(v==null||v===''?'<span style=\"color:#bbb\">\u2013</span>':E(v)+((k==='\uCE21\uC810'&&r.mixed)?' <span style=\"color:#c62828\">\uD63C\uC7AC</span>':''))+'</td>';}).join('')+'<td style="'+TD+';font-weight:800;color:'+stC(r.st)+'">'+stT(r.st)+'</td></tr>';});
         if(showDep)h+='<tr><td style="'+TD+';font-weight:800">\uC2EC\uB3C4</td><td colspan=4 style="'+TD+'">\uACB0\uCE21 '+a.depth.miss+' / '+a.depth.n+(a.depth.avg!=null?(' \u00B7 \uD3C9\uADE0 '+a.depth.avg.toFixed(2)+'m'):'')+'</td><td style="'+TD+';font-weight:800;color:'+(a.depth.miss?'#c62828':'#2e7d32')+'">'+(a.depth.miss?'\u26A0 \uACB0\uCE21':'\uC77C\uCE58')+'</td></tr>';
@@ -12635,7 +12692,7 @@ function fldInspWin9(sel){
     card.innerHTML=h;w.id='fldInspOv9';w.style.cssText='display:contents';w.appendChild(card);mc.appendChild(w);
     cw.style.marginRight='60%';if(getComputedStyle(cw).position==='static')cw.style.position='relative';/* [BUILD2402] 패널 60% 복원 — 목록 열을 도면 옆(구 빈 영역)으로 붙이고 열 폭만 축소 */
     window._fldInspOpen9=true;
-    try{['fldInspMidHL9','fldInspPtHL9','fldInspDpHL9'].forEach(function(id){var e=document.getElementById(id);if(e)e.remove();});window._fldInspMidHLix9=-1;}catch(_cl9){}/* [BUILD2493] 구간 전환·재렌더 시 이전 인입/분기 파란 라인·원 제거 — 도면엔 선택 구간만 */
+    try{['fldInspMidHL9','fldInspPtHL9','fldInspDpHL9','fldInspGapHL9'].forEach(function(id){var e=document.getElementById(id);if(e)e.remove();});window._fldInspMidHLix9=-1;}catch(_cl9){}/* [BUILD2493] 구간 전환·재렌더 시 이전 인입/분기 파란 라인·원 제거 — 도면엔 선택 구간만 */
     try{fldInspHL9(sel);if(sel>=0){var _sgF=(_tgSegs||[])[sel];setTimeout(function(){fldInspFit9(_sgF);fldInspTags9();},60);}else{setTimeout(function(){if(!window._fldInspFitLock9&&typeof fitView==='function')fitView();fldInspTags9();},120);}}catch(_fv){}/* [BUILD2371] 선택 구간 색칠·자동이동 · [BUILD2372] 태그 */
     try{fldInspTags9();}catch(_tg){}
     card.querySelector('#fiClose9').onclick=function(){fldInspClose9();};
@@ -12649,6 +12706,7 @@ function fldInspWin9(sel){
     if(cat==='pt'){try{_fldInspPtBind9(card);}catch(_pb){}}/* [BUILD2503] */
     if(cat==='dep'){try{_fldInspDpBind9(card);}catch(_db){}}/* [BUILD2564] */
     if(cat==='all'&&sel===-1){try{_fldInspAllBind9(card);}catch(_ab){}}/* [BUILD2625] 통합검수 */
+    if(cat==='gap'){try{_fldInspGapBind9(card);}catch(_gb){}}/* [BUILD2645] 이격거리 */
     try{card.querySelectorAll('.fiSheet9[data-hl]').forEach(function(bx){_fldInspHlDom9(bx);});}catch(_hd9){}/* [BUILD2453] 벽 강조 DOM 보강 */
     try{card.querySelectorAll('.fiFit9').forEach(function(el){var fs=parseFloat(getComputedStyle(el).fontSize)||12;var n=0;while(el.scrollWidth>el.clientWidth+1&&fs>8&&n++<12){fs-=0.5;el.style.fontSize=fs+'px';}});}catch(_ft9){}/* [BUILD2550] 시설명 한 줄 자동 축소 */
     try{card.querySelectorAll('.fiMidRow9').forEach(function(tr){tr.onclick=function(){_fldInspMidHL9(+this.getAttribute('data-mi'));};});}catch(_mr9){}/* [BUILD2461] 인입/분기 행 클릭 → 라인 강조 */
@@ -21992,7 +22050,7 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    if(_bd9==null||dd9<_bd9){_bd9=dd9;_pdv9=[vx,vy];}}});}catch(_pe9){}
   var F9=hyun.length?hyunFoot(x,y,_pdv9):null;
   if(F9&&F9.d>=0.3&&F9.d<=30&&dep9!=null){
-   S.items.push({t:'pl',lay:'SDDIM',pts:[[x,y],[F9.fx,F9.fy]],cl:0,tam:(_tp9?1:0)});
+   S.items.push({t:'pl',lay:'SDDIM',pts:[[x,y],[F9.fx,F9.fy]],cl:0,tam:(_tp9?1:0),no:String(p.no),gd:F9.d});/* [BUILD2645] 검수용 측점 번호·거리 태그(DXF 무영향) */
    var LL9=F9.d,ux9=(F9.fx-x)/LL9,uy9=(F9.fy-y)/LL9;
    var th9=Math.atan2(uy9,ux9)*180/Math.PI;if(th9<0)th9+=360;
    var rd9=th9;if(rd9>90&&rd9<=270)rd9=(rd9+180)%360;/* 글자 뒤집힘 방지 */
@@ -22000,8 +22058,8 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    var mx9=x+ux9*LL9/2,my9=y+uy9*LL9/2;
    var ds9=LL9.toFixed(1),zs9='('+dep9.toFixed(1)+')';
    var wD9=ds9.length*0.72/2,wZ9=zs9.length*0.72/2;
-   S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wD9+rnx9*0.2,y:my9-ruy9*wD9+rny9*0.2,h:1.0,s:ds9,rot:rd9,cx:mx9+rnx9*0.2,cy:my9+rny9*0.2,mid:1,bx:mx9,by:my9,nx9:rnx9,ny9:rny9,side:1,tam:(_tp9?1:0)});/* [BUILD2267] 화면 간격 대칭 *//* [BUILD2264] 화면은 cx,cy+중앙정렬 — 글자크기 무관 정렬 */
-   S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wZ9-rnx9*1.2,y:my9-ruy9*wZ9-rny9*1.2,h:1.0,s:zs9,rot:rd9,cx:mx9-rnx9*1.2,cy:my9-rny9*1.2,mid:1,bx:mx9,by:my9,nx9:rnx9,ny9:rny9,side:-1,tam:(_tp9?1:0)});/* [BUILD2267] *//* [BUILD2264] */
+   S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wD9+rnx9*0.2,y:my9-ruy9*wD9+rny9*0.2,h:1.0,s:ds9,rot:rd9,cx:mx9+rnx9*0.2,cy:my9+rny9*0.2,mid:1,bx:mx9,by:my9,nx9:rnx9,ny9:rny9,side:1,tam:(_tp9?1:0),no:String(p.no)});/* [BUILD2645] no *//* [BUILD2267] 화면 간격 대칭 *//* [BUILD2264] 화면은 cx,cy+중앙정렬 — 글자크기 무관 정렬 */
+   S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wZ9-rnx9*1.2,y:my9-ruy9*wZ9-rny9*1.2,h:1.0,s:zs9,rot:rd9,cx:mx9-rnx9*1.2,cy:my9-rny9*1.2,mid:1,bx:mx9,by:my9,nx9:rnx9,ny9:rny9,side:-1,tam:(_tp9?1:0),no:String(p.no)});/* [BUILD2645] no *//* [BUILD2267] *//* [BUILD2264] */
   }
  }});
  /* 3) 맨홀 SD100 + SD219 시설물번호 */
