@@ -12090,10 +12090,10 @@ function _fldInspDpManOpen9(card){/* [BUILD2576] ★수동 심도검수 창 v3 �
         var slope=function(x0,dd,kt){if(!dd)return null;var den=dd[0]-kt*dd[1];if(Math.abs(den)<1e-9)return null;var sL=(kt*yf-x0)/den;if(!(sL>0))return null;return {s:sL,y:yf+sL*dd[1],x:x0+sL*dd[0]};};
         var SL=slope(xbl,dL,ktl),SR=(haveG&&xbr!=null)?slope(xbr,dR,ktr):null;
         /* [BUILD2596] ★하늘색선 비율(교차비) 방식 — 사용자 제안. 아래선·위선을 '같은 시작·끝 단면'에서 그었다고 보고, 소실점 V·시작점·끝점 3쌍 대응으로 아래선→위선 사영(교차비 보존) → P와 같은 단면의 위선점 T(우측 Q→S). 그 T의 3D 높이(P와 같은 z) = 상단 높이. 대칭 조건 불필요(카메라 중앙이어도 됨) */
-        var RT=null;try{if(V&&o.hitL){var mapCR=function(P0,Lb,Lt){var db=[Lb[0][0]-V[0],Lb[0][1]-V[1]];var Ldb=Math.hypot(db[0],db[1])||1;var ub=[db[0]/Ldb,db[1]/Ldb];var dt=[Lt[0][0]-V[0],Lt[0][1]-V[1]];var Ldt=Math.hypot(dt[0],dt[1])||1;var ut=[dt[0]/Ldt,dt[1]/Ldt];
-            var ub_=function(X){return (X[0]-V[0])*ub[0]+(X[1]-V[1])*ub[1];};var ut_=function(X){return (X[0]-V[0])*ut[0]+(X[1]-V[1])*ut[1];};
-            var b0=ub_(Lb[0]),b1=ub_(Lb[1]),t0=ut_(Lt[0]),t1=ut_(Lt[1]);/* near=V에서 먼 점 */var bn=Math.max(b0,b1),bf=Math.min(b0,b1),tn=Math.max(t0,t1),tf=Math.min(t0,t1);var up=ub_(P0);
-            if(Math.abs(up-bf)<1e-9||bn===0||tn===0)return null;var CR=((up-bn)/(up-bf))*(bf/bn);var k=CR*tn/tf;if(Math.abs(1-k)<1e-12)return null;var v=(tn-k*tf)/(1-k);return [V[0]+ut[0]*v,V[1]+ut[1]*v];};
+        var RT=null;try{if(V&&o.hitL){var mapCR=function(P0,Lb,Lt){/* [BUILD2615] ★그은 선을 따라 교차비: 선이 V를 정확히 안 지나도 각 선 위 'V의 수선의 발'을 소실 기준점으로 써서 결과점이 항상 그은 선 위에 놓임(종전: V→첫점 방향=하늘색선 위에 찍히던 오류) */
+            var axis=function(L){var dx=L[1][0]-L[0][0],dy=L[1][1]-L[0][1],Ld=Math.hypot(dx,dy)||1;var u=[dx/Ld,dy/Ld];var t=((V[0]-L[0][0])*u[0]+(V[1]-L[0][1])*u[1]);var Vf=[L[0][0]+u[0]*t,L[0][1]+u[1]*t];/* V의 수선의 발 */if(((L[0][0]-Vf[0])*u[0]+(L[0][1]-Vf[1])*u[1])<0)u=[-u[0],-u[1]];/* u = V에서 멀어지는 방향 */return {u:u,Vf:Vf,at:function(X){return (X[0]-Vf[0])*u[0]+(X[1]-Vf[1])*u[1];}};};
+            var B=axis(Lb),T=axis(Lt);var b0=B.at(Lb[0]),b1=B.at(Lb[1]),t0=T.at(Lt[0]),t1=T.at(Lt[1]);var bn=Math.max(b0,b1),bf=Math.min(b0,b1),tn=Math.max(t0,t1),tf=Math.min(t0,t1);var Pf=[P0[0],P0[1]];var up=B.at(Pf);
+            if(Math.abs(up-bf)<1e-9||bn===0||tn===0||bf<=0||tf<=0)return null;var CR=((up-bn)/(up-bf))*(bf/bn);var k=CR*tn/tf;if(Math.abs(1-k)<1e-12)return null;var v=(tn-k*tf)/(1-k);return [T.Vf[0]+T.u[0]*v,T.Vf[1]+T.u[1]*v];};
           var Timg=mapCR(o.hitL,M.bot,M.top);var Simg=(haveG&&o.hitR)?mapCR(o.hitR,M.gbot,M.gtop):null;
           /* [BUILD2613] 위선점이 그은 위선 구간 밖(하늘색 연장선)에 떨어지면 구간 끝점으로 붙이고 경고 — 작업자가 그은 선을 우선 */
           var clampSeg=function(pt,L,tag){if(!pt||!L||L.length<2)return pt;var a=L[0],b=L[1];var dx=b[0]-a[0],dy=b[1]-a[1],L2=dx*dx+dy*dy||1;var t=((pt[0]-a[0])*dx+(pt[1]-a[1])*dy)/L2;if(t>=0&&t<=1)return pt;var tc=Math.max(0,Math.min(1,t));o.clamp=(o.clamp||'')+tag+' ';return [a[0]+dx*tc,a[1]+dy*tc];};
