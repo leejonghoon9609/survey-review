@@ -11921,8 +11921,8 @@ function fldInspDepView9(sel){
     var h='<div id="fiDpRoot9" style="display:flex;flex-direction:column;gap:8px;min-height:0">';
     /* ---------- 1행: ① 조서 카드 | ③ CSV 성과 ---------- */
     if(sel<0){h+='<div id="fiDpTop9" style="display:none"></div>';}else{/* [BUILD2562] 전체 모드: 조서 카드·CSV 성과 상자(1행) 제거 — 배너·대조표·측점표만. 빈 자리표시자는 배너 삽입 앵커용 */
-    h+='<div id="fiDpTop9" style="display:flex;gap:10px;align-items:stretch;flex:none">';
-    h+='<div id="fiDpJzBox9" class="fiDpJz9" style="'+BX+';flex:none;width:54%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:flex-start">'+_fldInspDpJzCard9(p)+'</div>';/* [BUILD2532] 최소 높이 320px — 탐사점 안내처럼 카드가 짧을 때 옆 CSV 성과창이 함께 납작해지던 문제 */
+    h+='<div id="fiDpTop9" style="display:flex;gap:10px;align-items:stretch;flex:0 0 52%;min-height:0;box-sizing:border-box">';/* [BUILD2672] 1행(조서 카드·CSV) = 패널 높이의 52% 고정, 2행(심도 목록·사진) = 48% — 측량현장·정위치 등 페이지 패널 높이가 달라도 같은 비율 */
+    h+='<div id="fiDpJzBox9" class="fiDpJz9" style="'+BX+';flex:none;width:54%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:flex-start;min-height:0;overflow:auto">'/* [BUILD2672] 1행이 비율 고정이라 카드가 길면 카드 안에서 스크롤 */+_fldInspDpJzCard9(p)+'</div>';/* [BUILD2532] 최소 높이 320px — 탐사점 안내처럼 카드가 짧을 때 옆 CSV 성과창이 함께 납작해지던 문제 */
     var CT='padding:1px 4px;border:1px solid #c8e2cf;font-size:10px;white-space:nowrap;text-align:left';/* [BUILD2565] CSV 표 축소 */
     var tbl=function(src,title,cs){if(cs&&cs.rows&&src==='af'){cs={head:cs.head.slice(0,5),rows:cs.rows.map(function(r){return r.slice(0,5);})};}/* [BUILD2568] 후측량 CSV는 이름·X·Y·Z(레벨)·코드만(원본파일 열 제거) */var t='<div style="flex:1;min-height:0;min-width:0;display:flex;flex-direction:column"><div style="font-size:11px;font-weight:800;color:#1b5e20;margin-bottom:1px">'+title+(cs?(' <span style="font-weight:400;color:#666">· '+cs.rows.length+'행</span>'):'')+'</div>';
       if(!cs||!cs.rows.length)return t+'<div style="color:#999;font-size:11.5px;padding:8px">성과 없음</div></div>';
