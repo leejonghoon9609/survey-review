@@ -22003,6 +22003,21 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
    return rows;
   }catch(_mr9){return 0;}
  }
+ function _mnPattern9(px,py,n100,n50,nae){/* [BUILD2764] 맨홀 앞점 관표시 = 맨홀도 원 배열 그대로 — 가장 가까운 맨홀 야장에서 100·50 개수가 같은 벽을 찾아 원별 내관(●) 위치 반환 {r100:[[0/1..]..](아래행부터), r50:[0/1..]} */
+  try{
+   var recs=(typeof mnList==='function')?mnList():(state.mnList||[]);if(!recs||!recs.length)return null;
+   var mhs=(state.manholes||[]);var best=null,bd=null;
+   for(var i=0;i<recs.length;i++){var r=recs[i];if(!r||r.delAt||r.mhId==null||!r.pipes)continue;for(var j=0;j<mhs.length;j++){var m=mhs[j];if(!m||m.id!==r.mhId||m.wx==null)continue;var d=Math.hypot(px-m.wx,py-m.wy);if(bd==null||d<bd){bd=d;best=r;}}}
+   if(!best||bd==null||bd>60)return null;
+   var cands=[];
+   ['p1','p2','p3','p4'].forEach(function(w){var pw=best.pipes&&best.pipes[w];if(!pw||!pw.groups)return;var c100=[],c50=[];pw.groups.forEach(function(g){(g.circles||[]).forEach(function(c){var st=(c.st!=null?c.st:(c.fill?1:0));if(st===2)return;var o={x:+c.x,y:+c.y,fi:(st===1)?1:0,dia:+c.dia||0};if(o.dia<=50)c50.push(o);else c100.push(o);});});
+    if(c100.length!==(n100||0)||c50.length!==(n50||0))return;if(!c100.length&&!c50.length)return;
+    function rowsOf(arr,tol){if(!arr.length)return [];var a=arr.slice().sort(function(p,q){return p.y-q.y;});var rows=[[a[0]]];for(var k=1;k<a.length;k++){if(a[k].y-a[k-1].y>tol)rows.push([a[k]]);else rows[rows.length-1].push(a[k]);}return rows.map(function(rw){return rw.sort(function(p,q){return p.x-q.x;}).map(function(o){return o.fi;});});}
+    var r100=rowsOf(c100,Math.max(1,100*0.6)),r50=rowsOf(c50,Math.max(1,50*0.6));var fc=0;c100.concat(c50).forEach(function(o){fc+=o.fi;});
+    cands.push({r100:r100,r50:r50.length?r50[0]:[],fc:fc});});
+   if(!cands.length)return null;cands.sort(function(a,b){return Math.abs(a.fc-(nae||0))-Math.abs(b.fc-(nae||0));});return cands[0];
+  }catch(_mp9){return null;}
+ }
  function _segSpec9(px,py){/* 관경/재질/공수/열/단/내관 — 없으면 사업 공통값 폴백 */
   var M=_segM9(px,py)||{};
   var ext=(''+(M.ext||'')).trim()||outer;
@@ -22221,11 +22236,12 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var _bx9=_ax9+_mkU9[0]*_W9,_by9=_ay9+_mkU9[1]*_W9;
   S.items.push({t:'pl',lay:'SD983',cl:1,lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9,pts:[[_ax9,_ay9],[_bx9,_by9],[_bx9+_mkV9[0]*_H9,_by9+_mkV9[1]*_H9],[_ax9+_mkV9[0]*_H9,_ay9+_mkV9[1]*_H9]]});/* [BUILD2322] 외곽 박스 복원(완료본 규격: 열x단) */
   var _naeLeft9=0;try{_naeLeft9=Math.max(0,parseInt(_SP9.nae,10)||0);}catch(_ne9){}/* [BUILD2763] 내관(통신선 들어간 관) 수 = 태그 괄호값 → 원 앞에서부터 그 개수만큼 검정 채움(맨홀도 표기와 동일) */
-  function _mkRow9(cnt,r0,vOff){var _dm=r0*2;for(var _c9=0;_c9<cnt&&_c9<12;_c9++){var _ou9=(_c9+0.5)*_dm,_ov9=vOff+r0;var _fi9=(_naeLeft9>0)?1:0;if(_fi9)_naeLeft9--;
+  var _pat9=null;try{var _sgP9=(_psSegs9&&_psSegs9[_pi9])||null;if(_sgP9&&_sgP9.length>=2&&((_sgP9[0]&&_sgP9[0].mh)||(_sgP9[_sgP9.length-1]&&_sgP9[_sgP9.length-1].mh))&&typeof _mnPattern9==='function')_pat9=_mnPattern9(mx,my,_n100,_n50,_naeLeft9);}catch(_pt9){}/* [BUILD2764] 맨홀 앞점: 맨홀도 원별 ● 위치 그대로(개수 일치 벽), 없으면 앞에서부터 개수 채움 */
+  function _mkRow9(cnt,r0,vOff,fills){var _dm=r0*2;for(var _c9=0;_c9<cnt&&_c9<12;_c9++){var _ou9=(_c9+0.5)*_dm,_ov9=vOff+r0;var _fi9;if(fills){_fi9=fills[_c9]?1:0;}else{_fi9=(_naeLeft9>0)?1:0;if(_fi9)_naeLeft9--;}
    S.items.push({t:'ci',lay:'SD983',x:_ax9+_mkU9[0]*_ou9+_mkV9[0]*_ov9,y:_ay9+_mkU9[1]*_ou9+_mkV9[1]*_ov9,r:r0,fi:_fi9,lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9});}}
   var _vo9=0;
-  if(_n100>0){for(var _rr9=0;_rr9<_rows9;_rr9++){var _cnt9=Math.min(_cpr9,_n100-_rr9*_cpr9);if(_cnt9<=0)break;_mkRow9(_cnt9,0.5,_vo9);_vo9+=1.0;}}
-  if(_n50>0){_mkRow9(_n50,0.25,_vo9);_vo9+=0.5;}
+  if(_n100>0){for(var _rr9=0;_rr9<_rows9;_rr9++){var _cnt9=Math.min(_cpr9,_n100-_rr9*_cpr9);if(_cnt9<=0)break;_mkRow9(_cnt9,0.5,_vo9,(_pat9&&_pat9.r100)?(_pat9.r100[_rr9]||[]):null);_vo9+=1.0;}}
+  if(_n50>0){_mkRow9(_n50,0.25,_vo9,_pat9?(_pat9.r50||[]):null);_vo9+=0.5;}
   /* 채움(내관 해치)·관종 분리 = 내일 입력 체계와 함께(완료본 해치 위치 불규칙=작업자 지정 영역 실측) */
  });
  /* [BUILD2204] 현황선 — 실물 표준 레이어 DORO(색4). ★현황결선은 insp:true가 정상이라 insp 제외 금지(2203 결함). 기존 도엽에만 배정 */
