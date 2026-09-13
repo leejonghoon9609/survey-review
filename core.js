@@ -22220,8 +22220,9 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   S.items.push({t:'pl',lay:'SD983',cl:0,pts:[[mx,my],[_ax9,_ay9]],lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9});/* 연결선 */
   var _bx9=_ax9+_mkU9[0]*_W9,_by9=_ay9+_mkU9[1]*_W9;
   S.items.push({t:'pl',lay:'SD983',cl:1,lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9,pts:[[_ax9,_ay9],[_bx9,_by9],[_bx9+_mkV9[0]*_H9,_by9+_mkV9[1]*_H9],[_ax9+_mkV9[0]*_H9,_ay9+_mkV9[1]*_H9]]});/* [BUILD2322] 외곽 박스 복원(완료본 규격: 열x단) */
-  function _mkRow9(cnt,r0,vOff){var _dm=r0*2;for(var _c9=0;_c9<cnt&&_c9<12;_c9++){var _ou9=(_c9+0.5)*_dm,_ov9=vOff+r0;
-   S.items.push({t:'ci',lay:'SD983',x:_ax9+_mkU9[0]*_ou9+_mkV9[0]*_ov9,y:_ay9+_mkU9[1]*_ou9+_mkV9[1]*_ov9,r:r0,lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9});}}
+  var _naeLeft9=0;try{_naeLeft9=Math.max(0,parseInt(_SP9.nae,10)||0);}catch(_ne9){}/* [BUILD2763] 내관(통신선 들어간 관) 수 = 태그 괄호값 → 원 앞에서부터 그 개수만큼 검정 채움(맨홀도 표기와 동일) */
+  function _mkRow9(cnt,r0,vOff){var _dm=r0*2;for(var _c9=0;_c9<cnt&&_c9<12;_c9++){var _ou9=(_c9+0.5)*_dm,_ov9=vOff+r0;var _fi9=(_naeLeft9>0)?1:0;if(_fi9)_naeLeft9--;
+   S.items.push({t:'ci',lay:'SD983',x:_ax9+_mkU9[0]*_ou9+_mkV9[0]*_ov9,y:_ay9+_mkU9[1]*_ou9+_mkV9[1]*_ov9,r:r0,fi:_fi9,lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9});}}
   var _vo9=0;
   if(_n100>0){for(var _rr9=0;_rr9<_rows9;_rr9++){var _cnt9=Math.min(_cpr9,_n100-_rr9*_cpr9);if(_cnt9<=0)break;_mkRow9(_cnt9,0.5,_vo9);_vo9+=1.0;}}
   if(_n50>0){_mkRow9(_n50,0.25,_vo9);_vo9+=0.5;}
@@ -22246,8 +22247,9 @@ function _pdSer9(items){/* 장면 items → DXF 엔티티 문자열 (핸들은 �
   if(it.t==='pl')e+=_pdPL(it.lay,it.pts,it.cl?true:false,it.c62);
   else if(it.t==='ins')e+=_pdIns(it.lay,it.name,it.x,it.y);
   else if(it.t==='tx')e+=_pdText(it.lay,it.x,it.y,it.h,it.s,it.rot);
-  else if(it.t==='ci')e+=_pdCirc(it.lay,it.x,it.y,it.r);}
+  else if(it.t==='ci'){e+=_pdCirc(it.lay,it.x,it.y,it.r);if(it.fi)e+=_pdHatchCirc9(it.lay,it.x,it.y,it.r);}}/* [BUILD2763] 내관 채움 = SOLID HATCH */
  return e;}
+function _pdHatchCirc9(lay,x,y,r){/* [BUILD2763] 원 SOLID 해치(맨홀도 eHatchCirc(solid) 형식 이식, 정위치 핸들 체계) */return ['  0','HATCH','  5',_pdHx(),'100','AcDbEntity','  8',lay,'100','AcDbHatch',' 10','0',' 20','0',' 30','0','210','0','220','0','230','1','  2','SOLID',' 70','1',' 71','0',' 91','1',' 92','1',' 93','1',' 72','2',' 10',_pdN(x),' 20',_pdN(y),' 40',_pdN(r),' 50','0',' 51','360',' 73','1',' 97','0',' 75','1',' 76','1',' 98','0'].join('\r\n')+'\r\n';}
 function posExportDxf(){
  if(typeof JSZip==='undefined'){toast('압축 모듈 없음 — 새로고침(Ctrl+Shift+R)');return;}
  var sc=posScene9();
@@ -22491,7 +22493,7 @@ function _sdDrawItem9(g,it){var _n0=g.childNodes.length;try{/* [BUILD2648] 측�
    _ht9.style.cursor='move';_sdLeadDrag9(_ht9,it);_sdLeadPut9(_ht9,it);g.appendChild(_ht9);}
   g.appendChild(_pn9);
  }else if(it.t==='ci'){
-  var c=S(it.x,it.y);var _cn9=el('circle',{cx:c[0],cy:c[1],r:it.r,fill:'none',stroke:col,'stroke-width':(0.07*_SDVW9.sym),'pointer-events':'none'});if(it.lk&&it.fw9)_sdLeadPut9(_cn9,it);g.appendChild(_cn9);
+  var c=S(it.x,it.y);var _cn9=el('circle',{cx:c[0],cy:c[1],r:it.r,fill:(it.fi?col:'none'),stroke:col,'stroke-width':(0.07*_SDVW9.sym),'pointer-events':'none'});/* [BUILD2763] 내관 검정 채움 */if(it.lk&&it.fw9)_sdLeadPut9(_cn9,it);g.appendChild(_cn9);
  }else if(it.t==='tx'){
   var c2,_md9=(it.mid&&it.side!=null&&it.bx!=null);
   if(_md9)c2=S(it.bx,it.by);/* [BUILD2269] 이격선 위의 기준점 — 상하 배치는 그린 뒤 실측 보정 */
