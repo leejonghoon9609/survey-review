@@ -21979,6 +21979,7 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
   for(var j=0;j<hyun.length;j++){var a2=hyun[j][0],b2=hyun[j][1];var vx2=b2[0]-a2[0],vy2=b2[1]-a2[1];var den=ux*vy2-uy*vx2;if(Math.abs(den)<1e-9)continue;var s2=((a2[0]-px)*vy2-(a2[1]-py)*vx2)/den;var u2=((a2[0]-px)*uy-(a2[1]-py)*ux)/den;if(s2<0.05||s2>30.5||u2<0||u2>1)continue;var ix=px+ux*s2,iy=py+uy*s2;if(!best||s2<best.d)best={d:s2,fx:ix,fy:iy};}
   return best;
 }
+ try{window._sdHyunDir9=hyunFootDir9;}catch(_hx9){}/* [BUILD2782] 미리보기용 노출 */
  /* 측점 매칭: 관로 정점 ↔ state.points (0.3m) */
  function ptAt(x,y){var ps=state.points||[];for(var i=0;i<ps.length;i++){if(Math.abs(ps[i].x-x)<0.3&&Math.abs(ps[i].y-y)<0.3)return ps[i];}return null;}
  function mhAt(x,y){var ms=state.manholes||[];for(var i=0;i<ms.length;i++){if(ms[i].wx!=null&&Math.abs(ms[i].wx-x)<0.6&&Math.abs(ms[i].wy-y)<0.6)return ms[i];}return null;}
@@ -22627,15 +22628,31 @@ function posLeadClick9(w){/* [BUILD2779] */
 }
 function posDimTb9(){/* [BUILD2780] ★정위치 이격거리 편집 툴바 — [삽입] 측점 클릭 → 관로선 기준 좌·우·위·아래 쪽을 클릭 → 그 방향 현황선까지 이격선+거리·(심도) 텍스트 / [삭제] 측점 클릭 → 그 측점 이격선·텍스트 제거 */
  var cw=document.querySelector('.canvas-wrap');if(!cw)return;var tb=document.getElementById('posDimTb9');
- if(!window._posDimEdit9){if(tb)tb.remove();window._posDimMode9=null;window._posDimPick9=null;return;}
+ if(!window._posDimEdit9){if(tb)tb.remove();window._posDimMode9=null;window._posDimPick9=null;try{_posPrevG9();}catch(_pg){}return;}
  if(!tb){tb=document.createElement('div');tb.id='posDimTb9';document.body.appendChild(tb);}var _r8=cw.getBoundingClientRect();tb.style.cssText='position:fixed;left:'+Math.round(_r8.left+6)+'px;top:'+Math.round(Math.max(4,_r8.top-38))+'px;z-index:60;display:flex;gap:6px;background:#fff;border:1.5px solid #00838f;border-radius:8px;padding:3px 7px;box-shadow:0 2px 8px rgba(0,0,0,.15);height:30px;box-sizing:border-box';/* [BUILD2781] */
  var m=window._posDimMode9||null,pk=window._posDimPick9;function b(id,l,on,col){return '<button id="'+id+'" style="font-size:12px;font-weight:800;padding:2px 12px;border-radius:6px;cursor:pointer;border:1.5px solid '+col+';background:'+(on?col:'#fff')+';color:'+(on?'#fff':col)+'">'+l+'</button>';}
  tb.innerHTML='<span style="font-size:11px;font-weight:800;color:#00838f;align-self:center">이격거리</span>'+b('posDimIns9','삽입',m==='ins','#1565c0')+b('posDimDel9','삭제',m==='del','#c62828')+'<span style="font-size:10.5px;color:#666;align-self:center">'+(m==='ins'?(pk?('측점 '+pk.no+' — 이격선을 낼 쪽(관로선 기준 좌·우·위·아래)을 클릭'):'측점을 클릭'):(m==='del'?'없앨 이격선의 측점을 클릭':'모드를 고르세요'))+'</span>';
  document.getElementById('posDimIns9').onclick=function(){window._posDimMode9=(m==='ins')?null:'ins';window._posDimPick9=null;posDimTb9();};document.getElementById('posDimDel9').onclick=function(){window._posDimMode9=(m==='del')?null:'del';window._posDimPick9=null;posDimTb9();};
  if(!window._posDimBound9){window._posDimBound9=1;var st=null;
   cv.addEventListener('pointerdown',function(e){if(!window._posDimMode9||e.button!==0){st=null;return;}st=[e.clientX,e.clientY];},true);
-  cv.addEventListener('pointerup',function(e){if(!window._posDimMode9||!st)return;var mv=Math.hypot(e.clientX-st[0],e.clientY-st[1]);st=null;if(mv>4)return;e.preventDefault();e.stopPropagation();try{posDimClick9(toWorld(e.clientX,e.clientY));}catch(_pc){}},true);}
+  cv.addEventListener('pointerup',function(e){if(!window._posDimMode9||!st)return;var mv=Math.hypot(e.clientX-st[0],e.clientY-st[1]);st=null;if(mv>4)return;e.preventDefault();e.stopPropagation();try{posDimClick9(toWorld(e.clientX,e.clientY));}catch(_pc){}},true);
+  cv.addEventListener('pointermove',function(e){if(!window._posDimMode9){posDimPrev9(null);return;}try{posDimPrev9(toWorld(e.clientX,e.clientY));}catch(_pm){}},true);}
 }
+function _posPrevG9(){var g=document.getElementById('posPrevG9');if(!g){g=document.createElementNS('http://www.w3.org/2000/svg','g');g.id='posPrevG9';g.setAttribute('pointer-events','none');}if(g.parentNode!==cv)cv.appendChild(g);while(g.firstChild)g.removeChild(g.firstChild);return g;}
+function posDimPrev9(w){/* [BUILD2782] 이격거리 편집 미리보기 — 삭제: 커서 근처 측점의 기존 이격선·텍스트를 빨강 강조 / 삽입: 측점 선택 후 커서 방향으로 생길 이격선·텍스트를 마젠타로 */
+ var g=_posPrevG9();if(!w)return;var md=window._posDimMode9;
+ var tol=(vb&&vb.w&&cv)?(12*vb.w/Math.max(1,cv.getBoundingClientRect().width)):0.5;if(tol<0.1)tol=0.1;
+ function nearPt(){var bp=null,bd=1e18;(state.points||[]).forEach(function(q){if(!q||q._hyun||q.x==null)return;var d=Math.hypot(q.x-w[0],q.y-w[1]);if(d<bd){bd=d;bp=q;}});return (bp&&bd<=tol*1.5)?bp:null;}
+ var NS='http://www.w3.org/2000/svg';function ln(a,b,col,wd,dash){var e=document.createElementNS(NS,'line');var p=S(a[0],a[1]),q=S(b[0],b[1]);e.setAttribute('x1',p[0]);e.setAttribute('y1',p[1]);e.setAttribute('x2',q[0]);e.setAttribute('y2',q[1]);e.setAttribute('stroke',col);e.setAttribute('stroke-width',wd);e.setAttribute('vector-effect','non-scaling-stroke');if(dash)e.setAttribute('stroke-dasharray',dash);g.appendChild(e);}
+ function tx(x,y,str,rot,col){var e=document.createElementNS(NS,'text');var p=S(x,y);e.setAttribute('x',p[0]);e.setAttribute('y',p[1]);e.setAttribute('fill',col);e.setAttribute('font-size',1.0);e.setAttribute('font-weight','800');e.setAttribute('text-anchor','middle');e.setAttribute('dominant-baseline','middle');e.setAttribute('paint-order','stroke');e.setAttribute('stroke','#fff');e.setAttribute('stroke-width',0.12);if(rot)e.setAttribute('transform','rotate('+(-rot)+' '+p[0]+' '+p[1]+')');e.textContent=str;g.appendChild(e);}
+ if(md==='del'){var q=nearPt();if(!q)return;var no=String(q.no);var sc=window._sdCache9&&window._sdCache9.sc;if(!sc||!sc.SH)return;var found=false;Object.keys(sc.SH).forEach(function(k){(sc.SH[k].items||[]).forEach(function(it){if(String(it.no)!==no)return;if(it.t==='pl'&&it.lay==='SDDIM'&&it.pts&&it.pts.length>=2){ln(it.pts[0],it.pts[1],'#e53935',3.2);found=true;}else if(it.t==='tx'&&it.lay==='SDDIM1'&&it.cx!=null){tx(it.cx,it.cy,it.s,it.rot||0,'#e53935');found=true;}});});if(found){var c=document.createElementNS(NS,'circle');var p=S(q.x,q.y);c.setAttribute('cx',p[0]);c.setAttribute('cy',p[1]);c.setAttribute('r',0.6);c.setAttribute('fill','none');c.setAttribute('stroke','#e53935');c.setAttribute('stroke-width',2.5);c.setAttribute('vector-effect','non-scaling-stroke');g.appendChild(c);}}
+ else if(md==='ins'){var pk=window._posDimPick9;if(!pk){var q0=nearPt();if(!q0)return;var c0=document.createElementNS(NS,'circle');var p0=S(q0.x,q0.y);c0.setAttribute('cx',p0[0]);c0.setAttribute('cy',p0[1]);c0.setAttribute('r',0.6);c0.setAttribute('fill','none');c0.setAttribute('stroke','#e91e63');c0.setAttribute('stroke-width',2.5);c0.setAttribute('vector-effect','non-scaling-stroke');g.appendChild(c0);return;}
+  var dx=w[0]-pk.x,dy=w[1]-pk.y,L=Math.hypot(dx,dy);if(L<0.2||typeof window._sdHyunDir9!=='function')return;var F=null;try{F=window._sdHyunDir9(pk.x,pk.y,[dx/L,dy/L]);}catch(_f){}
+  if(!F||!(F.d>=0.3&&F.d<=30)){ln([pk.x,pk.y],[pk.x+dx/L*3,pk.y+dy/L*3],'#e91e63',2,'4 3');return;}
+  ln([pk.x,pk.y],[F.fx,F.fy],'#e91e63',3.2);var LL=F.d,ux=(F.fx-pk.x)/LL,uy=(F.fy-pk.y)/LL;var th=Math.atan2(uy,ux)*180/Math.PI;if(th<0)th+=360;var rd=th;if(rd>90&&rd<=270)rd=(rd+180)%360;var ra=rd*Math.PI/180,rnx=-Math.sin(ra),rny=Math.cos(ra);var mx=pk.x+ux*LL/2,my=pk.y+uy*LL/2;var dep=(state._depthByNo&&state._depthByNo[pk.no]!=null&&isFinite(state._depthByNo[pk.no]))?+state._depthByNo[pk.no]:null;
+  tx(mx+rnx*0.2+rnx*0.5,my+rny*0.2+rny*0.5,LL.toFixed(1),rd,'#e91e63');tx(mx-rnx*1.2-rnx*0.5,my-rny*1.2-rny*0.5,dep==null?'(-)':('('+dep.toFixed(1)+')'),rd,'#e91e63');}
+}
+
 function posDimClick9(w){/* [BUILD2780] */
  var tol=(vb&&vb.w&&cv)?(12*vb.w/Math.max(1,cv.getBoundingClientRect().width)):0.5;if(tol<0.1)tol=0.1;
  function nearPt(){var bp=null,bd=1e18;(state.points||[]).forEach(function(q){if(!q||q._hyun||q.x==null)return;var d=Math.hypot(q.x-w[0],q.y-w[1]);if(d<bd){bd=d;bp=q;}});return (bp&&bd<=tol*1.5)?bp:null;}
