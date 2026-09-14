@@ -21981,6 +21981,7 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
   return best;
 }
  try{window._sdHyunDir9=hyunFootDir9;}catch(_hx9){}/* [BUILD2782] 미리보기용 노출 */
+ var _dimC9=[];/* [BUILD2787] 이격선 후보 */
  /* 측점 매칭: 관로 정점 ↔ state.points (0.3m) */
  function ptAt(x,y){var ps=state.points||[];for(var i=0;i<ps.length;i++){if(Math.abs(ps[i].x-x)<0.3&&Math.abs(ps[i].y-y)<0.3)return ps[i];}return null;}
  function mhAt(x,y){var ms=state.manholes||[];for(var i=0;i<ms.length;i++){if(ms[i].wx!=null&&Math.abs(ms[i].wx-x)<0.6&&Math.abs(ms[i].wy-y)<0.6)return ms[i];}return null;}
@@ -22107,7 +22108,12 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
   var _dmM9=null,_dmD9=false;try{var _no9=String(p.no);_dmD9=!!(state.posDimDel9&&state.posDimDel9[_no9]);_dmM9=(state.posDimMan9&&state.posDimMan9[_no9])||null;}catch(_dm){}/* [BUILD2780] 이격거리 삽입(방향 지정)·삭제 */
   var F9=_dmD9?null:(_dmM9?(hyun.length?hyunFootDir9(x,y,[_dmM9.dx,_dmM9.dy]):null):(hyun.length?hyunFoot(x,y,_pdv9):null));
   if(F9&&F9.d>=0.3&&F9.d<=30&&(dep9!=null||_dmM9)){if(dep9==null)dep9=NaN;
-   S.items.push({t:'pl',lay:'SDDIM',pts:[[x,y],[F9.fx,F9.fy]],cl:0,tam:(_tp9?1:0),no:String(p.no),gd:F9.d});/* [BUILD2645] 검수용 측점 번호·거리 태그(DXF 무영향) */
+   /* [BUILD2787] 이격선 즉시 생성 대신 후보로 모음 — 수동(삽입)은 무조건, 자동은 텍스트끼리 안 겹칠 때만(측점 밀집 구간 떡짐 방지, 추가는 작업자가 삽입으로) */
+   _dimC9.push({S:S,x:x,y:y,F9:F9,dep9:dep9,tp:(_tp9?1:0),no:String(p.no),man:!!_dmM9});
+  }
+ }});
+ (function(){/* [BUILD2787] 이격선 배치: 수동 먼저 → 자동은 기존 텍스트 영역(중점 기준 원)과 겹치면 생략 */
+  var zones=[];function emit(c){var S=c.S,x=c.x,y=c.y,F9=c.F9,dep9=c.dep9;
    var LL9=F9.d,ux9=(F9.fx-x)/LL9,uy9=(F9.fy-y)/LL9;
    var th9=Math.atan2(uy9,ux9)*180/Math.PI;if(th9<0)th9+=360;
    var rd9=th9;if(rd9>90&&rd9<=270)rd9=(rd9+180)%360;/* 글자 뒤집힘 방지 */
@@ -22115,10 +22121,15 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
    var mx9=x+ux9*LL9/2,my9=y+uy9*LL9/2;
    var ds9=LL9.toFixed(1),zs9=isNaN(dep9)?'(-)':('('+dep9.toFixed(1)+')');
    var wD9=ds9.length*0.72/2,wZ9=zs9.length*0.72/2;
-   S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wD9+rnx9*0.2,y:my9-ruy9*wD9+rny9*0.2,h:1.0,s:ds9,rot:rd9,cx:mx9+rnx9*0.2,cy:my9+rny9*0.2,mid:1,bx:mx9,by:my9,nx9:rnx9,ny9:rny9,side:1,tam:(_tp9?1:0),no:String(p.no)});/* [BUILD2645] no *//* [BUILD2267] 화면 간격 대칭 *//* [BUILD2264] 화면은 cx,cy+중앙정렬 — 글자크기 무관 정렬 */
-   S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wZ9-rnx9*1.2,y:my9-ruy9*wZ9-rny9*1.2,h:1.0,s:zs9,rot:rd9,cx:mx9-rnx9*1.2,cy:my9-rny9*1.2,mid:1,bx:mx9,by:my9,nx9:rnx9,ny9:rny9,side:-1,tam:(_tp9?1:0),no:String(p.no)});/* [BUILD2645] no *//* [BUILD2267] *//* [BUILD2264] */
-  }
- }});
+   var rz=Math.hypot(Math.max(wD9,wZ9),1.7);
+   if(!c.man){for(var k=0;k<zones.length;k++){if(Math.hypot(zones[k][0]-mx9,zones[k][1]-my9)<zones[k][2]+rz)return false;}}
+   zones.push([mx9,my9,rz]);
+   S.items.push({t:'pl',lay:'SDDIM',pts:[[x,y],[F9.fx,F9.fy]],cl:0,tam:c.tp,no:c.no,gd:F9.d});/* [BUILD2645] 검수용 측점 번호·거리 태그(DXF 무영향) */
+   S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wD9+rnx9*0.2,y:my9-ruy9*wD9+rny9*0.2,h:1.0,s:ds9,rot:rd9,cx:mx9+rnx9*0.2,cy:my9+rny9*0.2,mid:1,bx:mx9,by:my9,nx9:rnx9,ny9:rny9,side:1,tam:c.tp,no:c.no});/* [BUILD2645] no *//* [BUILD2267] 화면 간격 대칭 *//* [BUILD2264] 화면은 cx,cy+중앙정렬 — 글자크기 무관 정렬 */
+   S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wZ9-rnx9*1.2,y:my9-ruy9*wZ9-rny9*1.2,h:1.0,s:zs9,rot:rd9,cx:mx9-rnx9*1.2,cy:my9-rny9*1.2,mid:1,bx:mx9,by:my9,nx9:rnx9,ny9:rny9,side:-1,tam:c.tp,no:c.no});/* [BUILD2645] no *//* [BUILD2267] *//* [BUILD2264] */
+   return true;}
+  _dimC9.filter(function(c){return c.man;}).forEach(emit);_dimC9.filter(function(c){return !c.man;}).forEach(emit);
+ })();
  /* 3) 맨홀 SD100 + SD219 시설물번호 */
  (state.manholes||[]).forEach(function(m){if(m.wx==null)return;var S=shget(m.wx,m.wy);if(!S)return;
   var isR=(m.type==='riser');
