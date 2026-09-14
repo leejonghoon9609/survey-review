@@ -22122,7 +22122,7 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
    var mx9=x+ux9*LL9/2,my9=y+uy9*LL9/2;
    var ds9=LL9.toFixed(1),zs9=isNaN(dep9)?'(-)':('('+dep9.toFixed(1)+')');
    var wD9=ds9.length*0.72/2,wZ9=zs9.length*0.72/2;
-   /* [BUILD2788] 겹침 판정 = 회전 사각(텍스트 두 줄 블록: 선 방향 폭=글자폭, 법선 방향 −1.2~+1.2) SAT — 2787의 원 판정이 너무 커서 촘촘한 구간에 하나만 남던 문제 */var ob={cx:mx9,cy:my9,ux:rux9,uy:ruy9,nx:rnx9,ny:rny9,hw:Math.max(wD9,wZ9)+0.1,hh:1.3};
+   /* [BUILD2788] 겹침 판정 = 회전 사각(텍스트 두 줄 블록: 선 방향 폭=글자폭, 법선 방향 −1.2~+1.2) SAT — 2787의 원 판정이 너무 커서 촘촘한 구간에 하나만 남던 문제 */var ob={cx:mx9,cy:my9,ux:rux9,uy:ruy9,nx:rnx9,ny:rny9,hw:Math.max(wD9,wZ9)*0.9,hh:0.85};/* [BUILD2789] 판정 상자 축소(법선 ±0.85, 폭 90%) — 살짝 겹치는 정도는 허용해 사이사이 하나씩 더 들어가게(사용자 지정 간격) */
    if(!c.man){for(var k=0;k<zones.length;k++){if(_obbHit9(zones[k],ob))return false;}}
    zones.push(ob);
    S.items.push({t:'pl',lay:'SDDIM',pts:[[x,y],[F9.fx,F9.fy]],cl:0,tam:c.tp,no:c.no,gd:F9.d});/* [BUILD2645] 검수용 측점 번호·거리 태그(DXF 무영향) */
