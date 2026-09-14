@@ -22615,7 +22615,7 @@ function posLeadTb9(){/* [BUILD2779] ★정위치 인출선 편집 툴바(도면
  document.getElementById('posLeadIns9').onclick=function(){window._posLeadMode9=(m==='ins')?null:'ins';posLeadTb9();};document.getElementById('posLeadDel9').onclick=function(){window._posLeadMode9=(m==='del')?null:'del';posLeadTb9();};
  if(!window._posLeadBound9){window._posLeadBound9=1;var st=null;
   cv.addEventListener('pointerdown',function(e){if(!window._posLeadMode9||e.button!==0){st=null;return;}st=[e.clientX,e.clientY];},true);
-  cv.addEventListener('pointerup',function(e){if(!window._posLeadMode9||!st)return;var mv=Math.hypot(e.clientX-st[0],e.clientY-st[1]);st=null;if(mv>4)return;e.preventDefault();e.stopPropagation();try{posLeadClick9(toWorld(e.clientX,e.clientY));}catch(_pc){}},true);}
+  cv.addEventListener('pointerup',function(e){if(!window._posLeadMode9||!st)return;var mv=Math.hypot(e.clientX-st[0],e.clientY-st[1]);st=null;if(mv>4)return;e.preventDefault();e.stopPropagation();try{var _w9=toWorld(e.clientX,e.clientY);posLeadClick9([_w9[0],-_w9[1]]);}catch(_pc){}},true);}/* [BUILD2783] toWorld=WF(y 반전) → 월드로 */
 }
 function posLeadClick9(w){/* [BUILD2779] */
  var tol=(vb&&vb.w&&cv)?(12*vb.w/Math.max(1,cv.getBoundingClientRect().width)):0.5;if(tol<0.1)tol=0.1;
@@ -22635,8 +22635,8 @@ function posDimTb9(){/* [BUILD2780] ★정위치 이격거리 편집 툴바 — 
  document.getElementById('posDimIns9').onclick=function(){window._posDimMode9=(m==='ins')?null:'ins';window._posDimPick9=null;posDimTb9();};document.getElementById('posDimDel9').onclick=function(){window._posDimMode9=(m==='del')?null:'del';window._posDimPick9=null;posDimTb9();};
  if(!window._posDimBound9){window._posDimBound9=1;var st=null;
   cv.addEventListener('pointerdown',function(e){if(!window._posDimMode9||e.button!==0){st=null;return;}st=[e.clientX,e.clientY];},true);
-  cv.addEventListener('pointerup',function(e){if(!window._posDimMode9||!st)return;var mv=Math.hypot(e.clientX-st[0],e.clientY-st[1]);st=null;if(mv>4)return;e.preventDefault();e.stopPropagation();try{posDimClick9(toWorld(e.clientX,e.clientY));}catch(_pc){}},true);
-  cv.addEventListener('pointermove',function(e){if(!window._posDimMode9){posDimPrev9(null);return;}try{posDimPrev9(toWorld(e.clientX,e.clientY));}catch(_pm){}},true);}
+  cv.addEventListener('pointerup',function(e){if(!window._posDimMode9||!st)return;var mv=Math.hypot(e.clientX-st[0],e.clientY-st[1]);st=null;if(mv>4)return;e.preventDefault();e.stopPropagation();try{var _w8=toWorld(e.clientX,e.clientY);posDimClick9([_w8[0],-_w8[1]]);}catch(_pc){}},true);/* [BUILD2783] */
+  cv.addEventListener('pointermove',function(e){if(!window._posDimMode9){posDimPrev9(null);return;}try{var _w7=toWorld(e.clientX,e.clientY);posDimPrev9([_w7[0],-_w7[1]]);}catch(_pm){}},true);}/* [BUILD2783] */
 }
 function _posPrevG9(){var g=document.getElementById('posPrevG9');if(!g){g=document.createElementNS('http://www.w3.org/2000/svg','g');g.id='posPrevG9';g.setAttribute('pointer-events','none');}if(g.parentNode!==cv)cv.appendChild(g);while(g.firstChild)g.removeChild(g.firstChild);return g;}
 function posDimPrev9(w){/* [BUILD2782] 이격거리 편집 미리보기 — 삭제: 커서 근처 측점의 기존 이격선·텍스트를 빨강 강조 / 삽입: 측점 선택 후 커서 방향으로 생길 이격선·텍스트를 마젠타로 */
