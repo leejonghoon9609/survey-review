@@ -22112,7 +22112,8 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
    _dimC9.push({S:S,x:x,y:y,F9:F9,dep9:dep9,tp:(_tp9?1:0),no:String(p.no),man:!!_dmM9});
   }
  }});
- (function(){/* [BUILD2787] 이격선 배치: 수동 먼저 → 자동은 기존 텍스트 영역(중점 기준 원)과 겹치면 생략 */
+ function _obbHit9(A,B){/* [BUILD2788] 회전 사각 겹침(분리축) */var ax=[[A.ux,A.uy],[A.nx,A.ny],[B.ux,B.uy],[B.nx,B.ny]];for(var i=0;i<4;i++){var x=ax[i][0],y=ax[i][1];var ca=A.cx*x+A.cy*y,cb=B.cx*x+B.cy*y;var ra=A.hw*Math.abs(A.ux*x+A.uy*y)+A.hh*Math.abs(A.nx*x+A.ny*y);var rb=B.hw*Math.abs(B.ux*x+B.uy*y)+B.hh*Math.abs(B.nx*x+B.ny*y);if(Math.abs(ca-cb)>ra+rb)return false;}return true;}
+ (function(){/* [BUILD2787·2788] 이격선 배치: 수동 먼저 → 자동은 기존 텍스트 블록(회전 사각)과 겹치면 생략 */
   var zones=[];function emit(c){var S=c.S,x=c.x,y=c.y,F9=c.F9,dep9=c.dep9;
    var LL9=F9.d,ux9=(F9.fx-x)/LL9,uy9=(F9.fy-y)/LL9;
    var th9=Math.atan2(uy9,ux9)*180/Math.PI;if(th9<0)th9+=360;
@@ -22121,9 +22122,9 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
    var mx9=x+ux9*LL9/2,my9=y+uy9*LL9/2;
    var ds9=LL9.toFixed(1),zs9=isNaN(dep9)?'(-)':('('+dep9.toFixed(1)+')');
    var wD9=ds9.length*0.72/2,wZ9=zs9.length*0.72/2;
-   var rz=Math.hypot(Math.max(wD9,wZ9),1.7);
-   if(!c.man){for(var k=0;k<zones.length;k++){if(Math.hypot(zones[k][0]-mx9,zones[k][1]-my9)<zones[k][2]+rz)return false;}}
-   zones.push([mx9,my9,rz]);
+   /* [BUILD2788] 겹침 판정 = 회전 사각(텍스트 두 줄 블록: 선 방향 폭=글자폭, 법선 방향 −1.2~+1.2) SAT — 2787의 원 판정이 너무 커서 촘촘한 구간에 하나만 남던 문제 */var ob={cx:mx9,cy:my9,ux:rux9,uy:ruy9,nx:rnx9,ny:rny9,hw:Math.max(wD9,wZ9)+0.1,hh:1.3};
+   if(!c.man){for(var k=0;k<zones.length;k++){if(_obbHit9(zones[k],ob))return false;}}
+   zones.push(ob);
    S.items.push({t:'pl',lay:'SDDIM',pts:[[x,y],[F9.fx,F9.fy]],cl:0,tam:c.tp,no:c.no,gd:F9.d});/* [BUILD2645] 검수용 측점 번호·거리 태그(DXF 무영향) */
    S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wD9+rnx9*0.2,y:my9-ruy9*wD9+rny9*0.2,h:1.0,s:ds9,rot:rd9,cx:mx9+rnx9*0.2,cy:my9+rny9*0.2,mid:1,bx:mx9,by:my9,nx9:rnx9,ny9:rny9,side:1,tam:c.tp,no:c.no});/* [BUILD2645] no *//* [BUILD2267] 화면 간격 대칭 *//* [BUILD2264] 화면은 cx,cy+중앙정렬 — 글자크기 무관 정렬 */
    S.items.push({t:'tx',lay:'SDDIM1',x:mx9-rux9*wZ9-rnx9*1.2,y:my9-ruy9*wZ9-rny9*1.2,h:1.0,s:zs9,rot:rd9,cx:mx9-rnx9*1.2,cy:my9-rny9*1.2,mid:1,bx:mx9,by:my9,nx9:rnx9,ny9:rny9,side:-1,tam:c.tp,no:c.no});/* [BUILD2645] no *//* [BUILD2267] *//* [BUILD2264] */
