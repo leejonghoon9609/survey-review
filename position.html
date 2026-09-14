@@ -170,7 +170,7 @@
   #rvBtn,#vRv{background:#f1ebff;border-color:#a98ee8;color:#6d28d9;font-weight:700}
   #bgBtn.on,#vMap.on{background:#e3a008;border-color:#e3a008;color:#fff}
   #rvBtn.on,#vRv.on{background:#7c3aed;border-color:#7c3aed;color:#fff}
-  .photo-panel{width:37%;min-width:480px;max-width:44%;background:#fff;border-left:1px solid var(--line);display:none;flex-direction:column;flex:none}
+  .photo-panel{width:44%;min-width:560px;max-width:53%;/* [BUILD2775] 정위치 후측량 사진창 가로 +20% */background:#fff;border-left:1px solid var(--line);display:none;flex-direction:column;flex:none}
   .linkon{background:#eef6ef;border-color:#bcdcc0;color:#2a9e50;font-weight:600}
   .photo-panel.open{display:flex}
   .jz-panel .php-head{flex-wrap:wrap;gap:6px}
@@ -336,7 +336,7 @@
     .fpage #viewerBar{flex:none}
     .fpage header{border-bottom:2px solid #000;position:relative}/* [1245] 헤더 하단선 파랑→검정 */
   .fpage #buildno{display:inline-block!important;position:static;order:-10;margin-right:8px;align-self:center}
-    .fpage .photo-panel{width:30%!important;min-width:360px!important;max-width:34%!important;border-left:1px solid var(--line)!important;border-top:none!important}/* [1263] 사진 기준 창 폭 축소 */
+    .fpage .photo-panel{width:36%!important;min-width:432px!important;max-width:41%!important;/* [BUILD2775] 정위치 후측량 사진창 가로 +20% (30→36%) */border-left:1px solid var(--line)!important;border-top:none!important}/* [1263] 사진 기준 창 폭 축소 */
     .fpage .photo-panel.open{height:auto!important}
     .fpage #rvPanel.open{width:42%!important;min-width:440px!important;max-width:50%!important;height:auto!important;border-left:1px solid var(--line)!important;border-top:none!important}
   }
@@ -862,7 +862,7 @@ window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
     </div>
   </div>
 
-<script src="login.js?v=2774"></script><script src="core.js?v=2774"></script>
+<script src="login.js?v=2775"></script><script src="core.js?v=2775"></script>
 <script>
 /* [BUILD2079] 폰 body 높이 = 실측 픽셀 고정 — dvh를 못 믿는 웹뷰(카톡 인앱 등)에서 패널 바닥이 화면 밖으로 나가던 문제 종결. 회전해야 고쳐지던 증상의 근본 원인 제거 */
 (function(){
