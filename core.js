@@ -1416,7 +1416,8 @@ function drawGeo(){if(typeof _lyClr9==='function')_lyClr9();/* [BUILD2192] */_or
   }}catch(_dm9){}
   try{if(typeof photoMap!=='undefined'&&photoMap&&typeof afterMap!=='undefined'&&afterMap&&!(typeof IS_TANGO!=='undefined'&&IS_TANGO)){/* [1655] \ud0b1\uace0\ub294 \uc0ac\uc9c4\uc720\ubb34 \ud45c\uc2dc \uc6d0(\ub178\ub780\ub9c1) \uc0dd\ub7b5 */
     var _refPrj=!!(typeof REF!=='undefined'&&REF&&REF.ents); /* [1278] 완료결선 업로드 사업 판별(REF 결선 존재) */
-    var _yOn=!(typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof photoPanelOpen!=='undefined'&&photoPanelOpen); /* [1280] field=사진 모드에서만 표시 */
+    var _phOn9=true;try{if(typeof IS_POSITION!=='undefined'&&IS_POSITION&&window._sdPrev9===2){_phOn9=!!_sdLVinit9().phoDone;}else if(typeof LV!=='undefined'&&LV&&LV.phoDone===0){_phOn9=false;}}catch(_po9){}/* [BUILD2776] 레이어바 '사진완료 원' */
+    var _yOn=_phOn9&&!(typeof IS_FIELD!=='undefined'&&IS_FIELD)||(typeof photoPanelOpen!=='undefined'&&photoPanelOpen); /* [1280] field=사진 모드에서만 표시 */
     if((typeof STAGE==='undefined'||STAGE!=='survey')&&(!(typeof IS_FIELD!=='undefined'&&IS_FIELD)||!_refPrj)&&_yOn){/* [1438] 결선 레이어바 */
       /* [1123·1278] field 외 공정 + field 파이프라인 사업(REF 없음) = 후측량 등록 측점에 빨강/노랑 원. 완료결선 사업만 누락 원 모드 */
       var _pd0={};state.points.forEach(function(p){if(p._hyun)return;if(typeof isRiserPt==='function'&&isRiserPt(p))return;var _k0=(typeof ptNum==='function')?ptNum(p):String(p.no||'');var _kk0=String(p.no||_k0);if(!_k0||_pd0[_kk0])return;/* [1530] \ub0a0\uc9dc\ubcc4 \ub3d9\ubc88\ud638 \uad6c\ubd84 */var _hB0=photoMap[_k0]||photoMap[p.no];var _hA0=afterMap[_k0]||afterMap[p.no];var _cm9=(window._phCM||'done');var _hit9=(_cm9==='miss')?(!_hB0||!_hA0):(_hB0&&_hA0);/* [1534] \uc644\ub8cc/\ub204\ub77d \ud1a0\uae00 */
@@ -17591,14 +17592,14 @@ try{ window.addEventListener('beforeunload', function(){ _lockRelease(); }); }ca
 /* ===== [BUILD 796] 현장(field) 레이어 패널 (도면 위 떠있는 접이식) ===== */
 function fldLayerBox(){
   if(typeof IS_POSITION!=='undefined'&&IS_POSITION&&window._sdPrev9===2)return _sdLayerBox9();/* [BUILD2293] SD 전용=SD 레이어바, 해제 시 기존 복귀 */
-  var ALL=['no','stake','code','depth','date','mh','riser','bizbox','dogak','bp','bpbox','hyun','hyunpt','roadzone','photoDir','depthchk','surfacedot','selbox','tagbox','tgseg','insptag'];/* [BUILD2644] insptag=검수 구간 텍스트·인출선 */
+  var ALL=['no','stake','code','depth','date','mh','riser','bizbox','dogak','bp','bpbox','hyun','hyunpt','roadzone','photoDir','depthchk','surfacedot','selbox','tagbox','tgseg','insptag','phoDone'];/* [BUILD2776] phoDone=사진완료 원 *//* [BUILD2644] insptag=검수 구간 텍스트·인출선 */
   ALL.forEach(function(k){ if(LV[k]==null) LV[k]=1; });
   if(LV.chg9==null)LV.chg9=0;/* [BUILD2221] 변경내용 기본 꺼짐 */
   /* [BUILD1812] 실시간: 시작 시 태그이동·구간색칠 OFF (1회만 강제 — 세션 중 켜면 유지) */
   if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME&&!window._rtLvInit){window._rtLvInit=1;LV.tagbox=0;LV.tgseg=0;}
   try{ localStorage.setItem(LV_KEY,JSON.stringify(LV)); }catch(e){}
   var defs=(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)?[['no','점번호'],['code','관정보'],['date','날짜'],['mh','맨홀 정보'],['riser','입상주'],['bizbox','사업정보'],['bp','보강판 측점'],['bpbox','보강판 박스'],['photoDir','사진방향'],['tagbox','태그 이동'],['tgseg','구간 색칠']]:[['no','점번호'],['stake','측점'],['code','관정보'],['depth','심도'],['date','날짜'],['mh','맨홀 정보'],['riser','입상주'],['bizbox','사업정보'],['dogak','도곽'],['tagbox','인출선 이동'],['bp','보강판 측점'],['bpbox','보강판 박스'],['photoDir','사진방향'],['tgseg','구간 색칠']];defs.push(['chg9','변경내용']);/* [BUILD2223] 전 공정 무조건 노출 */
-  if((typeof IS_FIELD!=='undefined'&&IS_FIELD))defs.push(['hyun','현황 측량(도로)'],['hyunpt','현황측량 타점'],['roadzone','도로면'],['surfacedot','도로/보도점'],['missExp','누락_실시간사진'],['missAft','누락_후측량사진'],['tamsaPt','탐사 보완점'],['insptag','구간 텍스트·인출선(검수)']);/* [1630] 현황측량 레이어 토글 · [BUILD2644] 검수 태그 */
+  if((typeof IS_FIELD!=='undefined'&&IS_FIELD))defs.push(['hyun','현황 측량(도로)'],['hyunpt','현황측량 타점'],['roadzone','도로면'],['surfacedot','도로/보도점'],['missExp','누락_실시간사진'],['missAft','누락_후측량사진'],['tamsaPt','탐사 보완점'],['insptag','구간 텍스트·인출선(검수)'],['phoDone','사진완료 원(실시간+후측량)']);/* [1630] 현황측량 레이어 토글 · [BUILD2644] 검수 태그 · [BUILD2776] 사진완료 원 */
   var open=(function(){try{return localStorage.getItem('fldLayerOpen')!=='0';}catch(e){return true;}})();
   var h='<div style="border:1px solid #f1c40f;border-radius:8px;padding:6px 10px;background:#fffdf5;box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:92px">';
   h+='<div onclick="fldLayerToggleOpen()" style="font-weight:700;font-size:12px;color:#0a3ea0;cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none'+(open?';margin-bottom:5px':'')+'">레이어 <span style="font-size:9px">'+(open?'▼':'▶')+'</span></div>';
@@ -17607,20 +17608,20 @@ function fldLayerBox(){
 }
 function fldLayerToggle(inp){ if(typeof setLayerVis==='function') setLayerVis(inp.getAttribute('data-tglv'),inp.checked); }
 var _sdLV9=null;/* [BUILD2293] SD 전용 레이어 가시성(화면 전용) */
-function _sdLVinit9(){if(!_sdLV9){_sdLV9={};['pipe','pipeT','pt','gwan','sim','dim','spec','fac','mh','hyun','insptag'].forEach(function(k){_sdLV9[k]=1;});}if(_sdLV9.insptag==null)_sdLV9.insptag=1;/* [BUILD2643] 검수 구간 텍스트·인출선 */return _sdLV9;}
+function _sdLVinit9(){if(!_sdLV9){_sdLV9={};['pipe','pipeT','pt','gwan','sim','dim','spec','fac','mh','hyun','insptag','phoDone'].forEach(function(k){_sdLV9[k]=1;});}if(_sdLV9.insptag==null)_sdLV9.insptag=1;if(_sdLV9.phoDone==null)_sdLV9.phoDone=1;/* [BUILD2776] *//* [BUILD2643] 검수 구간 텍스트·인출선 */return _sdLV9;}
 function _sdGrpOf9(it){var L=it.lay||'';
  if(it.t==='pl'&&!/^SD/.test(L))return 'hyun';
  if(L==='SD001')return (it.tam?'pipeT':'pipe');/* [BUILD2294] 실시간/탐사 분리 */if(L==='SD901')return 'pt';if(L==='SD_관상고')return 'gwan';if(L==='SDSIM_T')return 'sim';
  if(L==='SDDIM'||L==='SDDIM1')return 'dim';if(L==='SD910'||L==='SD911'||L==='SD983')return 'spec';
  if(L==='SD219'||L==='SD911-1')return 'fac';if(L==='SD100'||L==='SD300')return 'mh';return null;}
 function _sdLayerBox9(){var LVs=_sdLVinit9();
- var defs=[['pipe','관로선(실시간)'],['pipeT','관로선(탐사)'],['pt','측점'],['gwan','관상고'],['sim','심도'],['dim','이격선·치수'],['spec','구간 제원'],['fac','시설물번호'],['mh','맨홀·입상주'],['hyun','현황선'],['insptag','구간 텍스트·인출선(검수)']];/* [BUILD2643] */
+ var defs=[['pipe','관로선(실시간)'],['pipeT','관로선(탐사)'],['pt','측점'],['gwan','관상고'],['sim','심도'],['dim','이격선·치수'],['spec','구간 제원'],['fac','시설물번호'],['mh','맨홀·입상주'],['hyun','현황선'],['insptag','구간 텍스트·인출선(검수)'],['phoDone','사진완료 원(실시간+후측량)']];/* [BUILD2643] · [BUILD2776] */
  var open=(function(){try{return localStorage.getItem('fldLayerOpen')!=='0';}catch(e){return true;}})();
  var h='<div style="border:1px solid #6d28d9;border-radius:8px;padding:6px 10px;background:#faf7ff;box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:92px">';
  h+='<div onclick="fldLayerToggleOpen()" style="font-weight:700;font-size:12px;color:#6d28d9;cursor:pointer;display:flex;align-items:center;gap:6px;user-select:none'+(open?';margin-bottom:5px':'')+'">SD 레이어 <span style="font-size:9px">'+(open?'▼':'▶')+'</span></div>';
  if(open){defs.forEach(function(d){h+='<label style="display:flex;align-items:center;gap:6px;font-size:12px;padding:2px 0;cursor:pointer;white-space:nowrap"><input type="checkbox" data-sdlv="'+d[0]+'"'+(LVs[d[0]]?' checked':'')+' onchange="_sdLayerToggle9(this)">'+d[1]+'</label>';});}
  return h+'</div>';}
-function _sdLayerToggle9(inp){var k=inp.getAttribute('data-sdlv');_sdLVinit9()[k]=inp.checked?1:0;if(k==='insptag'){try{fldInspTags9();}catch(_t){}return;}/* [BUILD2643] 검수 태그만 갱신 */try{if(gSD9)gSD9._built9=0;posDrawSD9();}catch(_e){}}
+function _sdLayerToggle9(inp){var k=inp.getAttribute('data-sdlv');_sdLVinit9()[k]=inp.checked?1:0;if(k==='insptag'){try{fldInspTags9();}catch(_t){}return;}if(k==='phoDone'){try{if(typeof drawGeo==='function')drawGeo();}catch(_pd){}return;}/* [BUILD2776] 사진완료 원은 gPts(기본 도면)에 그려짐 → drawGeo만 *//* [BUILD2643] 검수 태그만 갱신 */try{if(gSD9)gSD9._built9=0;posDrawSD9();}catch(_e){}}
 function fldLayerToggleOpen(){ var cur=true; try{cur=(localStorage.getItem('fldLayerOpen')!=='0');}catch(e){} try{localStorage.setItem('fldLayerOpen',cur?'0':'1');}catch(e){} var lw=document.getElementById('fldLayerWrap'); if(lw) lw.innerHTML=fldLayerBox(); }
 function fieldLayerBar(){
   var cw=document.querySelector('.canvas-wrap'); if(!cw) return;
