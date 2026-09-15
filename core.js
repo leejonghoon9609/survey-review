@@ -22553,14 +22553,14 @@ function _sdLeadDrag9(node,it){/* [BUILD2260] SD 인출선 이동 — window 리
 
 function _sdCutDrag9(node,it){/* [BUILD2813] ★경계심벌 드래그 — 심벌을 잡아 끌면 관로선 기준 좌우(ox)·위아래(oy)로 이동, 놓으면 posCuts9[].ox/oy 저장·재빌드 */
  var st=null;function _sxy9(e){try{var m=cv.getScreenCTM();if(m&&m.a){var im=m.inverse();return [im.a*e.clientX+im.c*e.clientY+im.e, im.b*e.clientX+im.d*e.clientY+im.f];}}catch(_c){}var r=cv.getBoundingClientRect();return [vb.x+(e.clientX-r.left)/r.width*vb.w, vb.y+(e.clientY-r.top)/r.height*vb.h];}
- function nodes(){var gs=document.getElementById('sdPrev9');if(!gs)return [];return Array.prototype.slice.call(gs.querySelectorAll('[data-sdno="'+String(it.no)+'"]'));}
- function _mv(e){if(!st)return;e.preventDefault();e.stopPropagation();var p=_sxy9(e);if(!p)return;var dx=p[0]-st.sx,dy=p[1]-st.sy;st.dx=dx;st.dy=dy;st.moved=true;st.ns.forEach(function(n){n.setAttribute('transform','translate('+dx.toFixed(3)+' '+dy.toFixed(3)+')');});}
- function _up(e){if(!st)return;var fin=st;st=null;try{window.removeEventListener('pointermove',_mv,true);window.removeEventListener('pointerup',_up,true);window.removeEventListener('pointercancel',_up,true);}catch(_r){}fin.ns.forEach(function(n){n.removeAttribute('transform');});if(!fin.moved)return;
+ function nodes(){var gs=document.getElementById('sdPrev9');if(!gs)return [];return Array.prototype.slice.call(gs.querySelectorAll('[data-sdno="'+String(it.no)+'"]')).map(function(n){return {n:n,t0:n.getAttribute('transform')};});}/* [BUILD2826] 원래 transform(글자 rotate) 보관 — 드래그 translate가 rotate를 덮고 놓을 때 지워져 날짜가 가로로 눕던 원인 */
+ function _mv(e){if(!st)return;e.preventDefault();e.stopPropagation();var p=_sxy9(e);if(!p)return;var dx=p[0]-st.sx,dy=p[1]-st.sy;st.dx=dx;st.dy=dy;st.moved=true;st.ns.forEach(function(o){o.n.setAttribute('transform','translate('+dx.toFixed(3)+' '+dy.toFixed(3)+')'+(o.t0?(' '+o.t0):''));});}
+ function _up(e){if(!st)return;var fin=st;st=null;try{window.removeEventListener('pointermove',_mv,true);window.removeEventListener('pointerup',_up,true);window.removeEventListener('pointercancel',_up,true);}catch(_r){}fin.ns.forEach(function(o){if(o.t0)o.n.setAttribute('transform',o.t0);else o.n.removeAttribute('transform');});if(!fin.moved)return;
   try{var c=null;(state.posCuts9||[]).forEach(function(q){if(q&&Math.hypot(q.x-it.cx,q.y-it.cy)<0.01)c=q;});if(!c)return;
   /* [BUILD2825] ★놓은 자리로 반전만 결정(오프셋 없음): 놓은 커서 위치가 관로선의 어느 쪽인가 → sy(위아래), 측점 직각면의 앞/뒤 어느 쪽인가 → dx(좌우, 측설재측·심도경계). 측점↔심벌 기하는 고정 */
   var _dw=[fin.sx+fin.dx+ORG.x,ORG.y-(fin.sy+fin.dy)];/* S→월드 */var _vx=_dw[0]-c.x,_vy=_dw[1]-c.y;var _side=_vx*it.sn[0]+_vy*it.sn[1],_along=_vx*it.su[0]+_vy*it.su[1];
   var _sy9=(_side<0)?-1:1,_dx9=(c.kind==='remeas'||c.kind==='depth')?((_along>0)?1:-1):null;var _cur=(c.sy===-1?-1:1),_curdx=(c.dx===1?1:-1);
-  if(_sy9===_cur&&(_dx9==null||_dx9===_curdx))return;/* 같은 쪽에 놓음 = 변화 없음 */if(typeof pushHist==='function'){try{pushHist();}catch(_h){}}
+  if(_sy9===_cur&&(_dx9==null||_dx9===_curdx)){window._sdCache9=null;if(typeof posDrawSD9==='function')posDrawSD9(true);toast('같은 쪽 — 반대편에 놓으면 뒤집힙니다');return;}/* 같은 쪽에 놓음 = 변화 없음, 화면만 원위치 재빌드 */if(typeof pushHist==='function'){try{pushHist();}catch(_h){}}
   c.sy=_sy9;if(_dx9!=null)c.dx=_dx9;c.ox=0;c.oy=0;
   window._sdCache9=null;if(typeof posDrawSD9==='function')posDrawSD9(true);if(typeof saveProject==='function'){window._silentSave=true;saveProject();}}catch(_s){}
  }
