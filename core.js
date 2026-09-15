@@ -22756,8 +22756,8 @@ function posDrawSD9(force){try{if(typeof IS_POSITION!=='undefined'&&IS_POSITION&
  _sdOnly9(window._sdPrev9===2);
 }
 function _posCutMarks9(g){/* [BUILD2802] 삽입으로 자른 측점에 초록 원 + 가운데 X — 미리보기(마젠타 원)에서 선택하면 이 모양으로 확정 표시. DXF에는 안 나감 */
- var pc=state.posCuts9||[];if(!pc.length)return;var NS='http://www.w3.org/2000/svg';var r=0.45,x=0.28;
- pc.forEach(function(c){if(!c)return;var p=S(c.x,c.y);var e=document.createElementNS(NS,'circle');e.setAttribute('cx',p[0]);e.setAttribute('cy',p[1]);e.setAttribute('r',r);e.setAttribute('fill','none');e.setAttribute('stroke','#2e7d32');e.setAttribute('stroke-width',2);e.setAttribute('vector-effect','non-scaling-stroke');e.setAttribute('pointer-events','none');g.appendChild(e);[[-1,-1,1,1],[-1,1,1,-1]].forEach(function(d){var l=document.createElementNS(NS,'line');l.setAttribute('x1',p[0]+d[0]*x);l.setAttribute('y1',p[1]+d[1]*x);l.setAttribute('x2',p[0]+d[2]*x);l.setAttribute('y2',p[1]+d[3]*x);l.setAttribute('stroke','#2e7d32');l.setAttribute('stroke-width',2);l.setAttribute('vector-effect','non-scaling-stroke');l.setAttribute('pointer-events','none');g.appendChild(l);});});
+ var pc=state.posCuts9||[];if(!pc.length)return;var NS='http://www.w3.org/2000/svg';var r=0.9,x=0.56;/* [BUILD2806] 두 배 크기 · 노란 테두리 · 아주 연한 파랑 배경(사용자 지정) */
+ pc.forEach(function(c){if(!c)return;var p=S(c.x,c.y);var e=document.createElementNS(NS,'circle');e.setAttribute('cx',p[0]);e.setAttribute('cy',p[1]);e.setAttribute('r',r);e.setAttribute('fill','rgba(173,216,255,0.35)');e.setAttribute('stroke','#ffd600');e.setAttribute('stroke-width',2.5);e.setAttribute('vector-effect','non-scaling-stroke');e.setAttribute('pointer-events','none');g.appendChild(e);[[-1,-1,1,1],[-1,1,1,-1]].forEach(function(d){var l=document.createElementNS(NS,'line');l.setAttribute('x1',p[0]+d[0]*x);l.setAttribute('y1',p[1]+d[1]*x);l.setAttribute('x2',p[0]+d[2]*x);l.setAttribute('y2',p[1]+d[3]*x);l.setAttribute('stroke','#ffd600');l.setAttribute('stroke-width',2.5);l.setAttribute('vector-effect','non-scaling-stroke');l.setAttribute('pointer-events','none');g.appendChild(l);});});
 }
 function posSdToggle9(){
  window._sdPrev9=((window._sdPrev9||0)+1)%3;
