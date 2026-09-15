@@ -15244,15 +15244,17 @@ function joseoFetchBuf(url){
 
 /* ---- ExcelJS 채우기 (Node 검증 로직 그대로) ---- */
 var JOSEO_BM=['B3:C3','E3:G3','A4:B4','C4:C5','D4:D5','E4:E5','F4:F5','G4:G5','A7:C7','D7:G7','A8:C18','D8:G18','A19:C19','D19:G19']; // 블록(17행, 라벨=사진아래) 병합, row3 기준
+var JOSEO_BM_TOP=['A3:C3','D3:G3','B4:C4','E4:G4','A5:B5','C5:C6','D5:D6','E5:E6','F5:F6','G5:G6','A8:C8','D8:G8','A9:C19','D9:G19']; /* [BUILD2850] 라벨=사진위 템플릿(3행=라벨, 4행=측량날짜, 5~7 표, 9~19 사진) 병합 */
+function joseoLayTop9(ws){/* [BUILD2850] 템플릿 레이아웃 자동 판정 — A3에 '실시간 측량점'이 있으면 라벨 위 판형. 배포된 템플릿이 코드(라벨 아래)와 달라 2블록부터 라벨 행이 다음 블록 첫 행과 겹쳐 테두리·병합이 어긋나던 원인 */try{var v=ws.getCell('A3').value;var t=(v&&typeof v==='object'&&v.richText)?v.richText.map(function(r){return r.text;}).join(''):String(v==null?'':v);return t.indexOf('실시간 측량점')>=0;}catch(_e){return false;}}
 function joseoShift(rng,dr){ return rng.replace(/([A-G])(\d+)/g,function(_,c,n){ return c+(parseInt(n,10)+dr); }); }
 function joseoSetv(ws,a,v){ if(v!==undefined&&v!==null&&v!=='') ws.getCell(a).value=v; }
-function joseoFillBlk(ws,S,p){ joseoSetv(ws,'B'+S,joseoDateK(p.date));joseoSetv(ws,'E'+S,p.name);joseoSetv(ws,'A'+(S+3),p.x);joseoSetv(ws,'B'+(S+3),p.y);joseoSetv(ws,'C'+(S+3),p.facility);joseoSetv(ws,'D'+(S+3),p.mat);joseoSetv(ws,'E'+(S+3),p.dia);joseoSetv(ws,'F'+(S+3),p.gap);joseoSetv(ws,'G'+(S+3),(p.depth!=null&&p.depth!==''&&isFinite(+p.depth))?(Math.round(+p.depth*10)/10).toFixed(1):p.depth); /* [1267] 엑셀만 소수 1자리 반올림 · [1266] 심도 — 화면 표와 동일 소스(자동심도 폴백 포함) */ }
+function joseoFillBlk(ws,S,p){ var o=(window._joseoLayTop9?1:0);/* [BUILD2850] 라벨 위 판형이면 한 행 아래 */joseoSetv(ws,'B'+(S+o),joseoDateK(p.date));joseoSetv(ws,'E'+(S+o),p.name);joseoSetv(ws,'A'+(S+3+o),p.x);joseoSetv(ws,'B'+(S+3+o),p.y);joseoSetv(ws,'C'+(S+3+o),p.facility);joseoSetv(ws,'D'+(S+3+o),p.mat);joseoSetv(ws,'E'+(S+3+o),p.dia);joseoSetv(ws,'F'+(S+3+o),p.gap);joseoSetv(ws,'G'+(S+3+o),(p.depth!=null&&p.depth!==''&&isFinite(+p.depth))?(Math.round(+p.depth*10)/10).toFixed(1):p.depth); /* [1267] 엑셀만 소수 1자리 반올림 · [1266] 심도 — 화면 표와 동일 소스(자동심도 폴백 포함) */ }
 function joseoStampBlk(ws,S,BLK){
   for(var k=0;k<BLK.length;k++){ var tr=S+k; ws.getRow(tr).height=BLK[k].h; for(var c=1;c<=7;c++){ var t=ws.getCell(tr,c); t.style=BLK[k].row[c-1].style; t.value=BLK[k].row[c-1].value; } }
-  JOSEO_BM.forEach(function(mm){ try{ ws.mergeCells(joseoShift(mm,S-3)); }catch(e){} });
+  (window._joseoLayTop9?JOSEO_BM_TOP:JOSEO_BM).forEach(function(mm){ try{ ws.mergeCells(joseoShift(mm,S-3)); }catch(e){} });/* [BUILD2850] */
 }
 function joseoAddPhotosBlk(wb,ws,S,p){
-  var top=S+5, bot=S+15;
+  var o=(window._joseoLayTop9?1:0);var top=S+5+o, bot=S+15+o;/* [BUILD2850] */
   if(p.expBuf){ var id=wb.addImage({buffer:p.expBuf,extension:'jpeg'}); ws.addImage(id,'A'+top+':C'+bot); }
   if(p.aftBuf){ var id2=wb.addImage({buffer:p.aftBuf,extension:'jpeg'}); ws.addImage(id2,'D'+top+':G'+bot); }
 }
@@ -15331,7 +15333,7 @@ async function jgDownloadDate9(dk){
 async function joseoBuildWb(projectName, recs, perPage){
   var tplBuf=await joseoGetTemplate();
   var wb=new ExcelJS.Workbook(); await wb.xlsx.load(tplBuf);
-  var ws=wb.worksheets[0];
+  var ws=wb.worksheets[0];window._joseoLayTop9=joseoLayTop9(ws);/* [BUILD2850] */
   var BLK=[]; for(var r=3;r<=19;r++){ var row=[]; for(var c=1;c<=7;c++){ var s=ws.getCell(r,c); row.push({style:s.style,value:s.value}); } BLK.push({h:ws.getRow(r).height,row:row}); }
   joseoSetv(ws,'B2',(typeof joseoCleanName9==='function'?joseoCleanName9(projectName):projectName)||'');/* [BUILD2104] 시스템 이니셜 제거 */
   for(var i=0;i<recs.length;i++){ var S=3+i*17; if(i>=1) joseoStampBlk(ws,S,BLK); joseoFillBlk(ws,S,recs[i]); joseoAddPhotosBlk(wb,ws,S,recs[i]); }
@@ -16207,7 +16209,7 @@ async function joseoDownloadMerged9(){ /* [BUILD2106] 통합조서 — 한 파�
     if(!dates.length){toast('조서 날짜가 없습니다');return;}
     var tplBuf=await joseoGetTemplate();
     var wb=new ExcelJS.Workbook();await wb.xlsx.load(tplBuf);
-    var ws0=wb.worksheets[0];
+    var ws0=wb.worksheets[0];window._joseoLayTop9=joseoLayTop9(ws0);/* [BUILD2850] */
     var BLK=[];for(var r=3;r<=19;r++){var row=[];for(var c=1;c<=7;c++){var sc=ws0.getCell(r,c);row.push({style:sc.style,value:sc.value});}BLK.push({h:ws0.getRow(r).height,row:row});}
     var HD=[];for(var r2=1;r2<=2;r2++){var row2=[];for(var c2=1;c2<=7;c2++){var sc2=ws0.getCell(r2,c2);row2.push({style:sc2.style,value:sc2.value});}HD.push({h:ws0.getRow(r2).height,row:row2});}
     var merges0=[];try{merges0=(ws0.model&&ws0.model.merges)?ws0.model.merges.slice():[];}catch(_mg){}
@@ -22948,7 +22950,7 @@ function posPtHoverBind9(){/* [BUILD2804] SD 전용(측점 심벌 숨김)에서�
  window._posPtSelRedraw9=redrawSel;
  cv.addEventListener('pointermove',function(e){if(!(typeof IS_POSITION!=='undefined'&&IS_POSITION)||busy()){try{_posHovG9();}catch(_c){}return;}/* [BUILD2833] SD 전용뿐 아니라 정위치 전 모드 */try{var w=toWorld(e.clientX,e.clientY);w=[w[0],-w[1]];var q=nearPt(w);var g=_posHovG9();if(q)_posPtMark9(g,q.x,q.y,'#e91e63',2.5);}catch(_m){}},true);/* [BUILD2805] */
  cv.addEventListener('pointerdown',function(e){if(e.button!==0){st=null;return;}st=[e.clientX,e.clientY];},true);
- cv.addEventListener('pointerup',function(e){if(!st)return;var mv=Math.hypot(e.clientX-st[0],e.clientY-st[1]);st=null;if(mv>4)return;if(!(typeof IS_POSITION!=='undefined'&&IS_POSITION)||busy())return;try{var w=toWorld(e.clientX,e.clientY);w=[w[0],-w[1]];var q=nearPt(w);if(!q)return;window._posSelPt9=(String(window._posSelPt9)===String(q.no))?null:String(q.no);redrawSel();}catch(_u){}},true);/* [BUILD2833] 전 모드 */
+ cv.addEventListener('pointerup',function(e){if(!st)return;var mv=Math.hypot(e.clientX-st[0],e.clientY-st[1]);st=null;if(mv>4)return;if(!(typeof IS_POSITION!=='undefined'&&IS_POSITION)||busy())return;try{var w=toWorld(e.clientX,e.clientY);w=[w[0],-w[1]];var q=nearPt(w);if(!q)return;if(window._posMoveEdit9){window._posSelPt9=String(q.no);}else{window._posSelPt9=(String(window._posSelPt9)===String(q.no))?null:String(q.no);}/* [BUILD2849] 측점이동 모드: 잡는 순간(pointerdown) 선택된 것을 pointerup 토글이 다시 풀던 것 수정 — 이동 모드에선 토글 없이 선택 유지 */redrawSel();}catch(_u){}},true);/* [BUILD2833] 전 모드 */
 }
 function posDrawSD9(force){try{if(typeof IS_POSITION!=='undefined'&&IS_POSITION&&typeof posPtHoverBind9==='function'){posPtHoverBind9();if(window._posPtSelRedraw9)window._posPtSelRedraw9();}}catch(_pb){}/* [BUILD2804] */try{if(typeof IS_POSITION!=='undefined'&&IS_POSITION&&typeof posLeadBind9==='function')posLeadBind9();}catch(_lb){}/* [BUILD2801] */
  if(!(typeof IS_POSITION!=='undefined'&&IS_POSITION))return;
