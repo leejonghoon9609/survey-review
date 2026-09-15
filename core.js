@@ -22716,7 +22716,20 @@ function posMoveBind9(){/* [BUILD2790] ★정위치 측점이동 — 측점을 �
  function up(e){if(!st)return;var fin=st;st=null;e&&e.preventDefault&&e.preventDefault();window._posEditSwallow9=true;if(!fin.moved)return;try{window._posSegC9=null;window._sdCache9=null;window._tgGwC9=null;window._peerGwC9=null;state._lnBase9=null;if(typeof _lnBaseSet9==='function')_lnBaseSet9(state.lines);}catch(_c){}try{if(typeof computeDepth==='function')computeDepth();}catch(_cd){}try{drawGeo();if(typeof drawManholes==='function')drawManholes();}catch(_d2){}try{if(typeof posDrawSD9==='function')posDrawSD9(true);}catch(_s){}try{if(typeof saveProject==='function'){window._silentSave=true;saveProject();}}catch(_v){}if(typeof toast==='function')toast('측점 '+fin.p.no+' 이동 — 구간·SD 재계산');}
  cv.addEventListener('pointerup',up,true);cv.addEventListener('pointercancel',up,true);
 }
-function posDrawSD9(force){try{if(typeof IS_POSITION!=='undefined'&&IS_POSITION&&typeof posLeadBind9==='function')posLeadBind9();}catch(_lb){}/* [BUILD2801] */
+function _posPtSelG9(){var g=document.getElementById('posSelG9');if(!g){g=document.createElementNS('http://www.w3.org/2000/svg','g');g.id='posSelG9';g.setAttribute('pointer-events','none');}var host=cv;try{var gs=document.getElementById('sdPrev9');if(gs&&gs.parentNode)host=gs.parentNode;}catch(_h){}if(g.parentNode!==host)host.appendChild(g);return g;}
+function _posPtMark9(g,x,y,col,w){var NS='http://www.w3.org/2000/svg';var p=S(x,y);var e=document.createElementNS(NS,'circle');e.setAttribute('cx',p[0]);e.setAttribute('cy',p[1]);e.setAttribute('r',0.45);e.setAttribute('fill','none');e.setAttribute('stroke',col);e.setAttribute('stroke-width',w||2);e.setAttribute('vector-effect','non-scaling-stroke');g.appendChild(e);[[-1,-1,1,1],[-1,1,1,-1]].forEach(function(d){var l=document.createElementNS(NS,'line');l.setAttribute('x1',p[0]+d[0]*0.28);l.setAttribute('y1',p[1]+d[1]*0.28);l.setAttribute('x2',p[0]+d[2]*0.28);l.setAttribute('y2',p[1]+d[3]*0.28);l.setAttribute('stroke',col);l.setAttribute('stroke-width',w||2);l.setAttribute('vector-effect','non-scaling-stroke');g.appendChild(l);});}
+function posPtHoverBind9(){/* [BUILD2804] SD 전용(측점 심벌 숨김)에서도 측점을 알아보게: 편집 모드가 아닐 때 커서 근처 측점=마젠타 원+X, 클릭(끌지 않음)=초록 원+X로 선택 표시(다시 클릭하면 해제) */
+ if(window._posPtHoverBound9)return;window._posPtHoverBound9=1;var st=null;
+ function tol(){var t=(vb&&vb.w&&cv)?(12*vb.w/Math.max(1,cv.getBoundingClientRect().width)):0.5;return t<0.1?0.1:t;}
+ function nearPt(w){var bp=null,bd=1e18;(state.points||[]).forEach(function(q){if(!q||q._hyun||q.x==null)return;var d=Math.hypot(q.x-w[0],q.y-w[1]);if(d<bd){bd=d;bp=q;}});return (bp&&bd<=tol()*1.5)?bp:null;}
+ function busy(){return !!(window._posLeadMode9||window._posDimMode9||window._posMoveEdit9);}
+ function redrawSel(){var g=_posPtSelG9();while(g.firstChild)g.removeChild(g.firstChild);var no=window._posSelPt9;if(!no)return;var q=null;(state.points||[]).forEach(function(p){if(p&&String(p.no)===String(no))q=p;});if(q)_posPtMark9(g,q.x,q.y,'#2e7d32',2.2);}
+ window._posPtSelRedraw9=redrawSel;
+ cv.addEventListener('pointermove',function(e){if(!(typeof IS_POSITION!=='undefined'&&IS_POSITION)||window._sdPrev9!==2||busy())return;try{var w=toWorld(e.clientX,e.clientY);w=[w[0],-w[1]];var q=nearPt(w);var g=_posPrevG9();if(q)_posPtMark9(g,q.x,q.y,'#e91e63',2.5);}catch(_m){}},true);
+ cv.addEventListener('pointerdown',function(e){if(e.button!==0){st=null;return;}st=[e.clientX,e.clientY];},true);
+ cv.addEventListener('pointerup',function(e){if(!st)return;var mv=Math.hypot(e.clientX-st[0],e.clientY-st[1]);st=null;if(mv>4)return;if(!(typeof IS_POSITION!=='undefined'&&IS_POSITION)||window._sdPrev9!==2||busy())return;try{var w=toWorld(e.clientX,e.clientY);w=[w[0],-w[1]];var q=nearPt(w);if(!q)return;window._posSelPt9=(String(window._posSelPt9)===String(q.no))?null:String(q.no);redrawSel();}catch(_u){}},true);
+}
+function posDrawSD9(force){try{if(typeof IS_POSITION!=='undefined'&&IS_POSITION&&typeof posPtHoverBind9==='function'){posPtHoverBind9();if(window._posPtSelRedraw9)window._posPtSelRedraw9();}}catch(_pb){}/* [BUILD2804] */try{if(typeof IS_POSITION!=='undefined'&&IS_POSITION&&typeof posLeadBind9==='function')posLeadBind9();}catch(_lb){}/* [BUILD2801] */
  if(!(typeof IS_POSITION!=='undefined'&&IS_POSITION))return;
  var g=_sdG9();
  if(!window._sdPrev9){g.style.display='none';_sdOnly9(false);return;}
