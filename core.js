@@ -22297,6 +22297,23 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
   if(_n50>0&&!(_pat9&&_pat9.cs&&_pat9.cs.length&&_pat9.W>0&&_pat9.H>0)){_mkRow9(_n50,0.25,_vo9,_p50);_vo9+=0.5;}
   /* 채움(내관 해치)·관종 분리 = 내일 입력 체계와 함께(완료본 해치 위치 불규칙=작업자 지정 영역 실측) */
  });
+ /* ===== [BUILD2811] ★경계심벌 — 절단점(posCuts9[].kind)에 사용자 제공 DXF 샘플(경계심벌.dxf) 형상을 관로선 직각(왼쪽 법선)으로 배치. 샘플 mm→m 스케일 K=3.333(심도경계 글자 0.3→1.0). 레이어는 템플릿에 있는 것 그대로(_CHANGE·_현장_수정·측점_DIM_인출·측점_번호·측점_이격·측점_DIM_L·측점_DATE) ===== */
+ try{(state.posCuts9||[]).forEach(function(c){if(!c||!c.kind)return;var S=shget(c.x,c.y);if(!S)return;
+  /* 관로 방향 u: 절단점에서 시작하는 구간의 첫 변, 없으면 끝나는 구간의 마지막 변 */var u=null,uP=null,segN=null,segP=null;(_psR9||[]).forEach(function(rw,i){if(!rw||rw.length<2)return;if(segN==null&&Math.hypot(rw[0][0]-c.x,rw[0][1]-c.y)<0.3){u=[rw[1][0]-rw[0][0],rw[1][1]-rw[0][1]];segN=i;}if(segP==null&&Math.hypot(rw[rw.length-1][0]-c.x,rw[rw.length-1][1]-c.y)<0.3){segP=i;uP=[rw[rw.length-1][0]-rw[rw.length-2][0],rw[rw.length-1][1]-rw[rw.length-2][1]];}});if(!u)u=uP;if(!u)return;var L=Math.hypot(u[0],u[1])||1;u=[u[0]/L,u[1]/L];var n=[-u[1],u[0]];
+  var rot=Math.atan2(u[1],u[0])*180/Math.PI;if(rot<0)rot+=360;var mir=1;if(rot>90&&rot<=270){rot=(rot+180)%360;mir=-1;}/* 글자 뒤집힘 방지: 읽는 방향으로 X 반전 */
+  var K=3.333;function W(X,Y){return [c.x+u[0]*X*mir+n[0]*Y,c.y+u[1]*X*mir+n[1]*Y];}function pl(lay,P){S.items.push({t:'pl',lay:lay,cl:0,pts:P.map(function(q){return W(q[0]*K,q[1]*K);}),cutsym9:1});}function tx(lay,X,Y,h,str){var w=W(X*K,Y*K);S.items.push({t:'tx',lay:lay,x:w[0],y:w[1],h:h,s:str,rot:rot,cutsym9:1});}
+  function dateOf(no){var s2=String(no||'');var i=s2.lastIndexOf('-');return i>0?s2.slice(0,i):'';}
+  var segs=_psSegs9||[];function firstNo(i,fromEnd){var sg=segs[i]||[];if(fromEnd){for(var k=sg.length-1;k>=0;k--){if(sg[k]&&sg[k].no&&!sg[k].tamsa&&Math.hypot(sg[k].x-c.x,sg[k].y-c.y)>0.3)return sg[k].no;}}else{for(var k2=0;k2<sg.length;k2++){if(sg[k2]&&sg[k2].no&&!sg[k2].tamsa&&Math.hypot(sg[k2].x-c.x,sg[k2].y-c.y)>0.3)return sg[k2].no;}}return '';}
+  var noHere='';(state.points||[]).forEach(function(q){if(q&&q.x!=null&&Math.hypot(q.x-c.x,q.y-c.y)<0.3)noHere=q.no;});var noPrev=(segP!=null)?firstNo(segP,true):'',noNext=(segN!=null)?firstNo(segN,false):'';
+  function depOf(no){var d=(state._depthByNo&&no!=null)?state._depthByNo[no]:null;return (d!=null&&isFinite(d))?(+d).toFixed(1):'-';}
+  function twid(str,h){var w=0;String(str).split('').forEach(function(ch){w+=(/[\uAC00-\uD7A3]/.test(ch)?1.0:0.8)*h;});return w;}
+  if(c.kind==='gong'||c.kind==='date'||c.kind==='nodet'){var hT=0.7;pl('_CHANGE',[[0,0],[0,1.25]]);pl('_CHANGE',[[-0.5,0.98],[0.5,0.98]]);pl('_CHANGE',[[-0.37,1.03],[-0.5,0.98],[-0.37,0.93]]);pl('_CHANGE',[[0.37,1.03],[0.5,0.98],[0.37,0.93]]);
+   if(c.kind==='gong'){var t1='공수배열';tx('_CHANGE',-twid(t1,hT)/2/K,1.31,hT,t1);}
+   else if(c.kind==='date'){var dL=dateOf(noPrev)||'-',dR=dateOf(noNext)||dateOf(noHere)||'-';tx('_CHANGE',-0.06-twid(dL,hT)/K,1.34,hT,dL);tx('_CHANGE',0.06,1.34,hT,dR);}
+   else{var a1='실측',a2='불탐';tx('_CHANGE',-0.06-twid(a1,hT)/K,1.31,hT,a1);tx('_CHANGE',0.06,1.31,hT,a2);}}
+  else if(c.kind==='remeas'){pl('_현장_수정',[[0,0],[-0.266,1.648],[-1.637,1.648],[-1.902,3.297]]);tx('_현장_수정',-1.637,1.698,0.83,'측설재측');}
+  else if(c.kind==='depth'){pl('측점_DIM_L',[[0,0],[-0.416,0.744]]);pl('측점_DIM_인출',[[-0.416,0.744],[-0.925,1.687],[-2.825,1.687]]);var nm=String(noHere||'');var ix=nm.lastIndexOf('-');nm=ix>=0?nm.slice(ix+1):nm;tx('측점_번호',-2.825,1.787,1.0,'No '+(nm||'-'));tx('측점_이격',-2.825,1.287,1.0,depOf(noHere)+'('+depOf(noNext)+')');var d1=dateOf(noPrev)||dateOf(noHere)||'-',d2=dateOf(noNext)||dateOf(noHere)||'-';tx('측점_DATE',-2.825-0.06-twid(d1,1.0)/K,1.537,1.0,d1);tx('측점_DATE',-0.825,1.537,1.0,d2);}
+ });}catch(_cs9){try{console.warn('cutsym9',_cs9);}catch(_c){}}
  /* [BUILD2204] 현황선 — 실물 표준 레이어 DORO(색4). ★현황결선은 insp:true가 정상이라 insp 제외 금지(2203 결함). 기존 도엽에만 배정 */
  function shpeek(x,y){var c=_posSheetOf(x,y);return (c&&SH[c.no])?SH[c.no]:null;}
  (state.lines||[]).forEach(function(l){
