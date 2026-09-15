@@ -21865,7 +21865,7 @@ function _posSheetOf(x,y){var ll=toLatLng(x,y);if(!ll)return null;return _posCel
 function _pdN(v){return (Math.round(v*1000)/1000).toString();}
 var _pdH=0x200000;function _pdHx(){return (++_pdH).toString(16).toUpperCase();}
 function _pdText(lay,x,y,h,txt,rot){var s='  0\r\nTEXT\r\n  5\r\n'+_pdHx()+'\r\n100\r\nAcDbEntity\r\n  8\r\n'+lay+'\r\n100\r\nAcDbText\r\n 10\r\n'+_pdN(x)+'\r\n 20\r\n'+_pdN(y)+'\r\n 30\r\n0\r\n 40\r\n'+_pdN(h)+'\r\n  7\r\nNGSW\r\n  1\r\n'+txt+'\r\n';if(rot)s+=' 50\r\n'+_pdN(rot)+'\r\n';s+='100\r\nAcDbText\r\n';return s;}
-function _pdPL(lay,pts,closed,c62){var s='  0\r\nLWPOLYLINE\r\n  5\r\n'+_pdHx()+'\r\n100\r\nAcDbEntity\r\n  8\r\n'+lay+'\r\n'+(c62?(' 62\r\n'+c62+'\r\n'):'')+'100\r\nAcDbPolyline\r\n 90\r\n'+pts.length+'\r\n 70\r\n'+(closed?1:0)+'\r\n';for(var i=0;i<pts.length;i++)s+=' 10\r\n'+_pdN(pts[i][0])+'\r\n 20\r\n'+_pdN(pts[i][1])+'\r\n';return s;}
+function _pdPL(lay,pts,closed,c62,wd){/* [BUILD2817] wd=[[시작폭,끝폭],…] 정점별 폭(m, 경계심벌 화살촉) */var s='  0\r\nLWPOLYLINE\r\n  5\r\n'+_pdHx()+'\r\n100\r\nAcDbEntity\r\n  8\r\n'+lay+'\r\n'+(c62?(' 62\r\n'+c62+'\r\n'):'')+'100\r\nAcDbPolyline\r\n 90\r\n'+pts.length+'\r\n 70\r\n'+(closed?1:0)+'\r\n';for(var i=0;i<pts.length;i++){s+=' 10\r\n'+_pdN(pts[i][0])+'\r\n 20\r\n'+_pdN(pts[i][1])+'\r\n';if(wd&&wd[i]&&(wd[i][0]||wd[i][1]))s+=' 40\r\n'+_pdN(wd[i][0])+'\r\n 41\r\n'+_pdN(wd[i][1])+'\r\n';}return s;}
 function _pdIns(lay,name,x,y){return '  0\r\nINSERT\r\n  5\r\n'+_pdHx()+'\r\n100\r\nAcDbEntity\r\n  8\r\n'+lay+'\r\n100\r\nAcDbBlockReference\r\n  2\r\n'+name+'\r\n 10\r\n'+_pdN(x)+'\r\n 20\r\n'+_pdN(y)+'\r\n 30\r\n0\r\n';}
 function _pdCirc(lay,x,y,r){return '  0\r\nCIRCLE\r\n  5\r\n'+_pdHx()+'\r\n100\r\nAcDbEntity\r\n  8\r\n'+lay+'\r\n100\r\nAcDbCircle\r\n 10\r\n'+_pdN(x)+'\r\n 20\r\n'+_pdN(y)+'\r\n 30\r\n0\r\n 40\r\n'+_pdN(r)+'\r\n';}
 function _posShiftEntities(tpl,dx,dy){
@@ -22297,22 +22297,30 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
   if(_n50>0&&!(_pat9&&_pat9.cs&&_pat9.cs.length&&_pat9.W>0&&_pat9.H>0)){_mkRow9(_n50,0.25,_vo9,_p50);_vo9+=0.5;}
   /* 채움(내관 해치)·관종 분리 = 내일 입력 체계와 함께(완료본 해치 위치 불규칙=작업자 지정 영역 실측) */
  });
- /* ===== [BUILD2811] ★경계심벌 — 절단점(posCuts9[].kind)에 사용자 제공 DXF 샘플(경계심벌.dxf) 형상을 관로선 직각(왼쪽 법선)으로 배치. 샘플 mm→m 스케일 K=3.333(심도경계 글자 0.3→1.0). 레이어는 템플릿에 있는 것 그대로(_CHANGE·_현장_수정·측점_DIM_인출·측점_번호·측점_이격·측점_DIM_L·측점_DATE) ===== */
+ /* ===== [BUILD2811] ★경계심벌 — 절단점(posCuts9[].kind)에 경계심벌 샘플(정위치 템플릿 범례 실측) 형상을 관로선 기준으로 배치. 샘플 단위→m 스케일 K=3.333(심도경계 글자 0.3→1.0, _CHANGE 글자 0.15→0.5). [BUILD2817] 샘플 실측 재현(줄기 1.25·화살선 0.98·채움 화살촉 0.13×0.05·글자 위치) + 관로 기준 반전: sy(위아래=관로선 반대편) · dx(좌우=꺾인 인출선 기울기, 측설재측·심도경계) — 몸통 오프셋(ox·oy)은 (u,n) 월드 축 ===== */
  try{(state.posCuts9||[]).forEach(function(c){if(!c||!c.kind)return;var S=shget(c.x,c.y);if(!S)return;
   /* 관로 방향 u: 절단점에서 시작하는 구간의 첫 변, 없으면 끝나는 구간의 마지막 변 */var u=null,uP=null,segN=null,segP=null;(_psR9||[]).forEach(function(rw,i){if(!rw||rw.length<2)return;if(segN==null&&Math.hypot(rw[0][0]-c.x,rw[0][1]-c.y)<0.3){u=[rw[1][0]-rw[0][0],rw[1][1]-rw[0][1]];segN=i;}if(segP==null&&Math.hypot(rw[rw.length-1][0]-c.x,rw[rw.length-1][1]-c.y)<0.3){segP=i;uP=[rw[rw.length-1][0]-rw[rw.length-2][0],rw[rw.length-1][1]-rw[rw.length-2][1]];}});if(!u)u=uP;if(!u)return;var L=Math.hypot(u[0],u[1])||1;u=[u[0]/L,u[1]/L];var n=[-u[1],u[0]];
-  var rot=Math.atan2(u[1],u[0])*180/Math.PI;if(rot<0)rot+=360;var mir=1;if(rot>90&&rot<=270){rot=(rot+180)%360;mir=-1;}/* 글자 뒤집힘 방지: 읽는 방향으로 X 반전 */
-  var K=3.333;function W(X,Y){return [c.x+u[0]*X*mir+n[0]*Y,c.y+u[1]*X*mir+n[1]*Y];}var _cid='CUT@'+c.x.toFixed(2)+'_'+c.y.toFixed(2);var _ox=+c.ox||0,_oy=+c.oy||0;/* [BUILD2813] 작업자 이동 오프셋(관로 방향 ox·직각 oy, m) · [BUILD2815] 앵커(측점, 셋째 원소 'A')는 고정하고 나머지만 오프셋 — 줄기가 측점에서 옮긴 자리까지 이어짐 */function pl(lay,P){S.items.push({t:'pl',lay:lay,cl:0,pts:P.map(function(q){var w=W(q[0]*K,q[1]*K);if(q[2]==='A')return w;return [w[0]+u[0]*_ox+n[0]*_oy,w[1]+u[1]*_ox+n[1]*_oy];}),cutsym9:1,no:_cid,su:u,sn:n,cx:c.x,cy:c.y});}function tx(lay,X,Y,h,str){var w=W(X*K,Y*K);S.items.push({t:'tx',lay:lay,x:w[0]+u[0]*_ox+n[0]*_oy,y:w[1]+u[1]*_ox+n[1]*_oy,h:h,s:str,rot:rot,cutsym9:1,no:_cid,su:u,sn:n,cx:c.x,cy:c.y});}/* [BUILD2812] no=CUT@x_y → data-sdno 태그(삭제 미리보기용) */
+  var rot=Math.atan2(u[1],u[0])*180/Math.PI;if(rot<0)rot+=360;var rd=1;if(rot>90&&rot<=270){rot=(rot+180)%360;rd=-1;}/* 읽는 방향 r=u·rd(글자 뒤집힘 방지) */
+  var K=3.333,sy=(c.sy===-1?-1:1),lean=(c.kind==='remeas'||c.kind==='depth'),dx=lean?(c.dx===1?1:-1):1;/* [BUILD2817] E1=심벌이 뻗는 관로 방향(기본 뒤쪽), E2=심벌이 서는 쪽(기본 왼쪽 법선) */var E1=[u[0]*dx,u[1]*dx],E2=[n[0]*sy,n[1]*sy];var _ox=+c.ox||0,_oy=+c.oy||0;var _cid='CUT@'+c.x.toFixed(2)+'_'+c.y.toFixed(2);
+  function W(X,Y,anch){var x=c.x+E1[0]*X*K+E2[0]*Y*K,y=c.y+E1[1]*X*K+E2[1]*Y*K;if(anch)return [x,y];return [x+u[0]*_ox+n[0]*_oy,y+u[1]*_ox+n[1]*_oy];}/* 앵커(셋째 원소 'A')는 측점 고정, 나머지는 몸통 오프셋 동승 [BUILD2815] */
+  function pl(lay,P,cl,fi,wd,scr){var it={t:'pl',lay:lay,cl:cl?1:0,pts:P.map(function(q){return W(q[0],q[1],q[2]==='A');}),cutsym9:1,no:_cid,su:u,sn:n,cx:c.x,cy:c.y};if(fi)it.fi=1;if(wd)it.wd=wd;if(scr)it.scr9=1;S.items.push(it);}
+  function twid(str,h){var w=0;String(str).split('').forEach(function(ch){w+=(/[\uAC00-\uD7A3]/.test(ch)?1.0:0.8)*h;});return w;}
+  /* 글자: 샘플 단위 영역 X0~X1(E1 축)·Y0~Y1(E2 축)을 차지하도록 — 읽는 방향 r 기준 시작점(왼쪽 기준선)·높이 방향(q=r 왼쪽 법선, n 성분=rd) 산출. DXF·화면 공통 왼쪽 기준선 */
+  function tx(lay,X0,X1,Y0,Y1,h,str){var a=Y0*sy,b=Y1*sy,lo=Math.min(a,b),hi=Math.max(a,b);var Yb=(rd>0?lo:hi);var Xs=((rd*dx)>0)?X0:X1;var x=c.x+E1[0]*Xs*K+n[0]*Yb*K+u[0]*_ox+n[0]*_oy,y=c.y+E1[1]*Xs*K+n[1]*Yb*K+u[1]*_ox+n[1]*_oy;S.items.push({t:'tx',lay:lay,x:x,y:y,h:h,s:str,rot:rot,cutsym9:1,no:_cid,su:u,sn:n,cx:c.x,cy:c.y});}
   function dateOf(no){var s2=String(no||'');var i=s2.lastIndexOf('-');return i>0?s2.slice(0,i):'';}
   var segs=_psSegs9||[];function firstNo(i,fromEnd){var sg=segs[i]||[];if(fromEnd){for(var k=sg.length-1;k>=0;k--){if(sg[k]&&sg[k].no&&!sg[k].tamsa&&Math.hypot(sg[k].x-c.x,sg[k].y-c.y)>0.3)return sg[k].no;}}else{for(var k2=0;k2<sg.length;k2++){if(sg[k2]&&sg[k2].no&&!sg[k2].tamsa&&Math.hypot(sg[k2].x-c.x,sg[k2].y-c.y)>0.3)return sg[k2].no;}}return '';}
   var noHere='';(state.points||[]).forEach(function(q){if(q&&q.x!=null&&Math.hypot(q.x-c.x,q.y-c.y)<0.3)noHere=q.no;});var noPrev=(segP!=null)?firstNo(segP,true):'',noNext=(segN!=null)?firstNo(segN,false):'';
   function depOf(no){var d=(state._depthByNo&&no!=null)?state._depthByNo[no]:null;return (d!=null&&isFinite(d))?(+d).toFixed(1):'-';}
-  function twid(str,h){var w=0;String(str).split('').forEach(function(ch){w+=(/[\uAC00-\uD7A3]/.test(ch)?1.0:0.8)*h;});return w;}
-  if(c.kind==='gong'||c.kind==='date'||c.kind==='nodet'){var hT=0.7;pl('_CHANGE',[[0,0,'A'],[0,0],[0,1.25]]);/* [BUILD2815] 측점(고정)→옮긴 밑점→위 */pl('_CHANGE',[[-0.5,0.98],[0.5,0.98]]);pl('_CHANGE',[[-0.37,1.03],[-0.5,0.98],[-0.37,0.93]]);pl('_CHANGE',[[0.37,1.03],[0.5,0.98],[0.37,0.93]]);
-   if(c.kind==='gong'){var t1='공수배열';tx('_CHANGE',-twid(t1,hT)/2/K,1.31,hT,t1);}
-   else if(c.kind==='date'){var dL=dateOf(noPrev)||'-',dR=dateOf(noNext)||dateOf(noHere)||'-';tx('_CHANGE',-0.06-twid(dL,hT)/K,1.34,hT,dL);tx('_CHANGE',0.06,1.34,hT,dR);}
-   else{var a1='실측',a2='불탐';tx('_CHANGE',-0.06-twid(a1,hT)/K,1.31,hT,a1);tx('_CHANGE',0.06,1.31,hT,a2);}}
-  else if(c.kind==='remeas'){pl('_현장_수정',[[0,0,'A'],[-0.266,1.648],[-1.637,1.648],[-1.902,3.297]]);tx('_현장_수정',-1.637,1.698,0.83,'측설재측');}
-  else if(c.kind==='depth'){pl('측점_DIM_L',[[0,0,'A'],[-0.416,0.744]]);pl('측점_DIM_인출',[[-0.416,0.744],[-0.925,1.687],[-2.825,1.687]]);var nm=String(noHere||'');var ix=nm.lastIndexOf('-');nm=ix>=0?nm.slice(ix+1):nm;tx('측점_번호',-2.825,1.787,1.0,'No '+(nm||'-'));tx('측점_이격',-2.825,1.287,1.0,depOf(noHere)+'('+depOf(noNext)+')');var d1=dateOf(noPrev)||dateOf(noHere)||'-',d2=dateOf(noNext)||dateOf(noHere)||'-';tx('측점_DATE',-2.825-0.06-twid(d1,1.0)/K,1.537,1.0,d1);tx('측점_DATE',-0.825,1.537,1.0,d2);}
+  if(c.kind==='gong'||c.kind==='date'||c.kind==='nodet'){var hA=0.5;/* 샘플 0.15×K */
+   pl('_CHANGE',[[0,0,'A'],[0,0],[0,1.25]]);/* 줄기: 측점(고정)→옮긴 밑점→끝 */
+   pl('_CHANGE',[[-0.5,0.98],[-0.37,0.98],[0.37,0.98],[0.5,0.98]],0,0,[[0,0.05*K],[0,0],[0.05*K,0],[0,0]]);/* 화살선(DXF: 양끝 폭 가변 화살촉 = 샘플과 동일) */
+   pl('_CHANGE',[[-0.5,0.98],[-0.37,1.005],[-0.37,0.955]],1,1,null,1);pl('_CHANGE',[[0.5,0.98],[0.37,1.005],[0.37,0.955]],1,1,null,1);/* 화면 전용 채움 화살촉(DXF 제외) */
+   if(c.kind==='gong'){var t1='공수배열',w1=twid(t1,hA)/K;tx('_CHANGE',-w1/2,w1/2,1.288,1.438,hA,t1);}/* 줄기 끝 위 가운데 */
+   else if(c.kind==='date'){var dL=dateOf(noPrev)||'-',dR=dateOf(noNext)||dateOf(noHere)||'-';var wL=twid(dL,hA)/K,wR=twid(dR,hA)/K;tx('_CHANGE',-0.04-wL,-0.04,1.07,1.22,hA,dL);tx('_CHANGE',0.04,0.04+wR,1.07,1.22,hA,dR);}/* 줄기 좌(앞 측점)·우(뒤 측점) — 관로 방향 기준 */
+   else{var tamP=(!noPrev&&!!noNext);/* 앞쪽 구간에 실측점이 없으면 앞이 불탐 */var aL=tamP?'불탐':'실측',aR=tamP?'실측':'불탐';var wa=twid(aL,hA)/K,wb=twid(aR,hA)/K;tx('_CHANGE',-0.08-wa,-0.08,1.07,1.22,hA,aL);tx('_CHANGE',0.08,0.08+wb,1.07,1.22,hA,aR);}}
+  else if(c.kind==='remeas'){pl('_현장_수정',[[0,0,'A'],[0.266,1.648],[1.637,1.648],[1.902,3.297]]);var t2='측설재측',w2=twid(t2,0.83)/K;tx('_현장_수정',1.637-w2,1.637,1.698,1.948,0.83,t2);}/* 가로선 먼 끝에서 시작, 선 위 0.05 */
+  else if(c.kind==='depth'){pl('측점_DIM_L',[[0,0,'A'],[0.416,0.744]]);pl('측점_DIM_인출',[[0.416,0.744],[0.925,1.687],[2.825,1.687]]);var nm=String(noHere||'');var ix=nm.lastIndexOf('-');nm=ix>=0?nm.slice(ix+1):nm;var sNo='No '+(nm||'-'),sDp=depOf(noHere)+'('+depOf(noNext)+')';var wN=twid(sNo,1.0)/K,wD=twid(sDp,1.0)/K;tx('측점_번호',2.825-wN,2.825,1.787,2.087,1.0,sNo);tx('측점_이격',2.825-wD,2.825,1.287,1.587,1.0,sDp);
+   var dPrev=dateOf(noPrev)||dateOf(noHere)||'-',dNext=dateOf(noNext)||dateOf(noHere)||'-';var dFar=(dx<0?dPrev:dNext),dNear=(dx<0?dNext:dPrev);/* 날짜는 관로 방향 기준: 뒤쪽 끝=앞 측점 날짜 */var wF=twid(dFar,1.0)/K,wNr=twid(dNear,1.0)/K;tx('측점_DATE',2.925,2.925+wF,1.537,1.837,1.0,dFar);tx('측점_DATE',0.825-wNr,0.825,1.537,1.837,1.0,dNear);}
  });}catch(_cs9){try{console.warn('cutsym9',_cs9);}catch(_c){}}
  /* [BUILD2204] 현황선 — 실물 표준 레이어 DORO(색4). ★현황결선은 insp:true가 정상이라 insp 제외 금지(2203 결함). 기존 도엽에만 배정 */
  function shpeek(x,y){var c=_posSheetOf(x,y);return (c&&SH[c.no])?SH[c.no]:null;}
@@ -22330,7 +22338,8 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
 }
 function _pdSer9(items){/* 장면 items → DXF 엔티티 문자열 (핸들은 이 시점 발급) */
  var e='';for(var i=0;i<items.length;i++){var it=items[i];
-  if(it.t==='pl')e+=_pdPL(it.lay,it.pts,it.cl?true:false,it.c62);
+  if(it.scr9)continue;/* [BUILD2817] 화면 전용(경계심벌 화살촉 채움) */
+  if(it.t==='pl')e+=_pdPL(it.lay,it.pts,it.cl?true:false,it.c62,it.wd);
   else if(it.t==='ins')e+=_pdIns(it.lay,it.name,it.x,it.y);
   else if(it.t==='tx')e+=_pdText(it.lay,it.x,it.y,it.h,it.s,it.rot);
   else if(it.t==='ci'){e+=_pdCirc(it.lay,it.x,it.y,it.r);if(it.fi)e+=_pdHatchCirc9(it.lay,it.x,it.y,it.r);}}/* [BUILD2763] 내관 채움 = SOLID HATCH */
@@ -22528,7 +22537,10 @@ function _sdCutDrag9(node,it){/* [BUILD2813] ★경계심벌 드래그 — 심�
  function nodes(){var gs=document.getElementById('sdPrev9');if(!gs)return [];return Array.prototype.slice.call(gs.querySelectorAll('[data-sdno="'+String(it.no)+'"]'));}
  function _mv(e){if(!st)return;e.preventDefault();e.stopPropagation();var p=_sxy9(e);if(!p)return;var dx=p[0]-st.sx,dy=p[1]-st.sy;st.dx=dx;st.dy=dy;st.moved=true;st.ns.forEach(function(n){n.setAttribute('transform','translate('+dx.toFixed(3)+' '+dy.toFixed(3)+')');});}
  function _up(e){if(!st)return;var fin=st;st=null;try{window.removeEventListener('pointermove',_mv,true);window.removeEventListener('pointerup',_up,true);window.removeEventListener('pointercancel',_up,true);}catch(_r){}fin.ns.forEach(function(n){n.removeAttribute('transform');});if(!fin.moved)return;
-  try{var wx=fin.dx,wy=-fin.dy;/* S: y 반전 */var du=wx*it.su[0]+wy*it.su[1],dn=wx*it.sn[0]+wy*it.sn[1];var c=null;(state.posCuts9||[]).forEach(function(q){if(q&&Math.hypot(q.x-it.cx,q.y-it.cy)<0.01)c=q;});if(!c)return;if(typeof pushHist==='function'){try{pushHist();}catch(_h){}}c.ox=+(((+c.ox||0)+du).toFixed(3));c.oy=+(((+c.oy||0)+dn).toFixed(3));window._sdCache9=null;if(typeof posDrawSD9==='function')posDrawSD9(true);if(typeof saveProject==='function'){window._silentSave=true;saveProject();}}catch(_s){}
+  try{var wx=fin.dx,wy=-fin.dy;/* S: y 반전 */var du=wx*it.su[0]+wy*it.su[1],dn=wx*it.sn[0]+wy*it.sn[1];var c=null;(state.posCuts9||[]).forEach(function(q){if(q&&Math.hypot(q.x-it.cx,q.y-it.cy)<0.01)c=q;});if(!c)return;if(typeof pushHist==='function'){try{pushHist();}catch(_h){}}c.ox=+(((+c.ox||0)+du).toFixed(3));c.oy=+(((+c.oy||0)+dn).toFixed(3));
+  /* [BUILD2817] ★관로 기준 자동 반전(인출선과 동일 감각): 몸통 중심이 관로선을 넘어가면 위아래(sy) 반전, 꺾인 인출선(측설재측·심도경계)이 앵커 직각면을 넘어가면 좌우(dx) 반전 — 반전 시 그 축 오프셋은 0(반전된 기본 자리) */
+  var _K9=3.333,_sy9=(c.sy===-1?-1:1),_lean9=(c.kind==='remeas'||c.kind==='depth'),_dx9=(c.dx===1?1:-1);var _CN9=(c.kind==='remeas'?1.65:(c.kind==='depth'?1.69:0.98))*_K9;if(c.oy*_sy9<-_CN9){c.sy=-_sy9;c.oy=0;}if(_lean9){var _CX9=(c.kind==='remeas'?0.95:1.9)*_K9;if(c.ox*_dx9<-_CX9){c.dx=-_dx9;c.ox=0;}}
+  window._sdCache9=null;if(typeof posDrawSD9==='function')posDrawSD9(true);if(typeof saveProject==='function'){window._silentSave=true;saveProject();}}catch(_s){}
  }
  node.addEventListener('pointerdown',function(e){if(e.button!=null&&e.button!==0)return;if(!window._posCutMarkOn9)return;/* 경계심벌 모드에서만 */e.preventDefault();e.stopPropagation();var p0=_sxy9(e);if(!p0)return;st={sx:p0[0],sy:p0[1],dx:0,dy:0,moved:false,ns:nodes()};window.addEventListener('pointermove',_mv,true);window.addEventListener('pointerup',_up,true);window.addEventListener('pointercancel',_up,true);});
 }
@@ -22605,7 +22617,7 @@ function _sdDrawItem9(g,it){var _n0=g.childNodes.length;try{/* [BUILD2648] 측�
   var _lp9=it.pts;
   if(it.lk&&it.lw!=null&&it.ax!=null){var G9=_sdLeadGeo9(it);_lp9=[[G9.ax,G9.ay],[G9.ex,G9.ey],[G9.ex+G9.hx*G9.lw,G9.ey]];}/* [BUILD2274] 수평선을 태그 길이에 맞춤 */
   var ps='';for(var i=0;i<_lp9.length;i++){var sc=S(_lp9[i][0],_lp9[i][1]);ps+=(i?' ':'')+sc[0].toFixed(3)+','+sc[1].toFixed(3);}
-  var _pn9=el(it.cl?'polygon':'polyline',{points:ps,fill:'none',stroke:col,'stroke-width':(it.lay==='SD001'?_SDVW9.pipe:(!/^SD/.test(it.lay)?_SDVW9.hyun:_SDVW9.sd)),'pointer-events':((it.lk&&!it.fw9)||it.cutsym9?'stroke':'none')});if(it.cutsym9){_pn9.style.cursor='move';try{_sdCutDrag9(_pn9,it);}catch(_cd){}}/* [BUILD2813] 경계심벌 드래그 */
+  var _pn9=el(it.cl?'polygon':'polyline',{points:ps,fill:(it.fi?col:'none'),stroke:col,'stroke-width':(it.lay==='SD001'?_SDVW9.pipe:(!/^SD/.test(it.lay)?_SDVW9.hyun:_SDVW9.sd)),'pointer-events':((it.lk&&!it.fw9)||it.cutsym9?'stroke':'none')});if(it.cutsym9){_pn9.style.cursor='move';try{_sdCutDrag9(_pn9,it);}catch(_cd){}}/* [BUILD2813] 경계심벌 드래그 */
   if(it.lk&&it.fw9){_sdLeadPut9(_pn9,it);}else if(it.lk){_pn9.setAttribute('stroke-width',(window._posSelLk9&&it.lk===window._posSelLk9)?(_SDVW9.lead*2.2):_SDVW9.lead);_pn9.style.cursor='move';_sdLeadDrag9(_pn9,it);_sdLeadPut9(_pn9,it);
    var _ht9=el('polyline',{points:ps,fill:'none',stroke:'transparent','stroke-width':1.2,'pointer-events':'stroke'});/* [BUILD2256] 넓은 히트 영역 */
    _ht9.style.cursor='move';_sdLeadDrag9(_ht9,it);_sdLeadPut9(_ht9,it);g.appendChild(_ht9);}
