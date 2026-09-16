@@ -9435,7 +9435,7 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
   }catch(_a9){}
   var regN=0;ITEMS.forEach(function(it){if(fd[it[0]])regN++;});
   var allDone=(regN===ITEMS.length);
-  var bs9=(!regN)?'background:#fff;border:1.5px solid #c0392b;color:#c0392b':(allDone?'background:#c0392b;border:1.5px solid #c0392b;color:#fff;box-shadow:0 0 0 4px #f1c40f':'background:#c0392b;border:1.5px solid #c0392b;color:#fff');
+  var bs9=(!regN&&!fd.final)?'background:#fff;border:1.5px solid #c0392b;color:#c0392b':(fd.final?'background:#c0392b;border:1.5px solid #c0392b;color:#fff;box-shadow:0 0 0 4px #f1c40f':'background:#c0392b;border:1.5px solid #c0392b;color:#fff');/* [BUILD2855] 기본=흰 바탕 빨간 글자, 하나라도 등록=빨간 바탕 흰 글자, 최종완료등록(fd.final)=노란 테두리(해제하면 사라짐) — 종전엔 12개 전부 등록 시 노란 테두리라 해제해도 남았음 */
   var h='<div id="fsHead9" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:#16a34a;display:inline-block"></span><b style="font-size:15px">측량(현장) 최종성과 — '+(state.projectName||'')+'</b></div>'
    +'<div id="fsBody9" style="overflow:auto;padding:6px 12px">'
    +'<div style="display:flex;align-items:center;gap:8px;padding:1px 0 6px;'+WB9+'">'
