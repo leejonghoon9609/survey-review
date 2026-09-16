@@ -9305,9 +9305,10 @@ function fldRegToNext(cb){ /* [1289] field 성과 → 탱고(_T)·정위치(_P) 
   var base=baseName(state.projectName);
   var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,photoDirAbs:(state.photoDirAbs||{}),routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,rtToSvDone9:state.rtToSvDone9||null,svFldReg9:state.svFldReg9||null,rtDaily:state.rtDaily||[],trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,rtRawMeta9:state.rtRawMeta9||null,jgMatch9:state.jgMatch9||null,rtRawSrc9:(state.rtRawSrc9||null),aftRawMeta9:state.aftRawMeta9||null,finalCsv:state.finalCsv||null,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,depthManual:state._depthManual||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,tgSegLabelOff:state.tgSegLabelOff||null,fldInsp9:state.fldInsp9||null,mnList:state.mnList||[],tangoDone:state.tangoDone||null,tgCarrier:state.tgCarrier||null,mhDel:state.mhDel||null,tgNotes:state.tgNotes||null,refCrop:state.refCrop||null/* [BUILD1994] 사업 영역 인계 */,bpFull:state.bpFull||[],bpTexts:state.bpTexts||[]/* [BUILD1997] 백판 원본 인계 — 탱고·정위치 사본에서도 재크롭 복구가 되도록. payload로 넘어오지만 다음 저장 때 saveProject가 heavy 컬럼으로 자동 이사시킨다([1491] finalCsv와 동일 관례) */,hyunPts:state.hyunPts||null};
   function one(tbl,ptbl,suffix,stage,next){
-    sb.from(tbl).select('id,name,payload').then(function(res){
-      var rows=((res&&res.data)||[]).filter(function(r){var pl0=r.payload||{};return !pl0.delAt&&(pl0.stage||'survey')===stage&&baseName(r.name)===base;});
-      var pl=JSON.parse(JSON.stringify(payload));pl.stage=stage;
+    sb.from(tbl).select('id,name,st9:payload->>stage,da9:payload->>delAt').then(function(res){/* [BUILD2854] 전체 payload를 끌어오지 않고 stage·delAt만 — 'canceling statement due to statement timeout' 원인 1 */
+      if(res&&res.error){toast('등록 오류('+stage+' 조회): '+res.error.message);next(null);return;}
+      var rows=((res&&res.data)||[]).filter(function(r){return !r.da9&&((r.st9||'survey')===stage)&&baseName(r.name)===base;});
+      var pl=JSON.parse(JSON.stringify(payload));pl.stage=stage;var hv={finalCsv:pl.finalCsv||[],bpFull:pl.bpFull||[],bpTexts:pl.bpTexts||[]};pl.finalCsv=null;pl.bpFull=[];pl.bpTexts=[];/* [BUILD2854] 무거운 백판 원본·후측량 CSV 원문은 heavy 컬럼으로(saveProject [1491] 관례) — 원인 2: 통짜 payload 갱신이 statement timeout */
       pl.routingDone=false;pl.tangoArchived=null;/* [1625] field \uacb0\uc120\uc644\ub8cc \ud50c\ub798\uadf8\uac00 \ubcf5\uc0ac\ub3fc \ud604\ud669\ud310\uc5d0\uc11c '\ud0f1\uace0\uc644\ub8cc'\ub85c \uc624\ubd84\ub958\ub418\ub358 \ubb38\uc81c \u2014 \uc0ac\ubcf8\uc740 \uc791\uc5c5\uc911\uc73c\ub85c */
       var fin=function(row){
         if(row&&row.error){toast('등록 오류('+stage+'): '+row.error.message);next(null);return;}
@@ -9322,9 +9323,11 @@ function fldRegToNext(cb){ /* [1289] field 성과 → 탱고(_T)·정위치(_P) 
           });
         });
       };
-      if(rows.length){sb.from(tbl).update({name:rows[0].name,payload:pl,updated_at:new Date().toISOString()}).eq('id',rows[0].id).select().then(fin);}
-      else{sb.from(tbl).insert({name:base+suffix,payload:pl,updated_at:new Date().toISOString()}).select().then(fin);}
-    });
+      var _w=function(useHeavy){var row=rows.length?{name:rows[0].name,payload:pl,updated_at:new Date().toISOString()}:{name:base+suffix,payload:pl,updated_at:new Date().toISOString()};if(useHeavy)row.heavy=hv;else{row.payload=JSON.parse(JSON.stringify(pl));row.payload.finalCsv=hv.finalCsv;row.payload.bpFull=hv.bpFull;row.payload.bpTexts=hv.bpTexts;}
+        var q=rows.length?sb.from(tbl).update(row).eq('id',rows[0].id).select('id,name'):sb.from(tbl).insert(row).select('id,name');
+        q.then(function(r){if(r&&r.error&&useHeavy&&/heavy|column/i.test(r.error.message||'')){_w(false);return;}/* heavy 컬럼 미설치 폴백 */fin(r);},function(e){fin({error:{message:(e&&e.message)||String(e)}});});};
+      _w(true);
+    },function(e){toast('등록 오류('+stage+' 조회): '+((e&&e.message)||e));next(null);});
   }
   one('tango_projects','tango_photos','_T','tango',function(a){
     one('position_projects','position_photos','_P','position',function(b){
@@ -9332,10 +9335,10 @@ function fldRegToNext(cb){ /* [1289] field 성과 → 탱고(_T)·정위치(_P) 
       try{window._silentSave=true;saveProject();}catch(_se){}
       if(typeof refreshFieldBar==='function')refreshFieldBar();
       /* [1291] 대응 결선(_A) 포털 숨김 */
-      sb.from('survey_projects').select('id,name,payload').then(function(sres){
-        ((sres&&sres.data)||[]).forEach(function(r){var pl=r.payload||{};if(pl.delAt)return;if((pl.stage||'survey')!=='survey')return;if(baseName(r.name)!==base)return;
-          pl.pxHide=Date.now();sb.from('survey_projects').update({payload:pl}).eq('id',r.id).then(function(){});});
-      });
+      sb.from('survey_projects').select('id,name,st9:payload->>stage,da9:payload->>delAt').then(function(sres){/* [BUILD2854] 가벼운 조회 후 해당 행만 payload 갱신 */
+        ((sres&&sres.data)||[]).forEach(function(r){if(r.da9)return;if((r.st9||'survey')!=='survey')return;if(baseName(r.name)!==base)return;
+          sb.from('survey_projects').select('payload').eq('id',r.id).single().then(function(one9){var pl=(one9&&one9.data&&one9.data.payload)||{};pl.pxHide=Date.now();sb.from('survey_projects').update({payload:pl}).eq('id',r.id).then(function(){},function(){});},function(){});});
+      },function(){});
       toast('탱고·정위치 등록 완료'+(a?(' — '+a.name):''));
       if(typeof cb==='function')cb(true);
     });
@@ -9346,9 +9349,9 @@ function fldRegOff(cb){ /* [1289] 해제 — 탱고·정위치 사본 삭제목�
   var fd=state.fieldDone||{};fd.final=false;state.fieldDone=fd;try{window._silentSave=true;saveProject();}catch(_se){}
   function fin(){if(fired)return;fired=true;try{if(typeof refreshFieldBar==='function')refreshFieldBar();}catch(_r){}toast('탱고·정위치 등록 해제');if(typeof cb==='function')cb(false);}
   var tmr=setTimeout(fin,6000);
-  function step(){if(++done===2){clearTimeout(tmr);try{var _b2=baseName(state.projectName||'');sb.from('survey_projects').select('id,name,payload').then(function(sres){((sres&&sres.data)||[]).forEach(function(r){var pl=r.payload||{};if(!pl.pxHide)return;if((pl.stage||'survey')!=='survey')return;if(baseName(r.name)!==_b2)return;delete pl.pxHide;sb.from('survey_projects').update({payload:pl}).eq('id',r.id).then(function(){});});},function(){});}catch(_h){}fin();}}
-  [['tango_projects','tango'],['position_projects','position']].forEach(function(tp){
-    try{sb.from(tp[0]).select('id,name,payload').then(function(res){try{((res&&res.data)||[]).forEach(function(r){var pl=r.payload||{};if(pl.delAt)return;if((pl.stage||'survey')!==tp[1])return;if(baseName(r.name)!==base)return;pl.delAt=Date.now();sb.from(tp[0]).update({payload:pl}).eq('id',r.id).then(function(){},function(){});});}catch(_u){}step();},function(){step();});}catch(_q){step();}
+  function step(){if(++done===2){clearTimeout(tmr);try{var _b2=baseName(state.projectName||'');sb.from('survey_projects').select('id,name,st9:payload->>stage,px9:payload->>pxHide').then(function(sres){((sres&&sres.data)||[]).forEach(function(r){if(!r.px9)return;if((r.st9||'survey')!=='survey')return;if(baseName(r.name)!==_b2)return;sb.from('survey_projects').select('payload').eq('id',r.id).single().then(function(one9){var pl=(one9&&one9.data&&one9.data.payload)||{};delete pl.pxHide;sb.from('survey_projects').update({payload:pl}).eq('id',r.id).then(function(){},function(){});},function(){});});},function(){});}catch(_h){}fin();}}
+  [['tango_projects','tango'],['position_projects','position']].forEach(function(tp){/* [BUILD2854] 가벼운 조회(stage·delAt만) 후 해당 행만 payload 갱신 */
+    try{sb.from(tp[0]).select('id,name,st9:payload->>stage,da9:payload->>delAt').then(function(res){try{((res&&res.data)||[]).forEach(function(r){if(r.da9)return;if((r.st9||'survey')!==tp[1])return;if(baseName(r.name)!==base)return;sb.from(tp[0]).select('payload').eq('id',r.id).single().then(function(one9){var pl=(one9&&one9.data&&one9.data.payload)||{};pl.delAt=Date.now();sb.from(tp[0]).update({payload:pl}).eq('id',r.id).then(function(){},function(){});},function(){});});}catch(_u){}step();},function(){step();});}catch(_q){step();}
   });
 }
 function _fldSvSrc9(cb){/* [BUILD2233] field → 결선DB(_A) 원본 조회(원시 메타·측점) */
@@ -9473,9 +9476,9 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
    toast('성과 '+n+'건 등록됨');render();
   };
   var _tn=box.querySelector('#fsToNext9');
-  if(_tn)_tn.onclick=function(){/* 등록 ↔ 해제 토글 */
-   if(fd.final){uiConfirm9('탱고DB 등록을 해제할까요?','해제',function(){fldRegOff(function(){fd.final=false;state.fieldDone=fd;try{saveProject();}catch(_e){}render();});});return;}
-   fldRegToNext(function(ok){if(ok){fd.final=true;state.fieldDone=fd;try{saveProject();}catch(_e){}render();}});
+  if(_tn)_tn.onclick=function(){/* 등록 ↔ 해제 토글 · [BUILD2854] 확인창 문구 */
+   if(fd.final){uiConfirm9('측량(현장) 최종성과 등록을 해제할까요?','해제',function(){fldRegOff(function(){fd.final=false;state.fieldDone=fd;try{saveProject();}catch(_e){}render();});});return;}
+   uiConfirm9('측량(현장) 최종성과로 등록할까요?','등록',function(){fldRegToNext(function(ok){if(ok){fd.final=true;state.fieldDone=fd;try{saveProject();}catch(_e){}render();}});});
   };
  }
  render();
