@@ -8675,7 +8675,7 @@ function posFldDoneTable9(el,pl,projName,pid,photoRows){/* [BUILD2244] 정위치
   ['aftPhoto','측설사진',(afN?afN+'장':'-'),'측설(_A) 사진',afN>0,'ZIP'],
   ['mnDxf','맨홀도',(mnN?mnN+'개':'-'),'맨홀 상세도',false,'DXF'],
   ['mnXls','설비사진조서(엑셀)',(mnN?mnN+'개':'-'),'맨홀 설비 사진조서',false,'XLSX'],
-  ['mnEfb','현장전자야장',(mnN?mnN+'개':'-'),'현장 전자야장',false,'EFB'],
+  ['mnEfb','현장전자야장',(mnN?mnN+'개':'-'),'현장 전자야장(맨홀별 DXF)',false,'DXF'],
   ['mnPhoto','맨홀사진','-','맨홀 사진',false,'ZIP']
  ];
  var regN=0;ITEMS.forEach(function(it){if(fd[it[0]])regN++;});
@@ -9401,7 +9401,7 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
    ['aftPhoto','측설사진',(afN?afN+'장':'-'),'측설(_A) 사진',afN>0,'ZIP'],
    ['mnDxf','맨홀도',(mnN?mnN+'개':'-'),'맨홀 상세도',mnN>0,'DXF'],
    ['mnXls','설비사진조서(엑셀)',(mnN?mnN+'개':'-'),'맨홀 설비 사진조서',mnN>0,'XLSX'],
-   ['mnEfb','현장전자야장',(mnN?mnN+'개':'-'),'현장 전자야장',mnN>0,'EFB'],
+   ['mnEfb','현장전자야장',(mnN?mnN+'개':'-'),'현장 전자야장(맨홀별 DXF)',mnN>0,'DXF']/* [BUILD2857] 전자야장은 DXF — 배지 EFB→DXF */,
    ['mnPhoto','맨홀사진',(mnPh?('맨홀 '+mnPhMh+'개 · 총 '+mnPh+'장'):'-'),'맨홀 사진'+(mnPh?(' — 맨홀 '+mnPhMh+'개 / '+mnPh+'장'):''),mnPh>0,'ZIP']
   ];
  }
