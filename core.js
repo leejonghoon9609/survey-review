@@ -9387,7 +9387,7 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
   var exN=0,afN=0;try{for(var k1 in (typeof photoMap!=='undefined'?photoMap:{}))exN++;}catch(_e1){}
   try{for(var k2 in (typeof afterMap!=='undefined'?afterMap:{}))afN++;}catch(_e2){}
   var mnN=0;try{mnN=((typeof mnList==='function')?mnList():(state.mnList||[])).filter(function(r){return r&&!r.delAt;}).length;}catch(_e3){mnN=0;}
-  var mnPh=0;try{((typeof mnList==='function')?mnList():(state.mnList||[])).forEach(function(r){if(r&&!r.delAt&&typeof _phCnt==='function')mnPh+=_phCnt(r);});}catch(_e4){}
+  var mnPh=0,mnPhMh=0;try{((typeof mnList==='function')?mnList():(state.mnList||[])).forEach(function(r){if(!r||r.delAt)return;var n=0;try{for(var pk in (r.photos||{}))if(r.photos[pk])n++;}catch(_pc){}if(n){mnPh+=n;mnPhMh++;}});}catch(_e4){}/* [BUILD2856] 맨홀 사진 집계 — _phCnt는 다른 스코프 지역 함수라 여기서 항상 0장('-')으로 나오던 것 수정, 맨홀 개수·총 장수 표시 */
   var joN=0;try{joN=(state.points||[]).filter(function(p){return p&&!p._hyun&&(photoMap[(typeof ptNum==='function')?ptNum(p):p.no]);}).length;}catch(_e5){}
   /* [키, 이름, 건수, 내용, 다운가능, 파일형식] */
   return [
@@ -9402,7 +9402,7 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
    ['mnDxf','맨홀도',(mnN?mnN+'개':'-'),'맨홀 상세도',mnN>0,'DXF'],
    ['mnXls','설비사진조서(엑셀)',(mnN?mnN+'개':'-'),'맨홀 설비 사진조서',mnN>0,'XLSX'],
    ['mnEfb','현장전자야장',(mnN?mnN+'개':'-'),'현장 전자야장',mnN>0,'EFB'],
-   ['mnPhoto','맨홀사진',(mnPh?mnPh+'장':'-'),'맨홀 사진',mnPh>0,'ZIP']
+   ['mnPhoto','맨홀사진',(mnPh?('맨홀 '+mnPhMh+'개 · 총 '+mnPh+'장'):'-'),'맨홀 사진'+(mnPh?(' — 맨홀 '+mnPhMh+'개 / '+mnPh+'장'):''),mnPh>0,'ZIP']
   ];
  }
  var ITEMS=_calc9();
