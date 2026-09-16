@@ -8037,7 +8037,7 @@ function svRawZipToCsv9(zips,done){
   });
 }
 function svRawZipKeep9(zips){/* [BUILD2447] 결선DB(시스템 이전 사업) 원시 ZIP 보관 — 실시간 rtRawZipUp9의 보관부만 미러: 원본 ZIP을 storage photos/{pid}/raw_{ymd}.zip 에 올리고 state.rtRawMeta9[ymd] 기록 → 결선완료 등록 '원시데이터(노출관로)' 행·통합 ZIP(rtRawAllZip9) 그대로 동작. CSV 추출(svRawZipToCsv9)은 종전대로 별도. 작업일=ZIP 파일명 20YYMMDD → 없으면 첫 CSV 2행 현재날짜 열 */
-  try{if(!(typeof STAGE!=='undefined'&&STAGE==='survey'))return;var arr=[].slice.call(zips||[]).filter(function(f){return f&&/\.zip$/i.test(f.name||'');});if(!arr.length)return;
+  try{if(!(typeof STAGE!=='undefined'&&(STAGE==='survey'||STAGE==='field')))return;/* [BUILD2853] 측량현장도 원시 보관 */var arr=[].slice.call(zips||[]).filter(function(f){return f&&/\.zip$/i.test(f.name||'');});if(!arr.length)return;
     if(typeof sb==='undefined'||!state.projectId||(typeof online!=='undefined'&&!online)){window._svRawPend9=(window._svRawPend9||[]).concat(arr);toast('원시 ZIP '+arr.length+'개 대기 — 사업 등록(저장)되면 자동 보관됩니다',4500);return;}/* [BUILD2450] 신규 사업(미저장) 상태에서 드롭한 원시 ZIP은 대기열에 두었다가 projectId 생기면 보관 */
     var i=0;(function nx(){if(i>=arr.length)return;var f=arr[i++];
       var fin=function(ymd){if(!ymd){toast('원시 보관 건너뜀 — 작업일 판별 실패: '+(f.name||''),5000);setTimeout(nx,300);return;}
@@ -8050,13 +8050,20 @@ function svRawZipKeep9(zips){/* [BUILD2447] 결선DB(시스템 이전 사업) �
       var m=/20(\d{6})/.exec(f.name||'');if(m){fin(m[1]);return;}
       try{JSZip.loadAsync(f).then(function(zip){var ent=null;zip.forEach(function(path,e){if(!e.dir&&/\.csv$/i.test(path)&&!ent)ent=e;});if(!ent)return null;return ent.async('uint8array');}).then(function(bytes){var ymd=null;if(bytes){try{var head=new TextDecoder('euc-kr').decode(bytes.slice(0,4000));var l2=head.split(/\r?\n/)[1]||'';var c=l2.split(',');if(c[8])ymd=String(c[8]).replace(/-/g,'').slice(2,8);}catch(_e){}}fin(ymd);})['catch'](function(){fin(null);});}catch(_z){fin(null);}
     })();}catch(_e){}}
+function svRawCsvKeep9(csvs){/* [BUILD2853] 결선DB·측량현장에서 원시 ZIP이 아니라 CSV 파일을 바로 넣어도 원시로 보관 — 작업일(파일명 20YYMMDD → 2행 날짜 열 → 이름 앞 6자리)별로 묶어 raw_{ymd}.zip 생성 후 svRawZipKeep9와 같은 경로(storage photos/{pid}/raw_{ymd}.zip + rtRawMeta9) */
+  try{if(!(typeof STAGE!=='undefined'&&(STAGE==='survey'||STAGE==='field')))return;if(typeof JSZip==='undefined')return;var arr=[].slice.call(csvs||[]).filter(function(f){return f&&/\.csv$/i.test(f.name||'');});if(!arr.length)return;
+    var groups={},left=arr.length;
+    arr.forEach(function(f){var rd=new FileReader();rd.onload=function(){var ymd=null;try{var m=/20(\d{6})/.exec(f.name||'');if(m)ymd=m[1];if(!ymd){var txt=(typeof decodeBuf==='function')?decodeBuf(rd.result):new TextDecoder('utf-8').decode(rd.result);var l2=(txt.split(/\r?\n/)[1]||'');var c=l2.split(',');var d8=String(c[8]||'').replace(/[^0-9]/g,'');if(d8.length>=8)ymd=d8.slice(2,8);if(!ymd){var n6=/^(\d{6})[_-]/.exec(String(c[0]||'').replace(/^\uFEFF/,'').trim());if(n6)ymd=n6[1];}}}catch(_e){}
+      if(ymd){(groups[ymd]=groups[ymd]||[]).push(f);}else{toast('원시 보관 건너뜀 — 작업일 판별 실패: '+(f.name||''),5000);}
+      if(--left<=0){var keys=Object.keys(groups);if(!keys.length)return;var zips=[],pend=keys.length;keys.forEach(function(k){var z=new JSZip();groups[k].forEach(function(cf){z.file(cf.name,cf);});z.generateAsync({type:'blob',compression:'DEFLATE'}).then(function(bl){zips.push(new File([bl],'raw_20'+k+'.zip',{type:'application/zip'}));}).then(function(){if(--pend<=0&&zips.length)svRawZipKeep9(zips);});});}};
+      rd.readAsArrayBuffer(f);});}catch(_e){}}
 function svRawPendingFlush9(){/* [BUILD2450] 사업 등록/저장으로 projectId가 생긴 직후 대기 중 원시 ZIP 보관 */try{var q=window._svRawPend9;if(!q||!q.length||!state.projectId)return;window._svRawPend9=[];svRawZipKeep9(q);}catch(_e){}}
 function svCsvDispatch9(fs){/* 기존 분기 그대로 */
   if(regOpen()){if(state.tamsa&&typeof regAddCsvFilesTamsa==='function')regAddCsvFilesTamsa(fs);else regAddCsvFiles(fs);}
   else loadCsvFile(fs[0]);
 }
 setupDrop('dropCsv',function(fs){if(typeof IS_REALTIME!=='undefined'&&IS_REALTIME){var _z9=[],_r9=[];for(var zi=0;zi<fs.length;zi++){(/\.zip$/i.test(fs[zi].name||'')?_z9:_r9).push(fs[zi]);}if(_z9.length){if(typeof rtRawZipUpMany9==='function')rtRawZipUpMany9(_z9);if(!_r9.length)return;fs=_r9;}}else{var _z8=[],_c8=[];for(var z8=0;z8<fs.length;z8++){(/\.zip$/i.test(fs[z8].name||'')?_z8:_c8).push(fs[z8]);}
-  if(_z8.length){try{if(typeof svRawZipKeep9==='function')svRawZipKeep9(_z8);}catch(_rk9){}/* [BUILD2447] 원본 ZIP 보관 */svRawZipToCsv9(_z8,function(csvs){var all=_c8.concat(csvs);if(!all.length){toast('ZIP 안에 CSV가 없습니다');return;}toast('원시 ZIP에서 CSV '+csvs.length+'개 추출');svCsvDispatch9(all);});return;}
+  try{if(_c8.length&&typeof svRawCsvKeep9==='function')svRawCsvKeep9(_c8);}catch(_rc9){}/* [BUILD2853] CSV 직접 투입도 원시 보관 */if(_z8.length){try{if(typeof svRawZipKeep9==='function')svRawZipKeep9(_z8);}catch(_rk9){}/* [BUILD2447] 원본 ZIP 보관 */svRawZipToCsv9(_z8,function(csvs){var all=_c8.concat(csvs);if(!all.length){toast('ZIP 안에 CSV가 없습니다');return;}toast('원시 ZIP에서 CSV '+csvs.length+'개 추출');svCsvDispatch9(all);});return;}
 }/* [BUILD2110→2147] 등록카드 원시 ZIP — 후측량도 지원 */svCsvDispatch9(fs);});/* [1355] 탐사 탭 분기 */
 setupDrop('dropDxf',function(fs){loadDxfFiles(fs);});/* [1350] */
 setupDrop('dropPho',function(fs){regAddPhotos(fs);});setupDrop('dropAft',function(fs){[].forEach.call(fs,function(f){loadAfterCsv(f);});});/* [BUILD2236] 원시 ZIP·CSV 다중 드롭 */
@@ -9334,21 +9341,14 @@ function fldRegToNext(cb){ /* [1289] field 성과 → 탱고(_T)·정위치(_P) 
     });
   });
 }
-function fldRegOff(cb){ /* [1289] 해제 — 탱고·정위치 사본 삭제목록 처리(1240 미러) */
-  var base=baseName(state.projectName||'');var done=0;
+function fldRegOff(cb){ /* [1289] 해제 — 탱고·정위치 사본 삭제목록 처리(1240 미러) · [BUILD2853] 로컬 해제는 즉시(낙관), 원격 조회 실패·지연에도 6초 내 반드시 완료 콜백(종전엔 select 실패 시 콜백이 안 와 해제가 안 되던 문제) */
+  var base=baseName(state.projectName||'');var done=0,fired=false;
+  var fd=state.fieldDone||{};fd.final=false;state.fieldDone=fd;try{window._silentSave=true;saveProject();}catch(_se){}
+  function fin(){if(fired)return;fired=true;try{if(typeof refreshFieldBar==='function')refreshFieldBar();}catch(_r){}toast('탱고·정위치 등록 해제');if(typeof cb==='function')cb(false);}
+  var tmr=setTimeout(fin,6000);
+  function step(){if(++done===2){clearTimeout(tmr);try{var _b2=baseName(state.projectName||'');sb.from('survey_projects').select('id,name,payload').then(function(sres){((sres&&sres.data)||[]).forEach(function(r){var pl=r.payload||{};if(!pl.pxHide)return;if((pl.stage||'survey')!=='survey')return;if(baseName(r.name)!==_b2)return;delete pl.pxHide;sb.from('survey_projects').update({payload:pl}).eq('id',r.id).then(function(){});});},function(){});}catch(_h){}fin();}}
   [['tango_projects','tango'],['position_projects','position']].forEach(function(tp){
-    sb.from(tp[0]).select('id,name,payload').then(function(res){
-      ((res&&res.data)||[]).forEach(function(r){var pl=r.payload||{};if(pl.delAt)return;if((pl.stage||'survey')!==tp[1])return;if(baseName(r.name)!==base)return;
-        pl.delAt=Date.now();sb.from(tp[0]).update({payload:pl}).eq('id',r.id).then(function(){});});
-      if(++done===2){
-        /* [1291] 결선(_A) 숨김 해제 */
-        var _b2=baseName(state.projectName||'');
-        sb.from('survey_projects').select('id,name,payload').then(function(sres){
-          ((sres&&sres.data)||[]).forEach(function(r){var pl=r.payload||{};if(!pl.pxHide)return;if((pl.stage||'survey')!=='survey')return;if(baseName(r.name)!==_b2)return;
-            delete pl.pxHide;sb.from('survey_projects').update({payload:pl}).eq('id',r.id).then(function(){});});
-        });
-        var fd=state.fieldDone||{};fd.final=false;state.fieldDone=fd;try{window._silentSave=true;saveProject();}catch(_se){}if(typeof refreshFieldBar==='function')refreshFieldBar();toast('탱고·정위치 등록 해제');if(typeof cb==='function')cb(false);}
-    });
+    try{sb.from(tp[0]).select('id,name,payload').then(function(res){try{((res&&res.data)||[]).forEach(function(r){var pl=r.payload||{};if(pl.delAt)return;if((pl.stage||'survey')!==tp[1])return;if(baseName(r.name)!==base)return;pl.delAt=Date.now();sb.from(tp[0]).update({payload:pl}).eq('id',r.id).then(function(){},function(){});});}catch(_u){}step();},function(){step();});}catch(_q){step();}
   });
 }
 function _fldSvSrc9(cb){/* [BUILD2233] field → 결선DB(_A) 원본 조회(원시 메타·측점) */
@@ -16372,7 +16372,7 @@ function openCsvList(){
 }
 document.getElementById('fCsv').addEventListener('change',function(e){var fs=e.target.files;
   if(!(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)&&typeof svRawZipToCsv9==='function'){var _z8=[],_c8=[];for(var z8=0;z8<fs.length;z8++){(/\.zip$/i.test(fs[z8].name||'')?_z8:_c8).push(fs[z8]);}
-    if(_z8.length){try{if(typeof svRawZipKeep9==='function')svRawZipKeep9(_z8);}catch(_rk9){}/* [BUILD2447] 원본 ZIP 보관 */svRawZipToCsv9(_z8,function(csvs){var all=_c8.concat(csvs);if(!all.length){toast('ZIP 안에 CSV가 없습니다');return;}toast('원시 ZIP에서 CSV '+csvs.length+'개 추출');svCsvDispatch9(all);});e.target.value='';return;}}/* [BUILD2147] */
+    try{if(_c8.length&&typeof svRawCsvKeep9==='function')svRawCsvKeep9(_c8);}catch(_rc9){}/* [BUILD2853] CSV 직접 투입도 원시 보관 */if(_z8.length){try{if(typeof svRawZipKeep9==='function')svRawZipKeep9(_z8);}catch(_rk9){}/* [BUILD2447] 원본 ZIP 보관 */svRawZipToCsv9(_z8,function(csvs){var all=_c8.concat(csvs);if(!all.length){toast('ZIP 안에 CSV가 없습니다');return;}toast('원시 ZIP에서 CSV '+csvs.length+'개 추출');svCsvDispatch9(all);});e.target.value='';return;}}/* [BUILD2147] */
   if(regOpen()||IS_REALTIME){if(state.tamsa&&!(typeof IS_REALTIME!=='undefined'&&IS_REALTIME)&&typeof regAddCsvFilesTamsa==='function')regAddCsvFilesTamsa(fs);else regAddCsvFiles(fs);}else loadCsvFile(fs[0]);e.target.value='';});/* [1355] */document.getElementById('fAft').addEventListener('change',function(e){[].forEach.call(e.target.files,function(f){loadAfterCsv(f);});e.target.value='';});
 function loadDxfFile(f){loadDxfFiles(f?[f]:[]);}
 function loadDxfFiles(fs){fs=Array.prototype.slice.call(fs||[]).filter(Boolean);if(!fs.length)return;/* [1350] 다중 병합 + [1371] 1/5000 지원 */
