@@ -2934,6 +2934,7 @@ function exportSurveyCsv(){
     var X=(p.y!=null&&!isNaN(p.y))?(+p.y).toFixed(3):'';   // CSV X = 앱 p.y (북)
     var Y=(p.x!=null&&!isNaN(p.x))?(+p.x).toFixed(3):'';   // CSV Y = 앱 p.x (동)
     var Z=(p.z!=null&&!isNaN(p.z))?(+p.z).toFixed(3):'';
+    try{var _rw9=(typeof _rtRawXY9==='function')?_rtRawXY9(p):null;if(_rw9){X=_rw9.X;Y=_rw9.Y;if(_rw9.Z!=='')Z=_rw9.Z;}if(p._zEd9!=null&&isFinite(+p._zEd9))Z=(+p._zEd9).toFixed(3);if(p._xyEd9&&isFinite(+p._xyEd9[0])){X=(+p._xyEd9[1]).toFixed(3);Y=(+p._xyEd9[0]).toFixed(3);}}catch(_rx9){}/* [BUILD2852] 결선DB·실시간 측설용 CSV도 원시 행(X/Y/Z 원본 문자열) 우선 — _fldCsvText9와 같은 규칙, 정위치 수정값(_zEd9/_xyEd9) 반영 */
     var _nm0=nm;_xr9.push([nm,(X===''?'':+X),(Y===''?'':+Y),(Z===''?'':+Z),(p.code||'').trim(),!!((state.fldCsvEd9||{})[p.no])]);var cd=(p.code||'').trim(); if(/[",]/.test(cd))cd='"'+cd.replace(/"/g,'""')+'"';
     if(/[",]/.test(nm))nm='"'+nm.replace(/"/g,'""')+'"';
     return [nm,X,Y,Z,cd].join(',');
