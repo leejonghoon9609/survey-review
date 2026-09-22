@@ -18470,17 +18470,27 @@ function rtRawMetaRestore9(){/* [BUILD2190] \uc6d0\uc2dc \ubcf4\uad00 \uba54\ud0
     });
   }catch(_e){}
 }
-function rtRawAllZip9(_m9,_pid9,_nm9){ /* [BUILD2220] 원격 인자(meta,pid,name) 지원 — 무인자=현재 사업 기존 동작 */ /* [BUILD2096] 원시 통합 — 한 번만 압축: 날짜/등록명/원본내용 폴더로 전개 */
+function _rawPidScan9(nm,cb){/* [BUILD2977] 원시 ZIP 폴더 후보 찾기 — 같은 사업명(baseName: _S/_A/_B/_C/_P/_T 접미사 제외, 공백 무시)의 실시간·결선DB·측량현장 사업 id와 그 rtRawSrc9. payload 전체는 안 받는다 */
+ try{var nz=function(x){return String(x||'').replace(/\s+/g,'').toLowerCase();};var bn=(typeof baseName==='function')?baseName:function(x){return x;};var B=nz(bn(nm||(state&&state.projectName)||''));
+  var out=[];var add=function(v){if(v&&out.indexOf(String(v))<0)out.push(String(v));};
+  var T=['realtime_projects','survey_projects','field_projects'],res={},left=T.length,done=false;
+  var fin=function(){if(done)return;done=true;T.forEach(function(t){(res[t]||[]).forEach(function(r){if(!r||r.del)return;if(nz(bn(r.name))!==B)return;add(r.src);add(r.id);});});try{console.log('[원시 ZIP] 이름 기준 후보',out);}catch(_c){}cb(out);};
+  T.forEach(function(t){try{sb.from(t).select('id,name,src:payload->>rtRawSrc9,del:payload->>delAt').then(function(r){res[t]=(r&&r.data)||[];},function(){res[t]=[];}).then(function(){if(--left<=0)fin();});}catch(_q){if(--left<=0)fin();}});
+  setTimeout(fin,12000);
+ }catch(_e){cb([]);}}
+function rtRawAllZip9(_m9,_pid9,_nm9,_xp9){ /* [BUILD2220] 원격 인자(meta,pid,name) 지원 — 무인자=현재 사업 기존 동작 */ /* [BUILD2096] 원시 통합 — 한 번만 압축: 날짜/등록명/원본내용 폴더로 전개 */
   var M=_m9||(typeof state!=='undefined'&&state.rtRawMeta9)||{};var PID9=_pid9||(typeof state!=='undefined'&&state.projectId);var PNM9=_nm9||(typeof state!=='undefined'&&state.projectName)||'사업';var keys=Object.keys(M).filter(function(k){return !(M[k]&&M[k].dup);}).sort();/* [BUILD2111] 중복 제외 */
   if(!keys.length){toast('보관된 원시 ZIP이 없습니다 — 원시 ZIP으로 업로드한 날짜만 포함됩니다');return;}
   if(typeof JSZip==='undefined'){toast('압축 모듈 없음 — 새로고침(Ctrl+Shift+R)');return;}
-  var PIDS9=[];var _ap9=function(v){if(v&&PIDS9.indexOf(String(v))<0)PIDS9.push(String(v));};_ap9(_pid9);try{_ap9(state.rtRawSrc9);}catch(_a1){}try{var _S9=window._fldSvCache9;if(_S9){_ap9(_S9.rawSrc);_ap9(_S9.id);}}catch(_a2){}try{_ap9(state.projectId);}catch(_a3){}/* [BUILD2976] 원시 ZIP은 '올린 단계의 사업 폴더'에 있다 — 정위치 사본 id로만 찾으면 없음. 메타 pid → 넘겨받은 id → 원천 실시간 id(rtRawSrc9) → 결선DB id → 현재 사업 id 순으로 시도 */
+  if(_xp9===undefined&&typeof sb!=='undefined'&&typeof _rawPidScan9==='function'&&keys.some(function(k){return !(M[k]&&M[k].pid);})){toast('원시 ZIP 위치 찾는 중…');_rawPidScan9(PNM9,function(ids){rtRawAllZip9(_m9,_pid9,_nm9,ids||[]);});return;}/* [BUILD2977] 폴더 기록 없는 옛 원시 — 같은 사업명(접미사 제외)의 실시간·결선DB·측량현장 사업 폴더까지 후보로 */
+  var PIDS9=[];var _ap9=function(v){if(v&&PIDS9.indexOf(String(v))<0)PIDS9.push(String(v));};_ap9(_pid9);try{_ap9(state.rtRawSrc9);}catch(_a1){}try{var _S9=window._fldSvCache9;if(_S9){_ap9(_S9.rawSrc);_ap9(_S9.id);}}catch(_a2){}try{(_xp9||[]).forEach(_ap9);}catch(_a4){}try{_ap9(state.projectId);}catch(_a3){}var _learn9=false;/* [BUILD2976] 원시 ZIP은 '올린 단계의 사업 폴더'에 있다 — 정위치 사본 id로만 찾으면 없음. 메타 pid → 넘겨받은 id → 원천 실시간 id(rtRawSrc9) → 결선DB id → 현재 사업 id 순으로 시도 */
   if(typeof sb==='undefined'||!PIDS9.length){toast('사업이 저장되어 있어야 합니다');return;}var _miss9=[];
   toast('원시 성과 '+keys.length+'일치 수집 중…');
   var out=new JSZip(),i=0,ok=0,fail=0;
   (function nx(){
     if(i>=keys.length){
       if(!ok){toast('원시 ZIP 파일을 찾지 못했습니다 — '+_miss9.join(', ')+' (찾아본 사업 폴더 '+PIDS9.length+'곳)',7000);try{console.warn('[원시 ZIP] 못 찾음',_miss9,'후보 폴더',PIDS9);}catch(_cw){}return;}
+      if(_learn9){try{window._silentSave=true;if(typeof saveProject==='function')saveProject();}catch(_ls){}}/* [BUILD2977] */
       out.generateAsync({type:'blob'}).then(function(b){
         var a=document.createElement('a');a.href=URL.createObjectURL(b);
         a.download=((PNM9||'사업')+'_원시성과통합.zip').replace(/[\\/:*?"<>|]/g,'_');
@@ -18490,7 +18500,7 @@ function rtRawAllZip9(_m9,_pid9,_nm9){ /* [BUILD2220] 원격 인자(meta,pid,nam
     }
     var kk=keys[i++];
     var cand9=[];var mp9=M[kk]&&M[kk].pid;if(mp9)cand9.push(String(mp9));PIDS9.forEach(function(v){if(cand9.indexOf(v)<0)cand9.push(v);});
-    var tryF9=function(ci){if(ci>=cand9.length)return Promise.reject(0);var url=sb.storage.from('photos').getPublicUrl(cand9[ci]+'/raw_'+kk+'.zip').data.publicUrl+'?t='+Date.now();return fetch(url).then(function(r){if(!r.ok)throw 0;return r.blob();})['catch'](function(){return tryF9(ci+1);});};
+    var tryF9=function(ci){if(ci>=cand9.length)return Promise.reject(0);var url=sb.storage.from('photos').getPublicUrl(cand9[ci]+'/raw_'+kk+'.zip').data.publicUrl+'?t='+Date.now();return fetch(url).then(function(r){if(!r.ok)throw 0;return r.blob();}).then(function(b){try{if(M===state.rtRawMeta9&&M[kk]&&!M[kk].pid){M[kk].pid=cand9[ci];_learn9=true;}}catch(_lp){}return b;})['catch'](function(){return tryF9(ci+1);});};/* [BUILD2977] 찾은 폴더를 메타에 기억 */
     tryF9(0)
     .then(function(b){return JSZip.loadAsync(b);})
     .then(function(src){
