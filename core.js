@@ -22819,10 +22819,10 @@ function posRawWin9(){/* [BUILD2973] ★원시데이터 수정 창 4분할 — �
    +'<div style="flex:0 0 58%;min-width:0;display:flex;flex-direction:column;gap:6px">'+BX('prRaw9','#e53935','원시 원본','','1 1 0')+BX('prEdit9','#1565c0','수정원시','','1 1 0')+'</div>'
    +'<div style="flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:6px">'+BX('prList9','#f9a825','원시데이터 수정목록','','0 0 32%')+BX('prDet9','#2e7d32','세부수정 내용','','1 1 0')+'</div>'
    +'</div>';
-  try{var hD=card.querySelector('#prDet9 > div');if(hD)hD.insertAdjacentHTML('beforeend','<span style="flex:1"></span><span id="prSaved9" style="font-size:10px;color:#1565c0;font-weight:700"></span><button id="prSave9" title="수정원시를 저장하고 최종성과 원시데이터(노출관로)로 등록" style="font-size:11.5px;font-weight:800;padding:2px 10px;border-radius:6px;cursor:pointer;border:1.5px solid #2e7d32;background:#2e7d32;color:#fff">수정내용 저장</button>');
+  try{var hD=card.querySelector('#prDet9 > div');if(hD){var hB9=hD.querySelector('b');if(hB9)hB9.insertAdjacentHTML('afterend','<button id="prRev9" title="수정원시를 엑셀로 — 바뀐 칸 빨강 굵게(확인용)" style="font-size:11px;font-weight:800;padding:1px 9px;border-radius:6px;cursor:pointer;border:1.5px solid #c62828;background:#fff;color:#c62828">수정원시 확인본</button>');}/* [BUILD2990] */if(hD)hD.insertAdjacentHTML('beforeend','<span style="flex:1"></span><span id="prSaved9" style="font-size:10px;color:#1565c0;font-weight:700"></span><button id="prSave9" title="수정원시를 저장하고 최종성과 원시데이터(노출관로)로 등록" style="font-size:11.5px;font-weight:800;padding:2px 10px;border-radius:6px;cursor:pointer;border:1.5px solid #2e7d32;background:#2e7d32;color:#fff">수정내용 저장</button>');
    var hR=card.querySelector('#prRaw9 > div');if(hR)hR.insertAdjacentHTML('beforeend','<span style="flex:1"></span><button id="prOrig9" title="수정 전 원본 원시 ZIP 다운로드" style="font-size:11px;font-weight:800;padding:1px 9px;border-radius:6px;cursor:pointer;border:1.5px solid #e53935;background:#fff;color:#e53935">원본 원시</button>');
    var dB9=card.querySelector('#prDet9');if(dB9)dB9.insertAdjacentHTML('beforeend','<div id="prChkBar9" style="flex:none;padding:5px 8px;border-top:1px solid #e0e0e0;display:flex;justify-content:flex-end;align-items:center;gap:8px;min-height:32px;background:#fafafa"></div>');/* [BUILD2988] */
-   card.querySelector('#prSave9').onclick=function(){posRawSave9();};card.querySelector('#prOrig9').onclick=function(){posRawOrigDl9();};}catch(_hb9){}/* [BUILD2986] */
+   card.querySelector('#prSave9').onclick=function(){posRawSave9();};try{card.querySelector('#prRev9').onclick=function(){posRawReviewXlsx9();};}catch(_rv9){}card.querySelector('#prOrig9').onclick=function(){posRawOrigDl9();};}catch(_hb9){}/* [BUILD2986] */
   mc.appendChild(card);cw.style.marginRight=W9;if(getComputedStyle(cw).position==='static')cw.style.position='relative';window._posRawOpen9=true;try{posRawTb9();}catch(_tb9){}/* [BUILD2974] */
   card.querySelector('#prClose9').onclick=function(){window._posRawEdit9=false;posRawClose9();if(typeof renderRail==='function')renderRail();};
   posRawRender9();
@@ -22977,7 +22977,7 @@ function _posRawDet9(d,sel,ph){/* [BUILD2978] 세부수정 내용 — 심도(원
  h+=box('원시 수정내역 · '+FMN[fk],'#546e7a',inner);d.innerHTML=h;
  Array.prototype.forEach.call(d.querySelectorAll('.prJump9'),function(el){el.onclick=function(){var jl9=el.getAttribute('data-jl');if(jl9===''||jl9==null)return;var jc9=el.getAttribute('data-jc');window._posRawFmt9=el.getAttribute('data-jf');window._posRawJump9={f:el.getAttribute('data-jf'),l:+jl9,c:(jc9!=null&&jc9!=='')?+jc9:null,t:el.getAttribute('data-jt')||null};/* [BUILD2985] 열(csv)·글자 조각(raw·rw5)까지 */try{posRawTb9();}catch(_t){}posRawRender9();};});}
 function _rawCsvEdits9(zp,C){/* [BUILD2986] 원시 csv 수정 목록(렌더·저장 공용) — 심도수정 측점의 Z(레벨)=변경 관상고, 고도·원점 고도 = 원래 값 + 관상고 차. {ov:{행:{열:값}}, n:반영 점수, pts:[측점]} */
- var f=zp&&zp.files&&zp.files.csv;var OV={},n=0,pts=[];if(!f||!f.head)return {ov:OV,n:0,pts:pts};
+ var f=zp&&zp.files&&zp.files.csv;var OV={},n=0,pts=[],lnNo={};if(!f||!f.head)return {ov:OV,n:0,pts:pts};
  var H=f.head;var iZ=H.indexOf('Z(레벨)');if(iZ<0)iZ=H.indexOf('Z');var iH=H.indexOf('고도'),iBK=H.indexOf('원점 고도');if(iZ<0)return {ov:OV,n:0,pts:pts};
  var fz=function(v){var t=(+v).toFixed(3);if(t.indexOf('.')>=0)t=t.replace(/0+$/,'').replace(/\.$/,'');return t;};
  var dl=[];try{dl=posRawLists9().dep||[];}catch(_dl){}var seen={};
@@ -22986,8 +22986,8 @@ function _rawCsvEdits9(zp,C){/* [BUILD2986] 원시 csv 수정 목록(렌더·저
   var cs0=splitCsvLine(f.lines[m2.csv.ln]||'');var nv=fz(ch2.dep.z1);var z0c=parseFloat(String(cs0[iZ]||'').trim());if(String(cs0[iZ]||'').trim()===nv||!isFinite(z0c))return;
   var dzc=Math.round((ch2.dep.z1-z0c)*1000)/1000;var o={};o[iZ]=nv;
   [iH,iBK].forEach(function(ci){if(ci<0)return;var v0=parseFloat(String(cs0[ci]||'').trim());if(!isFinite(v0))return;o[ci]=fz(Math.round((v0+dzc)*1000)/1000);});
-  OV[m2.csv.ln]=o;n++;pts.push(String(no));});
- return {ov:OV,n:n,pts:pts};}
+  OV[m2.csv.ln]=o;n++;pts.push(String(no));lnNo[m2.csv.ln]=String(no);});
+ return {ov:OV,n:n,pts:pts,lnNo:lnNo};}
 function _csvPatchBytes9(u8,edits){/* [BUILD2986] cp949 원시 csv를 바이트 그대로 두고 고칠 칸만 ASCII 숫자로 교체 — 쉼표·따옴표·줄바꿈은 cp949 2바이트 글자 안에 나오지 않아 바이트 단위로 안전. 줄바꿈(\r\n/\n)·다른 줄·다른 칸은 원본 바이트 그대로 */
  var lines=[],st=0,i;for(i=0;i<=u8.length;i++){if(i===u8.length||u8[i]===0x0A){lines.push(u8.subarray(st,i));st=i+1;}}
  var parts=lines.map(function(L,li){var E=edits[li];if(!E)return L;var cr=(L.length&&L[L.length-1]===0x0D);var body=cr?L.subarray(0,L.length-1):L;
@@ -23001,7 +23001,9 @@ function posRawSave9(){/* [BUILD2986] ★수정내용 저장 → 최종성과 '�
   if(typeof sb==='undefined'||!state.projectId||typeof JSZip==='undefined'){toast('사업이 저장되어 있어야 합니다');return;}
   var plan=C.list.map(function(zp){var r=_rawCsvEdits9(zp,C);return {zp:zp,ed:r.ov,n:r.n,pts:r.pts};});
   var nDep=0;plan.forEach(function(p){nDep+=p.n;});var nMv=0;
-  if(!confirm('수정원시를 저장하고 최종성과 「원시데이터(노출관로)」로 등록합니다.\n\n심도 '+nDep+'점 / 측점이동 '+nMv+'점\n(원시 csv의 Z(레벨)·고도·원점 고도 반영 — raw·rw5·측점이동은 아직 원본 그대로)\n\n수정 전 원본 원시는 이 사업에 따로 보관됩니다. 진행할까요?'))return;
+  var LL9=posRawLists9(),miss9=[];LL9.dep.forEach(function(no){var st=_rawChkGet9(no,'dep');if(st!=='ok')miss9.push('심도수정  '+no+(st==='stale'?'  (재확인)':''));});var sm9={};LL9.mv.forEach(function(no){if(sm9[no])return;sm9[no]=1;var st=_rawChkGet9(no,'mv');if(st!=='ok')miss9.push('측점이동  '+no+(st==='stale'?'  (재확인)':''));});
+  if(miss9.length){_posWarn9('저장할 수 없습니다','확인완료가 안 된 측점이 '+miss9.length+'건 있습니다.\n수정목록의 모든 측점에 확인완료 배지가 있어야 저장됩니다.\n\n'+miss9.slice(0,14).join('\n')+(miss9.length>14?('\n… 외 '+(miss9.length-14)+'건'):''));return;}/* [BUILD2990] 확인완료 전부 있어야 저장 */
+  uiConfirm9('수정원시를 저장하고 성과심사 최종성과 「원시데이터(노출관로)」로 등록합니다.\n\n심도 '+nDep+'점 / 측점이동 '+nMv+'점\n(원시 csv의 Z(레벨)·고도·원점 고도 반영 — raw·rw5·측점이동은 아직 원본 그대로)\n\n수정 전 원본 원시는 이 사업에 따로 보관됩니다.','저장',function(){try{/* [BUILD2990] confirm() 금지 → 공용 확인창 */
   var btn=document.getElementById('prSave9');if(btn){btn.disabled=true;btn.textContent='저장 중…';}
   state.rawMod9=state.rawMod9||{};var i=0,ok=0,fail=[];
   var fin=function(){try{window._silentSave=false;if(typeof saveProject==='function')saveProject();}catch(_s){}
@@ -23020,6 +23022,7 @@ function posRawSave9(){/* [BUILD2986] ★수정내용 저장 → 최종성과 '�
    .then(function(bl){return sb.storage.from('photos').upload(modDst,bl,{upsert:true,contentType:'application/zip'}).then(function(u){if(u&&u.error)throw new Error('수정원시 저장 실패: '+u.error.message);});})
    .then(function(){state.rawMod9[kk]={at:new Date().toISOString(),dep:P.n,mv:0,pts:P.pts,path:modDst,orig:(prev&&prev.orig)||origDst,src:src,zn:zp.zn||''};ok++;})
    ['catch'](function(e){fail.push('20'+kk+' ('+(e&&e.message||e)+')');}).then(function(){setTimeout(nx,10);});})();
+  }catch(_g9){toast('저장 오류: '+(_g9&&_g9.message||_g9));}});
  }catch(_e){toast('저장 오류: '+(_e&&_e.message||_e));}}
 function posRawOrigDl9(){/* [BUILD2986] 원본 원시 다운로드 — 이 사업에 보관한 수정 전 원본(raworig) → 없으면 원래 위치의 원본 */try{var _S=window._fldSvCache9;rtRawAllZip9((_S&&_S.rawMeta)||null,null,state.projectName,undefined,true);}catch(_e){toast('원본 다운로드 오류');}}
 function _rawChkSnap9(q,kd){/* [BUILD2988] 확인완료 당시 값 — 나중에 값이 바뀌면 '재확인'으로 */try{var ch=_rawChg9(q);if(kd==='mv'&&ch.mv)return 'mv:'+(+ch.mv.n1).toFixed(3)+','+(+ch.mv.e1).toFixed(3);if(kd!=='mv'&&ch.dep)return 'dep:'+((ch.dep.z1!=null)?(+ch.dep.z1).toFixed(3):'-');}catch(_e){}return '';}
@@ -23036,6 +23039,30 @@ function _posRawChkBar9(card){/* 세부수정 아래 확인완료 줄 */try{var 
   else if(st==='stale')h='<span style="font-size:11px;color:#e65100;font-weight:700">확인 뒤 값이 바뀜</span><button id="prChk9" style="'+bs+'border:2px solid #e65100;background:#fff3e0;color:#e65100">다시 확인완료</button>';
   else h='<span style="font-size:11px;color:#888">원시를 확인했으면 →</span><button id="prChk9" style="'+bs+'border:2px solid #2e7d32;background:#fff;color:#2e7d32">확인완료</button>';
   bar.innerHTML=h;var b=bar.querySelector('#prChk9');if(b)b.onclick=function(){posRawChkToggle9();};}catch(_e){}}
+function _posWarn9(title,msg){/* [BUILD2990] 경고창(확인 버튼 하나) — 브라우저 alert 대신 */try{var ov=document.createElement('div');ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:99999;display:flex;align-items:center;justify-content:center;';
+ var bx=document.createElement('div');bx.style.cssText='background:#fff;border:2px solid #e65100;border-radius:10px;padding:18px 22px;max-width:480px;min-width:320px;box-shadow:0 6px 24px rgba(0,0,0,0.25);';
+ var h=document.createElement('div');h.style.cssText='font-size:16px;font-weight:900;color:#e65100;margin-bottom:8px';h.textContent='⚠ '+title;bx.appendChild(h);
+ var tx=document.createElement('div');tx.style.cssText='font-size:14px;line-height:1.6;white-space:pre-line;color:#222;max-height:50vh;overflow:auto';tx.textContent=msg;bx.appendChild(tx);
+ var row=document.createElement('div');row.style.cssText='display:flex;justify-content:center;margin-top:16px;';var ok=document.createElement('button');ok.textContent='확인';ok.style.cssText='background:#e65100;color:#fff;border:0;border-radius:6px;padding:9px 30px;font-size:15px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;';
+ var cls=function(){try{document.body.removeChild(ov);}catch(_r){}document.removeEventListener('keydown',key,true);};var key=function(e){if(e.key==='Escape'||e.key==='Enter'){e.preventDefault();cls();}};ok.onclick=cls;row.appendChild(ok);bx.appendChild(row);ov.appendChild(bx);document.body.appendChild(ov);document.addEventListener('keydown',key,true);ok.focus();}catch(_e){}}
+function posRawReviewXlsx9(){/* [BUILD2990] 수정원시 확인본(엑셀) — 수정원시 내용 그대로, 바뀐 칸만 빨강 굵게. 시트: 수정내역·원시csv·원시raw·원시rw5. 원시 csv 숫자는 원본 소수 자릿수 서식으로(보이는 값 = 원시 글자). 최종성과 등록본(ZIP)은 빨강 없는 원시 형식 그대로 */
+ try{var C=window._posRawZip9;if(!C||!C.ready||C.pid!==state.projectId||!C.list.length){toast('원시를 아직 불러오지 못했습니다');return;}if(typeof ExcelJS==='undefined'){toast('엑셀 모듈 없음 — 새로고침(Ctrl+Shift+R)');return;}
+  var wb=new ExcelJS.Workbook();var wsC=wb.addWorksheet('수정내역');var multi=C.list.length>1;var chg=[];var RED={bold:true,color:{argb:'FFC62828'}};
+  C.list.forEach(function(zp){var sfx=multi?('_'+zp.ymd):'';var F=zp.files;
+   if(F.csv){var R=_rawCsvEdits9(zp,C);var ws=wb.addWorksheet('원시csv'+sfx);var L=F.csv.lines,nc=0;
+    for(var i=0;i<L.length;i++){if(i===L.length-1&&L[i]==='')break;var cs=splitCsvLine(L[i]);var ov=R.ov[i]||null;var row=ws.addRow([]);
+     for(var c=0;c<cs.length;c++){var v=(ov&&ov[c]!=null)?String(ov[c]):String(cs[c]==null?'':cs[c]);var cell=row.getCell(c+1);var t=v.trim();
+      if(i>0&&/^-?\d+(\.\d+)?$/.test(t)&&t.length<16){var dp=(t.split('.')[1]||'').length;cell.value=+t;cell.numFmt=dp?('0.'+new Array(dp+1).join('0')):'0';}else cell.value=v;
+      if(i===0)cell.font={bold:true};if(ov&&ov[c]!=null){cell.font=RED;chg.push([multi?('20'+zp.ymd):'',(R.lnNo&&R.lnNo[i])||'',i+1,(F.csv.head[c]||''),String(cs[c]==null?'':cs[c]).trim(),v]);}}
+     if(cs.length>nc)nc=cs.length;}
+    ws.views=[{state:'frozen',xSplit:1,ySplit:1}];for(var c2=1;c2<=nc;c2++)ws.getColumn(c2).width=13;}
+   ['raw','rw5'].forEach(function(k){var f=F[k];if(!f)return;var ws2=wb.addWorksheet('원시'+k+sfx);ws2.getColumn(1).width=7;ws2.getColumn(2).width=170;f.lines.forEach(function(l,li){if(li===f.lines.length-1&&l==='')return;ws2.addRow([li+1,l]);});ws2.views=[{state:'frozen',ySplit:0}];});});
+  var hd=['작업일','측점','원시csv 행','열','원본','변경'];if(!multi)hd.shift();var hr=wsC.addRow(hd);hr.font={bold:true};
+  chg.forEach(function(r){var rr=multi?r:r.slice(1);var row=wsC.addRow(rr);row.getCell(rr.length).font=RED;});
+  if(!chg.length)wsC.addRow(['변경 없음']);[10,16,11,14,14,14].forEach(function(w,ci){wsC.getColumn(ci+1).width=w;});
+  wsC.addRow([]);var nt=wsC.addRow(['※ 빨강 굵게 = 수정원시에서 바뀐 값 · 원시 raw·rw5·측점이동 X·Y는 아직 원본 그대로']);nt.getCell(1).font={italic:true,color:{argb:'FF757575'}};
+  wb.xlsx.writeBuffer().then(function(buf){var b=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=((state.projectName||'사업')+'_수정원시확인본.xlsx').replace(/[\\/:*?"<>|]/g,'_');document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},400);toast('✓ 수정원시 확인본 — 바뀐 칸 '+chg.length+'개 빨강 표시',4000);})['catch'](function(e){toast('엑셀 만들기 오류: '+(e&&e.message||e));});
+ }catch(_e){toast('확인본 오류: '+(_e&&_e.message||_e));}}
 function posRawRender9(){/* [BUILD2973] 원시데이터 수정 창 내용 갱신 */
  try{var card=document.getElementById('posRawOv9');if(!card)return;
   var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');};
