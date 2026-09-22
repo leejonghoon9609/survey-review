@@ -23070,6 +23070,13 @@ function posRawReviewXlsx9(){/* [BUILD2990] 수정원시 확인본(엑셀) — �
   wsC.addRow([]);var nt=wsC.addRow(['※ 진한 빨강 = 심도수정 · 진한 파랑 = 측점이동 · 노란 행 = 바뀐 행 · 원시 raw·rw5는 아직 원본 그대로']);nt.getCell(1).font={italic:true,color:{argb:'FF757575'}};
   wb.xlsx.writeBuffer().then(function(buf){var b=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=((state.projectName||'사업')+'_수정원시확인본.xlsx').replace(/[\\/:*?"<>|]/g,'_');document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},400);toast('✓ 수정원시 확인본 — 바뀐 칸 '+chg.length+'개',4000);})['catch'](function(e){toast('엑셀 만들기 오류: '+(e&&e.message||e));});
  }catch(_e){toast('확인본 오류: '+(_e&&_e.message||_e));}}
+function posRawAutoSel9(no){/* [BUILD2994] 도면에서 측점 클릭 → 원시데이터 수정 창도 그 측점으로(수정목록 선택·원본/수정원시 줄·세부수정·도면 표식 배경). 심도·이동 둘 다인 측점은 다시 누를 때마다 심도↔이동 전환. 수정 기록 없는 측점도 원시 위치는 보여줌 */
+ try{if(!window._posRawOpen9||!document.getElementById('posRawOv9')||no==null)return;var key=String(no);var L=posRawLists9();var inD=L.dep.indexOf(key)>=0,inM=L.mv.indexOf(key)>=0;
+  var kd=(String(window._posRawSel9)===key&&inD&&inM)?((window._posRawSelKind9==='mv')?'dep':'mv'):(inD?'dep':(inM?'mv':'dep'));
+  window._posRawSel9=key;window._posRawSelKind9=kd;window._posRawJump9=null;posRawRender9();
+  try{if(typeof posDrawMoveMarks9==='function')posDrawMoveMarks9();}catch(_m){}
+  try{var it=document.querySelector('#posRawOv9 .prPt9[data-no="'+key.replace(/"/g,'\\"')+'"][data-kind="'+kd+'"]');if(it&&it.scrollIntoView)it.scrollIntoView({block:'nearest'});}catch(_s){}
+ }catch(_e){}}
 function posRawRender9(){/* [BUILD2973] 원시데이터 수정 창 내용 갱신 */
  try{var card=document.getElementById('posRawOv9');if(!card)return;
   var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');};
@@ -23217,7 +23224,7 @@ function posMoveWin9(){/* [BUILD2845] ★측점이동 우측 패널(심도편집
 function posMoveClose9(){try{if(window._posMoveTick9){clearInterval(window._posMoveTick9);window._posMoveTick9=null;}var c=document.getElementById('posMoveOv9');if(c)c.remove();window._posMoveOpen9=false;window._posMoveRefresh9=null;var cw=document.querySelector('.canvas-wrap');if(cw&&!window._posDepthOpen9){var ip=document.getElementById('tgInfoPanel');cw.style.marginRight=(ip&&ip.style.display==='flex')?'42%':'';}}catch(_e){}}
 
 function posDepthClose9(){try{if(window._posDepthTick9){clearInterval(window._posDepthTick9);window._posDepthTick9=null;}var c=document.getElementById('posDepthOv9');if(c)c.remove();window._posDepthOpen9=false;var cw=document.querySelector('.canvas-wrap');if(cw&&!window._posMoveOpen9){var ip=document.getElementById('tgInfoPanel');cw.style.marginRight=(ip&&ip.style.display==='flex')?'42%':'';}}catch(_e){}}
-function fldInspAutoLocate9(no){/* [BUILD2874] 도면에서 측점 클릭 → 열려 있는 구간검수(심도검수·측점·CSV검수 탭)에서 그 측점을 자동으로 찾아 구간 열고 행 선택. 경계 측점처럼 여러 구간에 속하면 같은 측점을 다시 클릭할 때마다 앞 구간 → 뒤 구간 순으로 순환 */try{if(!window._fldInspOpen9||!document.getElementById('fldInspOv9'))return false;var cat=window._fldInspCat9||'all';if(cat!=='dep'&&cat!=='pt')return false;if(window._fiAutoLocBusy9)return false;var key=String(no);var N=((typeof _tgSegs!=='undefined'&&_tgSegs)||[]).length;var secs=[];
+function fldInspAutoLocate9(no){/* [BUILD2874] 도면에서 측점 클릭 → 열려 있는 구간검수(심도검수·측점·CSV검수 탭)에서 그 측점을 자동으로 찾아 구간 열고 행 선택. 경계 측점처럼 여러 구간에 속하면 같은 측점을 다시 클릭할 때마다 앞 구간 → 뒤 구간 순으로 순환 */try{if(typeof posRawAutoSel9==='function')posRawAutoSel9(no);}catch(_ra9){}/* [BUILD2994] 원시데이터 수정 창 연동 */try{if(!window._fldInspOpen9||!document.getElementById('fldInspOv9'))return false;var cat=window._fldInspCat9||'all';if(cat!=='dep'&&cat!=='pt')return false;if(window._fiAutoLocBusy9)return false;var key=String(no);var N=((typeof _tgSegs!=='undefined'&&_tgSegs)||[]).length;var secs=[];
   for(var si=0;si<N;si++){var L=(cat==='dep')?_fldInspDpList9(si):_fldInspPtList9(si);for(var i=0;i<L.length;i++){var q=L[i];if(String(q._fiDpKey9||q._fiKey9||q.no)===key||String(q.no)===key){secs.push(si);break;}}}
   try{var selNow=(window._fldInspSel9==null)?-1:window._fldInspSel9;if(cat==='dep')_fldInspDpList9(selNow);else _fldInspPtList9(selNow);}catch(_r){}/* 목록 캐시를 현재 구간으로 복원 */
   if(!secs.length){if(typeof toast==='function')toast('측점 '+key+' — 검수 구간에 없음');return false;}
