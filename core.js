@@ -22889,13 +22889,25 @@ function _posRawText9(card,fk,FM){/* [BUILD2978] 파랑=원시 원본 / 노랑=�
   if(fk==='raw')mt.raw.forEach(function(m){var ad=(m===mt.rawAd);mark(m.ln,ad?base:old);(m.ap||[]).forEach(function(a){mark(a.ln,ad?base:old);});});
   if(fk==='rw5')mt.rw5.forEach(function(m){var ad=(m===mt.rw5Ad);mark(m.ln,ad?base:old);mark(m.gl,ad?base:old);});}
  var J=window._posRawJump9;if(J&&J.f===fk&&isFinite(J.l)){first=J.l;}
- var L=f.lines,w=String(L.length).length+1,out=[];
- for(var i=0;i<L.length;i++){var h=HL[i];out.push('<div data-ln="'+i+'" style="white-space:pre;'+(h?('background:'+h+';'):'')+((J&&J.f===fk&&J.l===i)?'outline:2px solid #2e7d32;outline-offset:-2px;':'')+'"><span style="display:inline-block;width:'+w+'ch;color:#b0bec5;text-align:right;margin-right:8px;user-select:none">'+(i+1)+'</span>'+E(L[i])+'</div>');}
- var html='<div style="font-family:Consolas,\'D2Coding\',monospace;font-size:11px;line-height:1.45;min-width:max-content">'+out.join('')+'</div>';
+ var L=f.lines,w=String(L.length).length+1,out=[],html='';var jl=(J&&J.f===fk)?J.l:null;
+ if(fk==='csv'){/* [BUILD2979] 엑셀처럼 — 열 글자(A,B,…)·행 번호·칸 테두리, 숫자 오른쪽 정렬, 값은 원본 글자 그대로(반올림 없음) */
+  var CL=function(n){var t='';n++;while(n>0){var m=(n-1)%26;t=String.fromCharCode(65+m)+t;n=Math.floor((n-1)/26);}return t;};
+  var RW=[];var nc=0;for(var i=0;i<L.length;i++){if(i===L.length-1&&L[i]==='')break;var cs=splitCsvLine(L[i]);RW.push(cs);if(cs.length>nc)nc=cs.length;}
+  var bd='border:1px solid #d9d9d9;',cc='padding:1px 6px;white-space:nowrap;'+bd;var hTop='position:sticky;top:0;z-index:3;background:#e8eaed;color:#555;font-weight:600;text-align:center;';var hHd='position:sticky;top:19px;z-index:2;background:#f3f3f3;font-weight:800;';var hRn='position:sticky;left:0;z-index:1;background:#f3f3f3;color:#666;text-align:right;min-width:3ch;';
+  var t='<table style="border-collapse:separate;border-spacing:0;font-family:\'맑은 고딕\',\'Malgun Gothic\',sans-serif;font-size:11px;line-height:16px"><tr><td style="'+cc+hTop+'left:0;z-index:4"></td>';
+  for(var c=0;c<nc;c++)t+='<td style="'+cc+hTop+'">'+CL(c)+'</td>';t+='</tr>';
+  RW.forEach(function(cs,ri){var hb=HL[ri],isH=(ri===0),jmp=(jl===ri);var rs=hb?('background:'+hb+';'):'';
+   t+='<tr data-ln="'+ri+'"><td style="'+cc+hRn+(isH?'top:19px;z-index:3;':'')+(hb?('background:'+hb+';color:#333;font-weight:800;'):'')+'">'+(ri+1)+'</td>';
+   for(var c2=0;c2<nc;c2++){var v=(cs[c2]==null)?'':String(cs[c2]);var num=/^-?\d+(\.\d+)?$/.test(v.trim());t+='<td style="'+cc+(isH?hHd:'')+rs+(num&&!isH?'text-align:right;':'')+(jmp?'font-weight:800;':'')+'">'+E(v)+'</td>';}
+   t+='</tr>';});
+  html=t+'</table>';
+ }else{
+ for(var i=0;i<L.length;i++){var h=HL[i];out.push('<div data-ln="'+i+'" style="white-space:pre;'+(h?('background:'+h+';'):'')+((jl===i)?'outline:2px solid #2e7d32;outline-offset:-2px;':'')+'"><span style="display:inline-block;width:'+w+'ch;color:#b0bec5;text-align:right;margin-right:8px;user-select:none">'+(i+1)+'</span>'+E(L[i])+'</div>');}
+ html='<div style="font-family:Consolas,\'D2Coding\',monospace;font-size:11px;line-height:1.45;min-width:max-content">'+out.join('')+'</div>';}
  bB.style.position='relative';bY.style.position='relative';bB.innerHTML=html;bY.innerHTML=html;
  try{sB.innerHTML='실시간 측량 원시 · <b style="color:'+FM[fk][1]+'">'+FM[fk][0]+'</b> · '+E(String(f.name).split('/').pop())+' · '+((fk==='csv'&&f.rows)?(f.rows.length+'점'):((L.length&&L[L.length-1]==='')?L.length-1:L.length)+'줄')+(C.list.length>1?(' · ZIP '+(zi+1)+'/'+C.list.length+' (20'+zp.ymd+')'):'');}catch(_s1){}
  try{if(sY)sY.innerHTML='지금은 원본과 동일 — 수정 반영(<b style="color:#c62828">빨강 굵게</b>)은 다음 단계 · 색칠 = 그 측점이 들어갈 줄'+(fk==='raw'?' (GS + 지오이드26 AP)':'');}catch(_s2){}
- if(first!=null){[bB,bY].forEach(function(b){var t=b.querySelector('[data-ln="'+first+'"]');if(t)b.scrollTop=Math.max(0,t.offsetTop-b.clientHeight/3);});}
+ if(first!=null){[bB,bY].forEach(function(b){var t=b.querySelector('[data-ln="'+first+'"]');if(t){var y=t.getBoundingClientRect().top-b.getBoundingClientRect().top+b.scrollTop;b.scrollTop=Math.max(0,y-b.clientHeight/3);}});}/* [BUILD2979] tr도 정확히(offsetTop은 표 기준이라 어긋남) */
  window._posRawJump9=null;
  var lk=false;var sync=function(a,b){a.onscroll=function(){if(lk)return;lk=true;b.scrollTop=a.scrollTop;b.scrollLeft=a.scrollLeft;setTimeout(function(){lk=false;},0);};};sync(bB,bY);sync(bY,bB);}
 function _posRawDet9(d,sel,ph){/* [BUILD2978] 세부수정 내용 — 심도(원→변경·관상고), 이동(원 N·E→수정·거리), 원시 위치(csv 행·raw 측정·지오이드26 AP·rw5 측정, 줄 번호 누르면 그 줄로) */
