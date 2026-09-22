@@ -22896,7 +22896,7 @@ function _posRawText9(card,fk,FM){/* [BUILD2978] 파랑=원시 원본 / 노랑=�
  var J=window._posRawJump9;if(J&&J.f===fk&&isFinite(J.l)){first=J.l;}
  var L=f.lines,w=String(L.length).length+1;var jl=(J&&J.f===fk)?J.l:null;
  /* [BUILD2982] 수정원시 반영 — 원시 csv: 심도수정 측점의 Z(레벨) 칸 = 변경 관상고(빨강 굵게). 값 형식은 원시와 같게(소수 3자리, 끝 0 생략). 측점이동·raw·rw5는 다음 단계 */
- var _RE9=(fk==='csv')?_rawCsvEdits9(zp,C):{ov:{},kd:{},n:0,nm:0};var OV=_RE9.ov,KD9=_RE9.kd||{},nOV=_RE9.n,nMV9=_RE9.nm||0;/* [BUILD2986] 저장과 같은 함수 */
+ var TE9=(fk==='raw')?_rawTxtEdits9(zp,C,'raw'):{ed:{},n:0};/* [BUILD2996] */var _RE9=(fk==='csv')?_rawCsvEdits9(zp,C):{ov:{},kd:{},n:0,nm:0};var OV=_RE9.ov,KD9=_RE9.kd||{},nOV=_RE9.n,nMV9=_RE9.nm||0;/* [BUILD2986] 저장과 같은 함수 */
  var bld=function(sel,useOV){var out=[],html='';var col=function(k){return k==='S'?sel:(k==='O'?old:null);};
   if(fk==='csv'){/* [BUILD2979] 엑셀처럼 — 열 글자·행 번호·칸 테두리, 숫자 오른쪽 정렬, 값은 원본 글자 그대로 */
    var CL=function(n){var t='';n++;while(n>0){var m=(n-1)%26;t=String.fromCharCode(65+m)+t;n=Math.floor((n-1)/26);}return t;};
@@ -22910,13 +22910,13 @@ function _posRawText9(card,fk,FM){/* [BUILD2978] 파랑=원시 원본 / 노랑=�
     t+='</tr>';});
    html=t+'</table>';
   }else{
-   for(var i2=0;i2<L.length;i2++){var h=col(HL[i2]);out.push('<div data-ln="'+i2+'" style="white-space:pre;'+(h?('background:'+h+';'):'')+((jl===i2)?'outline:2px solid #2e7d32;outline-offset:-2px;':'')+'"><span style="display:inline-block;width:'+w+'ch;color:#b0bec5;text-align:right;margin-right:8px;user-select:none">'+(i2+1)+'</span>'+(function(){var tx=L[i2];if(jl===i2&&J&&J.t){var k9=tx.indexOf(J.t);if(k9>=0)return E(tx.slice(0,k9))+'<span data-jt="1" style="background:#c8e6c9;outline:2px solid #2e7d32;font-weight:800">'+E(J.t)+'</span>'+E(tx.slice(k9+J.t.length));}return E(tx);})()+'</div>');}
+   for(var i2=0;i2<L.length;i2++){var h=col(HL[i2]);out.push('<div data-ln="'+i2+'" style="white-space:pre;'+(h?('background:'+h+';'):'')+((jl===i2)?'outline:2px solid #2e7d32;outline-offset:-2px;':'')+'"><span style="display:inline-block;width:'+w+'ch;color:#b0bec5;text-align:right;margin-right:8px;user-select:none">'+(i2+1)+'</span>'+(function(){var tx=L[i2];var te=(useOV&&TE9.ed[i2])?TE9.ed[i2]:null;if(te){var kx=tx.indexOf(te.from);if(kx>=0){var jm=!!(jl===i2&&J&&J.t&&te.from.indexOf(J.t)>=0);return E(tx.slice(0,kx+1))+'<span data-chg="1"'+(jm?' data-jt="1"':'')+' title="원본 '+E(te.from.replace(/^,/,''))+'" style="color:#c62828;font-weight:900'+(jm?';background:#c8e6c9;outline:2px solid #2e7d32':'')+'">'+E(te.to.slice(1))+'</span>'+E(tx.slice(kx+te.from.length));}}/* [BUILD2996] 수정원시 raw 바뀐 조각 빨강 굵게 */if(jl===i2&&J&&J.t){var k9=tx.indexOf(J.t);if(k9>=0)return E(tx.slice(0,k9))+'<span data-jt="1" style="background:#c8e6c9;outline:2px solid #2e7d32;font-weight:800">'+E(J.t)+'</span>'+E(tx.slice(k9+J.t.length));}return E(tx);})()+'</div>');}
    html='<div style="font-family:Consolas,\'D2Coding\',monospace;font-size:11px;line-height:1.45;min-width:max-content">'+out.join('')+'</div>';}
   return html;};
  var htmlB=bld(YEL,false),htmlY=bld(base,true);
  bB.style.position='relative';bY.style.position='relative';var pd9=(fk==='csv')?'0':'6px 8px';bB.style.padding=pd9;bY.style.padding=pd9;bB.innerHTML=htmlB;bY.innerHTML=htmlY;/* [BUILD2980] 고정 칸은 여백 안쪽에 붙어서 여백 틈으로 스크롤 글자가 보였음 */
  try{sB.innerHTML='실시간 측량 원시 · <b style="color:'+FM[fk][1]+'">'+FM[fk][0]+'</b> · '+E(String(f.name).split('/').pop())+' · '+((fk==='csv'&&f.rows)?(f.rows.length+'점'):((L.length&&L[L.length-1]==='')?L.length-1:L.length)+'줄')+(C.list.length>1?(' · ZIP '+(zi+1)+'/'+C.list.length+' (20'+zp.ymd+')'):'');}catch(_s1){}
- try{if(sY)sY.innerHTML=(fk==='csv')?('심도수정 <b style="color:#c62828">'+nOV+'점(빨강)</b> Z(레벨)·고도·원점 고도 · 측점이동 <b style="color:#0d47a1">'+nMV9+'점(파랑)</b> X·Y 반영 · 저장 전 확인용'):('지금은 원본과 동일 — 수정 반영은 다음 단계 · 색칠 = 그 측점이 들어갈 줄'+(fk==='raw'?' (GS + 지오이드26 AP)':''));}catch(_s2){}/* [BUILD2982] */
+ try{if(sY)sY.innerHTML=(fk==='csv')?('심도수정 <b style="color:#c62828">'+nOV+'점(빨강)</b> Z(레벨)·고도·원점 고도 · 측점이동 <b style="color:#0d47a1">'+nMV9+'점(파랑)</b> X·Y 반영 · 저장 전 확인용'):((fk==='raw')?('심도수정 <b style="color:#c62828">'+TE9.n+'점(빨강)</b> GS EL·지오이드26 AP EL 반영 · 측점이동은 다음 단계 · 저장 전 확인용'):'지금은 원본과 동일 — 수정 반영은 다음 단계 · 색칠 = 그 측점이 들어갈 줄');}catch(_s2){}/* [BUILD2982] */
  if(first!=null){[bB,bY].forEach(function(b){var t=b.querySelector('[data-ln="'+first+'"]');if(!t)return;var tg=(J&&J.f===fk)?(t.querySelector('[data-jc],[data-jt]')||null):null;var br=b.getBoundingClientRect(),tr=t.getBoundingClientRect();var y=tr.top-br.top+b.scrollTop;
    if(tg){var gr=tg.getBoundingClientRect();b.scrollTop=Math.max(0,y-(b.clientHeight-tr.height)/2);var x=gr.left-br.left+b.scrollLeft;b.scrollLeft=Math.max(0,x-(b.clientWidth-gr.width)/2);}else{b.scrollTop=Math.max(0,y-b.clientHeight/3);}});}/* [BUILD2985] 값 위치로 — 행만이 아니라 칸·글자까지 창 가운데 *//* [BUILD2979] tr도 정확히(offsetTop은 표 기준이라 어긋남) */
  window._posRawJump9=null;
@@ -22963,7 +22963,7 @@ function _posRawDet9(d,sel,ph){/* [BUILD2978] 세부수정 내용 — 심도(원
   if(ch.dep&&ch.dep.z1!=null){var iZ=ix('Z(레벨)');if(iZ<0)iZ=ix('Z');var z0c=(cs0&&iZ>=0)?parseFloat(cs0[iZ]):NaN;var dz=Math.round((ch.dep.z1-(isFinite(z0c)?z0c:ch.dep.z0))*1000)/1000;
    calc.push('<div style="font-size:11px;font-weight:800;color:#b000d0;margin-bottom:4px">심도수정 · 관상고 차 '+sgn(dz,3)+'</div>');
    if(fk==='csv'&&cs0){[['Z(레벨)',iZ],['고도',ix('고도')],['원점 고도',ix('원점 고도')]].forEach(function(p){var v=parseFloat(String(cs0[p[1]]||'').trim());if(p[1]<0||!isFinite(v))return;cl(p[0],String(cs0[p[1]]).trim(),dz,fz(Math.round((v+dz)*1000)/1000),3,true,mt.csv.ln,p[1]);});}
-   if(fk==='raw'&&mt.rawAd){var ra=mt.rawAd;var gl=F.raw.lines[ra.ln]||'';var ge=(/EL([-\d.]+)/.exec(gl)||[])[1];if(ge)cl('GS EL (지오이드24)',ge,dz,keep(ge,dz),3,false,ra.ln,null,'EL'+ge);ra.ap.forEach(function(a,k){var al=F.raw.lines[a.ln]||'';var ae=(/EL([-\d.]+)/.exec(al)||[])[1];if(ae)cl('AP EL (지오이드26) '+(k+1)+'차',ae,dz,keep(ae,dz),3,false,a.ln,null,'EL'+ae);});}
+   if(fk==='raw'&&mt.rawAd){var ra=mt.rawAd;var gl=F.raw.lines[ra.ln]||'';var ge=(/EL([-\d.]+)/.exec(gl)||[])[1];if(ge)cl('GS EL (지오이드24)',ge,dz,keep(ge,dz),3,true,ra.ln,null,'EL'+ge);ra.ap.forEach(function(a,k){var al=F.raw.lines[a.ln]||'';var ae=(/EL([-\d.]+)/.exec(al)||[])[1];if(ae)cl('AP EL (지오이드26) '+(k+1)+'차',ae,dz,keep(ae,dz),3,true,a.ln,null,'EL'+ae);});}
    if(fk==='rw5'&&mt.rw5Ad){var wa=mt.rw5Ad;var g1=F.rw5.lines[wa.ln]||'',g2=F.rw5.lines[wa.gl]||'';var e1=(/EL([-\d.]+)/.exec(g1)||[])[1],e2=(/EL([-\d.]+)/.exec(g2)||[])[1];if(e2)cl('--GS EL (지오이드24)',e2,dz,keep(e2,dz),3,false,wa.gl,null,'EL'+e2);if(e1)cl('GPS EL (타원체고)',e1,dz,keep(e1,dz),3,false,wa.ln,null,'EL'+e1);}
   }
   if(ch.mv){var dN=Math.round((ch.mv.n1-ch.mv.n0)*1000)/1000,dE=Math.round((ch.mv.e1-ch.mv.e0)*1000)/1000;
@@ -22976,6 +22976,25 @@ function _posRawDet9(d,sel,ph){/* [BUILD2978] 세부수정 내용 — 심도(원
  var inner='<div style="display:flex;gap:0;align-items:stretch"><div style="flex:0 0 44%;min-width:0;padding-right:8px;border-right:2px solid #eceff1">'+left+'</div><div style="flex:1 1 0;min-width:0;padding-left:8px;overflow-x:auto"><div style="font-size:11px;color:#555;font-weight:800;margin-bottom:4px">산출</div>'+right+'</div></div>';
  h+=box('원시 수정내역 · '+FMN[fk],'#546e7a',inner);d.innerHTML=h;
  Array.prototype.forEach.call(d.querySelectorAll('.prJump9'),function(el){el.onclick=function(){var jl9=el.getAttribute('data-jl');if(jl9===''||jl9==null)return;var jc9=el.getAttribute('data-jc');window._posRawFmt9=el.getAttribute('data-jf');window._posRawJump9={f:el.getAttribute('data-jf'),l:+jl9,c:(jc9!=null&&jc9!=='')?+jc9:null,t:el.getAttribute('data-jt')||null};/* [BUILD2985] 열(csv)·글자 조각(raw·rw5)까지 */try{posRawTb9();}catch(_t){}posRawRender9();};});}
+function _rawTxtEdits9(zp,C,fk){/* [BUILD2996] 원시 raw 수정 목록 — 심도수정 측점의 채택 측정 GS EL(지오이드24)와 지오이드26 AP EL(2곳)에 관상고 차를 더함(원본 소수 자릿수 유지). {ed:{줄:{from,to,kd,no}}, n:점수}. 측점이동·rw5는 다음 단계 */
+ var out={ed:{},n:0};if(fk!=='raw')return out;var F=zp&&zp.files;if(!F||!F.raw||!F.raw.lines)return out;
+ var keep=function(str,d){var t=String(str).trim();var k=Math.max((t.split('.')[1]||'').length,3);return (Math.round((+t+d)*Math.pow(10,k))/Math.pow(10,k)).toFixed(k);};
+ var Hd=(F.csv&&F.csv.head)||[];var iZ=Hd.indexOf('Z(레벨)');if(iZ<0)iZ=Hd.indexOf('Z');
+ var L=null;try{L=posRawLists9();}catch(_l){L={dep:[]};}var seen={};
+ (L.dep||[]).forEach(function(no){if(seen[no])return;seen[no]=1;var q=null;(state.points||[]).forEach(function(p){if(p&&!q&&String(p.no)===String(no))q=p;});if(!q)return;
+  var ch=_rawChg9(q);if(!ch.dep||ch.dep.z1==null||!isFinite(ch.dep.z1))return;var m=_rawMatch9(q,C);if(!m||m.zp!==zp||!m.rawAd)return;
+  var z0c=NaN;if(F.csv&&m.csv&&iZ>=0){var cs=splitCsvLine(F.csv.lines[m.csv.ln]||'');z0c=parseFloat(String(cs[iZ]||'').trim());}
+  var dz=Math.round((ch.dep.z1-(isFinite(z0c)?z0c:ch.dep.z0))*1000)/1000;if(!dz||!isFinite(dz))return;
+  var add=function(ln){var l=F.raw.lines[ln]||'';var mm=/,EL(-?\d+(?:\.\d+)?)/.exec(l);if(!mm)return;out.ed[ln]={from:',EL'+mm[1],to:',EL'+keep(mm[1],dz),kd:'dep',no:String(no)};};
+  add(m.rawAd.ln);(m.rawAd.ap||[]).forEach(function(a){add(a.ln);});out.n++;});
+ return out;}
+function _txtPatchBytes9(u8,ed){/* [BUILD2996] 원시 텍스트(raw)를 바이트 그대로 두고 줄 안의 ASCII 조각만 교체 — 조각이 쉼표로 시작해 cp949 2바이트 글자 중간에 걸리지 않음 */
+ var lines=[],st=0,i;for(i=0;i<=u8.length;i++){if(i===u8.length||u8[i]===0x0A){lines.push(u8.subarray(st,i));st=i+1;}}
+ var enc=function(t){var b=new Uint8Array(t.length);for(var k=0;k<t.length;k++){var c=t.charCodeAt(k);if(c>127)throw new Error('ASCII 아닌 값');b[k]=c;}return b;};
+ var parts=lines.map(function(Ln,li){var e=ed[li];if(!e)return Ln;var f=enc(e.from),t=enc(e.to),at=-1;
+  for(var p=0;p+f.length<=Ln.length&&at<0;p++){var okk=true;for(var q=0;q<f.length;q++){if(Ln[p+q]!==f[q]){okk=false;break;}}if(okk)at=p;}
+  if(at<0)throw new Error('바꿀 값을 못 찾음 '+(li+1)+'줄');var nb=new Uint8Array(Ln.length-f.length+t.length);nb.set(Ln.subarray(0,at),0);nb.set(t,at);nb.set(Ln.subarray(at+f.length),at+t.length);return nb;});
+ var tot=Math.max(0,parts.length-1);parts.forEach(function(x){tot+=x.length;});var R=new Uint8Array(tot),o=0;parts.forEach(function(x,xi){if(xi)R[o++]=0x0A;R.set(x,o);o+=x.length;});return R;}
 function _rawCsvEdits9(zp,C){/* [BUILD2986→2993] 원시 csv 수정 목록(렌더·저장·확인본 공용). 심도수정: Z(레벨)=변경 관상고, 고도·원점 고도 = 원래 값 + 관상고 차. 측점이동: X(N)·Y(E) = 이동 후 좌표. {ov:{행:{열:값}}, kd:{행:{열:'dep'|'mv'}}, n:심도 점수, nm:이동 점수, pts, lnNo} */
  var f=zp&&zp.files&&zp.files.csv;var OV={},KD={},n=0,nm=0,pts=[],lnNo={};if(!f||!f.head)return {ov:OV,kd:KD,n:0,nm:0,pts:pts,lnNo:lnNo};
  var H=f.head;var iZ=H.indexOf('Z(레벨)');if(iZ<0)iZ=H.indexOf('Z');var iH=H.indexOf('고도'),iBK=H.indexOf('원점 고도'),iX=H.indexOf('X'),iY=H.indexOf('Y');
@@ -23005,11 +23024,11 @@ function _rawModSum9(){var d=0,m=0,at=null,has=false;try{var R=state.rawMod9||{}
 function posRawSave9(){/* [BUILD2986] ★수정내용 저장 → 최종성과 '원시데이터(노출관로)' 등록. ①원본 ZIP을 이 사업 폴더 raworig_{일}.zip 으로 처음 한 번 보관(수정 전 성과) ②원본에서 원시 csv 바이트만 패치 → 검증(안 고친 줄·칸 100% 동일) → rawmod_{일}.zip 저장 ③state.rawMod9 기록·저장. 원본 ZIP 자체는 절대 덮어쓰지 않음. 후측량 원시는 손대지 않음 */
  try{var C=window._posRawZip9;if(!C||!C.ready||C.pid!==state.projectId||!C.list.length){toast('원시를 아직 불러오지 못했습니다');return;}
   if(typeof sb==='undefined'||!state.projectId||typeof JSZip==='undefined'){toast('사업이 저장되어 있어야 합니다');return;}
-  var plan=C.list.map(function(zp){var r=_rawCsvEdits9(zp,C);return {zp:zp,ed:r.ov,n:r.n,nm:r.nm||0,pts:r.pts};});
+  var plan=C.list.map(function(zp){var r=_rawCsvEdits9(zp,C);var t=_rawTxtEdits9(zp,C,'raw');return {zp:zp,ed:r.ov,n:r.n,nm:r.nm||0,pts:r.pts,te:t.ed,tn:t.n};});
   var nDep=0,nMv=0;plan.forEach(function(p){nDep+=p.n;nMv+=p.nm;});/* [BUILD2993] */
   var LL9=posRawLists9(),miss9=[];LL9.dep.forEach(function(no){var st=_rawChkGet9(no,'dep');if(st!=='ok')miss9.push('심도수정  '+no+(st==='stale'?'  (재확인)':''));});var sm9={};LL9.mv.forEach(function(no){if(sm9[no])return;sm9[no]=1;var st=_rawChkGet9(no,'mv');if(st!=='ok')miss9.push('측점이동  '+no+(st==='stale'?'  (재확인)':''));});
   if(miss9.length){_posWarn9('저장할 수 없습니다','확인완료가 안 된 측점이 '+miss9.length+'건 있습니다.\n수정목록의 모든 측점에 확인완료 배지가 있어야 저장됩니다.\n\n'+miss9.slice(0,14).join('\n')+(miss9.length>14?('\n… 외 '+(miss9.length-14)+'건'):''));return;}/* [BUILD2990] 확인완료 전부 있어야 저장 */
-  uiConfirm9('수정원시를 저장하고 성과심사 최종성과 「원시데이터(노출관로)」로 등록합니다.\n\n심도 '+nDep+'점 / 측점이동 '+nMv+'점\n(원시 csv: 심도 Z(레벨)·고도·원점 고도, 측점이동 X·Y 반영 — raw·rw5는 아직 원본 그대로)\n\n수정 전 원본 원시는 이 사업에 따로 보관됩니다.','저장',function(){try{/* [BUILD2990] confirm() 금지 → 공용 확인창 */
+  uiConfirm9('수정원시를 저장하고 성과심사 최종성과 「원시데이터(노출관로)」로 등록합니다.\n\n심도 '+nDep+'점 / 측점이동 '+nMv+'점\n(원시 csv: 심도 Z(레벨)·고도·원점 고도, 측점이동 X·Y / 원시 raw: 심도 GS·AP EL 반영 — rw5는 아직 원본 그대로)\n\n수정 전 원본 원시는 이 사업에 따로 보관됩니다.','저장',function(){try{/* [BUILD2990] confirm() 금지 → 공용 확인창 */
   var btn=document.getElementById('prSave9');if(btn){btn.disabled=true;btn.textContent='저장 중…';btn.style.background='#d32f2f';btn.style.color='#fff';}
   state.rawMod9=state.rawMod9||{};var i=0,ok=0,fail=[];
   var fin=function(){try{window._silentSave=false;if(typeof saveProject==='function')saveProject();}catch(_s){}
@@ -23020,8 +23039,9 @@ function posRawSave9(){/* [BUILD2986] ★수정내용 저장 → 최종성과 '�
    var src=zp.path;if(!src){fail.push('20'+kk+'(원본 위치 모름)');setTimeout(nx,10);return;}var ob=null;
    fetch(sb.storage.from('photos').getPublicUrl(src).data.publicUrl+'?t='+Date.now()).then(function(r){if(!r.ok)throw new Error('원본 받기 실패');return r.arrayBuffer();})
    .then(function(b){ob=b;if(prev&&prev.orig)return null;return sb.storage.from('photos').upload(origDst,new Blob([b],{type:'application/zip'}),{upsert:true,contentType:'application/zip'}).then(function(u){if(u&&u.error)throw new Error('원본 보관 실패: '+u.error.message);});})
-   .then(function(){if(!(P.n+P.nm))return new Blob([ob],{type:'application/zip'});var nm=zp.files.csv&&zp.files.csv.name;if(!nm)throw new Error('원시 csv 없음');
-     return JSZip.loadAsync(ob).then(function(z){return z.file(nm).async('uint8array').then(function(u8){var nb=_csvPatchBytes9(u8,P.ed);
+   .then(function(){var nTe=Object.keys(P.te||{}).length;if(!(P.n+P.nm+nTe))return new Blob([ob],{type:'application/zip'});var nm=zp.files.csv&&zp.files.csv.name;if(!nm)throw new Error('원시 csv 없음');
+     return JSZip.loadAsync(ob).then(function(z){var rn=zp.files.raw&&zp.files.raw.name;var rawStep=(nTe&&rn)?z.file(rn).async('uint8array').then(function(r8){var nb2=_txtPatchBytes9(r8,P.te);var a0=_rawDec9(r8).split(/\r?\n/),a1=_rawDec9(nb2).split(/\r?\n/);if(a0.length!==a1.length)throw new Error('raw 줄 수 불일치');for(var k2=0;k2<a0.length;k2++){var want2=P.te[k2]?a0[k2].replace(P.te[k2].from,P.te[k2].to):a0[k2];if(a1[k2]!==want2)throw new Error('raw '+(k2+1)+'줄 불일치');}z.file(rn,nb2);}):Promise.resolve();/* [BUILD2996] raw 패치·검증 */
+      return rawStep.then(function(){return z.file(nm).async('uint8array');}).then(function(u8){var nb=_csvPatchBytes9(u8,P.ed);
       var t0=_rawDec9(u8).split(/\r?\n/),t1=_rawDec9(nb).split(/\r?\n/);if(t0.length!==t1.length)throw new Error('줄 수 불일치');
       for(var k=0;k<t0.length;k++){if(!P.ed[k]){if(t0[k]!==t1[k])throw new Error('안 고친 줄이 바뀜 '+(k+1)+'행');continue;}var a=splitCsvLine(t0[k]),bq=splitCsvLine(t1[k]);if(a.length!==bq.length)throw new Error('칸 수 불일치 '+(k+1)+'행');for(var c=0;c<a.length;c++){var want=(P.ed[k][c]!=null)?String(P.ed[k][c]):a[c];if(bq[c]!==want)throw new Error('칸 값 불일치 '+(k+1)+'행');}}
       z.file(nm,nb);return z.generateAsync({type:'blob',compression:'DEFLATE',mimeType:'application/zip'});});});})
@@ -23063,7 +23083,7 @@ function posRawReviewXlsx9(){/* [BUILD2990] 수정원시 확인본(엑셀) — �
      if(ov){for(var cf=1;cf<=Math.max(cs.length,1);cf++){row.getCell(cf).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF3B8'}};}}/* [BUILD2992] 바뀐 행 연노랑 배경 */
      if(cs.length>nc)nc=cs.length;}
     ws.views=[{state:'frozen',xSplit:1,ySplit:1}];for(var c2=1;c2<=nc;c2++)ws.getColumn(c2).width=13;}
-   ['raw','rw5'].forEach(function(k){var f=F[k];if(!f)return;var ws2=wb.addWorksheet('원시'+k+sfx);ws2.getColumn(1).width=7;ws2.getColumn(2).width=170;f.lines.forEach(function(l,li){if(li===f.lines.length-1&&l==='')return;ws2.addRow([li+1,l]);});ws2.views=[{state:'frozen',ySplit:0}];});});
+   ['raw','rw5'].forEach(function(k){var f=F[k];if(!f)return;var TEx=_rawTxtEdits9(zp,C,k).ed;var ws2=wb.addWorksheet('원시'+k+sfx);ws2.getColumn(1).width=7;ws2.getColumn(2).width=170;f.lines.forEach(function(l,li){if(li===f.lines.length-1&&l==='')return;var te=TEx[li];if(te){var kx=l.indexOf(te.from);if(kx>=0){var rw=ws2.addRow([li+1,'']);rw.getCell(2).value={richText:[{text:l.slice(0,kx+1)},{font:RED,text:te.to.slice(1)},{text:l.slice(kx+te.from.length)}]};for(var cf2=1;cf2<=2;cf2++)rw.getCell(cf2).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF3B8'}};chg.push([multi?('20'+zp.ymd):'',te.no,'심도수정','raw '+(li+1)+'줄','EL',te.from.replace(/^,EL/,''),te.to.replace(/^,EL/,'')]);return;}}ws2.addRow([li+1,l]);});/* [BUILD2996] raw 바뀐 조각 진한 빨강 */ws2.views=[{state:'frozen',ySplit:0}];});});
   var hd=['작업일','측점','종류','원시csv 행','열','원본','변경'];if(!multi)hd.shift();var hr=wsC.addRow(hd);hr.font={bold:true};
   chg.forEach(function(r){var rr=multi?r:r.slice(1);var row=wsC.addRow(rr);row.getCell(rr.length).font=(rr[rr.length-5]==='측점이동')?BLU:RED;for(var cf=1;cf<=rr.length;cf++)row.getCell(cf).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF3B8'}};});
   if(!chg.length)wsC.addRow(['변경 없음']);(multi?[10,16,10,11,14,14,14]:[16,10,11,14,14,14]).forEach(function(w,ci){wsC.getColumn(ci+1).width=w;});
