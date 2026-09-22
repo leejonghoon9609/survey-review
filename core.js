@@ -22822,6 +22822,105 @@ function posRawWin9(){/* [BUILD2973] ★원시데이터 수정 창 4분할 — �
   card.querySelector('#prClose9').onclick=function(){window._posRawEdit9=false;posRawClose9();if(typeof renderRail==='function')renderRail();};
   posRawRender9();
  }catch(_e){try{console.warn('posRawWin9',_e);}catch(_w){}}}
+function _rawDec9(u8){/* [BUILD2978] 원시 텍스트 해독 — BOM→UTF-8, 엄격 UTF-8 실패 시 cp949(euc-kr) */try{if(u8.length>=3&&u8[0]===0xEF&&u8[1]===0xBB&&u8[2]===0xBF)return new TextDecoder('utf-8').decode(u8.subarray(3));}catch(_b){}try{return new TextDecoder('utf-8',{fatal:true}).decode(u8);}catch(_u){}try{return new TextDecoder('euc-kr').decode(u8);}catch(_k){return new TextDecoder('utf-8').decode(u8);}}
+function _rawParse9(F){/* [BUILD2978] 원시 파일 색인 — csv 행(이름·X(N)·Y(E)·Z), raw 측정(GS 줄·시각·지오이드26 AP 줄들), rw5 측정(GPS·--GS 줄·시각). 작업일=측정 시각, 새벽 컷(nightShift, 기본 06:00) 이전은 전날 */
+ var ns=state.nightShift,cut=ns?((ns.on)?ns.cut:null):360;
+ var p2=function(n){return (n<10?'0':'')+n;};
+ var wd=function(d){if(!d)return '';var t=new Date(d.getTime());if(cut!=null&&(t.getHours()*60+t.getMinutes())<cut)t.setDate(t.getDate()-1);return String(t.getFullYear()).slice(2)+p2(t.getMonth()+1)+p2(t.getDate());};
+ ['csv','raw','rw5'].forEach(function(k){var f=F[k];if(f)f.lines=String(f.text||'').split(/\r?\n/);});
+ var Cf=F.csv;if(Cf){var hd=splitCsvLine(Cf.lines[0]||'').map(function(s){return String(s||'').trim();});Cf.head=hd;var iX=hd.indexOf('X'),iY=hd.indexOf('Y'),iZ=hd.indexOf('Z(레벨)');if(iZ<0)iZ=hd.indexOf('Z');Cf.rows=[];
+  for(var r=1;r<Cf.lines.length;r++){var L=Cf.lines[r];if(!L||!L.trim())continue;var f=splitCsvLine(L);Cf.rows.push({ln:r,nm:String(f[0]||'').trim(),n:+f[iX],e:+f[iY],z:(iZ>=0?+f[iZ]:null),raw:L});}}
+ var R=F.raw;if(R){R.meas=[];var cur=null,inAP=false,apI=0;
+  R.lines.forEach(function(l,i){var m=/^HCRV,HCTM\d{4}Y\d\dM\d\dD\d\dH\d\dM\d\dS---(\d{4})Y(\d\d)M(\d\d)D(\d\d)H(\d\d)M(\d\d)S/.exec(l);if(m)cur=new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+m[6]);
+   if(/^--GNSS Position Adjustment/.test(l)){inAP=true;apI=0;return;}
+   var g=/^GS,PN([^,]+),N ([-\d.]+),E ([-\d.]+),EL([-\d.]+),--(.*)$/.exec(l);if(g&&!/^SBT/.test(g[1])){R.meas.push({nm:g[1],ln:i,n:+g[2],e:+g[3],el:+g[4],code:g[5],t:cur,wd:wd(cur),ap:[]});inAP=false;return;}
+   var a=/^AP,PN([^,]+),N ([-\d.]+),E ([-\d.]+),EL([-\d.]+)/.exec(l);if(a&&inAP){var ms=R.meas[apI];if(ms&&ms.nm===a[1])ms.ap.push({ln:i,el:+a[4]});apI++;}});}
+ var W=F.rw5;if(W){W.meas=[];for(var i=0;i<W.lines.length;i++){var m2=/^GPS,PN([^,]+),/.exec(W.lines[i]);if(!m2)continue;var gl=-1,n=null,e=null,el=null,dd=null,tt=null;
+   for(var j=i+1;j<Math.min(W.lines.length,i+9);j++){var L2=W.lines[j];if(/^GPS,PN/.test(L2))break;var g2=/^--GS,PN([^,]+),N ([-\d.]+),E ([-\d.]+),EL([-\d.]+)/.exec(L2);if(g2&&gl<0){gl=j;n=+g2[2];e=+g2[3];el=+g2[4];}var a2=/^--DT(\d\d)-(\d\d)-(\d{4})/.exec(L2);if(a2)dd=a2;var b2=/^--TM(\d\d):(\d\d):(\d\d)/.exec(L2);if(b2)tt=b2;}
+   var t=(dd&&tt)?new Date(+dd[3],+dd[1]-1,+dd[2],+tt[1],+tt[2],+tt[3]):null;W.meas.push({nm:m2[1],ln:i,gl:gl,n:n,e:e,el:el,t:t,wd:wd(t)});}}
+ return F;}
+function _rawZipLoad9(cb){/* [BUILD2978] 실시간 측량 원시 ZIP 전부 읽어 csv(루트)·raw·rw5(Data/) 텍스트 캐시 — 폴더 후보·이름 탐색·폴더 기억은 rtRawAllZip9(2976·2977)와 같은 규칙 */
+ try{var C=window._posRawZip9;if(C&&C.pid===state.projectId){if(C.ready){cb(C);return;}if(C.busy){C.wait.push(cb);return;}}
+  var _S=window._fldSvCache9;var M=(_S&&_S.rawMeta)||state.rtRawMeta9||{};var keys=Object.keys(M).filter(function(k){return !(M[k]&&M[k].dup);}).sort();
+  C=window._posRawZip9={pid:state.projectId,busy:true,ready:false,wait:[cb],list:[],miss:[],err:null};
+  var done=function(){C.busy=false;C.ready=true;var w=C.wait;C.wait=[];w.forEach(function(f){try{f(C);}catch(_f){}});};
+  if(!keys.length){C.err='보관된 원시 ZIP 없음';done();return;}if(typeof JSZip==='undefined'||typeof sb==='undefined'){C.err='압축 모듈·연결 없음';done();return;}
+  var go=function(xp){var P=[];var ap=function(v){if(v&&P.indexOf(String(v))<0)P.push(String(v));};try{ap(state.rtRawSrc9);}catch(_a){}if(_S){ap(_S.rawSrc);ap(_S.id);}(xp||[]).forEach(ap);ap(state.projectId);
+   var i=0,learn=false;
+   (function nx(){if(i>=keys.length){if(learn){try{window._silentSave=true;if(typeof saveProject==='function')saveProject();}catch(_s){}}done();return;}
+    var kk=keys[i++];var cand=[];var mp=M[kk]&&M[kk].pid;if(mp)cand.push(String(mp));P.forEach(function(v){if(cand.indexOf(v)<0)cand.push(v);});
+    var tf=function(ci){if(ci>=cand.length)return Promise.reject(0);var u=sb.storage.from('photos').getPublicUrl(cand[ci]+'/raw_'+kk+'.zip').data.publicUrl+'?t='+Date.now();return fetch(u).then(function(r){if(!r.ok)throw 0;return r.arrayBuffer();}).then(function(b){try{if(M===state.rtRawMeta9&&M[kk]&&!M[kk].pid){M[kk].pid=cand[ci];learn=true;}}catch(_l){}return b;})['catch'](function(){return tf(ci+1);});};
+    tf(0).then(function(b){return JSZip.loadAsync(b);}).then(function(z){var ents=[];z.forEach(function(p,e){if(!e.dir)ents.push(p);});
+      var dep=function(p){return p.split('/').length;};var inData=function(p){return /(^|\/)data\//i.test(p);};
+      var pk=function(re,wantData){var c=ents.filter(function(p){return re.test(p)&&(wantData?true:!/(^|\/)(data|config|images)\//i.test(p));});c.sort(function(a,b){return wantData?((inData(b)?1:0)-(inData(a)?1:0))||(dep(a)-dep(b)):(dep(a)-dep(b));});return c[0]||null;};
+      var want={csv:pk(/\.csv$/i,false),raw:pk(/\.raw$/i,true),rw5:pk(/\.rw5$/i,true)};var F={};var ks=Object.keys(want).filter(function(k){return want[k];});
+      return Promise.all(ks.map(function(k){return z.file(want[k]).async('uint8array').then(function(u8){F[k]={name:want[k],text:_rawDec9(u8)};});})).then(function(){_rawParse9(F);C.list.push({ymd:kk,zn:(M[kk]&&M[kk].zn)||'',files:F});});
+    })['catch'](function(){C.miss.push(kk);}).then(function(){setTimeout(nx,10);});})();};
+  if(typeof _rawPidScan9==='function'&&keys.some(function(k){return !(M[k]&&M[k].pid);}))_rawPidScan9(state.projectName,go);else go([]);
+ }catch(_e){try{cb({ready:true,list:[],miss:[],err:String(_e&&_e.message||_e)});}catch(_c){}}}
+function _posRawSelPt9(){var no=window._posRawSel9;if(no==null)return null;var q=null;(state.points||[]).forEach(function(p){if(p&&!q&&String(p.no)===String(no))q=p;});return q;}
+function _rawMatch9(q,C){/* [BUILD2978] 시스템 측점 → 원시 위치. 작업일=측점번호 앞 6자리, 원시 번호=_nm. csv=시스템이 보관한 원본 행(_raw)과 같은 행 → 없으면 이름+좌표 5cm. raw·rw5=같은 번호·같은 작업일 측정 전부, 채택=이동 전 좌표 1.5mm 이내 */
+ try{var no=String(q.no);var day=((/^(\d{6})-/.exec(no))||[])[1]||String(q._d0||'');var nm=(q._nm!=null&&q._nm!=='')?String(q._nm):no.replace(/^\d{6}-/,'');
+  var E0=(q._xy0mv9&&isFinite(+q._xy0mv9[0]))?+q._xy0mv9[0]:+q.x,N0=(q._xy0mv9&&isFinite(+q._xy0mv9[1]))?+q._xy0mv9[1]:+q.y;var best=null;
+  (C.list||[]).forEach(function(zp){var F=zp.files;var res={zp:zp,day:day,nm:nm,csv:null,csvExact:false,raw:[],rw5:[],rawAd:null,rw5Ad:null};
+   if(F.csv&&F.csv.rows){var ex=null;if(q._raw)F.csv.rows.forEach(function(r){if(!ex&&r.raw.trim()===String(q._raw).trim())ex=r;});if(ex)res.csvExact=true;
+    if(!ex){var c=F.csv.rows.filter(function(r){return r.nm===nm;});c.sort(function(a,b){return Math.hypot(a.n-N0,a.e-E0)-Math.hypot(b.n-N0,b.e-E0);});if(c[0]&&Math.hypot(c[0].n-N0,c[0].e-E0)<0.05)ex=c[0];}res.csv=ex;}
+   ['raw','rw5'].forEach(function(k){var f=F[k];if(!f||!f.meas)return;res[k]=f.meas.filter(function(m){return m.nm===nm&&(!day||m.wd===day);});var ad=null,bd=1e9;res[k].forEach(function(m){var d=Math.hypot(m.n-N0,m.e-E0);if(d<bd){bd=d;ad=m;}});res[k+'Ad']=(ad&&bd<0.0015)?ad:null;});
+   var sc=(res.csv?2:0)+(res.raw.length?1:0)+(res.rw5.length?1:0);if(sc>0&&(!best||sc>best.sc)){res.sc=sc;best=res;}});
+  return best;}catch(_e){return null;}}
+function _rawChg9(q){/* [BUILD2978] 시스템 쪽 변경값 — 심도(원=지반고−원 관상고, 변경=수동/계산 심도)·관상고, 이동(원 좌표 _xy0mv9 → 등록 _xyEd9/대기 현재 좌표). 앱 x=E·y=N */
+ var no=String(q.no),M=state._depthManual||{},D=state._depthByNo||{};var out={dep:null,mv:null};
+ try{var man=(M[no]!=null&&M[no]!==''&&isFinite(+M[no]));if(man||(q._zEd9!=null&&isFinite(+q._zEd9))){var G=(typeof _posDepthGround9==='function')?_posDepthGround9(q):null;var z0=(q._z0dep9!=null&&isFinite(+q._z0dep9))?+q._z0dep9:((q.z!=null)?+q.z:null);
+   var o=(G&&z0!=null)?Math.round((G.z-z0)*100)/100:null;var c=man?+M[no]:(D[no]!=null?+D[no]:null);var z1=(q._zEd9!=null&&isFinite(+q._zEd9))?+q._zEd9:((q.z!=null)?+q.z:null);out.dep={o:o,c:c,z0:z0,z1:z1,g:G};}}catch(_d){}
+ try{var done=!!(q._xyEd9&&isFinite(+q._xyEd9[0]));if(done||(q._xyPend9&&q._xy0mv9)){var x0=(q._xy0mv9&&isFinite(+q._xy0mv9[0]))?+q._xy0mv9[0]:+q.x,y0=(q._xy0mv9&&isFinite(+q._xy0mv9[1]))?+q._xy0mv9[1]:+q.y;var x1=done?+q._xyEd9[0]:+q.x,y1=done?+q._xyEd9[1]:+q.y;out.mv={n0:y0,e0:x0,n1:y1,e1:x1,d:Math.hypot(x1-x0,y1-y0),done:done};}}catch(_m){}
+ return out;}
+function _posRawText9(card,fk,FM){/* [BUILD2978] 파랑=원시 원본 / 노랑=수정원시(지금은 원본과 동일 — 수정 반영은 다음 단계). 그 측점이 들어갈 줄 색칠(선택 종류색, 재측으로 버려진 측정=회색), 두 창 스크롤 연동 */
+ var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
+ var bB=card.querySelector('#prRaw9 .prBody9'),bY=card.querySelector('#prEdit9 .prBody9'),sB=card.querySelector('#prRaw9 .prSub9'),sY=card.querySelector('#prEdit9 .prSub9');if(!bB||!bY)return;
+ var msg=function(t){var h='<div style="min-height:60px;height:100%;display:flex;align-items:center;justify-content:center;color:#90a4ae;font-size:12px;text-align:center">'+t+'</div>';bB.innerHTML=h;bY.innerHTML=h;};
+ var C=window._posRawZip9;
+ if(!C||C.pid!==state.projectId||!C.ready){msg('원시 ZIP 불러오는 중…');if(sY)sY.textContent='';_rawZipLoad9(function(){if(document.getElementById('posRawOv9'))posRawRender9();});return;}
+ if(!C.list.length){msg('원시 ZIP을 찾지 못했습니다'+(C.miss.length?(' — '+C.miss.map(function(k){return '20'+k;}).join(', ')):'')+(C.err?(' ('+E(C.err)+')'):''));return;}
+ var q=_posRawSelPt9();var mt=q?_rawMatch9(q,C):null;var zi=mt?C.list.indexOf(mt.zp):Math.max(0,Math.min(C.list.length-1,window._posRawZi9||0));window._posRawZi9=zi;var zp=C.list[zi];var f=zp.files[fk];
+ if(!f){msg(FM[fk][0]+' 파일이 원시 ZIP에 없습니다 (20'+zp.ymd+')');return;}
+ var kd=window._posRawSelKind9||'dep';var base=(kd==='mv')?'rgba(30,136,229,0.22)':'rgba(213,0,242,0.18)',old='#e0e0e0';var HL={},first=null;
+ var mark=function(ln,c){if(ln==null||ln<0)return;HL[ln]=c;if(first==null||ln<first)first=ln;};
+ if(mt){if(fk==='csv'&&mt.csv)mark(mt.csv.ln,base);
+  if(fk==='raw')mt.raw.forEach(function(m){var ad=(m===mt.rawAd);mark(m.ln,ad?base:old);(m.ap||[]).forEach(function(a){mark(a.ln,ad?base:old);});});
+  if(fk==='rw5')mt.rw5.forEach(function(m){var ad=(m===mt.rw5Ad);mark(m.ln,ad?base:old);mark(m.gl,ad?base:old);});}
+ var J=window._posRawJump9;if(J&&J.f===fk&&isFinite(J.l)){first=J.l;}
+ var L=f.lines,w=String(L.length).length+1,out=[];
+ for(var i=0;i<L.length;i++){var h=HL[i];out.push('<div data-ln="'+i+'" style="white-space:pre;'+(h?('background:'+h+';'):'')+((J&&J.f===fk&&J.l===i)?'outline:2px solid #2e7d32;outline-offset:-2px;':'')+'"><span style="display:inline-block;width:'+w+'ch;color:#b0bec5;text-align:right;margin-right:8px;user-select:none">'+(i+1)+'</span>'+E(L[i])+'</div>');}
+ var html='<div style="font-family:Consolas,\'D2Coding\',monospace;font-size:11px;line-height:1.45;min-width:max-content">'+out.join('')+'</div>';
+ bB.style.position='relative';bY.style.position='relative';bB.innerHTML=html;bY.innerHTML=html;
+ try{sB.innerHTML='실시간 측량 원시 · <b style="color:'+FM[fk][1]+'">'+FM[fk][0]+'</b> · '+E(String(f.name).split('/').pop())+' · '+((fk==='csv'&&f.rows)?(f.rows.length+'점'):((L.length&&L[L.length-1]==='')?L.length-1:L.length)+'줄')+(C.list.length>1?(' · ZIP '+(zi+1)+'/'+C.list.length+' (20'+zp.ymd+')'):'');}catch(_s1){}
+ try{if(sY)sY.innerHTML='지금은 원본과 동일 — 수정 반영(<b style="color:#c62828">빨강 굵게</b>)은 다음 단계 · 색칠 = 그 측점이 들어갈 줄'+(fk==='raw'?' (GS + 지오이드26 AP)':'');}catch(_s2){}
+ if(first!=null){[bB,bY].forEach(function(b){var t=b.querySelector('[data-ln="'+first+'"]');if(t)b.scrollTop=Math.max(0,t.offsetTop-b.clientHeight/3);});}
+ window._posRawJump9=null;
+ var lk=false;var sync=function(a,b){a.onscroll=function(){if(lk)return;lk=true;b.scrollTop=a.scrollTop;b.scrollLeft=a.scrollLeft;setTimeout(function(){lk=false;},0);};};sync(bB,bY);sync(bY,bB);}
+function _posRawDet9(d,sel,ph){/* [BUILD2978] 세부수정 내용 — 심도(원→변경·관상고), 이동(원 N·E→수정·거리), 원시 위치(csv 행·raw 측정·지오이드26 AP·rw5 측정, 줄 번호 누르면 그 줄로) */
+ var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');};
+ if(!sel){d.innerHTML=ph('노란 목록에서 측점을 고르세요');return;}var q=_posRawSelPt9();if(!q){d.innerHTML=ph('시스템에서 '+E(sel)+' 측점을 찾지 못했습니다');return;}
+ var F3=function(v){return (v!=null&&isFinite(+v))?(+v).toFixed(3):'-';},F2=function(v){return (v!=null&&isFinite(+v))?(+v).toFixed(2):'-';},SG=function(v){return (v!=null&&isFinite(+v))?((v>0?'+':'')+(+v).toFixed(2)):'-';};
+ var p2=function(n){return (n<10?'0':'')+n;},TM=function(t){return t?(p2(t.getMonth()+1)+'/'+p2(t.getDate())+' '+p2(t.getHours())+':'+p2(t.getMinutes())+':'+p2(t.getSeconds())):'';};
+ var ch=_rawChg9(q),C=window._posRawZip9,mt=(C&&C.ready&&C.pid===state.projectId)?_rawMatch9(q,C):null;
+ var no=String(q.no),day=((/^(\d{6})-/.exec(no))||[])[1]||'',nm=(q._nm!=null&&q._nm!=='')?String(q._nm):no.replace(/^\d{6}-/,'');
+ var box=function(t,c,inner){return '<div style="border:1px solid '+c+';border-radius:6px;margin-bottom:8px;overflow:hidden"><div style="background:'+c+';color:#fff;font-size:11.5px;font-weight:800;padding:3px 8px">'+t+'</div><div style="padding:6px 8px">'+inner+'</div></div>';};
+ var tb=function(rows){return '<table style="border-collapse:collapse;width:100%;font-size:12px"><tr style="color:#999;font-size:10.5px"><td></td><td style="text-align:right;padding:1px 4px">원본</td><td></td><td style="text-align:right;padding:1px 4px">변경후</td></tr>'+rows.map(function(r){return '<tr><td style="color:#555;padding:2px 4px;white-space:nowrap">'+r[0]+'</td><td style="padding:2px 4px;text-align:right">'+r[1]+'</td><td style="padding:2px 2px;color:#bbb;text-align:center">→</td><td style="padding:2px 4px;text-align:right;color:#c62828;font-weight:800">'+r[2]+'</td></tr>';}).join('')+'</table>';};
+ var h='<div style="font-size:14px;font-weight:800;color:#2e7d32">'+E(no)+'</div><div style="font-size:11px;color:#777;margin-bottom:8px">원시 '+E(nm)+'번 · 작업일 '+E(day)+'</div>';
+ if(ch.dep){var dd=(ch.dep.o!=null&&ch.dep.c!=null)?(ch.dep.c-ch.dep.o):null;h+=box('심도수정','#b000d0',tb([['심도',F2(ch.dep.o)+' m',F2(ch.dep.c)+' m'],['관상고 Z',F3(ch.dep.z0),F3(ch.dep.z1)]])+'<div style="font-size:11px;color:#666;margin-top:3px">심도 차 <b>'+SG(dd)+' m</b>'+(ch.dep.g?(' · 지반고 '+F3(ch.dep.g.z)+' ('+E(ch.dep.g.src)+')'):' · <span style="color:#c62828">지반고 없음</span>')+'</div>');}
+ if(ch.mv){h+=box('측점이동'+(ch.mv.done?'':' · 대기'),'#1565c0',tb([['X(N)',F3(ch.mv.n0),F3(ch.mv.n1)],['Y(E)',F3(ch.mv.e0),F3(ch.mv.e1)]])+'<div style="font-size:11px;color:#666;margin-top:3px">이동 거리 <b>'+F3(ch.mv.d)+' m</b></div>');}
+ if(!ch.dep&&!ch.mv)h+='<div style="font-size:11px;color:#999;margin-bottom:8px">이 측점엔 심도수정·측점이동 기록이 없습니다</div>';
+ var loc='';var row=function(k,v){return '<div style="display:flex;gap:6px;font-size:11.5px;margin-bottom:4px"><div style="flex:none;width:58px;color:#555;font-weight:700">'+k+'</div><div style="flex:1;min-width:0">'+v+'</div></div>';};
+ var chip=function(f,l,lab,ad){return '<span class="prJump9" data-jf="'+f+'" data-jl="'+l+'" title="이 줄로 이동" style="cursor:pointer;display:inline-block;margin:1px 3px 1px 0;padding:0 6px;border-radius:9px;border:1px solid '+(ad?'#2e7d32':'#b0bec5')+';color:'+(ad?'#2e7d32':'#78909c')+';font-weight:'+(ad?800:500)+';background:'+(ad?'#f1f8e9':'#fafafa')+'">'+lab+'</span>';};
+ if(!C||!C.ready||C.pid!==state.projectId)loc='<span style="color:#90a4ae">원시 불러오는 중…</span>';
+ else if(!mt)loc='<span style="color:#c62828;font-weight:800">원시에서 이 측점(원시 '+E(nm)+'번·작업일 '+E(day)+')을 찾지 못했습니다</span>';
+ else{loc+=row('원시 csv',mt.csv?(chip('csv',mt.csv.ln,(mt.csv.ln+1)+'행',true)+'<span style="font-size:10.5px;color:#888">'+(mt.csvExact?'시스템 원본 행과 글자까지 동일':'이름·좌표로 찾음')+'</span>'):'<span style="color:#c62828">없음</span>');
+  loc+=row('원시 raw',mt.raw.length?('측정 '+mt.raw.length+'회<br>'+mt.raw.map(function(m){var ad=(m===mt.rawAd);return chip('raw',m.ln,(m.ln+1)+'줄 '+TM(m.t)+(ad?' 채택':''),ad);}).join('')+((mt.rawAd&&mt.rawAd.ap.length)?('<br><span style="font-size:10.5px;color:#888">지오이드26 변환 </span>'+mt.rawAd.ap.map(function(a){return chip('raw',a.ln,(a.ln+1)+'줄',true);}).join('')):'')+((!mt.rawAd)?'<br><span style="color:#c62828;font-size:10.5px">채택 측정 없음 — 좌표가 어느 측정과도 1.5mm 넘게 다름</span>':'')):'<span style="color:#c62828">없음</span>');
+  loc+=row('원시 rw5',mt.rw5.length?('측정 '+mt.rw5.length+'회<br>'+mt.rw5.map(function(m){var ad=(m===mt.rw5Ad);return chip('rw5',m.ln,(m.ln+1)+'줄 '+TM(m.t)+(ad?' 채택':''),ad);}).join('')+((!mt.rw5Ad)?'<br><span style="color:#c62828;font-size:10.5px">채택 측정 없음</span>':'')):'<span style="color:#c62828">없음</span>');
+  loc+='<div style="font-size:10.5px;color:#999;margin-top:4px">줄 번호를 누르면 원시·수정원시가 그 줄로 이동 · 회색 = 재측으로 버려진 측정</div>';}
+ h+=box('원시 위치','#546e7a',loc);d.innerHTML=h;
+ Array.prototype.forEach.call(d.querySelectorAll('.prJump9'),function(el){el.onclick=function(){window._posRawFmt9=el.getAttribute('data-jf');window._posRawJump9={f:el.getAttribute('data-jf'),l:+el.getAttribute('data-jl')};try{posRawTb9();}catch(_t){}posRawRender9();};});}
 function posRawRender9(){/* [BUILD2973] 원시데이터 수정 창 내용 갱신 */
  try{var card=document.getElementById('posRawOv9');if(!card)return;
   var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');};
@@ -22830,8 +22929,7 @@ function posRawRender9(){/* [BUILD2973] 원시데이터 수정 창 내용 갱신
   var ph=function(t){return '<div style="min-height:60px;height:100%;display:flex;align-items:center;justify-content:center;color:#b0bec5;font-size:12px;text-align:center">'+t+'</div>';};
   var FM={csv:['원시 csv','#e53935'],raw:['원시 raw','#1565c0'],rw5:['원시 rw5','#f9a825']};var fk=FM[window._posRawFmt9]?window._posRawFmt9:'csv';var nDay=0;try{var _S9=window._fldSvCache9;var RM9=(_S9&&_S9.rawMeta)||state.rtRawMeta9||{};for(var _rk9 in RM9){if(!(RM9[_rk9]&&RM9[_rk9].dup))nDay++;}}catch(_nd){}/* [BUILD2976] 최종성과 행과 같은 원천·기준 */
   try{card.querySelector('#prRaw9 .prSub9').innerHTML='실시간 측량 원시 · <b style="color:'+FM[fk][1]+'">'+FM[fk][0]+'</b> · '+(nDay?('원시 ZIP '+nDay+'일'):'<span style="color:#e53935">원시 없음</span>');}catch(_rs){}
-  body('prRaw9').innerHTML=ph(FM[fk][0]+' 원본 표시 — 다음 단계');/* [BUILD2974] */
-  body('prEdit9').innerHTML=ph('수정원시 — 다음 단계');
+  try{_posRawText9(card,fk,FM);}catch(_tx9){try{console.warn('_posRawText9',_tx9);}catch(_w9){}body('prRaw9').innerHTML=ph('원시 표시 오류');}/* [BUILD2978] */
   var col=function(title,c,arr,right,sBg,sFg){var kd=right?'mv':'dep';var sk=window._posRawSelKind9||null;var h='<div style="flex:1 1 0;min-width:0;display:flex;flex-direction:column;min-height:0;'+(right?'border-left:2px solid #f9a825;padding-left:8px':'padding-right:8px')+'"><div style="flex:none;font-size:11.5px;font-weight:800;color:'+c+';margin-bottom:3px">'+title+' '+arr.length+'건</div><div style="flex:1;min-height:0;overflow:auto">';
     if(!arr.length)h+='<div style="color:#bbb;font-size:11px;padding:4px 0">없음</div>';
     arr.forEach(function(no,i){var on=(sel===String(no)&&(sk==null||sk===kd));h+='<div class="prPt9" data-no="'+E(no)+'" data-kind="'+kd+'" style="cursor:pointer;padding:2px 6px;margin-bottom:2px;border-radius:4px;font-size:11.5px;font-weight:700;border:1px solid '+(on?c:'transparent')+';background:'+(on?sBg:'#fff')+';color:'+(on?sFg:'#333')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span style="color:'+(on?sFg:'#aaa')+';font-weight:400;margin-right:5px">'+(i+1)+'</span>'+E(no)+'</div>';});/* [BUILD2974] 기본=흰 바탕·글자, 선택=종류별 배경 */
@@ -22840,8 +22938,8 @@ function posRawRender9(){/* [BUILD2973] 원시데이터 수정 창 내용 갱신
   lb.innerHTML=col('심도수정','#e53935',L.dep,false,'#ffcdd2','#b71c1c')+col('측점이동','#1565c0',L.mv,true,'#bbdefb','#0d47a1');
   try{card.querySelector('#prList9 .prSub9').textContent='심도 '+L.dep.length+' · 이동 '+L.mv.length;}catch(_sb){}
   var d=body('prDet9');
-  d.innerHTML=sel?('<div style="font-size:13px;font-weight:800;color:#2e7d32;margin-bottom:6px">'+E(sel)+'</div>'+ph('세부 변경 내용 — 다음 단계')):ph('노란 목록에서 측점을 고르세요');
-  var its=lb.querySelectorAll('.prPt9');for(var i=0;i<its.length;i++){its[i].onclick=function(){var no=this.getAttribute('data-no');window._posRawSel9=no;window._posRawSelKind9=this.getAttribute('data-kind')||null;/* [BUILD2975] */try{if(typeof centerOnNo==='function')centerOnNo(no);}catch(_c){}try{if(typeof selectPoint==='function')selectPoint(no);}catch(_s){}posRawRender9();};}
+  try{_posRawDet9(d,sel,ph);}catch(_dt9){try{console.warn('_posRawDet9',_dt9);}catch(_w9){}d.innerHTML=ph('세부 내용 표시 오류');}/* [BUILD2978] */
+  var its=lb.querySelectorAll('.prPt9');for(var i=0;i<its.length;i++){its[i].onclick=function(){var no=this.getAttribute('data-no');window._posRawSel9=no;window._posRawJump9=null;window._posRawSelKind9=this.getAttribute('data-kind')||null;/* [BUILD2975] */try{if(typeof centerOnNo==='function')centerOnNo(no);}catch(_c){}try{if(typeof selectPoint==='function')selectPoint(no);}catch(_s){}posRawRender9();};}
  }catch(_e){try{console.warn('posRawRender9',_e);}catch(_w){}}}
 function posRawTb9(){/* [BUILD2974] 원시데이터 수정 툴바(도면창 바로 위 줄, 경계심벌 툴바와 같은 자리) — 원시 csv(빨강)·원시 raw(파랑)·원시 rw5(노랑). 가져오는 원시 = 실시간 측량 원시 */
  try{var cw=document.querySelector('.canvas-wrap');if(!cw)return;var tb=document.getElementById('posRawTb9');
