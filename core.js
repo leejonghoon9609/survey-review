@@ -9437,11 +9437,11 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
   var regN=0;ITEMS.forEach(function(it){if(fd[it[0]])regN++;});
   var allDone=(regN===ITEMS.length);
   var bs9=(!regN&&!fd.final)?'background:#fff;border:1.5px solid #c0392b;color:#c0392b':(fd.final?'background:#c0392b;border:1.5px solid #c0392b;color:#fff;box-shadow:0 0 0 4px #f1c40f':'background:#c0392b;border:1.5px solid #c0392b;color:#fff');/* [BUILD2855] 기본=흰 바탕 빨간 글자, 하나라도 등록=빨간 바탕 흰 글자, 최종완료등록(fd.final)=노란 테두리(해제하면 사라짐) — 종전엔 12개 전부 등록 시 노란 테두리라 해제해도 남았음 */
-  var h='<div id="fsHead9" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:#16a34a;display:inline-block"></span><b style="font-size:15px">측량(현장) 최종성과 — '+(state.projectName||'')+'</b></div>'
+  var h='<div id="fsHead9" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:#16a34a;display:inline-block"></span><b style="font-size:15px">'+((typeof IS_POSITION!=='undefined'&&IS_POSITION)?'성과심사':'측량(현장)')+' 최종성과 — '+(state.projectName||'')+'</b></div>'
    +'<div id="fsBody9" style="overflow:auto;padding:6px 12px">'
    +'<div style="display:flex;align-items:center;gap:8px;padding:1px 0 6px;'+WB9+'">'
    +'<div style="font-size:12.5px;color:'+G1+';font-weight:800">거리 합계 <span style="color:#0f6e56">'+(+tot.toFixed(1))+'m</span> · 측점 '+pts.length+'개 · 결선 '+seg+'개 · 성과 '+regN+'/'+ITEMS.length+'</div>'
-   +'<button id="fsToNext9" style="margin-left:auto;'+bs9+';border-radius:8px;padding:7px 12px;font-weight:800;font-size:12px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;white-space:nowrap">측량(현장)최종완료등록</button></div>'
+   +'<button id="fsToNext9" style="margin-left:auto;'+bs9+';border-radius:8px;padding:7px 12px;font-weight:800;font-size:12px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;white-space:nowrap">'+((typeof IS_POSITION!=='undefined'&&IS_POSITION)?'성과심사최종완료등록':'측량(현장)최종완료등록')+'</button></div>'
    +'<table style="'+WB9+';border-collapse:collapse;font-size:13px;border:1.5px solid '+G2+';table-layout:fixed">'
    +(ph9?'<colgroup><col style="width:26px"><col><col style="width:58px"><col style="width:54px"></colgroup>':'<colgroup><col style="width:28px"><col style="width:260px"><col style="width:88px"><col style="width:70px"></colgroup>')
    +'<thead><tr style="background:'+G3+';color:'+G1+'">'
@@ -9478,8 +9478,8 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
   };
   var _tn=box.querySelector('#fsToNext9');
   if(_tn)_tn.onclick=function(){/* 등록 ↔ 해제 토글 · [BUILD2854] 확인창 문구 */
-   if(fd.final){uiConfirm9('측량(현장) 최종성과 등록을 해제할까요?','해제',function(){fldRegOff(function(){fd.final=false;state.fieldDone=fd;try{saveProject();}catch(_e){}render();});});return;}
-   uiConfirm9('측량(현장) 최종성과로 등록할까요?','등록',function(){fldRegToNext(function(ok){if(ok){fd.final=true;state.fieldDone=fd;try{saveProject();}catch(_e){}render();}});});
+   if(fd.final){uiConfirm9(((typeof IS_POSITION!=='undefined'&&IS_POSITION)?'성과심사':'측량(현장)')+' 최종성과 등록을 해제할까요?','해제',function(){fldRegOff(function(){fd.final=false;state.fieldDone=fd;try{saveProject();}catch(_e){}render();});});return;}
+   uiConfirm9(((typeof IS_POSITION!=='undefined'&&IS_POSITION)?'성과심사':'측량(현장)')+' 최종성과로 등록할까요?','등록',function(){fldRegToNext(function(ok){if(ok){fd.final=true;state.fieldDone=fd;try{saveProject();}catch(_e){}render();}});});
   };
  }
  render();
@@ -17566,8 +17566,8 @@ try{if(typeof IS_FIELD!=='undefined'&&IS_FIELD&&!(window.matchMedia&&matchMedia(
     var clickOf=function(id){return function(){var o=document.getElementById(id);if(o)o.click();};};
     var L=document.createElement('div');L.style.cssText='display:inline-flex;gap:6px;align-items:center;flex:none';
     var R=document.createElement('div');R.style.cssText='display:inline-flex;gap:6px;align-items:center;flex:none;margin-left:auto';
-    L.appendChild(B('fb9Import','\uACB0\uC120DB \uCD5C\uC885\uC131\uACFC','#c0392b',clickOf('fldImport')));
-    L.appendChild(B('fb9Final','\uCE21\uB7C9(\uD604\uC7A5) \uCD5C\uC885\uC131\uACFC','#15803d',clickOf('fldFinal')));
+    L.appendChild(B('fb9Import',(typeof IS_POSITION!=='undefined'&&IS_POSITION)?'측량(현장) 최종성과':'\uACB0\uC120DB \uCD5C\uC885\uC131\uACFC','#c0392b',clickOf('fldImport')));/* [BUILD2987] 정위치: 앞 공정 성과 = 측량(현장) 최종성과 */
+    L.appendChild(B('fb9Final',(typeof IS_POSITION!=='undefined'&&IS_POSITION)?'성과심사 최종성과':'\uCE21\uB7C9(\uD604\uC7A5) \uCD5C\uC885\uC131\uACFC','#15803d',clickOf('fldFinal')));/* [BUILD2987] 정위치: 이 공정 성과 = 성과심사 최종성과 */
     R.appendChild(B('fb9Insp','\uD83D\uDD0D \uAD6C\uAC04\uAC80\uC218','#c62828',function(){if(document.getElementById('fldInspOv9')){fldInspClose9();return;}if(typeof fldInspWin9==='function')fldInspWin9();}));
     R.appendChild(B('fb9Seg','\uD83D\uDCD0 \uAD6C\uAC04\uC124\uC815','#0a3ea0',function(){var p9=document.getElementById('tangoPanel'),ip9=document.getElementById('tgInfoPanel');var open9=((p9&&p9.style.display!=='none')||(ip9&&ip9.style.display==='flex'));if(open9){if(typeof closeTangoPanel==='function')closeTangoPanel();}else{if(typeof openTangoPanel==='function')openTangoPanel('attr');}setTimeout(_fbPaint9,60);}));
     R.appendChild(B('fb9Note','\u2757 \uD2B9\uC774\uC0AC\uD56D','#d500f2',function(){if(typeof tgNoteToggle==='function')tgNoteToggle();try{if(typeof renderSub==='function')renderSub();}catch(_r){}setTimeout(_fbPaint9,60);}));
