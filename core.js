@@ -22892,12 +22892,15 @@ function _posRawText9(card,fk,FM){/* [BUILD2978] 파랑=원시 원본 / 노랑=�
  var L=f.lines,w=String(L.length).length+1;var jl=(J&&J.f===fk)?J.l:null;
  /* [BUILD2982] 수정원시 반영 — 원시 csv: 심도수정 측점의 Z(레벨) 칸 = 변경 관상고(빨강 굵게). 값 형식은 원시와 같게(소수 3자리, 끝 0 생략). 측점이동·raw·rw5는 다음 단계 */
  var OV={},nOV=0;
- if(fk==='csv'&&f.head){var iZ=f.head.indexOf('Z(레벨)');if(iZ<0)iZ=f.head.indexOf('Z');
+ if(fk==='csv'&&f.head){var iZ=f.head.indexOf('Z(레벨)');if(iZ<0)iZ=f.head.indexOf('Z');var iH=f.head.indexOf('고도'),iBK=f.head.indexOf('원점 고도');
   var fz=function(v){var t=(+v).toFixed(3);if(t.indexOf('.')>=0)t=t.replace(/0+$/,'').replace(/\.$/,'');return t;};
   if(iZ>=0){var dl=[];try{dl=posRawLists9().dep||[];}catch(_dl){}var seen={};
    dl.forEach(function(no){if(seen[no])return;seen[no]=1;var q2=null;(state.points||[]).forEach(function(p){if(p&&!q2&&String(p.no)===String(no))q2=p;});if(!q2)return;
     var ch2=_rawChg9(q2);if(!ch2.dep||ch2.dep.z1==null||!isFinite(ch2.dep.z1))return;var m2=_rawMatch9(q2,C);if(!m2||m2.zp!==zp||!m2.csv)return;
-    var cs0=splitCsvLine(f.lines[m2.csv.ln]||'');var nv=fz(ch2.dep.z1);if(String(cs0[iZ]||'').trim()===nv)return;OV[m2.csv.ln]={};OV[m2.csv.ln][iZ]=nv;nOV++;});}}
+    var cs0=splitCsvLine(f.lines[m2.csv.ln]||'');var nv=fz(ch2.dep.z1);var z0c=parseFloat(String(cs0[iZ]||'').trim());if(String(cs0[iZ]||'').trim()===nv||!isFinite(z0c))return;
+    var dzc=Math.round((ch2.dep.z1-z0c)*1000)/1000;var o={};o[iZ]=nv;
+    [iH,iBK].forEach(function(ci){if(ci<0)return;var v0=parseFloat(String(cs0[ci]||'').trim());if(!isFinite(v0))return;o[ci]=fz(Math.round((v0+dzc)*1000)/1000);});/* [BUILD2983] 고도(타원체고)·원점 고도도 관상고 차만큼 같이 */
+    OV[m2.csv.ln]=o;nOV++;});}}
  var bld=function(sel,useOV){var out=[],html='';var col=function(k){return k==='S'?sel:(k==='O'?old:null);};
   if(fk==='csv'){/* [BUILD2979] 엑셀처럼 — 열 글자·행 번호·칸 테두리, 숫자 오른쪽 정렬, 값은 원본 글자 그대로 */
    var CL=function(n){var t='';n++;while(n>0){var m=(n-1)%26;t=String.fromCharCode(65+m)+t;n=Math.floor((n-1)/26);}return t;};
@@ -22917,10 +22920,11 @@ function _posRawText9(card,fk,FM){/* [BUILD2978] 파랑=원시 원본 / 노랑=�
  var htmlB=bld(YEL,false),htmlY=bld(base,true);
  bB.style.position='relative';bY.style.position='relative';var pd9=(fk==='csv')?'0':'6px 8px';bB.style.padding=pd9;bY.style.padding=pd9;bB.innerHTML=htmlB;bY.innerHTML=htmlY;/* [BUILD2980] 고정 칸은 여백 안쪽에 붙어서 여백 틈으로 스크롤 글자가 보였음 */
  try{sB.innerHTML='실시간 측량 원시 · <b style="color:'+FM[fk][1]+'">'+FM[fk][0]+'</b> · '+E(String(f.name).split('/').pop())+' · '+((fk==='csv'&&f.rows)?(f.rows.length+'점'):((L.length&&L[L.length-1]==='')?L.length-1:L.length)+'줄')+(C.list.length>1?(' · ZIP '+(zi+1)+'/'+C.list.length+' (20'+zp.ymd+')'):'');}catch(_s1){}
- try{if(sY)sY.innerHTML=(fk==='csv')?('관상고 Z(레벨) <b style="color:#c62828">'+nOV+'건 반영(빨강 굵게)</b> · 측점이동 X·Y는 다음 단계 · 저장 전 확인용'):('지금은 원본과 동일 — 수정 반영은 다음 단계 · 색칠 = 그 측점이 들어갈 줄'+(fk==='raw'?' (GS + 지오이드26 AP)':''));}catch(_s2){}/* [BUILD2982] */
+ try{if(sY)sY.innerHTML=(fk==='csv')?('심도수정 <b style="color:#c62828">'+nOV+'점 반영(빨강 굵게)</b> — Z(레벨)·고도·원점 고도 · 측점이동 X·Y는 다음 단계 · 저장 전 확인용'):('지금은 원본과 동일 — 수정 반영은 다음 단계 · 색칠 = 그 측점이 들어갈 줄'+(fk==='raw'?' (GS + 지오이드26 AP)':''));}catch(_s2){}/* [BUILD2982] */
  if(first!=null){[bB,bY].forEach(function(b){var t=b.querySelector('[data-ln="'+first+'"]');if(t){var y=t.getBoundingClientRect().top-b.getBoundingClientRect().top+b.scrollTop;b.scrollTop=Math.max(0,y-b.clientHeight/3);}});}/* [BUILD2979] tr도 정확히(offsetTop은 표 기준이라 어긋남) */
  window._posRawJump9=null;
- var lk=false;var sync=function(a,b){a.onscroll=function(){if(lk)return;lk=true;b.scrollTop=a.scrollTop;b.scrollLeft=a.scrollLeft;setTimeout(function(){lk=false;},0);};};sync(bB,bY);sync(bY,bB);}
+ [bB,bY].forEach(function(el){if(el._rs9)return;el._rs9=true;['pointerdown','mousedown','wheel','touchstart','mouseenter','keydown','focusin'].forEach(function(t){el.addEventListener(t,function(){window._posRawScrAct9=el;},{passive:true});});});
+ var sync=function(a,b){a.onscroll=function(){var act=window._posRawScrAct9;if(act&&act!==a)return;if(b.scrollTop!==a.scrollTop)b.scrollTop=a.scrollTop;if(b.scrollLeft!==a.scrollLeft)b.scrollLeft=a.scrollLeft;};};sync(bB,bY);sync(bY,bB);}/* [BUILD2983] 가로·세로 연동 — 마우스를 올리거나 만진 창이 원천, 다른 창은 따라만 감(되받기 떨림 없음) */
 function _posRawDet9(d,sel,ph){/* [BUILD2978] 세부수정 내용 — 심도(원→변경·관상고), 이동(원 N·E→수정·거리), 원시 위치(csv 행·raw 측정·지오이드26 AP·rw5 측정, 줄 번호 누르면 그 줄로) */
  var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');};
  if(!sel){d.innerHTML=ph('노란 목록에서 측점을 고르세요');return;}var q=_posRawSelPt9();if(!q){d.innerHTML=ph('시스템에서 '+E(sel)+' 측점을 찾지 못했습니다');return;}
