@@ -8044,7 +8044,7 @@ function svRawZipKeep9(zips){/* [BUILD2447] 결선DB(시스템 이전 사업) �
       var fin=function(ymd){if(!ymd){toast('원시 보관 건너뜀 — 작업일 판별 실패: '+(f.name||''),5000);setTimeout(nx,300);return;}
         sb.storage.from('photos').upload(state.projectId+'/raw_'+ymd+'.zip',f,{upsert:true,contentType:'application/zip'}).then(function(u1){
           if(u1&&u1.error){toast('원본 ZIP 보관 실패: '+u1.error.message,6000);return;}
-          state.rtRawMeta9=state.rtRawMeta9||{};state.rtRawMeta9[ymd]={zn:(f.name||''),size:f.size||0,at:new Date().toISOString(),night:0,cut:null,fp:[],sv:1};
+          state.rtRawMeta9=state.rtRawMeta9||{};state.rtRawMeta9[ymd]={zn:(f.name||''),size:f.size||0,at:new Date().toISOString(),night:0,cut:null,fp:[],sv:1,pid:state.projectId};/* [BUILD2976] 올린 사업 폴더 기록 */
           try{window._silentSave=true;saveProject();}catch(_sv){}
           toast('\uD83D\uDCE6 원시 보관 — '+(f.name||'')+' ('+ymd+')',4000);
         })['catch'](function(e){toast('원시 보관 오류: '+(e&&(e.message||e))||'',6000);}).then(function(){setTimeout(nx,300);});};
@@ -9380,7 +9380,7 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
  var tot=0,seg=0;for(var _k in dm.dist)tot+=dm.dist[_k];for(var _k2 in dm.seg)seg+=dm.seg[_k2];
  function _calc9(){/* [BUILD2235] 매 렌더마다 재계산 — 결선DB 조회 후 즉시 반영 */
   var SV9=window._fldSvCache9||null;
-  var _svRM9=(SV9&&SV9.rawMeta)||state.rtRawMeta9||{},_svRawN9=0;for(var rk in _svRM9)_svRawN9++;
+  var _svRM9=(SV9&&SV9.rawMeta)||state.rtRawMeta9||{},_svRawN9=0;for(var rk in _svRM9){if(!(_svRM9[rk]&&_svRM9[rk].dup))_svRawN9++;}/* [BUILD2976] 다운로드와 같은 기준(중복 제외) */
   var _svPtN9=_csvExportPts9().length;if(!_svPtN9&&SV9&&SV9.points)_svPtN9=SV9.points.length;/* [BUILD2346/2347] */
   var _afM9=null;try{_afM9=_aftCsvMerged9();}catch(_am){}/* [BUILD2347] 후측량 통합본 집계 */
   var _aftRM9=state.aftRawMeta9||{},aftRawN=0;for(var ak in _aftRM9)aftRawN++;
@@ -18430,7 +18430,7 @@ function rtRawZipUp9(file){
           if(!u2)return;
           if(u2.error){toast('보정 CSV 보관 실패: '+u2.error.message);return;}
           state.rtRawMeta9=state.rtRawMeta9||{};
-          state.rtRawMeta9[ymd]={zn:(file.name||''),size:file.size||0,at:new Date().toISOString(),night:srg.changed,cut:cut,fp:(typeof _rtFp9==='function'?_rtFp9(bytes):[])};/* [BUILD2111] 지문 */
+          state.rtRawMeta9[ymd]={zn:(file.name||''),size:file.size||0,at:new Date().toISOString(),night:srg.changed,cut:cut,fp:(typeof _rtFp9==='function'?_rtFp9(bytes):[]),pid:state.projectId};/* [BUILD2976] 올린 사업 폴더 기록 *//* [BUILD2111] 지문 */
           if(typeof _rtDupChk9==='function')_rtDupChk9(ymd);
           try{saveProject();}catch(_sv){}
           toast('\uD83D\uDCE6 보관 완료 — 원본 ZIP + 야간보정 CSV('+srg.changed+'행 귀속, 컷 '+cut+')',4500);
@@ -18474,12 +18474,13 @@ function rtRawAllZip9(_m9,_pid9,_nm9){ /* [BUILD2220] 원격 인자(meta,pid,nam
   var M=_m9||(typeof state!=='undefined'&&state.rtRawMeta9)||{};var PID9=_pid9||(typeof state!=='undefined'&&state.projectId);var PNM9=_nm9||(typeof state!=='undefined'&&state.projectName)||'사업';var keys=Object.keys(M).filter(function(k){return !(M[k]&&M[k].dup);}).sort();/* [BUILD2111] 중복 제외 */
   if(!keys.length){toast('보관된 원시 ZIP이 없습니다 — 원시 ZIP으로 업로드한 날짜만 포함됩니다');return;}
   if(typeof JSZip==='undefined'){toast('압축 모듈 없음 — 새로고침(Ctrl+Shift+R)');return;}
-  if(typeof sb==='undefined'||!PID9){toast('사업이 저장되어 있어야 합니다');return;}
+  var PIDS9=[];var _ap9=function(v){if(v&&PIDS9.indexOf(String(v))<0)PIDS9.push(String(v));};_ap9(_pid9);try{_ap9(state.rtRawSrc9);}catch(_a1){}try{var _S9=window._fldSvCache9;if(_S9){_ap9(_S9.rawSrc);_ap9(_S9.id);}}catch(_a2){}try{_ap9(state.projectId);}catch(_a3){}/* [BUILD2976] 원시 ZIP은 '올린 단계의 사업 폴더'에 있다 — 정위치 사본 id로만 찾으면 없음. 메타 pid → 넘겨받은 id → 원천 실시간 id(rtRawSrc9) → 결선DB id → 현재 사업 id 순으로 시도 */
+  if(typeof sb==='undefined'||!PIDS9.length){toast('사업이 저장되어 있어야 합니다');return;}var _miss9=[];
   toast('원시 성과 '+keys.length+'일치 수집 중…');
   var out=new JSZip(),i=0,ok=0,fail=0;
   (function nx(){
     if(i>=keys.length){
-      if(!ok){toast('받은 원시가 없습니다 ('+fail+'일 실패)');return;}
+      if(!ok){toast('원시 ZIP 파일을 찾지 못했습니다 — '+_miss9.join(', ')+' (찾아본 사업 폴더 '+PIDS9.length+'곳)',7000);try{console.warn('[원시 ZIP] 못 찾음',_miss9,'후보 폴더',PIDS9);}catch(_cw){}return;}
       out.generateAsync({type:'blob'}).then(function(b){
         var a=document.createElement('a');a.href=URL.createObjectURL(b);
         a.download=((PNM9||'사업')+'_원시성과통합.zip').replace(/[\\/:*?"<>|]/g,'_');
@@ -18488,8 +18489,9 @@ function rtRawAllZip9(_m9,_pid9,_nm9){ /* [BUILD2220] 원격 인자(meta,pid,nam
       });return;
     }
     var kk=keys[i++];
-    var url=sb.storage.from('photos').getPublicUrl(PID9+'/raw_'+kk+'.zip').data.publicUrl+'?t='+Date.now();
-    fetch(url).then(function(r){if(!r.ok)throw 0;return r.blob();})
+    var cand9=[];var mp9=M[kk]&&M[kk].pid;if(mp9)cand9.push(String(mp9));PIDS9.forEach(function(v){if(cand9.indexOf(v)<0)cand9.push(v);});
+    var tryF9=function(ci){if(ci>=cand9.length)return Promise.reject(0);var url=sb.storage.from('photos').getPublicUrl(cand9[ci]+'/raw_'+kk+'.zip').data.publicUrl+'?t='+Date.now();return fetch(url).then(function(r){if(!r.ok)throw 0;return r.blob();})['catch'](function(){return tryF9(ci+1);});};
+    tryF9(0)
     .then(function(b){return JSZip.loadAsync(b);})
     .then(function(src){
       var zn=String((M[kk]&&M[kk].zn)||('원시_'+kk+'.zip')).replace(/\.zip$/i,'').replace(/[\\/:*?"<>|]/g,'_');
@@ -18503,7 +18505,7 @@ function rtRawAllZip9(_m9,_pid9,_nm9){ /* [BUILD2220] 원격 인자(meta,pid,nam
           it.e.async('uint8array').then(function(u8){out.file(base+it.p,u8);setTimeout(nx2,0);})['catch'](rej);
         })();
       });
-    })['catch'](function(){fail++;}).then(function(){setTimeout(nx,20);});
+    })['catch'](function(){fail++;_miss9.push('20'+kk);}).then(function(){setTimeout(nx,20);});
   })();
 }
 
@@ -22816,7 +22818,7 @@ function posRawRender9(){/* [BUILD2973] 원시데이터 수정 창 내용 갱신
   var L=posRawLists9();var sel=(window._posRawSel9!=null)?String(window._posRawSel9):null;
   var body=function(id){return card.querySelector('#'+id+' .prBody9');};
   var ph=function(t){return '<div style="min-height:60px;height:100%;display:flex;align-items:center;justify-content:center;color:#b0bec5;font-size:12px;text-align:center">'+t+'</div>';};
-  var FM={csv:['원시 csv','#e53935'],raw:['원시 raw','#1565c0'],rw5:['원시 rw5','#f9a825']};var fk=FM[window._posRawFmt9]?window._posRawFmt9:'csv';var nDay=0;try{nDay=Object.keys(state.rtRawMeta9||{}).length;}catch(_nd){}
+  var FM={csv:['원시 csv','#e53935'],raw:['원시 raw','#1565c0'],rw5:['원시 rw5','#f9a825']};var fk=FM[window._posRawFmt9]?window._posRawFmt9:'csv';var nDay=0;try{var _S9=window._fldSvCache9;var RM9=(_S9&&_S9.rawMeta)||state.rtRawMeta9||{};for(var _rk9 in RM9){if(!(RM9[_rk9]&&RM9[_rk9].dup))nDay++;}}catch(_nd){}/* [BUILD2976] 최종성과 행과 같은 원천·기준 */
   try{card.querySelector('#prRaw9 .prSub9').innerHTML='실시간 측량 원시 · <b style="color:'+FM[fk][1]+'">'+FM[fk][0]+'</b> · '+(nDay?('원시 ZIP '+nDay+'일'):'<span style="color:#e53935">원시 없음</span>');}catch(_rs){}
   body('prRaw9').innerHTML=ph(FM[fk][0]+' 원본 표시 — 다음 단계');/* [BUILD2974] */
   body('prEdit9').innerHTML=ph('수정원시 — 다음 단계');
