@@ -9414,7 +9414,7 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
  ov.appendChild(box);document.body.appendChild(ov);
  function dlOf(k){return function(){
   try{
-   if(k==='raw'){var _S=window._fldSvCache9;if(typeof rtRawAllZip9==='function')rtRawAllZip9((_S&&_S.rawMeta)||null,(_S&&(_S.rawSrc||_S.id))||state.projectId,state.projectName);}
+   if(k==='raw'){var _S=window._fldSvCache9;if(typeof rtRawAllZip9==='function')rtRawAllZip9((_S&&_S.rawMeta)||null,(_S&&(_S.rawSrc||_S.id))||state.projectId,state.projectName,undefined,false,(typeof IS_POSITION!=='undefined'&&IS_POSITION));}/* [BUILD2989] 정위치 자기 성과(성과심사)만 수정원시 */
    else if(k==='rawAft'){if(typeof aftRawAllZip9==='function')aftRawAllZip9();else toast('후측량 원시 ZIP이 없습니다');}
    else if(k==='line'){if(typeof exportDXF==='function')exportDXF();}
    else if(k==='joseo'){if(typeof joseoDownloadFinal==='function')joseoDownloadFinal();}
@@ -18478,11 +18478,11 @@ function _rawPidScan9(nm,cb){/* [BUILD2977] 원시 ZIP 폴더 후보 찾기 — 
   T.forEach(function(t){try{sb.from(t).select('id,name,src:payload->>rtRawSrc9,del:payload->>delAt').then(function(r){res[t]=(r&&r.data)||[];},function(){res[t]=[];}).then(function(){if(--left<=0)fin();});}catch(_q){if(--left<=0)fin();}});
   setTimeout(fin,12000);
  }catch(_e){cb([]);}}
-function rtRawAllZip9(_m9,_pid9,_nm9,_xp9,_orig9){ /* [BUILD2220] 원격 인자(meta,pid,name) 지원 — 무인자=현재 사업 기존 동작 */ /* [BUILD2096] 원시 통합 — 한 번만 압축: 날짜/등록명/원본내용 폴더로 전개 */
+function rtRawAllZip9(_m9,_pid9,_nm9,_xp9,_orig9,_mod9){ /* [BUILD2220] 원격 인자(meta,pid,name) 지원 — 무인자=현재 사업 기존 동작 */ /* [BUILD2096] 원시 통합 — 한 번만 압축: 날짜/등록명/원본내용 폴더로 전개 */
   var M=_m9||(typeof state!=='undefined'&&state.rtRawMeta9)||{};var PID9=_pid9||(typeof state!=='undefined'&&state.projectId);var PNM9=_nm9||(typeof state!=='undefined'&&state.projectName)||'사업';var keys=Object.keys(M).filter(function(k){return !(M[k]&&M[k].dup);}).sort();/* [BUILD2111] 중복 제외 */
   if(!keys.length){toast('보관된 원시 ZIP이 없습니다 — 원시 ZIP으로 업로드한 날짜만 포함됩니다');return;}
   if(typeof JSZip==='undefined'){toast('압축 모듈 없음 — 새로고침(Ctrl+Shift+R)');return;}
-  if(_xp9===undefined&&typeof sb!=='undefined'&&typeof _rawPidScan9==='function'&&keys.some(function(k){return !(M[k]&&M[k].pid);})){toast('원시 ZIP 위치 찾는 중…');_rawPidScan9(PNM9,function(ids){rtRawAllZip9(_m9,_pid9,_nm9,ids||[],_orig9);});return;}/* [BUILD2977] 폴더 기록 없는 옛 원시 — 같은 사업명(접미사 제외)의 실시간·결선DB·측량현장 사업 폴더까지 후보로 */
+  if(_xp9===undefined&&typeof sb!=='undefined'&&typeof _rawPidScan9==='function'&&keys.some(function(k){return !(M[k]&&M[k].pid);})){toast('원시 ZIP 위치 찾는 중…');_rawPidScan9(PNM9,function(ids){rtRawAllZip9(_m9,_pid9,_nm9,ids||[],_orig9,_mod9);});return;}/* [BUILD2977] 폴더 기록 없는 옛 원시 — 같은 사업명(접미사 제외)의 실시간·결선DB·측량현장 사업 폴더까지 후보로 */
   var PIDS9=[];var _ap9=function(v){if(v&&PIDS9.indexOf(String(v))<0)PIDS9.push(String(v));};_ap9(_pid9);try{_ap9(state.rtRawSrc9);}catch(_a1){}try{var _S9=window._fldSvCache9;if(_S9){_ap9(_S9.rawSrc);_ap9(_S9.id);}}catch(_a2){}try{(_xp9||[]).forEach(_ap9);}catch(_a4){}try{_ap9(state.projectId);}catch(_a3){}var _learn9=false,_used9=0;/* [BUILD2976] 원시 ZIP은 '올린 단계의 사업 폴더'에 있다 — 정위치 사본 id로만 찾으면 없음. 메타 pid → 넘겨받은 id → 원천 실시간 id(rtRawSrc9) → 결선DB id → 현재 사업 id 순으로 시도 */
   if(typeof sb==='undefined'||!PIDS9.length){toast('사업이 저장되어 있어야 합니다');return;}var _miss9=[];
   toast('원시 성과 '+keys.length+'일치 수집 중…');
@@ -18500,7 +18500,7 @@ function rtRawAllZip9(_m9,_pid9,_nm9,_xp9,_orig9){ /* [BUILD2220] 원격 인자(
     }
     var kk=keys[i++];
     var cand9=[];var mp9=M[kk]&&M[kk].pid;if(mp9)cand9.push(String(mp9));PIDS9.forEach(function(v){if(cand9.indexOf(v)<0)cand9.push(v);});
-    var PP9=[];try{var RMd9=state.rawMod9&&state.rawMod9[kk];if(RMd9){if(_orig9){if(RMd9.orig)PP9.push({p:RMd9.orig,pid:null});}else if(RMd9.path){PP9.push({p:RMd9.path,pid:null});_used9++;}}}catch(_rm9){}cand9.forEach(function(c){PP9.push({p:c+'/raw_'+kk+'.zip',pid:c});});/* [BUILD2986] 등록 수정원시 우선 · 원본 요청은 보관 원본 우선 */
+    var PP9=[];try{var RMd9=state.rawMod9&&state.rawMod9[kk];if(RMd9){if(_mod9===true&&RMd9.path){PP9.push({p:RMd9.path,pid:null});_used9++;}else if(_orig9&&RMd9.orig)PP9.push({p:RMd9.orig,pid:null});}}catch(_rm9){}cand9.forEach(function(c){PP9.push({p:c+'/raw_'+kk+'.zip',pid:c});});/* [BUILD2989] 기본은 항상 원본 — 수정원시는 성과심사 최종성과(정위치 자기 등록 행)가 _mod9=true로 요청할 때만. 측량(현장) 최종성과 등 다른 창은 원본 그대로 */
     var tryF9=function(ci){if(ci>=PP9.length)return Promise.reject(0);var url=sb.storage.from('photos').getPublicUrl(PP9[ci].p).data.publicUrl+'?t='+Date.now();return fetch(url).then(function(r){if(!r.ok)throw 0;return r.blob();}).then(function(b){try{if(PP9[ci].pid&&M===state.rtRawMeta9&&M[kk]&&!M[kk].pid){M[kk].pid=PP9[ci].pid;_learn9=true;}}catch(_lp){}return b;})['catch'](function(){return tryF9(ci+1);});};/* [BUILD2977] 찾은 폴더를 메타에 기억 */
     tryF9(0)
     .then(function(b){return JSZip.loadAsync(b);})
