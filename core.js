@@ -22803,10 +22803,10 @@ function posRawWin9(){/* [BUILD2973] ★원시데이터 수정 창 4분할 — �
   card.style.cssText='position:absolute;right:0;top:'+_top9+'px;bottom:0;width:'+W9+';border-left:1px solid #b0bec5;background:#fff;overflow:hidden;padding:6px 8px;font-size:12px;z-index:7;box-sizing:border-box;display:flex;flex-direction:column;gap:6px';
   card.innerHTML='<div style="flex:none;display:flex;align-items:center;gap:8px"><b style="font-size:14px;color:#37474f">원시데이터 수정</b><span style="font-size:11px;color:#777">노란 목록에서 측점을 고르면 도면이 그 측점으로 이동</span><span style="flex:1"></span><button id="prClose9" style="font-size:12px;padding:3px 10px;border:1px solid #999;background:#fff;border-radius:6px;cursor:pointer">✕ 닫기</button></div>'
    +'<div style="flex:1;min-height:0;display:flex;gap:6px">'
-   +'<div style="flex:0 0 58%;min-width:0;display:flex;flex-direction:column;gap:6px">'+BX('prRaw9','#e53935','원시 원본','측량기 원본 CSV','1 1 0')+BX('prEdit9','#1565c0','수정','','1 1 0')+'</div>'
+   +'<div style="flex:0 0 58%;min-width:0;display:flex;flex-direction:column;gap:6px">'+BX('prRaw9','#e53935','원시 원본','','1 1 0')+BX('prEdit9','#1565c0','수정원시','','1 1 0')+'</div>'
    +'<div style="flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:6px">'+BX('prList9','#f9a825','원시데이터 수정목록','','0 0 32%')+BX('prDet9','#2e7d32','세부수정 내용','','1 1 0')+'</div>'
    +'</div>';
-  mc.appendChild(card);cw.style.marginRight=W9;if(getComputedStyle(cw).position==='static')cw.style.position='relative';window._posRawOpen9=true;
+  mc.appendChild(card);cw.style.marginRight=W9;if(getComputedStyle(cw).position==='static')cw.style.position='relative';window._posRawOpen9=true;try{posRawTb9();}catch(_tb9){}/* [BUILD2974] */
   card.querySelector('#prClose9').onclick=function(){window._posRawEdit9=false;posRawClose9();if(typeof renderRail==='function')renderRail();};
   posRawRender9();
  }catch(_e){try{console.warn('posRawWin9',_e);}catch(_w){}}}
@@ -22816,20 +22816,32 @@ function posRawRender9(){/* [BUILD2973] 원시데이터 수정 창 내용 갱신
   var L=posRawLists9();var sel=(window._posRawSel9!=null)?String(window._posRawSel9):null;
   var body=function(id){return card.querySelector('#'+id+' .prBody9');};
   var ph=function(t){return '<div style="min-height:60px;height:100%;display:flex;align-items:center;justify-content:center;color:#b0bec5;font-size:12px;text-align:center">'+t+'</div>';};
-  body('prRaw9').innerHTML=ph('원시 원본 표시 — 다음 단계');
-  body('prEdit9').innerHTML=ph('수정 창 — 다음 단계');
-  var col=function(title,c,arr,right){var h='<div style="flex:1 1 0;min-width:0;display:flex;flex-direction:column;min-height:0;'+(right?'border-left:1px dashed #f0d68a;padding-left:6px':'padding-right:6px')+'"><div style="flex:none;font-size:11.5px;font-weight:800;color:'+c+';margin-bottom:3px">'+title+' '+arr.length+'건</div><div style="flex:1;min-height:0;overflow:auto">';
+  var FM={csv:['원시 csv','#e53935'],raw:['원시 raw','#1565c0'],rw5:['원시 rw5','#f9a825']};var fk=FM[window._posRawFmt9]?window._posRawFmt9:'csv';var nDay=0;try{nDay=Object.keys(state.rtRawMeta9||{}).length;}catch(_nd){}
+  try{card.querySelector('#prRaw9 .prSub9').innerHTML='실시간 측량 원시 · <b style="color:'+FM[fk][1]+'">'+FM[fk][0]+'</b> · '+(nDay?('원시 ZIP '+nDay+'일'):'<span style="color:#e53935">원시 없음</span>');}catch(_rs){}
+  body('prRaw9').innerHTML=ph(FM[fk][0]+' 원본 표시 — 다음 단계');/* [BUILD2974] */
+  body('prEdit9').innerHTML=ph('수정원시 — 다음 단계');
+  var col=function(title,c,arr,right,sBg,sFg){var h='<div style="flex:1 1 0;min-width:0;display:flex;flex-direction:column;min-height:0;'+(right?'border-left:1px dashed #f0d68a;padding-left:6px':'padding-right:6px')+'"><div style="flex:none;font-size:11.5px;font-weight:800;color:'+c+';margin-bottom:3px">'+title+' '+arr.length+'건</div><div style="flex:1;min-height:0;overflow:auto">';
     if(!arr.length)h+='<div style="color:#bbb;font-size:11px;padding:4px 0">없음</div>';
-    arr.forEach(function(no,i){var on=(sel===String(no));h+='<div class="prPt9" data-no="'+E(no)+'" style="cursor:pointer;padding:2px 6px;margin-bottom:2px;border-radius:4px;font-size:11.5px;font-weight:700;border:1px solid '+(on?c:'#eceff1')+';background:'+(on?'#fff8d6':'#fff')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span style="color:#aaa;font-weight:400;margin-right:5px">'+(i+1)+'</span>'+E(no)+'</div>';});
+    arr.forEach(function(no,i){var on=(sel===String(no));h+='<div class="prPt9" data-no="'+E(no)+'" style="cursor:pointer;padding:2px 6px;margin-bottom:2px;border-radius:4px;font-size:11.5px;font-weight:700;border:1px solid '+(on?c:'transparent')+';background:'+(on?sBg:'#fff')+';color:'+(on?sFg:'#333')+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><span style="color:'+(on?sFg:'#aaa')+';font-weight:400;margin-right:5px">'+(i+1)+'</span>'+E(no)+'</div>';});/* [BUILD2974] 기본=흰 바탕·글자, 선택=종류별 배경 */
     return h+'</div></div>';};
   var lb=body('prList9');lb.style.display='flex';lb.style.overflow='hidden';
-  lb.innerHTML=col('심도수정','#e53935',L.dep,false)+col('측점이동','#1565c0',L.mv,true);
+  lb.innerHTML=col('심도수정','#e53935',L.dep,false,'#ffcdd2','#b71c1c')+col('측점이동','#1565c0',L.mv,true,'#bbdefb','#0d47a1');
   try{card.querySelector('#prList9 .prSub9').textContent='심도 '+L.dep.length+' · 이동 '+L.mv.length;}catch(_sb){}
   var d=body('prDet9');
   d.innerHTML=sel?('<div style="font-size:13px;font-weight:800;color:#2e7d32;margin-bottom:6px">'+E(sel)+'</div>'+ph('세부 변경 내용 — 다음 단계')):ph('노란 목록에서 측점을 고르세요');
   var its=lb.querySelectorAll('.prPt9');for(var i=0;i<its.length;i++){its[i].onclick=function(){var no=this.getAttribute('data-no');window._posRawSel9=no;try{if(typeof centerOnNo==='function')centerOnNo(no);}catch(_c){}try{if(typeof selectPoint==='function')selectPoint(no);}catch(_s){}posRawRender9();};}
  }catch(_e){try{console.warn('posRawRender9',_e);}catch(_w){}}}
-function posRawClose9(){/* [BUILD2973] */try{var c=document.getElementById('posRawOv9');if(c)c.remove();window._posRawOpen9=false;var cw=document.querySelector('.canvas-wrap');if(cw&&!window._posDepthOpen9&&!window._posMoveOpen9){var ip=document.getElementById('tgInfoPanel');cw.style.marginRight=(ip&&ip.style.display==='flex')?'42%':'';}}catch(_e){}}
+function posRawTb9(){/* [BUILD2974] 원시데이터 수정 툴바(도면창 바로 위 줄, 경계심벌 툴바와 같은 자리) — 원시 csv(빨강)·원시 raw(파랑)·원시 rw5(노랑). 가져오는 원시 = 실시간 측량 원시 */
+ try{var cw=document.querySelector('.canvas-wrap');if(!cw)return;var tb=document.getElementById('posRawTb9');
+  if(!window._posRawOpen9){if(tb)tb.remove();return;}
+  if(!tb){tb=document.createElement('div');tb.id='posRawTb9';document.body.appendChild(tb);}
+  var r=cw.getBoundingClientRect();tb.style.cssText='position:fixed;left:'+Math.round(r.left+6)+'px;top:'+Math.round(Math.max(4,r.top-38))+'px;z-index:60;display:flex;gap:8px;align-items:center;height:30px;box-sizing:border-box';
+  var k=window._posRawFmt9||'csv';
+  var b=function(id,l,col,fg){var on=(k===id);return '<button data-rf="'+id+'" style="font-size:12px;font-weight:800;padding:3px 16px;border-radius:6px;cursor:pointer;border:2px solid '+col+';background:'+(on?col:'#fff')+';color:'+(on?fg:col)+'">'+l+'</button>';};
+  tb.innerHTML=b('csv','원시 csv','#e53935','#fff')+b('raw','원시 raw','#1565c0','#fff')+b('rw5','원시 rw5','#f9a825','#5d3a00');
+  Array.prototype.forEach.call(tb.querySelectorAll('button[data-rf]'),function(bt){bt.onclick=function(){window._posRawFmt9=bt.getAttribute('data-rf');posRawTb9();try{posRawRender9();}catch(_r){}};});
+ }catch(_e){}}
+function posRawClose9(){/* [BUILD2973] */try{var c=document.getElementById('posRawOv9');if(c)c.remove();try{var _tb=document.getElementById('posRawTb9');if(_tb)_tb.remove();}catch(_t9){}/* [BUILD2974] */window._posRawOpen9=false;var cw=document.querySelector('.canvas-wrap');if(cw&&!window._posDepthOpen9&&!window._posMoveOpen9){var ip=document.getElementById('tgInfoPanel');cw.style.marginRight=(ip&&ip.style.display==='flex')?'42%':'';}}catch(_e){}}
 function posRawCounts9(){/* [BUILD2835] 원시데이터 수정 건수 — 심도수정=완료등록된 측점(_zEd9 또는 수동 심도), 측점이동=측점이동으로 옮긴 측점(_xy0mv9 원본 좌표 보관, 원위치면 제외) */var dep=0,mv=0;try{var M=state._depthManual||{};var seen={};(state.points||[]).forEach(function(q){if(!q)return;var no=String(q.no);if(!seen[no]&&((q._zEd9!=null&&isFinite(+q._zEd9))||(M[no]!=null&&M[no]!==''&&isFinite(+M[no])))){seen[no]=1;dep++;}if((q._xyEd9&&isFinite(+q._xyEd9[0]))||(q._xyPend9&&q._xy0mv9))mv++;/* [BUILD2846] */});}catch(_e){}return {dep:dep,mv:mv};}
 function _posDepthGround9(p){/* [BUILD2832] 측점의 지반고 — 후측량 지반점(depthGround) 0.5m 최근접(computeDepth 규칙) → 조서 3m 선택 기록(_depthManualPick9) 순 */try{var b=null,bd=1e18;(state.depthGround||[]).forEach(function(gp){var d=Math.hypot((+gp.X)-(+p.y),(+gp.Y)-(+p.x));if(d<bd){bd=d;b=gp;}});if(b&&bd<=0.5&&isFinite(+b.z))return {z:+b.z,src:'후측량'};var kk=state._gzKeep9&&state._gzKeep9[String(p.no)];if(kk&&isFinite(+kk.z))return {z:+kk.z,src:'후측량(이동 전 매칭)'};/* [BUILD2866] */var pk=state._depthManualPick9&&state._depthManualPick9[p.no];if(pk&&isFinite(+pk.z))return {z:+pk.z,src:'조서 지반점'};}catch(_e){}return null;}
 function _posDepthSel9(){var no=window._posSelPt9;if(no==null&&typeof selNum!=='undefined'&&selNum!=null&&selNum!=='')no=selNum;if(no==null)return null;var q=null;(state.points||[]).forEach(function(p){if(p&&String(p.no)===String(no))q=p;});return q;}
