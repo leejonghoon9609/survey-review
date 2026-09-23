@@ -22906,7 +22906,7 @@ function _posRawText9(card,fk,FM){/* [BUILD2978] 파랑=원시 원본 / 노랑=�
    for(var c=0;c<nc;c++)t+='<td style="'+cc+hTop+'">'+CL(c)+'</td>';t+='</tr>';
    RW.forEach(function(cs,ri){var hb=col(HL[ri]),isH=(ri===0),jmp=(jl===ri);var rs=hb?('background:'+hb+';'):'';var ov=useOV?OV[ri]:null;
     t+='<tr data-ln="'+ri+'"><td style="'+cc+hRn+(isH?'top:19px;z-index:3;':'')+(hb?('background:'+hb+';color:#333;font-weight:800;'):'')+'">'+(ri+1)+'</td>';
-    for(var c2=0;c2<nc;c2++){var chg=!!(ov&&ov[c2]!=null);var v=chg?ov[c2]:((cs[c2]==null)?'':String(cs[c2]));var num=/^-?\d+(\.\d+)?$/.test(v.trim());var jc9=(jmp&&J&&J.c===c2);t+='<td'+(jc9?' data-jc="1"':'')+(chg?' data-chg="1" title="원본 '+E(cs[c2]||'')+'"':'')+' style="'+cc+(isH?hHd:'')+rs+(num&&!isH?'text-align:right;':'')+(jmp?'font-weight:800;':'')+(chg?('color:'+((KD9[ri]&&KD9[ri][c2]==='mv')?'#0d47a1':'#c62828')+';font-weight:900;'):'')+(jc9?'outline:2px solid #2e7d32;outline-offset:-2px;':'')+'">'+E(v)+'</td>';}
+    for(var c2=0;c2<nc;c2++){var chg=!!(ov&&ov[c2]!=null);var v=chg?ov[c2]:((cs[c2]==null)?'':String(cs[c2]));var num=/^-?\d+(\.\d+)?$/.test(v.trim());var jc9=(jmp&&J&&J.c===c2);t+='<td'+(jc9?' data-jc="1"':'')+(chg?' data-chg="1" title="원본 '+E(cs[c2]||'')+'"':'')+' style="'+cc+(isH?hHd:'')+rs+(num&&!isH?'text-align:right;':'')+(jmp?'font-weight:800;':'')+(chg?(((KD9[ri]&&KD9[ri][c2]==='mv')?'color:#0a5ce8;background:#fff;box-shadow:inset 0 0 0 1.5px #64b5f6;':'color:#c62828;')+'font-weight:900;'):'')/* [BUILD2998] 이동 칸 = 흰 바탕+선명한 파랑(선택 연파랑 행에서도 보이게) */+(jc9?'outline:2px solid #2e7d32;outline-offset:-2px;':'')+'">'+E(v)+'</td>';}
     t+='</tr>';});
    html=t+'</table>';
   }else{
