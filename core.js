@@ -22953,10 +22953,10 @@ function _posRawDet9(d,sel,ph){/* [BUILD2978] 세부수정 내용 — 심도(원
  if(!C||!C.ready||C.pid!==state.projectId)left='<span style="color:#90a4ae">원시 불러오는 중…</span>';
  else if(!mt)left='<span style="color:#c62828;font-weight:800">원시에서 이 측점(원시 '+E(nm)+'번·작업일 '+E(day)+')을 찾지 못했습니다</span>';
  else{var F=mt.zp.files;
-  if(fk==='csv'){left=mt.csv?('<div style="font-size:11px;color:#555;font-weight:800;margin-bottom:3px">원시 csv</div>'+chip('csv',mt.csv.ln,(mt.csv.ln+1)+'행',true)+'<div style="font-size:10.5px;color:#888;margin-top:2px">'+(mt.csvExact?'시스템 원본 행과 글자까지 동일':'이름·좌표로 찾음')+'</div>'):'<span style="color:#c62828">원시 csv에 없음</span>';}
+  if(fk==='csv'){left=mt.csv?('<div style="font-size:11px;color:#555;font-weight:800;margin-bottom:3px">원시 csv</div>'+chip('csv',mt.csv.ln,(mt.csv.ln+1)+'행',true)):/* [BUILD3000] 안내문 제거 */'<span style="color:#c62828">원시 csv에 없음</span>';}
   if(fk==='raw'){left=mt.raw.length?('<div style="font-size:11px;color:#555;font-weight:800;margin-bottom:3px">원시 raw · 측정 '+mt.raw.length+'회</div>'+mt.raw.map(function(m){var ad=(m===mt.rawAd);return chip('raw',m.ln,(m.ln+1)+'줄 '+TM(m.t)+(ad?' 채택':''),ad);}).join('')+((mt.rawAd&&mt.rawAd.ap.length)?('<div style="font-size:10.5px;color:#888;margin-top:2px">지오이드26 변환</div>'+mt.rawAd.ap.map(function(a){return chip('raw',a.ln,(a.ln+1)+'줄',true);}).join('')):'')+((!mt.rawAd)?'<div style="color:#c62828;font-size:10.5px">채택 측정 없음</div>':'')):'<span style="color:#c62828">원시 raw에 없음</span>';}
   if(fk==='rw5'){left=mt.rw5.length?('<div style="font-size:11px;color:#555;font-weight:800;margin-bottom:3px">원시 rw5 · 측정 '+mt.rw5.length+'회</div>'+mt.rw5.map(function(m){var ad=(m===mt.rw5Ad);return chip('rw5',m.ln,(m.ln+1)+'줄 '+TM(m.t)+(ad?' 채택':''),ad);}).join('')+((!mt.rw5Ad)?'<div style="color:#c62828;font-size:10.5px">채택 측정 없음</div>':'')):'<span style="color:#c62828">원시 rw5에 없음</span>';}
-  left+='<div style="font-size:10px;color:#aaa;margin-top:5px">칩을 누르면 그 줄로 이동 · 회색 = 재측으로 버려진 측정</div>';
+  /* [BUILD3000] 안내문 제거 */
   /* 산출 */
   var cs0=null,Hd=(F.csv&&F.csv.head)||[];if(F.csv&&mt.csv)cs0=splitCsvLine(F.csv.lines[mt.csv.ln]||'');
   var ix=function(n){return Hd.indexOf(n);};
@@ -22973,7 +22973,7 @@ function _posRawDet9(d,sel,ph){/* [BUILD2978] 세부수정 내용 — 심도(원
    if(fk==='rw5'&&mt.rw5Ad){var gl3=F.rw5.lines[mt.rw5Ad.gl]||'';var mW=/N ([-\d.]+),E ([-\d.]+)/.exec(gl3);if(mW){cl('--GS N',mW[1],dN,keep(mW[1],dN),3,false,mt.rw5Ad.gl,null,'N '+mW[1]);cl('--GS E',mW[2],dE,keep(mW[2],dE),3,false,mt.rw5Ad.gl,null,'E '+mW[2]);}}
   }
   right=calc.length?calc.join(''):'<span style="color:#aaa;font-size:11px">변경 없음</span>';}
- var inner='<div style="display:flex;gap:0;align-items:stretch"><div style="flex:0 0 44%;min-width:0;padding-right:8px;border-right:2px solid #eceff1">'+left+'</div><div style="flex:1 1 0;min-width:0;padding-left:8px;overflow-x:auto"><div style="font-size:11px;color:#555;font-weight:800;margin-bottom:4px">산출</div>'+right+'</div></div>';
+ var inner='<div style="display:flex;gap:0;align-items:stretch"><div style="flex:0 0 '+(fk==='csv'?'72px':'26%')+';min-width:0;padding-right:6px;border-right:2px solid #eceff1">'+left+'</div><div style="flex:1 1 0;min-width:0;padding-left:8px;overflow-x:auto"><div style="font-size:11px;color:#555;font-weight:800;margin-bottom:4px">산출</div>'+right+'</div></div>';/* [BUILD3000] 왼쪽 좁게(csv 72px) — 산출 한눈에 */
  h+=box('원시 수정내역 · '+FMN[fk],'#546e7a',inner);d.innerHTML=h;
  Array.prototype.forEach.call(d.querySelectorAll('.prJump9'),function(el){el.onclick=function(){var jl9=el.getAttribute('data-jl');if(jl9===''||jl9==null)return;var jc9=el.getAttribute('data-jc');window._posRawFmt9=el.getAttribute('data-jf');window._posRawJump9={f:el.getAttribute('data-jf'),l:+jl9,c:(jc9!=null&&jc9!=='')?+jc9:null,t:el.getAttribute('data-jt')||null};/* [BUILD2985] 열(csv)·글자 조각(raw·rw5)까지 */try{posRawTb9();}catch(_t){}posRawRender9();};});}
 function _rawTxtEdits9(zp,C,fk){/* [BUILD2996] 원시 raw 수정 목록 — 심도수정 측점의 채택 측정 GS EL(지오이드24)와 지오이드26 AP EL(2곳)에 관상고 차를 더함(원본 소수 자릿수 유지). {ed:{줄:{from,to,kd,no}}, n:점수}. 측점이동·rw5는 다음 단계 */
