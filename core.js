@@ -22897,6 +22897,7 @@ function _posRawText9(card,fk,FM){/* [BUILD2978] 파랑=원시 원본 / 노랑=�
  var L=f.lines,w=String(L.length).length+1;var jl=(J&&J.f===fk)?J.l:null;
  /* [BUILD2982] 수정원시 반영 — 원시 csv: 심도수정 측점의 Z(레벨) 칸 = 변경 관상고(빨강 굵게). 값 형식은 원시와 같게(소수 3자리, 끝 0 생략). 측점이동·raw·rw5는 다음 단계 */
  var TE9=(fk==='raw'||fk==='rw5')?_rawTxtEdits9(zp,C,fk):{ed:{},n:0};/* [BUILD3011] rw5 반영 *//* [BUILD2996] */var _RE9=(fk==='csv')?_rawCsvEdits9(zp,C):{ov:{},kd:{},n:0,nm:0};var OV=_RE9.ov,KD9=_RE9.kd||{},nOV=_RE9.n,nMV9=_RE9.nm||0;/* [BUILD2986] 저장과 같은 함수 */
+ try{if(!(J&&J.f===fk&&isFinite(J.l))){var _fs=null;Object.keys(HL).forEach(function(k){var ln=+k;if(HL[k]!=='S')return;var has=(fk==='csv')?!!OV[ln]:!!TE9.ed[ln];if(has&&(_fs==null||ln<_fs))_fs=ln;});if(_fs==null)Object.keys(HL).forEach(function(k){var ln=+k;if(HL[k]==='S'&&(_fs==null||ln<_fs))_fs=ln;});if(_fs!=null)first=_fs;}}catch(_f9){}/* [BUILD3012] 자동 이동 대상 = 채택(S) 줄 중 실제 수정이 들어간 첫 줄 — 종전엔 버려진 회색 측정(932줄)이 먼저라 그리로 가서 "EL이 안 바뀐다"로 보였음 */
  var bld=function(sel,useOV){var out=[],html='';var col=function(k){return k==='S'?sel:(k==='O'?old:null);};
   if(fk==='csv'){/* [BUILD2979] 엑셀처럼 — 열 글자·행 번호·칸 테두리, 숫자 오른쪽 정렬, 값은 원본 글자 그대로 */
    var CL=function(n){var t='';n++;while(n>0){var m=(n-1)%26;t=String.fromCharCode(65+m)+t;n=Math.floor((n-1)/26);}return t;};
