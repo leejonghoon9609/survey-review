@@ -9367,7 +9367,7 @@ function _fldSvSrc9(cb){/* [BUILD2233] field → 결선DB(_A) 원본 조회(원�
   cb(window._fldSvCache9);
  },function(){cb(null);});
 }
-var INSP_SUBMIT_TREE9=[{n:'01.NGIS DATA'},{n:'02.도면제작(NGIS)편집'},{n:'03.맨홀',sub:['01_맨홀사진','02_맨홀도 및 맨홀설비조서','03_맨홀조사야장']},{n:'04.측량데이터',sub:['01_실시간측량','02_측설측량','03_측량 전체 csv']},{n:'05.인덱스 및 범례',sub:['01_인덱스','02_범례']},/* [BUILD3037] */{n:'06.실측 데이타'},{n:'07.전자도면'},{n:'08.불탐대장'}];/* [BUILD3035] 03.맨홀 하위 폴더 3개 *//* [BUILD3033] 성과심사 접수 폴더 구성(사용자 제공 트리) — 각 폴더에 담을 성과는 다음 단계 */
+var INSP_SUBMIT_TREE9=[{n:'01.NGIS DATA'},{n:'02.도면제작(NGIS)편집'},{n:'03.맨홀',sub:['01_맨홀사진','02_맨홀도 및 맨홀설비조서','03_맨홀조사야장']},{n:'04.측량데이터',sub:['01_실시간측량','02_측설측량','03_측량 전체 csv']},{n:'05.인덱스 및 범례',sub:['01_인덱스','02_범례']},/* [BUILD3037] */{n:'06.실측 데이타',sub:['01_실시간 사진','02_실시간 조서','03_실측 DATA','04_후측량 사진']},/* [BUILD3038] */{n:'07.전자도면'},{n:'08.불탐대장'}];/* [BUILD3035] 03.맨홀 하위 폴더 3개 *//* [BUILD3033] 성과심사 접수 폴더 구성(사용자 제공 트리) — 각 폴더에 담을 성과는 다음 단계 */
 function openInspSubmit9(){/* [BUILD3033] 성과심사 접수 — 폴더 목록(1단계). 성과 파일·등록 상태·Storage 불변 */
  try{var old=document.getElementById('inspSubOv9');if(old)old.remove();
   var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
