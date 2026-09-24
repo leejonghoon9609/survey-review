@@ -23149,7 +23149,7 @@ function posRawRender9(){/* [BUILD2973] 원시데이터 수정 창 내용 갱신
   Array.prototype.forEach.call(lb.querySelectorAll('.prChkB9'),function(bg){bg.onclick=function(ev){try{ev.stopPropagation();ev.preventDefault();}catch(_p){}var no=bg.getAttribute('data-no'),kd=(bg.getAttribute('data-kind')==='mv')?'mv':'dep';try{if(state.rawChk9)delete state.rawChk9[kd+'|'+String(no)];}catch(_d){}try{window._silentSave=true;if(typeof saveProject==='function')saveProject();}catch(_s){}if(typeof toast==='function')toast('확인완료 취소 — '+no+' ('+(kd==='mv'?'측점이동':'심도수정')+')');posRawRender9();};});/* [BUILD2991] 배지 다시 누르면 확인완료 취소(측점 선택은 안 바뀜) */
   var its=lb.querySelectorAll('.prPt9');for(var i=0;i<its.length;i++){its[i].onclick=function(){var no=this.getAttribute('data-no');window._posRawSel9=no;window._posRawJump9=null;window._posRawSelCard9=null;window._posRawSelKind9=this.getAttribute('data-kind')||null;/* [BUILD2975] */try{if(typeof centerOnNo==='function')centerOnNo(no);}catch(_c){}try{if(typeof selectPoint==='function')selectPoint(no);}catch(_s){}posRawRender9();};}
  }catch(_e){try{console.warn('posRawRender9',_e);}catch(_w){}}}
-function posRawOrigWin9(fk,zp,C,opt){/* [BUILD3022] 수정원시 미리보기 창 · [BUILD3024] 드래그 이동·배경 잠금 없음·크기 조절·연동/미연동·원본 원시 모드(opt.orig)·산출 카드 클릭 연동 */
+function posRawOrigWin9(fk,zp,C,opt){/* [BUILD3022] 수정원시 미리보기 · [BUILD3024] 연동/미연동·원본 모드 · [BUILD3026] 별도 브라우저 창(window.open)으로 — 다른 모니터로 옮기고 OS 창처럼 크기 조절 */
  try{opt=opt||{};var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');};
   var f=zp&&zp.files&&zp.files[fk];if(!f||!f.lines){if(typeof toast==='function')toast('원시 '+fk+' 없음');return;}
   var FMN={csv:'원시 csv',raw:'원시 raw',rw5:'원시 rw5'};var L=f.lines;var w=String(L.length).length+1;var isOrig=!!opt.orig;
@@ -23157,59 +23157,61 @@ function posRawOrigWin9(fk,zp,C,opt){/* [BUILD3022] 수정원시 미리보기 �
   var RD='color:#e00000;font-weight:900',BL='color:#0000ee;font-weight:900';
   var rows=[];var nChg=0;var isCsv=(fk==='csv');
   if(isCsv){var nc=0;var CS=[];for(var i0=0;i0<L.length;i0++){if(i0===L.length-1&&L[i0]==='')break;var c0=splitCsvLine(L[i0]);CS.push(c0);if(c0.length>nc)nc=c0.length;}var CL=function(n){var t='';n++;while(n>0){var m=(n-1)%26;t=String.fromCharCode(65+m)+t;n=Math.floor((n-1)/26);}return t;};var num=/^-?\d+(\.\d+)?$/;
-   var hh='<tr><th style="position:sticky;top:0;left:0;z-index:3;background:#eceff1;border:1px solid #cfd8dc;min-width:40px"></th>';for(var ch=0;ch<nc;ch++)hh+='<th style="position:sticky;top:0;z-index:2;background:#eceff1;border:1px solid #cfd8dc;padding:1px 6px;font-weight:700;color:#455a64">'+CL(ch)+'</th>';hh+='</tr>';rows.push(hh);
-   CS.forEach(function(cs,i){var ov=OV[i];var chg=!!ov;if(chg)nChg++;var tr='<tr class="poLn9" data-ln="'+i+'" style="'+(chg?'background:#fff3b8;':'')+'"><td style="position:sticky;left:0;z-index:1;background:'+(chg?'#ffe58a':'#f5f5f5')+';border:1px solid #cfd8dc;text-align:right;padding:0 6px;color:#546e7a;font-weight:'+(chg?800:400)+'">'+(i+1)+'</td>';for(var c=0;c<nc;c++){var v=(cs[c]==null)?'':String(cs[c]);var isC=!!(ov&&ov[c]!=null);if(isC)v=String(ov[c]);var st='border:1px solid #e0e0e0;padding:0 6px;white-space:nowrap;'+(num.test(v.trim())?'text-align:right;':'')+(isC?(((KD[i]&&KD[i][c]==='mv')?BL:RD)+';background:#fff;box-shadow:inset 0 0 0 1.5px '+((KD[i]&&KD[i][c]==='mv')?'#64b5f6':'#ef9a9a')):'')+(i===0?'font-weight:700;background:#fafafa;':'');tr+='<td class="poTx9" data-c="'+c+'" style="'+st+'">'+E(v)+'</td>';}tr+='</tr>';rows.push(tr);});}
+   var hh='<tr><th class="poCorner"></th>';for(var ch=0;ch<nc;ch++)hh+='<th class="poColH">'+CL(ch)+'</th>';hh+='</tr>';rows.push(hh);
+   CS.forEach(function(cs,i){var ov=OV[i];var chg=!!ov;if(chg)nChg++;var tr='<tr class="poLn9" data-ln="'+i+'"'+(chg?' data-chg="1" style="background:#fff3b8"':'')+'><td class="poRowH" style="background:'+(chg?'#ffe58a':'#f5f5f5')+';font-weight:'+(chg?800:400)+'">'+(i+1)+'</td>';for(var c=0;c<nc;c++){var v=(cs[c]==null)?'':String(cs[c]);var isC=!!(ov&&ov[c]!=null);if(isC)v=String(ov[c]);var st=(num.test(v.trim())?'text-align:right;':'')+(isC?(((KD[i]&&KD[i][c]==='mv')?BL:RD)+';background:#fff;box-shadow:inset 0 0 0 1.5px '+((KD[i]&&KD[i][c]==='mv')?'#64b5f6':'#ef9a9a')):'')+(i===0?'font-weight:700;background:#fafafa;':'');tr+='<td class="poTx9" data-c="'+c+'" style="'+st+'">'+E(v)+'</td>';}tr+='</tr>';rows.push(tr);});}
   else for(var i=0;i<L.length;i++){var l=L[i];if(i===L.length-1&&l==='')break;var chg=false,body='';
    var te=TE[i];if(te){var kx=l.indexOf(te.from);if(kx>=0){chg=true;body=E(l.slice(0,kx+1))+'<span style="'+(te.kd==='mv'?BL:RD)+'">'+E(te.to.slice(1))+'</span>'+E(l.slice(kx+te.from.length));}else body=E(l);}else body=E(l);
    if(chg)nChg++;
-   rows.push('<div class="poLn9" data-ln="'+i+'" style="display:flex;white-space:pre;'+(chg?'background:#fff3b8;':'')+'"><span style="flex:none;width:'+w+'ch;text-align:right;color:#9e9e9e;margin-right:10px;user-select:none">'+(i+1)+'</span><span class="poTx9" style="flex:1 1 auto;min-width:0">'+body+'</span></div>');}
-  /* 창: 기존 창 있으면 위치·크기·연동 상태 이어받음 */
-  var prev=window._prOW9||{};var old=document.getElementById('prOrigWin9');var pos={left:prev.left,top:prev.top,w:prev.w,h:prev.h};if(old){try{var r0=old.getBoundingClientRect();pos={left:r0.left,top:r0.top,w:r0.width,h:r0.height};}catch(_r){}old.remove();}
-  var linked=(prev.linked!=null)?prev.linked:true;
-  var win=document.createElement('div');win.id='prOrigWin9';
-  var W0=pos.w||Math.min(window.innerWidth*0.62,1400),H0=pos.h||Math.round(window.innerHeight*0.72);var L0=(pos.left!=null)?pos.left:24,T0=(pos.top!=null)?pos.top:90;
-  win.style.cssText='position:fixed;left:'+L0+'px;top:'+T0+'px;width:'+W0+'px;height:'+H0+'px;min-width:420px;min-height:220px;z-index:100050;background:#fff;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.35);display:flex;flex-direction:column;overflow:hidden;resize:both;border:2px solid '+(isOrig?'#1565c0':'#e53935');/* [BUILD3025] 원본=파랑, 수정=빨강(패널과 동일) */
-  var ttl=isOrig?'원본 원시 미리보기':'수정원시 미리보기';
-  win.innerHTML='<div id="poHead9" style="flex:none;display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:1px solid #e0e0e0;background:'+(isOrig?'#e8f0fb':'#fdecea')+';cursor:move;user-select:none;flex-wrap:wrap">'
-   +'<b style="font-size:13.5px;color:'+(isOrig?'#0d47a1':'#b71c1c')+'">📄 '+FMN[fk]+' — '+ttl+'</b><span style="font-size:11px;color:#607d8b;white-space:nowrap">'+E(String(f.name||'').split('/').pop())+' · 20'+E(zp.ymd)+' · '+L.length+'줄'+(isOrig?' · <b style="color:#0d47a1">수정 전 원본 그대로</b>':(' · 바뀐 줄 <b style="color:#e00000">'+nChg+'</b> · <span style="color:#e00000;font-weight:800">빨강</span>=심도 <span style="color:#0000ee;font-weight:800">파랑</span>=이동 <span style="background:#fff3b8;padding:0 4px">노랑</span>=바뀐 줄'))+'</span>'
-   +'<span style="margin-left:auto;display:flex;align-items:center;gap:4px;cursor:default"><button id="poLink9" title="연동: 오른쪽 산출 카드·측점 선택에 따라 이 창도 같은 줄로 이동 / 미연동: 독립" style="font-size:11px;font-weight:800;padding:2px 9px;border-radius:5px;cursor:pointer;'+(linked?'border:1.5px solid #2e7d32;background:#2e7d32;color:#fff':'border:1.5px solid #90a4ae;background:#fff;color:#546e7a')+'">'+(linked?'🔗 연동':'미연동')+'</button>'
-   +'<input id="poQ9" placeholder="찾기 (Enter 다음 · Shift+Enter 이전)" style="width:230px;font-size:12px;padding:3px 8px;border:1.5px solid #90a4ae;border-radius:5px;margin-left:6px"><button id="poPrev9" style="font-size:12px;padding:2px 8px;cursor:pointer">▲</button><button id="poNext9" style="font-size:12px;padding:2px 8px;cursor:pointer">▼</button><span id="poCnt9" style="font-size:11.5px;color:#455a64;min-width:56px;text-align:center">0 / 0</span>'+(isOrig?'':'<label style="font-size:11.5px;color:#455a64;margin-left:4px;cursor:pointer"><input type="checkbox" id="poOnlyChg9"> 바뀐 줄만</label>')
-   +'<button id="poClose9" style="margin-left:6px;font-size:12px;font-weight:800;padding:3px 10px;border-radius:5px;border:1.5px solid #c62828;background:#fff;color:#c62828;cursor:pointer">✕ 닫기</button></span></div>'
-   +'<div id="poBody9" style="flex:1 1 auto;min-height:0;overflow:auto;padding:6px 10px;font-family:Consolas,\'D2Coding\',monospace;font-size:12px;line-height:1.5;color:#212121">'+(isCsv?('<table style="border-collapse:separate;border-spacing:0;font-size:11.5px">'+rows.join('')+'</table>'):rows.join(''))+'</div>';
-  document.body.appendChild(win);
-  window._prOW9={fk:fk,zp:zp,C:C,orig:isOrig,linked:linked,el:win,left:L0,top:T0,w:W0,h:H0};
-  var body9=win.querySelector('#poBody9'),q9=win.querySelector('#poQ9'),cnt9=win.querySelector('#poCnt9');
-  /* 드래그 이동(머리띠) */
-  (function(){var hd=win.querySelector('#poHead9');var dx=0,dy=0,drag=false;hd.addEventListener('mousedown',function(ev){if(ev.button!==0)return;var tg=ev.target;if(tg&&(tg.tagName==='INPUT'||tg.tagName==='BUTTON'||tg.tagName==='LABEL'))return;drag=true;var r=win.getBoundingClientRect();dx=ev.clientX-r.left;dy=ev.clientY-r.top;ev.preventDefault();});
-   var mv=function(ev){if(!drag)return;var nl=Math.max(-win.offsetWidth+120,Math.min(window.innerWidth-120,ev.clientX-dx)),nt=Math.max(0,Math.min(window.innerHeight-40,ev.clientY-dy));win.style.left=nl+'px';win.style.top=nt+'px';};var up=function(){if(!drag)return;drag=false;try{var r=win.getBoundingClientRect();window._prOW9.left=r.left;window._prOW9.top=r.top;window._prOW9.w=r.width;window._prOW9.h=r.height;}catch(_u){}};
-   document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);win._poCleanup9=function(){document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);};})();
+   rows.push('<div class="poLn9" data-ln="'+i+'"'+(chg?' data-chg="1" style="background:#fff3b8"':'')+'><span class="poNum">'+(i+1)+'</span><span class="poTx9">'+body+'</span></div>');}
+  var prev=window._prOW9||{};var linked=(prev.linked!=null)?prev.linked:true;
+  var ttl=isOrig?'원본 원시 미리보기':'수정원시 미리보기';var col=isOrig?'#1565c0':'#e53935',colD=isOrig?'#0d47a1':'#b71c1c',hbg=isOrig?'#e8f0fb':'#fdecea';
+  var html='<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><title>'+E(FMN[fk]+' — '+ttl)+'</title><style>'
+   +'html,body{margin:0;height:100%;font-family:"Malgun Gothic",sans-serif;color:#212121;background:#fff}'
+   +'#poHead9{display:flex;align-items:center;gap:8px;padding:7px 12px;border-bottom:2px solid '+col+';background:'+hbg+';flex-wrap:nowrap;position:sticky;top:0;z-index:9}'
+   +'#poHead9 b.t{font-size:13.5px;color:'+colD+';white-space:nowrap}'
+   +'#poHead9 .r{margin-left:auto;display:flex;align-items:center;gap:4px}'
+   +'#poHead9 button{font-size:12px;padding:2px 8px;cursor:pointer;border-radius:5px}'
+   +'#poQ9{width:240px;font-size:12px;padding:3px 8px;border:1.5px solid #90a4ae;border-radius:5px}'
+   +'#poBody9{padding:6px 10px;font-family:Consolas,"D2Coding",monospace;font-size:12px;line-height:1.5}'
+   +'.poLn9{display:flex;white-space:pre}.poNum{flex:none;width:'+w+'ch;text-align:right;color:#9e9e9e;margin-right:10px;user-select:none}.poTx9{flex:1 1 auto;min-width:0}'
+   +'table{border-collapse:separate;border-spacing:0;font-size:11.5px}th.poCorner{position:sticky;top:34px;left:0;z-index:3;background:#eceff1;border:1px solid #cfd8dc;min-width:40px}th.poColH{position:sticky;top:34px;z-index:2;background:#eceff1;border:1px solid #cfd8dc;padding:1px 6px;font-weight:700;color:#455a64}'
+   +'td.poRowH{position:sticky;left:0;z-index:1;border:1px solid #cfd8dc;text-align:right;padding:0 6px;color:#546e7a}td.poTx9{border:1px solid #e0e0e0;padding:0 6px;white-space:nowrap}'
+   +'.poSel9{outline:3px solid #e00000 !important;outline-offset:-1px}.poSelRow9{background:#fff3b8 !important}mark.poMk9{background:#ffe082;padding:0}'
+   +'</style></head><body>'
+   +'<div id="poHead9"><b class="t">📄 '+E(FMN[fk])+' — '+ttl+'</b><span class="r">'
+   +'<button id="poLink9" title="연동: 시스템 창의 산출 카드·측점 선택에 따라 같은 줄로 이동 / 미연동: 독립" style="font-weight:800;'+(linked?'border:1.5px solid #2e7d32;background:#2e7d32;color:#fff':'border:1.5px solid #90a4ae;background:#fff;color:#546e7a')+'">'+(linked?'🔗 연동':'미연동')+'</button>'
+   +'<input id="poQ9" placeholder="찾기 (Enter 다음 · Shift+Enter 이전)" style="margin-left:6px"><button id="poPrev9">▲</button><button id="poNext9">▼</button><span id="poCnt9" style="font-size:11.5px;color:#455a64;min-width:56px;text-align:center">0 / 0</span>'+(isOrig?'':'<label style="font-size:11.5px;color:#455a64;margin-left:4px;cursor:pointer"><input type="checkbox" id="poOnlyChg9"> 바뀐 줄만</label>')
+   +'<button id="poClose9" style="margin-left:6px;font-weight:800;border:1.5px solid #c62828;background:#fff;color:#c62828">✕ 닫기</button></span></div>'
+   +'<div id="poBody9">'+(isCsv?('<table>'+rows.join('')+'</table>'):rows.join(''))+'</div></body></html>';
+  var pw=prev.pw;if(!pw||pw.closed){var Wn=Math.min(screen.availWidth-80,1400),Hn=Math.min(screen.availHeight-120,820);pw=window.open('','prOrigWin9','width='+Wn+',height='+Hn+',resizable=yes,scrollbars=yes,menubar=no,toolbar=no,location=no,status=no');if(!pw){if(typeof toast==='function')toast('팝업이 차단됐어요 — 주소창 오른쪽 팝업 허용 후 다시 누르세요');return;}}
+  try{pw.document.open();pw.document.write(html);pw.document.close();}catch(_dw){if(typeof toast==='function')toast('미리보기 창을 열 수 없습니다: '+(_dw&&_dw.message||_dw));return;}
+  try{pw.focus();}catch(_pf){}
+  window._prOW9={fk:fk,zp:zp,C:C,orig:isOrig,linked:linked,pw:pw};
+  var D=pw.document;var body9=D.getElementById('poBody9'),q9=D.getElementById('poQ9'),cnt9=D.getElementById('poCnt9');
   var hits=[],cur=-1;
-  var clearMk=function(){Array.prototype.forEach.call(body9.querySelectorAll('mark.poMk9'),function(m){var t=document.createTextNode(m.textContent);m.parentNode.replaceChild(t,m);});Array.prototype.forEach.call(body9.querySelectorAll('.poTx9'),function(x){x.normalize();});};
+  var clearMk=function(){Array.prototype.forEach.call(D.querySelectorAll('mark.poMk9'),function(m){var t=D.createTextNode(m.textContent);m.parentNode.replaceChild(t,m);});Array.prototype.forEach.call(D.querySelectorAll('.poTx9'),function(x){x.normalize();});};
+  var go=function(k){if(!hits.length){cnt9.textContent='0 / 0';return;}if(cur>=0&&hits[cur])hits[cur].style.background='#ffe082';cur=(k+hits.length)%hits.length;var m=hits[cur];m.style.background='#ff9800';cnt9.textContent=(cur+1)+' / '+hits.length;try{m.scrollIntoView({block:'center',inline:'center'});}catch(_sc){}};
   var doFind=function(){clearMk();hits=[];cur=-1;var q=String(q9.value||'');if(!q){cnt9.textContent='0 / 0';return;}var ql=q.toLowerCase();
-   Array.prototype.forEach.call(body9.querySelectorAll('.poTx9'),function(tx){if(tx.textContent.toLowerCase().indexOf(ql)<0)return;
-    var walker=document.createTreeWalker(tx,NodeFilter.SHOW_TEXT,null,false);var nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
-    nodes.forEach(function(nd){var t=nd.nodeValue,tl=t.toLowerCase(),pos=0,idx;var frag=document.createDocumentFragment(),any=false;while((idx=tl.indexOf(ql,pos))>=0){any=true;if(idx>pos)frag.appendChild(document.createTextNode(t.slice(pos,idx)));var mk=document.createElement('mark');mk.className='poMk9';mk.style.cssText='background:#ffe082;padding:0';mk.textContent=t.slice(idx,idx+q.length);frag.appendChild(mk);hits.push(mk);pos=idx+q.length;}if(any){if(pos<t.length)frag.appendChild(document.createTextNode(t.slice(pos)));nd.parentNode.replaceChild(frag,nd);}});});
+   Array.prototype.forEach.call(D.querySelectorAll('.poTx9'),function(tx){if(tx.textContent.toLowerCase().indexOf(ql)<0)return;var walker=D.createTreeWalker(tx,4,null,false);var nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+    nodes.forEach(function(nd){var t=nd.nodeValue,tl=t.toLowerCase(),pos=0,idx;var frag=D.createDocumentFragment(),any=false;while((idx=tl.indexOf(ql,pos))>=0){any=true;if(idx>pos)frag.appendChild(D.createTextNode(t.slice(pos,idx)));var mk=D.createElement('mark');mk.className='poMk9';mk.textContent=t.slice(idx,idx+q.length);frag.appendChild(mk);hits.push(mk);pos=idx+q.length;}if(any){if(pos<t.length)frag.appendChild(D.createTextNode(t.slice(pos)));nd.parentNode.replaceChild(frag,nd);}});});
    go(hits.length?0:-1);};
-  var go=function(k){if(!hits.length){cnt9.textContent='0 / 0';return;}if(cur>=0&&hits[cur])hits[cur].style.background='#ffe082';cur=(k+hits.length)%hits.length;var m=hits[cur];m.style.background='#ff9800';cnt9.textContent=(cur+1)+' / '+hits.length;try{var br=body9.getBoundingClientRect(),mr=m.getBoundingClientRect();body9.scrollTop+=mr.top-br.top-body9.clientHeight/2;body9.scrollLeft+=mr.left-br.left-body9.clientWidth/2;}catch(_sc){}};
-  q9.onkeydown=function(ev){if(ev.key==='Enter'){ev.preventDefault();if(!hits.length||String(q9.value||'')!==(q9._last||'')){q9._last=String(q9.value||'');doFind();}else go(cur+(ev.shiftKey?-1:1));}else if(ev.key==='Escape'){closeWin();}};
-  win.querySelector('#poNext9').onclick=function(){if(!hits.length)doFind();else go(cur+1);};win.querySelector('#poPrev9').onclick=function(){if(!hits.length)doFind();else go(cur-1);};
-  var oc=win.querySelector('#poOnlyChg9');if(oc)oc.onchange=function(){var only=this.checked;Array.prototype.forEach.call(body9.querySelectorAll('.poLn9'),function(ln){var isC=ln.style.background!=='';ln.style.display=(only&&!isC)?'none':(isCsv?'':'flex');});};
-  var lk=win.querySelector('#poLink9');lk.onclick=function(ev){try{ev.stopPropagation();}catch(_p){}var S=window._prOW9;S.linked=!S.linked;lk.textContent=S.linked?'🔗 연동':'미연동';lk.style.cssText='font-size:11px;font-weight:800;padding:2px 9px;border-radius:5px;cursor:pointer;'+(S.linked?'border:1.5px solid #2e7d32;background:#2e7d32;color:#fff':'border:1.5px solid #90a4ae;background:#fff;color:#546e7a');if(S.linked)_prOWSync9();};
-  var closeWin=function(){try{if(win._poCleanup9)win._poCleanup9();}catch(_c){}win.remove();document.removeEventListener('keydown',esc);var S=window._prOW9;if(S)S.el=null;};
-  win.querySelector('#poClose9').onclick=closeWin;
-  var esc=function(ev){if(ev.key==='Escape'&&document.activeElement===q9)closeWin();};document.addEventListener('keydown',esc);
+  q9.onkeydown=function(ev){if(ev.key==='Enter'){ev.preventDefault();if(!hits.length||String(q9.value||'')!==(q9._last||'')){q9._last=String(q9.value||'');doFind();}else go(cur+(ev.shiftKey?-1:1));}};
+  D.getElementById('poNext9').onclick=function(){if(!hits.length)doFind();else go(cur+1);};D.getElementById('poPrev9').onclick=function(){if(!hits.length)doFind();else go(cur-1);};
+  var oc=D.getElementById('poOnlyChg9');if(oc)oc.onchange=function(){var only=this.checked;Array.prototype.forEach.call(D.querySelectorAll('.poLn9'),function(ln){var isC=!!ln.getAttribute('data-chg');ln.style.display=(only&&!isC)?'none':(isCsv?'':'flex');});};
+  var lk=D.getElementById('poLink9');lk.onclick=function(){var S=window._prOW9;S.linked=!S.linked;lk.textContent=S.linked?'🔗 연동':'미연동';lk.style.cssText='font-weight:800;'+(S.linked?'border:1.5px solid #2e7d32;background:#2e7d32;color:#fff':'border:1.5px solid #90a4ae;background:#fff;color:#546e7a');if(S.linked)_prOWSync9();};
+  D.getElementById('poClose9').onclick=function(){try{pw.close();}catch(_c){}};
+  D.addEventListener('keydown',function(ev){if(ev.key==='Escape')try{pw.close();}catch(_c){}});
   /* 첫 이동: 연동이면 현재 선택 줄, 아니면 첫 바뀐 줄 */
   var went=false;if(linked){went=_prOWSync9(true);}
-  if(!went){try{var fc=body9.querySelector('.poLn9[style*="fff3b8"]');if(fc)body9.scrollTop=Math.max(0,fc.offsetTop-body9.clientHeight/3);}catch(_f){}}
+  if(!went){try{var fc=D.querySelector('.poLn9[data-chg]');if(fc)fc.scrollIntoView({block:'center'});}catch(_f){}}
  }catch(e){try{console.warn('posRawOrigWin9',e);}catch(_w){}if(typeof toast==='function')toast('미리보기 창 오류: '+(e&&e.message||e));}}
-function _prOWSync9(noRebuild){/* [BUILD3024] 미리보기 창 연동 — 현재 수정원시 창의 이동 대상(형식·줄·칸)으로 미리보기도 이동. 형식이 다르면 그 형식으로 다시 그림 */
- try{var S=window._prOW9;if(!S||!S.el||!document.getElementById('prOrigWin9')||!S.linked)return false;var T=window._prOWTarget9;if(!T||T.ln==null)return false;
+function _prOWSync9(noRebuild){/* [BUILD3024] 미리보기 창 연동 · [BUILD3026] 별도 창 DOM 조작 — 대상 줄 노란 배경 + 대상 칸/줄 굵은 빨간 테두리 */
+ try{var S=window._prOW9;if(!S||!S.pw||S.pw.closed||!S.linked)return false;var T=window._prOWTarget9;if(!T||T.ln==null)return false;
   if((T.fk!==S.fk||T.zp!==S.zp)){if(noRebuild)return false;posRawOrigWin9(T.fk,T.zp,T.C||S.C,{orig:S.orig});return true;}
-  var body9=S.el.querySelector('#poBody9');if(!body9)return false;var row=body9.querySelector('.poLn9[data-ln="'+T.ln+'"]');if(!row)return false;
-  var tg=null;if(S.fk==='csv'&&T.c!=null)tg=row.querySelector('.poTx9[data-c="'+T.c+'"]');
-  Array.prototype.forEach.call(body9.querySelectorAll('.poSel9'),function(x){x.classList.remove('poSel9');x.style.outline='';});
-  var br=body9.getBoundingClientRect(),rr=row.getBoundingClientRect();body9.scrollTop+=rr.top-br.top-body9.clientHeight/2+rr.height/2;
-  if(tg){var gr=tg.getBoundingClientRect();body9.scrollLeft+=gr.left-br.left-body9.clientWidth/2+gr.width/2;tg.classList.add('poSel9');tg.style.outline='2.5px solid #2e7d32';}else{row.classList.add('poSel9');row.style.outline='2px solid #2e7d32';}
+  var D=S.pw.document;var body9=D.getElementById('poBody9');if(!body9)return false;var row=D.querySelector('.poLn9[data-ln="'+T.ln+'"]');if(!row)return false;
+  Array.prototype.forEach.call(D.querySelectorAll('.poSel9'),function(x){x.classList.remove('poSel9');});Array.prototype.forEach.call(D.querySelectorAll('.poSelRow9'),function(x){x.classList.remove('poSelRow9');});
+  row.classList.add('poSelRow9');var tg=null;if(S.fk==='csv'&&T.c!=null)tg=row.querySelector('.poTx9[data-c="'+T.c+'"]');
+  (tg||row).classList.add('poSel9');try{(tg||row).scrollIntoView({block:'center',inline:tg?'center':'nearest'});}catch(_sv){}
   return true;}catch(_e){return false;}}
 function posRawTb9(){/* [BUILD2974] 원시데이터 수정 툴바(도면창 바로 위 줄, 경계심벌 툴바와 같은 자리) — 원시 csv(빨강)·원시 raw(파랑)·원시 rw5(노랑). 가져오는 원시 = 실시간 측량 원시 */
  try{var cw=document.querySelector('.canvas-wrap');if(!cw)return;var tb=document.getElementById('posRawTb9');
