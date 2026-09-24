@@ -9367,6 +9367,21 @@ function _fldSvSrc9(cb){/* [BUILD2233] field → 결선DB(_A) 원본 조회(원�
   cb(window._fldSvCache9);
  },function(){cb(null);});
 }
+var INSP_SUBMIT_TREE9=['01.NGIS DATA','02.도면제작(NGIS)편집','03.맨홀','04.측량데이터','05.인덱스 및 범례','06.실측 데이타','07.전자도면','08.불탐대장'];/* [BUILD3033] 성과심사 접수 폴더 구성(사용자 제공 트리) — 각 폴더에 담을 성과는 다음 단계 */
+function openInspSubmit9(){/* [BUILD3033] 성과심사 접수 — 폴더 목록(1단계). 성과 파일·등록 상태·Storage 불변 */
+ try{var old=document.getElementById('inspSubOv9');if(old)old.remove();
+  var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
+  var nm=state.projectName||'';var ov=document.createElement('div');ov.id='inspSubOv9';ov.style.cssText='position:fixed;inset:0;z-index:100060;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center';
+  var rows=INSP_SUBMIT_TREE9.map(function(f,i){return '<tr><td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:13px;white-space:nowrap">📁 <b>'+E(f)+'</b></td><td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px;color:#999">담을 성과 — 다음 단계에서 지정</td><td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px;color:#999;text-align:center">0건</td></tr>';}).join('');
+  ov.innerHTML='<div style="width:560px;max-width:96vw;max-height:90vh;background:#fff;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.3);overflow:hidden;border-top:5px solid #b000d0;display:flex;flex-direction:column">'
+   +'<div style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:#b000d0;display:inline-block"></span><b style="font-size:15px;color:#7b1fa2">성과심사 접수 — '+E(nm)+'</b><button id="isX9" style="margin-left:auto;border:1px solid #ddd;background:#fff;border-radius:6px;padding:4px 10px;cursor:pointer">✕</button></div>'
+   +'<div style="padding:8px 16px 0;font-size:12px;color:#666">접수 폴더 구성(8개). 성과 파일은 정위치 최종성과와 같은 것을 그대로 쓰고, 이 창은 접수 폴더 형태로 꾸려 내려받는 용도예요.</div>'
+   +'<div style="overflow:auto;padding:8px 16px"><table style="width:100%;border-collapse:collapse"><tr style="background:#f6eefb"><th style="padding:6px 10px;text-align:left;font-size:12px;color:#7b1fa2">폴더</th><th style="padding:6px 10px;text-align:left;font-size:12px;color:#7b1fa2">담을 성과</th><th style="padding:6px 10px;font-size:12px;color:#7b1fa2">건수</th></tr>'+rows+'</table></div>'
+   +'<div style="display:flex;gap:8px;padding:10px 16px;border-top:1px solid #eee;justify-content:flex-end"><button id="isEmptyZip9" title="8개 폴더만 든 빈 ZIP(폴더 구조 확인용)" style="border:1.5px solid #b000d0;background:#fff;color:#b000d0;font-weight:800;border-radius:6px;padding:6px 12px;cursor:pointer">📦 빈 폴더 ZIP</button><button id="isClose9" style="border:1px solid #bbb;background:#fff;border-radius:6px;padding:6px 14px;cursor:pointer">닫기</button></div></div>';
+  document.body.appendChild(ov);
+  var close=function(){ov.remove();};ov.querySelector('#isX9').onclick=close;ov.querySelector('#isClose9').onclick=close;ov.onclick=function(ev){if(ev.target===ov)close();};
+  ov.querySelector('#isEmptyZip9').onclick=function(){try{if(typeof JSZip==='undefined'){toast('JSZip 없음');return;}var z=new JSZip();var root=z.folder(nm||'성과심사접수');INSP_SUBMIT_TREE9.forEach(function(f){root.folder(f);});z.generateAsync({type:'blob'}).then(function(b){var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=(nm||'성과심사접수')+'_접수폴더.zip';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},150);toast('빈 접수 폴더 ZIP — 8개 폴더');});}catch(e){toast('ZIP 오류: '+(e&&e.message||e));}};
+ }catch(e){toast('성과심사 접수 창 오류: '+(e&&e.message||e));}}
 function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선DB 완료성과 양식(초록), 변경내용 열 없음 */
  var fd=state.fieldDone||{};state.fieldDone=fd;
  try{if(fd.aftPhoto==null){var _an=Object.keys(afterMap||{}).filter(function(k){return !!afterMap[k];}).length;if(_an>0){fd.aftPhoto=true;if(online&&state.projectId){window._silentSave=true;saveProject();}if(typeof _fldStakePhSync==='function')_fldStakePhSync();}}}catch(_ae){}
