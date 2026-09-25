@@ -22734,7 +22734,7 @@ function _ngisFrameEnts9(no,c,title){/* 도곽·격자·모서리 좌표·표제
  e+=_pdText('H0010601',p3.x,p3.y,2,f(p3.y));e+=_pdText('H0010601',p3.x-2.0,p3.y-0.4,2,f(p3.x),270);
  e+=_pdText('H0010601',p4.x-16.5,p4.y,2,f(p4.y));e+=_pdText('H0010601',p4.x,p4.y-0.4,2,f(p4.x),270);
  e+=_pdText('TITLE',p1.x+3.25,p1.y+2.18,7,'S=1:1000',0,null,'Standard');
- e+=_pdText('TITLE',p1.x+117.2,p1.y+7.03,10,title||'',0,null,'Standard');
+ var cx9=(p1.x+p2.x)/2;e+=_pdText('TITLE',cx9,p1.y+7.03,10,title||'',0,[cx9,p1.y+7.03,1],'Standard');/* [BUILD3098] 도곽 가운데 정렬(72=1) */
  e+=_pdText('NAME',p2.x-97,p2.y+2.5,10,String(no));
  return e;}
 function _ngisSheetDxf9(tpl,no,S,title){/* 템플릿 테이블(SD 레이어·블록·스타일)만 쓰고 범례 엔티티는 버림 */
@@ -22754,6 +22754,23 @@ function _ngisMake9(rows,only){/* only=도엽번호 하나면 단독 DXF, 아니
   if(!n){toast('만들 도엽이 없습니다');return;}
   zip.generateAsync({type:'blob'}).then(function(b){dl(b,'01.NGIS DATA.zip');toast('01.NGIS DATA.zip — 도엽 '+n+'장');});
  }catch(e){toast('NGIS DATA 오류: '+(e&&e.message||e));}});}
+function _ngisSdOnly9(){try{var n=0;while(window._sdPrev9!==2&&n++<3)posSdToggle9();}catch(_e){}try{if(window.bpOff){window.bpOff=false;[].forEach.call(document.querySelectorAll('button'),function(b){if(/백판 켜기/.test(b.textContent||''))b.textContent='\uD83D\uDDFA 백판 꺼짐';});}}catch(_b){}}/* [BUILD3098] SD 전용 + 수치지도 백판 ON */
+function _ngisPreview9(on){/* [BUILD3098] 도면창 확인 — 도곽·격자·모서리 좌표·표제를 화면 SVG로(월드 단위, DXF와 같은 위치) */
+ try{var g=document.getElementById('gNgis9');if(g)g.remove();}catch(_r){}window._ngisPrev9=!!on;if(!on)return;
+ var rows=_ngisRows9();if(!rows||!rows.length){toast('통신관로 없음');return;}var title=_ngisTitle9();
+ g=el('g',{id:'gNgis9','pointer-events':'none'});cv.appendChild(g);var bx=[1e18,1e18,-1e18,-1e18];var ex=function(q){if(q[0]<bx[0])bx[0]=q[0];if(q[1]<bx[1])bx[1]=q[1];if(q[0]>bx[2])bx[2]=q[0];if(q[1]>bx[3])bx[3]=q[1];};
+ var TX=function(x,y,h,t,rot,anc,ff){var q=S(x,y);var a={x:q[0],y:q[1],'font-size':h,fill:'#222','font-family':ff||'monospace','pointer-events':'none'};if(anc)a['text-anchor']=anc;if(rot)a.transform='rotate('+(-rot)+' '+q[0]+' '+q[1]+')';var t9=el('text',a);t9.textContent=t;g.appendChild(t9);};
+ rows.forEach(function(r){var P=_ngisFrame9(r.S.cell);if(!P)return;var p1=P[0],p2=P[1],p3=P[2],p4=P[3];var q=P.map(function(p){var c=S(p.x,p.y);ex(c);return c[0]+','+c[1];});
+  g.appendChild(el('polygon',{points:q.join(' '),fill:'none',stroke:'#222','stroke-width':0.35,'pointer-events':'none'}));
+  var xs=[p1.x,p2.x,p3.x,p4.x],ys=[p1.y,p2.y,p3.y,p4.y];var x0=Math.min.apply(0,xs),x1=Math.max.apply(0,xs),y0=Math.min.apply(0,ys),y1=Math.max.apply(0,ys);
+  var GL=function(L){if(!L)return;var a=S(L[0][0],L[0][1]),b=S(L[1][0],L[1][1]);g.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:'#8a8a8a','stroke-width':0.12,'pointer-events':'none'}));};
+  for(var gx=Math.ceil(x0/100)*100;gx<x1;gx+=100)GL(_ngisClipLine9(P,true,gx));for(var gy=Math.ceil(y0/100)*100;gy<y1;gy+=100)GL(_ngisClipLine9(P,false,gy));
+  var f=function(v){return String(+v.toFixed(2));};
+  TX(p1.x-16.5,p1.y-2.0,2,f(p1.y));TX(p1.x,p1.y+16.5,2,f(p1.x),270);TX(p2.x,p2.y-2.0,2,f(p2.y));TX(p2.x-2.0,p2.y+16.5,2,f(p2.x),270);TX(p3.x,p3.y,2,f(p3.y));TX(p3.x-2.0,p3.y-0.4,2,f(p3.x),270);TX(p4.x-16.5,p4.y,2,f(p4.y));TX(p4.x,p4.y-0.4,2,f(p4.x),270);
+  TX(p1.x+3.25,p1.y+2.18,7,'S=1:1000',0,null,'Arial,sans-serif');TX((p1.x+p2.x)/2,p1.y+7.03,10,title,0,'middle','Arial,sans-serif');TX(p2.x-97,p2.y+2.5,10,String(r.no));
+  ex(S(p1.x-20,p1.y+20));ex(S(p2.x+5,p3.y-5));});
+ try{var pad=8;vb={x:bx[0]-pad,y:bx[1]-pad,w:(bx[2]-bx[0])+2*pad,h:(bx[3]-bx[1])+2*pad};fixAspect();applyVB();}catch(_v){}
+}
 function _posEx_ngis9(){/* 추가성과 제작 바 → NGIS DATA 제작 창 */
  try{var old=document.getElementById('ngisOv9');if(old){old.remove();return;}
   var rows=_ngisRows9();if(!rows||!rows.length){toast('통신관로 없음 — 정위치 대상 데이터를 확인하세요');return;}
@@ -22762,17 +22779,18 @@ function _posEx_ngis9(){/* 추가성과 제작 바 → NGIS DATA 제작 창 */
   var tr=rows.map(function(r){return '<tr><td style="font-weight:800;color:#4a148c">'+E(r.no)+'</td><td>'+r.cnt.pt+'</td><td>'+r.cnt.mh+'</td><td>'+r.cnt.ri+'</td><td>'+r.cnt.ln+'</td><td style="color:#999">다음 빌드</td><td><button class="ngDl9" data-no="'+E(r.no)+'" style="font-size:11px;font-weight:800;padding:3px 9px;border:1.5px solid #b000d0;border-radius:6px;background:#fff;color:#b000d0;cursor:pointer">DXF</button></td></tr>';}).join('');
   var bl=(window._ngisBase9||[]);var blH=bl.length?bl.map(function(f){return '<div style="padding:1px 0;color:#455a64;font-weight:700">📄 '+E(f.name)+' <span style="color:#999;font-weight:400">('+Math.round(f.size/1024)+'KB)</span></div>';}).join(''):'<div style="color:#999">올린 파일 없음 — 수치지도 원본 DXF(도엽 전체)를 올리면 다음 빌드부터 백판으로 병합됩니다</div>';
   ov.innerHTML='<div style="background:#fff;border:2px solid #b000d0;border-radius:12px;width:860px;max-width:96vw;max-height:92vh;overflow:auto;box-shadow:0 8px 28px rgba(0,0,0,.3);font-size:12.5px">'
-   +'<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:#b000d0;display:inline-block"></span><b style="font-size:14px;color:#7b1fa2">NGIS DATA 제작 — '+E(state.projectName||'')+'</b><span style="margin-left:8px;color:#888;font-size:11.5px">접수 01.NGIS DATA · 도엽번호.dxf</span><button id="ngX9" style="margin-left:auto;border:1px solid #ddd;background:#fff;border-radius:6px;padding:4px 10px;cursor:pointer">✕</button></div>'
+   +'<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:#b000d0;display:inline-block"></span><b style="font-size:14px;color:#7b1fa2">NGIS DATA 제작 — '+E(state.projectName||'')+'</b><span style="margin-left:8px;color:#888;font-size:11.5px">접수 01.NGIS DATA · 도엽번호.dxf</span><button id="ngZip9" style="margin-left:auto;font-size:12.5px;font-weight:800;padding:6px 14px;border:1.5px solid #b000d0;border-radius:7px;background:#b000d0;color:#fff;cursor:pointer">01.NGIS DATA.zip 내려받기 ('+rows.length+'장)</button><button id="ngX9" style="border:1px solid #ddd;background:#fff;border-radius:6px;padding:4px 10px;cursor:pointer">✕</button></div>'
    +'<div style="padding:10px 14px;display:flex;flex-direction:column;gap:10px">'
    +'<div style="display:flex;align-items:center;gap:8px"><b style="white-space:nowrap;color:#37474f">표제 사업명</b><input id="ngTitle9" value="'+E(_ngisTitle9())+'" style="flex:1;font-size:12.5px;padding:5px 8px;border:1px solid #bbb;border-radius:6px"><span style="color:#888;font-size:11px;white-space:nowrap">도곽 위 TITLE 글자(높이 10)</span></div>'
    +'<table style="border-collapse:collapse;width:100%;table-layout:fixed"><colgroup><col style="width:120px"><col><col><col><col><col><col style="width:150px"><col style="width:64px"></colgroup><thead><tr style="background:#f3e5f5;color:#4a148c"><th style="padding:5px;border:1px solid #e1bee7;text-align:left">도엽번호(1:1000)</th><th style="border:1px solid #e1bee7">측점</th><th style="border:1px solid #e1bee7">맨홀</th><th style="border:1px solid #e1bee7">입상주</th><th style="border:1px solid #e1bee7">관로선</th><th style="border:1px solid #e1bee7">백판</th><th style="border:1px solid #e1bee7">단독</th></tr></thead><tbody id="ngRows9">'+tr+'</tbody></table>'
    +'<div style="border:1px dashed #b0bec5;border-radius:8px;padding:8px 10px;background:#fafafa"><div style="display:flex;align-items:center;gap:8px"><b style="color:#37474f">수치지도 원본 DXF(백판)</b><input type="file" id="ngBase9" accept=".dxf" multiple style="font-size:12px"><span style="color:#888;font-size:11px">도엽 전체 원본 그대로 · 여러 파일 가능</span></div><div id="ngBaseList9" style="margin-top:6px;font-size:11.5px">'+blH+'</div></div>'
-   +'<div style="display:flex;gap:8px;justify-content:flex-end;align-items:center"><span style="color:#888;font-size:11px;margin-right:auto">도곽=H0017334 · 격자=H0037335 · 모서리 좌표=H0010601 · TITLE/NAME · SD 시설물 (범례 없음)</span><button id="ngZip9" style="font-size:12.5px;font-weight:800;padding:7px 16px;border:1.5px solid #b000d0;border-radius:7px;background:#b000d0;color:#fff;cursor:pointer">01.NGIS DATA.zip 내려받기 ('+rows.length+'장)</button></div>'
+   +'<div style="display:flex;gap:8px;justify-content:flex-end;align-items:center"><span style="color:#888;font-size:11px;margin-right:auto">도곽=H0017334 · 격자=H0037335 · 모서리 좌표=H0010601 · TITLE/NAME · SD 시설물 (범례 없음)</span><button id="ngChk9" style="font-size:12.5px;font-weight:800;padding:7px 18px;border:1.5px solid #c0392b;border-radius:7px;background:'+(window._ngisPrev9?'#c0392b':'#fff')+';color:'+(window._ngisPrev9?'#fff':'#c0392b')+';cursor:pointer">'+(window._ngisPrev9?'미리보기 끄기':'확인 — 도면창에서 보기')+'</button></div>'
    +'</div></div>';
   document.body.appendChild(ov);
   ov.querySelector('#ngX9').onclick=function(){ov.remove();};ov.onclick=function(e){if(e.target===ov)ov.remove();};
   var ti=ov.querySelector('#ngTitle9');ti.onchange=function(){state.ngisTitle9=ti.value.trim();try{saveProject();}catch(_s){}};
   ov.querySelector('#ngZip9').onclick=function(){state.ngisTitle9=ti.value.trim();_ngisMake9(rows,null);};
+  ov.querySelector('#ngChk9').onclick=function(){state.ngisTitle9=ti.value.trim();var on=!window._ngisPrev9;ov.remove();if(on){_ngisSdOnly9();_ngisPreview9(true);toast('NGIS DATA 미리보기 — 도곽·격자·표제는 화면 표시(DXF와 같은 위치). 끄기는 NGIS DATA 제작 창에서');}else{_ngisPreview9(false);toast('NGIS DATA 미리보기 끔');}};/* [BUILD3098] */
   [].forEach.call(ov.querySelectorAll('.ngDl9'),function(b){b.onclick=function(){state.ngisTitle9=ti.value.trim();_ngisMake9(rows,b.getAttribute('data-no'));};});
   var fi=ov.querySelector('#ngBase9');fi.onchange=function(){var fs=Array.prototype.slice.call(fi.files||[]);if(!fs.length)return;window._ngisBase9=window._ngisBase9||[];var left=fs.length;fs.forEach(function(f){var rd=new FileReader();rd.onload=function(){try{window._ngisBase9.push({name:f.name,size:f.size,buf:rd.result});}catch(_e){}if(--left===0){var lst=ov.querySelector('#ngBaseList9');lst.innerHTML=window._ngisBase9.map(function(g){return '<div style="padding:1px 0;color:#455a64;font-weight:700">📄 '+E(g.name)+' <span style="color:#999;font-weight:400">('+Math.round(g.size/1024)+'KB)</span></div>';}).join('');toast('백판 '+fs.length+'개 보관(이 창에서만) — 병합은 다음 빌드');}};rd.readAsArrayBuffer(f);});fi.value='';};
  }catch(e){toast('NGIS DATA 창 오류: '+(e&&e.message||e));}}
