@@ -22889,15 +22889,24 @@ function _ngisBpStore9(f){/* [BUILD3114] 올린 백판 원본을 사업에 보�
    state.ngisBp9=state.ngisBp9||{};state.ngisBp9[no]={path:path,name:f.name,size:f.size,at:new Date().toISOString()};f.path=path;try{window._silentSave=true;saveProject();}catch(_s){}});}catch(_e){}}
 function _ngisBpRemove9(no,cb){/* [BUILD3114] 보관 백판 삭제(Storage+기록) */
  try{var R=state.ngisBp9||{};var r=R[String(no)];if(r&&r.path&&online){sb.storage.from('photos').remove([r.path]).then(function(){}).catch(function(){});}if(R[String(no)])delete R[String(no)];try{window._silentSave=true;saveProject();}catch(_s){}}catch(_e){}if(cb)cb();}
+function _dxfFitView9(t){/* [BUILD3168] DXF 열면 바로 도면 중심·전체 보기 — ENTITIES 좌표 범위로 $EXTMIN/$EXTMAX와 VPORT *Active(중심 12/22·높이 40)를 다시 씀. 종전엔 템플릿(다른 지역) 화면 위치가 남아 열 때마다 Z/A 필요 */
+ try{t=String(t);var i=t.search(/\r?\n  2\r?\nENTITIES\r?\n/);if(i<0)return t;var j=t.indexOf('ENDSEC',i+10);var sec=t.slice(i,j<0?t.length:j);var x0=1e18,y0=1e18,x1=-1e18,y1=-1e18,n=0;var re=/\r?\n +1[01]\r?\n *([-\d.eE+]+)\r?\n +2[01]\r?\n *([-\d.eE+]+)/g,m;
+  while((m=re.exec(sec))){var x=+m[1],y=+m[2];if(!isFinite(x)||!isFinite(y))continue;if(Math.abs(x)<1&&Math.abs(y)<1)continue;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;n++;}
+  if(!n||x1<=x0||y1<=y0)return t;var N=function(v){return String(+v.toFixed(4));};
+  t=t.replace(/(\$EXTMIN\r?\n +10\r?\n)[^\r\n]*(\r?\n +20\r?\n)[^\r\n]*/,function(_a,a,b){return a+N(x0)+b+N(y0);}).replace(/(\$EXTMAX\r?\n +10\r?\n)[^\r\n]*(\r?\n +20\r?\n)[^\r\n]*/,function(_a,a,b){return a+N(x1)+b+N(y1);});
+  var vi=t.search(/\r?\n  2\r?\n\*(Active|ACTIVE)\r?\n/);if(vi>0){var ve=t.indexOf('\n  0',vi+5);if(ve<0)ve=t.length;var rec=t.slice(vi,ve);var asp=+(((/\r?\n +41\r?\n *([-\d.eE+]+)/.exec(rec))||[])[1])||1.6;var cx=(x0+x1)/2,cy=(y0+y1)/2,h=Math.max(y1-y0,(x1-x0)/asp)*1.06;
+   rec=rec.replace(/(\r?\n +12\r?\n)[^\r\n]*/,function(_a,a){return a+N(cx);}).replace(/(\r?\n +22\r?\n)[^\r\n]*/,function(_a,a){return a+N(cy);}).replace(/(\r?\n +40\r?\n)[^\r\n]*/,function(_a,a){return a+N(h);});t=t.slice(0,vi)+rec+t.slice(ve);}
+  t=t.replace(/(\$VIEWCTR\r?\n +10\r?\n)[^\r\n]*(\r?\n +20\r?\n)[^\r\n]*/,function(_a,a,b){return a+N((x0+x1)/2)+b+N((y0+y1)/2);}).replace(/(\$VIEWSIZE\r?\n +40\r?\n)[^\r\n]*/,function(_a,a){return a+N((y1-y0)*1.06);});
+  return t;}catch(_e){return t;}}
 function _ngisSheetDxf9(tpl,no,S,title){/* [BUILD3100] 백판 있으면 병합, 없으면 템플릿 테이블만(범례 없음) */
  var bf=_ngisBaseFor9(no);
  if(bf){try{var base=bf.txt||(bf.txt=decodeBuf(bf.buf));var hasFrame=/\r\n  8\r\nH0017334\r\n/.test(base),hasTitle=/\r\n  8\r\nTITLE\r\n/.test(base),hasName=/\r\n  8\r\nNAME\r\n/.test(base);
    var _its9=(window._ngisMode9==='edwg')?_ngisEwItems9(S.items):S.items;var tpl2=(window._ngisMode9==='edwg')?_ngisEwTpl9(tpl):tpl;/* [BUILD3128] */var ent=_pdSer9(_its9);if(!hasFrame)ent+=_ngisFrameEnts9(no,S.cell,title,{noTitle:hasTitle,noName:hasName});else{if(!hasTitle||!hasName)ent+=_ngisFrameEnts9(no,S.cell,title,{noFrame:true,noTitle:hasTitle,noName:hasName});}if(window._ngisMode9==='edit')ent+=_ngisEdShift9(window._ngisEdTplTxt9||'',S.cell);/* [BUILD3117] */
-   return _ngisMerge9(base,tpl2,ent,{layers:NGIS_LAYERS9.concat(window._ngisMode9==='edwg'?[['_CHANGE',6]]:[])});}catch(e){toast('백판 병합 실패('+no+'): '+(e&&e.message||e)+' — 템플릿으로 생성');}}
+   return _dxfFitView9(_ngisMerge9(base,tpl2,ent,{layers:NGIS_LAYERS9.concat(window._ngisMode9==='edwg'?[['_CHANGE',6]]:[])}));}catch(e){toast('백판 병합 실패('+no+'): '+(e&&e.message||e)+' — 템플릿으로 생성');}}
  var _its8=(window._ngisMode9==='edwg')?_ngisEwItems9(S.items):S.items;var tpl3=(window._ngisMode9==='edwg')?_ngisEwTpl9(tpl):tpl;/* [BUILD3128] */var bp=_ngisBpEnts9(S.cell);/* [BUILD3103] 등록 수치지도 백판(도곽 클립) */var body=_dxfAddLayers9(tpl3,NGIS_LAYERS9.concat(bp.layers).concat(window._ngisMode9==='edwg'?[['_CHANGE',6]]:[]));var ent2=bp.ent+_pdSer9(_its8)+_ngisFrameEnts9(no,S.cell,title)+((window._ngisMode9==='edit')?_ngisEdShift9(window._ngisEdTplTxt9||'',S.cell):'');/* [BUILD3117] */
  var ei=body.indexOf('\r\nENTITIES\r\n');var endI=body.indexOf('\r\n  0\r\nENDSEC',ei);if(ei<0||endI<0)return null;
  var out=body.slice(0,ei+'\r\nENTITIES'.length)+'\r\n'+ent2.replace(/\r\n$/,'')+body.slice(endI);
- out=out.replace(/(\$HANDSEED\r\n  5\r\n)[0-9A-Fa-f]+/,function(_m,_g){return _g+(_pdH+0x1000).toString(16).toUpperCase();});return out;}
+ out=out.replace(/(\$HANDSEED\r\n  5\r\n)[0-9A-Fa-f]+/,function(_m,_g){return _g+(_pdH+0x1000).toString(16).toUpperCase();});return _dxfFitView9(out);}
 function _ngisTitle9(){return (state.ngisTitle9&&String(state.ngisTitle9).trim())||String(state.projectName||'').replace(/_P\d*$/,'');}
 function _ngisRows9(){var _sv=window._sceneEw9;window._sceneEw9=(window._ngisMode9==='edwg');var sc;try{sc=posScene9();}finally{window._sceneEw9=_sv;}/* [BUILD3146] 전자도면 DXF는 전자도면 인출선 위치로 */if(!sc)return null;var SH=sc.SH;return Object.keys(SH).sort().map(function(no){var S=SH[no];var c={pt:0,mh:0,ri:0,ln:0};S.items.forEach(function(it){if(it.t==='ins'&&it.lay==='SD901')c.pt++;else if(it.t==='ins'&&it.lay==='SD100')c.mh++;else if(it.t==='ins'&&it.lay==='SD300')c.ri++;else if(it.t==='pl'&&it.lay==='SD001')c.ln++;});return {no:no,S:S,cnt:c};});}
 function _ngisTpl9(cb){if(window._ngisTplTxt9){cb(window._ngisTplTxt9);return;}fetch('dxf/tpl_pos_legend.dxf?v='+Date.now()).then(function(r){return r.text();}).then(function(t){window._ngisTplTxt9=t;cb(t);}).catch(function(e){toast('템플릿 로드 실패: '+(e&&e.message||e));});}
@@ -23233,7 +23242,7 @@ function _ngisIndexDxf9(tpl,rows,title){
  var rowsQ=[['전  체  물  량 :',q.all,6],['실측(SD001) :',q.sd001,3],['불탐(SD999) :',q.sd999,1]];/* [BUILD3125] 샘플 색: 전체 6(자홍)·실측 3(초록)·불탐 1(빨강) */rowsQ.forEach(function(rq,i){var y=G.qY[i],c=rq[2];ent+=_pdText('_TITLE',G.qX[0]-73,y,8.566,rq[0],0,[G.qX[0],y,2],'Legend',c);ent+=_pdText('_TITLE',G.qX[1]-31,y,8.566,rq[1],0,[G.qX[1],y,2],'Legend',c);ent+=_pdText('_TITLE',G.qX[2]-18,y,8.566,'Km',0,[G.qX[2],y,2],'Legend',c);});
  var body=_dxfAddLayers9(tpl,NGIS_LAYERS9.concat([['_TITLE',7]]));var ei=body.indexOf('\r\nENTITIES\r\n');var endI=body.indexOf('\r\n  0\r\nENDSEC',ei);if(ei<0||endI<0)return null;
  var out=body.slice(0,ei+'\r\nENTITIES'.length)+'\r\n'+ent.replace(/\r\n$/,'')+body.slice(endI);
- out=out.replace(/(\$HANDSEED\r\n  5\r\n)[0-9A-Fa-f]+/,function(_m,_g){return _g+(_pdH+0x1000).toString(16).toUpperCase();});return out;}
+ out=out.replace(/(\$HANDSEED\r\n  5\r\n)[0-9A-Fa-f]+/,function(_m,_g){return _g+(_pdH+0x1000).toString(16).toUpperCase();});return _dxfFitView9(out);}
 function _ngisIdxPreview9(rows,title){/* 화면: 테두리·표제 띠·물량표·도곽·도엽번호(SD는 화면 SD 전용 + 백판 끔 상태 그대로) */
  var G=_ngisIdxBox9(rows);if(!G)return;var q=_ngisIdxQty9();var g=el('g',{id:'gNgis9','pointer-events':'none'});cv.appendChild(g);var bx=[1e18,1e18,-1e18,-1e18];var ex=function(c){if(c[0]<bx[0])bx[0]=c[0];if(c[1]<bx[1])bx[1]=c[1];if(c[0]>bx[2])bx[2]=c[0];if(c[1]>bx[3])bx[3]=c[1];};
  var PL=function(pts,cl,w){var ps=pts.map(function(p){var c=S(p[0],p[1]);ex(c);return c[0].toFixed(3)+','+c[1].toFixed(3);}).join(' ');g.appendChild(el(cl?'polygon':'polyline',{points:ps,fill:'none',stroke:'#222','stroke-width':w||0.5,'pointer-events':'none'}));};
@@ -23266,7 +23275,7 @@ function _ngisMeasDxf9(tpl,rows,title){
  G.fr.forEach(function(f){var P=f.P;ent+=_pdPL('H0017334',[[P[0].x,P[0].y],[P[1].x,P[1].y],[P[2].x,P[2].y],[P[3].x,P[3].y],[P[0].x,P[0].y]],false);var cx=(P[0].x+P[1].x+P[2].x+P[3].x)/4,cy=(P[0].y+P[1].y+P[2].y+P[3].y)/4;ent+=_pdText('H0010601',cx-90,cy-20,40,String(f.no),0,[cx,cy,1,2]);});
  var body=_dxfAddBlockPP9(_dxfAddLayers9(tpl,NGIS_LAYERS9.concat([['PP',6],['SD_실측번호',1],['SD_측설(지반고)',2]])));var ei=body.indexOf('\r\nENTITIES\r\n');var endI=body.indexOf('\r\n  0\r\nENDSEC',ei);if(ei<0||endI<0)return null;
  var out=body.slice(0,ei+'\r\nENTITIES'.length)+'\r\n'+ent.replace(/\r\n$/,'')+body.slice(endI);
- out=out.replace(/(\$HANDSEED\r\n  5\r\n)[0-9A-Fa-f]+/,function(_m,_g){return _g+(_pdH+0x1000).toString(16).toUpperCase();});return out;}
+ out=out.replace(/(\$HANDSEED\r\n  5\r\n)[0-9A-Fa-f]+/,function(_m,_g){return _g+(_pdH+0x1000).toString(16).toUpperCase();});return _dxfFitView9(out);}
 function _ngisMeasPreview9(rows,title){/* 화면: 도곽·도엽번호 + L점 '+'(마젠타)·지반고(노랑)·실측번호(빨강). 관로·측점·심도·관상고는 화면 SD 전용 그대로 */
  var G=_ngisIdxBox9(rows);if(!G)return;var g=el('g',{id:'gNgis9','pointer-events':'none'});cv.appendChild(g);var bx=[1e18,1e18,-1e18,-1e18];var ex=function(c){if(c[0]<bx[0])bx[0]=c[0];if(c[1]<bx[1])bx[1]=c[1];if(c[0]>bx[2])bx[2]=c[0];if(c[1]>bx[3])bx[3]=c[1];};
  var TX=function(x,y,h,t,anc,extra){var c=S(x,y);var a={x:c[0],y:c[1],'font-size':h*1.25,fill:'#222','font-family':'Arial,sans-serif','pointer-events':'none'};if(anc)a['text-anchor']=anc;if(extra)for(var k in extra)a[k]=extra[k];var e9=el('text',a);e9.textContent=t;g.appendChild(e9);};
@@ -23403,7 +23412,7 @@ function posExportDxf(){
    var ei=body.indexOf('\r\nENTITIES\r\n');
    var endI=body.indexOf('\r\n  0\r\nENDSEC',ei);
    var out=body.slice(0,endI)+'\r\n'+ent.replace(/\r\n$/,'')+body.slice(endI);
-   out=out.replace(/(\$HANDSEED\r\n  5\r\n)[0-9A-Fa-f]+/,function(_m,_g){return _g+(_pdH+0x1000).toString(16).toUpperCase();});zip.file(no+'.dxf',out);nsh++;
+   out=out.replace(/(\$HANDSEED\r\n  5\r\n)[0-9A-Fa-f]+/,function(_m,_g){return _g+(_pdH+0x1000).toString(16).toUpperCase();});zip.file(no+'.dxf',_dxfFitView9(out));nsh++;
   });
   if(!nsh){toast('도엽 배정 실패 — proj4 로드 확인');return;}
   zip.generateAsync({type:'blob'}).then(function(b){var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=pj+'_정위치_'+nsh+'도엽.zip';a.click();toast('정위치 DXF '+nsh+'개 도엽 완료');});
