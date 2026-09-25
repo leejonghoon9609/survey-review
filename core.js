@@ -22591,11 +22591,12 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
   if(state.posLeadHide9&&state.posLeadHide9[_lk9])return;/* [BUILD2794] 인출선 삭제(병합 불가 구간): 이 구간의 인출선·태그·관표시 숨김 */
   var _uo9=((typeof _sdLeadGet9==='function')?_sdLeadGet9(_lk9):null)||(state.sdLead9&&state.sdLead9[_lk9])||null;/* [BUILD2279] */
   if(_uo9){/* [BUILD2328] 저장 위치도 강제 규칙: 관로 가로지르면 좌우 반전 → 그래도 교차면 저장 폐기(자동 배치 사다리로) */
+   var _twC9=(tw+2);try{if(window._ngisPrev9&&window._ngisPrevMode9==='edwg'&&typeof _ngisEwLw9==='function')_twC9=_ngisEwLw9(spec);}catch(_tc){}/* [BUILD3134] 전자도면 미리보기 중엔 축소 수평선 길이로 교차 검사 — 종전엔 25m 기준이라 옮긴 인출선이 확대·축소 재빌드 때 폐기됨 */
    var _hx0=(_uo9[0]>=0)?1:-1;
-   var _cx9=[[mx,my],[mx+_uo9[0],my+_uo9[1]],[mx+_uo9[0]+_hx0*(tw+2),my+_uo9[1]]];
+   var _cx9=[[mx,my],[mx+_uo9[0],my+_uo9[1]],[mx+_uo9[0]+_hx0*_twC9,my+_uo9[1]]];
    if(_pipeX9(_cx9,mx,my)){
     var _mo9=[-_uo9[0],_uo9[1]];var _hm0=(_mo9[0]>=0)?1:-1;
-    var _cm9=[[mx,my],[mx+_mo9[0],my+_mo9[1]],[mx+_mo9[0]+_hm0*(tw+2),my+_mo9[1]]];
+    var _cm9=[[mx,my],[mx+_mo9[0],my+_mo9[1]],[mx+_mo9[0]+_hm0*_twC9,my+_mo9[1]]];
     if(!_pipeX9(_cm9,mx,my)){_uo9=_mo9;try{state.sdLead9=state.sdLead9||{};state.sdLead9[_lk9]=_mo9;window._sdLeadKeep9=window._sdLeadKeep9||{};window._sdLeadKeep9[_lk9]=_mo9;if(typeof _sdKeepSave9==='function')_sdKeepSave9();}catch(_mk9){}}
     else{_uo9=null;try{if(state.sdLead9)delete state.sdLead9[_lk9];if(window._sdLeadKeep9)delete window._sdLeadKeep9[_lk9];}catch(_dk9){}}
    }
@@ -23054,6 +23055,7 @@ function _ngisMeasPreview9(rows,title){/* 화면: 도곽·도엽번호 + L점 '+
  try{var pad=12;vb={x:bx[0]-pad,y:bx[1]-pad,w:(bx[2]-bx[0])+2*pad,h:(bx[3]-bx[1])+2*pad};fixAspect();applyVB();}catch(_v){}}
 /* ===== [BUILD3128] ★전자도면(07.전자도면) — 도엽별 파일. NGIS DATA 장면을 후처리: 심벌 0.5배 · 심도만(SDSIM_T h0.5, 관상고·SDDIM·SDDIM1 제거) · 제원 인출선 앵커 기준 1/3 + 제원 h0.5 L/D 제거(불탐 구간 '/불탐', 내관 Ø50 그룹은 2번째 줄 +4.35,+0.76) · 관표시 앵커 기준 0.5배 · 시설 인출선·시설명 0.5배 · 레이어 색 SD001→5, SDSIM_T·SD911·SD910·SD983·SD219→7 · 실측↔불탐 경계에 _CHANGE(6) 표식(직각 눈금 1.25 + 바 0.5 + '실측'/'불탐' h0.15 Legend 관로 방향). 타사업 샘플(377091739.dxf 전자도면) 실측 ===== */
 function _ngisEwTpl9(tpl){/* LAYER 색 덮어쓰기 */try{var i=tpl.indexOf('\r\n  2\r\nLAYER\r\n');var j=tpl.indexOf('\r\n  0\r\nENDTAB',i);if(i<0||j<0)return tpl;var sec=tpl.slice(i,j);[['SD001',5],['SDSIM_T',7],['SD911',7],['SD910',7],['SD983',7],['SD219',7],['SD911-1',7],['_CHANGE',6]].forEach(function(L){var re=new RegExp('(\\r\\n  2\\r\\n'+L[0].replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\r\\n 70\\r\\n[^\\r]*\\r\\n 62\\r\\n)[^\\r]*');sec=sec.replace(re,function(_m,g){return g+'     '+L[1];});});return tpl.slice(0,i)+sec+tpl.slice(j);}catch(_e){return tpl;}}
+function _ngisEwLw9(spec){/* [BUILD3134] 전자도면 수평선 길이(짧은 제원 h0.5) */try{var sp=_ngisEwSpec9(spec);return Math.max(3,sp.main.replace(/%%C/g,'Ø').length*0.477-1.3+1);}catch(_e){return 8;}}
 function _ngisEwSpec9(spec){/* 'YY/FC/%%C100x2 %%C50x1(nae)/L../D..' → {main:'YY/FC/%%C100x2(nae)', sub:'%%C50x1(0)'|null} */
  var s=String(spec||'');var L=s.indexOf('/L');var head=(L>0)?s.slice(0,L):s;var m=/\((\d+)\)\s*$/.exec(head);var nae=m?m[1]:'0';var core=head.replace(/\(\d+\)\s*$/,'');var parts=core.split('/');var yy=parts[0]||'',kind=parts[1]||'';var gs=[];core.replace(/%%C(\d+)x(\d+)/g,function(_a,d,n){gs.push({d:+d,n:+n});return '';});
  if(!gs.length)return {main:head,sub:null};var big=gs.filter(function(g){return g.d>=100;}),small=gs.filter(function(g){return g.d<100;});if(!big.length){big=small;small=[];}
