@@ -22590,7 +22590,8 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
   var _lk9=_lkAuto9;/* [BUILD2254] 구간 인출선 키 · [BUILD2795] 자동 앵커 키 고정(앵커를 옮겨도 저장 위치·숨김·관 배치 유지) */
   if(state.posLeadHide9&&state.posLeadHide9[_lk9])return;/* [BUILD2794] 인출선 삭제(병합 불가 구간): 이 구간의 인출선·태그·관표시 숨김 */
   var _uo9=((typeof _sdLeadGet9==='function')?_sdLeadGet9(_lk9):null)||(state.sdLead9&&state.sdLead9[_lk9])||null;/* [BUILD2279] */
-  if(_uo9){/* [BUILD2328] 저장 위치도 강제 규칙: 관로 가로지르면 좌우 반전 → 그래도 교차면 저장 폐기(자동 배치 사다리로) */
+  var _ewSkip9=false;try{_ewSkip9=!!(window._ngisPrev9&&window._ngisPrevMode9==='edwg');}catch(_es){}/* [BUILD3136] 전자도면 미리보기 중엔 옮긴 위치를 그대로 신뢰(교차 검사·반전·폐기 안 함) — 축소 인출선이라 관로 가로지름 규칙이 맞지 않음 */
+  if(_uo9&&!_ewSkip9){/* [BUILD2328] 저장 위치도 강제 규칙: 관로 가로지르면 좌우 반전 → 그래도 교차면 저장 폐기(자동 배치 사다리로) */
    var _twC9=(tw+2);try{if(window._ngisPrev9&&window._ngisPrevMode9==='edwg'&&typeof _ngisEwLw9==='function')_twC9=_ngisEwLw9(spec);}catch(_tc){}/* [BUILD3134] 전자도면 미리보기 중엔 축소 수평선 길이로 교차 검사 — 종전엔 25m 기준이라 옮긴 인출선이 확대·축소 재빌드 때 폐기됨 */
    var _hx0=(_uo9[0]>=0)?1:-1;
    var _cx9=[[mx,my],[mx+_uo9[0],my+_uo9[1]],[mx+_uo9[0]+_hx0*_twC9,my+_uo9[1]]];
