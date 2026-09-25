@@ -9699,7 +9699,7 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
    +'<div id="fsFoot9" style="padding:7px 12px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px">'
    +'<button id="fsReg9" style="background:#16a34a;color:#fff;border:0;border-radius:8px;padding:7px 18px;font-size:12.5px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center">등록</button>'
    +'<button id="fsClose9" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:7px 14px;font-size:12.5px;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;justify-content:center">닫기</button></div>';
-  box.innerHTML=h;
+  box.innerHTML=h;try{_dragBox9(box,box.querySelector('#fsHead9'));}catch(_dg9){}/* [BUILD3162] 제목 줄 잡고 창 이동 */
   try{var _ft=box.querySelector('#fsFoot9');if(_ft&&!ph9){_ft.style.width='520px';_ft.style.maxWidth='100%';_ft.style.margin='0 auto';_ft.style.paddingLeft='0';_ft.style.paddingRight='0';}}catch(_w9){}
   [].forEach.call(box.querySelectorAll('.fsDl9'),function(b){if(b.disabled)return;b.onclick=dlOf(b.getAttribute('data-k'));});[].forEach.call(box.querySelectorAll('.fsDiff9'),function(b){b.onclick=function(){if(typeof _rawDiffReport9==='function')_rawDiffReport9();};});/* [BUILD3049] */
   var _ca=box.querySelector('#fsChkAll9');
@@ -23267,6 +23267,11 @@ function _ngisEwItems9(items){
    var bx=m.x+nx*1.03,by=m.y+ny*1.03;var lt=measRight?'불탐':'실측',rt=measRight?'실측':'불탐';
    out.push({t:'tx',lay:'_CHANGE',x:bx-rx*0.08,y:by-ry*0.08,h:0.15,s:lt,rot:rot,sty:'Legend',al9:'e',al4:[bx-rx*0.08,by-ry*0.08,2,1]});out.push({t:'tx',lay:'_CHANGE',x:bx+rx*0.08,y:by+ry*0.08,h:0.15,s:rt,rot:rot,sty:'Legend',al9:'s',al4:[bx+rx*0.08,by+ry*0.08,0,1]});});});}catch(_c){}
  return out;}
+function _dragBox9(box,handle){/* [BUILD3162] 모달 창 이동 — 제목 줄을 잡고 끌면 창이 따라옴(처음 끌 때 현재 위치로 고정 배치 전환). 창 내용이 다시 그려져도 위치 유지 */
+ if(!box||!handle)return;handle.style.cursor='move';handle.style.userSelect='none';handle.title=handle.title||'끌어서 창 이동';
+ handle.addEventListener('pointerdown',function(e){if(e.button!==0)return;if(e.target&&e.target.closest&&e.target.closest('button,input,select,a'))return;e.preventDefault();var r=box.getBoundingClientRect();if(box.style.position!=='fixed'){box.style.position='fixed';box.style.margin='0';box.style.left=r.left+'px';box.style.top=r.top+'px';box.style.width=r.width+'px';}var sx=e.clientX,sy=e.clientY,l0=parseFloat(box.style.left)||r.left,t0=parseFloat(box.style.top)||r.top;
+  var mv=function(ev){var nl=l0+ev.clientX-sx,nt=t0+ev.clientY-sy;nl=Math.max(-r.width+80,Math.min(window.innerWidth-80,nl));nt=Math.max(0,Math.min(window.innerHeight-40,nt));box.style.left=nl+'px';box.style.top=nt+'px';};
+  var up=function(){window.removeEventListener('pointermove',mv,true);window.removeEventListener('pointerup',up,true);};window.addEventListener('pointermove',mv,true);window.addEventListener('pointerup',up,true);});}
 function _ngisAutoShowQ9(){/* [BUILD3154] 사업 열자마자 마지막 성과 화면으로 — 1.5초 대기 제거. 준비(측점·proj4·도면창) 안 됐으면 150ms 간격 재시도, 뒤따르는 전체보기(fitView)가 화면을 덮으면 작업자가 손대기 전까지 한 번 더 맞춤 */
  var n=0;window._ngisUserMv9=false;if(!window._ngisMvBound9){window._ngisMvBound9=1;try{['wheel','pointerdown'].forEach(function(ev){cv.addEventListener(ev,function(){window._ngisUserMv9=true;},true);});}catch(_b){}}
  (function tick(){n++;try{var ready=(typeof proj4!=='undefined')&&state&&state.points&&state.points.length&&document.querySelector('.canvas-wrap')&&cv&&cv.getBoundingClientRect().width>0;if(!ready){if(n<40)setTimeout(tick,150);return;}
