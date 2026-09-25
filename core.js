@@ -22904,7 +22904,7 @@ function _ngisBakeFull9(){/* [BUILD3105] 백판 원본(bpFull, 크롭 전 전체
   L.forEach(function(l){if(!l||!l.pts||l.crop||l.layer==='CROP')return;for(var i=0;i<l.pts.length;i++){var px=(l.pts[i][0]-minx)*ppw,py=(maxy-l.pts[i][1])*ppw;if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);}});ctx.stroke();
   var r={key:key,url:cvs.toDataURL('image/png'),box:{minx:minx,miny:miny,maxx:maxx,maxy:maxy}};window._ngisBpImg9=r;return r;}catch(_e){return null;}}
 function _ngisPreview9(on){/* [BUILD3098] 도면창 확인 — 도곽·격자·모서리 좌표·표제를 화면 SVG로(월드 단위, DXF와 같은 위치) */
- try{var g=document.getElementById('gNgis9');if(g)g.remove();var gb=document.getElementById('gNgisBp9');if(gb)gb.remove();}catch(_r){}window._ngisPrev9=!!on;window._ngisPrevMode9=on?((window._ngisMode9==='edit'||window._ngisMode9==='index'||window._ngisMode9==='meas'||window._ngisMode9==='edwg')?window._ngisMode9:'data'):null;/* [BUILD3118] 지금 화면에 켜진 모드 */if(!on)return;
+ var _wasEw9=(window._ngisPrevMode9==='edwg');/* [BUILD3129] */try{var g=document.getElementById('gNgis9');if(g)g.remove();var gb=document.getElementById('gNgisBp9');if(gb)gb.remove();}catch(_r){}window._ngisPrev9=!!on;window._ngisPrevMode9=on?((window._ngisMode9==='edit'||window._ngisMode9==='index'||window._ngisMode9==='meas'||window._ngisMode9==='edwg')?window._ngisMode9:'data'):null;/* [BUILD3118] 지금 화면에 켜진 모드 */if(_wasEw9||window._ngisPrevMode9==='edwg'){try{window._sdCache9=null;posDrawSD9(true);}catch(_ew){}}/* [BUILD3129] 전자도면 표현 켜고 끌 때 SD 화면 재빌드 */if(!on)return;
  var rows=_ngisRows9();if(!rows||!rows.length){toast('통신관로 없음');return;}var title=_ngisTitle9();
  if(window._ngisMode9==='index'){_ngisIdxPreview9(rows,title);return;}/* [BUILD3124] 인덱스 통판 미리보기 */
  if(window._ngisMode9==='meas'){_ngisMeasPreview9(rows,title);return;}/* [BUILD3126] 실측 DATA 미리보기 */
@@ -23024,6 +23024,7 @@ function _ngisEwSpec9(spec){/* 'YY/FC/%%C100x2 %%C50x1(nae)/L../D..' → {main:'
  var s=String(spec||'');var L=s.indexOf('/L');var head=(L>0)?s.slice(0,L):s;var m=/\((\d+)\)\s*$/.exec(head);var nae=m?m[1]:'0';var core=head.replace(/\(\d+\)\s*$/,'');var parts=core.split('/');var yy=parts[0]||'',kind=parts[1]||'';var gs=[];core.replace(/%%C(\d+)x(\d+)/g,function(_a,d,n){gs.push({d:+d,n:+n});return '';});
  if(!gs.length)return {main:head,sub:null};var big=gs.filter(function(g){return g.d>=100;}),small=gs.filter(function(g){return g.d<100;});if(!big.length){big=small;small=[];}
  var main=yy+'/'+kind+'/'+big.map(function(g){return '%%C'+g.d+'x'+g.n;}).join(' ')+'('+nae+')';var sub=small.length?(small.map(function(g){return '%%C'+g.d+'x'+g.n;}).join(' ')+'(0)'):null;return {main:main,sub:sub};}
+function _ngisEwScreen9(items){/* [BUILD3129] 화면용: 변환 후 인출선 재계산·드래그 키(lk 등) 제거 → 그린 좌표 그대로 */return _ngisEwItems9(items).map(function(it){var c={};for(var k in it)c[k]=it[k];delete c.lk;delete c.lw;delete c.eo;delete c.fw9;delete c.tox;delete c.toy;delete c.mid;delete c.bx;delete c.by;delete c.cx;delete c.cy;delete c.u;delete c.v;return c;});}
 function _ngisEwItems9(items){
  var out=[];var LD={};var tamP=[];items.forEach(function(it){if(it&&it.t==='pl'&&it.lay==='SD001'&&it.tam&&it.pts)tamP.push(it.pts);});
  var onTam=function(x,y){for(var i=0;i<tamP.length;i++){var ps=tamP[i];for(var k=0;k<ps.length-1;k++){var ax=ps[k][0],ay=ps[k][1],bx=ps[k+1][0],by=ps[k+1][1];var dx=bx-ax,dy=by-ay;var L2=dx*dx+dy*dy||1;var t=((x-ax)*dx+(y-ay)*dy)/L2;if(t<-0.01||t>1.01)continue;var px=ax+dx*t,py=ay+dy*t;if(Math.hypot(px-x,py-y)<0.05)return true;}}return false;};
@@ -23368,7 +23369,7 @@ function _sdLeadFit9(it,tn){/* [BUILD2276] 그려진 태그의 실제 폭에 인
 }
 function _sdLeadPut9(n,it){try{n._it9=it;(_sdLeadReg9[it.lk]=_sdLeadReg9[it.lk]||[]).push(n);}catch(_e){}}
 function _sdDrawItem9(g,it){var _n0=g.childNodes.length;try{/* [BUILD2648] 측점 소속 요소에 data-sdno 태그(검수 강조용) */
- var col=_sdCol9(it.lay);if(it.tam&&it.lay==='SD001')col='#e02020';if(it.lk&&window._posSelLk9&&it.lk===window._posSelLk9)col='#e02020';/* [BUILD2311] 선택 구간 제원 강조 *//* [BUILD2287] \ud0d0\uc0ac\uad6c\uac04 \uad00\ub85c\uc120=\ube68\uac15 \u2014 \ud654\uba74 \uc804\uc6a9, DXF \ubb34\uc601\ud5a5 */
+ var col=_sdCol9(it.lay);if(it.tam&&it.lay==='SD001')col='#e02020';if(window._ngisPrev9&&window._ngisPrevMode9==='edwg'){if(it.lay==='SD001'&&!it.tam)col='#2244cc';else if(/^(SDSIM_T|SD911|SD910|SD983|SD219|SD911-1)$/.test(it.lay))col='#222';else if(it.lay==='_CHANGE')col='#d000d0';}/* [BUILD3129] 전자도면 색 */if(it.lk&&window._posSelLk9&&it.lk===window._posSelLk9)col='#e02020';/* [BUILD2311] 선택 구간 제원 강조 *//* [BUILD2287] \ud0d0\uc0ac\uad6c\uac04 \uad00\ub85c\uc120=\ube68\uac15 \u2014 \ud654\uba74 \uc804\uc6a9, DXF \ubb34\uc601\ud5a5 */
  if(it.t==='pl'){
   if(!/^SD/.test(it.lay)&&!_SD_COL9[it.lay]){var _sl9=it.slay||it.lay;col=(typeof LINECOL!=='undefined'&&LINECOL[_sl9])?LINECOL[_sl9].c:'#00a6b8';}/* [BUILD2204] 현황=원레이어 색, DORO 폴백 시안 · [BUILD2813] 경계심벌 레이어는 _SD_COL9 */
   var _lp9=it.pts;
@@ -23406,7 +23407,7 @@ function _sdDrawItem9(g,it){var _n0=g.childNodes.length;try{/* [BUILD2648] 측�
   }
  
 }else if(it.t==='ins'){
-  var _sg9=document.createElementNS(SVGNS,'g');_sdDrawSym9(_sg9,it.name,it.x,it.y);
+  var _sg9=document.createElementNS(SVGNS,'g');_sdDrawSym9(_sg9,it.name,it.x,it.y);if(it.sc&&it.sc!==1){var _c0=S(it.x,it.y);_sg9.setAttribute('transform','translate('+_c0[0]+' '+_c0[1]+') scale('+it.sc+') translate('+(-_c0[0])+' '+(-_c0[1])+')');}/* [BUILD3129] 심벌 축척 */
   var _cs9=_sg9.childNodes;for(var _q9=0;_q9<_cs9.length;_q9++){var _w9=parseFloat(_cs9[_q9].getAttribute&&_cs9[_q9].getAttribute('stroke-width'));
    if(isFinite(_w9))_cs9[_q9].setAttribute('stroke-width',(_w9*_SDVW9.sym).toFixed(4));if(it.tam&&it.lay==='SD901'&&_cs9[_q9].setAttribute)_cs9[_q9].setAttribute('stroke','#e02020');/* [BUILD3104] 탐사측점 빨강(SD999) */}
   g.appendChild(_sg9);}
@@ -24144,7 +24145,7 @@ function posDrawSD9(force){try{if(typeof IS_POSITION!=='undefined'&&IS_POSITION&
   var sc2=window._sdCache9.sc;
   if(sc2){/* [BUILD2203] 2패스 — 현황선(비SD 레이어) 먼저 깔고 SD 위에 */
    var _hy9=[],_sd9=[];
-   Object.keys(sc2.SH).forEach(function(no){var items=sc2.SH[no].items;for(var i=0;i<items.length;i++){var it9=items[i];((it9.t==='pl'&&!/^SD/.test(it9.lay))?_hy9:_sd9).push(it9);}});
+   var _ewOn9=!!(window._ngisPrev9&&window._ngisPrevMode9==='edwg'&&typeof _ngisEwScreen9==='function');/* [BUILD3129] 전자도면 미리보기 = 축소 표현 */Object.keys(sc2.SH).forEach(function(no){var items=_ewOn9?_ngisEwScreen9(sc2.SH[no].items):sc2.SH[no].items;for(var i=0;i<items.length;i++){var it9=items[i];((it9.t==='pl'&&!/^SD/.test(it9.lay))?_hy9:_sd9).push(it9);}});
    var _LX9=_sdLVinit9();function _on9(it){var gk=_sdGrpOf9(it);return !gk||_LX9[gk]!==0;}/* [BUILD2293] SD 레이어 필터 */
    for(var i9=0;i9<_hy9.length;i9++){if(_on9(_hy9[i9]))_sdDrawItem9(g,_hy9[i9]);}
    for(var j9=0;j9<_sd9.length;j9++){if(_on9(_sd9[j9]))_sdDrawItem9(g,_sd9[j9]);}}
