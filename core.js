@@ -22722,6 +22722,7 @@ function _ngisFrame9(c){var p1=_posFromLL(c.latN,c.lngW),p2=_posFromLL(c.latN,c.
 function _ngisClipLine9(P,vert,v){/* 도곽(사각) 안에서 x=v(vert) 또는 y=v 직선의 두 끝점 */
  var pts=[];for(var k=0;k<4;k++){var a=P[k],b=P[(k+1)%4];var da=vert?(a.x-v):(a.y-v),db=vert?(b.x-v):(b.y-v);if((da<0&&db<0)||(da>0&&db>0)||da===db)continue;var t=da/(da-db);pts.push([a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t]);}
  if(pts.length<2)return null;pts.sort(function(u,w){return vert?(u[1]-w[1]):(u[0]-w[0]);});return [pts[0],pts[pts.length-1]];}
+function _ngisTitleW9(t,h){/* [BUILD3101] 표제 글자 폭 추정(m): 한글 1.0h · 영숫자 0.62h */var w=0;String(t||'').split('').forEach(function(ch){w+=(ch.charCodeAt(0)>255?1.0:0.62)*h;});return w;}
 function _ngisFrameEnts9(no,c,title,opt){/* 도곽·격자·모서리 좌표·표제 (샘플 오프셋 실측) [BUILD3100] opt.noFrame/noTitle/noName=백판에 이미 있는 것 생략 */
  opt=opt||{};var P=_ngisFrame9(c);if(!P)return '';var p1=P[0],p2=P[1],p3=P[2],p4=P[3];var e='';
  if(!opt.noFrame){e+=_pdPL('H0017334',[[p1.x,p1.y],[p2.x,p2.y],[p3.x,p3.y],[p4.x,p4.y],[p1.x,p1.y]],false);/* [BUILD3099] 샘플과 동일: 5점 열린 폴리선 */
@@ -22734,7 +22735,7 @@ function _ngisFrameEnts9(no,c,title,opt){/* 도곽·격자·모서리 좌표·�
  e+=_pdText('H0010601',p3.x,p3.y,2,f(p3.y));e+=_pdText('H0010601',p3.x-2.0,p3.y-0.4,2,f(p3.x),270);
  e+=_pdText('H0010601',p4.x-16.5,p4.y,2,f(p4.y));e+=_pdText('H0010601',p4.x,p4.y-0.4,2,f(p4.x),270);}
  if(!opt.noTitle){e+=_pdText('TITLE',p1.x+3.25,p1.y+2.18,7,'S=1:1000',0,null,'Standard');
- var cx9=(p1.x+p2.x)/2;e+=_pdText('TITLE',cx9-106.85,p1.y+7.03,10,title||'',0,[cx9+106.85,p1.y+7.03,5],'Standard');}/* [BUILD3099] 샘플 4장 실측: 72=5(fit) 폭 213.7 도곽 중앙 */
+ var cx9=(p1.x+p2.x)/2;if(_ngisTitleW9(title,10)>213.7)e+=_pdText('TITLE',cx9-106.85,p1.y+7.03,10,title||'',0,[cx9+106.85,p1.y+7.03,5],'Standard');else e+=_pdText('TITLE',cx9,p1.y+7.03,10,title||'',0,[cx9,p1.y+7.03,1],'Standard');}/* [BUILD3099] 샘플 실측 폭 213.7 도곽 중앙 — [BUILD3101] 긴 이름만 fit(72=5) 압축, 짧으면 가운데(72=1, 늘리지 않음) */
  if(!opt.noName)e+=_pdText('NAME',p2.x-97,p2.y+2.5,10,String(no));
  return e;}
 /* ===== [BUILD3100] ★백판(도엽 원본 DXF) 병합 — 올린 도엽 백판 파일을 그대로 바탕으로 쓰고(도곽·표제·수치지도 전부 원본 유지) SD 엔티티 + 필요한 레이어·스타일·선종류·블록 정의만 주입. 정의 원천은 tpl_pos_legend.dxf, 핸들은 전부 새로 발급(_pdHx, 원본 HANDSEED 위) ===== */
@@ -22820,7 +22821,7 @@ function _ngisPreview9(on){/* [BUILD3098] 도면창 확인 — 도곽·격자·�
   for(var gx=Math.ceil(x0/100)*100;gx<x1;gx+=100)GL(_ngisClipLine9(P,true,gx));for(var gy=Math.ceil(y0/100)*100;gy<y1;gy+=100)GL(_ngisClipLine9(P,false,gy));
   var f=function(v){return v.toFixed(2);};
   TX(p1.x-0.3,p1.y-2.0,2,f(p1.y),0,'end');TX(p1.x,p1.y+0.3,2,f(p1.x),270,'end');TX(p2.x+0.3,p2.y-2.0,2,f(p2.y));TX(p2.x-2.0,p2.y+0.3,2,f(p2.x),270,'end');TX(p3.x+0.3,p3.y,2,f(p3.y));TX(p3.x-2.0,p3.y-0.3,2,f(p3.x),270);TX(p4.x-0.3,p4.y,2,f(p4.y),0,'end');TX(p4.x,p4.y-0.3,2,f(p4.x),270);/* [BUILD3099] 화면은 앵커로 모서리에 붙임(글꼴 폭 무관) */
-  TX(p1.x+3.25,p1.y+2.18,7,'S=1:1000',0,null,'Arial,sans-serif');(function(){var q=S((p1.x+p2.x)/2,p1.y+7.03);var t9=el('text',{x:q[0],y:q[1],'font-size':10,fill:'#222','font-family':'Arial,sans-serif','text-anchor':'middle',textLength:213.7,lengthAdjust:'spacingAndGlyphs','pointer-events':'none'});t9.textContent=title;g.appendChild(t9);})();/* [BUILD3099] 샘플 fit 폭 213.7 */TX(p2.x-97,p2.y+2.5,10,String(r.no));
+  TX(p1.x+3.25,p1.y+2.18,8.75,'S=1:1000',0,null,'Arial,sans-serif');(function(){var q=S((p1.x+p2.x)/2,p1.y+7.03);var a={x:q[0],y:q[1],'font-size':12.5,fill:'#222','font-family':'Arial,sans-serif','text-anchor':'middle','pointer-events':'none'};if(_ngisTitleW9(title,10)>213.7){a.textLength=213.7;a.lengthAdjust='spacingAndGlyphs';}var t9=el('text',a);t9.textContent=title;g.appendChild(t9);})();/* [BUILD3101] CAD 체감 높이(=글자 실높이 10m)에 맞춰 1.25배, 긴 이름만 213.7 폭으로 압축 */TX(p2.x-97,p2.y+2.5,12.5,String(r.no));
   ex(S(p1.x-20,p1.y+20));ex(S(p2.x+5,p3.y-5));});
  try{var pad=8;vb={x:bx[0]-pad,y:bx[1]-pad,w:(bx[2]-bx[0])+2*pad,h:(bx[3]-bx[1])+2*pad};fixAspect();applyVB();}catch(_v){}
 }
