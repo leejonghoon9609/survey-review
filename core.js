@@ -8377,7 +8377,7 @@ async function addNote(clientX,clientY){
 bind('modeToggle',async function(){if(IS_FIELD){location.href='survey.html';}else if(IS_TANGO){setViewer(!viewerMode);}else{if(await uiConfirmP9('측량(현장)으로 이동할까요? 저장 안 한 변경은 사라집니다.'))location.href='field.html';}});
 (function(){var hb=document.getElementById('homeBtn');if(hb)hb.onclick=async function(){if(viewerMode||await uiConfirmP9('홈(랜딩)으로 이동할까요? 저장 안 한 변경은 사라집니다.'))location.href='index.html';};})();
 bind('vPhoto',function(){openPhotoPanel();});
-bind('vMap',function(){if(typeof IS_POSITION!=='undefined'&&IS_POSITION&&typeof _mapCycle9==='function')_mapCycle9();else toggleBgMap();});/* [BUILD3135] 정위치: 지도 → 항공사진 → 끔 순환 */
+bind('vMap',function(){if(typeof _mapCycle9==='function')_mapCycle9();else toggleBgMap();});/* [BUILD3135] 지도 → 항공사진 → 끔 순환 · [BUILD3144] 전 페이지(실시간·결선DB·측량(현장)·탱고DB·정위치) */
 bind('vRv',toggleRvPick);
 bind('fldAftCap9',function(){/* [BUILD2018] \ud6c4\uce21\ub7c9 \ucd2c\uc601 \u2014 afterCap \uacfc \ub3d9\uc77c \ud30c\uc774\ud504\ub77c\uc778(fAfter \u2192 uploadAfterPhoto) */try{var no=selNum;if(no==null||no===''){var sel=document.getElementById('photoSel');if(sel&&sel.value)no=sel.value;}if(no==null||no===''){toast('\uba3c\uc800 \uce21\uc810\uc744 \uc120\ud0dd\ud558\uc138\uc694');return;}if(typeof online!=='undefined'&&!online){toast('\ub85c\uceec \ubaa8\ub4dc \u2014 \uc0ac\uc9c4 \uc800\uc7a5 \ubd88\uac00');return;}if(!state.projectId){toast('\uba3c\uc800 \uc0ac\uc5c5\uc744 \uc800\uc7a5\ud558\uc138\uc694');return;}afterTargetNum=String(no);var f=document.getElementById('fAfter');if(f){f.value='';f.click();}}catch(_ac9){}});
 var _vproj=document.getElementById('vproj');if(_vproj)_vproj.addEventListener('change',function(){if(this.value)loadProject(this.value);});
@@ -16630,7 +16630,7 @@ function toggleBgMap(){
     toast('지도 배경 ON — 그 위에서 결선 작업하세요');
   });
 }
-bind('bgBtn',toggleBgMap);
+bind('bgBtn',function(){if(typeof _mapCycle9==='function')_mapCycle9();else toggleBgMap();});/* [BUILD3144] 카카오맵 버튼도 같은 3단 순환 */
 bind('newProj',function(){var n=prompt('새 사업명을 입력하세요 (예: 수원 권선동 1041-6)');if(!n)return;state.projectId=null;state.projectName=n;state.routingDone=false;setReadOnly(false);state.manholes=[];state.photoDir={};photoMap={};afterMap={};selNum=null;state.phoTrash9=[];/* [BUILD2179] */state.labelOff={};clearSvg(gSel);clearSvg(gMH);if(photoPanelOpen)refreshPhotoPanel();updMeta();toast('새 사업: '+n+' (CSV 업로드 후 저장)');});
 document.getElementById('recs').addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('.del');if(!b)return;var i=+b.getAttribute('data-i');var r=state.markups[i];if(r){pushHist();if(r.el)r.el.remove();state.markups.splice(i,1);renderRecs();}});
 document.getElementById('proj').addEventListener('change',function(e){if(e.target.value)pickProject(e.target.value);});
@@ -22960,7 +22960,7 @@ function _airDraw9(){var A=window._air9;if(!A.on)return;var g=_airG9();var crs=s
   im.setAttribute('transform','matrix('+a.toFixed(8)+' '+b.toFixed(8)+' '+cc.toFixed(8)+' '+d.toFixed(8)+' '+TL[0].toFixed(4)+' '+TL[1].toFixed(4)+')');if(im.parentNode!==g)g.appendChild(im);}
  for(var k in A.tiles){if(!keep[k]){var e=A.tiles[k];if(e.parentNode)e.parentNode.removeChild(e);delete A.tiles[k];}}}
 function _airBtnInit9(){try{if(!(typeof IS_POSITION!=='undefined'&&IS_POSITION))return;if(document.getElementById('airBtn9'))return;var ref=document.getElementById('vMap')||document.getElementById('bgBtn');if(!ref)return;var b=document.createElement('button');b.id='airBtn9';b.className='photoBtn';b.textContent='🛰 항공사진';b.title='브이월드 항공사진을 좌표에 맞춰 도면창 밑에 깔기';b.style.cssText='background:#fff;color:#1b5e20;border:1px solid #1b5e20;font-weight:700';b.onclick=function(ev){try{ev.stopPropagation();}catch(_e){}airToggle9();};ref.parentNode.insertBefore(b,ref);}catch(_e){}}
-function _mapBtnPaint9(){try{var vm=document.getElementById('vMap');if(!vm)return;var A=window._air9;var st=(typeof bgMapOn!=='undefined'&&bgMapOn)?1:(A.on?2:0);vm.textContent=st===1?'🗺 지도 ON':(st===2?'🛰 항공사진':'🗺 지도');vm.classList.toggle('on',st!==0);if(st===2){vm.style.background='#1b5e20';vm.style.color='#fff';vm.style.borderColor='#1b5e20';}else{vm.style.background='';vm.style.color='';vm.style.borderColor='';}}catch(_e){}}
+function _mapBtnPaint9(){try{var A=window._air9;var st=(typeof bgMapOn!=='undefined'&&bgMapOn)?1:(A.on?2:0);[['vMap','🗺 지도'],['bgBtn','🗺 카카오맵']].forEach(function(pr){var vm=document.getElementById(pr[0]);if(!vm)return;vm.textContent=st===1?'🗺 지도 ON':(st===2?'🛰 항공사진':pr[1]);vm.classList.toggle('on',st!==0);if(st===2){vm.style.background='#1b5e20';vm.style.color='#fff';vm.style.borderColor='#1b5e20';}else{vm.style.background='';vm.style.color='';vm.style.borderColor='';}});}catch(_e){}}/* [BUILD3144] 두 버튼 모두 */
 function _mapCycle9(){/* [BUILD3135] 「지도」 버튼 3단: 끔 → 카카오 지도 → 브이월드 항공사진(좌표 정합) → 끔 */
  var A=window._air9;var st=(typeof bgMapOn!=='undefined'&&bgMapOn)?1:(A.on?2:0);var next=(st+1)%3;
  if(next===1){if(A.on)airToggle9();if(!bgMapOn)toggleBgMap();if(!bgMapOn){next=2;}}
