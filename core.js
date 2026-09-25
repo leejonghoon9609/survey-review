@@ -22548,16 +22548,20 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
  function _symX9(pth){for(var _i9=1;_i9<pth.length;_i9++){var a=pth[_i9-1],b=pth[_i9];for(var _s9=0;_s9<_syms9.length;_s9++){var c=_syms9[_s9];var vx=b[0]-a[0],vy=b[1]-a[1];var L2=vx*vx+vy*vy||1;var t=((c[0]-a[0])*vx+(c[1]-a[1])*vy)/L2;t=Math.max(0,Math.min(1,t));var dx=a[0]+vx*t-c[0],dy=a[1]+vy*t-c[1];if(dx*dx+dy*dy<1.69)return true;}}return false;}/* [BUILD2326] 심벌(맨홀) 회피 */
  var _tamD9=[];try{if(typeof _fldTamsaPts==='function')(_fldTamsaPts()||[]).forEach(function(t){if(t&&t.z!=null&&isFinite(t.z))_tamD9.push([t.x,t.y,+t.z]);});}catch(_td9){}/* [BUILD2331] 탐사측점 심도 원천 */
  var _psReps9=null,_psSegs9=null;try{if(typeof posGwanAudit9==='function')_psReps9=posGwanAudit9().reps;}catch(_rp9){}try{if(typeof posSplitSegs9==='function')_psSegs9=posSplitSegs9().segs;}catch(_sp9){}/* [BUILD2321] 관표시 원천=구간 대표 [100,50] */
- (_psR9||pipes.map(function(l){return l.pts;})).forEach(function(_pp9,_pi9){
-  var pts=_pp9;var Lm=0;for(var i=0;i<pts.length-1;i++)Lm+=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);
+ /* [BUILD3112] ★도엽 경계로 잘린 구간은 조각(도엽)마다 제원 인출선·관표시 세트를 따로 배치 — L·D는 구간 전체(사용자 확정 ①), 앵커는 그 조각 위. 4m 미만 조각은 건너뜀(자리 없음). 한 도엽 안 구간은 종전 그대로 */
+ var _segList9=[];(function(){var _plen=function(pc){var L=0;for(var i=0;i<pc.length-1;i++)L+=Math.hypot(pc[i+1][0]-pc[i][0],pc[i+1][1]-pc[i][1]);return L;};
+  (_psR9||pipes.map(function(l){return l.pts;})).forEach(function(rw,pi){var pcs=[],cur=null,buf=[];for(var i=0;i<rw.length-1;i++){var a=rw[i],b=rw[i+1];var c=_posSheetOf((a[0]+b[0])/2,(a[1]+b[1])/2);var no=c?c.no:null;if(no!==cur){if(buf.length>=2)pcs.push(buf);cur=no;buf=[a.slice(0,2)];}buf.push(b.slice(0,2));}if(buf.length>=2)pcs.push(buf);
+   if(pcs.length<=1){_segList9.push({full:rw,piece:rw,pi:pi});return;}var any=false;pcs.forEach(function(pc){if(_plen(pc)>=4){_segList9.push({full:rw,piece:pc,pi:pi});any=true;}});if(!any)_segList9.push({full:rw,piece:rw,pi:pi});});})();
+ _segList9.forEach(function(_pp9){
+  var pts=_pp9.piece,full=_pp9.full,_pi9=_pp9.pi;var Lm=0;for(var i=0;i<full.length-1;i++)Lm+=Math.hypot(full[i+1][0]-full[i][0],full[i+1][1]-full[i][1]);
   if(Lm<0.05)return;/* [BUILD2311] 1m 미만 구간도 제원 생성(퇴화 점만 제외) */
-  var zs=[];pts.forEach(function(pt){if(mhAt(pt[0],pt[1]))return;var p=ptAt(pt[0],pt[1]);var d9=null;
+  var zs=[];full.forEach(function(pt){if(mhAt(pt[0],pt[1]))return;var p=ptAt(pt[0],pt[1]);var d9=null;
   if(p){d9=state.tamsa?((p.z!=null&&isFinite(p.z))?p.z:null):((state._depthByNo&&state._depthByNo[p.no]!=null&&isFinite(state._depthByNo[p.no]))?+state._depthByNo[p.no]:null);}
   if(d9==null){for(var _q9=0;_q9<_tamD9.length;_q9++){var _tt9=_tamD9[_q9];if(Math.hypot(pt[0]-_tt9[0],pt[1]-_tt9[1])<=0.3){d9=_tt9[2];break;}}}/* [BUILD2331] 탐사구간 D 평균심도 — 탐사측점 심도 0.3m 좌표매칭 폴백 */
   if(d9!=null)zs.push(d9);});/* [BUILD2207] D=평균 심도(_depthByNo 동일 원천) */
   var Dv=zs.length?(zs.reduce(function(a,b){return a+b;},0)/zs.length):null;
-  /* 중점 */
-  var half=Lm/2,acc=0,mi=0,mt=0;
+  /* 중점 — [BUILD3112] 앵커는 조각(pts) 길이 기준 */
+  var _Lp9=0;for(var _q0=0;_q0<pts.length-1;_q0++)_Lp9+=Math.hypot(pts[_q0+1][0]-pts[_q0][0],pts[_q0+1][1]-pts[_q0][1]);var half=_Lp9/2,acc=0,mi=0,mt=0;
   for(var i=0;i<pts.length-1;i++){var sl=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);if(acc+sl>=half){mi=i;mt=(half-acc)/sl;break;}acc+=sl;}
   var mx=pts[mi][0]+(pts[mi+1][0]-pts[mi][0])*mt,my=pts[mi][1]+(pts[mi+1][1]-pts[mi][1])*mt;
   try{/* [BUILD2791] 작업자가 삽입한 절단점(posCuts9)이 이 구간의 끝이면 인출선 앵커를 중점 대신 그 선택점(구간 안쪽 0.3m)으로 — 앞 끝 우선 */var _pcs2=state.posCuts9||[];if(_pcs2.length&&pts.length>=2){var _e0=pts[0],_e1=pts[pts.length-1],_hit=null,_ei=0;for(var _ci=0;_ci<_pcs2.length&&!_hit;_ci++){var c=_pcs2[_ci];if(!c)continue;if(Math.hypot(c.x-_e0[0],c.y-_e0[1])<0.3){_hit=c;_ei=0;}else if(Math.hypot(c.x-_e1[0],c.y-_e1[1])<0.3){_hit=c;_ei=1;}}if(_hit){var _a=(_ei===0)?pts[0]:pts[pts.length-1],_b=(_ei===0)?pts[1]:pts[pts.length-2];var _dl=Math.hypot(_b[0]-_a[0],_b[1]-_a[1])||1;var _of=Math.min(0.3,_dl*0.5);mx=_a[0]+(_b[0]-_a[0])/_dl*_of;my=_a[1]+(_b[1]-_a[1])/_dl*_of;mi=(_ei===0)?0:(pts.length-2);}}}catch(_ck9){}
