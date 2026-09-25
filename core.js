@@ -22824,7 +22824,8 @@ function _ngisBpHas9(cell){try{var P=_ngisFrame9(cell);if(!P)return false;var xs
 function _ngisRegSheets9(){/* [BUILD3111] 사업등록 수치지도(bpFull·bpTexts)를 1:1000 도엽별로 집계 {no:{ln,tx,cell}} */
  var out={};try{var add=function(x,y,k){var c=_posSheetOf(x,y);if(!c)return;var o=out[c.no]||(out[c.no]={ln:0,tx:0,cell:c});o[k]++;};
   (state.bpFull||[]).forEach(function(l){if(!l||!l.pts||!l.pts.length||l.crop||l.layer==='CROP')return;var m=l.pts[Math.floor(l.pts.length/2)];add(m[0],m[1],'ln');});
-  (state.bpTexts||[]).forEach(function(t){if(!t||t.x==null)return;add(t.x,t.y,'tx');});}catch(_e){}return out;}
+  (state.bpTexts||[]).forEach(function(t){if(!t||t.x==null)return;if(/^(TITLE|NAME|H0010601)$/i.test(t.layer||''))return;/* [BUILD3113] 도곽 위 표제·도엽번호·모서리 글자는 옆 도엽으로 잡히므로 집계 제외 */add(t.x,t.y,'tx');});
+  /* [BUILD3113] 경계에 걸친 선 몇 개가 옆 도엽으로 잡혀 유령 도엽이 생기던 것 — 선 5·글자 5 미만인 도엽은(다른 도엽이 있으면) 목록에서 제외 */var ks=Object.keys(out);if(ks.length>1){ks.forEach(function(k){var o=out[k];if(o.ln<5&&o.tx<5)delete out[k];});}}catch(_e){}return out;}
 function _ngisRegRemove9(no){/* [BUILD3111] 그 도엽 안의 등록 수치지도 선·글자를 사업에서 제거(bpFull·bpTexts·state.lines base·baseTexts) */
  try{var R=_ngisRegSheets9();var o=R[no];if(!o)return 0;var P=_ngisFrame9(o.cell);if(!P)return 0;var inQ=function(x,y){return _ngisInQuad9(P,x,y);};var n=0;
   var keepL=function(l){if(!l||!l.pts)return true;if(!l.base&&!(state.bpFull&&state.bpFull.indexOf(l)>=0))return true;for(var i=0;i<l.pts.length;i++){if(inQ(l.pts[i][0],l.pts[i][1])){n++;return false;}}return true;};
