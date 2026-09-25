@@ -22724,17 +22724,17 @@ function _ngisClipLine9(P,vert,v){/* 도곽(사각) 안에서 x=v(vert) 또는 y
  if(pts.length<2)return null;pts.sort(function(u,w){return vert?(u[1]-w[1]):(u[0]-w[0]);});return [pts[0],pts[pts.length-1]];}
 function _ngisFrameEnts9(no,c,title){/* 도곽·격자·모서리 좌표·표제 (샘플 오프셋 실측) */
  var P=_ngisFrame9(c);if(!P)return '';var p1=P[0],p2=P[1],p3=P[2],p4=P[3];var e='';
- e+=_pdPL('H0017334',[[p1.x,p1.y],[p2.x,p2.y],[p3.x,p3.y],[p4.x,p4.y]],true);
+ e+=_pdPL('H0017334',[[p1.x,p1.y],[p2.x,p2.y],[p3.x,p3.y],[p4.x,p4.y],[p1.x,p1.y]],false);/* [BUILD3099] 샘플과 동일: 5점 열린 폴리선 */
  var xs=[p1.x,p2.x,p3.x,p4.x],ys=[p1.y,p2.y,p3.y,p4.y];var x0=Math.min.apply(0,xs),x1=Math.max.apply(0,xs),y0=Math.min.apply(0,ys),y1=Math.max.apply(0,ys);
  for(var gx=Math.ceil(x0/100)*100;gx<x1;gx+=100){var L=_ngisClipLine9(P,true,gx);if(L)e+=_pdPL('H0037335',L,false);}
  for(var gy=Math.ceil(y0/100)*100;gy<y1;gy+=100){var L2=_ngisClipLine9(P,false,gy);if(L2)e+=_pdPL('H0037335',L2,false);}
- var f=function(v){return String(+v.toFixed(2));};
+ var f=function(v){return v.toFixed(2);};/* [BUILD3099] 소수 2자리 고정(9글자 → 오프셋 16.5 정확) */
  e+=_pdText('H0010601',p1.x-16.5,p1.y-2.0,2,f(p1.y));e+=_pdText('H0010601',p1.x,p1.y+16.5,2,f(p1.x),270);
  e+=_pdText('H0010601',p2.x,p2.y-2.0,2,f(p2.y));e+=_pdText('H0010601',p2.x-2.0,p2.y+16.5,2,f(p2.x),270);
  e+=_pdText('H0010601',p3.x,p3.y,2,f(p3.y));e+=_pdText('H0010601',p3.x-2.0,p3.y-0.4,2,f(p3.x),270);
  e+=_pdText('H0010601',p4.x-16.5,p4.y,2,f(p4.y));e+=_pdText('H0010601',p4.x,p4.y-0.4,2,f(p4.x),270);
  e+=_pdText('TITLE',p1.x+3.25,p1.y+2.18,7,'S=1:1000',0,null,'Standard');
- var cx9=(p1.x+p2.x)/2;e+=_pdText('TITLE',cx9,p1.y+7.03,10,title||'',0,[cx9,p1.y+7.03,1],'Standard');/* [BUILD3098] 도곽 가운데 정렬(72=1) */
+ var cx9=(p1.x+p2.x)/2;e+=_pdText('TITLE',cx9-106.85,p1.y+7.03,10,title||'',0,[cx9+106.85,p1.y+7.03,5],'Standard');/* [BUILD3099] 샘플 4장 실측: 72=5(fit) 폭 213.7 도곽 중앙 */
  e+=_pdText('NAME',p2.x-97,p2.y+2.5,10,String(no));
  return e;}
 function _ngisSheetDxf9(tpl,no,S,title){/* 템플릿 테이블(SD 레이어·블록·스타일)만 쓰고 범례 엔티티는 버림 */
@@ -22759,15 +22759,15 @@ function _ngisPreview9(on){/* [BUILD3098] 도면창 확인 — 도곽·격자·�
  try{var g=document.getElementById('gNgis9');if(g)g.remove();}catch(_r){}window._ngisPrev9=!!on;if(!on)return;
  var rows=_ngisRows9();if(!rows||!rows.length){toast('통신관로 없음');return;}var title=_ngisTitle9();
  g=el('g',{id:'gNgis9','pointer-events':'none'});cv.appendChild(g);var bx=[1e18,1e18,-1e18,-1e18];var ex=function(q){if(q[0]<bx[0])bx[0]=q[0];if(q[1]<bx[1])bx[1]=q[1];if(q[0]>bx[2])bx[2]=q[0];if(q[1]>bx[3])bx[3]=q[1];};
- var TX=function(x,y,h,t,rot,anc,ff){var q=S(x,y);var a={x:q[0],y:q[1],'font-size':h,fill:'#222','font-family':ff||'monospace','pointer-events':'none'};if(anc)a['text-anchor']=anc;if(rot)a.transform='rotate('+(-rot)+' '+q[0]+' '+q[1]+')';var t9=el('text',a);t9.textContent=t;g.appendChild(t9);};
+ var TX=function(x,y,h,t,rot,anc,ff){var q=S(x,y);var a={x:q[0],y:q[1],'font-size':h,fill:'#222','font-family':ff||'Arial Narrow,Arial,sans-serif','pointer-events':'none'};if(anc)a['text-anchor']=anc;if(rot)a.transform='rotate('+(-rot)+' '+q[0]+' '+q[1]+')';var t9=el('text',a);t9.textContent=t;g.appendChild(t9);};
  rows.forEach(function(r){var P=_ngisFrame9(r.S.cell);if(!P)return;var p1=P[0],p2=P[1],p3=P[2],p4=P[3];var q=P.map(function(p){var c=S(p.x,p.y);ex(c);return c[0]+','+c[1];});
   g.appendChild(el('polygon',{points:q.join(' '),fill:'none',stroke:'#222','stroke-width':0.35,'pointer-events':'none'}));
   var xs=[p1.x,p2.x,p3.x,p4.x],ys=[p1.y,p2.y,p3.y,p4.y];var x0=Math.min.apply(0,xs),x1=Math.max.apply(0,xs),y0=Math.min.apply(0,ys),y1=Math.max.apply(0,ys);
   var GL=function(L){if(!L)return;var a=S(L[0][0],L[0][1]),b=S(L[1][0],L[1][1]);g.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0],y2:b[1],stroke:'#8a8a8a','stroke-width':0.12,'pointer-events':'none'}));};
   for(var gx=Math.ceil(x0/100)*100;gx<x1;gx+=100)GL(_ngisClipLine9(P,true,gx));for(var gy=Math.ceil(y0/100)*100;gy<y1;gy+=100)GL(_ngisClipLine9(P,false,gy));
-  var f=function(v){return String(+v.toFixed(2));};
-  TX(p1.x-16.5,p1.y-2.0,2,f(p1.y));TX(p1.x,p1.y+16.5,2,f(p1.x),270);TX(p2.x,p2.y-2.0,2,f(p2.y));TX(p2.x-2.0,p2.y+16.5,2,f(p2.x),270);TX(p3.x,p3.y,2,f(p3.y));TX(p3.x-2.0,p3.y-0.4,2,f(p3.x),270);TX(p4.x-16.5,p4.y,2,f(p4.y));TX(p4.x,p4.y-0.4,2,f(p4.x),270);
-  TX(p1.x+3.25,p1.y+2.18,7,'S=1:1000',0,null,'Arial,sans-serif');TX((p1.x+p2.x)/2,p1.y+7.03,10,title,0,'middle','Arial,sans-serif');TX(p2.x-97,p2.y+2.5,10,String(r.no));
+  var f=function(v){return v.toFixed(2);};
+  TX(p1.x-0.3,p1.y-2.0,2,f(p1.y),0,'end');TX(p1.x,p1.y+0.3,2,f(p1.x),270,'end');TX(p2.x+0.3,p2.y-2.0,2,f(p2.y));TX(p2.x-2.0,p2.y+0.3,2,f(p2.x),270,'end');TX(p3.x+0.3,p3.y,2,f(p3.y));TX(p3.x-2.0,p3.y-0.3,2,f(p3.x),270);TX(p4.x-0.3,p4.y,2,f(p4.y),0,'end');TX(p4.x,p4.y-0.3,2,f(p4.x),270);/* [BUILD3099] 화면은 앵커로 모서리에 붙임(글꼴 폭 무관) */
+  TX(p1.x+3.25,p1.y+2.18,7,'S=1:1000',0,null,'Arial,sans-serif');(function(){var q=S((p1.x+p2.x)/2,p1.y+7.03);var t9=el('text',{x:q[0],y:q[1],'font-size':10,fill:'#222','font-family':'Arial,sans-serif','text-anchor':'middle',textLength:213.7,lengthAdjust:'spacingAndGlyphs','pointer-events':'none'});t9.textContent=title;g.appendChild(t9);})();/* [BUILD3099] 샘플 fit 폭 213.7 */TX(p2.x-97,p2.y+2.5,10,String(r.no));
   ex(S(p1.x-20,p1.y+20));ex(S(p2.x+5,p3.y-5));});
  try{var pad=8;vb={x:bx[0]-pad,y:bx[1]-pad,w:(bx[2]-bx[0])+2*pad,h:(bx[3]-bx[1])+2*pad};fixAspect();applyVB();}catch(_v){}
 }
