@@ -17800,7 +17800,7 @@ function posExtraBar9(show){/* [BUILD3095] 정위치 「추가성과 제작」 �
       b.onclick=function(ev){try{ev.stopPropagation();}catch(_e){}var fn=window['_posEx_'+it[0].replace(/^posEx_|9$/g,'')+'9'];if(typeof fn==='function'){try{fn();}catch(_f){toast(it[1]+' 오류: '+(_f&&_f.message||_f));}}else toast(it[1]+' — 준비 중(생성 규칙 확정 후)');};bar.appendChild(b);});
     if(fb&&fb.parentNode===mc)mc.insertBefore(bar,fb.nextSibling);else if(sbr&&sbr.parentNode===mc)mc.insertBefore(bar,sbr);else mc.insertBefore(bar,mc.firstChild);
     var slot=document.createElement('div');slot.id='posExTb9';slot.style.cssText='display:inline-flex;align-items:center;gap:6px;margin-left:6px;flex:none';bar.appendChild(slot);/* [BUILD3138] 편집 툴바(인출선·이격거리·경계심벌·원시데이터) 자리 — 바가 열려 있으면 같은 줄에 */
-    var sub=document.createElement('div');sub.id='posExtraSub9';sub.style.cssText='display:none;align-items:center;gap:8px;margin-left:auto;flex:none;padding-left:10px';bar.appendChild(sub);/* [BUILD3110] 등록 줄 → [BUILD3138] 같은 줄 오른쪽(두 줄로 통합) */
+    var sub=document.createElement('div');sub.id='posExtraSub9';sub.style.cssText='display:none;align-items:center;gap:8px;margin-left:6px;flex:1;min-width:0;padding-left:4px';/* [BUILD3142] 상태 글·설정창 보기는 버튼 바로 오른쪽, 등록 버튼만 맨 오른쪽 */bar.appendChild(sub);/* [BUILD3110] 등록 줄 → [BUILD3138] 같은 줄 오른쪽(두 줄로 통합) */
   }
   bar.style.display=show?'flex':'none';var sb2=document.getElementById('posExtraSub9');if(sb2&&!show)sb2.style.display='none';if(show)_posExBarPaint9(window._posExActive9||null);
   try{var sbr=document.getElementById('subbar');if(sbr)sbr.style.display='';}catch(_sb){}/* [BUILD3140] 도구 줄은 항상 표시(툴바 자리) */
