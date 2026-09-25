@@ -8180,8 +8180,8 @@ function uploadAfterPhotos(files){/* [1509] 후측량(_A) 사진 일괄 업로�
   function fin(){if(done<total)return;var m='\ud6c4\uce21\ub7c9 \uc0ac\uc9c4 '+ok+'/'+total+'\uc7a5 \uc644\ub8cc';if(un)m+=' \u00b7 \ubc88\ud638 \ubbf8\ub9e4\uce6d '+un+'\uc7a5(\ud30c\uc77c\uba85 \ud655\uc778)';toast(m);if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof refreshPhotoPanel==='function')refreshPhotoPanel();if(typeof drawGeo==='function')drawGeo();}
   arr.forEach(function(f){
     var base=(f.name||'').replace(/\.[^.]+$/,'').trim();var no=null;
-    if(base&&typeof pointByNo==='function'&&pointByNo(base))no=base;
-    else{var r=(typeof resolvePhotoNo==='function')?resolvePhotoNo(f):null;if(r&&r.no&&(r.matched||(typeof pointByNo==='function'&&pointByNo(r.no))))no=r.no;}
+    if(base&&typeof pointByNo==='function'&&_phPtOk9(pointByNo(base)))no=base;/* [BUILD3071] */
+    else{var r=(typeof resolvePhotoNo==='function')?resolvePhotoNo(f):null;if(r&&r.no&&(r.matched||(typeof pointByNo==='function'&&_phPtOk9(pointByNo(r.no)))))no=r.no;}
     if(!no){un++;done++;fin();return;}
     compressImage(f,1600,0.8).then(function(blob){
       var path=state.projectId+'/'+safeName(no)+'_A.jpg';
@@ -8209,7 +8209,8 @@ function _walk(entry,path,out,done){/* [1528] \ub4dc\ub86d \ud3f4\ub354 \uc7ac\u
  }catch(_e){done();}}
 var mod=null,pend=[],busy=false,fin=false;
 function _close(){if(mod){mod.remove();mod=null;}pend=[];busy=false;fin=false;}
-function _exactNo(n){var ps=state.points||[];for(var i=0;i<ps.length;i++)if(ps[i].no===n)return true;return false;}/* [1532] \uc804\uccb4 \uc810\ubc88\ud638 \uc815\ud655 \uc77c\uce58\ub9cc */
+function _phPtOk9(p){return !!p&&!p._riserPt&&!(p.jgRef!=null&&p.jgRef!=='');}/* [BUILD3071] 사진이 붙을 수 있는 측점만 — 입상주 원천점(후측량 CSV TJ/EJ, 번호가 5·6처럼 날짜 없는 숫자)과 이격기준점(1A)은 사진 대상이 아님. 실측: 파일명 6.jpg가 실시간 260318-6이 아니라 입상주점 '6'에 정확 일치해 6_A로 등록 → 접수 후측량 사진 '기타 8장' */
+function _exactNo(n){var ps=state.points||[];for(var i=0;i<ps.length;i++)if(ps[i].no===n)return _phPtOk9(ps[i]);return false;}/* [BUILD3071] 입상주·이격기준점 제외 *//* [1532] \uc804\uccb4 \uc810\ubc88\ud638 \uc815\ud655 \uc77c\uce58\ub9cc */
 function _assign(f){var base=(f.name||'').replace(/\.[^.]+$/,'').trim();
  if(base&&_exactNo(base))return base;/* \ud30c\uc77c\uba85=\ud480\ubc88\ud638(251103-14) */
  var r=(typeof resolvePhotoNo==='function')?resolvePhotoNo(f):null;
@@ -9462,7 +9463,7 @@ function openInspSubmit9(){/* [BUILD3033] 성과심사 접수 — 폴더 목록(
  }catch(e){toast('성과심사 접수 창 오류: '+(e&&e.message||e));}}
 function _inspPhGroups9(kind){/* [BUILD3069] 접수성과 06.실측 데이타 사진 — 'rt'=photoMap(실시간), 'aft'=afterMap(후측량). 날짜 폴더 YYMMDD / 파일 이름 = 날짜 뒤 전체(2, 13-1 — split.pop이면 지거 13-1·14-1이 전부 1.jpg로 겹침) */
  var M=(kind==='aft')?((typeof afterMap!=='undefined'&&afterMap)||{}):((typeof photoMap!=='undefined'&&photoMap)||{});var G={};
- try{Object.keys(M).forEach(function(k){if(!M[k])return;var m=/^([0-9]{6})-(.+)$/.exec(String(k));var d=m?m[1]:'기타';var n=String(m?m[2]:k).replace(/[\\/:*?"<>|]/g,'_').trim()||'사진';(G[d]=G[d]||[]).push({no:k,name:n,url:M[k]});});}catch(_e){}
+ try{Object.keys(M).forEach(function(k){if(!M[k])return;try{if(!/^[0-9]{6}-/.test(String(k))){var q=(typeof pointByNo==='function')?pointByNo(String(k)):null;if(q&&typeof _phPtOk9==='function'&&!_phPtOk9(q))return;}}catch(_q){}/* [BUILD3071] 입상주 원천점에 잘못 붙은 사진은 접수 목록·ZIP에서 제외 */var m=/^([0-9]{6})-(.+)$/.exec(String(k));var d=m?m[1]:'기타';var n=String(m?m[2]:k).replace(/[\\/:*?"<>|]/g,'_').trim()||'사진';(G[d]=G[d]||[]).push({no:k,name:n,url:M[k]});});}catch(_e){}
  return Object.keys(G).sort().map(function(d){G[d].sort(function(a,b){return String(a.name).localeCompare(String(b.name),undefined,{numeric:true});});return {d:d,ph:G[d]};});}
 function _inspPhWin9(kind,d){/* [BUILD3069] 날짜 폴더 → 사진 바둑판(파일명 N.jpg), 누르면 크게 — 맨홀사진 창(_inspMhPhotos9)과 같은 틀 */
  try{var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');};var grp=null;_inspPhGroups9(kind).forEach(function(g){if(g.d===d)grp=g;});if(!grp){toast('사진 없음');return;}
@@ -17505,7 +17506,7 @@ function resolvePhotoNo(f){
   var rel=f.webkitRelativePath||f._relpath||'',date='';
   if(rel){var parts=rel.split('/');for(var i=parts.length-2;i>=0;i--){var m=(parts[i]||'').match(/20(\d{6})/)||(parts[i]||'').match(/(\d{6})/);if(m){date=m[1];break;}}}/* [BUILD2182] */
   if(!date&&f._zipdate)date=f._zipdate;
-  var pool=(state.points||[]);
+  var pool=(state.points||[]).filter(function(p){return (typeof _phPtOk9==='function')?_phPtOk9(p):true;});/* [BUILD3071] 입상주 원천점·이격기준점은 후보에서 제외 */
   var dpool=date?pool.filter(function(p){return _dateOfPt(p)===date;}):[];
   var cand=(date&&dpool.length)?dpool:pool;
   if((f._jgzip||/지거/.test(rel))&&date&&/^\d+-[1-4]$/.test(base))return {no:date+'-'+base,matched:true};/* [BUILD2125] 지거 ZIP: N-K.jpg → 날짜-N-K 직결 */
