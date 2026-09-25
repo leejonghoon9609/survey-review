@@ -9638,7 +9638,7 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
  var ov=document.createElement('div');ov.id='fsFinalOv9';
  ov.style.cssText='position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center';
  var box=document.createElement('div');
- box.style.cssText='background:#fff;border:2px solid #16a34a;border-radius:14px;width:min(94vw,580px);max-height:84vh;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden';
+ var _wide9=(!(typeof _rtPhone9==='function'&&_rtPhone9())&&typeof IS_POSITION!=='undefined'&&IS_POSITION);/* [BUILD3130] 정위치=두 단 넓은 창 */box.style.cssText='background:#fff;border:2px solid #16a34a;border-radius:14px;width:'+(_wide9?'min(96vw,1110px)':'min(94vw,580px)')+';max-height:'+(_wide9?'96vh':'84vh')+';display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden';
  ov.appendChild(box);document.body.appendChild(ov);
  function dlOf(k){return function(){
   try{
@@ -9672,31 +9672,33 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
   var bs9=(!regN&&!fd.final)?'background:#fff;border:1.5px solid #c0392b;color:#c0392b':(fd.final?'background:#c0392b;border:1.5px solid #c0392b;color:#fff;box-shadow:0 0 0 4px #f1c40f':'background:#c0392b;border:1.5px solid #c0392b;color:#fff');/* [BUILD2855] 기본=흰 바탕 빨간 글자, 하나라도 등록=빨간 바탕 흰 글자, 최종완료등록(fd.final)=노란 테두리(해제하면 사라짐) — 종전엔 12개 전부 등록 시 노란 테두리라 해제해도 남았음 */
   var h='<div id="fsHead9" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:#16a34a;display:inline-block"></span><b style="font-size:15px">'+((typeof IS_POSITION!=='undefined'&&IS_POSITION)?'정위치':'측량(현장)')+' 최종성과 — '+(state.projectName||'')+'</b></div>'/* [BUILD3032] 성과심사 최종성과 → 정위치 최종성과 */
    +'<div id="fsBody9" style="overflow:auto;padding:6px 12px">'
-   +'<div style="display:flex;align-items:center;gap:8px;padding:1px 0 6px;'+WB9+'">'
+   +'<div style="display:flex;align-items:center;gap:8px;padding:1px 0 6px;'+((!ph9&&ITEMS.length>10&&typeof IS_POSITION!=='undefined'&&IS_POSITION)?'width:1052px;max-width:100%;margin:0 auto':WB9)+'">'
    +'<div style="font-size:12.5px;color:'+G1+';font-weight:800">거리 합계 <span style="color:#0f6e56">'+(+tot.toFixed(1))+'m</span> · 측점 '+pts.length+'개 · 결선 '+seg+'개 · 성과 '+regN+'/'+ITEMS.length+'</div>'
    +'<button id="fsToNext9" style="margin-left:auto;'+bs9+';border-radius:8px;padding:7px 12px;font-weight:800;font-size:12px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;white-space:nowrap">'+((typeof IS_POSITION!=='undefined'&&IS_POSITION)?'정위치최종완료등록':'측량(현장)최종완료등록')+'</button></div>'
-   +'<table style="'+WB9+';border-collapse:collapse;font-size:13px;border:1.5px solid '+G2+';table-layout:fixed">'
+   ;/* [BUILD3130] 정위치(PC)는 두 단으로 나눠 세로 스크롤 없이 한 화면 */var _two9=(!ph9&&ITEMS.length>10&&typeof IS_POSITION!=='undefined'&&IS_POSITION);
+  var tblH=function(list,withAll){var t='<table style="'+(_two9?'width:520px;max-width:100%':WB9)+';border-collapse:collapse;font-size:13px;border:1.5px solid '+G2+';table-layout:fixed">'
    +(ph9?'<colgroup><col style="width:26px"><col><col style="width:58px"><col style="width:54px"></colgroup>':'<colgroup><col style="width:28px"><col style="width:260px"><col style="width:88px"><col style="width:70px"></colgroup>')
    +'<thead><tr style="background:'+G3+';color:'+G1+'">'
-   +'<th style="padding:7px 4px;border-bottom:1.5px solid '+G2+';'+VL+'"><input type="checkbox" id="fsChkAll9"'+(allDone?' checked':'')+' title="전체 선택/해제" style="width:15px;height:15px;cursor:pointer;vertical-align:middle"></th>'
+   +'<th style="padding:7px 4px;border-bottom:1.5px solid '+G2+';'+VL+'">'+(withAll?'<input type="checkbox" id="fsChkAll9"'+(allDone?' checked':'')+' title="전체 선택/해제" style="width:15px;height:15px;cursor:pointer;vertical-align:middle">':'')+'</th>'
    +'<th style="padding:7px 4px;border-bottom:1.5px solid '+G2+';text-align:center;'+VL+'">성과 · 내용</th>'
    +'<th style="border-bottom:1.5px solid '+G2+';text-align:center;font-size:'+Cf+'px;'+VL+'">'+(ph9?'건수':'파일 건수')+'</th>'
    +'<th style="border-bottom:1.5px solid '+G2+';text-align:center;font-size:'+Cf+'px">다운</th></tr></thead><tbody>';
-  ITEMS.forEach(function(it){
+  list.forEach(function(it){
    var k=it[0],reg=!!fd[k],on=(!!it[4]||reg),lab=it[5]||'받기';/* [BUILD2246] 등록완료면 다운 활성·점등 */
    var bs=on?(reg?'background:#16a34a;border:1.5px solid #16a34a;color:#fff':'background:#fff;border:1.5px solid #16a34a;color:#16a34a'):'background:#fff;border:1.5px solid #cfcfc8;color:#aaa';
-   h+='<tr style="border-bottom:1px solid #e3f0e7">'
+   t+='<tr style="border-bottom:1px solid #e3f0e7">'
     +'<td style="text-align:center;'+VL+'"><input type="checkbox" class="fsChk9" data-k="'+k+'"'+(reg?' checked':'')+' style="width:15px;height:15px;cursor:pointer"></td>'
     +'<td style="padding:'+Pd+';'+VL+'"><div style="font-weight:800;font-size:'+Nf+'px;color:'+(reg?'#c0392b':'#233')+'">'+it[1]+'</div>'/* [BUILD2238] 등록완료=빨강 텍스트 */+'<div style="font-size:'+If+'px;color:#667;margin-top:2px;line-height:1.35">'+it[3]+'</div></td>'
     +'<td style="text-align:center;white-space:nowrap;font-size:'+Cf+'px;'+VL+';color:'+(reg?'#c0392b':'#233')+';font-weight:'+(reg?'800':'400')+'">'+it[2]+'</td>'
-    +'<td style="text-align:center;padding:6px 3px"><button class="fsDl9" data-k="'+k+'" '+(on?'':'disabled ')+'style="'+bs+';border-radius:6px;padding:3px 0;width:'+Zw+'px;font-weight:800;font-size:'+Zf+'px;display:inline-flex;align-items:center;justify-content:center;margin:0 auto;cursor:'+(on?'pointer':'default')+'">'+lab+'</button>'+((k==='raw'&&typeof IS_POSITION!=='undefined'&&IS_POSITION&&state.rawMod9&&Object.keys(state.rawMod9).length)?('<button class="fsDiff9" title="수정원시 ↔ 원본 바이트 대조 보고서(엑셀) — 어느 파일 몇 줄이 어떻게 다른지" style="display:block;margin:4px auto 0;background:#fff;border:1.5px solid #b000d0;color:#b000d0;border-radius:6px;padding:2px 0;width:'+Zw+'px;font-weight:800;font-size:'+(Zf-1)+'px;cursor:pointer">대조</button>'):'')+'</td></tr>';/* [BUILD3049] 정위치 최종성과에 원본↔수정원시 대조 보고서 버튼(접수 ZIP엔 안 들어감) */
-  });
-  h+='</tbody></table></div>'
+    +'<td style="text-align:center;padding:6px 3px"><button class="fsDl9" data-k="'+k+'" '+(on?'':'disabled ')+'style="'+bs+';border-radius:6px;padding:3px 0;width:'+Zw+'px;font-weight:800;font-size:'+Zf+'px;display:inline-flex;align-items:center;justify-content:center;margin:0 auto;cursor:'+(on?'pointer':'default')+'">'+lab+'</button>'+((k==='raw'&&typeof IS_POSITION!=='undefined'&&IS_POSITION&&state.rawMod9&&Object.keys(state.rawMod9).length)?('<button class="fsDiff9" title="수정원시 ↔ 원본 바이트 대조 보고서(엑셀) — 어느 파일 몇 줄이 어떻게 다른지" style="display:block;margin:4px auto 0;background:#fff;border:1.5px solid #b000d0;color:#b000d0;border-radius:6px;padding:2px 0;width:'+Zw+'px;font-weight:800;font-size:'+(Zf-1)+'px;cursor:pointer">대조</button>'):'')+'</td></tr>';/* [BUILD3049] 정위치 최종성과에 원본↔수정원시 대조 보고 */
+  });return t+'</tbody></table>';};
+  if(_two9){var _half=Math.ceil(ITEMS.length/2);h+='<div style="display:flex;gap:12px;align-items:flex-start;justify-content:center">'+tblH(ITEMS.slice(0,_half),true)+tblH(ITEMS.slice(_half),false)+'</div>';}else h+=tblH(ITEMS,true);
+  h+='</div>'
    +'<div id="fsFoot9" style="padding:7px 12px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:8px">'
    +'<button id="fsReg9" style="background:#16a34a;color:#fff;border:0;border-radius:8px;padding:7px 18px;font-size:12.5px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center">등록</button>'
    +'<button id="fsClose9" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:7px 14px;font-size:12.5px;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;justify-content:center">닫기</button></div>';
   box.innerHTML=h;
-  try{var _ft=box.querySelector('#fsFoot9');if(_ft&&!ph9){_ft.style.width='520px';_ft.style.maxWidth='100%';_ft.style.margin='0 auto';_ft.style.paddingLeft='0';_ft.style.paddingRight='0';}}catch(_w9){}
+  try{var _ft=box.querySelector('#fsFoot9');if(_ft&&!ph9){_ft.style.width=(ITEMS.length>10&&typeof IS_POSITION!=='undefined'&&IS_POSITION)?'1052px':'520px';_ft.style.maxWidth='100%';_ft.style.margin='0 auto';_ft.style.paddingLeft='0';_ft.style.paddingRight='0';}}catch(_w9){}
   [].forEach.call(box.querySelectorAll('.fsDl9'),function(b){if(b.disabled)return;b.onclick=dlOf(b.getAttribute('data-k'));});[].forEach.call(box.querySelectorAll('.fsDiff9'),function(b){b.onclick=function(){if(typeof _rawDiffReport9==='function')_rawDiffReport9();};});/* [BUILD3049] */
   var _ca=box.querySelector('#fsChkAll9');
   if(_ca)_ca.onclick=function(){var v=_ca.checked;[].forEach.call(box.querySelectorAll('.fsChk9'),function(c){c.checked=v;});};
