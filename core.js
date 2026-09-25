@@ -9214,7 +9214,9 @@ function _posFldLatest9(cb){/* 같은 사업명 field 최신 완료본 */
 }
 function _posApplyFull9(pl,src){/* field payload 전체 결선 복사(원본 불변) */
   function cp(v){try{return v==null?v:JSON.parse(JSON.stringify(v));}catch(_e){return v;}}
-  state.points=cp(pl.points)||[];state.lines=cp(pl.lines)||[];
+  var keep9={};try{(state.points||[]).forEach(function(q){if(q&&q.no!=null&&(q._zEd9!=null||q._z0dep9!=null||q._xyEd9||q._xy0mv9||q._xyPend9))keep9[String(q.no)]=q;});}catch(_k9){}/* [BUILD3079] 정위치 편집 흔적(심도·이동)은 측점 번호로 새 배열에 되붙임 */
+  state.points=cp(pl.points)||[];
+  try{var kn=0;(state.points||[]).forEach(function(q){var h=q&&keep9[String(q.no)];if(!h)return;['_zEd9','_z0dep9','_xyEd9','_xy0mv9','_xyPend9'].forEach(function(k){if(h[k]!=null)q[k]=cp(h[k]);});if(h._xyEd9||h._xyPend9){q.x=h.x;q.y=h.y;}if(h._zEd9!=null)q.z=h.z;kn++;});if(kn)try{console.warn('[_posApplyFull9] 편집 흔적 '+kn+'점 유지');}catch(_w2){}}catch(_k8){}state.lines=cp(pl.lines)||[];
   try{state._lnBase9=null;_lnBaseSet9(state.lines);}catch(_lb){}
   state.manholes=cp(pl.manholes)||[];try{if(typeof _mhIdFix==='function')_mhIdFix();}catch(_mf){}
   state.mnList=cp(pl.mnList)||[];state.labelOff=cp(pl.labelOff)||{};
@@ -9228,12 +9230,15 @@ function _posApplyFull9(pl,src){/* field payload 전체 결선 복사(원본 불
   try{if(typeof updMeta==='function')updMeta();}catch(_um){}
   state.posSync9={sig:_posSig9(),at:Date.now(),src:(src&&src.updated_at)||null};
 }
+function _posHasEdits9(){/* [BUILD3079] 정위치 편집 흔적 — 심도수정(_zEd9/_z0dep9)·측점이동(_xyEd9/_xy0mv9/_xyPend9)·수정원시(rawMod9). 하나라도 있으면 열 때 자동 결선 반영으로 측점을 통째 바꾸면 안 된다 */
+ try{var n=0;(state.points||[]).forEach(function(q){if(q&&(q._zEd9!=null||q._z0dep9!=null||q._xyEd9||q._xy0mv9||q._xyPend9))n++;});if(n)return n;var R=state.rawMod9||{};for(var k in R)if(R[k])return 1;}catch(_e){}return 0;}
 function posAutoPull9(){/* 열 때 자동 — 정위치 수정 흔적(sig 불일치) 있으면 건드리지 않음 */
   try{
     if(!(typeof IS_POSITION!=='undefined'&&IS_POSITION))return;
     if(!online||!state.projectId||!state.projectName)return;
     if(window._posAuto9===state.projectId)return;window._posAuto9=state.projectId;var pid=state.projectId;
     var cur=_posSig9();
+    if(_posHasEdits9()){try{console.warn('[posAutoPull9] 정위치 편집 흔적 있음 — 자동 반영 건너뜀');}catch(_w){}return;}/* [BUILD3079] ★sig가 같아도(추가분 반영 버튼이 sig를 현재 상태로 다시 찍음) 편집 흔적이 있으면 절대 통째 반영 금지 — 3078 이전엔 이 경우 심도수정·측점이동이 전부 사라졌음 */
     if(state.posSync9&&state.posSync9.sig&&state.posSync9.sig!==cur)return;/* 정위치 작업 있음 → 자동 금지, 버튼으로 선택 반영 */
     _posFldLatest9(function(src){
       if(!src||state.projectId!==pid)return;var pl=src.payload||{};
