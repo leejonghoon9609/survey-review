@@ -22924,6 +22924,38 @@ function _ngisPreview9(on){/* [BUILD3098] 도면창 확인 — 도곽·격자·�
   if(window._ngisMode9==='edit'){_ngisEdPreview9(g,r.S.cell);var _cxu=(p1.x+p2.x)/2,_uw2=Math.min(_ngisTitleW9(title,10)*1.15,213.7)/2+9;var _ua=S(_cxu-_uw2,p1.y+7.42),_ub=S(_cxu+_uw2,p1.y+7.42);g.appendChild(el('line',{x1:_ua[0],y1:_ua[1],x2:_ub[0],y2:_ub[1],stroke:'#222','stroke-width':0.3,'pointer-events':'none'}));/* [BUILD3120] 밑줄 */ex(S(p1.x-34,p1.y+36));ex(S(p2.x+29,p3.y-74));}else{ex(S(p1.x-20,p1.y+20));ex(S(p2.x+5,p3.y-5));}/* [BUILD3117] 편집본 테두리·범례 */});
  try{var pad=8;vb={x:bx[0]-pad,y:bx[1]-pad,w:(bx[2]-bx[0])+2*pad,h:(bx[3]-bx[1])+2*pad};fixAspect();applyVB();}catch(_v){}
 }
+/* ===== [BUILD3133] ★항공사진 배경 — 브이월드 WMTS Satellite 타일을 SVG 월드좌표에 정합해 깔기(타일 네 귀를 proj4로 TM 변환 → matrix). 백판·SD 밑(cv 첫 자식). 도면창 뷰 바뀔 때마다 갱신, 타일 요소 캐시. 키는 도메인 잠금(leejonghoon9609.github.io) 개발키(만료 2027-03-25) ===== */
+var VWORLD_KEY9='6B2906FE-C61F-4E10-88C7-3A9B534BEDBB';
+window._air9={on:false,g:null,tiles:{},t:0,mo:null,layer:'Satellite'};
+function _airTileUrl9(z,x,y,layer){var L=layer||'Satellite';return 'https://api.vworld.kr/req/wmts/1.0.0/'+VWORLD_KEY9+'/'+L+'/'+z+'/'+y+'/'+x+(L==='Satellite'?'.jpeg':'.png');}
+function _airLL2T9(lat,lng,z){var n=Math.pow(2,z);var x=(lng+180)/360*n;var s=Math.sin(lat*Math.PI/180);var y=(0.5-Math.log((1+s)/(1-s))/(4*Math.PI))*n;return [x,y];}
+function _airT2LL9(x,y,z){var n=Math.pow(2,z);var lng=x/n*360-180;var k=Math.PI*(1-2*y/n);var lat=Math.atan(Math.sinh(k))*180/Math.PI;return [lat,lng];}
+function _airG9(){var A=window._air9;if(!A.g){A.g=el('g',{id:'gAir9','pointer-events':'none'});}if(A.g.parentNode!==cv||cv.firstChild!==A.g)cv.insertBefore(A.g,cv.firstChild);return A.g;}
+function airToggle9(){var A=window._air9;var b=document.getElementById('airBtn9');
+ if(A.on){A.on=false;if(A.g)A.g.style.display='none';if(b){b.style.background='#fff';b.style.color='#1b5e20';}toast('항공사진 끔');return;}
+ if(typeof proj4==='undefined'||!window.ORG){toast('좌표계 준비 안 됨 — 사업을 먼저 여세요');return;}
+ A.on=true;_airG9().style.display='';if(b){b.style.background='#1b5e20';b.style.color='#fff';}
+ if(!A.mo){try{A.mo=new MutationObserver(function(){_airRefresh9(false);});A.mo.observe(cv,{attributes:true,attributeFilter:['viewBox']});}catch(_m){}}
+ _airRefresh9(true);toast('항공사진(브이월드) — 좌표 정합 배경');}
+function _airRefresh9(now){var A=window._air9;if(!A.on)return;if(A.t)clearTimeout(A.t);A.t=setTimeout(function(){A.t=0;try{_airDraw9();}catch(e){console.error('[air]',e);}},now?0:140);}
+function _airDraw9(){var A=window._air9;if(!A.on)return;var g=_airG9();var crs=state.crs||'5186';
+ var x0=vb.x+ORG.x,x1=vb.x+vb.w+ORG.x,y1=ORG.y-vb.y,y0=ORG.y-(vb.y+vb.h);
+ var cw=Math.max(cv.getBoundingClientRect().width,1);var mpp=vb.w/cw;/* 화면 1px당 m */
+ var c=toLatLng((x0+x1)/2,(y0+y1)/2,crs);if(!c)return;var cosl=Math.cos(c.lat*Math.PI/180);
+ var z=Math.round(Math.log(156543.03*cosl/mpp)/Math.LN2);z=Math.max(10,Math.min(19,z));
+ var cs=[toLatLng(x0,y0,crs),toLatLng(x1,y0,crs),toLatLng(x0,y1,crs),toLatLng(x1,y1,crs)];if(cs.some(function(q){return !q;}))return;
+ var rng=function(zz){var tx0=1e9,tx1=-1e9,ty0=1e9,ty1=-1e9;cs.forEach(function(q){var t=_airLL2T9(q.lat,q.lng,zz);tx0=Math.min(tx0,t[0]);tx1=Math.max(tx1,t[0]);ty0=Math.min(ty0,t[1]);ty1=Math.max(ty1,t[1]);});return {X0:Math.floor(tx0),X1:Math.floor(tx1),Y0:Math.floor(ty0),Y1:Math.floor(ty1)};};
+ var R=rng(z);while(z>10&&((R.X1-R.X0+1)*(R.Y1-R.Y0+1))>240){z--;R=rng(z);}
+ var keep={};for(var tx=R.X0;tx<=R.X1;tx++)for(var ty=R.Y0;ty<=R.Y1;ty++){var key=z+'/'+tx+'/'+ty;keep[key]=1;
+  var nw=_airT2LL9(tx,ty,z),ne=_airT2LL9(tx+1,ty,z),sw=_airT2LL9(tx,ty+1,z);
+  var P0=_posFromLL(nw[0],nw[1]),P1=_posFromLL(ne[0],ne[1]),P2=_posFromLL(sw[0],sw[1]);if(!P0||!P1||!P2)continue;
+  var TL=S(P0.x,P0.y),TR=S(P1.x,P1.y),BL=S(P2.x,P2.y);var a=(TR[0]-TL[0])/256,b=(TR[1]-TL[1])/256,cc=(BL[0]-TL[0])/256,d=(BL[1]-TL[1])/256;
+  var im=A.tiles[key];if(!im){im=el('image',{x:0,y:0,width:256.6,height:256.6,preserveAspectRatio:'none','pointer-events':'none'});var u=_airTileUrl9(z,tx,ty,A.layer);try{im.setAttributeNS('http://www.w3.org/1999/xlink','href',u);}catch(_h){}im.setAttribute('href',u);A.tiles[key]=im;}
+  im.setAttribute('transform','matrix('+a.toFixed(8)+' '+b.toFixed(8)+' '+cc.toFixed(8)+' '+d.toFixed(8)+' '+TL[0].toFixed(4)+' '+TL[1].toFixed(4)+')');if(im.parentNode!==g)g.appendChild(im);}
+ for(var k in A.tiles){if(!keep[k]){var e=A.tiles[k];if(e.parentNode)e.parentNode.removeChild(e);delete A.tiles[k];}}}
+function _airBtnInit9(){try{if(!(typeof IS_POSITION!=='undefined'&&IS_POSITION))return;if(document.getElementById('airBtn9'))return;var ref=document.getElementById('vMap')||document.getElementById('bgBtn');if(!ref)return;var b=document.createElement('button');b.id='airBtn9';b.className='photoBtn';b.textContent='🛰 항공사진';b.title='브이월드 항공사진을 좌표에 맞춰 도면창 밑에 깔기';b.style.cssText='background:#fff;color:#1b5e20;border:1px solid #1b5e20;font-weight:700';b.onclick=function(ev){try{ev.stopPropagation();}catch(_e){}airToggle9();};ref.parentNode.insertBefore(b,ref);}catch(_e){}}
+try{setTimeout(_airBtnInit9,800);}catch(_ai){}
+
 /* ===== [BUILD3117] ★도면제작(NGIS)편집 = NGIS DATA + 바깥 테두리·표제 밑줄·범례 표(도곽 아래)·축척 막대·방위표. 타사업 샘플(377091739 편집본) 도곽 밖 엔티티 1,334개를 `dxf/tpl_ngis_edit.ent`로 뽑아 두고, 도곽 bbox 좌하단 기준 평행이동으로 도엽마다 붙인다(샘플 기준점 207975.77,525640.40). 모드는 window._ngisMode9('data'|'edit') ===== */
 var NGIS_EDIT_REF9=[207975.77,525640.40];var NGIS_EDIT_COL9={'0':'#222','DORO':'#00a6b8','H0010601':'#222','SD000':'#e02020','SD001':'#00a33e','SD001_1':'#00a33e','SD001_2':'#00a33e','SD002':'#00a33e','SD002_1':'#00a33e','SD002_2':'#00a33e','SD100':'#222','SD101':'#222','SD110':'#00a33e','SD213':'#00a6b8','SD214':'#222','SD219':'#222','SD300':'#222','SD301':'#222','SD901':'#00a33e','SD910':'#222','SD911':'#222','SD911-1':'#222','SD983':'#222','SD994':'#00a33e','SD995':'#222','SD999':'#e02020','SDDIM':'#00a6b8','SDDIM1':'#00a6b8','SDSIM_T':'#b0b0b0','SD_관상고':'#00a33e','TITLE':'#222','sd216':'#00a33e','기타':'#222'};/* [BUILD3118] 샘플 레이어 색(ACI→hex) */
 function _ngisM9(){var ed=(window._ngisMode9==='edit');if(window._ngisMode9==='edwg')return {mode:'edwg',label:'전자도면',zip:'07.전자도면.zip',regKey:'ngisEwReg9',fdKey:'ngisEw',path:'ngis_edwg.zip',btn:'posEx_edwg9',col:'#e65100',title:'전자도면',prevKey:'ngisEwPrev9'};/* [BUILD3128] 도엽별 */if(window._ngisMode9==='meas')return {mode:'meas',label:'실측 DATA',zip:'06.실측 DATA.zip',regKey:'ngisMsReg9',fdKey:'ngisMs',path:'ngis_meas.zip',btn:'posEx_data9',col:'#2e7d32',title:'실측 DATA',prevKey:'ngisMsPrev9',one:true};/* [BUILD3126] 통판 1장 */if(window._ngisMode9==='index')return {mode:'index',label:'인덱스',zip:'05.인덱스.zip',regKey:'ngisIdxReg9',fdKey:'ngisIdx',path:'ngis_index.zip',btn:'posEx_index9',col:'#00838f',title:'인덱스',prevKey:'ngisIdxPrev9',one:true};/* [BUILD3124] 통판 1장 */return ed?{mode:'edit',label:'도면제작(NGIS)편집',zip:'02.도면제작(NGIS)편집.zip',regKey:'ngisEdReg9',fdKey:'ngisEd',path:'ngis_edit.zip',btn:'posEx_ngisEd9',col:'#1565c0',title:'도면제작(NGIS)편집',prevKey:'ngisEdPrev9'}:{mode:'data',label:'NGIS DATA',zip:'01.NGIS DATA.zip',regKey:'ngisReg9',fdKey:'ngis',path:'ngis_data.zip',btn:'posEx_ngis9',col:'#b000d0',title:'NGIS DATA 제작',prevKey:'ngisPrev9'};}
