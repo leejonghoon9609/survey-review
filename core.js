@@ -22442,8 +22442,10 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
  function addBox(S,x0,y0,x1,y1){S.boxes.push([Math.min(x0,x1),Math.min(y0,y1),Math.max(x0,x1),Math.max(y0,y1)]);}
  function hitBoxN(S,x0,y0,x1,y1){var a=[Math.min(x0,x1),Math.min(y0,y1),Math.max(x0,x1),Math.max(y0,y1)];var n=0;for(var i=0;i<S.boxes.length;i++){var b=S.boxes[i];if(a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1])n++;}return n;}/* [BUILD2318] 겹침 개수 */
  function hitBox(S,x0,y0,x1,y1){var a=[Math.min(x0,x1),Math.min(y0,y1),Math.max(x0,x1),Math.max(y0,y1)];for(var i=0;i<S.boxes.length;i++){var b=S.boxes[i];if(a[0]<b[2]&&a[2]>b[0]&&a[1]<b[3]&&a[3]>b[1])return true;}return false;}
- /* 1) 관로 SD001 — 세그먼트 중점 도엽 배정 */
- pipes.forEach(function(l){var cur=null,buf=[];var _tm9=(l.bult?1:0);/* [BUILD2287] \ubd88\ud0d0(\ud0d0\uc0ac)\uad00\ub85c\uc120 \ud45c\uc2dd */
+ /* 1) 관로 SD001 — 세그먼트 중점 도엽 배정. [BUILD3102] ★정위치 구간(posSplitSegs9 raws: 분기·절단·병합·복선 접기 반영, SD 전용 화면의 구간과 동일) 단위로 폴리선 1본씩 — 구간 사이는 끊기고 구간 안은 이어짐. 구간 정보가 없을 때만 종전(그린 선 단위) */
+ var _sdRows9=null;try{var _pv0=(typeof posSplitSegs9==='function')?posSplitSegs9():null;if(_pv0&&_pv0.raws&&_pv0.raws.length)_sdRows9=_pv0.raws;}catch(_pr0){}
+ function _bultAt9(x,y){for(var i=0;i<pipes.length;i++){var ps=pipes[i].pts;for(var q=0;q<ps.length-1;q++){var a=ps[q],b=ps[q+1];var dx=b[0]-a[0],dy=b[1]-a[1],L2=dx*dx+dy*dy;if(L2<1e-9)continue;var u=((x-a[0])*dx+(y-a[1])*dy)/L2;if(u<-0.001||u>1.001)continue;if(Math.hypot(x-(a[0]+u*dx),y-(a[1]+u*dy))<0.05)return pipes[i].bult?1:0;}}return 0;}
+ (_sdRows9?_sdRows9.map(function(rw){return {pts:rw,bult:null};}):pipes).forEach(function(l){var cur=null,buf=[];var _tm9=(l.bult==null)?_bultAt9((l.pts[0][0]+l.pts[1][0])/2,(l.pts[0][1]+l.pts[1][1])/2):(l.bult?1:0);/* [BUILD2287] 불탐(탐사)관로선 표식 */
   function flush(){if(cur&&buf.length>=2)cur.items.push({t:'pl',lay:'SD001',pts:buf,cl:0,tam:_tm9});buf=[];}
   for(var i=0;i<l.pts.length-1;i++){var a=l.pts[i],b=l.pts[i+1];var S=shget((a[0]+b[0])/2,(a[1]+b[1])/2);if(!S)continue;
    if(S!==cur){flush();cur=S;buf=[a.slice(0,2)];}
