@@ -22722,9 +22722,9 @@ function _ngisFrame9(c){var p1=_posFromLL(c.latN,c.lngW),p2=_posFromLL(c.latN,c.
 function _ngisClipLine9(P,vert,v){/* 도곽(사각) 안에서 x=v(vert) 또는 y=v 직선의 두 끝점 */
  var pts=[];for(var k=0;k<4;k++){var a=P[k],b=P[(k+1)%4];var da=vert?(a.x-v):(a.y-v),db=vert?(b.x-v):(b.y-v);if((da<0&&db<0)||(da>0&&db>0)||da===db)continue;var t=da/(da-db);pts.push([a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t]);}
  if(pts.length<2)return null;pts.sort(function(u,w){return vert?(u[1]-w[1]):(u[0]-w[0]);});return [pts[0],pts[pts.length-1]];}
-function _ngisFrameEnts9(no,c,title){/* 도곽·격자·모서리 좌표·표제 (샘플 오프셋 실측) */
- var P=_ngisFrame9(c);if(!P)return '';var p1=P[0],p2=P[1],p3=P[2],p4=P[3];var e='';
- e+=_pdPL('H0017334',[[p1.x,p1.y],[p2.x,p2.y],[p3.x,p3.y],[p4.x,p4.y],[p1.x,p1.y]],false);/* [BUILD3099] 샘플과 동일: 5점 열린 폴리선 */
+function _ngisFrameEnts9(no,c,title,opt){/* 도곽·격자·모서리 좌표·표제 (샘플 오프셋 실측) [BUILD3100] opt.noFrame/noTitle/noName=백판에 이미 있는 것 생략 */
+ opt=opt||{};var P=_ngisFrame9(c);if(!P)return '';var p1=P[0],p2=P[1],p3=P[2],p4=P[3];var e='';
+ if(!opt.noFrame){e+=_pdPL('H0017334',[[p1.x,p1.y],[p2.x,p2.y],[p3.x,p3.y],[p4.x,p4.y],[p1.x,p1.y]],false);/* [BUILD3099] 샘플과 동일: 5점 열린 폴리선 */
  var xs=[p1.x,p2.x,p3.x,p4.x],ys=[p1.y,p2.y,p3.y,p4.y];var x0=Math.min.apply(0,xs),x1=Math.max.apply(0,xs),y0=Math.min.apply(0,ys),y1=Math.max.apply(0,ys);
  for(var gx=Math.ceil(x0/100)*100;gx<x1;gx+=100){var L=_ngisClipLine9(P,true,gx);if(L)e+=_pdPL('H0037335',L,false);}
  for(var gy=Math.ceil(y0/100)*100;gy<y1;gy+=100){var L2=_ngisClipLine9(P,false,gy);if(L2)e+=_pdPL('H0037335',L2,false);}
@@ -22732,15 +22732,68 @@ function _ngisFrameEnts9(no,c,title){/* 도곽·격자·모서리 좌표·표제
  e+=_pdText('H0010601',p1.x-16.5,p1.y-2.0,2,f(p1.y));e+=_pdText('H0010601',p1.x,p1.y+16.5,2,f(p1.x),270);
  e+=_pdText('H0010601',p2.x,p2.y-2.0,2,f(p2.y));e+=_pdText('H0010601',p2.x-2.0,p2.y+16.5,2,f(p2.x),270);
  e+=_pdText('H0010601',p3.x,p3.y,2,f(p3.y));e+=_pdText('H0010601',p3.x-2.0,p3.y-0.4,2,f(p3.x),270);
- e+=_pdText('H0010601',p4.x-16.5,p4.y,2,f(p4.y));e+=_pdText('H0010601',p4.x,p4.y-0.4,2,f(p4.x),270);
- e+=_pdText('TITLE',p1.x+3.25,p1.y+2.18,7,'S=1:1000',0,null,'Standard');
- var cx9=(p1.x+p2.x)/2;e+=_pdText('TITLE',cx9-106.85,p1.y+7.03,10,title||'',0,[cx9+106.85,p1.y+7.03,5],'Standard');/* [BUILD3099] 샘플 4장 실측: 72=5(fit) 폭 213.7 도곽 중앙 */
- e+=_pdText('NAME',p2.x-97,p2.y+2.5,10,String(no));
+ e+=_pdText('H0010601',p4.x-16.5,p4.y,2,f(p4.y));e+=_pdText('H0010601',p4.x,p4.y-0.4,2,f(p4.x),270);}
+ if(!opt.noTitle){e+=_pdText('TITLE',p1.x+3.25,p1.y+2.18,7,'S=1:1000',0,null,'Standard');
+ var cx9=(p1.x+p2.x)/2;e+=_pdText('TITLE',cx9-106.85,p1.y+7.03,10,title||'',0,[cx9+106.85,p1.y+7.03,5],'Standard');}/* [BUILD3099] 샘플 4장 실측: 72=5(fit) 폭 213.7 도곽 중앙 */
+ if(!opt.noName)e+=_pdText('NAME',p2.x-97,p2.y+2.5,10,String(no));
  return e;}
-function _ngisSheetDxf9(tpl,no,S,title){/* 템플릿 테이블(SD 레이어·블록·스타일)만 쓰고 범례 엔티티는 버림 */
- var body=_dxfAddLayers9(tpl,NGIS_LAYERS9);var ent=_pdSer9(S.items)+_ngisFrameEnts9(no,S.cell,title);
+/* ===== [BUILD3100] ★백판(도엽 원본 DXF) 병합 — 올린 도엽 백판 파일을 그대로 바탕으로 쓰고(도곽·표제·수치지도 전부 원본 유지) SD 엔티티 + 필요한 레이어·스타일·선종류·블록 정의만 주입. 정의 원천은 tpl_pos_legend.dxf, 핸들은 전부 새로 발급(_pdHx, 원본 HANDSEED 위) ===== */
+function _dxfTab9(t,name){/* TABLE 구간: {i:'  0\r\nTABLE' 시작, e:ENDTAB 위치, h:테이블 핸들} */
+ var re=new RegExp('  0\\r\\nTABLE\\r\\n  2\\r\\n'+name+'\\r\\n  5\\r\\n([0-9A-Fa-f]+)');var m=re.exec(t);if(!m)return null;var i=m.index;var e=t.indexOf('\r\n  0\r\nENDTAB',i);if(e<0)return null;return {i:i,e:e,h:m[1]};}
+function _dxfRecs9(t,tab,type){/* 테이블 안 레코드 {name:chunk} */
+ var out={};if(!tab)return out;var sec=t.slice(tab.i,tab.e);var parts=sec.split('\r\n  0\r\n'+type+'\r\n');for(var k=1;k<parts.length;k++){var ch='  0\r\n'+type+'\r\n'+parts[k];var nm=/\r\n  2\r\n([^\r]*)\r\n/.exec(ch);if(nm)out[nm[1]]=ch;}return out;}
+function _dxfStrip102_9(ch){return ch.replace(/\r\n102\r\n\{[^\r]*\r\n(?:[^\r]*\r\n)*?102\r\n\}/g,'');}
+function _dxfRehandle9(ch,owner){/* 새 핸들(5) · 소유자(330) 통일 · 102 그룹 제거 · 347/348/390 제거(원본 객체 참조) */
+ ch=_dxfStrip102_9(ch);ch=ch.replace(/\r\n  5\r\n[0-9A-Fa-f]+/g,function(){return '\r\n  5\r\n'+_pdHx();});if(owner!=null)ch=ch.replace(/\r\n330\r\n[0-9A-Fa-f]+/g,'\r\n330\r\n'+owner);ch=ch.replace(/\r\n(347|348|390)\r\n[^\r]*/g,'');return ch;}
+function _ngisMerge9(base,tpl,ent,extra){/* base=백판 DXF 텍스트, ent=우리 ENTITIES 문자열(핸들 발급 완료), extra={layers:[[name,color]]} */
+ var out=base;
+ var seed=/\$HANDSEED\r\n  5\r\n([0-9A-Fa-f]+)/.exec(out);if(seed){var sv=parseInt(seed[1],16);if(sv+0x100>_pdH)_pdH=sv+0x100;}
+ var T={LAYER:_dxfTab9(out,'LAYER'),STYLE:_dxfTab9(out,'STYLE'),LTYPE:_dxfTab9(out,'LTYPE'),BR:_dxfTab9(out,'BLOCK_RECORD')};
+ if(!T.LAYER||!T.STYLE||!T.LTYPE||!T.BR)throw new Error('백판 DXF 테이블 구조를 읽지 못함');
+ var bL=_dxfRecs9(out,T.LAYER,'LAYER'),bS=_dxfRecs9(out,T.STYLE,'STYLE'),bT=_dxfRecs9(out,T.LTYPE,'LTYPE'),bB=_dxfRecs9(out,T.BR,'BLOCK_RECORD');
+ var tL=_dxfRecs9(tpl,_dxfTab9(tpl,'LAYER'),'LAYER'),tS=_dxfRecs9(tpl,_dxfTab9(tpl,'STYLE'),'STYLE'),tT=_dxfRecs9(tpl,_dxfTab9(tpl,'LTYPE'),'LTYPE');
+ var ps=/\r\n390\r\n([0-9A-Fa-f]+)/.exec(out.slice(T.LAYER.i,T.LAYER.e));var psh=ps?ps[1]:null;
+ /* 필요한 것 수집 */
+ var needL={},needS={},needB={};
+ (ent.match(/\r\n  8\r\n[^\r]+/g)||[]).forEach(function(m){needL[m.slice(7)]=1;});
+ (ent.match(/\r\n  7\r\n[^\r]+/g)||[]).forEach(function(m){needS[m.slice(7)]=1;});
+ (ent.match(/AcDbBlockReference\r\n  2\r\n[^\r]+/g)||[]).forEach(function(m){needB[m.slice(25)]=1;});
+ (extra&&extra.layers||[]).forEach(function(L){needL[L[0]]=1;});
+ /* 블록 정의 복사(tpl BLOCKS 섹션) — 블록 안 레이어·스타일도 필요 목록에 */
+ var tbs=tpl.indexOf('\r\n  2\r\nBLOCKS\r\n'),tbe=tpl.indexOf('\r\n  0\r\nENDSEC',tbs);var tBlocks=tpl.slice(tbs,tbe);
+ var brAdd='',blkAdd='';
+ var tChunks={};(function(){var parts=tBlocks.split('\r\n  0\r\nBLOCK\r\n');for(var k=1;k<parts.length;k++){var ch='  0\r\nBLOCK\r\n'+parts[k];var nm=/\r\n  2\r\n([^\r]*)\r\n/.exec(ch);if(!nm)continue;var en=ch.indexOf('\r\n  0\r\nENDBLK');if(en<0)continue;var en2=ch.indexOf('\r\n  0\r\n',en+8);tChunks[nm[1]]=ch.slice(0,en2<0?ch.length:en2);}})();/* [BUILD3100] 블록 이름→BLOCK…ENDBLK 덩어리 */
+ Object.keys(needB).forEach(function(nm){if(bB[nm])return;var chunk=tChunks[nm];if(!chunk)return;
+  var brh=_pdHx();brAdd+='\r\n  0\r\nBLOCK_RECORD\r\n  5\r\n'+brh+'\r\n330\r\n'+T.BR.h+'\r\n100\r\nAcDbSymbolTableRecord\r\n100\r\nAcDbBlockTableRecord\r\n  2\r\n'+nm+'\r\n340\r\n0';
+  chunk=_dxfRehandle9(chunk,brh);blkAdd+='\r\n'+chunk.replace(/\r\n$/,'');
+  (chunk.match(/\r\n  8\r\n[^\r]+/g)||[]).forEach(function(q){needL[q.slice(7)]=1;});(chunk.match(/\r\n  7\r\n[^\r]+/g)||[]).forEach(function(q){needS[q.slice(7)]=1;});
+ });
+ /* 레이어(+선종류) */
+ var lAdd='',ltAdd='';
+ Object.keys(needL).forEach(function(nm){if(bL[nm])return;var src=tL[nm];var col=7,lt='Continuous';if(src){var c=/\r\n 62\r\n\s*(-?\d+)/.exec(src);if(c)col=+c[1];var l=/\r\n  6\r\n([^\r]+)/.exec(src);if(l)lt=l[1];}
+  (extra&&extra.layers||[]).forEach(function(L){if(L[0]===nm&&L[1])col=L[1];});
+  if(lt!=='Continuous'&&!bT[lt]&&tT[lt]){ltAdd+='\r\n'+_dxfRehandle9(tT[lt],T.LTYPE.h).replace(/\r\n$/,'');bT[lt]=1;}else if(lt!=='Continuous'&&!bT[lt])lt='Continuous';
+  lAdd+='\r\n  0\r\nLAYER\r\n  5\r\n'+_pdHx()+'\r\n330\r\n'+T.LAYER.h+'\r\n100\r\nAcDbSymbolTableRecord\r\n100\r\nAcDbLayerTableRecord\r\n  2\r\n'+nm+'\r\n 70\r\n     0\r\n 62\r\n     '+col+'\r\n  6\r\n'+lt+'\r\n370\r\n    -3'+(psh?'\r\n390\r\n'+psh:'');});
+ /* 스타일 */
+ var sAdd='';Object.keys(needS).forEach(function(nm){if(bS[nm])return;var src=tS[nm];if(!src)return;sAdd+='\r\n'+_dxfRehandle9(src,T.STYLE.h).replace(/\r\n$/,'');});
+ /* 뒤에서 앞 순서로 삽입(오프셋 보존): ENTITIES → BLOCKS → BLOCK_RECORD → STYLE → LTYPE → LAYER (파일 순서는 LTYPE<LAYER<STYLE<…<BLOCK_RECORD<BLOCKS<ENTITIES) */
+ var ei=out.indexOf('\r\nENTITIES\r\n');var ee=out.indexOf('\r\n  0\r\nENDSEC',ei);if(ei<0||ee<0)throw new Error('ENTITIES 없음');
+ out=out.slice(0,ee)+'\r\n'+ent.replace(/\r\n$/,'')+out.slice(ee);
+ var bs=out.indexOf('\r\n  2\r\nBLOCKS\r\n');var be=out.indexOf('\r\n  0\r\nENDSEC',bs);if(blkAdd)out=out.slice(0,be)+blkAdd+out.slice(be);
+ var ins=function(tabName,add){if(!add)return;var tb=_dxfTab9(out,tabName);out=out.slice(0,tb.e)+add+out.slice(tb.e);};
+ ins('BLOCK_RECORD',brAdd);ins('STYLE',sAdd);ins('LAYER',lAdd);ins('LTYPE',ltAdd);
+ out=out.replace(/(\$HANDSEED\r\n  5\r\n)[0-9A-Fa-f]+/,function(_m,_g){return _g+(_pdH+0x1000).toString(16).toUpperCase();});
+ return out;}
+function _ngisBaseFor9(no){/* 올린 백판 중 이 도엽 것: 파일명 9자리 = 도엽번호 */
+ var bl=window._ngisBase9||[];for(var i=0;i<bl.length;i++){var f=bl[i];var m=/(\d{9})/.exec(f.name||'');if(m&&m[1]===String(no))return f;}return null;}
+function _ngisSheetDxf9(tpl,no,S,title){/* [BUILD3100] 백판 있으면 병합, 없으면 템플릿 테이블만(범례 없음) */
+ var bf=_ngisBaseFor9(no);
+ if(bf){try{var base=bf.txt||(bf.txt=decodeBuf(bf.buf));var hasFrame=/\r\n  8\r\nH0017334\r\n/.test(base),hasTitle=/\r\n  8\r\nTITLE\r\n/.test(base),hasName=/\r\n  8\r\nNAME\r\n/.test(base);
+   var ent=_pdSer9(S.items);if(!hasFrame)ent+=_ngisFrameEnts9(no,S.cell,title,{noTitle:hasTitle,noName:hasName});else{if(!hasTitle||!hasName)ent+=_ngisFrameEnts9(no,S.cell,title,{noFrame:true,noTitle:hasTitle,noName:hasName});}
+   return _ngisMerge9(base,tpl,ent,{layers:NGIS_LAYERS9});}catch(e){toast('백판 병합 실패('+no+'): '+(e&&e.message||e)+' — 템플릿으로 생성');}}
+ var body=_dxfAddLayers9(tpl,NGIS_LAYERS9);var ent2=_pdSer9(S.items)+_ngisFrameEnts9(no,S.cell,title);
  var ei=body.indexOf('\r\nENTITIES\r\n');var endI=body.indexOf('\r\n  0\r\nENDSEC',ei);if(ei<0||endI<0)return null;
- var out=body.slice(0,ei+'\r\nENTITIES'.length)+'\r\n'+ent.replace(/\r\n$/,'')+body.slice(endI);
+ var out=body.slice(0,ei+'\r\nENTITIES'.length)+'\r\n'+ent2.replace(/\r\n$/,'')+body.slice(endI);
  out=out.replace(/(\$HANDSEED\r\n  5\r\n)[0-9A-Fa-f]+/,function(_m,_g){return _g+(_pdH+0x1000).toString(16).toUpperCase();});return out;}
 function _ngisTitle9(){return (state.ngisTitle9&&String(state.ngisTitle9).trim())||String(state.projectName||'').replace(/_P\d*$/,'');}
 function _ngisRows9(){var sc=posScene9();if(!sc)return null;var SH=sc.SH;return Object.keys(SH).sort().map(function(no){var S=SH[no];var c={pt:0,mh:0,ri:0,ln:0};S.items.forEach(function(it){if(it.t==='ins'&&it.lay==='SD901')c.pt++;else if(it.t==='ins'&&it.lay==='SD100')c.mh++;else if(it.t==='ins'&&it.lay==='SD300')c.ri++;else if(it.t==='pl'&&it.lay==='SD001')c.ln++;});return {no:no,S:S,cnt:c};});}
@@ -22776,8 +22829,8 @@ function _posEx_ngis9(){/* 추가성과 제작 바 → NGIS DATA 제작 창 */
   var rows=_ngisRows9();if(!rows||!rows.length){toast('통신관로 없음 — 정위치 대상 데이터를 확인하세요');return;}
   var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');};
   var ov=document.createElement('div');ov.id='ngisOv9';ov.style.cssText='position:fixed;inset:0;z-index:100060;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center';
-  var tr=rows.map(function(r){return '<tr><td style="font-weight:800;color:#4a148c">'+E(r.no)+'</td><td>'+r.cnt.pt+'</td><td>'+r.cnt.mh+'</td><td>'+r.cnt.ri+'</td><td>'+r.cnt.ln+'</td><td style="color:#999">다음 빌드</td><td><button class="ngDl9" data-no="'+E(r.no)+'" style="font-size:11px;font-weight:800;padding:3px 9px;border:1.5px solid #b000d0;border-radius:6px;background:#fff;color:#b000d0;cursor:pointer">DXF</button></td></tr>';}).join('');
-  var bl=(window._ngisBase9||[]);var blH=bl.length?bl.map(function(f){return '<div style="padding:1px 0;color:#455a64;font-weight:700">📄 '+E(f.name)+' <span style="color:#999;font-weight:400">('+Math.round(f.size/1024)+'KB)</span></div>';}).join(''):'<div style="color:#999">올린 파일 없음 — 수치지도 원본 DXF(도엽 전체)를 올리면 다음 빌드부터 백판으로 병합됩니다</div>';
+  var tr=rows.map(function(r){return '<tr><td style="font-weight:800;color:#4a148c">'+E(r.no)+'</td><td>'+r.cnt.pt+'</td><td>'+r.cnt.mh+'</td><td>'+r.cnt.ri+'</td><td>'+r.cnt.ln+'</td><td style="font-size:11px;color:'+((typeof _ngisBaseFor9==='function'&&_ngisBaseFor9(r.no))?'#2e7d32;font-weight:800':'#999')+'">'+((typeof _ngisBaseFor9==='function'&&_ngisBaseFor9(r.no))?'✓ '+E(_ngisBaseFor9(r.no).name):'없음(도곽만)')+'</td><td><button class="ngDl9" data-no="'+E(r.no)+'" style="font-size:11px;font-weight:800;padding:3px 9px;border:1.5px solid #b000d0;border-radius:6px;background:#fff;color:#b000d0;cursor:pointer">DXF</button></td></tr>';}).join('');
+  var bl=(window._ngisBase9||[]);var blH=bl.length?bl.map(function(f){return '<div style="padding:1px 0;color:#455a64;font-weight:700">📄 '+E(f.name)+' <span style="color:#999;font-weight:400">('+Math.round(f.size/1024)+'KB)</span></div>';}).join(''):'<div style="color:#999">올린 파일 없음 — 도엽번호.dxf(수치지도 도엽 원본)를 올리면 그 파일 위에 SD를 얹어 만듭니다</div>';
   ov.innerHTML='<div style="background:#fff;border:2px solid #b000d0;border-radius:12px;width:860px;max-width:96vw;max-height:92vh;overflow:auto;box-shadow:0 8px 28px rgba(0,0,0,.3);font-size:12.5px">'
    +'<div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:#b000d0;display:inline-block"></span><b style="font-size:14px;color:#7b1fa2">NGIS DATA 제작 — '+E(state.projectName||'')+'</b><span style="margin-left:8px;color:#888;font-size:11.5px">접수 01.NGIS DATA · 도엽번호.dxf</span><button id="ngZip9" style="margin-left:auto;font-size:12.5px;font-weight:800;padding:6px 14px;border:1.5px solid #b000d0;border-radius:7px;background:#b000d0;color:#fff;cursor:pointer">01.NGIS DATA.zip 내려받기 ('+rows.length+'장)</button><button id="ngX9" style="border:1px solid #ddd;background:#fff;border-radius:6px;padding:4px 10px;cursor:pointer">✕</button></div>'
    +'<div style="padding:10px 14px;display:flex;flex-direction:column;gap:10px">'
@@ -22792,7 +22845,7 @@ function _posEx_ngis9(){/* 추가성과 제작 바 → NGIS DATA 제작 창 */
   ov.querySelector('#ngZip9').onclick=function(){state.ngisTitle9=ti.value.trim();_ngisMake9(rows,null);};
   ov.querySelector('#ngChk9').onclick=function(){state.ngisTitle9=ti.value.trim();var on=!window._ngisPrev9;ov.remove();if(on){_ngisSdOnly9();_ngisPreview9(true);toast('NGIS DATA 미리보기 — 도곽·격자·표제는 화면 표시(DXF와 같은 위치). 끄기는 NGIS DATA 제작 창에서');}else{_ngisPreview9(false);toast('NGIS DATA 미리보기 끔');}};/* [BUILD3098] */
   [].forEach.call(ov.querySelectorAll('.ngDl9'),function(b){b.onclick=function(){state.ngisTitle9=ti.value.trim();_ngisMake9(rows,b.getAttribute('data-no'));};});
-  var fi=ov.querySelector('#ngBase9');fi.onchange=function(){var fs=Array.prototype.slice.call(fi.files||[]);if(!fs.length)return;window._ngisBase9=window._ngisBase9||[];var left=fs.length;fs.forEach(function(f){var rd=new FileReader();rd.onload=function(){try{window._ngisBase9.push({name:f.name,size:f.size,buf:rd.result});}catch(_e){}if(--left===0){var lst=ov.querySelector('#ngBaseList9');lst.innerHTML=window._ngisBase9.map(function(g){return '<div style="padding:1px 0;color:#455a64;font-weight:700">📄 '+E(g.name)+' <span style="color:#999;font-weight:400">('+Math.round(g.size/1024)+'KB)</span></div>';}).join('');toast('백판 '+fs.length+'개 보관(이 창에서만) — 병합은 다음 빌드');}};rd.readAsArrayBuffer(f);});fi.value='';};
+  var fi=ov.querySelector('#ngBase9');fi.onchange=function(){var fs=Array.prototype.slice.call(fi.files||[]);if(!fs.length)return;window._ngisBase9=window._ngisBase9||[];var left=fs.length;fs.forEach(function(f){var rd=new FileReader();rd.onload=function(){try{window._ngisBase9.push({name:f.name,size:f.size,buf:rd.result});}catch(_e){}if(--left===0){var lst=ov.querySelector('#ngBaseList9');lst.innerHTML=window._ngisBase9.map(function(g){return '<div style="padding:1px 0;color:#455a64;font-weight:700">📄 '+E(g.name)+' <span style="color:#999;font-weight:400">('+Math.round(g.size/1024)+'KB)</span></div>';}).join('');toast('백판 '+fs.length+'개 보관(이 창에서만)');try{[].forEach.call(ov.querySelectorAll('#ngRows9 tr'),function(tr){var no=tr.querySelector('.ngDl9').getAttribute('data-no');var bf=_ngisBaseFor9(no);var td=tr.children[5];if(bf){td.textContent='✓ '+bf.name;td.style.cssText='font-size:11px;color:#2e7d32;font-weight:800';}});}catch(_u){}}};rd.readAsArrayBuffer(f);});fi.value='';};
  }catch(e){toast('NGIS DATA 창 오류: '+(e&&e.message||e));}}
 function posExportDxf(){
  if(typeof JSZip==='undefined'){toast('압축 모듈 없음 — 새로고침(Ctrl+Shift+R)');return;}
