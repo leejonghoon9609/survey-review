@@ -9639,7 +9639,7 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
  var ov=document.createElement('div');ov.id='fsFinalOv9';
  ov.style.cssText='position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center';
  var box=document.createElement('div');
- var _wide9=(!(typeof _rtPhone9==='function'&&_rtPhone9())&&typeof IS_POSITION!=='undefined'&&IS_POSITION);/* [BUILD3130] 정위치=두 단 넓은 창 */box.style.cssText='background:#fff;border:2px solid #16a34a;border-radius:14px;width:'+(_wide9?'min(96vw,1110px)':'min(94vw,580px)')+';max-height:'+(_wide9?'96vh':'84vh')+';display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden';
+ var _wide9=false;/* [BUILD3161] 한 단 */var _tall9=(typeof IS_POSITION!=='undefined'&&IS_POSITION);/* [BUILD3130] 정위치=두 단 넓은 창 */box.style.cssText='background:#fff;border:2px solid #16a34a;border-radius:14px;width:'+(_wide9?'min(96vw,1110px)':'min(94vw,580px)')+';max-height:'+(_tall9?'96vh':'84vh')+';display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.3);overflow:hidden';
  ov.appendChild(box);document.body.appendChild(ov);
  function dlOf(k){return function(){
   try{
@@ -9674,10 +9674,10 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
   var bs9=(!regN&&!fd.final)?'background:#fff;border:1.5px solid #c0392b;color:#c0392b':(fd.final?'background:#c0392b;border:1.5px solid #c0392b;color:#fff;box-shadow:0 0 0 4px #f1c40f':'background:#c0392b;border:1.5px solid #c0392b;color:#fff');/* [BUILD2855] 기본=흰 바탕 빨간 글자, 하나라도 등록=빨간 바탕 흰 글자, 최종완료등록(fd.final)=노란 테두리(해제하면 사라짐) — 종전엔 12개 전부 등록 시 노란 테두리라 해제해도 남았음 */
   var h='<div id="fsHead9" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #eee"><span style="width:9px;height:9px;border-radius:50%;background:#16a34a;display:inline-block"></span><b style="font-size:15px">'+((typeof IS_POSITION!=='undefined'&&IS_POSITION)?'정위치':'측량(현장)')+' 최종성과 — '+(state.projectName||'')+'</b></div>'/* [BUILD3032] 성과심사 최종성과 → 정위치 최종성과 */
    +'<div id="fsBody9" style="overflow:auto;padding:6px 12px">'
-   +'<div style="display:flex;align-items:center;gap:8px;padding:1px 0 6px;'+((!ph9&&ITEMS.length>10&&typeof IS_POSITION!=='undefined'&&IS_POSITION)?'width:1052px;max-width:100%;margin:0 auto':WB9)+'">'
+   +'<div style="display:flex;align-items:center;gap:8px;padding:1px 0 6px;'+WB9+'">'
    +'<div style="font-size:12.5px;color:'+G1+';font-weight:800">거리 합계 <span style="color:#0f6e56">'+(+tot.toFixed(1))+'m</span> · 측점 '+pts.length+'개 · 결선 '+seg+'개 · 성과 '+regN+'/'+ITEMS.length+'</div>'
    +'<button id="fsToNext9" style="margin-left:auto;'+bs9+';border-radius:8px;padding:7px 12px;font-weight:800;font-size:12px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;white-space:nowrap">'+((typeof IS_POSITION!=='undefined'&&IS_POSITION)?'정위치최종완료등록':'측량(현장)최종완료등록')+'</button></div>'
-   ;/* [BUILD3130] 정위치(PC)는 두 단으로 나눠 세로 스크롤 없이 한 화면 */var _two9=(!ph9&&ITEMS.length>10&&typeof IS_POSITION!=='undefined'&&IS_POSITION);
+   ;/* [BUILD3130] 정위치(PC)는 두 단으로 나눠 세로 스크롤 없이 한 화면 */var _two9=false;/* [BUILD3161] 사용자 확정: 한 단(세로 하나) — 3130 두 단 해제 */
   var tblH=function(list,withAll){var t='<table style="'+(_two9?'width:520px;max-width:100%':WB9)+';border-collapse:collapse;font-size:13px;border:1.5px solid '+G2+';table-layout:fixed">'
    +(ph9?'<colgroup><col style="width:26px"><col><col style="width:58px"><col style="width:54px"></colgroup>':'<colgroup><col style="width:28px"><col style="width:260px"><col style="width:88px"><col style="width:70px"></colgroup>')
    +'<thead><tr style="background:'+G3+';color:'+G1+'">'
@@ -9700,7 +9700,7 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
    +'<button id="fsReg9" style="background:#16a34a;color:#fff;border:0;border-radius:8px;padding:7px 18px;font-size:12.5px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center">등록</button>'
    +'<button id="fsClose9" style="background:#fff;border:1px solid #ccc;border-radius:8px;padding:7px 14px;font-size:12.5px;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;justify-content:center">닫기</button></div>';
   box.innerHTML=h;
-  try{var _ft=box.querySelector('#fsFoot9');if(_ft&&!ph9){_ft.style.width=(ITEMS.length>10&&typeof IS_POSITION!=='undefined'&&IS_POSITION)?'1052px':'520px';_ft.style.maxWidth='100%';_ft.style.margin='0 auto';_ft.style.paddingLeft='0';_ft.style.paddingRight='0';}}catch(_w9){}
+  try{var _ft=box.querySelector('#fsFoot9');if(_ft&&!ph9){_ft.style.width='520px';_ft.style.maxWidth='100%';_ft.style.margin='0 auto';_ft.style.paddingLeft='0';_ft.style.paddingRight='0';}}catch(_w9){}
   [].forEach.call(box.querySelectorAll('.fsDl9'),function(b){if(b.disabled)return;b.onclick=dlOf(b.getAttribute('data-k'));});[].forEach.call(box.querySelectorAll('.fsDiff9'),function(b){b.onclick=function(){if(typeof _rawDiffReport9==='function')_rawDiffReport9();};});/* [BUILD3049] */
   var _ca=box.querySelector('#fsChkAll9');
   if(_ca)_ca.onclick=function(){var v=_ca.checked;[].forEach.call(box.querySelectorAll('.fsChk9'),function(c){c.checked=v;});};
