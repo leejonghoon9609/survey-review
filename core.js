@@ -23043,7 +23043,7 @@ function _bultDrawBind9(){/* 그리기 모드: 한 점 찍으면 고무줄, 다�
  box.onmousemove=function(e){if(st.cur==null)return;var pl=d.draw9[st.cur];if(!pl||!pl.length)return;paint([pl[pl.length-1],nrm(e)]);};
  box.ondblclick=function(e){e.preventDefault();finish();};box.oncontextmenu=function(e){e.preventDefault();finish();};
  box.onmouseleave=function(){paint(null);};
- if(!window._bultEscB9){window._bultEscB9=1;document.addEventListener('keydown',function(e){if(e.key==='Escape'&&window._bultDraw9){var s2=window._bultDraw9;var D2=_bultD9();var d2=D2[s2.key];if(d2&&s2.cur!=null){var pl=d2.draw9&&d2.draw9[s2.cur];if(pl&&pl.length<2)d2.draw9.splice(s2.cur,1);s2.cur=null;_bultSave9();}bultRender9();}});}}
+ if(!window._bultEscB9){window._bultEscB9=1;document.addEventListener('keydown',function(e){var _tg=e.target&&e.target.tagName;if((e.key===' '||e.code==='Space')&&window._bultDraw9&&!/^(INPUT|TEXTAREA|SELECT)$/.test(_tg||'')){e.preventDefault();}else if(!(e.key==='Escape'&&window._bultDraw9))return;/* [BUILD3158] 스페이스도 선 끝 */if(window._bultDraw9){var s2=window._bultDraw9;var D2=_bultD9();var d2=D2[s2.key];if(d2&&s2.cur!=null){var pl=d2.draw9&&d2.draw9[s2.cur];if(pl&&pl.length<2)d2.draw9.splice(s2.cur,1);s2.cur=null;_bultSave9();}bultRender9();}});}}
 
 function _bultSideRender9(segs){var sd=document.getElementById('bultSide9');if(!sd)return;var D=_bultD9();var cur=_bultCurK9(segs);var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;');};
  sd.style.display='flex';sd.style.flexDirection='column';sd.style.minWidth='220px';/* [BUILD3157] 목록 한 줄 */
