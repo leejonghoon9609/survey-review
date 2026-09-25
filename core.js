@@ -22707,8 +22707,9 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
 function _pdSer9(items){/* 장면 items → DXF 엔티티 문자열 (핸들은 이 시점 발급) */
  var e='';for(var i=0;i<items.length;i++){var it=items[i];
   if(it.scr9)continue;/* [BUILD2817] 화면 전용(경계심벌 화살촉 채움) */
-  if(it.t==='pl')e+=_pdPL(it.lay,it.pts,it.cl?true:false,it.c62,it.wd);
-  else if(it.t==='ins')e+=_pdIns(it.lay,it.name,it.x,it.y);
+  var _ly9=(it.tam&&(it.lay==='SD001'||it.lay==='SD901'))?'SD999':it.lay;/* [BUILD3104] 불탐관로선·탐사측점 = 불탐관로 레이어 SD999(빨강, 선종류 sd999) */
+  if(it.t==='pl')e+=_pdPL(_ly9,it.pts,it.cl?true:false,it.c62,it.wd);
+  else if(it.t==='ins')e+=_pdIns(_ly9,it.name,it.x,it.y);
   else if(it.t==='tx')e+=_pdText(it.lay,it.x,it.y,it.h,it.s,it.rot,(it.al9&&it.al9!=='s')?[it.x,it.y,(it.al9==='m'?1:2)]:null);
   else if(it.t==='ci'){e+=_pdCirc(it.lay,it.x,it.y,it.r);if(it.fi)e+=_pdHatchCirc9(it.lay,it.x,it.y,it.r);}}/* [BUILD2763] 내관 채움 = SOLID HATCH */
  return e;}
@@ -22829,10 +22830,11 @@ function _ngisMake9(rows,only){/* only=도엽번호 하나면 단독 DXF, 아니
   if(!n){toast('만들 도엽이 없습니다');return;}
   zip.generateAsync({type:'blob'}).then(function(b){dl(b,'01.NGIS DATA.zip');toast('01.NGIS DATA.zip — 도엽 '+n+'장');});
  }catch(e){toast('NGIS DATA 오류: '+(e&&e.message||e));}});}
-function _ngisSdOnly9(){try{var n=0;while(window._sdPrev9!==2&&n++<3)posSdToggle9();}catch(_e){}try{if(window.bpOff){window.bpOff=false;[].forEach.call(document.querySelectorAll('button'),function(b){if(/백판 켜기/.test(b.textContent||''))b.textContent='\uD83D\uDDFA 백판 꺼짐';});}}catch(_b){}}/* [BUILD3098] SD 전용 + 수치지도 백판 ON */
+function _ngisSdOnly9(){try{var n=0;while(window._sdPrev9!==2&&n++<3)posSdToggle9();}catch(_e){}try{if(window.bpOff){window.bpOff=false;[].forEach.call(document.querySelectorAll('button'),function(b){if(/백판 켜기/.test(b.textContent||''))b.textContent='\uD83D\uDDFA 백판 꺼짐';});}try{drawGeo();}catch(_dg){}}catch(_b){}}/* [BUILD3098] SD 전용 + 수치지도 백판 ON · [BUILD3104] 백판 구워두기 위해 drawGeo */
 function _ngisPreview9(on){/* [BUILD3098] 도면창 확인 — 도곽·격자·모서리 좌표·표제를 화면 SVG로(월드 단위, DXF와 같은 위치) */
- try{var g=document.getElementById('gNgis9');if(g)g.remove();}catch(_r){}window._ngisPrev9=!!on;if(!on)return;
+ try{var g=document.getElementById('gNgis9');if(g)g.remove();var gb=document.getElementById('gNgisBp9');if(gb)gb.remove();}catch(_r){}window._ngisPrev9=!!on;if(!on)return;
  var rows=_ngisRows9();if(!rows||!rows.length){toast('통신관로 없음');return;}var title=_ngisTitle9();
+ try{/* [BUILD3104] SD 전용은 gGeo(백판 이미지 포함)를 숨기므로, 구워둔 백판 이미지를 복제해 맨 아래에 깐다 */var im=(typeof gGeo!=='undefined'&&gGeo)?gGeo.querySelector('image'):null;if(im){var gb2=el('g',{id:'gNgisBp9','pointer-events':'none'});gb2.appendChild(im.cloneNode(true));cv.insertBefore(gb2,cv.firstChild);}}catch(_bi){}
  g=el('g',{id:'gNgis9','pointer-events':'none'});cv.appendChild(g);var bx=[1e18,1e18,-1e18,-1e18];var ex=function(q){if(q[0]<bx[0])bx[0]=q[0];if(q[1]<bx[1])bx[1]=q[1];if(q[0]>bx[2])bx[2]=q[0];if(q[1]>bx[3])bx[3]=q[1];};
  var TX=function(x,y,h,t,rot,anc,ff){var q=S(x,y);var a={x:q[0],y:q[1],'font-size':h,fill:'#222','font-family':ff||'Arial Narrow,Arial,sans-serif','pointer-events':'none'};if(anc)a['text-anchor']=anc;if(rot)a.transform='rotate('+(-rot)+' '+q[0]+' '+q[1]+')';var t9=el('text',a);t9.textContent=t;g.appendChild(t9);};
  rows.forEach(function(r){var P=_ngisFrame9(r.S.cell);if(!P)return;var p1=P[0],p2=P[1],p3=P[2],p4=P[3];var q=P.map(function(p){var c=S(p.x,p.y);ex(c);return c[0]+','+c[1];});
@@ -23181,7 +23183,7 @@ function _sdDrawItem9(g,it){var _n0=g.childNodes.length;try{/* [BUILD2648] 측�
 }else if(it.t==='ins'){
   var _sg9=document.createElementNS(SVGNS,'g');_sdDrawSym9(_sg9,it.name,it.x,it.y);
   var _cs9=_sg9.childNodes;for(var _q9=0;_q9<_cs9.length;_q9++){var _w9=parseFloat(_cs9[_q9].getAttribute&&_cs9[_q9].getAttribute('stroke-width'));
-   if(isFinite(_w9))_cs9[_q9].setAttribute('stroke-width',(_w9*_SDVW9.sym).toFixed(4));}
+   if(isFinite(_w9))_cs9[_q9].setAttribute('stroke-width',(_w9*_SDVW9.sym).toFixed(4));if(it.tam&&it.lay==='SD901'&&_cs9[_q9].setAttribute)_cs9[_q9].setAttribute('stroke','#e02020');/* [BUILD3104] 탐사측점 빨강(SD999) */}
   g.appendChild(_sg9);}
 }finally{try{if(it.no){for(var _ci=_n0;_ci<g.childNodes.length;_ci++){var _nd=g.childNodes[_ci];if(_nd&&_nd.setAttribute){_nd.setAttribute('data-sdno',String(it.no));_nd.setAttribute('data-sdlay',String(it.lay||''));}}}}catch(_tg){}}}/* [BUILD2784] data-sdlay */
 function _sdOnly9(on){/* SD 전용 모드: 기존 렌더 그룹·라벨 오버레이 숨김 */
