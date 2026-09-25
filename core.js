@@ -8377,7 +8377,7 @@ async function addNote(clientX,clientY){
 bind('modeToggle',async function(){if(IS_FIELD){location.href='survey.html';}else if(IS_TANGO){setViewer(!viewerMode);}else{if(await uiConfirmP9('측량(현장)으로 이동할까요? 저장 안 한 변경은 사라집니다.'))location.href='field.html';}});
 (function(){var hb=document.getElementById('homeBtn');if(hb)hb.onclick=async function(){if(viewerMode||await uiConfirmP9('홈(랜딩)으로 이동할까요? 저장 안 한 변경은 사라집니다.'))location.href='index.html';};})();
 bind('vPhoto',function(){openPhotoPanel();});
-bind('vMap',toggleBgMap);
+bind('vMap',function(){if(typeof IS_POSITION!=='undefined'&&IS_POSITION&&typeof _mapCycle9==='function')_mapCycle9();else toggleBgMap();});/* [BUILD3135] 정위치: 지도 → 항공사진 → 끔 순환 */
 bind('vRv',toggleRvPick);
 bind('fldAftCap9',function(){/* [BUILD2018] \ud6c4\uce21\ub7c9 \ucd2c\uc601 \u2014 afterCap \uacfc \ub3d9\uc77c \ud30c\uc774\ud504\ub77c\uc778(fAfter \u2192 uploadAfterPhoto) */try{var no=selNum;if(no==null||no===''){var sel=document.getElementById('photoSel');if(sel&&sel.value)no=sel.value;}if(no==null||no===''){toast('\uba3c\uc800 \uce21\uc810\uc744 \uc120\ud0dd\ud558\uc138\uc694');return;}if(typeof online!=='undefined'&&!online){toast('\ub85c\uceec \ubaa8\ub4dc \u2014 \uc0ac\uc9c4 \uc800\uc7a5 \ubd88\uac00');return;}if(!state.projectId){toast('\uba3c\uc800 \uc0ac\uc5c5\uc744 \uc800\uc7a5\ud558\uc138\uc694');return;}afterTargetNum=String(no);var f=document.getElementById('fAfter');if(f){f.value='';f.click();}}catch(_ac9){}});
 var _vproj=document.getElementById('vproj');if(_vproj)_vproj.addEventListener('change',function(){if(this.value)loadProject(this.value);});
@@ -22955,7 +22955,13 @@ function _airDraw9(){var A=window._air9;if(!A.on)return;var g=_airG9();var crs=s
   im.setAttribute('transform','matrix('+a.toFixed(8)+' '+b.toFixed(8)+' '+cc.toFixed(8)+' '+d.toFixed(8)+' '+TL[0].toFixed(4)+' '+TL[1].toFixed(4)+')');if(im.parentNode!==g)g.appendChild(im);}
  for(var k in A.tiles){if(!keep[k]){var e=A.tiles[k];if(e.parentNode)e.parentNode.removeChild(e);delete A.tiles[k];}}}
 function _airBtnInit9(){try{if(!(typeof IS_POSITION!=='undefined'&&IS_POSITION))return;if(document.getElementById('airBtn9'))return;var ref=document.getElementById('vMap')||document.getElementById('bgBtn');if(!ref)return;var b=document.createElement('button');b.id='airBtn9';b.className='photoBtn';b.textContent='🛰 항공사진';b.title='브이월드 항공사진을 좌표에 맞춰 도면창 밑에 깔기';b.style.cssText='background:#fff;color:#1b5e20;border:1px solid #1b5e20;font-weight:700';b.onclick=function(ev){try{ev.stopPropagation();}catch(_e){}airToggle9();};ref.parentNode.insertBefore(b,ref);}catch(_e){}}
-try{setTimeout(_airBtnInit9,800);}catch(_ai){}
+function _mapBtnPaint9(){try{var vm=document.getElementById('vMap');if(!vm)return;var A=window._air9;var st=(typeof bgMapOn!=='undefined'&&bgMapOn)?1:(A.on?2:0);vm.textContent=st===1?'🗺 지도 ON':(st===2?'🛰 항공사진':'🗺 지도');vm.classList.toggle('on',st!==0);if(st===2){vm.style.background='#1b5e20';vm.style.color='#fff';vm.style.borderColor='#1b5e20';}else{vm.style.background='';vm.style.color='';vm.style.borderColor='';}}catch(_e){}}
+function _mapCycle9(){/* [BUILD3135] 「지도」 버튼 3단: 끔 → 카카오 지도 → 브이월드 항공사진(좌표 정합) → 끔 */
+ var A=window._air9;var st=(typeof bgMapOn!=='undefined'&&bgMapOn)?1:(A.on?2:0);var next=(st+1)%3;
+ if(next===1){if(A.on)airToggle9();if(!bgMapOn)toggleBgMap();if(!bgMapOn){next=2;}}
+ if(next===2){if(bgMapOn)toggleBgMap();if(!A.on)airToggle9();}
+ if(next===0){if(bgMapOn)toggleBgMap();if(A.on)airToggle9();}
+ setTimeout(_mapBtnPaint9,50);setTimeout(_mapBtnPaint9,600);}
 
 /* ===== [BUILD3117] ★도면제작(NGIS)편집 = NGIS DATA + 바깥 테두리·표제 밑줄·범례 표(도곽 아래)·축척 막대·방위표. 타사업 샘플(377091739 편집본) 도곽 밖 엔티티 1,334개를 `dxf/tpl_ngis_edit.ent`로 뽑아 두고, 도곽 bbox 좌하단 기준 평행이동으로 도엽마다 붙인다(샘플 기준점 207975.77,525640.40). 모드는 window._ngisMode9('data'|'edit') ===== */
 var NGIS_EDIT_REF9=[207975.77,525640.40];var NGIS_EDIT_COL9={'0':'#222','DORO':'#00a6b8','H0010601':'#222','SD000':'#e02020','SD001':'#00a33e','SD001_1':'#00a33e','SD001_2':'#00a33e','SD002':'#00a33e','SD002_1':'#00a33e','SD002_2':'#00a33e','SD100':'#222','SD101':'#222','SD110':'#00a33e','SD213':'#00a6b8','SD214':'#222','SD219':'#222','SD300':'#222','SD301':'#222','SD901':'#00a33e','SD910':'#222','SD911':'#222','SD911-1':'#222','SD983':'#222','SD994':'#00a33e','SD995':'#222','SD999':'#e02020','SDDIM':'#00a6b8','SDDIM1':'#00a6b8','SDSIM_T':'#b0b0b0','SD_관상고':'#00a33e','TITLE':'#222','sd216':'#00a33e','기타':'#222'};/* [BUILD3118] 샘플 레이어 색(ACI→hex) */
