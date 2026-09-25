@@ -22755,7 +22755,8 @@ function _ngisFrameEnts9(no,c,title,opt){/* 도곽·격자·모서리 좌표·�
  e+=_pdText('H0010601',p3.x,p3.y,2,f(p3.y));e+=_pdText('H0010601',p3.x-2.0,p3.y-0.4,2,f(p3.x),270);
  e+=_pdText('H0010601',p4.x-16.5,p4.y,2,f(p4.y));e+=_pdText('H0010601',p4.x,p4.y-0.4,2,f(p4.x),270);}
  if(!opt.noTitle){var _ed=(window._ngisMode9==='edit');var _ty=_ed?10.79:7.03,_ts=_ed?'Legend':'Standard';/* [BUILD3117] 편집본 샘플: 표제 y+10.79 Legend 스타일(밑줄은 템플릿) */e+=_pdText('TITLE',p1.x+3.25,p1.y+2.18,7,'S=1:1000',0,null,'Standard');
- var cx9=(p1.x+p2.x)/2;if(_ngisTitleW9(title,10)>213.7)e+=_pdText('TITLE',cx9-106.85,p1.y+_ty,10,title||'',0,[cx9+106.85,p1.y+_ty,5],_ts);else e+=_pdText('TITLE',cx9,p1.y+_ty,10,title||'',0,[cx9,p1.y+_ty,1],_ts);}/* [BUILD3099] 샘플 실측 폭 213.7 도곽 중앙 — [BUILD3101] 긴 이름만 fit(72=5) 압축, 짧으면 가운데(72=1, 늘리지 않음) */
+ var cx9=(p1.x+p2.x)/2;var _tw=_ngisTitleW9(title,10);if(_tw>213.7)e+=_pdText('TITLE',cx9-106.85,p1.y+_ty,10,title||'',0,[cx9+106.85,p1.y+_ty,5],_ts);else e+=_pdText('TITLE',cx9,p1.y+_ty,10,title||'',0,[cx9,p1.y+_ty,1],_ts);
+ if(_ed){var _uw=Math.min(_tw,213.7)/2+9;e+=_pdPL('TITLE',[[cx9-_uw,p1.y+7.42],[cx9+_uw,p1.y+7.42]],false);}/* [BUILD3120] 편집본 표제 밑줄 — 사업명 폭에 맞춤(샘플 y+7.42, 글자 양끝 +9) */}/* [BUILD3099] 샘플 실측 폭 213.7 도곽 중앙 — [BUILD3101] 긴 이름만 fit(72=5) 압축, 짧으면 가운데(72=1, 늘리지 않음) */
  if(!opt.noName)e+=_pdText('NAME',p2.x-97,p2.y+2.5,10,String(no));
  return e;}
 /* ===== [BUILD3100] ★백판(도엽 원본 DXF) 병합 — 올린 도엽 백판 파일을 그대로 바탕으로 쓰고(도곽·표제·수치지도 전부 원본 유지) SD 엔티티 + 필요한 레이어·스타일·선종류·블록 정의만 주입. 정의 원천은 tpl_pos_legend.dxf, 핸들은 전부 새로 발급(_pdHx, 원본 HANDSEED 위) ===== */
@@ -22906,7 +22907,7 @@ function _ngisPreview9(on){/* [BUILD3098] 도면창 확인 — 도곽·격자·�
   var f=function(v){return v.toFixed(2);};
   TX(p1.x-0.3,p1.y-2.0,2,f(p1.y),0,'end');TX(p1.x,p1.y+0.3,2,f(p1.x),270,'end');TX(p2.x+0.3,p2.y-2.0,2,f(p2.y));TX(p2.x-2.0,p2.y+0.3,2,f(p2.x),270,'end');TX(p3.x+0.3,p3.y,2,f(p3.y));TX(p3.x-2.0,p3.y-0.3,2,f(p3.x),270);TX(p4.x-0.3,p4.y,2,f(p4.y),0,'end');TX(p4.x,p4.y-0.3,2,f(p4.x),270);/* [BUILD3099] 화면은 앵커로 모서리에 붙임(글꼴 폭 무관) */
   TX(p1.x+3.25,p1.y+2.18,8.75,'S=1:1000',0,null,'Arial,sans-serif');(function(){var q=S((p1.x+p2.x)/2,p1.y+7.03);var a={x:q[0],y:q[1],'font-size':12.5,fill:'#222','font-family':'Arial,sans-serif','text-anchor':'middle','pointer-events':'none'};if(_ngisTitleW9(title,10)>213.7){a.textLength=213.7;a.lengthAdjust='spacingAndGlyphs';}var t9=el('text',a);t9.textContent=title;g.appendChild(t9);})();/* [BUILD3101] CAD 체감 높이(=글자 실높이 10m)에 맞춰 1.25배, 긴 이름만 213.7 폭으로 압축 */TX(p2.x-97,p2.y+2.5,12.5,String(r.no));
-  if(window._ngisMode9==='edit'){_ngisEdPreview9(g,r.S.cell);ex(S(p1.x-34,p1.y+36));ex(S(p2.x+29,p3.y-74));}else{ex(S(p1.x-20,p1.y+20));ex(S(p2.x+5,p3.y-5));}/* [BUILD3117] 편집본 테두리·범례 */});
+  if(window._ngisMode9==='edit'){_ngisEdPreview9(g,r.S.cell);var _cxu=(p1.x+p2.x)/2,_uw2=Math.min(_ngisTitleW9(title,10),213.7)/2+9;var _ua=S(_cxu-_uw2,p1.y+7.42),_ub=S(_cxu+_uw2,p1.y+7.42);g.appendChild(el('line',{x1:_ua[0],y1:_ua[1],x2:_ub[0],y2:_ub[1],stroke:'#222','stroke-width':0.3,'pointer-events':'none'}));/* [BUILD3120] 밑줄 */ex(S(p1.x-34,p1.y+36));ex(S(p2.x+29,p3.y-74));}else{ex(S(p1.x-20,p1.y+20));ex(S(p2.x+5,p3.y-5));}/* [BUILD3117] 편집본 테두리·범례 */});
  try{var pad=8;vb={x:bx[0]-pad,y:bx[1]-pad,w:(bx[2]-bx[0])+2*pad,h:(bx[3]-bx[1])+2*pad};fixAspect();applyVB();}catch(_v){}
 }
 /* ===== [BUILD3117] ★도면제작(NGIS)편집 = NGIS DATA + 바깥 테두리·표제 밑줄·범례 표(도곽 아래)·축척 막대·방위표. 타사업 샘플(377091739 편집본) 도곽 밖 엔티티 1,334개를 `dxf/tpl_ngis_edit.ent`로 뽑아 두고, 도곽 bbox 좌하단 기준 평행이동으로 도엽마다 붙인다(샘플 기준점 207975.77,525640.40). 모드는 window._ngisMode9('data'|'edit') ===== */
