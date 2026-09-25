@@ -335,6 +335,8 @@
     .fpage .stage{flex-direction:row}
     .fpage #viewerBar{flex:none}
     .fpage header{border-bottom:2px solid #000;position:relative}/* [1245] 헤더 하단선 파랑→검정 */
+    .fpage header{padding:4px 14px 3px!important;row-gap:3px!important}/* [BUILD3140] 정위치 헤더 3줄 세로 간격 축소 → 도면창 확대 */
+    .fpage .subbar{min-height:36px!important;padding:3px 14px!important}/* [BUILD3140] 편집 툴바 줄(도구 줄) 슬림 */
   .fpage #buildno{display:inline-block!important;position:static;order:-10;margin-right:8px;align-self:center}
     .fpage .photo-panel{width:36%!important;min-width:432px!important;max-width:41%!important;/* [BUILD2775] 정위치 후측량 사진창 가로 +20% (30→36%) */border-left:1px solid var(--line)!important;border-top:none!important}/* [1263] 사진 기준 창 폭 축소 */
     .fpage .photo-panel.open{height:auto!important}
@@ -862,7 +864,7 @@ window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
     </div>
   </div>
 
-<script src="login.js?v=3138"></script><script src="core.js?v=3138"></script>
+<script src="login.js?v=3140"></script><script src="core.js?v=3140"></script>
 <script>
 /* [BUILD2079] 폰 body 높이 = 실측 픽셀 고정 — dvh를 못 믿는 웹뷰(카톡 인앱 등)에서 패널 바닥이 화면 밖으로 나가던 문제 종결. 회전해야 고쳐지던 증상의 근본 원인 제거 */
 (function(){

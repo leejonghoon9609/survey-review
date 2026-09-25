@@ -17792,7 +17792,7 @@ function posExtraBar9(show){/* [BUILD3095] 정위치 「추가성과 제작」 �
   if(!(typeof IS_POSITION!=='undefined'&&IS_POSITION))return;
   var bar=document.getElementById('posExtraBar9');
   if(!bar){var mc=document.querySelector('.maincol'),fb=document.getElementById('fldBar9'),sbr=document.getElementById('subbar');if(!mc)return;
-    bar=document.createElement('div');bar.id='posExtraBar9';bar.style.cssText='display:flex;align-items:center;gap:6px;padding:5px 10px 5px;background:#fdf6ff;border-bottom:1px solid #e9d5f5;flex:none;white-space:nowrap;overflow-x:auto;min-height:34px';
+    bar=document.createElement('div');bar.id='posExtraBar9';bar.style.cssText='display:flex;align-items:center;gap:6px;padding:3px 10px 3px;background:#fdf6ff;border-bottom:1px solid #e9d5f5;flex:none;white-space:nowrap;overflow-x:auto;min-height:32px';
     var lb=document.createElement('button');lb.id='posExtraLb9';lb.textContent='추가성과 제작';lb.style.cssText='display:inline-flex;align-items:center;justify-content:center;flex:none;font-size:11.5px;font-weight:800;padding:5px 12px;border-radius:7px;border:1.5px solid #c0392b;background:#fff;color:#c0392b;cursor:pointer;line-height:1.2;transition:none';lb.title='닫기';lb.onclick=function(ev){try{ev.stopPropagation();}catch(_e){}window._posExtraOpen9=false;posExtraBar9(false);try{renderRail();}catch(_r){}};bar.appendChild(lb);/* [BUILD3096] 라벨 = 빨강 테두리 버튼(옆 버튼과 같은 틀, 누르면 바 닫힘) */
     var sep=document.createElement('span');sep.style.cssText='display:inline-block;width:1.5px;height:22px;background:#c0392b;margin:0 6px 0 2px;flex:none';bar.appendChild(sep);/* [BUILD3096] 구분선 */
     var items=[['posEx_ngis9','NGIS DATA 제작','#b000d0'],['posEx_ngisEd9','도면제작(NGIS)편집','#1565c0'],['posEx_index9','인덱스','#00838f'],['posEx_data9','실측 DATA','#2e7d32'],['posEx_edwg9','전자도면','#e65100'],['posEx_bult9','불탐대장','#c62828']];/* [BUILD3110] 버튼별 색 */
@@ -17803,10 +17803,10 @@ function posExtraBar9(show){/* [BUILD3095] 정위치 「추가성과 제작」 �
     var sub=document.createElement('div');sub.id='posExtraSub9';sub.style.cssText='display:none;align-items:center;gap:8px;margin-left:auto;flex:none;padding-left:10px';bar.appendChild(sub);/* [BUILD3110] 등록 줄 → [BUILD3138] 같은 줄 오른쪽(두 줄로 통합) */
   }
   bar.style.display=show?'flex':'none';var sb2=document.getElementById('posExtraSub9');if(sb2&&!show)sb2.style.display='none';if(show)_posExBarPaint9(window._posExActive9||null);
-  try{var sbr=document.getElementById('subbar');if(sbr)sbr.style.display=show?'none':'';}catch(_sb){}/* [BUILD3138] 바가 열리면 빈 도구 줄(subbar) 숨김 → 도면창 위로 */
+  try{var sbr=document.getElementById('subbar');if(sbr)sbr.style.display='';}catch(_sb){}/* [BUILD3140] 도구 줄은 항상 표시(툴바 자리) */
   try{['posLeadTb9','posDimTb9','posCutTb9','posRawTb9'].forEach(function(fn){if(typeof window[fn]==='function')window[fn]();});fixAspect();applyVB();}catch(_tb){}/* [BUILD3138] 툴바 자리 재배치 */
 }
-function _posTbPlace9(tb){/* [BUILD3138] 편집 툴바: 추가성과 바가 열려 있으면 그 줄의 슬롯 안(정적), 아니면 종전대로 도면창 위 고정 */try{var bar=document.getElementById('posExtraBar9');var open=!!(bar&&bar.style.display!=='none');var slot=document.getElementById('posExTb9');if(open&&slot){tb.style.position='static';tb.style.left='';tb.style.top='';tb.style.zIndex='';tb.style.boxShadow='none';if(tb.parentNode!==slot)slot.appendChild(tb);}else{if(tb.parentNode!==document.body)document.body.appendChild(tb);}}catch(_e){}}
+function _posTbPlace9(tb){/* [BUILD3138]→[BUILD3140] 편집 툴바는 항상 도면창 바로 위 도구 줄(왼쪽)에 고정 — 사용자 확정: 버튼 줄 아래 줄 */try{if(tb.parentNode!==document.body)document.body.appendChild(tb);}catch(_e){}}
 function _posExBarPaint9(active){/* [BUILD3110] 활성 버튼 = 자기 색 배경+흰 글자, 밑줄에 등록 버튼 */
  try{window._posExActive9=active||null;[].forEach.call(document.querySelectorAll('#posExtraBar9 button[data-col]'),function(b){var c=b.getAttribute('data-col');var on=(b.id===active);b.style.background=on?c:'#fff';b.style.color=on?'#fff':c;});
   var sub=document.getElementById('posExtraSub9');if(!sub)return;sub.innerHTML='';
@@ -17821,7 +17821,7 @@ try{if(typeof IS_FIELD!=='undefined'&&IS_FIELD&&!(window.matchMedia&&matchMedia(
     if(document.getElementById('fldBar9'))return;
     var mc=document.querySelector('.maincol'),sb=document.getElementById('subbar');if(!mc||!sb)return;
     var bar=document.createElement('div');bar.id='fldBar9';
-    bar.style.cssText='display:flex;align-items:center;gap:6px;padding:5px 10px 4px;background:#fff;border-bottom:1px solid #e6e6e2;flex:none;white-space:nowrap;overflow-x:auto;min-height:34px';
+    bar.style.cssText='display:flex;align-items:center;gap:6px;padding:3px 10px 3px;background:#fff;border-bottom:1px solid #e6e6e2;flex:none;white-space:nowrap;overflow-x:auto;min-height:32px';/* [BUILD3140] 슬림 */
     var B=function(id,txt,col,fn,title){var b=document.createElement('button');b.id=id;b.textContent=txt;if(title)b.title=title;
       b.style.cssText='display:inline-flex;align-items:center;justify-content:center;flex:none;font-size:11.5px;font-weight:800;padding:5px 10px;border-radius:7px;border:1.5px solid '+col+';background:#fff;color:'+col+';cursor:pointer;line-height:1.2;transition:none';
       b.onclick=function(ev){try{ev.stopPropagation();}catch(_e){}try{fn();}catch(_f){}};return b;};
@@ -22668,10 +22668,10 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
   /* [BUILD2325] 강력규칙2: 관표시 박스와 태그 텍스트 절대 비겹침 — 겹치면 태그 인출선을 늘려 회피 */
   if(_lkEX9!=null){(function(){
    var dlx=_lkEX9-mx,dly=_lkEY9-my,dl0=Math.hypot(dlx,dly)||1,de=[dlx/dl0,dly/dl0];
-   var hx2=(dlx>=0)?1:-1;var tw2=(typeof tw!=='undefined')?tw:8;
+   var hx2=(dlx>=0)?1:-1;var tw2=(typeof tw!=='undefined')?tw:8;var _ewA=1;try{if(typeof _ewSkip9!=='undefined'&&_ewSkip9){_ewA=0.5;tw2=_ngisEwLw9(spec)-2;}}catch(_ea){}/* [BUILD3139] ★실측 원인: 전자도면에서 인출선을 관로 가까이 옮기면 이 '관표시 박스↔태그 비겹침' 규칙이 NGIS 실물 크기(관표시 5m·태그 25m·높이 1.9)로 검사해 팔꿈치를 바깥으로 밀고 저장 위치까지 덮어써 되돌아갔음 → 전자도면 미리보기 중엔 축소 규격(관표시 0.5배·태그 h0.5 폭·높이 0.5배)으로 검사 */
    var cs=[[_ax9,_ay9],[_ax9+_mkU9[0]*_W9,_ay9+_mkU9[1]*_W9]];cs.push([cs[0][0]+_mkV9[0]*_H9,cs[0][1]+_mkV9[1]*_H9],[cs[1][0]+_mkV9[0]*_H9,cs[1][1]+_mkV9[1]*_H9],[(cs[0][0]+cs[1][0])/2,(cs[0][1]+cs[1][1])/2]);
-   cs.push([(cs[2][0]+cs[3][0])/2,(cs[2][1]+cs[3][1])/2]);
-   function hit(ex,ey){var x0=Math.min(ex,ex+hx2*(tw2+2))-0.3,x1=Math.max(ex,ex+hx2*(tw2+2))+0.3,y0=ey-0.5,y1=ey+1.9;
+   cs.push([(cs[2][0]+cs[3][0])/2,(cs[2][1]+cs[3][1])/2]);if(_ewA!==1)cs=cs.map(function(c){return [mx+(c[0]-mx)*_ewA,my+(c[1]-my)*_ewA];});
+   function hit(ex,ey){var x0=Math.min(ex,ex+hx2*(tw2+2))-0.3*_ewA,x1=Math.max(ex,ex+hx2*(tw2+2))+0.3*_ewA,y0=ey-0.5*_ewA,y1=ey+1.9*_ewA;
     for(var q=0;q<cs.length;q++){if(cs[q][0]>x0&&cs[q][0]<x1&&cs[q][1]>y0&&cs[q][1]<y1)return true;}return false;}
    var add=0;while(hit(mx+de[0]*(dl0+add),my+de[1]*(dl0+add))&&add<20)add+=1.0;
    if(add>0){var ex2=mx+de[0]*(dl0+add),ey2=my+de[1]*(dl0+add),dx2=ex2-_lkEX9,dy2=ey2-_lkEY9;
