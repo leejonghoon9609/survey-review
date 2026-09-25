@@ -23050,10 +23050,12 @@ function _ngisEwItems9(items){
  /* 실측↔불탐 경계 표식 */
  try{var ends=[];items.forEach(function(it){if(!it||it.t!=='pl'||it.lay!=='SD001'||!it.pts||it.pts.length<2)return;var ps=it.pts;var a=ps[0],a2=ps[1],b=ps[ps.length-1],b2=ps[ps.length-2];ends.push({x:a[0],y:a[1],ux:a2[0]-a[0],uy:a2[1]-a[1],tam:!!it.tam});ends.push({x:b[0],y:b[1],ux:b2[0]-b[0],uy:b2[1]-b[1],tam:!!it.tam});});
   var done={};ends.forEach(function(m){if(m.tam)return;ends.forEach(function(t){if(!t.tam)return;if(Math.hypot(m.x-t.x,m.y-t.y)>0.05)return;var key=m.x.toFixed(2)+','+m.y.toFixed(2);if(done[key])return;done[key]=1;
-   var L0=Math.hypot(m.ux,m.uy)||1;var ux=m.ux/L0,uy=m.uy/L0;/* 실측 쪽 */var nx=-uy,ny=ux;var rot=Math.atan2(uy,ux)*180/Math.PI;if(rot>90||rot<=-90){rot+=180;}var rr=rot*Math.PI/180;var rx=Math.cos(rr),ry=Math.sin(rr);/* 읽기 방향 */var measRight=(ux*rx+uy*ry)>0;
-   out.push({t:'pl',lay:'_CHANGE',pts:[[m.x,m.y],[m.x+nx*1.25,m.y+ny*1.25]],cl:0});out.push({t:'pl',lay:'_CHANGE',pts:[[m.x+nx*0.98-rx*0.25,m.y+ny*0.98-ry*0.25],[m.x+nx*0.98+rx*0.25,m.y+ny*0.98+ry*0.25]],cl:0});
-   var px=m.x+nx*1.05,py=m.y+ny*1.05;var r1=measRight?'불탐':'실측',r2=measRight?'실측':'불탐';/* r1=왼쪽(오른끝 정렬) r2=오른쪽(왼끝) */
-   out.push({t:'tx',lay:'_CHANGE',x:px-rx*0.1,y:py-ry*0.1,h:0.15,s:r1,rot:rot,sty:'Legend',al4:[px-rx*0.1,py-ry*0.1,2,1]});out.push({t:'tx',lay:'_CHANGE',x:px+rx*0.1,y:py+ry*0.1,h:0.15,s:r2,rot:rot,sty:'Legend',al4:[px+rx*0.1,py+ry*0.1,0,1]});});});}catch(_c){}
+   /* [BUILD3132] 샘플 규격: 글자 방향=불탐 관로 방향(읽기 정규화), 눈금선=그 직각으로 1.25, 바=1.0(눈금 위 1.0 지점, 관로 방향), 글자 h0.15 바 위에 양쪽(실측 쪽에 '실측') */
+   var Lt=Math.hypot(t.ux,t.uy)||1;var rot=Math.atan2(t.uy/Lt,t.ux/Lt)*180/Math.PI;if(rot>90||rot<=-90)rot+=180;if(rot>180)rot-=360;var rr=rot*Math.PI/180;var rx=Math.cos(rr),ry=Math.sin(rr);var nx=-ry,ny=rx;
+   var Lm=Math.hypot(m.ux,m.uy)||1;var measRight=((m.ux/Lm)*rx+(m.uy/Lm)*ry)>0;
+   out.push({t:'pl',lay:'_CHANGE',pts:[[m.x,m.y],[m.x+nx*1.25,m.y+ny*1.25]],cl:0});out.push({t:'pl',lay:'_CHANGE',pts:[[m.x+nx*1.0-rx*0.5,m.y+ny*1.0-ry*0.5],[m.x+nx*1.0+rx*0.5,m.y+ny*1.0+ry*0.5]],cl:0});
+   var bx=m.x+nx*1.03,by=m.y+ny*1.03;var lt=measRight?'불탐':'실측',rt=measRight?'실측':'불탐';
+   out.push({t:'tx',lay:'_CHANGE',x:bx-rx*0.08,y:by-ry*0.08,h:0.15,s:lt,rot:rot,sty:'Legend',al9:'e',al4:[bx-rx*0.08,by-ry*0.08,2,1]});out.push({t:'tx',lay:'_CHANGE',x:bx+rx*0.08,y:by+ry*0.08,h:0.15,s:rt,rot:rot,sty:'Legend',al9:'s',al4:[bx+rx*0.08,by+ry*0.08,0,1]});});});}catch(_c){}
  return out;}
 function _ngisAutoShow9(){/* [BUILD3116] 사업 열 때 — 마지막 NGIS 작업(미리보기 켜둔 상태)을 작업자가 지우기 전까지 그대로 보여줌. [BUILD3118] 성과별 독립 플래그(편집 우선) */
  try{if(!(typeof IS_POSITION!=='undefined'&&IS_POSITION))return;if(!state.ngisPrev9&&!state.ngisEdPrev9&&!state.ngisIdxPrev9&&!state.ngisMsPrev9&&!state.ngisEwPrev9)return;if(window._ngisAutoPid9===state.projectId)return;window._ngisAutoPid9=state.projectId;
