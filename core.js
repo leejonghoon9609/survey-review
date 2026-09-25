@@ -22949,15 +22949,15 @@ function _airDraw9(){var A=window._air9;if(!A.on)return;var g=_airG9();var crs=s
  var x0=vb.x+ORG.x,x1=vb.x+vb.w+ORG.x,y1=ORG.y-vb.y,y0=ORG.y-(vb.y+vb.h);
  var cw=Math.max(cv.getBoundingClientRect().width,1);var mpp=vb.w/cw;/* 화면 1px당 m */
  var c=toLatLng((x0+x1)/2,(y0+y1)/2,crs);if(!c)return;var cosl=Math.cos(c.lat*Math.PI/180);
- var z=Math.round(Math.log(156543.03*cosl/mpp)/Math.LN2);z=Math.max(10,Math.min(19,z));
+ var dpr=Math.max(1,window.devicePixelRatio||1);var z=Math.ceil(Math.log(156543.03*cosl*dpr/mpp)/Math.LN2-0.15);z=Math.max(10,Math.min(19,z));/* [BUILD3149] 화질: 반올림→올림 + 화면 배율(dpr) 반영 — 종전엔 한 단계 낮은 줌(해상도 1/2)을 자주 골랐음 */
  var cs=[toLatLng(x0,y0,crs),toLatLng(x1,y0,crs),toLatLng(x0,y1,crs),toLatLng(x1,y1,crs)];if(cs.some(function(q){return !q;}))return;
  var rng=function(zz){var tx0=1e9,tx1=-1e9,ty0=1e9,ty1=-1e9;cs.forEach(function(q){var t=_airLL2T9(q.lat,q.lng,zz);tx0=Math.min(tx0,t[0]);tx1=Math.max(tx1,t[0]);ty0=Math.min(ty0,t[1]);ty1=Math.max(ty1,t[1]);});return {X0:Math.floor(tx0),X1:Math.floor(tx1),Y0:Math.floor(ty0),Y1:Math.floor(ty1)};};
- var R=rng(z);while(z>10&&((R.X1-R.X0+1)*(R.Y1-R.Y0+1))>240){z--;R=rng(z);}
+ var R=rng(z);while(z>10&&((R.X1-R.X0+1)*(R.Y1-R.Y0+1))>480){z--;R=rng(z);}/* [BUILD3149] 타일 상한 240→480 */
  var keep={};for(var tx=R.X0;tx<=R.X1;tx++)for(var ty=R.Y0;ty<=R.Y1;ty++){var key=z+'/'+tx+'/'+ty;keep[key]=1;
   var nw=_airT2LL9(tx,ty,z),ne=_airT2LL9(tx+1,ty,z),sw=_airT2LL9(tx,ty+1,z);
   var P0=_posFromLL(nw[0],nw[1]),P1=_posFromLL(ne[0],ne[1]),P2=_posFromLL(sw[0],sw[1]);if(!P0||!P1||!P2)continue;
   var TL=S(P0.x,P0.y),TR=S(P1.x,P1.y),BL=S(P2.x,P2.y);var a=(TR[0]-TL[0])/256,b=(TR[1]-TL[1])/256,cc=(BL[0]-TL[0])/256,d=(BL[1]-TL[1])/256;
-  var im=A.tiles[key];if(!im){im=el('image',{x:0,y:0,width:256.6,height:256.6,preserveAspectRatio:'none','pointer-events':'none'});var u=_airTileUrl9(z,tx,ty,A.layer);try{im.setAttributeNS('http://www.w3.org/1999/xlink','href',u);}catch(_h){}im.setAttribute('href',u);A.tiles[key]=im;}
+  var im=A.tiles[key];if(!im){im=el('image',{x:0,y:0,width:256.6,height:256.6,preserveAspectRatio:'none','pointer-events':'none','image-rendering':'optimizeQuality'});var u=_airTileUrl9(z,tx,ty,A.layer);try{im.setAttributeNS('http://www.w3.org/1999/xlink','href',u);}catch(_h){}im.setAttribute('href',u);A.tiles[key]=im;}
   im.setAttribute('transform','matrix('+a.toFixed(8)+' '+b.toFixed(8)+' '+cc.toFixed(8)+' '+d.toFixed(8)+' '+TL[0].toFixed(4)+' '+TL[1].toFixed(4)+')');if(im.parentNode!==g)g.appendChild(im);}
  for(var k in A.tiles){if(!keep[k]){var e=A.tiles[k];if(e.parentNode)e.parentNode.removeChild(e);delete A.tiles[k];}}}
 function _airBtnInit9(){try{if(!(typeof IS_POSITION!=='undefined'&&IS_POSITION))return;if(document.getElementById('airBtn9'))return;var ref=document.getElementById('vMap')||document.getElementById('bgBtn');if(!ref)return;var b=document.createElement('button');b.id='airBtn9';b.className='photoBtn';b.textContent='🛰 항공사진';b.title='브이월드 항공사진을 좌표에 맞춰 도면창 밑에 깔기';b.style.cssText='background:#fff;color:#1b5e20;border:1px solid #1b5e20;font-weight:700';b.onclick=function(ev){try{ev.stopPropagation();}catch(_e){}airToggle9();};ref.parentNode.insertBefore(b,ref);}catch(_e){}}
