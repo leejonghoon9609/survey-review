@@ -23246,7 +23246,7 @@ function _simsaView9(){/* [BUILD3212] 초록 원(빠지는 맨홀)을 '보이는
  var am=document.getElementById('mnAskModal');if(am){var ar=am.getBoundingClientRect();if(ar.width>window.innerWidth*0.9&&am.firstElementChild)ar=am.firstElementChild.getBoundingClientRect();if(ar.width&&ar.bottom>T&&ar.top<T+rc.height*0.6)T=Math.max(T,ar.bottom+8);}
  var w=Math.max(80,Rr-L),h=Math.max(80,B-T);var cx=(L+Rr)/2-rc.left,cy=(T+B)/2-rc.top;
  var x0=F.m1.wx,y0=F.m1.wy,dx=0,dy=0;(F.pts||[]).concat([[F.m2.wx,F.m2.wy]]).forEach(function(p){dx=Math.max(dx,Math.abs(p[0]-x0));dy=Math.max(dy,Math.abs(p[1]-y0));});
- var hw=dx*1.15+6,hh=dy*1.15+6;var wpp=Math.max(2*hw/w,2*hh/h);vb.w=rc.width*wpp;vb.h=rc.height*wpp;var q=S(x0,y0);vb.x=q[0]-cx*wpp;vb.y=q[1]-cy*wpp;if(typeof applyVB==='function')applyVB();}catch(e){console.warn('[simsa view]',e);}}
+ var wpp=40/w;/* [BUILD3213] 실측 배율 고정 — 보이는 도면창 가로 = 실제 40m(맨홀 번호·제원이 읽히는 크기). 연결맨홀이 멀면(관로 100m↑) 화면 밖이어도 빨간 관로 방향으로 따라가면 됨 */vb.w=rc.width*wpp;vb.h=rc.height*wpp;var q=S(x0,y0);vb.x=q[0]-cx*wpp;vb.y=q[1]-cy*wpp;if(typeof applyVB==='function')applyVB();}catch(e){console.warn('[simsa view]',e);}}
 function _simsaOnMnSave9(rec){/* [BUILD3210] 맨홀 조사야장 '저장' — 지금 강조 중인 연결맨홀이면 그 행 수정확인 = 완료 */try{var F=window._simsaFocus9;if(!F||!rec||String(F.recId)!==String(rec.id))return;state.simsaChk9=state.simsaChk9||{};state.simsaChk9[F.key]=1;try{window._silentSave=true;saveProject();}catch(_s){}_simsaFocusClr9(F.key);toast('수정확인 완료 — '+(rec&&typeof mnLabelNoPf==='function'?mnLabelNoPf(rec):''));}catch(_e){}}
 function _simsaMhCmp9(r,c){/* [BUILD3207] 연결맨홀 누르면 — 오른쪽 원래 맨홀 야장 창에 연결맨홀 조사야장(빠지는 맨홀 쪽 벽 빨강 상자)만 열어 바로 수정. 도면은 그대로, 심사 제외 패널은 도면 왼쪽으로 비킴 */
  var old=document.getElementById('simsaRefL9');if(old)old.remove();
