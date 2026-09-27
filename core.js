@@ -15380,9 +15380,9 @@ function mnPipeEditor(rec,wall){
     var x0=maxX?(maxX+150):150;
     var rowH=rowSegs.map(function(sg){var m=0;sg.forEach(function(s2){m=Math.max(m,s2.dia);});return m;});
     var totH=0;rowH.forEach(function(h){totH+=h;});
-    var vv=Math.min(H,H/2+totH/2);
+    var vv=Math.max(0,H/2-totH/2);/* [BUILD3226] 1단 = 맨 아래부터 위로 쌓음 */
     rowSegs.forEach(function(sg,ri){
-      var h=rowH[ri];var cy=vv-h/2;vv-=h;
+      var h=rowH[ri];var cy=vv+h/2;vv+=h;
       cy=Math.min(Math.max(cy,h/2),H-h/2);
       var xcur=x0;
       sg.forEach(function(s2){
