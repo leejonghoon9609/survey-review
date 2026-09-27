@@ -22986,7 +22986,7 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
   function _mkRow9(cnt,r0,vOff,fills){var _dm=r0*2;for(var _c9=0;_c9<cnt&&_c9<12;_c9++){var _ou9=(_c9+0.5)*_dm,_ov9=vOff+r0;var _fi9;if(fills){_fi9=fills[_c9]?1:0;}else{_fi9=(_naeLeft9>0)?1:0;if(_fi9)_naeLeft9--;}
    S.items.push({t:'ci',lay:'SD983',x:_ax9+_mkU9[0]*_ou9+_mkV9[0]*_ov9,y:_ay9+_mkU9[1]*_ou9+_mkV9[1]*_ov9,r:r0,fi:_fi9,lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9,u:_ou9,v:_ov9,bx:_ax9,by:_ay9,bu:_mkU9,bv:_mkV9});}}
   var _vo9=0;
-  if(_pat9&&_pat9.cs&&_pat9.cs.length&&_pat9.W>0&&_pat9.H>0){/* [BUILD2770] 원 위치 = 맨홀도 상대좌표 그대로(가운데 정렬·엇배열 포함), 화면 방향 따라 좌우/상하 반전 */_pat9.cs.forEach(function(o){var u=(_flU9&&!_pat9.man)?(_W9-o.u):o.u,v=(_flV9&&!_pat9.man)?(_H9-o.v):o.v;S.items.push({t:'ci',lay:'SD983',x:_ax9+_mkU9[0]*u+_mkV9[0]*v,y:_ay9+_mkU9[1]*u+_mkV9[1]*v,r:o.r,fi:o.fi?1:0,to9:o.to||null,to9s:o.tos||null,ex9:o.ex?1:0,lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9,u:u,v:v,bx:_ax9,by:_ay9,bu:_mkU9,bv:_mkV9});});_naeLeft9=0;}
+  if(_pat9&&_pat9.cs&&_pat9.cs.length&&_pat9.W>0&&_pat9.H>0){/* [BUILD2770] 원 위치 = 맨홀도 상대좌표 그대로(가운데 정렬·엇배열 포함), 화면 방향 따라 좌우/상하 반전 */_pat9.cs.forEach(function(o){var u=(_flU9&&!_pat9.man)?(_W9-o.u):o.u,v=(_flV9&&!_pat9.man)?(_H9-o.v):o.v;S.items.push({t:'ci',lay:'SD983',pt9:1,x:_ax9+_mkU9[0]*u+_mkV9[0]*v,y:_ay9+_mkU9[1]*u+_mkV9[1]*v,r:o.r,fi:o.fi?1:0,to9:o.to||null,to9s:o.tos||null,ex9:o.ex?1:0,lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9,u:u,v:v,bx:_ax9,by:_ay9,bu:_mkU9,bv:_mkV9});});_naeLeft9=0;}
   else if(_n100>0){if(_pr9){for(var _rp9=0;_rp9<_pr9.length;_rp9++){if(!_pr9[_rp9].length)continue;_mkRow9(_pr9[_rp9].length,0.5,_vo9,_pr9[_rp9]);_vo9+=1.0;}}else{for(var _rr9=0;_rr9<_rows9;_rr9++){var _cnt9=Math.min(_cpr9,_n100-_rr9*_cpr9);if(_cnt9<=0)break;_mkRow9(_cnt9,0.5,_vo9,null);_vo9+=1.0;}}}
   if(_n50>0&&!(_pat9&&_pat9.cs&&_pat9.cs.length&&_pat9.W>0&&_pat9.H>0)){_mkRow9(_n50,0.25,_vo9,_p50);_vo9+=0.5;}
   try{var _cc9=S.items.filter(function(q){return q&&q.t==='ci'&&q.lk===_lk9;});(window._ptoTag9=window._ptoTag9||{})[_pi9]={n:_cc9.length,f:_cc9.filter(function(q){return q.fi;}).length};}catch(_tg9){}/* [BUILD3220] 도면 태그 관수(내관) 기록 — 관공 계산 보기 대조용 */
@@ -23252,6 +23252,27 @@ function _ptoXY9(rec,dv,src){if(dv&&dv.xy&&dv.xy.length===2&&isFinite(+dv.xy[0])
   var L=_simsaNm9(dv.lab);if(/입상|JB|인입/i.test(L)){var isR=/입상/.test(L),isJ=/JB/i.test(L);var bm=null,bd=80;(state.manholes||[]).forEach(function(m){if(!m||m.wx==null||!m.type||m.type==='mh')return;var ml=String(m.label||'');var ok=isR?(m.type==='riser'||/입상/.test(ml)):(isJ?(m.type==='jb'||/JB/i.test(ml)):(m.type==='inlet'||/인입/.test(ml)));if(!ok)return;if(isR&&/한전/.test(L)!==/한전/.test(ml))return;var d=Math.hypot(m.wx-src.wx,m.wy-src.wy);if(d<bd){bd=d;bm=m;}});if(bm)return [bm.wx,bm.wy];}/* [BUILD3218] 좌표 없는 보조시설물 행 = 가장 가까운 같은 종류 */}}catch(_e){}return null;}
 function _ptoExRow9(G,dv,xy){/* 이 방향 대상이 심사에서 빠지나 */if(!G||!G.n||!dv)return false;try{var P=xy;if(P){var bm=null,bd=2.5;(state.manholes||[]).forEach(function(m){if(!m||m.wx==null)return;var d=Math.hypot(m.wx-P[0],m.wy-P[1]);if(d<bd){bd=d;bm=m;}});if(bm)P=[bm.wx,bm.wy];return !!_simsaOut9(G,P[0],P[1],1.6);}
   var nm=_simsaNm9(dv.lab),hit=null,n=0;(state.manholes||[]).forEach(function(m){if(m&&m.wx!=null&&_simsaNm9(m.label)===nm){hit=m;n++;}});return (n===1)?!!_simsaOut9(G,hit.wx,hit.wy,1.6):false;}catch(_e){return false;}}
+/* ===== [BUILD3247] 관 배치 추정(가장 그럴듯한 배치) — ① 통신사(관리기관)끼리 묶음(위아래 단도 가까운 것으로 봄) ② 보조시설물·분기 방향 관 = 주관로 기준 그 시설물 쪽 맨 끝·위 ③ 맨홀로 가는 관 = 아래부터 ④ 내관(●/○)은 묶음 안에서 맞춤 ===== */
+function _ptoOwn9(sh){var m=/\(([^)]+)\)/.exec(String(sh||''));return m?m[1]:'';}
+function _ptoIsAux9(sh){return /^(통|한|JB|인입)/i.test(String(sh||''));}
+function _ptoPlace9(slots,groups,fit,tol){/* slots:[{x(왼→오),y(아래→위),fi(0/1/null)}] groups:[{own,side(-1왼·0·1오),lat,olat,pipes:[{fi}]}] → [[slot번호,pipe]] */
+ var out=[];if(!slots.length||!groups.length)return out;
+ var clus=function(vals){var a=vals.map(function(v,i){return [v,i];}).sort(function(p,q){return p[0]-q[0];});var rk={},c=0;for(var k=0;k<a.length;k++){if(k&&a[k][0]-a[k-1][0]>tol)c++;rk[a[k][1]]=c;}return rk;};
+ var CI=clus(slots.map(function(q){return q.x;})),RI=clus(slots.map(function(q){return q.y;}));slots.forEach(function(q,i){q.ci=CI[i];q.ri=RI[i];});
+ var own=[],om={};groups.forEach(function(g,gi){var k=g.own||'';if(!(k in om)){om[k]=own.length;own.push({k:k,g:[],n:0,b:0,w:0,lat:0,ln:0,fi:gi});}var O=own[om[k]];O.g.push(g);g.pipes.forEach(function(p){O.n++;if(p.fi===1)O.b++;else if(p.fi===0)O.w++;});if(g.olat!=null&&isFinite(g.olat)){O.lat+=g.olat;O.ln++;}});
+ own.forEach(function(O){O.sc=O.ln?O.lat/O.ln:0;});own.sort(function(a,b){return (Math.abs(a.sc-b.sc)>0.05?a.sc-b.sc:0)||(a.fi-b.fi);});/* 왼쪽에 있는 통신사 먼저 */
+ var reg=slots.map(function(){return 0;});
+ if(own.length>1){var ix=slots.map(function(q,i){return i;});var ords=[ix.slice().sort(function(a,b){return (slots[a].ci-slots[b].ci)||(slots[a].ri-slots[b].ri);}),ix.slice().sort(function(a,b){return (slots[a].ri-slots[b].ri)||(slots[a].ci-slots[b].ci);})];/* 열 단위(위아래 단 함께) → 단 단위 */
+  var best=null;ords.forEach(function(od){var rg=[],p=0,cost=0;own.forEach(function(O,k){var sb=0,sw=0;for(var j=0;j<O.n&&p<od.length;j++,p++){rg[od[p]]=k;if(slots[od[p]].fi===1)sb++;else if(slots[od[p]].fi===0)sw++;}cost+=Math.max(0,O.b-sb)+Math.max(0,O.w-sw);});for(;p<od.length;p++)rg[od[p]]=own.length-1;if(!best||cost<best.c)best={c:cost,rg:rg};});reg=best.rg;}
+ var used={},left=[];
+ own.forEach(function(O,k){var mine=[];slots.forEach(function(q,i){if(reg[i]===k)mine.push(i);});
+  var hasL=O.g.some(function(g){return g.side<0;}),hasR=O.g.some(function(g){return g.side>0;});
+  var gs=O.g.slice().sort(function(a,b){var ab=a.side?0:1,bb=b.side?0:1;if(ab!==bb)return ab-bb;if(a.side&&b.side)return Math.abs(b.lat||0)-Math.abs(a.lat||0);return 0;});/* 분기(보조시설물) 관 먼저 자리 잡음 */
+  gs.forEach(function(g){var pref=mine.slice().sort(function(a,b){var A=slots[a],B=slots[b];if(g.side<0)return (A.ci-B.ci)||(B.ri-A.ri);if(g.side>0)return (B.ci-A.ci)||(B.ri-A.ri);return (A.ri-B.ri)||((hasR&&!hasL)?(B.ci-A.ci):(A.ci-B.ci));});/* 왼쪽 분기=맨 왼쪽·위, 오른쪽 분기=맨 오른쪽·위, 맨홀 관=아래 단부터 빈자리 이어서 */
+   var rk={};pref.forEach(function(i,n){rk[i]=n;});var P=mine.length+1;
+   g.pipes.slice().sort(function(a,b){return (a.fi==null?1:0)-(b.fi==null?1:0);}).forEach(function(p){var bi=-1,bc=1e18;mine.forEach(function(i){if(used[i]||!fit(p,slots[i]))return;var c=((p.fi!=null&&slots[i].fi!=null&&slots[i].fi!==p.fi)?P:0)+rk[i];if(c<bc){bc=c;bi=i;}});if(bi>=0){used[bi]=1;out.push([bi,p]);}else left.push(p);});});});
+ left.forEach(function(p){var bi=-1,bc=1e18;slots.forEach(function(q,i){if(used[i]||!fit(p,q))return;var c=((p.fi!=null&&q.fi!=null&&q.fi!==p.fi)?100:0)+q.ri*10+q.ci;if(c<bc){bc=c;bi=i;}});if(bi>=0){used[bi]=1;out.push([bi,p]);}});
+ return out;}
 function _ptoCalc9(rec,wall,G){/* → {cs:[{c,kind,dia,st,r,man,un,blank}], rows:[{ix,dv,nm,sh,xy,main,ang,ex,lines,got,gotB}], ok} */
  var out={cs:[],rows:[],ok:true};var pw=rec&&rec.pipes&&rec.pipes[wall];if(!pw||!pw.groups)return out;var dk=PTO_DK9[wall];if(!dk)return out;
  var C=[];pw.groups.forEach(function(g){var kd=String((g&&g.kind)||'FC').toUpperCase();((g&&g.circles)||[]).forEach(function(c){var st=(c.st!=null?c.st:(c.fill?1:0));C.push({c:c,kind:kd,dia:String(+c.dia||''),st:st,r:null,man:false,un:false,blank:false});});});
@@ -23273,11 +23294,12 @@ function _ptoCalc9(rec,wall,G){/* → {cs:[{c,kind,dia,st,r,man,un,blank}], rows
  var ordA=ord.filter(function(r){return !(r.dv&&r.dv.pm9);});/* [BUILD3228] 관방향설정으로 만든 방향(pm9) = 작업자가 고른 관만, 자동 배분 안 받음 */
  if(R.length===1){if(ordA.length)pool.forEach(function(o){set(o,R[0],0);});pool=[];}
  else{
-  pool.sort(function(a,b){return ((+a.c.x)-(+b.c.x))||((+b.c.y)-(+a.c.y));});
-  var take=function(r,ln,f,k){var n=0;for(var i=0;i<pool.length&&n<k;i++){var o=pool[i];if(o.r||!mt(ln,o)||!f(o))continue;set(o,r,0);n++;}};
-  [1,0].forEach(function(strict){ordA.forEach(function(r){r.lines.forEach(function(ln){if(strict?!ln.dia:!!ln.dia)return;
-   if(ln.rB>0)take(r,ln,function(o){return o.st===1;},ln.rB);if(ln.rW>0)take(r,ln,function(o){return o.st!==1;},ln.rW);if(ln.rM>0)take(r,ln,function(){return true;},ln.rM);});});});
-  ordA.forEach(function(r){r.lines.forEach(function(ln){var k=ln.rB+ln.rW;if(k>0)take(r,ln,function(){return true;},k);});});/* 색이 안 맞아도 개수는 채움(불일치 표시) */
+  /* [BUILD3247] 통신사끼리 묶고 → 보조시설물·분기 관은 주관로 기준 그쪽 맨 끝·위 → 맨홀로 가는 관은 아래부터 · 원 배치·내관은 야장 그대로 */
+  var SSo=_ptoOwn9(_ptoSrcSh9(rec));var slots=pool.map(function(o){return {o:o,x:+o.c.x||0,y:+o.c.y||0,fi:(o.st===1)?1:0,kind:o.kind,dia:o.dia};});
+  var gps=[];ordA.forEach(function(r){var ps=[];r.lines.forEach(function(ln){var k;for(k=0;k<ln.rB;k++)ps.push({fi:1,ln:ln,r:r});for(k=0;k<ln.rW;k++)ps.push({fi:0,ln:ln,r:r});for(k=0;k<ln.rM;k++)ps.push({fi:null,ln:ln,r:r});});if(!ps.length)return;
+   var aux=_ptoIsAux9(r.sh);var side=0;if(!r.main&&r.xy&&(aux||Math.abs(r.ang)>0.26))side=(r.ang>0)?-1:1;var lat=-Math.sin(r.ang||0);gps.push({own:(aux?'':_ptoOwn9(r.sh))||SSo,side:side,lat:lat,olat:lat,pipes:ps});});
+  var dd=slots.map(function(q){return +q.dia||100;}).sort(function(p,q){return p-q;});var tol=0.3*(dd[Math.floor(dd.length/2)]||100);
+  _ptoPlace9(slots,gps,function(p,q){return (!p.ln.kind||p.ln.kind===q.kind)&&(!p.ln.dia||p.ln.dia===q.dia);},tol).forEach(function(A){var o=slots[A[0]].o;if(!o.r)set(o,A[1].r,0);});
   var unk=null;ordA.forEach(function(r){if(!unk&&(!r.lines.length||r.lines.every(function(q){return q.cnt==null;})))unk=r;});
   if(unk)pool.forEach(function(o){if(!o.r)set(o,unk,0);});
  }
@@ -23377,10 +23399,17 @@ function _ptoBoxList9(pi){/* 이 구간을 지나는 관(중복 제거) → [{la
 function _ptoBoxLab9(items,lk,pi){/* 관표시 원에 가는 곳 붙이기 — 이미 붙은(맨홀 앞점) 상자는 그대로 */
  try{if(pi==null)return;var cs0=items.filter(function(q){return q&&q.t==='ci'&&q.lk===lk;});if(!cs0.length)return;var cs=cs0.filter(function(q){return !q.to9||q.to9==='?';});if(!cs.length)return;/* [BUILD3219] 앞점 상자도 빈 원(?·없음)은 경로 관으로 채움 */
   var L=_ptoBoxList9(pi);if(!L||!L.length)return;L=L.slice();cs0.forEach(function(q){if(!q.to9||q.to9==='?')return;var bi=-1;for(var i=0;i<L.length;i++){if(L[i].lab===q.to9){if((L[i].fi?1:0)===(q.fi?1:0)){bi=i;break;}if(bi<0)bi=i;}}if(bi>=0)L.splice(bi,1);});if(!L.length)return;var G=null;try{G=_simsaGeoF9();}catch(_g){}
-  var grp={};var ord=[];L.forEach(function(e){if(!(e.lab in grp)){grp[e.lab]=ord.length;ord.push(e.lab);}});
-  var pool=L.slice().sort(function(a,b){return (grp[a.lab]-grp[b.lab]);});var used=[];
-  var pick=function(q,strict){var small=(q.r<0.4);for(var i=0;i<pool.length;i++){if(used[i])continue;var e=pool[i];if((e.dia<=50)!==small)continue;if(strict&&(e.fi?1:0)!==(q.fi?1:0))continue;used[i]=1;return e;}return null;};
-  var got=cs.map(function(q){return pick(q,true);});cs.forEach(function(q,i){if(!got[i])got[i]=pick(q,false);});
+  /* [BUILD3247] 통신사끼리 묶음 → 보조시설물 관 = 주관로(화면 위쪽 방향) 기준 그 시설물 쪽 맨 끝·위 → 맨홀 관 = 아래부터 */
+  var RW=null;try{var Rr=(window._posSegC9&&window._posSegC9.raws)?window._posSegC9:posSplitSegs9();RW=Rr.raws[pi];}catch(_rw){}
+  var p0=(RW&&RW.length>=2)?RW[0]:null,p1=p0?RW[RW.length-1]:null;var dv=p0?[p1[0]-p0[0],p1[1]-p0[1]]:[0,1];if(dv[1]<0||(Math.abs(dv[1])<1e-9&&dv[0]<0))dv=[-dv[0],-dv[1]];var dl=Math.hypot(dv[0],dv[1])||1;
+  var latOf=function(m){if(!p0||!m||m.wx==null)return null;return -((dv[0]*(m.wy-p0[1])-dv[1]*(m.wx-p0[0]))/dl);};/* 음수 = 왼쪽 */
+  var isMh=function(m){return !!m&&(!m.type||m.type==='mh');};
+  var GP={},gl=[];L.forEach(function(e){var k=[e.s.id,e.t.id].sort().join('~');if(!GP[k]){var af=!isMh(e.s)?e.s:(!isMh(e.t)?e.t:null);var mhE=[e.s,e.t].filter(isMh);var own='';mhE.forEach(function(m){if(!own){try{own=_ptoOwn9(_ptoShort9(m.label,[m.wx,m.wy]));}catch(_o){}}});var ol=null,on=0;mhE.forEach(function(m){var v=latOf(m);if(v!=null){ol=(ol||0)+v;on++;}});var la=af?latOf(af):null;
+    GP[k]={own:own,side:af?((la!=null&&la>0)?1:-1):0,lat:la||0,olat:on?ol/on:null,pipes:[]};gl.push(GP[k]);}GP[k].pipes.push({fi:e.fi?1:0,e:e});});
+  var free=!cs0.some(function(q){return q.pt9||(q.to9&&q.to9!=='?');});/* 앞점(야장 배치) 아닌 상자 = 내관 칠 위치도 관에 맞춤(개수는 태그 그대로) */
+  var slots=cs.map(function(q){return {q:q,x:(+q.u||0)*((q.bu&&q.bu[0]<0)?-1:1),y:(+q.v||0)*((q.bv&&q.bv[1]<0)?-1:1),fi:free?null:(q.fi?1:0),sm:(q.r<0.4)};});
+  var got=cs.map(function(){return null;});_ptoPlace9(slots,gl,function(p,q){return ((p.e.dia<=50)===q.sm);},0.3).forEach(function(A){got[A[0]]=A[1].e;});
+  if(free){var nB=cs.filter(function(q){return q.fi;}).length;var ord2=cs.map(function(q,i){return i;});var bl=ord2.filter(function(i){return got[i]&&got[i].fi;}),rest=ord2.filter(function(i){return !(got[i]&&got[i].fi);});var pick=bl.concat(rest).slice(0,nB);cs.forEach(function(q){q.fi=0;});pick.forEach(function(i){cs[i].fi=1;});}
   cs.forEach(function(q,i){var e=got[i];if(!e)return;q.to9=e.lab||null;try{q.to9s=_ptoShort9(e.s.label,[e.s.wx,e.s.wy])||null;}catch(_ss){}var ex=false;try{if(G&&G.n&&e.dv)ex=_ptoExRow9(G,e.dv,e.xy);}catch(_x){}if(ex)q.ex9=1;});
  }catch(_e){}}
 
