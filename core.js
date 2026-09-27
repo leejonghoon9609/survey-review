@@ -13563,7 +13563,7 @@ function mnDxfPickTpl(rec){
 }
 function mnDxfEnt(lines){return lines.join('\n')+'\n';}
 function mnDxfCircle(h,x,y,r){return mnDxfEnt(['  0','CIRCLE','  5',h,'330','2','100','AcDbEntity','  8','pipe','100','AcDbCircle',' 10',x.toFixed(1),' 20',y.toFixed(1),' 30','0.0',' 40',r.toFixed(1)]);}
-function mnDxfHatch(h,x,y,r){return mnDxfEnt(['  0','HATCH','  5',h,'330','2','100','AcDbEntity','  8','pipe','100','AcDbHatch',' 10','0.0',' 20','0.0',' 30','0.0','210','0.0','220','0.0','230','1.0','  2','SOLID',' 70','1',' 71','0',' 91','1',' 92','1',' 93','1',' 72','2',' 10',x.toFixed(1),' 20',y.toFixed(1),' 40',r.toFixed(1),' 50','0.0',' 51','360.0',' 73','1',' 97','0',' 75','1',' 76','1',' 98','0']);}
+function mnDxfHatch(h,x,y,r,col){return mnDxfEnt(['  0','HATCH','  5',h,'330','2','100','AcDbEntity','  8','pipe'].concat(col?[' 62',String(col)]:[]).concat(['100','AcDbHatch',' 10','0.0',' 20','0.0',' 30','0.0','210','0.0','220','0.0','230','1.0','  2','SOLID',' 70','1',' 71','0',' 91','1',' 92','1',' 93','1',' 72','2',' 10',x.toFixed(1),' 20',y.toFixed(1),' 40',r.toFixed(1),' 50','0.0',' 51','360.0',' 73','1',' 97','0',' 75','1',' 76','1',' 98','0']));}
 function mnDxfText(h,x,y,txt,ht,rot){return mnDxfEnt(['  0','TEXT','  5',h,'330','2','100','AcDbEntity','  8','Attr','100','AcDbText',' 10',x.toFixed(1),' 20',y.toFixed(1),' 30','0.0',' 40',String(ht),'  1',txt,' 50',String(rot||0),'100','AcDbText']);}
 function mnDxfTextC(h,cx,cy,txt,ht){return mnDxfEnt(['  0','TEXT','  5',h,'330','2','100','AcDbEntity','  8','Attr','100','AcDbText',' 10',cx.toFixed(1),' 20',cy.toFixed(1),' 30','0.0',' 40',String(ht),'  1',txt,' 50','0','  7','DIM',' 72','1',' 11',cx.toFixed(1),' 21',cy.toFixed(1),' 31','0.0','100','AcDbText',' 73','2']);}
 /* ===== [BUILD 1017] 현장전자야장 DXF — 평면 맨홀도(샘플 규격) 생성 ===== */
@@ -14115,13 +14115,13 @@ function mnDxfGen(rec){
         pw.groups.forEach(function(gg){(gg.circles||[]).forEach(function(cc){cc.x=Math.round(cc.x*_fx);cc.y=Math.round(cc.y*_fy);});});
         pw.bw=_W;pw.bh=_H;try{mnPersistRec(rec);}catch(_e){}
       }
-      var all=[];pw.groups.forEach(function(gr){(gr.circles||[]).forEach(function(c){var st=(c.st!=null?c.st:(c.fill?1:0));if(st===2)return;all.push({x:c.x,y:c.y,dia:c.dia,st:st});});});
+      var all=[];pw.groups.forEach(function(gr){(gr.circles||[]).forEach(function(c){var st=(c.st!=null?c.st:(c.fill?1:0));all.push({x:c.x,y:c.y,dia:c.dia,st:st});});});/* [BUILD3253] 작업외(st2) 관도 그림 — 빨강 채움(관 구성 글자에선 빠짐) */
       if(!all.length)return;
       /* 실척 */
       all.forEach(function(c){
         var p=armXY(wall,c.x,c.y);
         out+=mnDxfCircle(nh(),p[0],p[1],c.dia/2);
-        if(c.st===1)out+=mnDxfHatch(nh(),p[0],p[1],c.dia/2);
+        if(c.st===1)out+=mnDxfHatch(nh(),p[0],p[1],c.dia/2);else if(c.st===2)out+=mnDxfHatch(nh(),p[0],p[1],c.dia/2,1);
       });
       /* [993] 확대(2배) — armXY 회전 그대로(전개도 팔 방향과 일치, 완성본 방식) */
       var mx=0,my=0;all.forEach(function(c){mx+=c.x;my+=c.y;});mx/=all.length;my/=all.length;
@@ -14130,11 +14130,11 @@ function mnDxfGen(rec){
       var minX=1e18,maxX=-1e18,minY=1e18,maxY=-1e18;
       pw.groups.forEach(function(gr){
         (gr.circles||[]).forEach(function(c){
-          var st=(c.st!=null?c.st:(c.fill?1:0));if(st===2)return;
+          var st=(c.st!=null?c.st:(c.fill?1:0));/* [BUILD3253] 작업외도 확대도에 빨강으로 */
           var pp=armXY(wall,c.x,c.y);
           var ex=sl.sx+(pp[0]-pcArm[0])*2, ey=sl.sy+(pp[1]-pcArm[1])*2;
           out+=mnDxfCircle(nh(),ex,ey,c.dia);
-          if(st===1)out+=mnDxfHatch(nh(),ex,ey,c.dia);
+          if(st===1)out+=mnDxfHatch(nh(),ex,ey,c.dia);else if(st===2)out+=mnDxfHatch(nh(),ex,ey,c.dia,1);
           if(ex-c.dia<minX)minX=ex-c.dia; if(ex+c.dia>maxX)maxX=ex+c.dia;
           if(ey-c.dia<minY)minY=ey-c.dia; if(ey+c.dia>maxY)maxY=ey+c.dia;
         });
