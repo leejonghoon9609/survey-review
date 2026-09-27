@@ -22957,6 +22957,7 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
   if(_pat9&&_pat9.cs&&_pat9.cs.length&&_pat9.W>0&&_pat9.H>0){/* [BUILD2770] 원 위치 = 맨홀도 상대좌표 그대로(가운데 정렬·엇배열 포함), 화면 방향 따라 좌우/상하 반전 */_pat9.cs.forEach(function(o){var u=(_flU9&&!_pat9.man)?(_W9-o.u):o.u,v=(_flV9&&!_pat9.man)?(_H9-o.v):o.v;S.items.push({t:'ci',lay:'SD983',x:_ax9+_mkU9[0]*u+_mkV9[0]*v,y:_ay9+_mkU9[1]*u+_mkV9[1]*v,r:o.r,fi:o.fi?1:0,to9:o.to||null,ex9:o.ex?1:0,lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9,u:u,v:v,bx:_ax9,by:_ay9,bu:_mkU9,bv:_mkV9});});_naeLeft9=0;}
   else if(_n100>0){if(_pr9){for(var _rp9=0;_rp9<_pr9.length;_rp9++){if(!_pr9[_rp9].length)continue;_mkRow9(_pr9[_rp9].length,0.5,_vo9,_pr9[_rp9]);_vo9+=1.0;}}else{for(var _rr9=0;_rr9<_rows9;_rr9++){var _cnt9=Math.min(_cpr9,_n100-_rr9*_cpr9);if(_cnt9<=0)break;_mkRow9(_cnt9,0.5,_vo9,null);_vo9+=1.0;}}}
   if(_n50>0&&!(_pat9&&_pat9.cs&&_pat9.cs.length&&_pat9.W>0&&_pat9.H>0)){_mkRow9(_n50,0.25,_vo9,_p50);_vo9+=0.5;}
+  try{_ptoBoxLab9(S.items,_lk9,_pi9);}catch(_bl9){}/* [BUILD3216] 앞점 아닌 구간(합류·분기)도 관마다 가는 곳 */
   /* 채움(내관 해치)·관종 분리 = 내일 입력 체계와 함께(완료본 해치 위치 불규칙=작업자 지정 영역 실측) */
  });
  /* ===== [BUILD2811] ★경계심벌 — 절단점(posCuts9[].kind)에 경계심벌 샘플(정위치 템플릿 범례 실측) 형상을 관로선 기준으로 배치. 샘플 단위→m 스케일 K=3.333(심도경계 글자 0.3→1.0, _CHANGE 글자 0.15→0.5). [BUILD2817] 샘플 실측 재현(줄기 1.25·화살선 0.98·채움 화살촉 0.13×0.05·글자 위치) + 관로 기준 반전: sy(위아래=관로선 반대편) · dx(좌우=꺾인 인출선 기울기, 측설재측·심도경계) — 몸통 오프셋(ox·oy)은 (u,n) 월드 축 ===== */
@@ -23188,14 +23189,18 @@ function _simsaExNos9(G){/* 제외되는 측점 번호 모음(실측·탐사 등
    심사 제외 반영 시 제외 시설물로 가는 관 = 빨강관(작업외) — 화면은 빨강, 성과심사목록 맨홀도·전자야장은 st=2 사본으로 출력(원본 야장 불변) */
 var PTO_DK9={p1:'d1',p2:'d2',p3:'d3',p4:'d4'};
 var PTO_WN9={p1:'1(서)',p2:'2(동)',p3:'3(북)',p4:'4(남)'};
-function _ptoShort9(lab,xy){var t=_simsaNm9(lab);if(!t)return '';
+function _ptoShort9(lab,xy){/* [BUILD3216] 약칭 — 맨홀은 번호+관리기관 한 글자: LG(L) SKB(B) SKT(T) DL(D) SJ(S) 시청(시) */var t=_simsaNm9(lab);if(!t)return '';
  if(/입상/.test(t)){var pre=/한전/.test(t)?'한':'통';var n='';var m1=/^(\d+)/.exec(t);if(m1)n=m1[1];
   if(!n&&xy){try{n=String(_simsaFacNo9(+xy[0],+xy[1])||'');}catch(_e){}}
   if(!n){var m2=/\(([^)]*)\)/.exec(t);if(m2){var m4=/(\d+)/.exec(m2[1]);if(m4)n=m4[1];}}
   if(n.length>4){var m3=/(\d+)$/.exec(n);if(m3)n=m3[1];}
   return pre+n;}
  if(/인입/.test(t))return '인입';if(/^JB/i.test(t))return 'JB';
- t=t.replace(/\([^)]*\)/g,'').replace(/[\[\]]/g,'');return t.length>5?t.slice(0,5):t;}
+ var OW=[['SKB','B'],['SKT','T'],['LG','L'],['DL','D'],['SJ','S'],['시청','시']];var own='',base=t;
+ var mo=/\(([^)]*)\)/.exec(t);if(mo){var k=mo[1].toUpperCase();OW.forEach(function(q){if(!own&&k.indexOf(q[0])>=0)own=q[1];});base=t.split('(')[0];}
+ else{OW.forEach(function(q){if(own)return;var re=new RegExp(q[0]+'$','i');if(re.test(base)&&base.length>q[0].length){own=q[1];base=base.replace(re,'');}});}
+ base=base.replace(/^(신|기)(?=\d)/,'').replace(/[\[\]]/g,'');if(base.length>5)base=base.slice(0,5);
+ return base+(own?'('+own+')':'');}
 function _ptoSrc9(rec){var m=null;try{m=_mnMhOfRec9(rec);}catch(_e){}if(m&&m.wx!=null)return {wx:+m.wx,wy:+m.wy};var p=null;try{p=_simsaMnPos9(rec);}catch(_p){}return p?{wx:p[0],wy:p[1]}:null;}
 function _ptoXY9(rec,dv,src){if(dv&&dv.xy&&dv.xy.length===2&&isFinite(+dv.xy[0]))return [+dv.xy[0],+dv.xy[1]];try{if(src&&dv&&dv.lab){var p=_lblMh9(src.wx,src.wy,dv.lab);if(p&&p.length===2)return [+p[0],+p[1]];}}catch(_e){}return null;}
 function _ptoExRow9(G,dv,xy){/* 이 방향 대상이 심사에서 빠지나 */if(!G||!G.n||!dv)return false;try{var P=xy;if(P){var bm=null,bd=2.5;(state.manholes||[]).forEach(function(m){if(!m||m.wx==null)return;var d=Math.hypot(m.wx-P[0],m.wy-P[1]);if(d<bd){bd=d;bm=m;}});if(bm)P=[bm.wx,bm.wy];return !!_simsaOut9(G,P[0],P[1],1.6);}
@@ -23241,7 +23246,7 @@ function _ptoSimsaRec9(rec,G){/* 성과심사목록용 읽기 전용 사본 — 
   return cp;}catch(_e){return rec;}}
 function _ptoDraw9(ctx,rec,wall,sx,sy,H){/* 관배치 편집창 캔버스 — 원 가운데 가는 곳 약칭 */try{var P=_ptoCalc9(rec,wall);P.cs.forEach(function(o){if(o.st===2)return;var c=o.c;var r=Math.max(c.dia/2*sy,3);var X=c.x*sx,Y=(H-c.y)*sy;var ex=!!(o.r&&o.r.ex);
   if(ex){ctx.beginPath();ctx.arc(X,Y,r,0,Math.PI*2);ctx.fillStyle='#d32f2f';ctx.fill();ctx.strokeStyle='#333';ctx.lineWidth=1.4;ctx.stroke();}
-  var t=_ptoLab9(o);if(!t)return;var fs=r*0.9;ctx.font='800 '+fs.toFixed(2)+'px sans-serif';var w=ctx.measureText(t).width;if(w>r*1.66){fs=fs*r*1.66/w;ctx.font='800 '+fs.toFixed(2)+'px sans-serif';}
+  var t=_ptoLab9(o);if(!t)return;var fs=r*0.62;ctx.font='800 '+fs.toFixed(2)+'px sans-serif';var w=ctx.measureText(t).width;if(w>r*1.6){fs=fs*r*1.6/w;ctx.font='800 '+fs.toFixed(2)+'px sans-serif';}
   ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=o.un?'#ef6c00':(ex?'#fff':(o.man?(o.st===1?'#90caf9':'#1565c0'):(o.st===1?'#fff':'#111')));ctx.fillText(t,X,Y+fs*0.05);
   if(o.man){ctx.beginPath();ctx.arc(X+r*0.72,Y-r*0.72,Math.max(1.8,r*0.17),0,Math.PI*2);ctx.fillStyle='#1565c0';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1;ctx.stroke();}});
   ctx.textAlign='start';ctx.textBaseline='alphabetic';}catch(_e){}}
@@ -23272,6 +23277,56 @@ function _ptoSumBar9(rec,k){/* 방향 정보창 — 관 배분 한 줄 */try{var
   var seg=P.rows.map(function(r){var dots='';P.cs.forEach(function(o){if(o.r===r)dots+=(o.st===1?'●':'○');});return '<b style="color:'+(r.ex?'#d1007e':'#4a148c')+'">'+E(r.sh||r.nm)+'</b> '+(dots||'-');}).join(' · ');
   var un=P.cs.filter(function(o){return o.un;}).length;var ok=P.ok;
   return '<div title="관배치 편집창 [가는 곳]에서 관마다 고칠 수 있어요(화면 표시 전용)" style="display:flex;gap:6px;align-items:center;margin-top:4px;font-size:10.5px;font-weight:800;padding:4px 8px;border-radius:7px;background:'+(ok?'#f3e5f5':'#fff3e0')+';border:1px solid '+(ok?'#ce93d8':'#ffb74d')+';color:'+(ok?'#6a1b9a':'#e65100')+'"><span style="flex:none">'+PTO_WN9[w]+' 관 배분</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px">'+seg+(un?(' · <b style="color:#ef6c00">? '+un+'</b>'):'')+'</span><span>'+(ok?'맞음':'⚠ 확인')+'</span></div>';}catch(_e){return '';}}
+
+/* ===== [BUILD3216] 도면 관표시 — 맨홀 앞점이 아닌 구간(합류·분기 구간)도 관마다 가는 곳 =====
+   관 하나하나(맨홀 야장 벽 관의 가는 곳 · 통신주입상 등 보조시설물 방향 정보 행)를 출발 시설물→가는 시설물 경로(정위치 구간, 다른 시설물 통과 금지)로 따라가
+   지나가는 구간마다 모음. 한 구간에서 같은 관이 양쪽 끝에서 두 번 잡히면 한 번만 — 그 구간 관을 가장 많이 가진 시설물 쪽 시점으로 표시
+   (예: 합류 구간 = 두 맨홀 앞점 관의 합, 통신주 쪽 가지 구간 = 통신주입상 방향 정보, 분기 뒤 구간 = 합류 구간 − 통신주 쪽 관) */
+function _ptoHeap9(){var a=[];return {push:function(k,d){a.push([d,k]);var i=a.length-1;while(i>0){var p=(i-1)>>1;if(a[p][0]<=a[i][0])break;var t=a[p];a[p]=a[i];a[i]=t;i=p;}},pop:function(){if(!a.length)return null;var top=a[0],last=a.pop();if(a.length){a[0]=last;var i=0;for(;;){var l=2*i+1,r=l+1,m=i;if(l<a.length&&a[l][0]<a[m][0])m=l;if(r<a.length&&a[r][0]<a[m][0])m=r;if(m===i)break;var t=a[m];a[m]=a[i];a[i]=t;i=m;}}return top;},size:function(){return a.length;}};}
+function _ptoNet9(){/* 경로망 + 관 목록 + 구간별 관(캐시) */
+ var now=Date.now();if(window._ptoNetC9&&window._ptoNetT9&&now-window._ptoNetT9<200)return window._ptoNetC9;window._ptoNetT9=now;/* 한 번 그리는 동안 서명 재계산 생략 */
+ var R=null;try{R=posSplitSegs9();}catch(_r){}if(!R||!R.raws||!R.raws.length)return null;
+ var recs=[];try{recs=(typeof mnList==='function')?(mnList()||[]):[];}catch(_l){}recs=recs.filter(function(r){return r&&!r.delAt;});
+ var MH=(state.manholes||[]).filter(function(m){return m&&m.wx!=null&&isFinite(+m.wx);});
+ var sig=String(R.k||'')+'|'+R.raws.length+'|'+recs.map(function(r){return r.id+':'+(r.up||'')+':'+(r.mhId==null?'':r.mhId);}).join(',')+'|'+MH.map(function(m){return m.id+':'+(+m.wx).toFixed(2)+':'+(+m.wy).toFixed(2)+':'+(m.label||'')+':'+(m.dests?JSON.stringify(m.dests).length:0);}).join(',');
+ var C=window._ptoNetC9;if(C&&C.sig===sig)return C;
+ var nk=function(p){return Math.round(p[0]*20)+'_'+Math.round(p[1]*20);};var N={},adj={};
+ R.raws.forEach(function(rw,pi){if(!rw||rw.length<2)return;var a=rw[0],b=rw[rw.length-1],ka=nk(a),kb=nk(b);if(ka===kb)return;N[ka]=a;N[kb]=b;var L=0;for(var i=1;i<rw.length;i++)L+=Math.hypot(rw[i][0]-rw[i-1][0],rw[i][1]-rw[i-1][1]);(adj[ka]=adj[ka]||[]).push({to:kb,L:L,pi:pi});(adj[kb]=adj[kb]||[]).push({to:ka,L:L,pi:pi});});
+ /* 시설물 ↔ 노드: 1.5m 안 가장 가까운 시설물(없으면 3m) */
+ var fac={},facN={};Object.keys(N).forEach(function(k){var p=N[k],bi=null,bd=1.5;MH.forEach(function(m){var d=Math.hypot(m.wx-p[0],m.wy-p[1]);if(d<bd){bd=d;bi=m;}});if(bi){fac[k]=bi;(facN[bi.id]=facN[bi.id]||[]).push(k);}});
+ MH.forEach(function(m){if(facN[m.id])return;var bk=null,bd=3.0;Object.keys(N).forEach(function(k){if(fac[k])return;var d=Math.hypot(m.wx-N[k][0],m.wy-N[k][1]);if(d<bd){bd=d;bk=k;}});if(bk){fac[bk]=m;facN[m.id]=[bk];}});
+ var facAt=function(xy){if(!xy)return null;var bm=null,bd=2.5;MH.forEach(function(m){var d=Math.hypot(m.wx-xy[0],m.wy-xy[1]);if(d<bd){bd=d;bm=m;}});return bm;};
+ var routes={};var route=function(m1,m2){var key=m1.id+'>'+m2.id;if(key in routes)return routes[key];var S0=facN[m1.id]||[],T={};(facN[m2.id]||[]).forEach(function(k){T[k]=1;});if(!S0.length||!Object.keys(T).length){routes[key]=null;return null;}
+  var dist={},prev={},done={},H=_ptoHeap9();S0.forEach(function(k){dist[k]=0;H.push(k,0);});var hit=null;
+  while(H.size()){var tp=H.pop(),u=tp[1];if(done[u])continue;done[u]=1;if(T[u]){hit=u;break;}var f0=fac[u];if(f0&&f0!==m1)continue;/* 다른 시설물은 지나가지 않음 */
+   (adj[u]||[]).forEach(function(e){var v=e.to;if(done[v])return;var nd=dist[u]+e.L;if(dist[v]==null||nd<dist[v]){dist[v]=nd;prev[v]={from:u,pi:e.pi};H.push(v,nd);}});}
+  if(!hit){routes[key]=null;return null;}var o={},k=hit;while(prev[k]){o[prev[k].pi]=1;k=prev[k].from;}routes[key]=o;return o;};
+ /* 관 목록 */
+ var P=[];var tot={};
+ recs.forEach(function(rec){var m=null;try{m=_mnMhOfRec9(rec);}catch(_m){}if(!m){var p0=null;try{p0=_simsaMnPos9(rec);}catch(_p){}if(p0)m=facAt(p0);}if(!m)return;
+  ['p1','p2','p3','p4'].forEach(function(w){if(!rec.pipes||!rec.pipes[w])return;var Q=null;try{Q=_ptoCalc9(rec,w,null);}catch(_q){}if(!Q)return;Q.cs.forEach(function(o){if(o.st===2||!o.r)return;var t=facAt(o.r.xy);if(!t||t===m)return;P.push({s:m,t:t,lab:o.r.sh||'',fi:(o.st===1)?1:0,dia:+o.c.dia||100,rec:rec,w:w,dv:o.r.dv,xy:o.r.xy});tot[m.id]=(tot[m.id]||0)+1;});});});
+ MH.forEach(function(m){if(!m.dests||!m.dests.length)return;var hasRec=recs.some(function(r){return r.mhId!=null&&String(r.mhId)===String(m.id);});if(hasRec)return;
+  m.dests.forEach(function(e,i){if(!e)return;var xy=(e.xy&&e.xy.length===2)?[+e.xy[0],+e.xy[1]]:null;if(!xy&&e.lab){try{var q=_lblMh9(m.wx,m.wy,e.lab);if(q)xy=q;}catch(_x){}}var t=facAt(xy);if(!t||t===m)return;
+   var gw=[];try{gw=_auxRowGw9(m,i)||[];}catch(_g){}if(!gw.length){var c0=(e.cnt===''||e.cnt==null)?null:parseInt(e.cnt,10);if(c0==null&&m.dests.length===1&&typeof auxPipeAll9==='function'){try{var A9=auxPipeAll9(m);if(A9&&A9.cnt!=null)c0=+A9.cnt;}catch(_c){}}var n0=(e.nae===''||e.nae==null)?null:parseInt(e.nae,10);if(c0)gw=[{dia:'100',cnt:c0,nae:n0}];}
+   var sh=_ptoShort9(e.lab,xy);gw.forEach(function(g){var cn=+g.cnt||0,na=(g.nae==null||g.nae==='')?0:Math.min(cn,+g.nae||0);for(var j=0;j<cn;j++){P.push({s:m,t:t,lab:sh,fi:(j<na)?1:0,dia:+String(g.dia||'100').replace(/\D/g,'')||100,aux:m,dv:e,xy:xy});tot[m.id]=(tot[m.id]||0)+1;}});});});
+ var byPi={};P.forEach(function(e,ix){var rt=route(e.s,e.t);if(!rt)return;Object.keys(rt).forEach(function(pi){(byPi[pi]=byPi[pi]||[]).push(ix);});});
+ var ends={};R.raws.forEach(function(rw,pi){if(!rw||rw.length<2)return;var o={};[rw[0],rw[rw.length-1]].forEach(function(q){var f=fac[nk(q)];if(f)o[f.id]=1;});ends[pi]=o;});
+ C=window._ptoNetC9={sig:sig,P:P,byPi:byPi,tot:tot,ends:ends,box:{}};return C;}
+function _ptoBoxList9(pi){/* 이 구간을 지나는 관(중복 제거) → [{lab,fi,dia,e}] */
+ var C=_ptoNet9();if(!C)return null;if(C.box[pi])return C.box[pi];var L=(C.byPi[pi]||[]).map(function(ix){return C.P[ix];});if(!L.length){C.box[pi]=[];return C.box[pi];}
+ var bySrc={};L.forEach(function(e){(bySrc[e.s.id]=bySrc[e.s.id]||[]).push(e);});
+ var EN=C.ends[pi]||{};var srcs=Object.keys(bySrc).sort(function(a,b){return ((EN[a]?0:1)-(EN[b]?0:1))||(bySrc[b].length-bySrc[a].length)||((C.tot[b]||0)-(C.tot[a]||0))||(a<b?-1:1);});
+ var taken={},out=[];srcs.forEach(function(sid){var seen={};bySrc[sid].slice().sort(function(x,y){return y.fi-x.fi;}).forEach(function(e){var pk=[e.s.id,e.t.id].sort().join('~');seen[pk]=(seen[pk]||0)+1;if(seen[pk]>(taken[pk]||0)){taken[pk]=(taken[pk]||0)+1;out.push(e);}});});
+ C.box[pi]=out;return out;}
+function _ptoBoxLab9(items,lk,pi){/* 관표시 원에 가는 곳 붙이기 — 이미 붙은(맨홀 앞점) 상자는 그대로 */
+ try{if(pi==null)return;var cs=items.filter(function(q){return q&&q.t==='ci'&&q.lk===lk;});if(!cs.length||cs.some(function(q){return q.to9;}))return;
+  var L=_ptoBoxList9(pi);if(!L||!L.length)return;var G=null;try{G=_simsaGeoF9();}catch(_g){}
+  var grp={};var ord=[];L.forEach(function(e){if(!(e.lab in grp)){grp[e.lab]=ord.length;ord.push(e.lab);}});
+  var pool=L.slice().sort(function(a,b){return (grp[a.lab]-grp[b.lab]);});var used=[];
+  var pick=function(q,strict){var small=(q.r<0.4);for(var i=0;i<pool.length;i++){if(used[i])continue;var e=pool[i];if((e.dia<=50)!==small)continue;if(strict&&(e.fi?1:0)!==(q.fi?1:0))continue;used[i]=1;return e;}return null;};
+  var got=cs.map(function(q){return pick(q,true);});cs.forEach(function(q,i){if(!got[i])got[i]=pick(q,false);});
+  cs.forEach(function(q,i){var e=got[i];if(!e)return;q.to9=e.lab||null;var ex=false;try{if(G&&G.n&&e.dv)ex=_ptoExRow9(G,e.dv,e.xy);}catch(_x){}if(ex)q.ex9=1;});
+ }catch(_e){}}
 
 function _simsaMnPos9(r){if(!r)return null;if(r.refXY&&r.refXY.length===2&&isFinite(+r.refXY[0]))return [+r.refXY[0],+r.refXY[1]];var c=null;if(r.mhId!=null)(state.manholes||[]).forEach(function(m){if(!c&&m&&m.id===r.mhId&&m.wx!=null)c=[+m.wx,+m.wy];});return c;}
 function _simsaMnF9(arr){/* 맨홀 야장 목록에서 심사 제외 맨홀 빼기(성과심사목록 전용, 읽기 전용 사본) · [BUILD3215] 남는 맨홀은 제외 시설물로 가는 관을 빨강관(작업외)으로 바꾼 사본 */arr=arr||[];var G=_simsaGeoF9();if(!G||!G.n)return arr;return arr.filter(function(r){var c=_simsaMnPos9(r);return !(c&&_simsaOut9(G,c[0],c[1],1.6));}).map(function(r){return _ptoSimsaRec9(r,G);});}
@@ -24156,7 +24211,7 @@ function _sdDrawItem9(g,it){var _n0=g.childNodes.length;try{/* [BUILD2648] 측�
   g.appendChild(_pn9);
  }else if(it.t==='ci'){
   var c=S(it.x,it.y);var _dg9=!!(it.lk&&it.fw9&&it.u!=null);var _cn9=el('circle',{cx:c[0],cy:c[1],r:it.r,fill:(it.fi?col:'none'),stroke:col,'stroke-width':(0.07*_SDVW9.sym),'pointer-events':(_dg9?'all':'none')});/* [BUILD2763] 내관 검정 채움 · [BUILD2771] 관 드래그 배치 */if(it.lk&&it.fw9)_sdLeadPut9(_cn9,it);if(_dg9){_cn9.style.cursor='move';_cn9._col9=col;try{_sdPipeDrag9(_cn9,it);}catch(_pd9){}}if(it.ex9){_cn9.setAttribute('fill','#d32f2f');}g.appendChild(_cn9);
-  if(it.to9&&it.to9!=='?'){try{var _tl9=String(it.to9),_tu9=0;for(var _ti9=0;_ti9<_tl9.length;_ti9++)_tu9+=(/[\u3131-\uD79D]/.test(_tl9[_ti9])?1.0:0.62);var _fs9=Math.min(it.r*0.95,it.r*1.7/Math.max(_tu9,1));var _tx9=el('text',{x:c[0],y:c[1],'font-size':_fs9,'font-weight':800,'text-anchor':'middle','dominant-baseline':'central',fill:((it.fi||it.ex9)?'#fff':col),'pointer-events':'none'});_tx9.textContent=_tl9;g.appendChild(_tx9);_cn9._tx9=_tx9;}catch(_tt9){}}/* [BUILD3215] 관마다 가는 곳(화면 전용) */
+  if(it.to9&&it.to9!=='?'){try{var _tl9=String(it.to9),_tu9=0;for(var _ti9=0;_ti9<_tl9.length;_ti9++)_tu9+=(/[\u3131-\uD79D]/.test(_tl9[_ti9])?1.0:(/[()]/.test(_tl9[_ti9])?0.36:0.62));var _fs9=Math.min(it.r*0.62,it.r*1.6/Math.max(_tu9,1));/* [BUILD3216] 글씨 축소 */var _tx9=el('text',{x:c[0],y:c[1],'font-size':_fs9,'font-weight':800,'text-anchor':'middle','dominant-baseline':'central',fill:((it.fi||it.ex9)?'#fff':col),'pointer-events':'none'});_tx9.textContent=_tl9;g.appendChild(_tx9);_cn9._tx9=_tx9;}catch(_tt9){}}/* [BUILD3215] 관마다 가는 곳(화면 전용) */
  }else if(it.t==='tx'){
   var c2,_md9=(it.mid&&it.side!=null&&it.bx!=null);
   if(_md9)c2=S(it.bx,it.by);/* [BUILD2269] 이격선 위의 기준점 — 상하 배치는 그린 뒤 실측 보정 */
