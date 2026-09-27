@@ -24234,7 +24234,7 @@ function _sdLeadGeo9(it,ox,oy){/* [BUILD2274] 인출선 팔꿈치·수평길이 
 function _sdLeadMv9(lk,ox,oy){/* [BUILD2260] 재빌드 없이 해당 인출선 노드만 즉시 이동 */
  var arr=_sdLeadReg9[lk];if(!arr||!arr.length)return;
  for(var i=0;i<arr.length;i++){var n=arr[i],it=n._it9;if(!it||!n.parentNode)continue;
-  if(it.fw9){var b9=it.bo9||[1,0];var a09=Math.atan2(b9[1],b9[0]),a19=Math.atan2(oy,ox);var dg9=-(a19-a09)*180/Math.PI;var sc09=S(it.ax,it.ay);n.setAttribute('transform','rotate('+dg9.toFixed(3)+' '+sc09[0].toFixed(3)+' '+sc09[1].toFixed(3)+')');continue;}/* [BUILD2312] 관표시=앵커 중심 회전 추종(화면 y반전 → 부호 −) */
+  if(it.fw9){var b9=it.bo9||[1,0];var a09=Math.atan2(b9[1],b9[0]),a19=Math.atan2(oy,ox);var dg9=-(a19-a09)*180/Math.PI;var sc09=S(it.ax,it.ay);var tf9='rotate('+dg9.toFixed(3)+' '+sc09[0].toFixed(3)+' '+sc09[1].toFixed(3)+')';n.setAttribute('transform',tf9);try{if(n._tx9)n._tx9.setAttribute('transform',tf9);if(n._tx9b)n._tx9b.setAttribute('transform',tf9);}catch(_tt9){}/* [BUILD3242] 관 원 안 가는 곳 글씨도 같이 */continue;}/* [BUILD2312] 관표시=앵커 중심 회전 추종(화면 y반전 → 부호 −) */
   var G=_sdLeadGeo9(it,ox,oy),ax=G.ax,ay=G.ay,lw=G.lw,ex=G.ex,ey=G.ey,hx=G.hx;
   if(it.t==='pl'){
    var a=S(ax,ay),b=S(ex,ey),c=S(ex+hx*lw,ey);
