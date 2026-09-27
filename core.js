@@ -24058,7 +24058,7 @@ function _posEx_data9(force){window._ngisMode9='meas';return _posEx_ngis9(force,
 function _posEx_edwg9(force){window._ngisMode9='edwg';return _posEx_ngis9(force,'edwg');}/* [BUILD3128] 전자도면 *//* [BUILD3126] 실측 DATA *//* [BUILD3124] 인덱스 = 같은 창, 통판 모드 *//* [BUILD3117] 도면제작(NGIS)편집 = 같은 창, 편집 모드 */
 function _posEx_ngis9(force,mode){/* 추가성과 제작 바 → NGIS DATA 제작 창. [BUILD3116] 마지막 작업(미리보기 켜짐)이 있으면 창 대신 도면창에 바로 보여주고, 창은 밑줄 「설정창 보기」로 */
  window._ngisMode9=(mode==='edit'||mode==='index'||mode==='meas'||mode==='edwg')?mode:'data';var M=_ngisM9();try{_ngisEdTpl9(function(){});_ngisTpl9(function(){});}catch(_t){}
- if(!force&&state[M.prevKey]&&!document.getElementById('ngisOv9')){_posExBarPaint9(M.btn);_ngisSdOnly9(!M.one);_ngisPreview9(true);return;}
+ if(!force&&(state[M.prevKey]||state[M.regKey])&&!document.getElementById('ngisOv9')){/* [BUILD3241] 이미 만든(등록된) 성과면 설정창 없이 바로 그 성과 화면 — 바꾸려면 「설정창 보기」 */try{var _bp9=document.getElementById('bultPanel9');if(_bp9&&_bp9.style.display!=='none'&&typeof bultToggle9==='function')bultToggle9();}catch(_bt){}['ngisPrev9','ngisEdPrev9','ngisIdxPrev9','ngisMsPrev9','ngisEwPrev9'].forEach(function(k){state[k]=(k===M.prevKey);});state.ngisPrevMode9=M.mode;try{window._silentSave=true;saveProject();}catch(_sv){}_posExBarPaint9(M.btn);_ngisSdOnly9(!M.one);_ngisPreview9(true);return;}
  try{var old=document.getElementById('ngisOv9');if(old){old.remove();_posExBarPaint9(null);return;}
   var rows=_ngisRows9();if(!rows||!rows.length){toast('통신관로 없음 — 정위치 대상 데이터를 확인하세요');return;}_posExBarPaint9(M.btn);/* [BUILD3110] */
   var E=function(t){return String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');};
