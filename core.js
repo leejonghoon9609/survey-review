@@ -7229,6 +7229,7 @@ var LV_KEY='layerVis_'+STAGE;var LV=(function(){try{return JSON.parse(localStora
 function curCat(){for(var i=0;i<TB.length;i++)if(TB[i].k===activeCat)return TB[i];return TB[0];}
 function renderRail(){
   var r=document.getElementById('rail'),html='';
+  try{if(typeof IS_POSITION!=='undefined'&&IS_POSITION&&window._posEditOpen9===undefined){window._posEditOpen9=true;toolsOpen=false;}}catch(_pe9){}/* [BUILD3243] 정위치 DB = 정위치 편집 펼친 화면이 기본 */
   TB.forEach(function(c){
     var kb=keyForAction('cat:'+c.k),bdg=kb?'<span class="hk-badge">'+kb+'</span>':'';
     if(c.custom)return;
@@ -7273,6 +7274,11 @@ function renderRail(){
   var ce=document.getElementById('csvExport');if(ce)ce.onclick=exportSurveyCsv;try{if(typeof fldCsvBtnUpd9==='function')fldCsvBtnUpd9();}catch(_fb9){}
   var dr=document.getElementById('doneReg');if(dr)dr.onclick=registerDone;var tdl=document.getElementById('tgDoneList');if(tdl)tdl.onclick=openDoneList;
   var dc=document.getElementById('depthCalc');if(dc)dc.onclick=openDepthCalc;var ib=document.getElementById('inspBuild');if(ib)ib.onclick=buildInspData;
+  try{if(typeof IS_POSITION!=='undefined'&&IS_POSITION){/* [BUILD3243] 정위치 DB 레일: PDF·측설 CSV·결선완료사업 등록 숨김, 편집도구·현황측량 편집은 DXF로 내보내기 아래로 */
+   ['pdfExport','csvExport','doneReg'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display='none';});
+   var t0=document.getElementById('toolToggle'),pe=document.getElementById('posEditBtn9'),dxe=document.getElementById('dxfExport');
+   if(t0&&pe&&dxe&&t0.parentNode===r&&pe.parentNode===r&&dxe.parentNode===r){var mv=[];var n=t0;while(n&&n!==pe){mv.push(n);n=n.nextSibling;}var anc=dxe;var sp=document.createElement('div');sp.className='sep';r.insertBefore(sp,anc.nextSibling);anc=sp;mv.forEach(function(x){r.insertBefore(x,anc.nextSibling);anc=x;});}
+  }}catch(_rr9){}
 }
 function mkBtn(tool,i){
   var active=(tool.mode&&mode===tool.mode)||(tool.activeMode&&mode===tool.activeMode)||(tool.status&&status===tool.status);if(tool.bultChk!=null&&active&&mode==='line')active=(!!window._drawBult===tool.bultChk);/* [1515] 선택한 그리기 버튼만 활성 */
