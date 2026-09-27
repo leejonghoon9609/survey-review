@@ -14569,6 +14569,7 @@ function mnOpenForm(rec,_hl9){/* [BUILD2405] _hl9=true: 화면 없이 야장 SVG
     var all=[];pwv.groups.forEach(function(g){(g.circles||[]).forEach(function(c){all.push(c);});});
     if(!all.length)return '';
     /* [1620] \ubc30\uce58 \ucda9\uc2e4 \u2014 \ud074\ub7ec\uc2a4\ud130 \uc81c\uac70: \uc804 \uad00\uc744 \ud55c \ub369\uc5b4\ub9ac\ub85c(\uc2e4\ubc30\uce58 \uc0c1\ub300\uc704\uce58 \uadf8\ub300\ub85c). 50/100 \ubd84\ub9ac \uc624\ubc30\uce58 \ud574\uacb0 \u2014 DXF\uc640 \ub3d9\uc77c \uad6c\ub3c4 */
+    var _pt9=null;if(!_hl9){try{_pt9=_ptoCalc9(rec,wallKey);if(!_pt9||_pt9.cs.length!==all.length)_pt9=null;}catch(_pc9){_pt9=null;}}/* [BUILD3217] 관마다 가는 곳 — 화면 야장만(헤드리스 SVG=검수 축소본 제외) */
     var n=all.length,clusters=[all.map(function(_,i){return i;})];
     /* 2) mapFn 단위벡터(회전 자동 반영) */
     var o0=mapFn(0,0),e1=mapFn(1,0),e2=mapFn(0,1);
@@ -14589,8 +14590,9 @@ function mnOpenForm(rec,_hl9){/* [BUILD2405] _hl9=true: 화면 없이 야장 SVG
         var px=pc[0]+DS*(ddx*exU[0]+ddy*eyU[0]);
         var py=pc[1]+DS*(ddx*exU[1]+ddy*eyU[1]);
         var r=Math.max(c.dia*0.5*DS,3);
-        var st=(c.st!=null?c.st:(c.fill?1:0));
-        out+='<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+(st===2?'#d32f2f':(st===1?'#222':'#fff'))+'" stroke="#333" stroke-width="1.2" pointer-events="none"/>';
+        var st=(c.st!=null?c.st:(c.fill?1:0));var _po9=_pt9?_pt9.cs[idx]:null;var _ex9=!!(_po9&&_po9.st!==2&&_po9.r&&_po9.r.ex);
+        out+='<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+((st===2||_ex9)?'#d32f2f':(st===1?'#222':'#fff'))+'" stroke="#333" stroke-width="1.2" pointer-events="none"/>';
+        if(_po9&&_po9.st!==2){var _tl9=_ptoLab9(_po9);if(_tl9){var _tu9=0;for(var _ti9=0;_ti9<_tl9.length;_ti9++)_tu9+=(/[\u3131-\uD79D]/.test(_tl9[_ti9])?1.0:(/[()]/.test(_tl9[_ti9])?0.36:0.62));var _fs9=Math.min(r*0.62,r*1.5/Math.max(_tu9,1));out+='<text x="'+px.toFixed(1)+'" y="'+py.toFixed(1)+'" font-size="'+_fs9.toFixed(2)+'" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="'+(_po9.un?'#ef6c00':((st===1||_ex9)?'#fff':(_po9.man?'#1565c0':'#111')))+'" pointer-events="none">'+joseoEsc(_tl9)+'</text>';}}
       });
     });
     return out;
@@ -15084,7 +15086,6 @@ function mnPipeEditor(rec,wall){
     +'<div style="display:flex;gap:6px;align-items:center;margin-bottom:7px">'
       +'<button id="mnMdAll" class="mn-md" style="flex:none;border:1px solid #2471a3;background:#fff;color:#2471a3;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">전체이동</button>'
       +'<button id="mnMdOne" class="mn-md" style="flex:none;border:1px solid #1d9e75;background:#fff;color:#1d9e75;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">개별이동</button>'
-      +'<button id="mnMdTo" class="mn-md" title="관을 눌러 어디로 가는 관인지 지정(화면 표시 전용)" style="flex:none;border:1px solid #6a1b9a;background:#fff;color:#6a1b9a;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">가는 곳</button>'
       +'<button id="mnMdDel" class="mn-md" style="flex:none;border:1px solid #e67e22;background:#fff;color:#e67e22;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">개별삭제</button>'
       +'<button id="mnDelAll" style="flex:none;border:1px solid #d32f2f;background:#fff;color:#d32f2f;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:800;cursor:pointer">전체삭제</button>'
       +'<button id="mnReShoot" style="margin-left:auto;flex:none;border:1px solid #d32f2f;background:#fdeaea;color:#d32f2f;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:800;cursor:pointer">재촬영</button></div>'
@@ -15095,7 +15096,7 @@ function mnPipeEditor(rec,wall){
       +'<div id="mnRefImgBox" style="border:1.5px solid #cfd8e3;border-radius:8px;overflow:hidden;background:#f7f9fb;display:flex;align-items:center;justify-content:center;max-height:28dvh;touch-action:none;cursor:grab"></div></div>'
     +'<div id="mnCvBox" style="border:1.5px solid #556;border-radius:8px;overflow:hidden;background:#fff"><canvas id="mnCv" style="display:block;touch-action:none;user-select:none;-webkit-user-select:none"></canvas></div>'
     +'<div style="display:flex;align-items:center;gap:6px;font-size:11px;margin-top:4px"><span style="color:#b58900;font-weight:800;white-space:nowrap"><span style="display:inline-block;width:18px;height:3px;background:#e6c200;border-radius:2px;vertical-align:middle;margin-right:3px"></span>\ub9e8\ud640 \ubc14\ub2e5</span><span style="flex:1;text-align:right;color:#99a">\ud0ed: \ube48\uad00\u2192\ub0b4\uc120(\uac80\uc815)\u2192\uc81c\uc678(\ube68\uac15)</span></div>'
-    +'<div id="mnGChips" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px"></div>'
+    +'<div style="display:flex;align-items:flex-start;gap:6px;margin-top:6px"><div id="mnGChips" style="display:flex;flex-wrap:wrap;gap:6px;flex:1;min-width:0"></div><button id="mnMdTo" class="mn-md" title="관을 눌러 어디로 가는 관인지 지정(화면 표시 전용)" style="flex:none;border:1px solid #6a1b9a;background:#fff;color:#6a1b9a;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">관방향설정</button></div>'/* [BUILD3217] 관방향설정 버튼 = 관그룹 칩 줄 오른쪽 */
     +'<div id="mnGBox" style="border-top:1px dashed #ddd;margin-top:10px;padding-top:9px">'
       +'<div style="display:flex;gap:6px;margin-bottom:6px"><select id="mnGKind" style="flex:1;border:1px solid #ddd;border-radius:7px;padding:7px 5px;font-size:13px;background:#fff">'+MN_KINDS.map(function(k){return '<option>'+k+'</option>';}).join('')+'<option value="_c">직접입력</option></select>'
       +'<input id="mnGKindC" placeholder="관종" style="flex:1;display:none;border:1px solid #ddd;border-radius:7px;padding:7px 8px;font-size:13px">'
@@ -15134,7 +15135,7 @@ function mnPipeEditor(rec,wall){
   wrap.querySelector('#mnMdAll').onclick=function(){setMode('all');};
   wrap.querySelector('#mnMdOne').onclick=function(){setMode('one');};
   wrap.querySelector('#mnMdDel').onclick=function(){setMode('del');};
-  wrap.querySelector('#mnMdTo').onclick=function(){setMode('to');toast('가는 곳 — 관을 누르면 이 벽 방향 정보에서 고를 수 있어요');};
+  wrap.querySelector('#mnMdTo').onclick=function(){setMode('to');toast('관방향설정 — 관을 누르면 이 벽 방향 정보에서 고를 수 있어요');};
   wrap.querySelector('#mnDelAll').onclick=async function(){
     if(!pw.groups||!pw.groups.length){toast('삭제할 관이 없습니다');return;}
     var n=0;pw.groups.forEach(function(g){n+=(g.circles||[]).length;});
@@ -23190,10 +23191,8 @@ function _simsaExNos9(G){/* 제외되는 측점 번호 모음(실측·탐사 등
 var PTO_DK9={p1:'d1',p2:'d2',p3:'d3',p4:'d4'};
 var PTO_WN9={p1:'1(서)',p2:'2(동)',p3:'3(북)',p4:'4(남)'};
 function _ptoShort9(lab,xy){/* [BUILD3216] 약칭 — 맨홀은 번호+관리기관 한 글자: LG(L) SKB(B) SKT(T) DL(D) SJ(S) 시청(시) */var t=_simsaNm9(lab);if(!t)return '';
- if(/입상/.test(t)){var pre=/한전/.test(t)?'한':'통';var n='';var m1=/^(\d+)/.exec(t);if(m1)n=m1[1];
-  if(!n&&xy){try{n=String(_simsaFacNo9(+xy[0],+xy[1])||'');}catch(_e){}}
-  if(!n){var m2=/\(([^)]*)\)/.exec(t);if(m2){var m4=/(\d+)/.exec(m2[1]);if(m4)n=m4[1];}}
-  if(n.length>4){var m3=/(\d+)$/.exec(n);if(m3)n=m3[1];}
+ if(/입상/.test(t)){/* [BUILD3217] 번호 = 입상점 '이름'(예: 3 통신주입상 → 통3). 측점번호는 쓰지 않음 */var pre=/한전/.test(t)?'한':'통';var nmOf=function(L){L=String(L||'').replace(/\s+/g,'');var mm=/^(.*?)(통신주입상|한전주입상|통신입상|입상)(.*)$/.exec(L);if(!mm)return '';var nm=(mm[1]||mm[3]||'').replace(/\([^)]*\)/g,'').replace(/[.#\-_번]/g,'');var d=/(\d+)/.exec(nm);if(!d){var pp=/\(([^)]*)\)/.exec(L);if(pp)d=/(\d+)/.exec(pp[1]);}return d?d[1]:(nm.length<=3?nm:'');};
+  var n=nmOf(t);if(!n&&xy){try{var bm=null,bd=2.5;(state.manholes||[]).forEach(function(m){if(!m||m.wx==null)return;if(!(m.type==='riser'||/입상/.test(m.label||'')))return;var d=Math.hypot(m.wx-xy[0],m.wy-xy[1]);if(d<bd){bd=d;bm=m;}});if(bm){n=nmOf(bm.label);if(/한전/.test(bm.label||''))pre='한';}}catch(_e){}}
   return pre+n;}
  if(/인입/.test(t))return '인입';if(/^JB/i.test(t))return 'JB';
  var OW=[['SKB','B'],['SKT','T'],['LG','L'],['DL','D'],['SJ','S'],['시청','시']];var own='',base=t;
@@ -23246,7 +23245,7 @@ function _ptoSimsaRec9(rec,G){/* 성과심사목록용 읽기 전용 사본 — 
   return cp;}catch(_e){return rec;}}
 function _ptoDraw9(ctx,rec,wall,sx,sy,H){/* 관배치 편집창 캔버스 — 원 가운데 가는 곳 약칭 */try{var P=_ptoCalc9(rec,wall);P.cs.forEach(function(o){if(o.st===2)return;var c=o.c;var r=Math.max(c.dia/2*sy,3);var X=c.x*sx,Y=(H-c.y)*sy;var ex=!!(o.r&&o.r.ex);
   if(ex){ctx.beginPath();ctx.arc(X,Y,r,0,Math.PI*2);ctx.fillStyle='#d32f2f';ctx.fill();ctx.strokeStyle='#333';ctx.lineWidth=1.4;ctx.stroke();}
-  var t=_ptoLab9(o);if(!t)return;var fs=r*0.62;ctx.font='800 '+fs.toFixed(2)+'px sans-serif';var w=ctx.measureText(t).width;if(w>r*1.6){fs=fs*r*1.6/w;ctx.font='800 '+fs.toFixed(2)+'px sans-serif';}
+  var t=_ptoLab9(o);if(!t)return;var fs=r*0.48;ctx.font='700 '+fs.toFixed(2)+'px sans-serif';var w=ctx.measureText(t).width;if(w>r*1.35){fs=fs*r*1.35/w;ctx.font='700 '+fs.toFixed(2)+'px sans-serif';}
   ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=o.un?'#ef6c00':(ex?'#fff':(o.man?(o.st===1?'#90caf9':'#1565c0'):(o.st===1?'#fff':'#111')));ctx.fillText(t,X,Y+fs*0.05);
   if(o.man){ctx.beginPath();ctx.arc(X+r*0.72,Y-r*0.72,Math.max(1.8,r*0.17),0,Math.PI*2);ctx.fillStyle='#1565c0';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1;ctx.stroke();}});
   ctx.textAlign='start';ctx.textBaseline='alphabetic';}catch(_e){}}
@@ -23276,7 +23275,7 @@ function _ptoPick9(rec,wall,c,host,redraw,cx,cy){/* [가는 곳] 모드 — 관 
 function _ptoSumBar9(rec,k){/* 방향 정보창 — 관 배분 한 줄 */try{var w='p'+String(k).slice(1);var P=_ptoCalc9(rec,w);if(!P.rows.length||!P.cs.filter(function(o){return o.st!==2;}).length)return '';var E=function(t){return (typeof joseoEsc==='function')?joseoEsc(t):String(t||'');};
   var seg=P.rows.map(function(r){var dots='';P.cs.forEach(function(o){if(o.r===r)dots+=(o.st===1?'●':'○');});return '<b style="color:'+(r.ex?'#d1007e':'#4a148c')+'">'+E(r.sh||r.nm)+'</b> '+(dots||'-');}).join(' · ');
   var un=P.cs.filter(function(o){return o.un;}).length;var ok=P.ok;
-  return '<div title="관배치 편집창 [가는 곳]에서 관마다 고칠 수 있어요(화면 표시 전용)" style="display:flex;gap:6px;align-items:center;margin-top:4px;font-size:10.5px;font-weight:800;padding:4px 8px;border-radius:7px;background:'+(ok?'#f3e5f5':'#fff3e0')+';border:1px solid '+(ok?'#ce93d8':'#ffb74d')+';color:'+(ok?'#6a1b9a':'#e65100')+'"><span style="flex:none">'+PTO_WN9[w]+' 관 배분</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px">'+seg+(un?(' · <b style="color:#ef6c00">? '+un+'</b>'):'')+'</span><span>'+(ok?'맞음':'⚠ 확인')+'</span></div>';}catch(_e){return '';}}
+  return '<div title="관배치 편집창 [관방향설정]에서 관마다 고칠 수 있어요(화면 표시 전용)" style="display:flex;gap:6px;align-items:center;margin-top:4px;font-size:10.5px;font-weight:800;padding:4px 8px;border-radius:7px;background:'+(ok?'#f3e5f5':'#fff3e0')+';border:1px solid '+(ok?'#ce93d8':'#ffb74d')+';color:'+(ok?'#6a1b9a':'#e65100')+'"><span style="flex:none">'+PTO_WN9[w]+' 관 배분</span><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11.5px">'+seg+(un?(' · <b style="color:#ef6c00">? '+un+'</b>'):'')+'</span><span>'+(ok?'맞음':'⚠ 확인')+'</span></div>';}catch(_e){return '';}}
 
 /* ===== [BUILD3216] 도면 관표시 — 맨홀 앞점이 아닌 구간(합류·분기 구간)도 관마다 가는 곳 =====
    관 하나하나(맨홀 야장 벽 관의 가는 곳 · 통신주입상 등 보조시설물 방향 정보 행)를 출발 시설물→가는 시설물 경로(정위치 구간, 다른 시설물 통과 금지)로 따라가
@@ -24211,7 +24210,7 @@ function _sdDrawItem9(g,it){var _n0=g.childNodes.length;try{/* [BUILD2648] 측�
   g.appendChild(_pn9);
  }else if(it.t==='ci'){
   var c=S(it.x,it.y);var _dg9=!!(it.lk&&it.fw9&&it.u!=null);var _cn9=el('circle',{cx:c[0],cy:c[1],r:it.r,fill:(it.fi?col:'none'),stroke:col,'stroke-width':(0.07*_SDVW9.sym),'pointer-events':(_dg9?'all':'none')});/* [BUILD2763] 내관 검정 채움 · [BUILD2771] 관 드래그 배치 */if(it.lk&&it.fw9)_sdLeadPut9(_cn9,it);if(_dg9){_cn9.style.cursor='move';_cn9._col9=col;try{_sdPipeDrag9(_cn9,it);}catch(_pd9){}}if(it.ex9){_cn9.setAttribute('fill','#d32f2f');}g.appendChild(_cn9);
-  if(it.to9&&it.to9!=='?'){try{var _tl9=String(it.to9),_tu9=0;for(var _ti9=0;_ti9<_tl9.length;_ti9++)_tu9+=(/[\u3131-\uD79D]/.test(_tl9[_ti9])?1.0:(/[()]/.test(_tl9[_ti9])?0.36:0.62));var _fs9=Math.min(it.r*0.62,it.r*1.6/Math.max(_tu9,1));/* [BUILD3216] 글씨 축소 */var _tx9=el('text',{x:c[0],y:c[1],'font-size':_fs9,'font-weight':800,'text-anchor':'middle','dominant-baseline':'central',fill:((it.fi||it.ex9)?'#fff':col),'pointer-events':'none'});_tx9.textContent=_tl9;g.appendChild(_tx9);_cn9._tx9=_tx9;}catch(_tt9){}}/* [BUILD3215] 관마다 가는 곳(화면 전용) */
+  if(it.to9&&it.to9!=='?'){try{var _tl9=String(it.to9),_tu9=0;for(var _ti9=0;_ti9<_tl9.length;_ti9++)_tu9+=(/[\u3131-\uD79D]/.test(_tl9[_ti9])?1.0:(/[()]/.test(_tl9[_ti9])?0.36:0.62));var _fs9=Math.min(it.r*0.46,it.r*1.3/Math.max(_tu9,1));/* [BUILD3216·3217] 글씨 축소 */var _tx9=el('text',{x:c[0],y:c[1],'font-size':_fs9,'font-weight':800,'text-anchor':'middle','dominant-baseline':'central',fill:((it.fi||it.ex9)?'#fff':col),'pointer-events':'none'});_tx9.textContent=_tl9;g.appendChild(_tx9);_cn9._tx9=_tx9;}catch(_tt9){}}/* [BUILD3215] 관마다 가는 곳(화면 전용) */
  }else if(it.t==='tx'){
   var c2,_md9=(it.mid&&it.side!=null&&it.bx!=null);
   if(_md9)c2=S(it.bx,it.by);/* [BUILD2269] 이격선 위의 기준점 — 상하 배치는 그린 뒤 실측 보정 */
