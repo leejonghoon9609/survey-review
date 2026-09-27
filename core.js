@@ -15130,7 +15130,7 @@ function mnPipeEditor(rec,wall){
    if(!items.length){toast('이 맨홀과 연결된 맨홀·보조시설물을 못 찾았어요');return;}
    var sel=tsel.slice();var E=function(t){return (typeof joseoEsc==='function')?joseoEsc(t):String(t||'');};wrap.style.display='none';
    var back=function(){var o=document.getElementById('ptoLiPv9');if(o)o.remove();wrap.style.display='flex';draw();_toBtn9();};
-   var fin=function(msg){tsel.length=0;try{mnPersistRec(rec);}catch(_p){}back();setMode('all');if(msg)toast(msg);};/* [BUILD3228] 한 번 지정하면 모드 종료 */
+   var fin=function(msg){tsel.length=0;try{_ptoPrune9(rec,wall);}catch(_pr){}try{mnPersistRec(rec);}catch(_p){}back();setMode('all');if(msg)toast(msg);};/* [BUILD3228] 한 번 지정하면 모드 종료 */
    var apply=function(q){_ptoAssign9(rec,wall,sel,q.m,q.lab);fin('관방향 — '+sel.length+'공 → '+q.lab);};
    var listFn=function(){var pv=document.createElement('div');pv.id='ptoLiPv9';pv.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:13500;display:flex;align-items:flex-start;justify-content:center;padding-top:12dvh';
     pv.innerHTML='<div style="background:#fff;border-radius:12px;width:min(88vw,320px);max-height:70dvh;display:flex;flex-direction:column;overflow:hidden"><div style="padding:11px 13px;border-bottom:1px solid #eee;font-weight:800;color:#16a34a">관방향 — 고른 관 '+sel.length+'공 가는 곳</div><div style="overflow:auto;flex:1">'+items.map(function(q,i){var ax=(q.m.type&&q.m.type!=='mh');var n=0;try{if(ax)n=auxNo9(q.m);}catch(_a){}return '<button class="ptoLi9" data-i="'+i+'" style="display:block;width:100%;text-align:left;border:0;border-bottom:1px solid #f2f2f0;background:'+(ax?'#e3f2fd':'#e8f5e9')+';padding:10px 13px;font-size:14px;font-weight:700;cursor:pointer;color:'+(ax?'#1565c0':'#1b5e20')+'">'+E((n?n+'.':'')+q.lab)+'</button>';}).join('')+'</div><div style="display:flex;gap:6px;padding:9px 13px"><button id="ptoLiA9" style="flex:1;border:1px solid #a5d6a7;background:#e8f5e9;color:#1b5e20;border-radius:8px;padding:8px 2px;font-weight:700;cursor:pointer;text-align:center">자동으로</button><button id="ptoLiB9" style="flex:1;border:1px solid #ffcc80;background:#fff3e0;color:#e65100;border-radius:8px;padding:8px 2px;font-weight:700;cursor:pointer;text-align:center">비우기</button><button id="ptoLiX9" style="flex:1;border:1px solid #cfd8dc;background:#eceff1;color:#455a64;border-radius:8px;padding:8px 2px;font-weight:700;cursor:pointer;text-align:center">취소</button></div></div>';
@@ -15322,6 +15322,7 @@ function mnPipeEditor(rec,wall){
     try{(tsel||[]).forEach(function(c){var rr=Math.max(c.dia/2*sy,3);var X=c.x*sx,Y=(H-c.y)*sy;ctx.beginPath();ctx.arc(X,Y,rr,0,Math.PI*2);ctx.fillStyle='rgba(234,0,44,0.10)';ctx.fill();ctx.strokeStyle='#e02020';ctx.lineWidth=3.5;ctx.beginPath();ctx.arc(X,Y,rr+1.2,0,Math.PI*2);ctx.stroke();});}catch(_ts9){}/* [BUILD3228] 고른 관 = 굵은 빨강 한 줄 + 아주 연한 붉은 배경 */
   }
   function chips(){
+    try{if(_ptoPrune9(rec,wall))toast('관이 없어진 관방향 방향도 지웠어요');}catch(_pr9){}/* [BUILD3229] */
     var o=wrap.querySelector('#mnGChips');
     o.innerHTML=pw.groups.length?pw.groups.map(function(g,i){
       return '<span style="display:inline-flex;align-items:center;gap:5px;border:1px solid #b9d7ea;background:#f2f8fd;color:#2471a3;border-radius:8px;padding:5px 8px;font-size:12px;font-weight:700">'+joseoEsc(mnGroupLabel(g))+'<button class="mn-gdel" data-i="'+i+'" style="border:none;background:none;color:#c0392b;cursor:pointer;font-size:13px;padding:0">✕</button></span>';
@@ -23298,7 +23299,7 @@ function _ptoPick9(rec,wall,c,host,redraw,cx,cy){/* [가는 곳] 모드 — 관 
  var fin=function(){d.remove();try{document.removeEventListener('pointerdown',outside,true);}catch(_o){}try{redraw();}catch(_r){}};
  var outside=function(e){if(!d.contains(e.target)){fin();}};setTimeout(function(){document.addEventListener('pointerdown',outside,true);},0);
  Array.prototype.forEach.call(d.querySelectorAll('.ptoR9'),function(b){b.onclick=function(){var r=P.rows[+b.getAttribute('data-i')];if(!r)return;c.to=r.nm;c.toXY=r.xy?[r.xy[0],r.xy[1]]:null;c.toM=1;fin();};});
- d.querySelector('#ptoAuto9').onclick=function(){delete c.to;delete c.toM;delete c.toXY;fin();};
+ d.querySelector('#ptoAuto9').onclick=function(){delete c.to;delete c.toM;delete c.toXY;try{_ptoPrune9(rec,wall);}catch(_pr){}fin();};
  d.querySelector('#ptoBlank9').onclick=function(){c.to='';c.toM=1;delete c.toXY;fin();};
  d.querySelector('#ptoX9').onclick=fin;
  d.querySelector('#ptoAllAuto9').onclick=function(){var pw=rec.pipes&&rec.pipes[wall];if(pw&&pw.groups)pw.groups.forEach(function(g){((g&&g.circles)||[]).forEach(function(q){delete q.to;delete q.toM;delete q.toXY;});});fin();toast('이 벽 가는 곳 — 전부 자동 배분');};
@@ -23429,6 +23430,11 @@ function _ptoAssign9(rec,wall,sel,f,lab){/* [BUILD3227] 고른 관들 → 그 �
   sel.forEach(function(c){var kd=kindOf(c),k=kd+'|'+(+c.dia||100);if(!agg[k]){agg[k]={kind:kd,dia:String(+c.dia||100),cnt:0,nae:0};ord.push(k);}agg[k].cnt++;var st=(c.st!=null?c.st:(c.fill?1:0));if(st===1)agg[k].nae++;});
   row={lab:String(lab),xy:xy,pm9:1,gw:ord.map(function(k){return agg[k];})};LL.push(row);if(LL.length===1){if(!rec.destM)rec.destM={};rec.destM[dk]=0;}try{mnDestSync(rec,dk);}catch(_s){}}
  var nm=_simsaNm9(row.lab);sel.forEach(function(c){c.to=nm;c.toXY=(row.xy&&row.xy.length===2)?[+row.xy[0],+row.xy[1]]:null;c.toM=1;});return row;}
+function _ptoPrune9(rec,wall){/* [BUILD3229] 관방향설정으로 만든 방향(pm9) 중 그 방향으로 지정된 관이 하나도 없으면 방향 정보에서 삭제(관 삭제·자동으로 되돌림 후) */
+ try{var dk=PTO_DK9[wall];if(!dk||!rec)return 0;var LL=mnDestList(rec,dk);if(!LL.some(function(d){return d&&d.pm9;}))return 0;var pw=rec.pipes&&rec.pipes[wall];var cs=[];((pw&&pw.groups)||[]).forEach(function(g){((g&&g.circles)||[]).forEach(function(c){if(c&&c.toM&&c.to)cs.push(c);});});
+  var used=function(d){var nm=_simsaNm9(d.lab);return cs.some(function(c){if(c.toXY&&c.toXY.length===2&&d.xy&&d.xy.length===2)return Math.hypot(c.toXY[0]-d.xy[0],c.toXY[1]-d.xy[1])<2.5;return c.to===nm;});};
+  var n=0,mi=mnDestMain(rec,dk);for(var i=LL.length-1;i>=0;i--){var d=LL[i];if(d&&d.pm9&&!used(d)){LL.splice(i,1);n++;if(i<mi)mi--;else if(i===mi)mi=0;}}
+  if(n){if(!rec.destM)rec.destM={};rec.destM[dk]=Math.max(0,Math.min(mi,LL.length-1));try{mnDestSync(rec,dk);}catch(_s){}}return n;}catch(_e){return 0;}}
 function _simsaMnPos9(r){if(!r)return null;if(r.refXY&&r.refXY.length===2&&isFinite(+r.refXY[0]))return [+r.refXY[0],+r.refXY[1]];var c=null;if(r.mhId!=null)(state.manholes||[]).forEach(function(m){if(!c&&m&&m.id===r.mhId&&m.wx!=null)c=[+m.wx,+m.wy];});return c;}
 function _simsaMnF9(arr){/* 맨홀 야장 목록에서 심사 제외 맨홀 빼기(성과심사목록 전용, 읽기 전용 사본) · [BUILD3215] 남는 맨홀은 제외 시설물로 가는 관을 빨강관(작업외)으로 바꾼 사본 */arr=arr||[];var G=_simsaGeoF9();if(!G||!G.n)return arr;return arr.filter(function(r){var c=_simsaMnPos9(r);return !(c&&_simsaOut9(G,c[0],c[1],1.6));}).map(function(r){return _ptoSimsaRec9(r,G);});}
 function _simsaJG9(g){/* 실시간 조서 날짜 묶음에서 제외 측점 빼기 */var G=_simsaGeoF9();if(!G||!G.n||!g)return g;var N=_simsaExNos9(G);var o={};Object.keys(g).forEach(function(dk){var a=(g[dk]||[]).filter(function(p){if(!p)return false;if(p._jg)return !(p.x!=null&&_simsaOut9(G,p.x,p.y,3));return !N[String(p.no)];});if(a.length)o[dk]=a;});return o;}
