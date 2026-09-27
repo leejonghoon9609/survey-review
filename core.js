@@ -23239,7 +23239,12 @@ function _simsaGwFix9(its,G){if(!G||!G.n)return its;var byLk={},ord=[];its.forEa
  var drop={},rep={},any=false;
  ord.forEach(function(lk){var cs=byLk[lk];var ex=cs.filter(function(q){return exq(q.to9a)||exq(q.to9b);});if(!ex.length)return;any=true;var keep=cs.filter(function(q){return ex.indexOf(q)<0;});
   if(!keep.length){drop[lk]=1;return;}
-  /* [BUILD3255] 남은 관은 그 자리 그대로(원 다시 채우기·박스 줄이기 안 함) — DXF와 같게 */
+  /* [BUILD3258] 맨홀 앞점 상자(야장 배치 pt9) = 남은 관 그 자리 그대로 · 중간 상자 = 남은 관을 앞으로 당겨 자동 정렬하고 박스도 줄임 */
+  var q0=keep[0],bx=q0.bx,by=q0.by,bu=q0.bu,bv=q0.bv;var isPt=cs.some(function(q){return q.pt9;});
+  if(!isPt&&bx!=null&&bu&&bv){var rows=[];keep.slice().sort(function(a,b){return ((+a.v||0)-(+b.v||0))||((+a.u||0)-(+b.u||0));}).forEach(function(q){var r=rows[rows.length-1];if(r&&Math.abs(r.v-(+q.v||0))<0.2)r.a.push(q);else rows.push({v:+q.v||0,a:[q]});});
+   var acc=0,W=0,src=[],dst=[];rows.forEach(function(r){var mr=0;r.a.forEach(function(q){if(q.r>mr)mr=q.r;});var uu=0;r.a.forEach(function(q){var c={};for(var k in q)c[k]=q[k];c.u=uu+q.r;c.v=acc+mr;uu+=2*q.r;c.x=bx+bu[0]*c.u+bv[0]*c.v;c.y=by+bu[1]*c.u+bv[1]*c.v;src.push(q);dst.push(c);});if(uu>W)W=uu;acc+=2*mr;});
+   var nB2=0,nS2=0,nF2=0;keep.forEach(function(q){if(q.r<0.4)nS2++;else nB2++;if(q.fi)nF2++;});
+   rep[lk]={ex:ex,src:src,dst:dst,box:[[bx,by],[bx+bu[0]*W,by+bu[1]*W],[bx+bu[0]*W+bv[0]*acc,by+bu[1]*W+bv[1]*acc],[bx+bv[0]*acc,by+bv[1]*acc]],nB:nB2,nS:nS2,nF:nF2};return;}
   var nB=0,nS=0,nF=0;keep.forEach(function(q){if(q.r<0.4)nS++;else nB++;if(q.fi)nF++;});
   rep[lk]={ex:ex,src:[],dst:[],box:null,nB:nB,nS:nS,nF:nF};});
  if(!any)return its;
