@@ -22585,15 +22585,17 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var t=((cx-ax)*s2-(cy-ay)*s1)/den,u=((cx-ax)*r2-(cy-ay)*r1)/den;
   if(t<0||t>1||u<0||u>1)return null;return [ax+t*r1,ay+t*r2];
  }
- function _pipeX9(lp,ax,ay){/* [BUILD2262] 인출선이 관로선(SD001)을 가로지르면 true */
+ var _pxL9=null;/* [BUILD3248] 가로지름 검사 대상 = 관로선(통신관로) + 정위치 구간선 */
+ function _pipeX9(lp,ax,ay,rad){/* [BUILD2262] 인출선이 관로선(SD001)을 가로지르면 true · [BUILD3248] 출발점이 놓인 선만 제외(예전엔 출발 0.4m 안 교차를 모두 봐줘서 나란한 옆 관로를 뚫고 나감) · rad=맨홀 심벌 반경(그 안 교차 허용) */
   try{
+   if(!_pxL9){_pxL9=pipes.map(function(l){return l.pts;});try{var _rv=(typeof posSplitSegs9==='function')?posSplitSegs9():null;if(_rv&&_rv.raws)_rv.raws.forEach(function(rw){if(rw&&rw.length>=2)_pxL9.push(rw);});}catch(_rv9){}}
    for(var k=0;k<lp.length-1;k++){var p0=lp[k],p1=lp[k+1];
     var x0=Math.min(p0[0],p1[0])-0.02,x1=Math.max(p0[0],p1[0])+0.02,y0=Math.min(p0[1],p1[1])-0.02,y1=Math.max(p0[1],p1[1])+0.02;
-    for(var i=0;i<pipes.length;i++){var ps=pipes[i].pts;
+    for(var i=0;i<_pxL9.length;i++){var ps=_pxL9[i];
      for(var q=0;q<ps.length-1;q++){var a=ps[q],b=ps[q+1];
       if(Math.max(a[0],b[0])<x0||Math.min(a[0],b[0])>x1||Math.max(a[1],b[1])<y0||Math.min(a[1],b[1])>y1)continue;
       var X=_segX9(p0[0],p0[1],p1[0],p1[1],a[0],a[1],b[0],b[1]);if(!X)continue;
-      if(k===0&&Math.hypot(X[0]-ax,X[1]-ay)<0.4)continue;/* [BUILD2262] 첫 세그먼트의 출발 접점만 제외 — 이후 세그먼트는 진짜 관통 */
+      if(k===0&&(distSeg(ax,ay,a,b)<0.05||(rad&&Math.hypot(X[0]-ax,X[1]-ay)<rad)))continue;
       return true;}}}
   }catch(_e){}
   return false;
@@ -22602,6 +22604,20 @@ function posScene9(){/* 성과 계산 전부 — items 배열 축적(순서=DXF 
   var _leads9=[];/* [BUILD2290] \ubc30\uce58 \uc644\ub8cc \uc778\ucd9c\uc120 \uc138\uadf8 \ub4f1\ub85d\ubd80(\uc804\uc5ed \u2014 \ub3c4\uc5fd \uacbd\uacc4 \uad50\ucc28\ub3c4 \ud3ec\ucc29) */
   function _leadAdd9(lp){for(var k=0;k<lp.length-1;k++)_leads9.push([lp[k],lp[k+1]]);}
   function _leadX9(lp){for(var k=0;k<lp.length-1;k++){var a=lp[k],b=lp[k+1];for(var q=0;q<_leads9.length;q++){var c=_leads9[q];if(_segX9(a[0],a[1],b[0],b[1],c[0][0],c[0][1],c[1][0],c[1][1]))return true;}}return false;}
+  /* ===== [BUILD3248] 인출선 배치 강제 규칙 — ① 인출선끼리 안 겹침 ② 인출선이 관로선을 안 가로지름 ③ 관표시(관공) 박스끼리·박스와 인출선 안 겹침 → 빈 자리에 가까운 곳부터 차곡차곡 ===== */
+  var _mkB9=[];
+  function _pIn9(p,P){var sg=0;for(var i=0;i<P.length;i++){var a=P[i],b=P[(i+1)%P.length];var c=(b[0]-a[0])*(p[1]-a[1])-(b[1]-a[1])*(p[0]-a[0]);if(Math.abs(c)<1e-12)continue;var g=c>0?1:-1;if(!sg)sg=g;else if(sg!==g)return false;}return true;}
+  function _pSegX9(P,a,b){if(_pIn9(a,P)||_pIn9(b,P))return true;for(var i=0;i<P.length;i++){var c=P[i],d=P[(i+1)%P.length];if(_segX9(a[0],a[1],b[0],b[1],c[0],c[1],d[0],d[1]))return true;}return false;}
+  function _pPX9(P,Q){for(var i=0;i<P.length;i++)if(_pSegX9(Q,P[i],P[(i+1)%P.length]))return true;return _pIn9(Q[0],P);}
+  function _pBB9(P){var b=[1e18,1e18,-1e18,-1e18];P.forEach(function(p){if(p[0]<b[0])b[0]=p[0];if(p[1]<b[1])b[1]=p[1];if(p[0]>b[2])b[2]=p[0];if(p[1]>b[3])b[3]=p[1];});return b;}
+  function _pGrow9(P,m){var cx=0,cy=0;P.forEach(function(p){cx+=p[0];cy+=p[1];});cx/=P.length;cy/=P.length;return P.map(function(p){var dx=p[0]-cx,dy=p[1]-cy,d=Math.hypot(dx,dy)||1;return [p[0]+dx/d*m*1.414,p[1]+dy/d*m*1.414];});}
+  function _bbX9(a,b){return !(a[2]<b[0]||a[0]>b[2]||a[3]<b[1]||a[1]>b[3]);}
+  function _mkPoly9(mx,my,ex,ey,W,H){/* 관표시 박스 자리(아래 관표시 v3 산식과 같음: 대각선 3.0m부터, 3.76° 회전) */var dx=ex-mx,dy=ey-my,dl=Math.hypot(dx,dy)||1;var U=[dx/dl,dy/dl];var an=3.76*Math.PI/180*((U[0]>=0)?1:-1);var c=Math.cos(an),sn=Math.sin(an);U=[U[0]*c-U[1]*sn,U[0]*sn+U[1]*c];var V=[-U[1],U[0]];if((V[1]>=0)!==(ey>=my))V=[-V[0],-V[1]];var A=[mx+U[0]*3,my+U[1]*3],B=[A[0]+U[0]*W,A[1]+U[1]*W];return [A,B,[B[0]+V[0]*H,B[1]+V[1]*H],[A[0]+V[0]*H,A[1]+V[1]*H]];}
+  function _mkHit9(bp){/* 관표시 박스가 다른 관표시 박스·인출선과 겹치나 */var G=_pGrow9(bp,0.25),bb=_pBB9(G);for(var i=0;i<_mkB9.length;i++){var o=_mkB9[i];if(!_bbX9(bb,o.bb))continue;if(_pPX9(G,o.p))return true;}for(var q=0;q<_leads9.length;q++){var c=_leads9[q];if(!_bbX9(bb,[Math.min(c[0][0],c[1][0]),Math.min(c[0][1],c[1][1]),Math.max(c[0][0],c[1][0]),Math.max(c[0][1],c[1][1])]))continue;if(_pSegX9(G,c[0],c[1]))return true;}return false;}
+  function _leadBoxX9(lp){/* 인출선이 놓인 관표시 박스를 지나가나 */for(var k=0;k<lp.length-1;k++){var a=lp[k],b=lp[k+1];var sb=[Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[0],b[0]),Math.max(a[1],b[1])];for(var i=0;i<_mkB9.length;i++){var o=_mkB9[i];if(!_bbX9(sb,o.bb))continue;if(_pSegX9(o.p,a,b))return true;}}return false;}
+  function _txtMkX9(x0,y0,x1,y1){/* 태그 글자 칸이 관표시 박스와 겹치나 */var R=[[x0,y0],[x1,y0],[x1,y1],[x0,y1]],bb=[x0,y0,x1,y1];for(var i=0;i<_mkB9.length;i++){var o=_mkB9[i];if(!_bbX9(bb,o.bb))continue;if(_pPX9(R,o.p))return true;}return false;}
+  function _mkTxt9(S,bp){/* 관표시 박스가 태그 글자 칸과 겹치나 */var bb=_pBB9(bp);for(var i=0;i<S.boxes.length;i++){var b=S.boxes[i];if(!_bbX9(bb,b))continue;if(_pPX9(bp,[[b[0],b[1]],[b[2],b[1]],[b[2],b[3]],[b[0],b[3]]]))return true;}return false;}
+  function _mkPipe9(bp){/* 관표시 박스가 관로선 위에 얹히나 */if(!_pxL9)_pipeX9([[0,0],[0,0]],0,0);var bb=_pBB9(bp);for(var i=0;i<(_pxL9||[]).length;i++){var ps=_pxL9[i];for(var q=0;q<ps.length-1;q++){var a=ps[q],b=ps[q+1];if(!_bbX9(bb,[Math.min(a[0],b[0]),Math.min(a[1],b[1]),Math.max(a[0],b[0]),Math.max(a[1],b[1])]))continue;if(_pSegX9(bp,a,b))return true;}}return false;}
  function _blk9(px,py,qx,qy){/* [BUILD2261] 이격선이 다른 현황선을 뚫고 지나가면 차단 */
   var x0=Math.min(px,qx)-0.02,x1=Math.max(px,qx)+0.02,y0=Math.min(py,qy)-0.02,y1=Math.max(py,qy)+0.02;
   for(var i=0;i<hyun.length;i++){var a=hyun[i][0],b=hyun[i][1];
@@ -22834,14 +22850,14 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
     S.items.push({t:'tx',lay:'SD219',x:(hx9>0?ex9:ex9-w9),y:ey9+0.2,h:1.0,s:lb,lk:_fk9,ax:m.wx,ay:m.wy,lw:w9,tox:0,toy:0.2,eo:[ex9-m.wx,ey9-m.wy],uo:1});/* [BUILD3131] uo */
     addBox(S,Math.min(ex9,ex9+hx9*w9),ey9-0.2,Math.max(ex9,ex9+hx9*w9),ey9+1.4);_leadAdd9([[m.wx,m.wy],[ex9,ey9],[ex9+hx9*w9,ey9]]);placedF=true;
    }
-   var dgs=[2.8,3.9,5.0],sgs=[[1,1],[-1,1],[1,-1],[-1,-1]];
+   var dgs=[2.8,3.9,5.0,6.5,8.0,10.0],sgs=[[1,1],[-1,1],[1,-1],[-1,-1]];/* [BUILD3248] 자리 더 넓게 */
    for(var pzF=0;pzF<4&&!placedF;pzF++)/* [BUILD2290] 0=\uad00\ub85c+\uc778\ucd9c\uc120 \ubc30\uc81c \u2192 1=\uc778\ucd9c\uc120 \ubc30\uc81c \u2192 2=\uad00\ub85c \ubc30\uc81c \u2192 3=\ud3f4\ubc31 *//* [BUILD2262] pass0=관로 크로스 배제, pass1=폴백 */
    for(var di=0;di<dgs.length&&!placedF;di++)for(var si=0;si<4&&!placedF;si++){
     var dg=dgs[di],sx9=sgs[si][0],sy9=sgs[si][1];
     var ex=m.wx+sx9*dg*0.707,ey=m.wy+sy9*dg*0.707;
     var hx=(sx9>=0)?1:-1;var x0=Math.min(ex,ex+hx*w9),x1=Math.max(ex,ex+hx*w9);
-    if(hitBox(S,x0,ey-0.2,x1,ey+1.4))continue;
-    var _cd9F=[[m.wx,m.wy],[ex,ey],[ex+hx*w9,ey]];if((pzF===0||pzF===2)&&_pipeX9(_cd9F,m.wx,m.wy))continue;if(pzF<=1&&_leadX9(_cd9F))continue;/* [BUILD2262] */
+    if(pzF<2&&hitBox(S,x0,ey-0.2,x1,ey+1.4))continue;
+    var _cd9F=[[m.wx,m.wy],[ex,ey],[ex+hx*w9,ey]];if(pzF<3&&_pipeX9(_cd9F,m.wx,m.wy,0.9))continue;if(pzF<3&&_leadX9(_cd9F))continue;/* [BUILD3248] 관로 가로지름·인출선 겹침 = 끝까지 금지(마지막 폴백만) */
     S.items.push({t:'pl',lay:'SD911-1',pts:[[m.wx,m.wy],[ex,ey],[ex+hx*w9,ey]],cl:0,lk:_fk9,ax:m.wx,ay:m.wy,lw:w9,eo:[ex-m.wx,ey-m.wy]});
     S.items.push({t:'tx',lay:'SD219',x:(hx>0?ex:ex-w9),y:ey+0.2,h:1.0,s:lb,lk:_fk9,ax:m.wx,ay:m.wy,lw:w9,tox:0,toy:0.2,eo:[ex-m.wx,ey-m.wy]});
     addBox(S,x0,ey-0.2,x1,ey+1.4);_leadAdd9(_cd9F);placedF=true;
@@ -22890,6 +22906,17 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
   var _ewScn9=!!((window._ngisPrev9&&window._ngisPrevMode9==='edwg')||window._sceneEw9);/* [BUILD3146] 전자도면 장면(미리보기 또는 DXF 생성) */
   var _uo9=(_ewScn9&&state.sdLeadEw9&&state.sdLeadEw9[_lk9])||((typeof _sdLeadGet9==='function')?_sdLeadGet9(_lk9):null)||(state.sdLead9&&state.sdLead9[_lk9])||null;/* [BUILD2279] · [BUILD3146] 전자도면 전용 위치 우선 */
   var _ewSkip9=_ewScn9;/* [BUILD3136] 전자도면 미리보기 중엔 옮긴 위치를 그대로 신뢰(교차 검사·반전·폐기 안 함) — 축소 인출선이라 관로 가로지름 규칙이 맞지 않음 */
+  /* [BUILD3248] 관표시 크기를 인출선 자리 고르기 전에 계산(박스끼리 겹침 검사용) */
+  var _v9=(_psReps9&&_psReps9[_pi9])?_psReps9[_pi9]:null;
+  var _n100=_v9?_v9[0]:((parseFloat(_SP9.dia)<=50)?0:(_SP9.gw||0));
+  var _n50=_v9?_v9[1]:((parseFloat(_SP9.dia)<=50)?(_SP9.gw||0):0);
+  try{var _gwm9=parseInt(_gwT9,10);if(_v9&&isFinite(_gwm9)&&_gwm9!==(_v9[0]+_v9[1])){(window._posGwBlue9=window._posGwBlue9||[]).push([mx,my]);}}catch(_bx29){}/* [BUILD2334] 태그 최종값 기준 */
+  var _rows9=1,_pat9=null;try{var _sgN9=(_psSegs9&&_psSegs9[_pi9])||null;if(_sgN9&&_sgN9.length>=2&&((_sgN9[0]&&_sgN9[0].mh)||(_sgN9[_sgN9.length-1]&&_sgN9[_sgN9.length-1].mh))){/* [BUILD2768] 앞점 맨홀 = 관표시 앵커에 가까운 쪽 맨홀 노드(정확 좌표) */var _fn9=null;[_sgN9[0],_sgN9[_sgN9.length-1]].forEach(function(n){if(!n||!n.mh)return;var d=Math.hypot(n.x-mx,n.y-my);if(!_fn9||d<_fn9.d)_fn9={x:n.x,y:n.y,d:d};});var _fmT9=null;try{if(_fn9){(state.manholes||[]).forEach(function(m){if(m&&m.wx!=null&&Math.hypot(m.wx-_fn9.x,m.wy-_fn9.y)<0.5)_fmT9=m;});}}catch(_fm9){}var _isMhF9=!_fmT9||!_fmT9.type||_fmT9.type==='mh';/* [BUILD2769] 앞점이 보조시설물(입상·통신주·한전주·JB)이면 단수·맨홀도 패턴 적용 안 함 → 1행 가로 기본 */if(_isMhF9){var _naeP9=0;try{_naeP9=Math.max(0,parseInt(_SP9.nae,10)||0);}catch(_np9){}if(typeof _mnPattern9==='function')_pat9=_mnPattern9(mx,my,_n100,_n50,_naeP9,_fn9?_fn9.x:null,_fn9?_fn9.y:null);if(_pat9&&_pat9.r100&&_pat9.r100.length){_rows9=_pat9.r100.length;}else{var _mr9=(typeof _mnRows9==='function')?_mnRows9(mx,my):0;if(_mr9>0)_rows9=_mr9;}}else{_rows9=1;_pat9=null;}}}catch(_mrx){_pat9=null;}
+  var _toC9=(_pat9&&_pat9.cs)?_pat9.cs:null;try{var _ml9=state.sdPipeLay9&&state.sdPipeLay9[_lk9];if(_ml9&&_ml9.cs&&_ml9.cs.length===(_n100+_n50)){var mnu=1e18,mnv=1e18,mxu=-1e18,mxv=-1e18;_ml9.cs.forEach(function(o){if(o.u-o.r<mnu)mnu=o.u-o.r;if(o.u+o.r>mxu)mxu=o.u+o.r;if(o.v-o.r<mnv)mnv=o.v-o.r;if(o.v+o.r>mxv)mxv=o.v+o.r;});_pat9={cs:_ml9.cs.map(function(o,i9){var q9=(_toC9&&_toC9.length===_ml9.cs.length)?_toC9[i9]:null;return {u:o.u-mnu,v:o.v-mnv,r:o.r,fi:o.fi?1:0,to:q9?q9.to:null,tos:q9?q9.tos:null,ex:q9?q9.ex:0};}),W:mxu-mnu,H:mxv-mnv,man:1};}}catch(_mlx){}/* [BUILD2771] 작업자 수동 배치(원 드래그)가 있으면 최우선 — 박스 축 기준 좌표, 반전 없음 */
+  var _cpr9=(_n100>0)?Math.ceil(_n100/_rows9):0;if(_pat9&&_pat9.r100&&_pat9.r100.length){var _mc9=0;_pat9.r100.forEach(function(rw){if(rw.length>_mc9)_mc9=rw.length;});if(_mc9>0)_cpr9=_mc9;}/* [BUILD2768] 열 수 = 맨홀도 최대 행 길이 */
+  var _W9=Math.max(_cpr9*1.0,_n50*0.5,0.5);/* 배열 폭(대각 방향) */
+  var _H9=(_n100>0?_rows9*1.0:0)+(_n50>0?0.5:0);if(_H9<=0)_H9=0.5;
+  if(_pat9&&_pat9.cs&&_pat9.cs.length&&_pat9.W>0&&_pat9.H>0){_W9=_pat9.W;_H9=_pat9.H;}/* [BUILD2770] 맨홀도 원 배치 그대로 → 박스 크기도 그 외접 사각 */
   if(_uo9&&!_ewSkip9){/* [BUILD2328] 저장 위치도 강제 규칙: 관로 가로지르면 좌우 반전 → 그래도 교차면 저장 폐기(자동 배치 사다리로) */
    var _twC9=(tw+2);try{if(window._ngisPrev9&&window._ngisPrevMode9==='edwg'&&typeof _ngisEwLw9==='function')_twC9=_ngisEwLw9(spec);}catch(_tc){}/* [BUILD3134] 전자도면 미리보기 중엔 축소 수평선 길이로 교차 검사 — 종전엔 25m 기준이라 옮긴 인출선이 확대·축소 재빌드 때 폐기됨 */
    var _hx0=(_uo9[0]>=0)?1:-1;
@@ -22908,23 +22935,20 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
    addBox(S,Math.min(ex,ex+hx*(tw+2)),ey-0.2,Math.max(ex,ex+hx*(tw+2)),ey+1.6);_leadAdd9([[mx,my],[ex,ey],[ex+hx*(tw+2),ey]]);placed=true;_lkSgn9=((_uo9[0]*nx+_uo9[1]*ny)>=0)?1:-1;_lkEX9=ex;_lkEY9=ey;
   }
   var _sdPref9=0;try{var _sgP9=_psSegs9&&_psSegs9[_pi9];if(_sgP9&&_sgP9.length>=2){var _e0P=_sgP9[0],_e1P=_sgP9[_sgP9.length-1];var _oP=null,_jP=null;if(_e0P.mh&&!_e1P.mh){_oP=_e0P;_jP=_e1P;}else if(_e1P.mh&&!_e0P.mh){_oP=_e1P;_jP=_e0P;}if(_oP&&_jP){var _ddx9=_oP.x-_jP.x;if(Math.abs(_ddx9)>1.0)_sdPref9=(_ddx9>0?1:-1);}}}catch(_pf9){}/* [BUILD2330] 구간이 뻗은 쪽(바깥 끝 방향)으로 인출선 좌/우 강제 — 오른쪽 가지=오른쪽 인출선 */
-  var offs=[13,19,25,31,38,46,55,65];var sides=[1,-1];/* [BUILD2318] 밀집 구역 확산용 외곳 링 추가 *//* [BUILD2278] 기본 인출선 간격 확대(첨부1 수준) */
-  for(var pzL=0;pzL<12&&!placed;pzL++)/* [BUILD2318] 3부터 겹침 허용 단계 상향 — 누락 없이 최소 겹침 자리 *//* [BUILD2290] 0=\uad00\ub85c+\uc778\ucd9c\uc120 \ubc30\uc81c \u2192 1=\uc778\ucd9c\uc120 \ubc30\uc81c \u2192 2=\uad00\ub85c \ubc30\uc81c \u2192 3=\ud3f4\ubc31 *//* [BUILD2262] pass0=관로 크로스 배제, pass1=폴백 */
-  for(var oi=0;oi<offs.length&&!placed;oi++)for(var si=0;si<2&&!placed;si++){
-   var sgn=sides[si];
-   if(_sdPref9&&pzL<9&&Math.abs(nx)>0.05){if(((nx*sgn)>0?1:-1)!==_sdPref9)continue;}/* [BUILD2330] 선호 반대쪽은 마지막 폴백에서만 */
-   var _dxn=nx*sgn,_dyn=ny*sgn;/* [BUILD2277] 완료성과처럼 바깥으로 갈수록 내려가는 완만한 경사 */
-   var _rt9=(_dxn>=0)?-_SDSLOPE9:_SDSLOPE9;
-   var _dxr=_dxn*Math.cos(_rt9)-_dyn*Math.sin(_rt9),_dyr=_dxn*Math.sin(_rt9)+_dyn*Math.cos(_rt9);
-   var ex=mx+_dxr*offs[oi],ey=my+_dyr*offs[oi];
-   var hx=(_dxr>=0)?1:-1;
-   var tx0=ex,tx1=ex+hx*(tw+2);
-   if(pzL<3){if(hitBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6))continue;}else{if(hitBoxN(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6)>(pzL-3))continue;}/* [BUILD2311] 최종 패스=박스 충돌 무시, 무조건 배치(인출선 누락 금지) */
-   var _cd9L=[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]];if(pzL<3){if((pzL===0||pzL===2)&&_pipeX9(_cd9L,mx,my))continue;if(pzL<=1&&_leadX9(_cd9L))continue;if(_symX9(_cd9L))continue;}else{if(pzL<6&&_leadX9(_cd9L))continue;if(pzL<11&&_pipeX9(_cd9L,mx,my))continue;if(pzL<9&&_symX9(_cd9L))continue;}/* [BUILD2327] 관로 가로지름=최후 패스 단독 허용 — 반대쪽 자리가 겹침 몇 개여도 항상 우선(강제 규칙) *//* [BUILD2326] 관로 가로지름·심벌 겹침 최대 회피(최후 패스에서만 허용) *//* [BUILD2318] 겹침 허용 초기엔 인출선 교차만은 계속 회피 *//* [BUILD2262] */
-   S.items.push({t:'pl',lay:'SD911',pts:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],cl:0,lk:_lk9,ax:mx,ay:my,lw:(tw+2),eo:[ex-mx,ey-my]});
-   S.items.push({t:'tx',lay:'SD910',x:(hx>0?ex+0.35:ex+hx*(tw+2)+0.35),y:ey+0.35,h:1.0,s:spec,lk:_lk9,ax:mx,ay:my,lw:(tw+2),tox:0.35,toy:0.35,eo:[ex-mx,ey-my]});/* [BUILD2257] 완성본 오프셋 */
-   addBox(S,Math.min(tx0,tx1),ey-0.2,Math.max(tx0,tx1),ey+1.6);_leadAdd9(_cd9L);placed=true;_lkSgn9=sgn;_lkEX9=ex;_lkEY9=ey;
-  }
+  /* [BUILD3248] 인출선 자리 = 후보(양쪽 × 경사 5종 × 거리 19단)를 가까운·깔끔한 순으로 — 관로 가로지름·인출선 겹침·관표시 박스 겹침은 끝까지 금지, 못 찾을 때만 위반 가장 적은 자리 */
+  var _cands9=[];(function(){var angs=[[12,0],[24,4],[0,6],[36,9],[48,14]];var ofs=[13,15,17,19,21,23,25,28,31,34,38,42,46,50,55,60,66,72,80];[1,-1].forEach(function(sg){var pen=(_sdPref9&&Math.abs(nx)>0.05&&(((nx*sg)>0?1:-1)!==_sdPref9))?30:0;angs.forEach(function(ag){ofs.forEach(function(of){_cands9.push({sg:sg,a:ag[0]*Math.PI/180,of:of,c:of+ag[1]+pen+(sg<0?0.01:0)});});});});_cands9.sort(function(p,q){return p.c-q.c;});})();
+  var _geo9=function(cd){var _dxn=nx*cd.sg,_dyn=ny*cd.sg;var _rt9=(_dxn>=0)?-cd.a:cd.a;var _dxr=_dxn*Math.cos(_rt9)-_dyn*Math.sin(_rt9),_dyr=_dxn*Math.sin(_rt9)+_dyn*Math.cos(_rt9);var ex=mx+_dxr*cd.of,ey=my+_dyr*cd.of;var hx=(_dxr>=0)?1:-1;var tx0=ex,tx1=ex+hx*(tw+2);return {ex:ex,ey:ey,hx:hx,x0:Math.min(tx0,tx1),x1:Math.max(tx0,tx1),lp:[[mx,my],[ex,ey],[ex+hx*(tw+2),ey]],bp:_mkPoly9(mx,my,ex,ey,_W9,_H9)};};
+  var _bad9=function(g,lv){/* lv 0=전부 검사 · 1=심벌·박스-관로 허용 · 2=태그 글자 겹침 허용 · 3=점수만 */var n=0;
+   if(_pipeX9(g.lp,mx,my)){if(lv<3)return 1;n+=1000;}if(_leadX9(g.lp)){if(lv<3)return 1;n+=1000;}if(_leadBoxX9(g.lp)){if(lv<3)return 1;n+=800;}if(_mkHit9(g.bp)){if(lv<3)return 1;n+=800;}
+   var tb=[g.x0,g.ey-0.2,g.x1,g.ey+1.6];if(_txtMkX9(tb[0],tb[1],tb[2],tb[3])||_pPX9(g.bp,[[tb[0],tb[1]],[tb[2],tb[1]],[tb[2],tb[3]],[tb[0],tb[3]]])){if(lv<3)return 1;n+=300;}
+   if(hitBox(S,tb[0],tb[1],tb[2],tb[3])||_mkTxt9(S,g.bp)){if(lv<2)return 1;n+=50;}
+   if(_symX9(g.lp)||_mkPipe9(g.bp)){if(lv<1)return 1;n+=10;}
+   return lv<3?0:n;};
+  var _put9=function(g,cd){S.items.push({t:'pl',lay:'SD911',pts:g.lp,cl:0,lk:_lk9,ax:mx,ay:my,lw:(tw+2),eo:[g.ex-mx,g.ey-my]});
+   S.items.push({t:'tx',lay:'SD910',x:(g.hx>0?g.ex+0.35:g.ex+g.hx*(tw+2)+0.35),y:g.ey+0.35,h:1.0,s:spec,lk:_lk9,ax:mx,ay:my,lw:(tw+2),tox:0.35,toy:0.35,eo:[g.ex-mx,g.ey-my]});/* [BUILD2257] 완성본 오프셋 */
+   addBox(S,g.x0,g.ey-0.2,g.x1,g.ey+1.6);_leadAdd9(g.lp);placed=true;_lkSgn9=cd.sg;_lkEX9=g.ex;_lkEY9=g.ey;};
+  for(var pzL=0;pzL<3&&!placed;pzL++)for(var ci9=0;ci9<_cands9.length&&!placed;ci9++){var g9=_geo9(_cands9[ci9]);if(!_bad9(g9,pzL))_put9(g9,_cands9[ci9]);}
+  if(!placed&&_cands9.length){var _bs9=null;_cands9.forEach(function(cd){var g=_geo9(cd);var sc=_bad9(g,3)*100+cd.c;if(!_bs9||sc<_bs9.sc)_bs9={sc:sc,g:g,cd:cd};});_put9(_bs9.g,_bs9.cd);}/* 인출선 누락 금지 — 위반 가장 적은 자리 */
   /* [BUILD2274] 관표시 = 관정보 인출선의 대각선 위에 얹힘(바닥이 인출선에 붙음) — 인출선_샘플.dxf 실측
      · 시작점에서 대각선 방향 3.000 지점부터 박스, 박스 길이축 = 대각선 방향
      · 박스 = (열수 x 원지름) x (단수 x 원지름), 원 r = 관경100 0.5 / 관경50 0.25 */
@@ -22938,16 +22962,6 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
   _mkV9=[-_mkU9[1],_mkU9[0]];
   var _up9=(_lkEY9!=null)?(_lkEY9>=my):(_mkU9[1]>=0);
   if((_mkV9[1]>=0)!==_up9){_mkV9=[-_mkV9[0],-_mkV9[1]];}
-  var _v9=(_psReps9&&_psReps9[_pi9])?_psReps9[_pi9]:null;
-  var _n100=_v9?_v9[0]:((parseFloat(_SP9.dia)<=50)?0:(_SP9.gw||0));
-  var _n50=_v9?_v9[1]:((parseFloat(_SP9.dia)<=50)?(_SP9.gw||0):0);
-  try{var _gwm9=parseInt(_gwT9,10);if(_v9&&isFinite(_gwm9)&&_gwm9!==(_v9[0]+_v9[1])){(window._posGwBlue9=window._posGwBlue9||[]).push([mx,my]);}}catch(_bx29){}/* [BUILD2334] 태그 최종값 기준 */
-  var _rows9=1,_pat9=null;try{var _sgN9=(_psSegs9&&_psSegs9[_pi9])||null;if(_sgN9&&_sgN9.length>=2&&((_sgN9[0]&&_sgN9[0].mh)||(_sgN9[_sgN9.length-1]&&_sgN9[_sgN9.length-1].mh))){/* [BUILD2768] 앞점 맨홀 = 관표시 앵커에 가까운 쪽 맨홀 노드(정확 좌표) */var _fn9=null;[_sgN9[0],_sgN9[_sgN9.length-1]].forEach(function(n){if(!n||!n.mh)return;var d=Math.hypot(n.x-mx,n.y-my);if(!_fn9||d<_fn9.d)_fn9={x:n.x,y:n.y,d:d};});var _fmT9=null;try{if(_fn9){(state.manholes||[]).forEach(function(m){if(m&&m.wx!=null&&Math.hypot(m.wx-_fn9.x,m.wy-_fn9.y)<0.5)_fmT9=m;});}}catch(_fm9){}var _isMhF9=!_fmT9||!_fmT9.type||_fmT9.type==='mh';/* [BUILD2769] 앞점이 보조시설물(입상·통신주·한전주·JB)이면 단수·맨홀도 패턴 적용 안 함 → 1행 가로 기본 */if(_isMhF9){var _naeP9=0;try{_naeP9=Math.max(0,parseInt(_SP9.nae,10)||0);}catch(_np9){}if(typeof _mnPattern9==='function')_pat9=_mnPattern9(mx,my,_n100,_n50,_naeP9,_fn9?_fn9.x:null,_fn9?_fn9.y:null);if(_pat9&&_pat9.r100&&_pat9.r100.length){_rows9=_pat9.r100.length;}else{var _mr9=(typeof _mnRows9==='function')?_mnRows9(mx,my):0;if(_mr9>0)_rows9=_mr9;}}else{_rows9=1;_pat9=null;}}}catch(_mrx){_pat9=null;}
-  var _toC9=(_pat9&&_pat9.cs)?_pat9.cs:null;try{var _ml9=state.sdPipeLay9&&state.sdPipeLay9[_lk9];if(_ml9&&_ml9.cs&&_ml9.cs.length===(_n100+_n50)){var mnu=1e18,mnv=1e18,mxu=-1e18,mxv=-1e18;_ml9.cs.forEach(function(o){if(o.u-o.r<mnu)mnu=o.u-o.r;if(o.u+o.r>mxu)mxu=o.u+o.r;if(o.v-o.r<mnv)mnv=o.v-o.r;if(o.v+o.r>mxv)mxv=o.v+o.r;});_pat9={cs:_ml9.cs.map(function(o,i9){var q9=(_toC9&&_toC9.length===_ml9.cs.length)?_toC9[i9]:null;return {u:o.u-mnu,v:o.v-mnv,r:o.r,fi:o.fi?1:0,to:q9?q9.to:null,tos:q9?q9.tos:null,ex:q9?q9.ex:0};}),W:mxu-mnu,H:mxv-mnv,man:1};}}catch(_mlx){}/* [BUILD2771] 작업자 수동 배치(원 드래그)가 있으면 최우선 — 박스 축 기준 좌표, 반전 없음 */
-  var _cpr9=(_n100>0)?Math.ceil(_n100/_rows9):0;if(_pat9&&_pat9.r100&&_pat9.r100.length){var _mc9=0;_pat9.r100.forEach(function(rw){if(rw.length>_mc9)_mc9=rw.length;});if(_mc9>0)_cpr9=_mc9;}/* [BUILD2768] 열 수 = 맨홀도 최대 행 길이 */
-  var _W9=Math.max(_cpr9*1.0,_n50*0.5,0.5);/* 배열 폭(대각 방향) */
-  var _H9=(_n100>0?_rows9*1.0:0)+(_n50>0?0.5:0);if(_H9<=0)_H9=0.5;
-  if(_pat9&&_pat9.cs&&_pat9.cs.length&&_pat9.W>0&&_pat9.H>0){_W9=_pat9.W;_H9=_pat9.H;}/* [BUILD2770] 맨홀도 원 배치 그대로 → 박스 크기도 그 외접 사각 */
   var _st9=3.0;/* [BUILD2323] 앵커 3.0m 고정 — 연결선 항상 짧게(엘보 부착 폐지: 폭 좁으면 연결선 늘어지고 텍스트 언더라인과 충돌) */
   var _ax9=mx+_mkU9[0]*_st9,_ay9=my+_mkU9[1]*_st9;
   /* [BUILD2324] 강력규칙: 인출선 대각선과 관표시 박스 절대 비겹침 — 겹치면 무조건 위 배치, 예외 없음 */
@@ -22980,7 +22994,7 @@ function hyunFootDir9(px,py,dir){/* [BUILD2780] 작업자 지정 방향 이격�
   })();}
   S.items.push({t:'pl',lay:'SD983',cl:0,pts:[[mx,my],[_ax9,_ay9]],lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9});/* 연결선 */
   var _bx9=_ax9+_mkU9[0]*_W9,_by9=_ay9+_mkU9[1]*_W9;
-  S.items.push({t:'pl',lay:'SD983',cl:1,lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9,pts:[[_ax9,_ay9],[_bx9,_by9],[_bx9+_mkV9[0]*_H9,_by9+_mkV9[1]*_H9],[_ax9+_mkV9[0]*_H9,_ay9+_mkV9[1]*_H9]]});/* [BUILD2322] 외곽 박스 복원(완료본 규격: 열x단) */
+  S.items.push({t:'pl',lay:'SD983',cl:1,lk:_lk9,fw9:1,ax:mx,ay:my,bo9:_bo9,pts:[[_ax9,_ay9],[_bx9,_by9],[_bx9+_mkV9[0]*_H9,_by9+_mkV9[1]*_H9],[_ax9+_mkV9[0]*_H9,_ay9+_mkV9[1]*_H9]]});try{var _mkP9=[[_ax9,_ay9],[_bx9,_by9],[_bx9+_mkV9[0]*_H9,_by9+_mkV9[1]*_H9],[_ax9+_mkV9[0]*_H9,_ay9+_mkV9[1]*_H9]];_mkB9.push({p:_mkP9,bb:_pBB9(_mkP9)});}catch(_mkr9){}/* [BUILD3248] 놓인 관표시 박스 등록 *//* [BUILD2322] 외곽 박스 복원(완료본 규격: 열x단) */
   var _naeLeft9=0;try{_naeLeft9=Math.max(0,parseInt(_SP9.nae,10)||0);}catch(_ne9){}/* [BUILD2763] 내관(통신선 들어간 관) 수 = 태그 괄호값 → 원 앞에서부터 그 개수만큼 검정 채움(맨홀도 표기와 동일) */
   /* [BUILD2764→2768] _pat9는 위(행수 계산 전)에서 확정 — 맨홀도 행·열·●를 그대로, 화면 방향(_mkV9 아래향·_mkU9 왼쪽향)에 맞춰 행·열 뒤집기 */var _flV9=(_mkV9[1]<0),_flU9=(_mkU9[0]<0);var _pr9=null;if(_pat9&&_pat9.r100&&_pat9.r100.length){_pr9=_pat9.r100.map(function(rw){return _flU9?rw.slice().reverse():rw.slice();});if(_flV9)_pr9.reverse();}var _p50=(_pat9&&_pat9.r50)?(_flU9?_pat9.r50.slice().reverse():_pat9.r50.slice()):null;
   function _mkRow9(cnt,r0,vOff,fills){var _dm=r0*2;for(var _c9=0;_c9<cnt&&_c9<12;_c9++){var _ou9=(_c9+0.5)*_dm,_ov9=vOff+r0;var _fi9;if(fills){_fi9=fills[_c9]?1:0;}else{_fi9=(_naeLeft9>0)?1:0;if(_fi9)_naeLeft9--;}
