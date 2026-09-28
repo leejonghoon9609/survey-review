@@ -10263,12 +10263,34 @@ function mnMobilePick(){/* [1636] 폰 — 도면에서 야장 맨홀 선택(초�
     if(!xy)return;
     items.push({x:xy[0],y:xy[1],lab:(typeof mnStripPf==='function')?mnStripPf(_lb0):_lb0,old:(r.newFlag==='\uae30\uc124')||/^\uae30\uc124/.test(_lb0),rec:r});/* [1642] newFlag \uc9c1\uac80\uc0ac */
   });
+  if(typeof IS_FIELD!=='undefined'&&IS_FIELD){/* [BUILD3259] 폰 맨홀 선택 = 도면의 모든 맨홀 — 야장 없는 맨홀도 초록 원(PC 도면 클릭 _fldMhClickAt과 같은 대상·같은 생성 경로 _fldMnRecFor(m,true)) */
+    var _live9=(mnList()||[]).filter(function(r){return r&&!r.delAt;});
+    (state.manholes||[]).forEach(function(m){
+      if(!m||m.wx==null||!isFinite(+m.wx))return;
+      if(m.type==='riser'||m.type==='jb'||m.type==='inlet')return;
+      var _ty=String(m.type||'').toLowerCase();if(_ty&&_ty!=='mh')return;
+      var _ml=String(m.label||'');
+      if(/JB/i.test(_ml)||/\uc778\uc785/.test(_ml)||/\uc785\uc0c1/.test(_ml))return;
+      if(!m.kind&&!/[MH]\s*\(/.test(_ml))return;/* _fldMnRecFor와 같은 맨홀 판정 */
+      if(_live9.some(function(r){return r.mhId!=null&&String(r.mhId)===String(m.id);}))return;/* 이미 야장 있음(위 목록) */
+      if(items.some(function(it){return Math.hypot(it.x-m.wx,it.y-m.wy)<0.3;}))return;/* 같은 자리 야장 원 중복 방지 */
+      items.push({x:+m.wx,y:+m.wy,lab:mnStripPf(_ml),old:(mnPfOf9(_ml)==='\uAE30\uC124'),mh:m});
+    });
+  }
   if(!items.length){toast('좌표 있는 야장이 없습니다');return;}
   var lm=document.getElementById('mnListModal');if(lm)lm.remove();
   var _dn=0;items.forEach(function(it){if(it.rec&&it.rec.savedAt)_dn++;});
   fldMapPick(items,'야장 맨홀',function(q){
     if(q===false){mnOpenList();return;}
-    if(q&&q.rec)mnOpenForm(q.rec);
+    if(q&&!q.rec&&q.mh){/* [BUILD3259] 야장 없는 맨홀 — PC 도면 클릭과 동일: 라벨 정규화로 인계 야장 재연결, 없으면 새 야장 */
+      var _b9=q.mh,_r9=null;
+      try{if(typeof refNormLab==='function'){var _bl9=refNormLab(_b9.label||''),_pf9=mnPfOf9(_b9.label||'');if(_bl9)_r9=mnList().filter(function(r){return r&&!r.delAt&&r.mhId==null&&refNormLab(mnLabel(r))===_bl9&&mnPfRec9(r)===_pf9;})[0];if(_r9)_r9.mhId=_b9.id;}}catch(_nl9){}
+      if(!_r9)_r9=_fldMnRecFor(_b9,true);
+      if(_r9&&typeof online!=='undefined'&&online&&state.projectId&&typeof saveProject==='function')saveProject();
+      if(!_r9){toast('\uc774 \ub9e8\ud640\uc740 \uc57c\uc7a5\uc744 \ub9cc\ub4e4 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4');return;}
+      q.rec=_r9;try{window._fldSelMhId=_b9.id;}catch(_w9){}
+    }
+    if(q&&q.rec){mnOpenForm(q.rec);try{drawManholes();}catch(_dm9){}}
   },null,{instant:true,barColor:'#16a34a',
     colorFn:function(it){return it.old?'#e60000':((it.rec&&it.rec.savedAt)?'#eab308':'#16a34a');},/* [1639] \uae30\uc124=\ube68\uac15 */
     msg:'야장 맨홀 — 초록 원을 도면에서 클릭하세요 ('+items.length+' / 완료 '+_dn+')'});
