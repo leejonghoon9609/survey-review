@@ -2301,7 +2301,7 @@ var _bpPathEl=null,_bpPad=null,_bpImgURL=null,_bpImgBox=null,_bpSig=null;
 var _mhEditAnchor=null;
 function _updateMhEditPos(){if(!_mhEditAnchor||!_mhEditAnchor.wrap||!_mhEditAnchor.wrap.parentNode){_mhEditAnchor=null;return;}var _cv=document.getElementById('cv');if(!_cv)return;var _r=_cv.getBoundingClientRect();var _sx=_r.left+(_mhEditAnchor.tx-vb.x)*(_r.width/vb.w);var _sy=_r.top+(_mhEditAnchor.ty-vb.y)*(_r.height/vb.h);_mhEditAnchor.wrap.style.left=_sx+'px';_mhEditAnchor.wrap.style.top=(_sy+_mhEditAnchor.dy)+'px';}
 var _mhZW=0,_mhZReq=0;/* [1455] 줄 배율 변경 시 맨홀 인출선 재계산(rAF 1회) — 결선/field */
-function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);_lyClr9();/* [BUILD2192] *//* [BUILD1703] data-fixpx marker screen-fixed on zoom (줌 매프레임 반경/선폭 재계산) */try{if(((typeof IS_TANGO!=='undefined'&&IS_TANGO)||(typeof IS_REALTIME!=='undefined'&&IS_REALTIME))&&typeof pxToWorld==='function'){var _fpu=pxToWorld(),_fpL=cv.querySelectorAll('[data-fixpx]');/* [BUILD1834] 실시간 확장 */for(var _fpi=0;_fpi<_fpL.length;_fpi++){var _fe=_fpL[_fpi],_fpr=parseFloat(_fe.getAttribute('data-fixpx'))||15,_fps=parseFloat(_fe.getAttribute('data-fixsw'))||0;_fe.setAttribute('r',_fpu*_fpr);if(_fps)_fe.setAttribute('stroke-width',_fpu*_fps);}}}catch(_fpz){}repositionLabels();if(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))&&typeof _mhLeadSync==='function'&&Math.abs(vb.w-_mhZW)>1e-9){_mhZW=vb.w;_mhLeadSync();if(typeof _refTxtFix==='function')_refTxtFix();if(typeof _refMhSync==='function')_refMhSync();}/* [1457] 매 프레임 경량 동기화(재그리기 없음) */if(bgMapOn)syncMapBg();_updateMhEditPos();try{if(typeof refMhSize==='function')refMhSize();}catch(e){}try{if(state.hyunPts&&state.hyunPts.length&&typeof drawHyunSym==='function'&&Math.abs(vb.w-(window._hyZW||0))>1e-9){window._hyZW=vb.w;drawHyunSym();}}catch(_hz){}/* [1634] \ud0c0\uc810 \ud654\uba74 \uace0\uc815 \ud06c\uae30 \u2014 \uc90c\ub9c8\ub2e4 \uc7ac\uacc4\uc0b0 *//* [BUILD1841] 월드 상수 반경 — 재그리기 불필요 */}   /* [1105] 줌/팬마다 맨홀 원 반경 갱신 */
+function applyVB(){cv.setAttribute('viewBox',vb.x+' '+vb.y+' '+vb.w+' '+vb.h);_lyClr9();/* [BUILD2192] *//* [BUILD1703] data-fixpx marker screen-fixed on zoom (줌 매프레임 반경/선폭 재계산) */try{var _pk9=document.getElementById('gFldPick');if(_pk9&&typeof pxToWorld==='function'){var _pku9=pxToWorld();[].forEach.call(_pk9.querySelectorAll('[data-pkpx]'),function(e){e.setAttribute('r',_pku9*(parseFloat(e.getAttribute('data-pkpx'))||10));});}}catch(_pkz9){}/* [BUILD3259] 맨홀 선택 원 화면 고정 */try{if(((typeof IS_TANGO!=='undefined'&&IS_TANGO)||(typeof IS_REALTIME!=='undefined'&&IS_REALTIME))&&typeof pxToWorld==='function'){var _fpu=pxToWorld(),_fpL=cv.querySelectorAll('[data-fixpx]');/* [BUILD1834] 실시간 확장 */for(var _fpi=0;_fpi<_fpL.length;_fpi++){var _fe=_fpL[_fpi],_fpr=parseFloat(_fe.getAttribute('data-fixpx'))||15,_fps=parseFloat(_fe.getAttribute('data-fixsw'))||0;_fe.setAttribute('r',_fpu*_fpr);if(_fps)_fe.setAttribute('stroke-width',_fpu*_fps);}}}catch(_fpz){}repositionLabels();if(((typeof STAGE!=='undefined'&&STAGE==='survey')||(typeof IS_FIELD!=='undefined'&&IS_FIELD))&&typeof _mhLeadSync==='function'&&Math.abs(vb.w-_mhZW)>1e-9){_mhZW=vb.w;_mhLeadSync();if(typeof _refTxtFix==='function')_refTxtFix();if(typeof _refMhSync==='function')_refMhSync();}/* [1457] 매 프레임 경량 동기화(재그리기 없음) */if(bgMapOn)syncMapBg();_updateMhEditPos();try{if(typeof refMhSize==='function')refMhSize();}catch(e){}try{if(state.hyunPts&&state.hyunPts.length&&typeof drawHyunSym==='function'&&Math.abs(vb.w-(window._hyZW||0))>1e-9){window._hyZW=vb.w;drawHyunSym();}}catch(_hz){}/* [1634] \ud0c0\uc810 \ud654\uba74 \uace0\uc815 \ud06c\uae30 \u2014 \uc90c\ub9c8\ub2e4 \uc7ac\uacc4\uc0b0 *//* [BUILD1841] 월드 상수 반경 — 재그리기 불필요 */}   /* [1105] 줌/팬마다 맨홀 원 반경 갱신 */
 // ★ 백판(수치지도) 화면영역 컬링 렌더 (BUILD509) — 화면보다 넓은 여유영역에 걸치는 백판만 통합 path로
 function bpSignature(){var n=0,fx=0,fy=0;(state.lines||[]).forEach(function(L){if(LINECOL[L.layer]||L.crop||!L.pts||!L.pts.length)return;n++;fx+=L.pts[0][0];fy+=L.pts[0][1];});return n+':'+fx.toFixed(0)+':'+fy.toFixed(0)+':'+(bpOff?'off':'on');}
 function bakeBackdrop(){
@@ -10291,7 +10291,7 @@ function mnMobilePick(){/* [1636] 폰 — 도면에서 야장 맨홀 선택(초�
       q.rec=_r9;try{window._fldSelMhId=_b9.id;}catch(_w9){}
     }
     if(q&&q.rec){mnOpenForm(q.rec);try{drawManholes();}catch(_dm9){}}
-  },null,{instant:true,barColor:'#16a34a',
+  },null,{instant:true,barColor:'#16a34a',fixPx:10,/* [BUILD3259] 작은 원 — 어느 맨홀인지 보이게 */
     colorFn:function(it){return it.old?'#e60000':((it.rec&&it.rec.savedAt)?'#eab308':'#16a34a');},/* [1639] \uae30\uc124=\ube68\uac15 */
     msg:'야장 맨홀 — 초록 원을 도면에서 클릭하세요 ('+items.length+' / 완료 '+_dn+')'});
 }
@@ -10335,7 +10335,7 @@ function mnOpenList(){
     +'<div style="padding:12px 17px;background:#fff;border-bottom:1px solid #e7eeea;display:flex;align-items:center;gap:7px;flex-wrap:wrap">' /* [1275] 2줄 헤더 */
       +'<span style="flex:none;display:flex;align-items:center;gap:8px;white-space:nowrap"><span style="width:10px;height:10px;border-radius:50%;background:#1d9e75;flex:none"></span><b style="font-size:16px;color:#22332b">맨홀조사 야장</b></span>' /* [1283] 한 줄 */
       +'<button id="mnDoneBtn" class="jz-done'+((state.fieldDone&&state.fieldDone.manhole)?' on':'')+'" style="padding:3px 8px;font-size:12px;white-space:nowrap">'+((state.fieldDone&&state.fieldDone.manhole)?'✅ 등록완료':'미등록')+'</button><button id="mnPhUpBtn" title="ZIP 폴더 규칙: 맨홀번호(소유자)/1.jpg·2-1~2-4·표찰 — 완료결선 업로드와 동일" style="margin-left:auto;border:1px solid #1565c0;background:#fff;color:#1565c0;border-radius:7px;padding:3px 8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">📷 맨홀사진 업로드</button>' /* [1265~1283] 제목 바로 옆 + 스페이서 */
-      +(((typeof isMobileDevice==='function'&&isMobileDevice()))?'<button id="mnMapPickBtn" style="border:1px solid #16a34a;background:#e9f7ef;color:#0f7a3d;border-radius:9px;padding:4px 8px;cursor:pointer;font-weight:800;font-size:12px;white-space:nowrap">🗺 맨홀선택</button>':'')/* [1636] 폰 전용 */
+      +(((typeof isMobileDevice==='function'&&isMobileDevice()))?'<div style="flex-basis:100%;height:0"></div><button id="mnMapPickBtn" style="border:1.5px solid #16a34a;background:#e9f7ef;color:#0f7a3d;border-radius:9px;padding:5px 12px;cursor:pointer;font-weight:800;font-size:13px;white-space:nowrap">🗺 맨홀선택</button>':'')/* [1636] 폰 전용 *//* [BUILD3259] 제목 밑 2번째 줄 왼쪽으로 */
       +'<button id="mnTrashBtn" style="'+(((typeof isMobileDevice==='function'&&isMobileDevice()))?'margin-left:auto;':'')+'border:1px solid #b58900;background:#fdf6e3;color:#8a6d00;border-radius:9px;padding:4px 8px;cursor:pointer;font-weight:800;font-size:12px;white-space:nowrap">🗑 삭제(야장)</button>'
       +'<button id="mnLClose" style="border:1.5px solid #d32f2f;background:#fff;border-radius:9px;padding:4px 10px;cursor:pointer;color:#d32f2f;font-weight:800;font-size:12px;white-space:nowrap">닫기</button></div>'
     +(host?newBtn:'')
@@ -20998,13 +20998,17 @@ function fldMapPick(items,title,cb,listFn,opts){
     items.forEach(function(q){
       var s2=S(q.x,q.y);
       var _pc=(opts.colorFn?opts.colorFn(q):null);
-      var c=el('circle',{cx:s2[0],cy:s2[1],r:_r9,fill:_pc||'#4fc3f7','fill-opacity':0.25,
-        stroke:_pc||'#0288d1','stroke-width':3.6,'vector-effect':'non-scaling-stroke'});
+      var _fx9=+opts.fixPx||0;/* [BUILD3259] fixPx: 화면 고정 px 반경(줌 따라 applyVB가 data-pkpx로 갱신) — 맨홀 번호가 가려지지 않게 작게 */
+      var c=el('circle',{cx:s2[0],cy:s2[1],r:(_fx9?_u9*_fx9:_r9),fill:_pc||'#4fc3f7','fill-opacity':(_fx9?0.18:0.25),
+        stroke:_pc||'#0288d1','stroke-width':(_fx9?2.6:3.6),'vector-effect':'non-scaling-stroke'});
+      if(_fx9)c.setAttribute('data-pkpx',_fx9);
       if(_pc)c.setAttribute('data-pc',_pc);/* [1637] */
       c.style.cursor='pointer';c.setAttribute('pointer-events','auto');q._pickEl9=c;
-      c.addEventListener('mouseenter',function(){c.setAttribute('stroke-width',6.5);c.setAttribute('fill-opacity',0.45);});
-      c.addEventListener('mouseleave',function(){c.setAttribute('stroke-width',3.6);c.setAttribute('fill-opacity',0.25);});/* [BUILD2414] 선택 전 강조 */
-      c.addEventListener('click',function(ev){ev.stopPropagation();
+      var _ht9=c;
+      if(_fx9){_ht9=el('circle',{cx:s2[0],cy:s2[1],r:_u9*22,fill:'#000','fill-opacity':0,stroke:'none','data-pkpx':22});_ht9.style.cursor='pointer';_ht9.setAttribute('pointer-events','all');g.appendChild(_ht9);c.setAttribute('pointer-events','none');}/* [BUILD3259] 터치 범위는 화면 22px(겹치면 아래 최근접 선택) */
+      _ht9.addEventListener('mouseenter',function(){c.setAttribute('stroke-width',_fx9?4:6.5);c.setAttribute('fill-opacity',0.45);});
+      _ht9.addEventListener('mouseleave',function(){c.setAttribute('stroke-width',_fx9?2.6:3.6);c.setAttribute('fill-opacity',_fx9?0.18:0.25);});/* [BUILD2414] 선택 전 강조 */
+      _ht9.addEventListener('click',function(ev){ev.stopPropagation();
         var q2=q;try{var w=toWorld(ev.clientX,ev.clientY);var wx=w[0],wy=-w[1];var bd=1e18;items.forEach(function(t){var d=Math.hypot(t.x-wx,t.y-wy);if(d<bd){bd=d;q2=t;}});}catch(_nw){}/* [BUILD2414] 겹쳐도 클릭 지점 최근접 대상 선택(위에 그려진 원이 가로채던 것) */
         fldPickChoose(q2,q2._pickEl9||c);});
       g.appendChild(c);
