@@ -14134,12 +14134,7 @@ function mnDxfGen(rec){
       var pw=rec.pipes&&rec.pipes[wall];if(!pw||!pw.groups)return;
       var _sp=rec.spec||{w:800,h:1700,dep:1100};
       var _W=mnWallRealW(rec,wall),_H=(_depM9>0?_depM9:(_sp.dep||1100));/* [BUILD1918] */
-      if(!pw.bw||!pw.bh){pw.bw=Math.max(_sp.w||800,_sp.h||1700);pw.bh=_sp.dep||1100;}
-      if(pw.bw!==_W||pw.bh!==_H){
-        var _fx=_W/pw.bw,_fy=_H/pw.bh;
-        pw.groups.forEach(function(gg){(gg.circles||[]).forEach(function(cc){cc.x=Math.round(cc.x*_fx);cc.y=Math.round(cc.y*_fy);});});
-        pw.bw=_W;pw.bh=_H;try{mnPersistRec(rec);}catch(_e){}
-      }
+      if(_mnPipeNorm9(rec,wall,_W,_H)){try{mnPersistRec(rec);}catch(_e){}}/* [BUILD3263] 간격 유지 이동 + 겹침 벌리기(관배치 창·야장 화면과 같은 규칙) */
       var all=[];pw.groups.forEach(function(gr){(gr.circles||[]).forEach(function(c){var st=(c.st!=null?c.st:(c.fill?1:0));all.push({x:c.x,y:c.y,dia:c.dia,st:st});});});/* [BUILD3253] 작업외(st2) 관도 그림 — 빨강 채움(관 구성 글자에선 빠짐) */
       if(!all.length)return;
       /* 실척 */
@@ -14597,7 +14592,7 @@ function mnOpenForm(rec,_hl9){/* [BUILD2405] _hl9=true: 화면 없이 야장 SVG
     var pwv=rec.pipes&&rec.pipes[wallKey];if(!pwv||!pwv.groups)return '';
     /* ★ 실벽폭 기준. 관을 "닿아있으면 한 덩어리"로 자동 묶고, 각 덩어리를 중심기준 비율 위치에 배치.
        덩어리 안 관은 붙은 상대배치 유지(등방, 고정 표시크기) → 겹침/뜸 없음. 정밀좌표는 편집기(→DXF)가 보존 */
-    var Wm=mnWallRealW(rec,wallKey),Hm=(mnWallDims(rec,wallKey)[1])||1100,out='';
+    var Wm=mnWallRealW(rec,wallKey),Hm=_mnWallH9(rec),out='';try{_mnPipeNorm9(rec,wallKey,Wm,Hm);}catch(_pn9){}/* [BUILD3263] 야장 화면도 관배치 창·DXF와 같은 벽 치수·같은 정리(종전: 창을 열기 전엔 옛 벽폭 간격 그대로 → 벽 밖으로 나감) */
     var all=[];pwv.groups.forEach(function(g){(g.circles||[]).forEach(function(c){all.push(c);});});
     if(!all.length)return '';
     /* [1620] \ubc30\uce58 \ucda9\uc2e4 \u2014 \ud074\ub7ec\uc2a4\ud130 \uc81c\uac70: \uc804 \uad00\uc744 \ud55c \ub369\uc5b4\ub9ac\ub85c(\uc2e4\ubc30\uce58 \uc0c1\ub300\uc704\uce58 \uadf8\ub300\ub85c). 50/100 \ubd84\ub9ac \uc624\ubc30\uce58 \ud574\uacb0 \u2014 DXF\uc640 \ub3d9\uc77c \uad6c\ub3c4 */
@@ -15027,6 +15022,46 @@ function mnShootSlot(rec,slot,done){
 /* ===================== [BUILD 921] 맨홀 관배치 편집기 ===================== */
 var MN_WALLS=[['p1','① 서'],['p2','② 동'],['p3','③ 북'],['p4','④ 남']];
 var MN_KINDS=['FC','COD','PE','강관'];
+function _mnWallH9(rec){/* [BUILD3263] 벽 깊이(mm) 단일 원천 — 입력 깊이(rec.dep m) 우선, 없으면 규격 깊이. 관배치 창·야장 화면·맨홀도 DXF 공통(종전: 창·야장=규격 깊이, DXF=입력 깊이 → DXF 만들 때마다 관 위아래 핑퐁) */
+  var d=Math.round((parseFloat(rec&&rec.dep)||0)*1000);if(d>0)return d;
+  var sp=(rec&&rec.spec)||{};return Math.round(parseFloat(sp.dep)||0)||1100;
+}
+function _mnPipeUnlap9(gs){/* [BUILD3263] 겹친 관 벌리기(가로로만, 세로 유지) — ①한 묶음(그룹) 안 관끼리 겹치면 관 단위로 ②묶음끼리 겹치면 묶음을 통째로(쌍이 갈라지지 않게) 서로 닿을 때까지. gs=[[circle..],..], 겹친 게 있었으면 true */
+  var moved=false;
+  function need(a,b,sg){var rr=((+a.dia||100)+(+b.dia||100))/2,dx=b.x-a.x,dy=b.y-a.y;if(Math.abs(dy)>=rr-0.5||dx*dx+dy*dy>=(rr-0.5)*(rr-0.5))return 0;return Math.max(0,Math.sqrt(rr*rr-dy*dy)+0.5-sg*dx);}
+  gs.forEach(function(all){for(var it=0;it<40;it++){var any=false;
+    for(var i=0;i<all.length;i++)for(var j=i+1;j<all.length;j++){var a=all[i],b=all[j],sg=(b.x>a.x||(b.x===a.x&&i<j))?1:-1,n=need(a,b,sg);
+      if(n>0){a.x-=sg*n/2;b.x+=sg*n/2;any=true;moved=true;}}
+    if(!any)break;}});
+  function cx(g){var t=0;g.forEach(function(c){t+=c.x;});return g.length?t/g.length:0;}
+  for(var it2=0;it2<40;it2++){var any2=false;
+    for(var p=0;p<gs.length;p++)for(var q=p+1;q<gs.length;q++){var A=gs[p],B=gs[q];if(!A.length||!B.length)continue;
+      var sg2=(cx(B)>cx(A)||(cx(B)===cx(A)))?1:-1,mx=0;
+      A.forEach(function(a){B.forEach(function(b){var n=need(a,b,sg2);if(n>mx)mx=n;});});
+      if(mx>0){A.forEach(function(a){a.x-=sg2*mx/2;});B.forEach(function(b){b.x+=sg2*mx/2;});any2=true;moved=true;}}
+    if(!any2)break;}
+  return moved;
+}
+function _mnPipeNorm9(rec,wall,W,H){/* [BUILD3263] 벽 치수가 바뀐 관배치 정리 — 관 사이 간격(mm)은 그대로 두고 관 뭉치 중심만 새 벽의 같은 비율 자리로 옮김(종전: 좌표만 벽 비율로 늘이고 줄여 지름 그대로인 관이 겹침). 뭉치가 새 벽보다 크면 그때만 간격을 벽에 맞게 줄임 → 겹침 벌리기 → 벽 안으로. 관배치 창·야장 화면·맨홀도 DXF 공통. 바뀌었으면 true */
+  var pw=rec&&rec.pipes&&rec.pipes[wall];if(!pw||!pw.groups)return false;
+  var all=[];pw.groups.forEach(function(g){(g&&g.circles||[]).forEach(function(c){if(c&&isFinite(+c.x)&&isFinite(+c.y))all.push(c);});});
+  var sp=rec.spec||{w:800,h:1700,dep:1100};
+  if(!pw.bw||!pw.bh){pw.bw=Math.max(sp.w||800,sp.h||1700);pw.bh=sp.dep||1100;}/* [986] 옛 dispW 좌표계 */
+  var ch=false;
+  function box(){var b={x0:1e18,x1:-1e18,y0:1e18,y1:-1e18};all.forEach(function(c){var r=(+c.dia||100)/2;if(c.x-r<b.x0)b.x0=c.x-r;if(c.x+r>b.x1)b.x1=c.x+r;if(c.y-r<b.y0)b.y0=c.y-r;if(c.y+r>b.y1)b.y1=c.y+r;});return b;}
+  if(all.length&&(pw.bw!==W||pw.bh!==H)){
+    var b=box(),cx=(b.x0+b.x1)/2,cy=(b.y0+b.y1)/2,ncx=cx/pw.bw*W,ncy=cy/pw.bh*H;
+    var fx=(b.x1-b.x0>W)?W/(b.x1-b.x0):1,fy=(b.y1-b.y0>H)?H/(b.y1-b.y0):1;
+    all.forEach(function(c){c.x=ncx+(c.x-cx)*fx;c.y=ncy+(c.y-cy)*fy;});ch=true;
+  }
+  pw.bw=W;pw.bh=H;
+  if(all.length>1&&_mnPipeUnlap9(pw.groups.map(function(g){return ((g&&g.circles)||[]).filter(function(c){return c&&isFinite(+c.x)&&isFinite(+c.y);});})))ch=true;
+  if(ch&&all.length){var b2=box(),sx=0,sy=0;
+    if(b2.x1-b2.x0<=W){if(b2.x0<0)sx=-b2.x0;else if(b2.x1>W)sx=W-b2.x1;}else sx=W/2-(b2.x0+b2.x1)/2;
+    if(b2.y1-b2.y0<=H){if(b2.y0<0)sy=-b2.y0;else if(b2.y1>H)sy=H-b2.y1;}else sy=H/2-(b2.y0+b2.y1)/2;
+    all.forEach(function(c){c.x=Math.round((c.x+sx)*2)/2;c.y=Math.round((c.y+sy)*2)/2;});}
+  return ch;
+}
 function mnWallDims(rec,wall){
   var sp=rec.spec||{w:800,h:1700,dep:1100};
   return [Math.max(sp.w||800,sp.h||1700),sp.dep||1100];
@@ -15099,15 +15134,9 @@ function mnPipeEditor(rec,wall){
   if(!rec.pipes[wall])rec.pipes[wall]={groups:[]};
   var pw=rec.pipes[wall];
   /* ★ 실벽폭 좌표계: 각 벽을 실제 폭×깊이로. dispW(긴변) 통일 폐기 */
-  var WH=mnWallDims(rec,wall),W=mnWallRealW(rec,wall),H=WH[1];
-  /* [986] 좌표 기준 벽치수 없으면 옛 dispW 좌표계로 간주 → 항상 현재 벽치수로 비율 변환 */
-  var _sp986=rec.spec||{w:800,h:1700,dep:1100};
-  if(!pw.bw||!pw.bh){pw.bw=Math.max(_sp986.w||800,_sp986.h||1700);pw.bh=_sp986.dep||1100;}
-  if(pw.bw!==W||pw.bh!==H){
-    var _fx=W/pw.bw,_fy=H/pw.bh;
-    pw.groups.forEach(function(g){(g.circles||[]).forEach(function(c){c.x=Math.round(c.x*_fx);c.y=Math.round(c.y*_fy);});});
-  }
-  pw.bw=W;pw.bh=H;
+  var W=mnWallRealW(rec,wall),H=_mnWallH9(rec);/* [BUILD3263] 깊이 = 입력 깊이 우선(DXF와 동일) */
+  /* [986] 좌표 기준 벽치수 없으면 옛 dispW 좌표계로 간주 — [BUILD3263] 비율 변환 대신 간격 유지 이동 + 겹침 벌리기(_mnPipeNorm9) */
+  try{_mnPipeNorm9(rec,wall,W,H);}catch(_pn9){pw.bw=W;pw.bh=H;}
   var wname='';MN_WALLS.forEach(function(x){if(x[0]===wall)wname=x[1];});
   var mob=(typeof isMobileDevice==='function'&&isMobileDevice());
   var old=document.getElementById('mnPipeModal');if(old)old.remove();
