@@ -454,6 +454,9 @@
 }
 /* [BUILD2023] PC 사진조서·맨홀도 버튼 축소 */
 @media(max-width:760px){#fldUndoFab9{display:block!important}}/* [BUILD2252] 폰 전용 되돌리기 */
+/* [BUILD3266] 준공도면 버튼 — 실시간측량 것을 측량현장(정위치 포함)에 복사. PC: 1줄 오른쪽 '사업 전체보기' 앞(새 창 뷰어 openAsbuilt) / 폰: 2줄 사업삭제 옆(하단 40dvh 패널 fldOpenAsbuilt9 = 실시간 rtOpenAsbuilt 복사). .viewer .wk 숨김보다 우선 */
+@media(min-width:761px){.viewer header #asbuiltBtn{display:inline-flex!important;order:4;margin-left:auto!important;background:#eef2ff!important;color:#4f46e5!important;border:1px solid #7c83e8!important;font-weight:700!important;padding:5px 10px!important;font-size:12.5px!important}.viewer #projFilterChip{margin-left:8px!important}.viewer #conn{margin-left:8px!important}}
+@media(max-width:760px){.viewer header #asbuiltBtn{display:inline-flex!important;order:9!important;background:#fff!important;color:#185fa5!important;border:1px solid #185fa5!important;font-weight:800!important;font-size:10px!important;padding:4px 6px!important;white-space:nowrap!important}.viewer header #asbuiltBtn.on{background:#e9f7ef!important;color:#1e7e34!important;border-color:#1e7e34!important}}
 @media(min-width:761px){.viewer #fldJoseo,.viewer #fldManhole{padding:6px 10px!important;font-size:12.5px!important}.viewer #fldImport,.viewer #fldFinal{padding:7px 12px!important;font-size:13px!important;line-height:1.2!important}}/* [BUILD2231] 결선DB 2종과 동일 크기 */
 </style>
 <link rel="manifest" href="manifest.webmanifest">
@@ -876,7 +879,42 @@ window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
     </div>
   </div>
 
-<script src="login.js?v=3265"></script><script src="core.js?v=3265"></script>
+<script src="login.js?v=3266"></script><script src="core.js?v=3266"></script>
+<script>
+/* [BUILD3266] 폰 준공도면 뷰어 — 실시간측량 rtOpenAsbuilt 복사(하단 40dvh 패널·핀치 확대·PDF 페이지 렌더). PC는 core.js openAsbuilt(새 창) 그대로 */
+function fldOpenAsbuilt9(){
+  try{if(typeof photoPanelOpen!=='undefined'&&photoPanelOpen&&typeof openPhotoPanel==='function')openPhotoPanel(false);}catch(_e){}
+  var ab=(typeof state!=='undefined')&&state.asbuilt;
+  if(!ab||!ab.url){if(typeof toast==='function')toast('준공도면이 없습니다 — 사업등록에서 올려주세요');return;}
+  var old=document.getElementById('rtAsbModal');if(old){old.remove();var _b0=document.getElementById('asbuiltBtn');if(_b0)_b0.classList.remove('on');return;}/* 다시 누르면 닫힘 */
+  var _abB=document.getElementById('asbuiltBtn');if(_abB)_abB.classList.add('on');
+  var wrap=document.createElement('div');wrap.id='rtAsbModal';
+  wrap.style.cssText='position:fixed;left:0;right:0;bottom:0;height:40dvh;background:#fff;z-index:9999;display:flex;flex-direction:column;box-shadow:0 -6px 18px rgba(0,0,0,.28);border-top:1px solid #ddd';
+  var _isPdf=(String(ab.ext||'').toLowerCase()==='pdf')||/\.pdf(\?|$)/i.test(ab.url);
+  wrap.innerHTML='<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid #eee">'+'<b style="font-size:13px">준공도면</b><span style="flex:1"></span>'+'<button type="button" id="rtAsbPlus" style="width:34px;height:30px;border:1px solid #ccc;border-radius:7px;background:#fff;font-weight:800">+</button><button type="button" id="rtAsbMinus" style="width:34px;height:30px;border:1px solid #ccc;border-radius:7px;background:#fff;font-weight:800">−</button>'+'<button type="button" id="rtAsbClose" style="height:30px;padding:0 12px;border:1px solid #c0392b;color:#c0392b;border-radius:7px;background:#fff;font-weight:800">닫기</button></div>'
+    +'<div id="rtAsbBody" style="flex:1;overflow:auto;background:#525659;touch-action:pan-x pan-y">'+(_isPdf?'<div style="color:#fff;text-align:center;padding:40px 0">불러오는 중…</div>':'<img class="rtAsbImg" src="'+ab.url+'" style="width:100%;display:block">')+'</div>';
+  document.body.appendChild(wrap);
+  var body=document.getElementById('rtAsbBody'),sc=1;
+  function apply(){[].forEach.call(body.querySelectorAll('img'),function(im){im.style.width=(100*sc)+'%';});}
+  if(_isPdf){fetch(ab.url).then(function(r){return r.arrayBuffer();}).then(function(buf){return renderPdfPages(buf);}).then(function(imgs){
+    body.innerHTML=imgs.map(function(u){return '<img class="rtAsbImg" src="'+u+'" style="width:100%;display:block;margin-bottom:6px">';}).join('');apply();
+  }).catch(function(){body.innerHTML='<div style="color:#fff;text-align:center;padding:40px 0">PDF를 열 수 없습니다</div>';});}
+  function setSc(ns,mx,my){ns=Math.max(1,Math.min(6,ns));var f=ns/sc;if(f===1)return;var sl=body.scrollLeft,st=body.scrollTop;sc=ns;apply();body.scrollLeft=(sl+mx)*f-mx;body.scrollTop=(st+my)*f-my;}
+  document.getElementById('rtAsbPlus').onclick=function(){var r=body.getBoundingClientRect();setSc(sc*1.4,r.width/2,r.height/2);};
+  document.getElementById('rtAsbMinus').onclick=function(){var r=body.getBoundingClientRect();setSc(sc/1.4,r.width/2,r.height/2);};
+  document.getElementById('rtAsbClose').onclick=function(){wrap.remove();var _ab=document.getElementById('asbuiltBtn');if(_ab)_ab.classList.remove('on');};
+  var pts={},d0=0,s0=1;
+  body.addEventListener('pointerdown',function(e){pts[e.pointerId]=[e.clientX,e.clientY];var k=Object.keys(pts);if(k.length===2){var a=pts[k[0]],b=pts[k[1]];d0=Math.hypot(a[0]-b[0],a[1]-b[1]);s0=sc;}});
+  body.addEventListener('pointermove',function(e){if(!pts[e.pointerId])return;pts[e.pointerId]=[e.clientX,e.clientY];var k=Object.keys(pts);
+    if(k.length===2&&d0>0){var a=pts[k[0]],b=pts[k[1]];var d=Math.hypot(a[0]-b[0],a[1]-b[1]);var r=body.getBoundingClientRect();var mx=(a[0]+b[0])/2-r.left,my=(a[1]+b[1])/2-r.top;setSc(s0*d/d0,mx,my);e.preventDefault();}});
+  function rel(e){delete pts[e.pointerId];if(Object.keys(pts).length<2)d0=0;}
+  body.addEventListener('pointerup',rel);body.addEventListener('pointercancel',rel);
+}
+(function(){var b=document.getElementById('asbuiltBtn');if(!b)return;
+  if(typeof isMobileDevice==='function'&&isMobileDevice())b.onclick=fldOpenAsbuilt9;/* 폰: 하단 패널 / PC: core.js openAsbuilt(새 창) 유지 */
+  var pb=document.getElementById('vPhoto');if(pb)pb.addEventListener('click',function(){var m=document.getElementById('rtAsbModal');if(m){m.remove();b.classList.remove('on');}},true);/* 사진창 열면 준공도면 패널 닫힘 */
+})();
+</script>
 <script>
 /* [BUILD2079] 폰 body 높이 = 실측 픽셀 고정 — dvh를 못 믿는 웹뷰(카톡 인앱 등)에서 패널 바닥이 화면 밖으로 나가던 문제 종결. 회전해야 고쳐지던 증상의 근본 원인 제거 */
 (function(){
