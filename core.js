@@ -162,6 +162,7 @@ function parseInspCsv(txt){
   var h=lines[0].split(',');
   function ci(ns){for(var k=0;k<ns.length;k++){var x=h.indexOf(ns[k]);if(x>=0)return x;}return -1;}
   var iN=ci(['이름']),iX=ci(['X']),iY=ci(['Y']),iZ=ci(['Z(레벨)','Z']),iC=ci(['코드']),iP=ci(['PDOP']);
+  var iD9=ci(['현재날짜','측정날짜']),iE9=ci(['Epoch 회수','Epoch']);/* [BUILD3275] 측정 정보 열 */
   var out=[];
   for(var r=1;r<lines.length;r++){
     var c=lines[r].split(',');
@@ -172,6 +173,7 @@ function parseInspCsv(txt){
     if(code==='100x6'){out.push({code:'100x6',skip:true});continue;}   // 측설용 노출관로 성과 = 무시
     if(/^\d+\s*[aA]$/.test(code)){out.push({code:code,skip:true});continue;}/* [BUILD2437] 지거 이격기준점 'Na' — 심도 6m로 오해석 방지(지거 편입은 _fldJgFromAft9) */
     if(code===''&&pdop==='')continue;                                   // 품질 빈칸·코드 없음 = 무시
+    if(iD9>=0&&String(c[iD9]||'').trim()===''&&pdop===''&&(iE9<0||/^-1$|^$/.test(String(c[iE9]||'').trim()))){out.push({code:code,skip:true,_design9:true});continue;}/* [BUILD3275] 측정 정보 없음(현재날짜·PDOP 빈칸, Epoch -1) = 측설하려고 컨트롤러에 넣어 둔 실시간 설계점 — 후측량 성과 아님. 울산AIDC 원시: 4~181행 178점(COD/FC/M/보강판 코드)이 진짜 측설 177점(l·SKBM·TJ) 앞에 붙어 있었음 */
     var _gz9=(isNaN(Z)?null:Z);/* [BUILD2289] \uc6d0\ubcf8 Z(\ub808\ubca8)=\uc9c0\ubc18\uace0 \ubcf4\uc874 \u2014 \uc544\ub798 [1446]\uc774 \ucf54\ub4dc \uc2ec\ub3c4\ub85c Z\ub97c \ub36e\uc5b4\uc4f4\ub2e4 */var _psf='',_ppv='';var _rawc=code;if(state.tamsa){var _tc=parseTamsaCode(code);if(_tc){_psf=_tc.surface||'';_ppv=_tc.pave||'';code=(_tc.code||(_tc.isT?'T':''));if(_tc.z!=null)Z=_tc.z;}}else{var _dm=/^[tT]?\s*([0-9]+(?:\.[0-9]+)?)\s*(\(|$)/.exec(code);if(_dm){Z=parseFloat(_dm[1]);}}/* [1446] 비탐사도 코드 심도(0.54·t0.84·0.65(100*3)) → z 반영 — 탐사 보완 구간 */
     out.push({name:(c[iN]||'').trim(),ex:Y,no:X,z:Z,gz9:_gz9,code:code,surface:_psf,pave:_ppv,_rawc:_rawc,_hyun:/^([BDS]|BD|DB)$/i.test((_rawc||'').trim())});        // ex=동(앱x)=CSV Y, no=북(앱y)=CSV X
   }
@@ -8636,8 +8638,11 @@ function _aftCsvMerged9(){/* [BUILD2347] 후측량 CSV 통합본 — 원본 N건
     var h=lines[0].split(',').map(function(x){return x.trim();});
     function ci(ns){for(var q=0;q<ns.length;q++){var x=h.indexOf(ns[q]);if(x>=0)return x;}return -1;}
     var iN=ci(['이름']),iX=ci(['X']),iY=ci(['Y']),iZ=ci(['Z(레벨)','Z']),iC=ci(['코드']);
+    var iD9=ci(['현재날짜','측정날짜']),iP9=ci(['PDOP']),iE9=ci(['Epoch 회수','Epoch']);/* [BUILD3275] */
     var fn=String((it&&it.name)||'');
-    for(var r=1;r<lines.length;r++){var c=lines[r].split(',');var X=parseFloat(c[iX]),Y=parseFloat(c[iY]);if(isNaN(X)||isNaN(Y))continue;total++;
+    for(var r=1;r<lines.length;r++){var c=lines[r].split(',');var X=parseFloat(c[iX]),Y=parseFloat(c[iY]);if(isNaN(X)||isNaN(Y))continue;
+      if(iD9>=0&&String(c[iD9]||'').trim()===''&&(iP9<0||String(c[iP9]||'').trim()==='')&&(iE9<0||/^-1$|^$/.test(String(c[iE9]||'').trim()))){dropped++;continue;}/* [BUILD3275] 측정 정보 없는 설계점(컨트롤러 측설용 실시간점) 제외 — parseInspCsv와 같은 규칙. 원시 ZIP은 그대로 */
+      total++;
       var ax=Y,ay=X;/* 앱 x=CSV Y, 앱 y=CSV X (parseInspCsv ex/no 관례) */
       if(tomb[Math.round(ax*100)+'_'+Math.round(ay*100)]){dropped++;continue;}
       function q(v){v=(v==null?'':String(v)).trim();return /[",]/.test(v)?('"'+v.replace(/"/g,'""')+'"'):v;}
@@ -18395,17 +18400,37 @@ function _lkPeek9(cb){/* 두 영역 보유자 조회(잡지 않음) */
     var rows=(res&&res.data)||[];['sv','mn'].forEach(function(a){var L=_lk9[a];if(L.mine)return;var row=rows.filter(function(r){return r.stage===_lkStage9(a);})[0];if(row&&!_lkFree9(row)){L.holder=row.holder;L.ts=new Date(row.ts).getTime();}else{L.holder=null;L.ts=0;}});
     try{_lkBar9();}catch(_b){}if(cb)cb();},function(){if(cb)cb();});}catch(_e){if(cb)cb();}}
 function _lkTimerOn9(){if(_lkTimer9)return;_lkTimer9=setInterval(_lkBeat9,LOCK_BEAT);}
-function _lkBar9(){/* 헤더 위 상태 띠: 측설 · 맨홀도 각각 [내가 편집 ✓ / 🔒 이름 / 비어 있음] */
+function _lkBar9(){/* [BUILD3276] 모드 띠 — 내가 잡은 모드 색(측설 초록 / 맨홀도 보라 / 둘 다=두 칩), 상대가 잡은 영역은 🔒이름. 잡은 것도 잡힌 것도 없으면 안 보임 */
   var bar=document.getElementById('lkBar9');
-  if(!_lkOn9()||!state.projectId||readOnly){if(bar)bar.remove();return;}
-  var any=false,html='';['sv','mn'].forEach(function(a){var L=_lk9[a],col=(a==='mn')?'#8e44ad':'#16a34a',txt,bg;
-    if(L.mine){txt='✓ 내가 편집';bg=col;any=true;}
-    else if(_lkRO9(a)){txt='🔒 '+String(L.holder).replace(/</g,'&lt;')+' 편집 중';bg='#c62828';any=true;}
-    else{txt='비어 있음';bg='#9aa0a6';}
-    html+='<span style="display:inline-flex;align-items:center;gap:5px;background:'+bg+';color:#fff;border-radius:20px;padding:3px 11px;font-weight:900;font-size:12px;white-space:nowrap">'+_lkLabel9(a)+' · '+txt+'</span>';});
-  if(!any){if(bar)bar.remove();return;}
-  if(!bar){bar=document.createElement('div');bar.id='lkBar9';bar.style.cssText='flex:none;order:-998;background:#fff;border-bottom:2px solid #e6e6e0;padding:5px 10px;display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;position:relative;z-index:5';bar.onclick=function(){_lkPeek9();};document.body.insertBefore(bar,document.body.firstChild);}
-  bar.innerHTML=html;}
+  if(!_lkOn9()||!state.projectId||readOnly){if(bar)bar.remove();_lkDimBtns9();return;}
+  var mine=['sv','mn'].filter(function(a){return _lk9[a].mine;}),other=['sv','mn'].filter(function(a){return _lkRO9(a);});
+  if(!mine.length&&!other.length){if(bar)bar.remove();_lkDimBtns9();return;}
+  var COL={sv:'#16a34a',mn:'#8e44ad'},ICO={sv:'📐',mn:'🕳'},bg=(mine.length===1)?COL[mine[0]]:(mine.length===2?'#1f2d3d':'#c62828');
+  var html='';
+  if(mine.length)html+='<span style="font-weight:900;font-size:13.5px;white-space:nowrap">'+mine.map(function(a){return ICO[a]+' '+_lkLabel9(a)+' 작업';}).join(' + ')+' — '+String(ME||'').replace(/</g,'&lt;')+'</span>';
+  other.forEach(function(a){html+='<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.7);border-radius:20px;padding:2px 10px;font-weight:800;font-size:12px;white-space:nowrap">🔒 '+_lkLabel9(a)+' · '+String(_lk9[a].holder).replace(/</g,'&lt;')+' 편집 중</span>';});
+  ['sv','mn'].forEach(function(a){if(mine.indexOf(a)<0&&other.indexOf(a)<0)html+='<span style="opacity:.8;font-size:11.5px;white-space:nowrap">'+_lkLabel9(a)+' 비어 있음 · 건드리면 자동 전환</span>';});
+  if(!bar){bar=document.createElement('div');bar.id='lkBar9';document.body.insertBefore(bar,document.body.firstChild);bar.onclick=function(){_lkPeek9();};}
+  bar.style.cssText='flex:none;order:-998;background:'+bg+';color:#fff;padding:6px 10px;display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;position:relative;z-index:5;box-shadow:0 2px 6px rgba(0,0,0,.2)';
+  bar.innerHTML=html;_lkDimBtns9();}
+var LK_BTNS9={sv:['fldDel','vPhoto','fldCsv','fldImport','fldFinal','fldRefLoad','aftPhotoUp'],mn:['fldManhole','mnMapPickBtn']};
+function _lkDimBtns9(){/* [BUILD3276] 상대가 잡은 영역의 버튼 = 회색 + 🔒이름 꼬리표(누르면 경고창은 종전대로). 비어 있거나 내 것이면 원래대로 */
+  try{['sv','mn'].forEach(function(a){var ro=_lkOn9()&&state.projectId&&_lkRO9(a);(LK_BTNS9[a]||[]).forEach(function(id){var b=document.getElementById(id);if(!b)return;var tag=b.querySelector('.lkTag9');
+      if(ro){b.style.opacity='.4';b.style.filter='grayscale(1)';b.title=_lkLabel9(a)+' — '+_lk9[a].holder+'님이 편집 중';if(!tag){tag=document.createElement('span');tag.className='lkTag9';tag.style.cssText='margin-left:4px;font-size:10px;font-weight:900;color:#c62828;filter:none';b.appendChild(tag);}tag.textContent='🔒'+String(_lk9[a].holder||'').slice(0,4);}
+      else{b.style.opacity='';b.style.filter='';if(b.title&&/편집 중$/.test(b.title))b.title='';if(tag)tag.remove();}});});}catch(_e){}}
+function _lkModeAsk9(){/* [BUILD3276] 폰: 사업 열 때 작업 모드 선택창 — 고른 모드 잠금을 바로 잡음(비어 있으면). 다른 영역은 건드리면 자동 */
+  try{var old=document.getElementById('lkMode9');if(old)old.remove();
+    var st=function(a){var L=_lk9[a];if(L.mine)return '<span style="color:#15803d">내가 편집 중</span>';if(_lkRO9(a))return '<span style="color:#c62828">'+String(L.holder).replace(/</g,'&lt;')+' 편집 중 → 읽기 전용</span>';return '<span style="color:#1565c0">지금 비어 있음</span>';};
+    var w=document.createElement('div');w.id='lkMode9';w.style.cssText='position:fixed;inset:0;z-index:100250;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:14px';
+    w.innerHTML='<div style="background:#fff;border:3px solid #333;border-radius:16px;width:min(94vw,420px);overflow:hidden;box-shadow:0 14px 50px rgba(0,0,0,.45)">'
+      +'<div style="padding:12px 16px;font-weight:900;font-size:16px;background:#f5f5f0;border-bottom:1px solid #ddd">어떤 작업을 하시나요? — '+String(state.projectName||'').replace(/</g,'&lt;').slice(0,28)+'</div>'
+      +'<button id="lkModeSv9" style="display:block;width:calc(100% - 24px);margin:12px;padding:14px;border-radius:12px;border:2.5px solid #16a34a;background:#effaf3;color:#15803d;font-weight:900;font-size:16px;text-align:center">📐 측설 작업<div style="font-weight:600;font-size:12px;margin-top:4px">측점·시설물·구간·후측량 사진 · '+st('sv')+'</div></button>'
+      +'<button id="lkModeMn9" style="display:block;width:calc(100% - 24px);margin:0 12px 12px;padding:14px;border-radius:12px;border:2.5px solid #8e44ad;background:#f7effc;color:#6d2f8e;font-weight:900;font-size:16px;text-align:center">🕳 맨홀도 작업<div style="font-weight:600;font-size:12px;margin-top:4px">야장·맨홀 사진·관배치 · '+st('mn')+'</div></button>'
+      +'<div style="font-size:12px;color:#777;padding:0 16px 14px;line-height:1.55">고른 작업을 바로 잡아요. 다른 작업은 비어 있으면 건드릴 때 자동으로 잡히고, 5분 안 쓰면 자동으로 풀려요.</div></div>';
+    document.body.appendChild(w);
+    var pick=function(a){w.remove();if(_lkRO9(a)){try{_roWarn9(true,_lk9[a].holder,_lkLabel9(a));}catch(_e){}return;}_lkAcquire9(a,function(ok,h){if(!ok){try{_roWarn9(true,h,_lkLabel9(a));}catch(_e){}}});};
+    w.querySelector('#lkModeSv9').onclick=function(){pick('sv');};w.querySelector('#lkModeMn9').onclick=function(){pick('mn');};
+  }catch(_e){}}
 function _lkGate9(a,silent){/* 쓰기 전 관문: 내 잠금이면 true / 남이면 경고창(자동저장은 조용히) / 비어 있으면 false(호출측이 acquire) */
   if(!_lkOn9())return true;var L=_lk9[a];if(L.mine){L.last=Date.now();return true;}
   if(_lkRO9(a)){if(!silent){try{_roWarn9(true,L.holder,_lkLabel9(a));}catch(_e){}}return false;}
@@ -18425,7 +18450,7 @@ function loadProject(id,ro,cb){
   if(ro===true){ state._foreignLock=null; _loadProjectRaw(id,true,cb); return; }
   if(_lkOn9()){/* [BUILD3274] 측량현장: 열 때는 안 잡고(두 팀 동시 입장), 쓸 때 영역별 자동 */
     _lkReleaseAll9();_lockRelease();state._foreignLock=null;
-    _loadProjectRaw(id,false,function(){try{_lkPid9=String(state.projectId);_lkTimerOn9();_lkPeek9();}catch(_e){}if(typeof cb==='function')cb();});
+    _loadProjectRaw(id,false,function(){try{_lkPid9=String(state.projectId);_lkTimerOn9();_lkPeek9(function(){try{if(typeof isMobileDevice==='function'&&isMobileDevice())_lkModeAsk9();}catch(_m){}});}catch(_e){}if(typeof cb==='function')cb();});/* [BUILD3276] 폰: 모드 선택창 */
     return;}
   _lockRelease();
   _lockTry(id,function(ok,holder){
