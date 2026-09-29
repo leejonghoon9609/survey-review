@@ -11643,8 +11643,12 @@ function _lblMh9(wx,wy,lab){/* [BUILD2041] \uB77C\uBCA8\uB85C \uB300\uC0C1 \uB9E
     if(!lab)return null;
     function nz(t){t=String(t||'');try{if(typeof mnStripPf==='function')t=mnStripPf(t);}catch(_a){}return t.replace(/\s+/g,'').toUpperCase();}
     var q=nz(lab);if(!q)return null;
+    /* [BUILD3277] 1순위 정확 일치(refNormLab: 번호|소유자) — 종전 부분 일치는 '1M(SKB)'가 '30-1M(SKB)'·'1-1M(SKB)'에도 걸려 가까운 엉뚱한 맨홀(울산AIDC 1-1M의 3(북) 방향 신설1M → 남쪽 30-1M)을 대상으로 잡고, 그쪽 구간의 앞점(COD 100x2)과 벽(FC 100x4)을 대조해 불일치를 냈음 */
+    var qn=null;try{qn=(typeof refNormLab==='function')?refNormLab(lab):null;}catch(_n){}
     var bm=null,bd=1e9;
-    (state.manholes||[]).forEach(function(m){
+    if(qn&&qn.indexOf('|')>0){(state.manholes||[]).forEach(function(m){if(!m||m.wx==null)return;if(m.type&&m.type!=='mh')return;var ln=null;try{ln=refNormLab(m.label||'');}catch(_n2){}if(ln!==qn)return;var d=Math.hypot(m.wx-wx,m.wy-wy);if(d>0.3&&d<bd){bd=d;bm=m;}});
+      if(bm)return (bd<80)?[bm.wx,bm.wy]:null;}
+    (state.manholes||[]).forEach(function(m){/* 2순위: 종전 부분 일치(번호 형식이 아닌 라벨용) */
       if(!m||m.wx==null)return;if(m.type&&m.type!=='mh')return;
       var lb=nz(m.label);if(!lb)return;
       if(lb.indexOf(q)<0&&q.indexOf(lb)<0)return;
