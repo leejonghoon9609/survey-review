@@ -14600,34 +14600,19 @@ function mnOpenForm(rec,_hl9){/* [BUILD2405] _hl9=true: 화면 없이 야장 SVG
     if(!all.length)return '';
     /* [1620] \ubc30\uce58 \ucda9\uc2e4 \u2014 \ud074\ub7ec\uc2a4\ud130 \uc81c\uac70: \uc804 \uad00\uc744 \ud55c \ub369\uc5b4\ub9ac\ub85c(\uc2e4\ubc30\uce58 \uc0c1\ub300\uc704\uce58 \uadf8\ub300\ub85c). 50/100 \ubd84\ub9ac \uc624\ubc30\uce58 \ud574\uacb0 \u2014 DXF\uc640 \ub3d9\uc77c \uad6c\ub3c4 */
     var _pt9=null;if(!_hl9){try{_pt9=_ptoCalc9(rec,wallKey);if(!_pt9||_pt9.cs.length!==all.length)_pt9=null;}catch(_pc9){_pt9=null;}}var _ss9=_pt9?_ptoSrcSh9(rec):'';/* [BUILD3217] 관마다 가는 곳 — 화면 야장만(헤드리스 SVG=검수 축소본 제외) */
-    var n=all.length,clusters=[all.map(function(_,i){return i;})];
-    /* 2) mapFn 단위벡터(회전 자동 반영) */
+    /* [BUILD3265] ★실척 배치 — 관 하나하나를 입력 벽 크기(Wm×Hm) 기준 같은 비율 자리에(관배치 창 = 야장 칸 = 맨홀도 DXF 같은 자리). 종전(1620~3264)은 뭉치를 고정 배율 0.15px/mm로 키워 칸 안에 넣어 자리가 편집기와 달랐음(2.1m 벽 오른쪽 위 4관이 칸 가운데 세로 한 줄로). 원 크기도 실척(최소 2.5px) */
     var o0=mapFn(0,0),e1=mapFn(1,0),e2=mapFn(0,1);
     var ex=[e1[0]-o0[0],e1[1]-o0[1]],ey=[e2[0]-o0[0],e2[1]-o0[1]];
     var exl=Math.hypot(ex[0],ex[1])||1,eyl=Math.hypot(ey[0],ey[1])||1;
-    var exU=[ex[0]/exl,ex[1]/exl],eyU=[ey[0]/eyl,ey[1]/eyl];
-    var DS=0.15; /* 표시 배율(px/mm) — 야장 확인용 크기. 붙은 관은 그대로 붙음 */
-    clusters.forEach(function(comp){
-      /* 덩어리 중심(편집기 실좌표) */
-      /* [BUILD3264] 뭉치 외곽(관 반지름 포함) 중심을 기준점으로, 표시 배율 DS는 뭉치가 벽 칸 안에 들어가는 만큼만(긴 벽에서 관이 칸 밖으로 나가던 문제 — 종전 0.15 고정) */
-      var _b0=1e18,_b1=-1e18,_b2=1e18,_b3=-1e18;comp.forEach(function(idx){var c0=all[idx],r0=(+c0.dia||100)/2;if(c0.x-r0<_b0)_b0=c0.x-r0;if(c0.x+r0>_b1)_b1=c0.x+r0;if(c0.y-r0<_b2)_b2=c0.y-r0;if(c0.y+r0>_b3)_b3=c0.y+r0;});
-      var cx=(_b0+_b1)/2,cy=(_b2+_b3)/2;
-      DS=Math.min(0.15,0.94*exl/Math.max(1,_b1-_b0),0.94*eyl/Math.max(1,_b3-_b2));
-      var _hx=DS*(_b1-_b0)/2/exl,_hy=DS*(_b3-_b2)/2/eyl;
-      var ncx=(_hx>=0.47)?0.5:Math.min(0.98-_hx,Math.max(0.02+_hx,cx/Wm));
-      var ncy=(_hy>=0.47)?0.5:Math.min(0.98-_hy,Math.max(0.02+_hy,cy/Hm));
-      var pc=mapFn(ncx,ncy);
-      comp.forEach(function(idx){
-        var c=all[idx];
-        var ddx=c.x-cx,ddy=c.y-cy; /* 덩어리 내 상대(편집기 실mm, ddy=바닥기준 위 */
-        var px=pc[0]+DS*(ddx*exU[0]+ddy*eyU[0]);
-        var py=pc[1]+DS*(ddx*exU[1]+ddy*eyU[1]);
-        var r=Math.max(c.dia*0.5*DS,2.2);/* [BUILD3264] 최소 3→2.2(축소 배율에서 붙은 관이 겹쳐 보이지 않게) */
+    var _sc9=Math.min(exl/Math.max(1,Wm),eyl/Math.max(1,Hm));
+    all.forEach(function(c,idx){
+        var r=Math.max((+c.dia||100)*0.5*_sc9,2.5);
+        var nx=Math.min(1,Math.max(0,c.x/Wm)),ny=Math.min(1,Math.max(0,c.y/Hm));
+        var pc=mapFn(nx,ny),px=pc[0],py=pc[1];
         var st=(c.st!=null?c.st:(c.fill?1:0));var _po9=_pt9?_pt9.cs[idx]:null;var _ex9=!!(_po9&&_po9.st!==2&&_po9.r&&_po9.r.ex);
         out+='<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+((st===2||_ex9)?'#d32f2f':(st===1?'#222':'#fff'))+'" stroke="#333" stroke-width="1.2" pointer-events="none"/>';
         if(_po9&&_po9.st!==2&&_po9.r&&_po9.r.sh&&_ss9&&_po9.r.sh!==_ss9){var _pp9=_ptoPairOrd9(_ss9,_po9.r.sh);var _a9=_pp9[0]+'\u2192',_b9=_pp9[1];var _uw9=function(t){var u=0;for(var i=0;i<t.length;i++)u+=(/[\u3131-\uD79D]/.test(t[i])?1.0:(/[()]/.test(t[i])?0.36:(t[i]==='\u2192'?0.8:0.62)));return u;};var _fp9=Math.min(r*0.42,r*1.5/Math.max(_uw9(_a9),_uw9(_b9),1));var _fc9=(_po9.un?'#ef6c00':((st===1||_ex9)?'#fff':(_po9.man?'#1565c0':'#111')));out+='<text x="'+px.toFixed(1)+'" y="'+(py-_fp9*0.55).toFixed(2)+'" font-size="'+_fp9.toFixed(2)+'" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="'+_fc9+'" pointer-events="none">'+joseoEsc(_a9)+'</text><text x="'+px.toFixed(1)+'" y="'+(py+_fp9*0.6).toFixed(2)+'" font-size="'+_fp9.toFixed(2)+'" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="'+_fc9+'" pointer-events="none">'+joseoEsc(_b9)+'</text>';}/* [BUILD3224] 양 끝 두 줄 */
         else if(_po9&&_po9.st!==2){var _tl9=_ptoLab9(_po9);if(_tl9){var _tu9=0;for(var _ti9=0;_ti9<_tl9.length;_ti9++)_tu9+=(/[\u3131-\uD79D]/.test(_tl9[_ti9])?1.0:(/[()]/.test(_tl9[_ti9])?0.36:0.62));var _fs9=Math.min(r*0.62,r*1.5/Math.max(_tu9,1));out+='<text x="'+px.toFixed(1)+'" y="'+py.toFixed(1)+'" font-size="'+_fs9.toFixed(2)+'" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="'+(_po9.un?'#ef6c00':((st===1||_ex9)?'#fff':(_po9.man?'#1565c0':'#111')))+'" pointer-events="none">'+joseoEsc(_tl9)+'</text>';}}
-      });
     });
     return out;
   }
