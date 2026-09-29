@@ -17163,6 +17163,7 @@ function drawMeasure(){clearSvg(gMeasure);clearLabels('measure');if(!measurePts.
     toast('거리: '+d.toFixed(3)+' m');
   }
 }
+function _ptDay9(p){if(!p)return '';var s=''+(p.no==null?'':p.no);var m=/^([0-9]{6})-/.exec(s);return m?m[1]:(p._d0||s.split('-')[0]);}/* [BUILD3262] 측점 귀속일 = 번호 앞 6자리 우선(야간보정 새벽 측점은 _d0=실측일이 다음날) — 등록일(rtDaily) 필터·일별 측점 수가 _d0를 먼저 봐서 야간 측점이 성과 CSV·측점 수에서 빠지던 원인. 거리(dateAt)는 2140부터 이미 귀속일 */
 function ptNum(p){var s=(p.no||'').toString();var m=/^[0-9]{6}-(.+)$/.exec(s);return m?m[1]:s.split('-').pop();}/* [BUILD2346] 날짜(6자리) 뒤 전체가 번호 — 지거 '260826-13-1'→'13-1'(구: 마지막 조각 '1'로 전부 동일 번호). 실시간·결선·현장 공통 */
 function pointByNum(n){for(var i=0;i<state.points.length;i++)if(ptNum(state.points[i])===String(n))return state.points[i];return null;}
 function sortedNums(){return state.points.map(ptNum).filter(function(v){return v!=='';}).sort(function(a,b){return (parseFloat(a)||0)-(parseFloat(b)||0);});}
@@ -18721,7 +18722,7 @@ function rtDoneAllRender9(){/* [BUILD2212] 완료성과(전체) — 통계=일�
  var el=document.getElementById('rtDailyBody');if(!el)return;
  var regD={};(state.rtDaily||[]).forEach(function(r){if(r&&r.date)regD[r.date]=1;});
  var dm=rtDailyDistMap();var tot=0,seg=0;for(var _k in dm.dist)if(regD[_k])tot+=dm.dist[_k];for(var _k2 in dm.seg)if(regD[_k2])seg+=dm.seg[_k2];
- var np=0;(state.points||[]).forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0&&regD[d0])np++;});
+ var np=0;(state.points||[]).forEach(function(p){var d0=_ptDay9(p);if(d0&&regD[d0])np++;});
  var dayN=Object.keys(regD).length;
  var RM=state.rtRawMeta9||{},rawN=0,dupN=0;
  (function(){var seen={};for(var d in regD){var k=(typeof _rtRawKey9==='function')?_rtRawKey9(d):(RM[d]?d:null);if(k&&RM[k]&&!seen[k]){seen[k]=1;rawN++;if(RM[k].dup)dupN++;}}})();
@@ -18782,10 +18783,10 @@ function rtDailyRender(){
   var h='<table style="width:100%;border-collapse:collapse;font-size:13px"><thead><tr style="background:#f5f8ff;color:#1f4e9e">'
    +'<th style="padding:7px 6px;border-bottom:1px solid #dde">날짜</th><th style="border-bottom:1px solid #dde">사업명</th><th style="border-bottom:1px solid #dde">작업자</th><th style="border-bottom:1px solid #dde;text-align:right">거리(m)</th><th style="border-bottom:1px solid #dde;text-align:right">측점</th><th style="border-bottom:1px solid #dde;text-align:right">결선</th><th style="border-bottom:1px solid #dde">사진</th><th style="border-bottom:1px solid #dde">CSV</th></tr></thead><tbody>';
   var dm=rtDailyDistMap();var tot=0;for(var _k in dm.dist)tot+=dm.dist[_k];
-  var ptCnt={};(state.points||[]).forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0)ptCnt[d0]=(ptCnt[d0]||0)+1;});/* [1214] 날짜별 측점수 */
+  var ptCnt={};(state.points||[]).forEach(function(p){var d0=_ptDay9(p);if(d0)ptCnt[d0]=(ptCnt[d0]||0)+1;});/* [1214] 날짜별 측점수 */
   var phBy={};try{var _pm=(typeof photoMap!=='undefined'&&photoMap)?photoMap:{};for(var _pk in _pm){var _pd=String(_pk).split('-')[0];if(/^[0-9]{6}$/.test(_pd))(phBy[_pd]=phBy[_pd]||[]).push({no:_pk,url:_pm[_pk]});}var _am=(typeof afterMap!=='undefined'&&afterMap)?afterMap:{};for(var _ak in _am){var _ad=String(_ak).split('-')[0];if(/^[0-9]{6}$/.test(_ad))(phBy[_ad]=phBy[_ad]||[]).push({no:_ak+'_A',url:_am[_ak]});}}catch(_pe){}/* [1235] 날짜별 사진 */
   var dset={};for(var _k2 in dm.dist)dset[_k2]=1;for(var _k3 in recs)dset[_k3]=1;
-  (state.points||[]).forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0&&/^[0-9]{6}$/.test(d0))dset[d0]=1;});
+  (state.points||[]).forEach(function(p){var d0=_ptDay9(p);if(d0&&/^[0-9]{6}$/.test(d0))dset[d0]=1;});
   var dates=Object.keys(dset).sort();
   if(!dates.length){el.innerHTML='<div style="color:#999;padding:14px;text-align:center">측점·성과 데이터가 없습니다.<br><span style="font-size:12px">CSV 업로드 후 [오늘 성과 등록]으로 하루 작업을 기록하세요.</span></div>';return;}
   for(var i=dates.length-1;i>=0;i--){var _dk=dates[i],r=recs[_dk]||null;
@@ -21832,9 +21833,9 @@ function svPopup(title,accent){
 function svDailyTable(container,points,lines,rtDaily,projName,phByDate){
   var recs={};(rtDaily||[]).forEach(function(r){if(r&&r.date)recs[r.date]=r;});
   var dm=svDistMap(points,lines);var tot=0;for(var _k in dm.dist)tot+=dm.dist[_k];
-  var ptCnt={};(points||[]).forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0)ptCnt[d0]=(ptCnt[d0]||0)+1;});
+  var ptCnt={};(points||[]).forEach(function(p){var d0=_ptDay9(p);if(d0)ptCnt[d0]=(ptCnt[d0]||0)+1;});
   var dset={};for(var k2 in dm.dist)dset[k2]=1;for(var k3 in recs)dset[k3]=1;for(var k4 in (phByDate||{}))dset[k4]=1;
-  (points||[]).forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0&&/^[0-9]{6}$/.test(d0))dset[d0]=1;});
+  (points||[]).forEach(function(p){var d0=_ptDay9(p);if(d0&&/^[0-9]{6}$/.test(d0))dset[d0]=1;});
   var dates=Object.keys(dset).sort();
   if(!dates.length){container.innerHTML='<div style="color:#999;padding:14px;text-align:center">일별 데이터가 없습니다.</div>';return;}
   var h='<table style="width:100%;border-collapse:collapse;font-size:12.5px"><thead><tr style="background:#f5f8ff;color:#1f4e9e">'
@@ -21896,7 +21897,7 @@ function svRtDoneTable9(el,pl,projName,pid,photoRows){/* [BUILD2219] 실시간 �
  var pts=pl.points||[],lns=pl.lines||[];
  var regD={};(pl.rtDaily||[]).forEach(function(r){if(r&&r.date)regD[r.date]=1;});
  var dm=svDistMap(pts,lns);var tot=0,seg=0;for(var _k in dm.dist)if(regD[_k])tot+=dm.dist[_k];for(var _k2 in dm.seg)if(regD[_k2])seg+=dm.seg[_k2];
- var np=0;pts.forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0&&regD[d0])np++;});
+ var np=0;pts.forEach(function(p){var d0=_ptDay9(p);if(d0&&regD[d0])np++;});
  var dayN=Object.keys(regD).length;
  var RM=pl.rtRawMeta9||{},rawN=0,dupN=0;(function(){for(var d in regD){if(RM[d]){rawN++;if(RM[d].dup)dupN++;}}})();
  var phAll=[],phN=0;(photoRows||[]).forEach(function(r){var no=String(r.point_no||'');var d=no.split('-')[0];if(!regD[d])return;phAll.push({no:no,url:r.url});phN++;});
@@ -21932,7 +21933,7 @@ function svRtDoneTable9(el,pl,projName,pid,photoRows){/* [BUILD2219] 실시간 �
  var b;
  b=el.querySelector('.svrtRaw9');if(b&&!b.disabled)b.onclick=function(){var _sp9=(pl&&pl.rtRawSrc9)||pid;/* [BUILD2231] 원시 실물은 실시간 사업 스토리지 */if(typeof rtRawAllZip9==='function')rtRawAllZip9(RM,_sp9,projName);};
  b=el.querySelector('.svrtDxf9');if(b&&!b.disabled)b.onclick=function(){if(typeof svRtDxfFromPayload9==='function')svRtDxfFromPayload9(pl,projName);};/* [BUILD2220] 결선 DXF 사본 */
- b=el.querySelector('.svrtCsv9');if(b&&!b.disabled)b.onclick=function(){var _p=pts.filter(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);return d0&&regD[d0];});if(typeof _fldCsvFromPoints==='function')_fldCsvFromPoints(_p,projName);};
+ b=el.querySelector('.svrtCsv9');if(b&&!b.disabled)b.onclick=function(){var _p=pts.filter(function(p){var d0=_ptDay9(p);return d0&&regD[d0];});if(typeof _fldCsvFromPoints==='function')_fldCsvFromPoints(_p,projName);};
  b=el.querySelector('.svrtPh9');if(b&&!b.disabled)b.onclick=function(){if(typeof svPhotoZip==='function')svPhotoZip(phAll,(projName||'사진')+'_전체사진',true);};
 }
 function svRtDailyOpen(){ /* 같은 base의 실시간(_S) 성과 원격 열람 */
@@ -22023,9 +22024,9 @@ function svFldDoneTable9(el,phByDate){/* [BUILD2221] 결선완료 등록 — 성
  var pts=state.points||[],lns=state.lines||[];
  var regD={};(state.rtDaily||[]).forEach(function(r){if(r&&r.date)regD[r.date]=1;});
  var _legacy9=!Object.keys(regD).length;/* [BUILD2445] 실시간측량 없이 결선DB 사업등록(CSV·사진 직접 로딩)으로 시작한 시스템 이전 사업: 실시간 일별등록(rtDaily)이 없으니 도면의 측점 전체 날짜를 등록분으로 삼아 CSV·결선·사진 성과를 채우고 측량(현장) 등록이 되게 한다. 실시간에서 넘어온 사업은 종전대로 rtDaily 기준 */
- if(_legacy9)pts.forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0)regD[d0]=1;});
+ if(_legacy9)pts.forEach(function(p){var d0=_ptDay9(p);if(d0)regD[d0]=1;});
  var dm=svDistMap(pts,lns);var tot=0,seg=0;for(var _k in dm.dist)if(regD[_k])tot+=dm.dist[_k];for(var _k2 in dm.seg)if(regD[_k2])seg+=dm.seg[_k2];
- var np=0;pts.forEach(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);if(d0&&regD[d0])np++;});
+ var np=0;pts.forEach(function(p){var d0=_ptDay9(p);if(d0&&regD[d0])np++;});
  var dayN=Object.keys(regD).length;
  var RM=state.rtRawMeta9||{},rawN=0,dupN=0;for(var rk in RM){if(regD[rk]||_legacy9){rawN++;if(RM[rk].dup)dupN++;}}/* [BUILD2447] 직접등록 사업은 보관된 원시 전부 */
  var phAll=[],phN=0;for(var dk in (phByDate||{})){if(!regD[dk])continue;(phByDate[dk]||[]).forEach(function(x){phAll.push(x);phN++;});}
@@ -22066,7 +22067,7 @@ function svFldDoneTable9(el,phByDate){/* [BUILD2221] 결선완료 등록 — 성
   var _pop9=document.getElementById('svDailyPop');if(_pop9&&!ph9)_pop9.style.width='min(94vw,660px)';}catch(_w9){}
  var b;
  b=el.querySelector('.svdaRaw9');if(b&&!b.disabled)b.onclick=function(){if(typeof rtRawAllZip9==='function')rtRawAllZip9();};
- b=el.querySelector('.svdaCsv9');if(b&&!b.disabled)b.onclick=function(){var _p=pts.filter(function(p){var d0=p&&(p._d0||(''+p.no).split('-')[0]);return d0&&regD[d0];});if(typeof _fldCsvFromPoints==='function')_fldCsvFromPoints(_p,state.projectName);};
+ b=el.querySelector('.svdaCsv9');if(b&&!b.disabled)b.onclick=function(){var _p=pts.filter(function(p){var d0=_ptDay9(p);return d0&&regD[d0];});if(typeof _fldCsvFromPoints==='function')_fldCsvFromPoints(_p,state.projectName);};
  b=el.querySelector('.svdaDxf9');if(b&&!b.disabled)b.onclick=function(){if(typeof exportDXF==='function')exportDXF();};
  b=el.querySelector('.svdaPh9');if(b&&!b.disabled)b.onclick=function(){if(typeof svPhotoZip==='function')svPhotoZip(phAll,(state.projectName||'사진')+'_전체사진',true);};
  [].forEach.call(el.querySelectorAll('.svchg9'),function(c){c.onclick=function(){var k=c.getAttribute('data-k');
