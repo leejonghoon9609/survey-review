@@ -13757,7 +13757,9 @@ function mnEfbGen(rec){
     /* ── 방향별 팔·관·라벨 ── */
     var d=rec.dest||{};
     var dm={p1:'d1',p2:'d2',p3:'d3',p4:'d4'};
+    var _efK9={};['p1','p2','p3','p4'].forEach(function(w){try{_mnPipeNorm9(rec,w,_mnWallW9(rec,w),A);}catch(_n9){}_efK9[w]=mnWallRealW(rec,w)/(_mnWallW9(rec,w)||1);});/* [BUILD3264] 관 좌표계 = 입력 폭 → 몸체(규격 폭)로 비율 이동 */
     function armXY(w,px,py){
+      px=px*(_efK9[w]||1);
       if(w==='p1')return [x0-py,y0+px];
       if(w==='p2')return [x1+py,y0+px];
       if(w==='p3')return [x0+px,y1+py];
@@ -14133,9 +14135,10 @@ function mnDxfGen(rec){
     ['p1','p2','p3','p4'].forEach(function(wall){
       var pw=rec.pipes&&rec.pipes[wall];if(!pw||!pw.groups)return;
       var _sp=rec.spec||{w:800,h:1700,dep:1100};
-      var _W=mnWallRealW(rec,wall),_H=(_depM9>0?_depM9:(_sp.dep||1100));/* [BUILD1918] */
-      if(_mnPipeNorm9(rec,wall,_W,_H)){try{mnPersistRec(rec);}catch(_e){}}/* [BUILD3263] 간격 유지 이동 + 겹침 벌리기(관배치 창·야장 화면과 같은 규칙) */
-      var all=[];pw.groups.forEach(function(gr){(gr.circles||[]).forEach(function(c){var st=(c.st!=null?c.st:(c.fill?1:0));all.push({x:c.x,y:c.y,dia:c.dia,st:st});});});/* [BUILD3253] 작업외(st2) 관도 그림 — 빨강 채움(관 구성 글자에선 빠짐) */
+      var _W=_mnWallW9(rec,wall),_H=(_depM9>0?_depM9:(_sp.dep||1100));/* [BUILD1918] *//* [BUILD3264] 관배치 창과 같은 좌표계(입력 폭) */
+      if(_mnPipeNorm9(rec,wall,_W,_H)){try{mnPersistRec(rec);}catch(_e){}}
+      var _kx9=mnWallRealW(rec,wall)/_W;/* [BUILD3264] 템플릿 몸체(규격 폭)로 비율 이동 — 입력 2.1m 벽의 관을 규격 2m 도면 벽 안에 *//* [BUILD3263] 간격 유지 이동 + 겹침 벌리기(관배치 창·야장 화면과 같은 규칙) */
+      var all=[];pw.groups.forEach(function(gr){(gr.circles||[]).forEach(function(c){var st=(c.st!=null?c.st:(c.fill?1:0));all.push({x:c.x*_kx9,y:c.y,dia:c.dia,st:st});});});/* [BUILD3253] 작업외(st2) 관도 그림 — 빨강 채움(관 구성 글자에선 빠짐) */
       if(!all.length)return;
       /* 실척 */
       all.forEach(function(c){
@@ -14151,7 +14154,7 @@ function mnDxfGen(rec){
       pw.groups.forEach(function(gr){
         (gr.circles||[]).forEach(function(c){
           var st=(c.st!=null?c.st:(c.fill?1:0));/* [BUILD3253] 작업외도 확대도에 빨강으로 */
-          var pp=armXY(wall,c.x,c.y);
+          var pp=armXY(wall,c.x*_kx9,c.y);
           var ex=sl.sx+(pp[0]-pcArm[0])*2, ey=sl.sy+(pp[1]-pcArm[1])*2;
           out+=mnDxfCircle(nh(),ex,ey,c.dia);
           if(st===1)out+=mnDxfHatch(nh(),ex,ey,c.dia);else if(st===2)out+=mnDxfHatch(nh(),ex,ey,c.dia,1);
@@ -14592,7 +14595,7 @@ function mnOpenForm(rec,_hl9){/* [BUILD2405] _hl9=true: 화면 없이 야장 SVG
     var pwv=rec.pipes&&rec.pipes[wallKey];if(!pwv||!pwv.groups)return '';
     /* ★ 실벽폭 기준. 관을 "닿아있으면 한 덩어리"로 자동 묶고, 각 덩어리를 중심기준 비율 위치에 배치.
        덩어리 안 관은 붙은 상대배치 유지(등방, 고정 표시크기) → 겹침/뜸 없음. 정밀좌표는 편집기(→DXF)가 보존 */
-    var Wm=mnWallRealW(rec,wallKey),Hm=_mnWallH9(rec),out='';try{_mnPipeNorm9(rec,wallKey,Wm,Hm);}catch(_pn9){}/* [BUILD3263] 야장 화면도 관배치 창·DXF와 같은 벽 치수·같은 정리(종전: 창을 열기 전엔 옛 벽폭 간격 그대로 → 벽 밖으로 나감) */
+    var Wm=_mnWallW9(rec,wallKey),Hm=_mnWallH9(rec),out='';/* [BUILD3264] 폭 = 입력 치수 우선 */try{_mnPipeNorm9(rec,wallKey,Wm,Hm);}catch(_pn9){}/* [BUILD3263] 야장 화면도 관배치 창·DXF와 같은 벽 치수·같은 정리(종전: 창을 열기 전엔 옛 벽폭 간격 그대로 → 벽 밖으로 나감) */
     var all=[];pwv.groups.forEach(function(g){(g.circles||[]).forEach(function(c){all.push(c);});});
     if(!all.length)return '';
     /* [1620] \ubc30\uce58 \ucda9\uc2e4 \u2014 \ud074\ub7ec\uc2a4\ud130 \uc81c\uac70: \uc804 \uad00\uc744 \ud55c \ub369\uc5b4\ub9ac\ub85c(\uc2e4\ubc30\uce58 \uc0c1\ub300\uc704\uce58 \uadf8\ub300\ub85c). 50/100 \ubd84\ub9ac \uc624\ubc30\uce58 \ud574\uacb0 \u2014 DXF\uc640 \ub3d9\uc77c \uad6c\ub3c4 */
@@ -14606,17 +14609,20 @@ function mnOpenForm(rec,_hl9){/* [BUILD2405] _hl9=true: 화면 없이 야장 SVG
     var DS=0.15; /* 표시 배율(px/mm) — 야장 확인용 크기. 붙은 관은 그대로 붙음 */
     clusters.forEach(function(comp){
       /* 덩어리 중심(편집기 실좌표) */
-      var cx=0,cy=0;comp.forEach(function(idx){cx+=all[idx].x;cy+=all[idx].y;});cx/=comp.length;cy/=comp.length;
-      /* 중심기준 비율 → 셀 중심(0.5,0.5)에서 같은 비율. 셀 밖으로 안나가게 clamp */
-      var ncx=Math.min(0.88,Math.max(0.12,0.5+(cx-Wm/2)/Wm));
-      var ncy=Math.min(0.88,Math.max(0.12,0.5+(cy-Hm/2)/Hm));
+      /* [BUILD3264] 뭉치 외곽(관 반지름 포함) 중심을 기준점으로, 표시 배율 DS는 뭉치가 벽 칸 안에 들어가는 만큼만(긴 벽에서 관이 칸 밖으로 나가던 문제 — 종전 0.15 고정) */
+      var _b0=1e18,_b1=-1e18,_b2=1e18,_b3=-1e18;comp.forEach(function(idx){var c0=all[idx],r0=(+c0.dia||100)/2;if(c0.x-r0<_b0)_b0=c0.x-r0;if(c0.x+r0>_b1)_b1=c0.x+r0;if(c0.y-r0<_b2)_b2=c0.y-r0;if(c0.y+r0>_b3)_b3=c0.y+r0;});
+      var cx=(_b0+_b1)/2,cy=(_b2+_b3)/2;
+      DS=Math.min(0.15,0.94*exl/Math.max(1,_b1-_b0),0.94*eyl/Math.max(1,_b3-_b2));
+      var _hx=DS*(_b1-_b0)/2/exl,_hy=DS*(_b3-_b2)/2/eyl;
+      var ncx=(_hx>=0.47)?0.5:Math.min(0.98-_hx,Math.max(0.02+_hx,cx/Wm));
+      var ncy=(_hy>=0.47)?0.5:Math.min(0.98-_hy,Math.max(0.02+_hy,cy/Hm));
       var pc=mapFn(ncx,ncy);
       comp.forEach(function(idx){
         var c=all[idx];
         var ddx=c.x-cx,ddy=c.y-cy; /* 덩어리 내 상대(편집기 실mm, ddy=바닥기준 위 */
         var px=pc[0]+DS*(ddx*exU[0]+ddy*eyU[0]);
         var py=pc[1]+DS*(ddx*exU[1]+ddy*eyU[1]);
-        var r=Math.max(c.dia*0.5*DS,3);
+        var r=Math.max(c.dia*0.5*DS,2.2);/* [BUILD3264] 최소 3→2.2(축소 배율에서 붙은 관이 겹쳐 보이지 않게) */
         var st=(c.st!=null?c.st:(c.fill?1:0));var _po9=_pt9?_pt9.cs[idx]:null;var _ex9=!!(_po9&&_po9.st!==2&&_po9.r&&_po9.r.ex);
         out+='<circle cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+r.toFixed(1)+'" fill="'+((st===2||_ex9)?'#d32f2f':(st===1?'#222':'#fff'))+'" stroke="#333" stroke-width="1.2" pointer-events="none"/>';
         if(_po9&&_po9.st!==2&&_po9.r&&_po9.r.sh&&_ss9&&_po9.r.sh!==_ss9){var _pp9=_ptoPairOrd9(_ss9,_po9.r.sh);var _a9=_pp9[0]+'\u2192',_b9=_pp9[1];var _uw9=function(t){var u=0;for(var i=0;i<t.length;i++)u+=(/[\u3131-\uD79D]/.test(t[i])?1.0:(/[()]/.test(t[i])?0.36:(t[i]==='\u2192'?0.8:0.62)));return u;};var _fp9=Math.min(r*0.42,r*1.5/Math.max(_uw9(_a9),_uw9(_b9),1));var _fc9=(_po9.un?'#ef6c00':((st===1||_ex9)?'#fff':(_po9.man?'#1565c0':'#111')));out+='<text x="'+px.toFixed(1)+'" y="'+(py-_fp9*0.55).toFixed(2)+'" font-size="'+_fp9.toFixed(2)+'" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="'+_fc9+'" pointer-events="none">'+joseoEsc(_a9)+'</text><text x="'+px.toFixed(1)+'" y="'+(py+_fp9*0.6).toFixed(2)+'" font-size="'+_fp9.toFixed(2)+'" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="'+_fc9+'" pointer-events="none">'+joseoEsc(_b9)+'</text>';}/* [BUILD3224] 양 끝 두 줄 */
@@ -15022,6 +15028,11 @@ function mnShootSlot(rec,slot,done){
 /* ===================== [BUILD 921] 맨홀 관배치 편집기 ===================== */
 var MN_WALLS=[['p1','① 서'],['p2','② 동'],['p3','③ 북'],['p4','④ 남']];
 var MN_KINDS=['FC','COD','PE','강관'];
+function _mnWallW9(rec,wall){/* [BUILD3264] 관 배치용 벽 폭(mm) = 작업자 입력 치수 우선 — 좌우벽(①②)=w12(왼쪽 세로 치수), 상하벽(③④)=w34(위 가로 치수), 없으면 규격 폭(mnWallRealW). 관배치 창·야장 화면·맨홀도 DXF·현장전자야장 공통 좌표계. DXF 몸체는 규격 템플릿이라 출력 때만 비율로 옮김 */
+  var v=parseFloat((wall==='p1'||wall==='p2')?(rec&&rec.w12):(rec&&rec.w34));
+  if(v>0&&v<20)return Math.round(v*1000);
+  return mnWallRealW(rec,wall);
+}
 function _mnWallH9(rec){/* [BUILD3263] 벽 깊이(mm) 단일 원천 — 입력 깊이(rec.dep m) 우선, 없으면 규격 깊이. 관배치 창·야장 화면·맨홀도 DXF 공통(종전: 창·야장=규격 깊이, DXF=입력 깊이 → DXF 만들 때마다 관 위아래 핑퐁) */
   var d=Math.round((parseFloat(rec&&rec.dep)||0)*1000);if(d>0)return d;
   var sp=(rec&&rec.spec)||{};return Math.round(parseFloat(sp.dep)||0)||1100;
@@ -15134,7 +15145,7 @@ function mnPipeEditor(rec,wall){
   if(!rec.pipes[wall])rec.pipes[wall]={groups:[]};
   var pw=rec.pipes[wall];
   /* ★ 실벽폭 좌표계: 각 벽을 실제 폭×깊이로. dispW(긴변) 통일 폐기 */
-  var W=mnWallRealW(rec,wall),H=_mnWallH9(rec);/* [BUILD3263] 깊이 = 입력 깊이 우선(DXF와 동일) */
+  var W=_mnWallW9(rec,wall),H=_mnWallH9(rec);/* [BUILD3263] 깊이 = 입력 깊이 우선(DXF와 동일) *//* [BUILD3264] 폭 = 입력 치수 우선 */
   /* [986] 좌표 기준 벽치수 없으면 옛 dispW 좌표계로 간주 — [BUILD3263] 비율 변환 대신 간격 유지 이동 + 겹침 벌리기(_mnPipeNorm9) */
   try{_mnPipeNorm9(rec,wall,W,H);}catch(_pn9){pw.bw=W;pw.bh=H;}
   var wname='';MN_WALLS.forEach(function(x){if(x[0]===wall)wname=x[1];});
@@ -15143,7 +15154,7 @@ function mnPipeEditor(rec,wall){
   var wrap=document.createElement('div');wrap.id='mnPipeModal';
   wrap.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1310;display:flex;justify-content:center;'+(mob?'align-items:flex-start;padding-top:2dvh':'align-items:center');
   wrap.innerHTML='<div style="background:#fff;border-radius:14px;width:min(96vw,460px);max-height:95dvh;display:flex;flex-direction:column;overflow:hidden">'
-    +'<div style="padding:12px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:15px">관배치 — '+(function(){try{var _ml9=(typeof mnLabelNoPf==='function')?String(mnLabelNoPf(rec)||'').replace(/\s+/g,''):'';return _ml9?'<span style="color:#EA002C">'+joseoEsc(_ml9)+'</span> · ':'';}catch(_e){return '';}})()+wname+'</b><span style="font-size:11px;color:#99a">벽 '+(mnWallRealW(rec,wall)/1000)+'m × 깊이 '+(H/1000)+'m</span><button id="mnPClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 11px;cursor:pointer">닫기</button></div>'
+    +'<div style="padding:12px 14px;border-bottom:1px solid #eee;display:flex;align-items:center;gap:8px"><b style="flex:1;font-size:15px">관배치 — '+(function(){try{var _ml9=(typeof mnLabelNoPf==='function')?String(mnLabelNoPf(rec)||'').replace(/\s+/g,''):'';return _ml9?'<span style="color:#EA002C">'+joseoEsc(_ml9)+'</span> · ':'';}catch(_e){return '';}})()+wname+'</b><span style="font-size:11px;color:#99a">벽 '+(W/1000)+'m × 깊이 '+(H/1000)+'m</span><button id="mnPClose" style="border:none;background:#f2f2f2;border-radius:8px;padding:6px 11px;cursor:pointer">닫기</button></div>'
     +'<div style="padding:10px 14px;overflow:auto;flex:1">'
     +'<div style="display:flex;gap:6px;align-items:center;margin-bottom:7px">'
       +'<button id="mnMdAll" class="mn-md" style="flex:none;border:1px solid #2471a3;background:#fff;color:#2471a3;border-radius:7px;padding:6px 10px;font-size:12px;font-weight:700;cursor:pointer">전체이동</button>'
