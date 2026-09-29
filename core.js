@@ -1946,7 +1946,7 @@ function drawManholes(){_orgSync();try{window._auxNoC9=null;}catch(_an){}/* [BUI
   try{if(typeof drawChg9==='function')drawChg9();}catch(_cg9){}/* [BUILD2221] 변경내용 갱신 */
 }
 var mhDragState=null; // {type:'center'|'label', mh, gx, gy}
-var _dsvT=null,_dsvLast=0;function _dirtySave(){if(typeof online!=='undefined'&&!online)return;if(_dsvT)clearTimeout(_dsvT);var _gap=Date.now()-_dsvLast,_wait=Math.max(8000,60000-_gap);_dsvT=setTimeout(function(){_dsvT=null;_dsvLast=Date.now();try{window._silentSave=true;if(typeof saveProject==='function')saveProject();}catch(_e){}},_wait);}/* [1486] 자동저장 스로틀: 8초 디바운스 + 최소 60초 간격 — payload 통짜저장 IO 보호 *//* [1485] 드래그 후 자동저장(디바운스) */
+var _dsvT=null,_dsvLast=0;function _dirtySave(){if(typeof online!=='undefined'&&!online)return;if(_dsvT)clearTimeout(_dsvT);var _gap=Date.now()-_dsvLast,_wait=Math.max(8000,60000-_gap);_dsvT=setTimeout(function(){_dsvT=null;_dsvLast=Date.now();try{window._lkCtxSv9=true;/* [BUILD3274] 측설 편집 자동저장 → 측설 잠금 자동 */window._silentSave=true;if(typeof saveProject==='function')saveProject();}catch(_e){}},_wait);}/* [1486] 자동저장 스로틀: 8초 디바운스 + 최소 60초 간격 — payload 통짜저장 IO 보호 *//* [1485] 드래그 후 자동저장(디바운스) */
 var _mhLp=null,_mhLpX=0,_mhLpY=0;
 window.addEventListener('pointermove',function(ev){
   if(_mhLp&&(Math.abs(ev.clientX-_mhLpX)+Math.abs(ev.clientY-_mhLpY)>8)){clearTimeout(_mhLp);_mhLp=null;}if(!mhDragState)return;if(typeof mode!=='undefined'&&mode==='tgnote'){mhDragState=null;return;}ev.preventDefault();
@@ -6952,21 +6952,28 @@ function _lnGuard9(ls,sil,onOk){
   }catch(_e){return true;}
 }
 function saveProject(cb){ if(readOnly){var _sil0=!!window._silentSave;window._silentSave=false;if(!_sil0){try{_roWarn9();}catch(_rw){}}/* [BUILD3272] 읽기 전용 저장 시도 → 경고창(자동저장은 조용히) */if(typeof cb==='function')cb();return;} var _sil=!!window._silentSave;window._silentSave=false;
+  var _lkA=null;if(typeof _lkOn9==='function'&&_lkOn9()&&state.projectId){/* [BUILD3274] 영역 잠금 관문: 맨홀 흐름(_lkCtx9='mn')은 mn, 나머지는 sv. 내 잠금 아니면 — 수동 저장: 비어 있으면 잡고 다시 저장 / 남이면 경고 · 자동저장: 조용히 건너뜀 */
+    _lkA=(window._lkCtx9==='mn')?'mn':'sv';
+    var _wantAcq=!_sil||window._lkCtxSv9===true;window._lkCtxSv9=false;
+    if(!_lkGate9(_lkA,_sil)){if(!_wantAcq||_lkRO9(_lkA)){if(typeof cb==='function')cb();return;}
+      var _cbx=cb,_ax=_lkA,_silx=_sil;_lkAcquire9(_ax,function(ok,h){if(ok){_lkFresh9(_ax,_silx,function(go){if(!go){if(typeof _cbx==='function')_cbx();return;}window._silentSave=_silx;window._lkCtx9=(_ax==='mn')?'mn':null;saveProject(_cbx);});}else{if(!_silx){try{_roWarn9(true,h,_lkLabel9(_ax));}catch(_e){}}if(typeof _cbx==='function')_cbx();}});return;}}
+  window._lkCtx9=null;window._lkCtxSv9=false;
   try{if(typeof mhFixStamp9==='function'){(state.manholes||[]).forEach(function(m){if(m&&m.wx!=null&&!m._fx0&&mhFixed9(m))m._fx0=[+m.wx,+m.wy];});}if(typeof mhFixGuard9==='function')mhFixGuard9(_sil);}catch(_fg9){}/* [BUILD1955] 측량 좌표 이탈분 저장 전 복구 *//* [1358] 자동저장 플래그 진입 시 캐처 */
   var payload={points:(state._pointsOrig||state.points),gpsPts:(state.gpsPts||[]),lines:(state._linesOrig||state.lines),baseTexts:state.baseTexts||[],labelOff:state.labelOff,markups:state.markups.map(function(m){var c={};for(var k in m)if(k!=='el')c[k]=m[k];return c;}),manholes:state.manholes,crs:state.crs,photoDir:state.photoDir,photoDirAbs:(state.photoDirAbs||{}),routingDone:!!state.routingDone,asbuilt:state.asbuilt||null,rtDone:state.rtDone||null,rtToSvDone9:state.rtToSvDone9||null,svFldReg9:state.svFldReg9||null,rtDaily:state.rtDaily||[],trash:state._trash||[],nightShift:state.nightShift||null,fieldDone:state.fieldDone||null,rtRawMeta9:state.rtRawMeta9||null,jgMatch9:state.jgMatch9||null,rtRawSrc9:(state.rtRawSrc9||null),rawMod9:(state.rawMod9||null),rawChk9:(state.rawChk9||null),aftRawMeta9:state.aftRawMeta9||null,finalCsv:null/* [1491] heavy 컬럼으로 이동 */,tamsa:!!state.tamsa,bizInfo:state.bizInfo||null,depthGround:state.depthGround||null,depthManual:state._depthManual||null,gzKeep9:state._gzKeep9||null,depthManualPick9:state._depthManualPick9||null,ngisTitle9:state.ngisTitle9||'',ngisReg9:state.ngisReg9||null,ngisBp9:state.ngisBp9||null,ngisPrev9:state.ngisPrev9?1:0,ngisEdReg9:state.ngisEdReg9||null,ngisPrevMode9:state.ngisPrevMode9||'',ngisEdPrev9:state.ngisEdPrev9?1:0,ngisIdxReg9:state.ngisIdxReg9||null,ngisIdxPrev9:state.ngisIdxPrev9?1:0,ngisMsReg9:state.ngisMsReg9||null,ngisMsPrev9:state.ngisMsPrev9?1:0,ngisEwReg9:state.ngisEwReg9||null,ngisEwPrev9:state.ngisEwPrev9?1:0,bult9:state.bult9||null,sdLeadEw9:state.sdLeadEw9||null,bultReg9:state.bultReg9||null,simsaEx9:state.simsaEx9||null,simsaExH9:state.simsaExH9||null,simsaExP9:state.simsaExP9||null,simsaRegSig9:state.simsaRegSig9||null,simsaApply9:(state.simsaApply9==null?null:!!state.simsaApply9),simsaChk9:state.simsaChk9||null,exRev9:state.exRev9||null,bpzones:state.bpzones||[],roadZones:state.roadZones||[],depthCheck:state.depthCheck||[],titleBlock:state.titleBlock||null,tangoEdit:state.tangoEdit||null,tangoManual:state.tangoManual||null,tgStore:state.tgStore||null,tgSegLabelOff:state.tgSegLabelOff||null,fldInsp9:state.fldInsp9||null,mnList:state.mnList||[],tangoDone:state.tangoDone||null,tgCarrier:state.tgCarrier||null,mhDel:state.mhDel||null,tgNotes:state.tgNotes||null,refCrop:state.refCrop||null/* [BUILD1994] 크롭 영역 영속 — 미저장이라 재로드 시 REF 가림막이 풀려 '바깥이 살아난' 것처럼 보였음 */,tgAddSegs:state.tgAddSegs||[]/* [BUILD1994] 구간추가 영속 — payload·tgStore 어디에도 없어 새로고침 시 소실됐음 */,refMhLbl:state.refMhLbl||null,hyunPts:state.hyunPts||null,csvTrash:state._csvTrash||[],rtCsvHead9:state.rtCsvHead9||null/* [BUILD2068] 원본 CSV 헤더 영속 */,rtRawMeta9:state.rtRawMeta9||null,jgMatch9:state.jgMatch9||null,rtRawSrc9:state.rtRawSrc9||null,rawMod9:state.rawMod9||null,rawChk9:state.rawChk9||null,aftRawMeta9:state.aftRawMeta9||null,sdLead9:state.sdLead9||null,sdPipeLay9:state.sdPipeLay9||null/* [BUILD2771] 관표시 수동 배치 */,posCuts9:state.posCuts9||null,posJoins9:state.posJoins9||null/* [BUILD2779] 인출선 삽입·삭제 */,posDimMan9:state.posDimMan9||null,posDimDel9:state.posDimDel9||null/* [BUILD2780] 이격거리 삽입·삭제 */,posLeadHide9:state.posLeadHide9||null/* [BUILD2794] */,posAnch9:state.posAnch9||null/* [BUILD2795] */,rtJgBoard9:state.rtJgBoard9||null/* [BUILD2122] 지거 현황판 입력 */,phoTrash9:state.phoTrash9||null/* [BUILD2179] 사진 휴지통 *//* [BUILD2085] 원시ZIP 메타 *//* [BUILD1867] CSV \uC0AD\uC81C\uBCF4\uAD00 \uC601\uC18D\uD654 */,rtBoardName:state.rtBoardName||null,rtBoardPos:state.rtBoardPos||null,joseoBoard:state.joseoBoard?1:null,posSync9:state.posSync9||null/* [BUILD2198] */,fldCsvEd9:state.fldCsvEd9||null/* [BUILD2199] *//* [BUILD1873] \ud604\ud669\ud310 \uc0ac\uc5c5\uba85\u00b7\uc704\uce58 \uc601\uc18d\ud654 */};  if(!online){toast('로컬 모드 — Supabase 키를 넣으면 저장됩니다');return;}
   if(!state.projectName){toast('사업명을 먼저 정하세요(새 사업)');return;}if(!_lnGuard9(payload.lines,_sil,function(){window._silentSave=_sil;saveProject(cb);}))return;/* [BUILD1937] 관로선 급감 시 저장 차단 */
   payload.stage=STAGE;
   if(state.loadedStage&&state.loadedStage!==STAGE){state.projectId=null;} // 다운스트림 분리: 다른 단계 사업은 처음 저장 시 새 사본 생성(원본 보호)
-  var row={name:state.projectName,payload:payload,updated_at:new Date().toISOString()};
+  var row={name:state.projectName,payload:payload,updated_at:new Date().toISOString()};if(DB==='field'&&!window._mnColMissing9)row.mn_payload=_mnCol9(payload);/* [BUILD3273] 야장은 mn_payload 열에도(측설/맨홀 잠금 분리의 토대) */
+  if(_lkA){/* [BUILD3274] 보유 잠금에 맞는 칸만 씀 — 측설 잠금 없으면 payload(측점·선·시설물) 안 씀, 맨홀 잠금 없으면 mn_payload 안 씀 */var _pAt=new Date().toISOString();if(_lkHas9('sv')){payload._at9=_pAt;state._svAt9=_pAt;}else{delete row.payload;delete row.name;}if(_lkHas9('mn')){if(row.mn_payload)state._mnAt9=row.mn_payload.at;}else delete row.mn_payload;if(row.payload===undefined&&row.mn_payload===undefined){if(typeof cb==='function')cb();return;}}
   if(state.projectId)row.id=state.projectId;
   var _hvSig='';try{_hvSig=(state.finalCsv||[]).map(function(f){return (f.name||'')+':'+((f.text||'').length);}).join('|')+'#bp'+((state.bpFull||[]).length)+'_'+((state.bpFull||[]).reduce(function(a,l){return a+((l&&l.pts)?l.pts.length:0);},0))+'_'+((state.bpTexts||[]).length);}catch(_h1){}/* [BUILD1996] 백판이 바뀔 때만 heavy 재기록 — 자동저장 8초마다 수백KB 왕복 방지 */
-  if(window._hvSaved!==((state.projectId||'NEW')+'#'+_hvSig)){row.heavy={finalCsv:state.finalCsv||[],finalCsvTrash:state.finalCsvTrash||[],bpFull:state.bpFull||[],bpTexts:state.bpTexts||[]};/* [BUILD3065] 삭제한 CSV 보관 */}/* [BUILD1996] 백판 원본은 payload가 아닌 heavy 컬럼에 — 변경 시에만 기록 *//* [1491] CSV 변경시에만 heavy 기록 */
+  if(row.payload!==undefined&&window._hvSaved!==((state.projectId||'NEW')+'#'+_hvSig)){row.heavy={finalCsv:state.finalCsv||[],finalCsvTrash:state.finalCsvTrash||[],bpFull:state.bpFull||[],bpTexts:state.bpTexts||[]};/* [BUILD3065] 삭제한 CSV 보관 */}/* [BUILD1996] 백판 원본은 payload가 아닌 heavy 컬럼에 — 변경 시에만 기록 *//* [1491] CSV 변경시에만 heavy 기록 */
   /* [1227] ★삭제 부활 방지 — 절대 제거 금지: 다른 기기에서 삭제(delAt)된 사업은 저장으로 되살리지 않음 */
   var _doUpsert=function(){ var _up=function(_rt){ sb.from(DB+'_projects').upsert(row).select().then(function(res){
-    if(res.error){if(!_rt&&row.heavy!==undefined){delete row.heavy;row.payload.finalCsv=state.finalCsv||null;_up(true);return;}/* [1491] heavy 미설치 폴백 — 구방식 통짜저장 */toast('저장 오류: '+res.error.message);return;}
+    if(res.error){if(row.mn_payload!==undefined&&/mn_payload/i.test(String(res.error.message||''))){window._mnColMissing9=true;delete row.mn_payload;_up(_rt);return;}/* [BUILD3273] 열 없는 DB 폴백 */if(!_rt&&row.heavy!==undefined){delete row.heavy;row.payload.finalCsv=state.finalCsv||null;_up(true);return;}/* [1491] heavy 미설치 폴백 — 구방식 통짜저장 */toast('저장 오류: '+res.error.message);return;}
     var saved=res.data&&res.data[0];if(saved){state.projectId=saved.id;state.loadedStage=STAGE;try{if(typeof svRawPendingFlush9==='function')setTimeout(svRawPendingFlush9,200);}catch(_rp9){}/* [BUILD2450] */}
     if(row.heavy!==undefined){try{window._hvSaved=(state.projectId||'NEW')+'#'+_hvSig;}catch(_h2){}}
-    if(!_sil)sb.from(DB+'_history').insert({project_id:state.projectId,payload:payload}).then(function(hr){if(hr&&hr.error){try{console.warn('[이력 저장 실패] '+DB+'_history:',hr.error.message||hr.error);}catch(_hw){}}}); // 이력(수동만 [1358]) [BUILD3081] 실패 사유 콘솔에
+    if(!_sil)_histIns9(payload).then(function(hr){if(hr&&hr.error){try{console.warn('[이력 저장 실패] '+DB+'_history:',hr.error.message||hr.error);}catch(_hw){}}}); // 이력(수동만 [1358]) [BUILD3081] 실패 사유 콘솔에
     try{_lnBaseSet9(payload.lines);}catch(_lb9){}/* [BUILD1937] */if(!_sil){refreshProjects();loadPhotos();toast('저장 완료');}/* [1358] 자동저장은 목록·사진 재조회 생략 — Disk IO 절감 */if(state._importSrc&&state._importSrc.length&&state.projectId){var _srcs=state._importSrc.slice();state._importSrc=[];(function _nx(){if(!_srcs.length)return;var _sid=_srcs.shift();copyPhotos(_sid,state.projectId,_nx);})();}if(typeof cb==='function')cb(state.projectId);
   }); }; _up(false); };
   if(state.projectId){
@@ -7001,7 +7008,7 @@ function pickProject(id){ if(!id)return;setTimeout(_projSelSync,1500);setTimeout
 function _loadProjectRaw(id,ro,cb){ if(!online||!id)return; try{if(typeof mnCloseAll==='function')mnCloseAll();}catch(e){} try{if(typeof refReset==='function')refReset();}catch(e){} setReadOnly(!!ro);state._tgCmpRemote=null;state._tgCmpRemoteOrig=null;
   sb.from(DB+'_projects').select('*').eq('id',id).single().then(function(res){
     if(res.error||!res.data){toast('불러오기 실패');return;}if(typeof _tgStageBackup==='function'&&state.tgStore&&(state._pointsOrig||state._linesOrig||state._depthOrig))_tgStageBackup();if(typeof _tgStageOut==='function')_tgStageOut();var _xp=document.getElementById('tangoPanel');if(_xp)_xp.style.display='none';var _xi=document.getElementById('tgInfoPanel');if(_xi)_xi.style.display='none';if(typeof tgPanelLayout==='function')tgPanelLayout(false);if(typeof tgUpdateBtn==='function')tgUpdateBtn(false);if(typeof tgSeg!=='undefined')tgSeg=-1;if(typeof _segFix!=='undefined')_segFix=null;if(typeof _segAdd!=='undefined')_segAdd=null;if(typeof _tgSegs!=='undefined')_tgSegs=null;if(typeof mode!=='undefined'&&mode&&mode.indexOf('tg')===0){mode='pan';if(typeof setModeUI==='function')setModeUI();}state.tgSegLabelOff={};['tgSegHLG','tgSegHLF','tgSegHL'].forEach(function(_xid){var _xe=document.getElementById(_xid);if(_xe)_xe.remove();});
-    var p=res.data.payload||{};state.projectId=res.data.id;
+    var p=res.data.payload||{};state.projectId=res.data.id;try{if(DB==='field'){p.mnList=_mnMergeLoad9(p.mnList,res.data.mn_payload);state._mnAt9=(res.data.mn_payload&&res.data.mn_payload.at)||'';state._svAt9=p._at9||'';}}catch(_mm9){}/* [BUILD3273] 야장 전용 열 병합 · [BUILD3274] 영역별 저장 시각 */
     try{var _hv=res.data.heavy;try{state.bpFull=(_hv&&_hv.bpFull)?_hv.bpFull:[];state.bpTexts=(_hv&&_hv.bpTexts)?_hv.bpTexts:[];}catch(_bf4){state.bpFull=[];state.bpTexts=[];}/* [BUILD1996] 백판 원본 복원 — 없으면 빈 배열(사업 전환 유출 차단) */if(_hv&&_hv.finalCsv!==undefined){p.finalCsv=_hv.finalCsv;window._hvSaved=res.data.id+'#'+((_hv.finalCsv||[]).map(function(f){return (f.name||'')+':'+((f.text||'').length);}).join('|'));}else{window._hvSaved=null;}}catch(_h3){window._hvSaved=null;}/* [1491] heavy 병합 — 구사업은 다음 저장때 자동 이사 */state.projectName=res.data.name;state.loadedStage=p.stage||'survey';state._importSrc=[];
     state.points=p.points||[];state.gpsPts=p.gpsPts||[];state.tangoEdit=p.tangoEdit||null;if(p.tangoManual)state.tangoManual=p.tangoManual;state.tgStore=p.tgStore||null;state.tgSegLabelOff=p.tgSegLabelOff||{};/* [BUILD2029] \uAD6C\uAC04\uB77C\uBCA8 \uC624\uD504\uC14B \uC601\uC18D */if(!state.tgStore&&(p.tangoEdit||p.tangoManual)){state.tgStore={tango:{edit:p.tangoEdit,manual:p.tangoManual||{},segDel:{}}};}_tgCtx='tango';try{if((!state.bpFull||!state.bpFull.length)&&p.bpFull&&p.bpFull.length){state.bpFull=p.bpFull;state.bpTexts=p.bpTexts||[];}}catch(_bf5){}/* [BUILD1997] 인계본은 payload에 백판 원본이 실려 온다 — heavy가 비어 있을 때만 채운다(heavy 우선) */state.refCrop=p.refCrop||null;state.tgAddSegs=p.tgAddSegs||[];try{if(typeof refCropBtn==='function')refCropBtn();}catch(_rc94){}/* [BUILD1994] 크롭 영역·구간추가 복원 — 미존재 시 초기화(사업 전환 유출 차단) */state.lines=p.lines||[];state.baseTexts=p.baseTexts||[];try{state._lnBase9=null;_lnBaseSet9(state.lines);}catch(_lb8){}/* [BUILD1937] */state.markups=(p.markups||[]);state.labelOff=p.labelOff||{};state.manholes=p.manholes||[];if(typeof _mhIdFix==='function')_mhIdFix();/* [1554] */state.bpzones=p.bpzones||[];state.roadZones=p.roadZones||[];state.depthCheck=p.depthCheck||[];if(typeof classifyRoad==='function')classifyRoad();state.depthGround=p.depthGround||null;state._depthManual=p.depthManual||null;/* [1541] */state._gzKeep9=p.gzKeep9||null;/* [BUILD2866] */state.ngisTitle9=p.ngisTitle9||'';state.ngisReg9=p.ngisReg9||null;state.ngisBp9=p.ngisBp9||null;state.ngisPrev9=!!p.ngisPrev9;state.ngisEdReg9=p.ngisEdReg9||null;state.ngisPrevMode9=p.ngisPrevMode9||'';state.ngisEdPrev9=!!p.ngisEdPrev9;state.ngisIdxReg9=p.ngisIdxReg9||null;state.ngisIdxPrev9=!!p.ngisIdxPrev9;state.ngisMsReg9=p.ngisMsReg9||null;state.ngisMsPrev9=!!p.ngisMsPrev9;state.ngisEwReg9=p.ngisEwReg9||null;state.ngisEwPrev9=!!p.ngisEwPrev9;state.bult9=p.bult9||null;state.sdLeadEw9=p.sdLeadEw9||null;state.bultReg9=p.bultReg9||null;state.simsaEx9=p.simsaEx9||null;state.simsaExH9=p.simsaExH9||null;state.simsaExP9=p.simsaExP9||null;state.simsaRegSig9=p.simsaRegSig9||null;state.simsaApply9=(p.simsaApply9==null?null:!!p.simsaApply9);state.simsaChk9=p.simsaChk9||null;state.exRev9=p.exRev9||null;try{_ngisCover9(p);}catch(_nc9){}try{setTimeout(_ngisAutoShowQ9,0);}catch(_na){}/* [BUILD3097·3110·3114·3116·3117] */state._depthManualPick9=p.depthManualPick9||null;/* [BUILD3081] 2623 영속 — 조서에서 고른 지반점(측설 탭·심도 원천)이 새로고침 후 사라지던 것 */state._depthAlign=null;state.titleBlock=p.titleBlock||null;state.crs=p.crs||'5186';state.photoDir=p.photoDir||{};state.photoDirAbs=p.photoDirAbs||{};state.routingDone=!!p.routingDone;state.tangoDone=p.tangoDone||null;state.tgCarrier=p.tgCarrier||null;state.mhDel=p.mhDel||null;state.tgNotes=p.tgNotes||[];state.refMhLbl=p.refMhLbl||{};/* [1461] */state._csvTrash=p.csvTrash||[];state.rtCsvHead9=p.rtCsvHead9||{};state.rtRawMeta9=p.rtRawMeta9||{};state.jgMatch9=p.jgMatch9||{};/* [BUILD2477] */state.rtRawSrc9=p.rtRawSrc9||null;state.rawMod9=p.rawMod9||{};state.rawChk9=p.rawChk9||{};/* [BUILD2986·2988] */state.aftRawMeta9=p.aftRawMeta9||{};state.sdLead9=p.sdLead9||null;/* [BUILD2254] SD 인출선 수동 위치 */state.sdPipeLay9=p.sdPipeLay9||null;/* [BUILD2771] */state.posCuts9=p.posCuts9||null;state.posJoins9=p.posJoins9||null;/* [BUILD2779] */state.posDimMan9=p.posDimMan9||null;state.posDimDel9=p.posDimDel9||null;/* [BUILD2780] */state.posLeadHide9=p.posLeadHide9||null;/* [BUILD2794] */state.posAnch9=p.posAnch9||null;/* [BUILD2795] *//* [BUILD2248] 원시 소스 사업ID 승계 *//* [BUILD2234] */state.rtJgBoard9=p.rtJgBoard9||{};/* [BUILD2122] */state.phoTrash9=p.phoTrash9||[];state.posSync9=p.posSync9||null;/* [BUILD2198] */state.fldCsvEd9=p.fldCsvEd9||{};/* [BUILD2199] *//* [BUILD2179] */try{if(typeof jgMigrate9==='function')jgMigrate9();}catch(_jm9){}/* [BUILD2187] */
   try{if(typeof STAGE!=='undefined'&&STAGE==='survey'&&state.points&&state.points.length){/* [BUILD2156] 과거 사업 소급 — 시설물 좌표와 겹친 지거점 정리 */
@@ -7760,7 +7767,7 @@ function registerProject(_appr){
   sb.from(DB+'_projects').upsert(row).select().then(function(res){
     if(res.error){toast('등록 오류: '+res.error.message);return;}
     var saved=res.data&&res.data[0];if(saved){state.projectId=saved.id;state.loadedStage=STAGE;try{if(typeof svRawPendingFlush9==='function')setTimeout(svRawPendingFlush9,200);}catch(_rp9){}/* [BUILD2450] */}
-    sb.from(DB+'_history').insert({project_id:state.projectId,payload:payload}).then(function(hr){if(hr&&hr.error){try{console.warn('[이력 저장 실패] '+DB+'_history:',hr.error.message||hr.error);}catch(_hw){}}});/* [BUILD3090] 실패 사유 콘솔(수동 저장 경로와 동일) */
+    _histIns9(payload).then(function(hr){if(hr&&hr.error){try{console.warn('[이력 저장 실패] '+DB+'_history:',hr.error.message||hr.error);}catch(_hw){}}});/* [BUILD3090] 실패 사유 콘솔(수동 저장 경로와 동일) */
     refreshProjects();
     closeRegModal();
     if(photos&&photos.length)uploadPhotos(photos); // projectId 확보 후 사진 업로드
@@ -8435,15 +8442,15 @@ function _roBar9(){/* [BUILD3272] 읽기 전용 빨간 띠 — 헤더 위(body �
   bar.innerHTML=msg;
 }
 var _roWarnT9=0;
-function _roWarn9(force){/* [BUILD3272] 읽기 전용 강력 경고창 — 열 때 1회 + 쓰기 동작(저장·사진 촬영) 시도마다(8초에 한 번) */
+function _roWarn9(force,holder,area){/* [BUILD3274] holder·area 지정 시 그 영역(측설/맨홀도) 잠금 경고 *//* [BUILD3272] 읽기 전용 강력 경고창 — 열 때 1회 + 쓰기 동작(저장·사진 촬영) 시도마다(8초에 한 번) */
   try{var now=Date.now();if(!force&&now-_roWarnT9<8000)return;_roWarnT9=now;
     var old=document.getElementById('roWarn9');if(old)old.remove();
-    var who=_roHolder9();
+    var who=holder||_roHolder9();var _ar9=area?(' <span style="color:#8e44ad">['+area+']</span>'):'';
     var w=document.createElement('div');w.id='roWarn9';w.style.cssText='position:fixed;inset:0;z-index:100300;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px';
     w.innerHTML='<div style="background:#fff;border:4px solid #c62828;border-radius:16px;width:min(94vw,440px);overflow:hidden;box-shadow:0 14px 50px rgba(0,0,0,.45)">'
       +'<div style="background:#c62828;color:#fff;padding:14px 18px;font-size:19px;font-weight:900;display:flex;align-items:center;gap:10px"><span style="font-size:26px">🔒</span>읽기 전용 — 저장 안 됨</div>'
       +'<div style="padding:18px 20px;font-size:15.5px;line-height:1.8;color:#3a1a1a;word-break:keep-all">'
-      +(who?('<b style="color:#c62828;font-size:17px">'+String(who).replace(/</g,'&lt;')+'</b>님이 이 사업을 편집 중입니다.<br>'):'이 사업은 읽기 전용으로 열려 있습니다.<br>')
+      +(who?('<b style="color:#c62828;font-size:17px">'+String(who).replace(/</g,'&lt;')+'</b>님이 이 사업'+_ar9+'을 편집 중입니다.<br>'):'이 사업은 읽기 전용으로 열려 있습니다.<br>')
       +'지금 여기서 하는 <b>야장 작성·사진 촬영·측점 편집은 전부 저장되지 않습니다.</b><br>'
       +'<span style="color:#7a4a4a;font-size:13.5px">편집하려면 그 작업자가 사업을 닫은 뒤(홈으로) 1분 후 다시 여세요.</span></div>'
       +'<div style="padding:0 18px 16px"><button id="roWarnOk9" style="width:100%;background:#c62828;color:#fff;border:0;border-radius:10px;padding:13px;font-size:16px;font-weight:900;display:flex;align-items:center;justify-content:center">확인 — 읽기만 하겠습니다</button></div></div>';
@@ -8777,7 +8784,7 @@ function posFldDoneTable9(el,pl,projName,pid,photoRows){/* [BUILD2244] 정위치
 function posFldDoneList9(){/* [BUILD2245] 목록 생략 — 현재 사업의 측량(현장) 성과를 바로 열기 */
  if(typeof sb==='undefined'||!online){toast('온라인에서만 열람 가능합니다');return;}
  var base=(typeof baseName==='function')?baseName(state.projectName||''):'';
- sb.from('field_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}).then(function(res){
+ sb.from('field_projects').select('id,name,updated_at,payload,mn_payload').order('updated_at',{ascending:false}).then(function(res){try{_mnRowNorm9(res&&res.data);}catch(_mn){}/* [BUILD3273] */
   var rows=((res&&res.data)||[]).filter(function(r){var pl=r.payload||{};return !pl.delAt&&(pl.stage||'field')==='field';});
   var hit=null;
   var _nz9=function(x){return String(x||'').replace(/\s+/g,'').toLowerCase();};
@@ -9260,7 +9267,7 @@ function uiAlert9(msg,okLb){_posModal9(msg,okLb||'확인',null,null,true);}/* [B
 function _posSig9(){try{var s=JSON.stringify({p:state.points||[],l:state.lines||[],m:state.manholes||[],n:state.mnList||[],t:state.tgStore||null,d:state._depthManual||null,a9:state.tgAddSegs||[],f9:state.tgFixSegs||[],ld:state.sdLead9||null,lde9:state.sdLeadEw9||null,pl9:state.sdPipeLay9||null,pc9:state.posCuts9||null,pj9:state.posJoins9||null,dm9:state.posDimMan9||null,dd9:state.posDimDel9||null,lh9:state.posLeadHide9||null,an9:state.posAnch9||null});/* [BUILD2256] 인출선 이동 시 캐시 무효화 · [BUILD2771] 관 배치 */var h=5381;for(var i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(i))>>>0;}return h+'-'+s.length;}catch(_e){return null;}}
 function _posFldLatest9(cb){/* 같은 사업명 field 최신 완료본 */
   var base=baseName(state.projectName||'');
-  sb.from('field_projects').select('id,name,updated_at,payload').then(function(res){
+  sb.from('field_projects').select('id,name,updated_at,payload,mn_payload').then(function(res){try{_mnRowNorm9(res&&res.data);}catch(_mn){}/* [BUILD3273] */
     var rows=((res&&res.data)||[]).filter(function(r){var pl=r.payload||{};return !pl.delAt&&(pl.stage||'survey')==='field'&&baseName(r.name)===base;});
     rows.sort(function(a,b){return (''+(b.updated_at||'')).localeCompare(''+(a.updated_at||''));});
     cb(rows[0]||null);
@@ -10172,8 +10179,18 @@ function mnDetectSpec(dep,w12,w34){
 }
 var MH_OWNERS=['SKT','SKB','KT','LG','LGU+','CATV','SJ','DL','\uc2dc\uccad'];/* [1553] \ub3c4\uba74\u00b7\uc57c\uc7a5 \uacf5\uc6a9 \uc18c\uc720\uc790 \ubaa9\ub85d (\uc138\uc885\u2192SJ, \ub4dc\ub9bc\u2192DL, CATV \ucd94\uac00) */
 function _tgMnJump(mh){/* [BUILD1898] 탱고: 맨홀도 열림 상태에서 맨홀 클릭→해당 야장 자동 이동(mhId→라벨 정규화 폴백) */try{var rec=(typeof mnList==='function')?mnList().filter(function(r){return r&&!r.delAt&&r.mhId===mh.id;})[0]:null;if(!rec&&typeof refNormLab==='function'&&typeof mnLabel==='function'){var bl=refNormLab(mh.label||'');if(bl)rec=mnList().filter(function(r){return r&&!r.delAt&&refNormLab(mnLabel(r))===bl;})[0];if(rec)rec.mhId=mh.id;}if(rec){mnOpenForm(rec);try{drawManholes();}catch(_d){}}else{if(typeof toast==='function')toast('이 맨홀의 조사 야장이 없습니다');}}catch(e){}}
-function tgPullMnFromField(cb){/* [BUILD1896] 탱고(_T)에서 맨홀도 야장 자동 인계 — 빈 경우만 field 원본 mnList 복사(사진 URL 포함), 탱고 편집본 있으면 보존 */try{if(!(typeof IS_TANGO!=='undefined'&&IS_TANGO)){if(cb)cb(false);return;}if(!online||!state.projectName){if(cb)cb(false);return;}var cur=(state.mnList||[]).filter(function(r){return r&&!r.delAt;});if(cur.length){if(cb)cb(false);return;}var base=baseName(state.projectName);sb.from('field_projects').select('id,name,payload').then(function(res){try{var rows=((res&&res.data)||[]).filter(function(r){var pl=r.payload||{};return !pl.delAt&&(pl.stage||'survey')==='field'&&baseName(r.name)===base;});var src=(rows[0]&&rows[0].payload&&rows[0].payload.mnList)||[];var list=src.filter(function(r){return r&&!r.delAt;});if(!list.length){if(cb)cb(false);return;}state.mnList=JSON.parse(JSON.stringify(list));if(typeof saveProject==='function')try{saveProject();}catch(_s){}if(typeof toast==='function')toast('맨홀도 '+list.length+'건 현장에서 자동 인계');if(cb)cb(true);}catch(_e2){if(cb)cb(false);}});}catch(e){if(cb)cb(false);}}
+function tgPullMnFromField(cb){/* [BUILD1896] 탱고(_T)에서 맨홀도 야장 자동 인계 — 빈 경우만 field 원본 mnList 복사(사진 URL 포함), 탱고 편집본 있으면 보존 */try{if(!(typeof IS_TANGO!=='undefined'&&IS_TANGO)){if(cb)cb(false);return;}if(!online||!state.projectName){if(cb)cb(false);return;}var cur=(state.mnList||[]).filter(function(r){return r&&!r.delAt;});if(cur.length){if(cb)cb(false);return;}var base=baseName(state.projectName);sb.from('field_projects').select('id,name,payload,mn_payload').then(function(res){try{_mnRowNorm9(res&&res.data);/* [BUILD3273] */var rows=((res&&res.data)||[]).filter(function(r){var pl=r.payload||{};return !pl.delAt&&(pl.stage||'survey')==='field'&&baseName(r.name)===base;});var src=(rows[0]&&rows[0].payload&&rows[0].payload.mnList)||[];var list=src.filter(function(r){return r&&!r.delAt;});if(!list.length){if(cb)cb(false);return;}state.mnList=JSON.parse(JSON.stringify(list));if(typeof saveProject==='function')try{saveProject();}catch(_s){}if(typeof toast==='function')toast('맨홀도 '+list.length+'건 현장에서 자동 인계');if(cb)cb(true);}catch(_e2){if(cb)cb(false);}});}catch(e){if(cb)cb(false);}}
 function mnList(){if(!state.mnList)state.mnList=[];return state.mnList;}
+function _mnMergeLoad9(a,col){/* [BUILD3273] 야장 목록 = payload.mnList(구) ∪ mn_payload.list(신, 야장 전용 열) — 같은 id는 더 최근(up/at) 것. 구·신 빌드가 섞여 다른 칸에 저장해도 야장을 잃지 않음. mn_payload={at,list} */
+  try{var A=Array.isArray(a)?a:[];var B=(col&&Array.isArray(col.list))?col.list:(Array.isArray(col)?col:[]);if(!B.length)return A;if(!A.length)return B.slice();
+    var m={},ord=[];function put(r){if(!r)return;var k=(r.id!=null)?String(r.id):('_'+ord.length);var o=m[k];if(!o){m[k]=r;ord.push(k);return;}var t1=String(r.up||r.at||''),t0=String(o.up||o.at||'');if(t1>t0)m[k]=r;}
+    A.forEach(put);B.forEach(put);return ord.map(function(k){return m[k];});}catch(_e){return Array.isArray(a)?a:[];}}
+function _mnRowNorm9(rows){/* [BUILD3273] 다른 공정이 읽는 field_projects 행: payload.mnList를 mn_payload와 병합해 둠(소비 코드 무변경) */
+  try{(Array.isArray(rows)?rows:[rows]).forEach(function(r){if(r&&r.payload&&typeof r.payload==='object')r.payload.mnList=_mnMergeLoad9(r.payload.mnList,r.mn_payload);});}catch(_e){}return rows;}
+function _mnCol9(payload){return {at:new Date().toISOString(),list:(payload&&payload.mnList)||[]};}
+function _histIns9(payload){/* [BUILD3273] 이력 insert — field는 mn_payload도 같이(열 없으면 빼고 재시도) */
+  var rec={project_id:state.projectId,payload:payload};if(DB==='field'&&!window._mnColMissing9)rec.mn_payload=_mnCol9(payload);
+  return sb.from(DB+'_history').insert(rec).then(function(hr){if(hr&&hr.error&&rec.mn_payload!==undefined&&/mn_payload/i.test(String(hr.error.message||''))){window._mnColMissing9=true;delete rec.mn_payload;return sb.from(DB+'_history').insert(rec);}return hr;});}
 function mnHasId(r){return !!(r&&((r.no||'').trim()||(r.owner&&r.owner!=='_c')||(r.owner==='_c'&&(r.ownerC||'').trim())||r.newFlag));}/* [1547] \ubc88\ud638 \uc5c6\uc5b4\ub3c4 \uc18c\uc720\uc790\u00b7\uc2e0\uae30 \uc788\uc73c\uba74 \ud45c\uc2dc */
 function mnLabel(r){var ow=(r.owner==='_c'?(r.ownerC||''):(r.owner||''));var nt=(r.note||'').trim();var pf=(r.newFlag==='신설'?'신설':(r.newFlag==='기설'?'기설':''));return pf+(r.no||'')+(ow?'('+ow+')':'')+(nt?nt:'');}
 function mnStripPf(t){return String(t==null?'':t).replace(/^(\uC2E0\uC124|\uAE30\uC124)/,'');}/* [1590] \ud45c\uc2dc\uc6a9 \uc811\ub450 \uc81c\uac70 */
@@ -10321,6 +10338,7 @@ function mnMobilePick(){/* [1636] 폰 — 도면에서 야장 맨홀 선택(초�
 }
 function mnOpenList(){
   if(!state.projectId){toast('먼저 사업을 선택하세요');return;}
+  try{if(typeof _lkTouch9==='function')_lkTouch9('mn');}catch(_lk){}/* [BUILD3274] 맨홀도 창 열면 맨홀도 잠금 자동 */
   var host=mnHostOpen();
   try{setTimeout(function(){if(typeof refDrawMh==='function')refDrawMh();if(typeof drawManholes==='function')drawManholes();},0);}catch(e){}   /* [1094] 야장 열면 맨홀원 다시 표시 *//* [BUILD1999] refDrawMh는 REF 결선 맨홀 전용 — [1262] 야장 표시 원은 drawManholes 안에 있어 팬/줌 전까지 안 뜨던 문제 */
   var old=document.getElementById('mnListModal');if(old)old.remove();
@@ -15015,7 +15033,8 @@ function mnFixOrient(blob){
   });
 }
 function mnShootSlot(rec,slot,done){
-  if(typeof readOnly!=='undefined'&&readOnly){try{_roWarn9(true);}catch(_rw){}return;}/* [BUILD3272] 읽기 전용: 사진이 저장소에만 올라가고 야장은 안 남는 반쪽 저장 차단 */
+  if(typeof readOnly!=='undefined'&&readOnly){try{_roWarn9(true);}catch(_rw){}return;}
+  if(typeof _lkRO9==='function'&&_lkRO9('mn')){try{_roWarn9(true,_lk9.mn.holder,_lkLabel9('mn'));}catch(_rw){}return;}try{_lkTouch9('mn');}catch(_lk){}/* [BUILD3274] *//* [BUILD3272] 읽기 전용: 사진이 저장소에만 올라가고 야장은 안 남는 반쪽 저장 차단 */
   try{mnCaptureGeo(rec,slot);}catch(e){}
   var fi=document.createElement('input');fi.type='file';fi.accept='image/*';fi.setAttribute('capture','environment');fi.style.display='none';
   document.body.appendChild(fi);
@@ -15150,6 +15169,7 @@ function mnPipeBtnsHtml(rec){
 }
 function mnPersistRec(rec,msg){
   if(rec&&rec._simsaTmp9)return;/* [BUILD3215] 심사용 사본은 저장 안 함 */
+  window._lkCtx9='mn';/* [BUILD3274] 야장 저장 = 맨홀도 잠금 영역 */
   rec.up=new Date().toISOString();
   var L=mnList(),ix=-1;L.forEach(function(r,i){if(r.id===rec.id)ix=i;});
   if(ix<0)L.push(rec);else L[ix]=rec;
@@ -18016,6 +18036,7 @@ function phProgDone9(ok,total,fail,unm){
 }
 function uploadPhotos(files){
   if(typeof readOnly!=='undefined'&&readOnly){try{_roWarn9(true);}catch(_rw){}return;}/* [BUILD3272] */
+  if(typeof _lkRO9==='function'&&_lkRO9('sv')){try{_roWarn9(true,_lk9.sv.holder,_lkLabel9('sv'));}catch(_rw){}return;}try{_lkTouch9('sv');}catch(_lk){}/* [BUILD3274] */
   if(!online){toast('로컬 모드 — 사진 저장 불가');return;}
   if(!state.projectId){toast('먼저 "저장"으로 현장을 저장한 뒤 사진을 올려주세요');return;}
   var arr=[].slice.call(files);if(!arr.length)return;
@@ -18334,10 +18355,78 @@ function _lockTry(id, cb){
   }, function(){ cb(true,ME); });
 }
 
+/* ===== [BUILD3274] ★측량현장 잠금 2종(측설 sv=applock stage 'field' · 맨홀도 mn=stage 'field_mn') — 쓸 때 자동으로 잡고 5분 안 쓰면 자동으로 놓음. 저장 칸도 짝(sv→payload, mn→mn_payload) ===== */
+var LK_IDLE9=5*60000;/* 자동 해제: 그 영역을 5분 안 건드리면 갱신을 멈춰 만료 */
+var _lk9={sv:{mine:false,holder:null,ts:0,last:0,pend:null},mn:{mine:false,holder:null,ts:0,last:0,pend:null}},_lkTimer9=null,_lkPid9=null;
+function _lkOn9(){return (typeof STAGE!=='undefined'&&STAGE==='field'&&typeof IS_POSITION!=='undefined'&&!IS_POSITION);}
+function _lkStage9(a){return a==='mn'?'field_mn':'field';}
+function _lkLabel9(a){return a==='mn'?'맨홀도':'측설';}
+function _lkFree9(row){return !row||!row.ts||row.holder===ME||(Date.now()-new Date(row.ts).getTime()>LOCK_TTL);}
+function _lkHas9(a){return !!(_lk9[a]&&_lk9[a].mine);}
+function _lkRO9(a){var L=_lk9[a];return !!(L&&!L.mine&&L.holder&&L.holder!==ME&&(Date.now()-(L.ts||0)<=LOCK_TTL));}/* 남이 잡고 있음(만료 전) */
+function _lkTouch9(a){var L=_lk9[a];if(!L)return;if(L.mine){L.last=Date.now();return;}if(_lkOn9()&&state.projectId&&!_lkRO9(a))_lkAcquire9(a,function(){try{_lkBar9();}catch(_e){}});}
+function _lkAcquire9(a,cb){/* cb(ok,holder) — 비어 있으면 잡음(테이블 오류=fail-open) */
+  var L=_lk9[a];if(!L){cb(true,ME);return;}
+  if(L.mine){L.last=Date.now();cb(true,ME);return;}
+  if(!state.projectId){cb(true,ME);return;}
+  if(L.pend){L.pend.push(cb);return;}L.pend=[cb];
+  var pid=String(state.projectId),done=function(ok,h){var cbs=L.pend||[];L.pend=null;cbs.forEach(function(f){try{f(ok,h);}catch(_e){}});try{_lkBar9();}catch(_b){}};
+  try{sb.from(LOCK_TABLE).select('*').eq('stage',_lkStage9(a)).eq('project_id',pid).limit(1).then(function(res){
+    if(res&&res.error){done(true,ME);return;}
+    var row=res&&res.data&&res.data[0];
+    if(!_lkFree9(row)){L.mine=false;L.holder=row.holder||'다른 사용자';L.ts=new Date(row.ts).getTime();done(false,L.holder);return;}
+    sb.from(LOCK_TABLE).upsert({stage:_lkStage9(a),project_id:pid,holder:ME||'(미지정)',ts:new Date().toISOString()}).then(function(r2){
+      L.mine=true;L.holder=ME;L.ts=Date.now();L.last=Date.now();_lkPid9=pid;_lkTimerOn9();
+      try{if(typeof toast==='function')toast('✏️ '+_lkLabel9(a)+' 편집 시작 — 자동 잠금');}catch(_t){}
+      done(true,ME);},function(){done(true,ME);});
+  },function(){done(true,ME);});}catch(_e){done(true,ME);}}
+function _lkRelease9(a,quiet){var L=_lk9[a];if(!L||!L.mine)return;L.mine=false;L.holder=null;L.ts=0;
+  try{sb.from(LOCK_TABLE).delete().eq('stage',_lkStage9(a)).eq('project_id',String(_lkPid9||state.projectId)).eq('holder',ME).then(function(){},function(){});}catch(_e){}
+  if(!quiet){try{if(typeof toast==='function')toast(_lkLabel9(a)+' 편집 잠금 해제(5분 미사용) — 다시 건드리면 자동으로 잡힙니다');}catch(_t){}}
+  try{_lkBar9();}catch(_b){}}
+function _lkReleaseAll9(){['sv','mn'].forEach(function(a){_lkRelease9(a,true);});if(_lkTimer9){clearInterval(_lkTimer9);_lkTimer9=null;}}
+function _lkBeat9(){/* 30초: 내 잠금 갱신(5분 미사용이면 해제) + 상대 상태 조회 */
+  try{if(!_lkOn9()||!state.projectId)return;var now=Date.now();
+    ['sv','mn'].forEach(function(a){var L=_lk9[a];if(!L.mine)return;if(now-L.last>LK_IDLE9){_lkRelease9(a);return;}
+      sb.from(LOCK_TABLE).update({ts:new Date().toISOString()}).eq('stage',_lkStage9(a)).eq('project_id',String(state.projectId)).eq('holder',ME).then(function(){},function(){});});
+    _lkPeek9();}catch(_e){}}
+function _lkPeek9(cb){/* 두 영역 보유자 조회(잡지 않음) */
+  try{if(!_lkOn9()||!state.projectId){if(cb)cb();return;}sb.from(LOCK_TABLE).select('stage,holder,ts').eq('project_id',String(state.projectId)).in('stage',['field','field_mn']).then(function(res){
+    var rows=(res&&res.data)||[];['sv','mn'].forEach(function(a){var L=_lk9[a];if(L.mine)return;var row=rows.filter(function(r){return r.stage===_lkStage9(a);})[0];if(row&&!_lkFree9(row)){L.holder=row.holder;L.ts=new Date(row.ts).getTime();}else{L.holder=null;L.ts=0;}});
+    try{_lkBar9();}catch(_b){}if(cb)cb();},function(){if(cb)cb();});}catch(_e){if(cb)cb();}}
+function _lkTimerOn9(){if(_lkTimer9)return;_lkTimer9=setInterval(_lkBeat9,LOCK_BEAT);}
+function _lkBar9(){/* 헤더 위 상태 띠: 측설 · 맨홀도 각각 [내가 편집 ✓ / 🔒 이름 / 비어 있음] */
+  var bar=document.getElementById('lkBar9');
+  if(!_lkOn9()||!state.projectId||readOnly){if(bar)bar.remove();return;}
+  var any=false,html='';['sv','mn'].forEach(function(a){var L=_lk9[a],col=(a==='mn')?'#8e44ad':'#16a34a',txt,bg;
+    if(L.mine){txt='✓ 내가 편집';bg=col;any=true;}
+    else if(_lkRO9(a)){txt='🔒 '+String(L.holder).replace(/</g,'&lt;')+' 편집 중';bg='#c62828';any=true;}
+    else{txt='비어 있음';bg='#9aa0a6';}
+    html+='<span style="display:inline-flex;align-items:center;gap:5px;background:'+bg+';color:#fff;border-radius:20px;padding:3px 11px;font-weight:900;font-size:12px;white-space:nowrap">'+_lkLabel9(a)+' · '+txt+'</span>';});
+  if(!any){if(bar)bar.remove();return;}
+  if(!bar){bar=document.createElement('div');bar.id='lkBar9';bar.style.cssText='flex:none;order:-998;background:#fff;border-bottom:2px solid #e6e6e0;padding:5px 10px;display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap;position:relative;z-index:5';bar.onclick=function(){_lkPeek9();};document.body.insertBefore(bar,document.body.firstChild);}
+  bar.innerHTML=html;}
+function _lkGate9(a,silent){/* 쓰기 전 관문: 내 잠금이면 true / 남이면 경고창(자동저장은 조용히) / 비어 있으면 false(호출측이 acquire) */
+  if(!_lkOn9())return true;var L=_lk9[a];if(L.mine){L.last=Date.now();return true;}
+  if(_lkRO9(a)){if(!silent){try{_roWarn9(true,L.holder,_lkLabel9(a));}catch(_e){}}return false;}
+  return false;}
+
+function _lkFresh9(a,sil,cb){/* [BUILD3274] 잠금을 새로 잡은 직후 — 그 영역이 서버에서 바뀌었으면 반영. mn: mn_payload를 병합(내 편집이 더 최근이면 유지) / sv: payload._at9가 다르면 다시 불러옴(수동 저장 때만, 이번 저장은 취소) */
+  try{if(!state.projectId){cb(true);return;}
+    if(a==='mn'){sb.from('field_projects').select('mn_payload').eq('id',state.projectId).single().then(function(r){try{var col=r&&r.data&&r.data.mn_payload;if(col&&col.at&&col.at!==(state._mnAt9||'')){state.mnList=_mnMergeLoad9(state.mnList,col);state._mnAt9=col.at;if(typeof toast==='function')toast('다른 기기의 야장 변경을 합쳤어요');}}catch(_e){}cb(true);},function(){cb(true);});return;}
+    sb.from('field_projects').select('payload->_at9').eq('id',state.projectId).single().then(function(r){var at=r&&r.data&&r.data._at9;
+      if(at&&at!==(state._svAt9||'')&&state._svAt9){if(sil){cb(false);return;}if(typeof toast==='function')toast('다른 기기가 저장한 측설 자료를 다시 불러옵니다');try{_loadProjectRaw(state.projectId,false,function(){});}catch(_l){}cb(false);return;}
+      cb(true);},function(){cb(true);});
+  }catch(_e){cb(true);}}
+
 /* loadProject 잠금 래퍼 (원본=_loadProjectRaw) */
 function loadProject(id,ro,cb){
   if(!online||!id)return;
   if(ro===true){ state._foreignLock=null; _loadProjectRaw(id,true,cb); return; }
+  if(_lkOn9()){/* [BUILD3274] 측량현장: 열 때는 안 잡고(두 팀 동시 입장), 쓸 때 영역별 자동 */
+    _lkReleaseAll9();_lockRelease();state._foreignLock=null;
+    _loadProjectRaw(id,false,function(){try{_lkPid9=String(state.projectId);_lkTimerOn9();_lkPeek9();}catch(_e){}if(typeof cb==='function')cb();});
+    return;}
   _lockRelease();
   _lockTry(id,function(ok,holder){
     if(ok){ state._foreignLock=null; _loadProjectRaw(id,false,cb); }
@@ -18345,7 +18434,7 @@ function loadProject(id,ro,cb){
   });
 }
 
-try{ window.addEventListener('beforeunload', function(){ _lockRelease(); }); }catch(e){}
+try{ window.addEventListener('beforeunload', function(){ _lockRelease(); try{_lkReleaseAll9();}catch(_e){} }); }catch(e){}
 
 /* ===== 잠금 모듈 끝 ===== */
 
@@ -21593,8 +21682,8 @@ function tgFinalTakeOpen(){ /* 최종성과 인수 — CSV/전사진=결선(_A) 
   function _load(){ /* [1309] 첫 조회가 빈 응답이면 0.6초 후 최대 2회 자동 재시도 */
     Promise.all([
       sb.from('survey_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false}),
-      sb.from('field_projects').select('id,name,updated_at,payload').order('updated_at',{ascending:false})
-    ]).then(function(rs){
+      sb.from('field_projects').select('id,name,updated_at,payload,mn_payload').order('updated_at',{ascending:false})
+    ]).then(function(rs){try{_mnRowNorm9(rs[1]&&rs[1].data);}catch(_mn){}/* [BUILD3273] */
       if(!pop.parentNode)return;
       R.sv=_pick(rs[0],'survey');R.fld=_pick(rs[1],'field');
       if(!R.sv&&!R.fld&&_try<2){_try++;body.innerHTML='<div style="color:#999;text-align:center;padding:24px 0">계열 성과 조회 중… (재시도 '+_try+')</div>';setTimeout(_load,600);return;}
