@@ -8746,7 +8746,7 @@ function posFldDoneTable9(el,pl,projName,pid,photoRows){/* [BUILD2244] 정위치
   ['csvExp','노출관로 CSV',(pts.length?'통합 1건':'-'),'측점 '+pts.length+'개 · 통합 측설용 CSV',pts.length>0,'CSV'],
   ['csv','후측량 CSV',(fcN?fcN+'건':'-'),'후측량 업로드 CSV '+fcN+'건',fcN>0,'CSV'],
   ['line','결선',(seg?'DXF 1건':'-'),'측량(현장) 최종 결선 사본 · 거리 '+(+tot.toFixed(1))+'m · '+seg+'개',seg>0,'DXF'],
-  ['exPhoto','노출관로 사진',(exN?exN+'장':'-'),'실시간 측점 사진',exN>0,'ZIP'],
+  ['exPhoto','노출관로 사진',_exPhotoCell9(exN,(function(){try{var bg={};((pl&&pl.points)||[]).forEach(function(p){if(p&&p.no!=null&&(/\uBCF4\uAC15\uD310/.test(String(p.code||''))||/\uBCF4\uAC15/.test(String(p.no||''))))bg[String(p.no)]=1;});var n=0;exAll.forEach(function(x){if(bg[String(x.no)])n++;});return n;}catch(_e){return 0;}})()),'실시간 측점 사진',exN>0,'ZIP'],/* [BUILD3278] 측점+보강판 내역 */
   ['joseo','실시간 사진조서','-','측점 사진조서 — 측량(현장)에서 등록',false,'ZIP'],
   ['aftPhoto','측설사진',(afN?afN+'장':'-'),'측설(_A) 사진',afN>0,'ZIP'],
   ['mnDxf','맨홀도',(mnN?mnN+'개':'-'),'맨홀 상세도',false,'DXF'],
@@ -9887,6 +9887,9 @@ function _rawDiffReport9(){/* [BUILD3049] 원본(raworig_) ↔ 수정원시(rawm
       var lo=dec(o).split(/\r?\n/),lm=dec(m).split(/\r?\n/);var n=Math.max(lo.length,lm.length);var ws=wb.addWorksheet(shName(kk+'_'+nm));ws.addRow(['줄','원본','수정','다른 위치(글자)']).font={bold:true};ws.columns=[{width:7},{width:90},{width:90},{width:14}];var cnt=0;for(var L=0;L<n;L++){var a=lo[L]==null?'':lo[L],b=lm[L]==null?'':lm[L];if(a===b)continue;cnt++;var pos=0;while(pos<a.length&&pos<b.length&&a[pos]===b[pos])pos++;var r=ws.addRow([L+1,a,b,pos+1]);r.getCell(3).font={color:{argb:'FFFF0000'},bold:true};}
       sum.addRow(['20'+kk,pth,o.length,m.length,'아니오',cnt,'줄 수 '+lo.length+'→'+lm.length+(lo.length===lm.length?' (동일)':' (다름!)')]);totDiff+=cnt;setTimeout(nx2,0);})['catch'](function(){sum.addRow(['20'+kk,pth,'-','-','?',0,'읽기 실패']);setTimeout(nx2,0);});})();});})['catch'](function(e){sum.addRow(['20'+kk,'(ZIP)','-','-','?',0,'ZIP 못 받음: '+(e&&e.message||e)]);}).then(function(){setTimeout(nx,20);});})();
  }catch(e){toast('대조 보고서 오류: '+(e&&e.message||e));}}
+function _bgPhotoCnt9(keys){/* [BUILD3278] 노출관로 사진 중 보강판 사진 수 — 사진 키(측점 번호)의 도면 측점 코드가 '보강판'(시작/끝)이면 보강판 사진. 총수량 = 측점 + 보강판 */
+  try{var bg={};(state.points||[]).forEach(function(p){if(!p||p.no==null)return;if(/보강판/.test(String(p.code||''))||/보강/.test(String(p.no||'')))bg[String(p.no)]=1;});var n=0;(keys||[]).forEach(function(k){if(bg[String(k)])n++;});return n;}catch(_e){return 0;}}
+function _exPhotoCell9(exN,bgN){return exN?(exN+'장'+(bgN?('<div style="font-size:11px;font-weight:600;color:#667;margin-top:2px;white-space:nowrap">측점 '+(exN-bgN)+' + 보강판 '+bgN+'</div>'):'')):'-';}
 function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선DB 완료성과 양식(초록), 변경내용 열 없음 */
  var fd=state.fieldDone||{};state.fieldDone=fd;
  try{if(fd.aftPhoto==null){var _an=Object.keys(afterMap||{}).filter(function(k){return !!afterMap[k];}).length;if(_an>0){fd.aftPhoto=true;if(online&&state.projectId){window._silentSave=true;saveProject();}if(typeof _fldStakePhSync==='function')_fldStakePhSync();}}}catch(_ae){}
@@ -9905,7 +9908,7 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
   var _afM9=null;try{_afM9=_aftCsvMerged9();}catch(_am){}/* [BUILD2347] 후측량 통합본 집계 */
   var _aftRM9=state.aftRawMeta9||{},aftRawN=0;for(var ak in _aftRM9)aftRawN++;
   var fcN=(state.finalCsv||[]).length;
-  var exN=0,afN=0;try{for(var k1 in (typeof photoMap!=='undefined'?photoMap:{}))exN++;}catch(_e1){}
+  var exN=0,afN=0,bgN=0;try{var _pk9=[];for(var k1 in (typeof photoMap!=='undefined'?photoMap:{})){exN++;_pk9.push(k1);}bgN=_bgPhotoCnt9(_pk9);}catch(_e1){}/* [BUILD3278] 보강판 사진 수 */
   try{for(var k2 in (typeof afterMap!=='undefined'?afterMap:{}))afN++;}catch(_e2){}
   var mnN=0;try{mnN=((typeof mnList==='function')?mnList():(state.mnList||[])).filter(function(r){return r&&!r.delAt;}).length;}catch(_e3){mnN=0;}
   var mnPh=0,mnPhMh=0;try{((typeof mnList==='function')?mnList():(state.mnList||[])).forEach(function(r){if(!r||r.delAt)return;var n=0;try{for(var pk in (r.photos||{}))if(r.photos[pk])n++;}catch(_pc){}if(n){mnPh+=n;mnPhMh++;}});}catch(_e4){}/* [BUILD2856] 맨홀 사진 집계 — _phCnt는 다른 스코프 지역 함수라 여기서 항상 0장('-')으로 나오던 것 수정, 맨홀 개수·총 장수 표시 */
@@ -9923,7 +9926,7 @@ function openFinalStatus(){/* [BUILD2232] 측량(현장) 최종성과 — 결선
    ['csvExp','노출관로 CSV',(_svPtN9?'통합 1건':'-'),'현재 도면 반영 통합본(수정·삭제 포함) · 측점 '+_svPtN9+'개',_svPtN9>0,'CSV'],
    ['csv','후측량 CSV',(fcN?'통합 1건':'-'),'원본 '+fcN+'건 통합 · 도면 반영(삭제 '+(_afM9?_afM9.dropped:0)+'행 제외) · 측점 '+(_afM9?_afM9.kept:0)+'개',fcN>0,'CSV'],
    ['line','결선',(seg?'DXF 1건':'-'),'후측량 반영 최종 결선 · 거리 '+(+tot.toFixed(1))+'m · '+seg+'개',seg>0,'DXF'],
-   ['exPhoto','노출관로 사진',(exN?exN+'장':'-'),'실시간 측점 사진',exN>0,'ZIP'],
+   ['exPhoto','노출관로 사진',_exPhotoCell9(exN,bgN),'실시간 측점 사진'+(bgN?' (측점 '+(exN-bgN)+'장 + 보강판 '+bgN+'장)':''),exN>0,'ZIP'],/* [BUILD3278] */
    ['joseo','실시간 사진조서',(joN?joN+'점':(fd.joseo?'등록완료':'-')),'측점 사진조서',joN>0,'ZIP'],
    ['aftPhoto','측설사진',(afN?afN+'장':'-'),'측설(_A) 사진',afN>0,'ZIP'],
    ['mnDxf','맨홀도',(mnN?mnN+'개':'-'),'맨홀 상세도',mnN>0,'DXF'],
