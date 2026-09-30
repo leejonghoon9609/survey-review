@@ -6612,7 +6612,7 @@ cv.addEventListener('pointerdown',function(e){
   if(typeof _tgMode==='function'&&_tgMode()&&mode!=='pan'&&mode!=='tgptedit'&&mode!=='tglineedit'&&mode!=='tglinedel'&&mode!=='measure'&&mode!=='tgsegfix'&&mode!=='tgsegadd'){if(typeof toast==='function')toast('탱고성과 제작 중에는 검수 편집도구를 쓸 수 없습니다');mode='pan';if(typeof setModeUI==='function')setModeUI();return;}
   if(mode==='bpcrop'&&e.button===0){var w=toWorld(e.clientX,e.clientY);bpCrop={sx:w[0],sy:w[1],ex:w[0],ey:w[1]};try{cv.setPointerCapture(e.pointerId);}catch(_){}e.preventDefault();return;}
   if(mode==='bperase'&&e.button===0){bpEraseAt(SL(toWorld(e.clientX,e.clientY)));e.preventDefault();return;}
-  if(e.pointerType==='touch'){activePtrs[e.pointerId]={x:e.clientX,y:e.clientY};
+  if(e.pointerType==='touch'){if(e.isPrimary===true&&Object.keys(activePtrs).length){activePtrs={};pinch=null;}/* [BUILD3281] 유령 포인터 제거: isPrimary=브라우저가 '다른 손가락 없음'을 보증 → 이전 기록은 pointerup 유실 유령 */activePtrs[e.pointerId]={x:e.clientX,y:e.clientY,t:Date.now()};
     var pids=Object.keys(activePtrs);
     if(pids.length>=2){ // 두 손가락 = 핀치 확대/축소(+이동)
       dragging=false;midPanning=false;drawing=false;pendAct=null;cv.style.cursor='';
@@ -6680,7 +6680,7 @@ cv.addEventListener('pointermove',function(e){
   if(noteDrag){var m=state.markups[noteDrag.i];
     if(!noteDrag.moved){if(Math.hypot(e.clientX-noteDrag.sx0,e.clientY-noteDrag.sy0)<8)return;noteDrag.moved=true;noteDrag.lastW=toWorld(e.clientX,e.clientY);}
     var wd=toWorld(e.clientX,e.clientY);if(m){m.cx+=wd[0]-noteDrag.lastW[0];m.cy+=wd[1]-noteDrag.lastW[1];noteDrag.lastW=wd;drawMarks();}return;}
-  if(pinch){var pids=Object.keys(activePtrs);if(pids.length<2)return;
+  if(pinch){if(window._tchN9!=null&&window._tchN9<2){pinch=null;activePtrs={};return;}/* [BUILD3281] 실제 손가락 수(touches.length)<2 → 핀치 강제 종료 */var pids=Object.keys(activePtrs);if(pids.length<2)return;
     var pa=activePtrs[pids[0]],pb=activePtrs[pids[1]];
     var pmx=(pa.x+pb.x)/2,pmy=(pa.y+pb.y)/2,d=Math.max(1,Math.hypot(pa.x-pb.x,pa.y-pb.y));
     var f=pinch.d0/d,r=cv.getBoundingClientRect();
@@ -6726,8 +6726,9 @@ function endPtr(e){
 }
 cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endPtr);
 /* 유령 포인터 청소: 손가락이 메뉴/팝업 위에서 떨어져도 확실히 제거 */
-window.addEventListener('pointerup',function(e){try{if(activePtrs[e.pointerId]!==undefined)delete activePtrs[e.pointerId];if(pinch&&Object.keys(activePtrs).length<2)pinch=null;}catch(_){}});
-window.addEventListener('pointercancel',function(e){try{if(activePtrs[e.pointerId]!==undefined)delete activePtrs[e.pointerId];if(pinch&&Object.keys(activePtrs).length<2)pinch=null;}catch(_){}});
+window.addEventListener('pointerup',function(e){try{if(activePtrs[e.pointerId]!==undefined)delete activePtrs[e.pointerId];if(pinch&&Object.keys(activePtrs).length<2)pinch=null;}catch(_){}},true);
+window.addEventListener('pointercancel',function(e){try{if(activePtrs[e.pointerId]!==undefined)delete activePtrs[e.pointerId];if(pinch&&Object.keys(activePtrs).length<2)pinch=null;}catch(_){}},true);/* [BUILD3281] capture=true: 자식 stopPropagation·요소 제거로 pointerup이 cv에 안 와도 반드시 정리 */
+['touchstart','touchmove','touchend','touchcancel'].forEach(function(_t9){window.addEventListener(_t9,function(e){try{window._tchN9=(e.touches?e.touches.length:null);if(window._tchN9!==null&&window._tchN9===0){activePtrs={};pinch=null;}}catch(_){}},{capture:true,passive:true});});/* [BUILD3281] 실제 손가락 수 추적(모든 손가락 뗌=기록 전부 비움) */
 cv.addEventListener('mousedown',function(e){if(e.button===1)e.preventDefault();});
 cv.addEventListener('auxclick',function(e){if(e.button===1)e.preventDefault();});
 cv.addEventListener('wheel',function(e){e.preventDefault();zoomWheelSmooth(e);},{passive:false});   /* [1189] 부드러운 휠 줌 */   /* [1123] 휠 감도 field만 1.16, 그 외 1.07 */
