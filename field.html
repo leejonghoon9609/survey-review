@@ -24,6 +24,7 @@
   .conn{font-size:12px;padding:4px 8px;border-radius:6px;margin-left:auto}
   .conn.on{background:#eef6ef;color:var(--ok)} .conn.off{background:#f3f3f0;color:var(--muted)}
   .subbar{display:flex;flex-wrap:wrap;gap:7px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line);background:#fff;min-height:62px}
+  @media (min-width:761px){.subbar{flex-wrap:nowrap!important;overflow-x:auto;gap:5px!important;padding:6px 10px!important;min-height:0!important}.subbar button{font-size:11.5px!important;padding:4px 8px!important;white-space:nowrap;flex:none}.subbar span,.subbar label{font-size:10.5px!important;white-space:nowrap;flex:none}.subbar select,.subbar input{font-size:11px!important;padding:3px 5px!important}}/* [BUILD3308] PC 도구 줄 한 줄 고정(버튼 축소, 모자라면 가로 스크롤) · 폰은 그대로 줄바꿈 */
   .sub-b{padding:11px 15px;font-size:14px;border-radius:8px}
   .subhint{font-size:12px;color:var(--muted)}
   .rail{width:205px;flex:none;border-right:1px solid var(--line);background:#fafaf8;padding:8px;display:flex;flex-direction:column;gap:7px;overflow-y:auto}
@@ -451,6 +452,12 @@
   /* 3줄: 완료성과목록 · 후측량 최종성과 등록 */
   .viewer #fldImport{order:14;margin-left:0!important}
   .viewer #fldFinal{order:14}
+  /* [BUILD3308] 2줄(완료결선 업로드~로드뷰) 한 줄 고정: 버튼 축소·간격 축소 */
+  .viewer #fldRefLoad,.viewer #fldRefHint~button,.viewer #globalbtns button,.viewer #fldUndoBtn,.viewer #fldRedoBtn,.viewer #fldRestoreBtn,.viewer #tamsaDelBtn,.viewer #fldTamsaDelBtn,.viewer #fldFit,.viewer #fldTerr,.viewer #fldCrop,.viewer #fldCsv,.viewer #vPhoto,.viewer #vMap,.viewer #vRv{font-size:11.5px!important;padding:5px 8px!important;white-space:nowrap}
+  .viewer #fldRefHint{font-size:11px!important;margin-right:6px!important}
+  .viewer #globalbtns button[data-g="delall2"]{margin-left:8px!important}
+  .viewer #fldCsv{margin-left:14px!important}
+  .viewer header{gap:5px!important}
 }
 /* [BUILD2023] PC 사진조서·맨홀도 버튼 축소 */
 @media(max-width:760px){#fldUndoFab9{display:block!important}}/* [BUILD2252] 폰 전용 되돌리기 */
@@ -879,7 +886,7 @@ window.FLD_HEAD9  = 86;      /* 사진창 헤더(방향ON 줄) 높이 */
     </div>
   </div>
 
-<script src="login.js?v=3307"></script><script src="core.js?v=3307"></script>
+<script src="login.js?v=3308"></script><script src="core.js?v=3308"></script>
 <script>
 /* [BUILD3266] 폰 준공도면 뷰어 — 실시간측량 rtOpenAsbuilt 복사(하단 40dvh 패널·핀치 확대·PDF 페이지 렌더). PC는 core.js openAsbuilt(새 창) 그대로 */
 function fldOpenAsbuilt9(){
